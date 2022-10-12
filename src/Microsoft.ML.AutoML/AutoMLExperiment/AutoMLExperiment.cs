@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace Microsoft.ML.AutoML
         internal const string PipelineSearchspaceName = "_pipeline_";
         private readonly AutoMLExperimentSettings _settings;
         private readonly MLContext _context;
-        private double _bestError = double.MaxValue;
+        private double _bestLoss = double.MaxValue;
         private TrialResult _bestTrialResult = null;
         private readonly IServiceCollection _serviceCollection;
         private CancellationTokenSource _globalCancellationTokenSource;
@@ -94,12 +95,6 @@ namespace Microsoft.ML.AutoML
         public AutoMLExperiment SetTrainingTimeInSeconds(uint trainingTimeInSeconds)
         {
             _settings.MaxExperimentTimeInSeconds = trainingTimeInSeconds;
-            return this;
-        }
-
-        public AutoMLExperiment SetIsMaximize(bool isMaximize)
-        {
-            _settings.IsMaximize = isMaximize;
             return this;
         }
 
@@ -238,10 +233,10 @@ namespace Microsoft.ML.AutoML
             var serviceProvider = _serviceCollection.BuildServiceProvider();
             var monitor = serviceProvider.GetService<IMonitor>();
             var logger = serviceProvider.GetRequiredService<IChannel>();
-            var trialNum = 0;
+            var trialResultManager = serviceProvider.GetService<ITrialResultManager>();
+            var trialNum = trialResultManager?.GetAllTrialResults().Max(t => t.TrialSettings?.TrialId) + 1 ?? 0;
             var tuner = serviceProvider.GetService<ITuner>();
             Contracts.Assert(tuner != null, "tuner can't be null");
-
             while (!_globalCancellationTokenSource.Token.IsCancellationRequested)
             {
                 var setting = new TrialSettings()
@@ -289,12 +284,13 @@ namespace Microsoft.ML.AutoML
 
                         monitor?.ReportCompletedTrial(trialResult);
                         tuner.Update(trialResult);
+                        trialResultManager?.AddOrUpdateTrialResult(trialResult);
 
-                        var error = _settings.IsMaximize ? 1 - trialResult.Metric : trialResult.Metric;
-                        if (error < _bestError)
+                        var loss = trialResult.Loss;
+                        if (loss < _bestLoss)
                         {
                             _bestTrialResult = trialResult;
-                            _bestError = error;
+                            _bestLoss = loss;
                             monitor?.ReportBestTrial(trialResult);
                         }
                     }
@@ -305,7 +301,7 @@ namespace Microsoft.ML.AutoML
                     var result = new TrialResult
                     {
                         TrialSettings = setting,
-                        Metric = _settings.IsMaximize ? double.MinValue : double.MaxValue,
+                        Loss = double.MaxValue,
                     };
 
                     tuner.Update(result);
@@ -330,6 +326,8 @@ namespace Microsoft.ML.AutoML
                 }
             }
 
+            trialResultManager?.Save();
+
             if (_bestTrialResult == null)
             {
                 throw new TimeoutException("Training time finished without completing a trial run");
@@ -351,8 +349,6 @@ namespace Microsoft.ML.AutoML
             public int? Seed { get; set; }
 
             public SearchSpace.SearchSpace SearchSpace { get; set; }
-
-            public bool IsMaximize { get; set; }
         }
     }
 }

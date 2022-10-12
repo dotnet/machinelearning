@@ -4,9 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.Runtime;
+using Newtonsoft.Json;
 using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Microsoft.ML.AutoML
@@ -157,12 +161,51 @@ namespace Microsoft.ML.AutoML
             return experiment;
         }
 
+        /// <summary>
+        /// Set checkpoint folder for <see cref="AutoMLExperiment"/>. The checkpoint folder will be used to save
+        /// temporary output, run history and many other stuff which will be used for restoring training process 
+        /// from last checkpoint and continue training.
+        /// </summary>
+        /// <param name="experiment"><see cref="AutoMLExperiment"/>.</param>
+        /// <param name="folder">checkpoint folder. This folder will be created if not exist.</param>
+        /// <returns><see cref="AutoMLExperiment"/></returns>
+        public static AutoMLExperiment SetCheckpoint(this AutoMLExperiment experiment, string folder)
+        {
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            experiment.ServiceCollection.AddSingleton<ITrialResultManager>(serviceProvider =>
+            {
+                var channel = serviceProvider.GetRequiredService<IChannel>();
+                var settings = serviceProvider.GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+
+                // todo
+                // pull out the logic of calculating experiment id into a stand-alone service.
+                var metricManager = serviceProvider.GetService<IMetricManager>();
+                var csvFileName = "trialResults";
+                csvFileName += $"-{settings.SearchSpace.GetHashCode()}";
+                if (metricManager is IMetricManager)
+                {
+                    csvFileName += $"-{metricManager.MetricName}";
+                }
+                csvFileName += ".csv";
+
+                var csvFilePath = Path.Combine(folder, csvFileName);
+                var trialResultManager = new CsvTrialResultManager(csvFilePath, settings.SearchSpace, channel);
+
+                return trialResultManager;
+            });
+
+            return experiment;
+        }
+
         private static AutoMLExperiment SetEvaluateMetric<TEvaluateMetricManager>(this AutoMLExperiment experiment, TEvaluateMetricManager metricManager)
             where TEvaluateMetricManager : class, IEvaluateMetricManager
         {
             experiment.ServiceCollection.AddSingleton<IMetricManager>(metricManager);
             experiment.ServiceCollection.AddSingleton<IEvaluateMetricManager>(metricManager);
-            experiment.SetIsMaximize(metricManager.IsMaximize);
 
             return experiment;
         }

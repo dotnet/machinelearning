@@ -170,6 +170,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(columnResult.Length, verify.Count());
             Assert.True(columnResult.ElementwiseEquals(verifyColumn).All());
         }
+
         [Fact]
         public void AddDecimalToByteDataFrameColumn()
         {

@@ -266,6 +266,7 @@ public static class ComparisonOperationCombinations
         new TypeCombination("ushort", "uint", "bool"),
         new TypeCombination("ushort", "ulong", "bool"),
         new TypeCombination("ushort", "ushort", "bool"),
+        new TypeCombination("DateTime", "DateTime", "bool"),
     };
 }
 #>

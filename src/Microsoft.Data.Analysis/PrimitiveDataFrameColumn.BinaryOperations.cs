@@ -45,6 +45,8 @@ namespace Microsoft.Data.Analysis
                     return AddImplementation(column as PrimitiveDataFrameColumn<ulong>, inPlace);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
                     return AddImplementation(column as PrimitiveDataFrameColumn<ushort>, inPlace);
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
+                    return AddImplementation(column as PrimitiveDataFrameColumn<DateTime>, inPlace);
                 default:
                     throw new NotSupportedException();
             }
@@ -90,6 +92,8 @@ namespace Microsoft.Data.Analysis
                     return SubtractImplementation(column as PrimitiveDataFrameColumn<ulong>, inPlace);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
                     return SubtractImplementation(column as PrimitiveDataFrameColumn<ushort>, inPlace);
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
+                    return SubtractImplementation(column as PrimitiveDataFrameColumn<DateTime>, inPlace);
                 default:
                     throw new NotSupportedException();
             }
@@ -135,6 +139,8 @@ namespace Microsoft.Data.Analysis
                     return MultiplyImplementation(column as PrimitiveDataFrameColumn<ulong>, inPlace);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
                     return MultiplyImplementation(column as PrimitiveDataFrameColumn<ushort>, inPlace);
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
+                    return MultiplyImplementation(column as PrimitiveDataFrameColumn<DateTime>, inPlace);
                 default:
                     throw new NotSupportedException();
             }
@@ -180,6 +186,8 @@ namespace Microsoft.Data.Analysis
                     return DivideImplementation(column as PrimitiveDataFrameColumn<ulong>, inPlace);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
                     return DivideImplementation(column as PrimitiveDataFrameColumn<ushort>, inPlace);
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
+                    return DivideImplementation(column as PrimitiveDataFrameColumn<DateTime>, inPlace);
                 default:
                     throw new NotSupportedException();
             }
@@ -225,6 +233,8 @@ namespace Microsoft.Data.Analysis
                     return ModuloImplementation(column as PrimitiveDataFrameColumn<ulong>, inPlace);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
                     return ModuloImplementation(column as PrimitiveDataFrameColumn<ushort>, inPlace);
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
+                    return ModuloImplementation(column as PrimitiveDataFrameColumn<DateTime>, inPlace);
                 default:
                     throw new NotSupportedException();
             }
@@ -270,6 +280,8 @@ namespace Microsoft.Data.Analysis
                     return AndImplementation(column as PrimitiveDataFrameColumn<ulong>, inPlace);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
                     return AndImplementation(column as PrimitiveDataFrameColumn<ushort>, inPlace);
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
+                    return AndImplementation(column as PrimitiveDataFrameColumn<DateTime>, inPlace);
                 default:
                     throw new NotSupportedException();
             }
@@ -310,6 +322,8 @@ namespace Microsoft.Data.Analysis
                     return OrImplementation(column as PrimitiveDataFrameColumn<ulong>, inPlace);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
                     return OrImplementation(column as PrimitiveDataFrameColumn<ushort>, inPlace);
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
+                    return OrImplementation(column as PrimitiveDataFrameColumn<DateTime>, inPlace);
                 default:
                     throw new NotSupportedException();
             }
@@ -350,6 +364,8 @@ namespace Microsoft.Data.Analysis
                     return XorImplementation(column as PrimitiveDataFrameColumn<ulong>, inPlace);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
                     return XorImplementation(column as PrimitiveDataFrameColumn<ushort>, inPlace);
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
+                    return XorImplementation(column as PrimitiveDataFrameColumn<DateTime>, inPlace);
                 default:
                     throw new NotSupportedException();
             }
@@ -400,6 +416,8 @@ namespace Microsoft.Data.Analysis
                     return ElementwiseEqualsImplementation(column as PrimitiveDataFrameColumn<ulong>);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
                     return ElementwiseEqualsImplementation(column as PrimitiveDataFrameColumn<ushort>);
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
+                    return ElementwiseEqualsImplementation(column as PrimitiveDataFrameColumn<DateTime>);
                 default:
                     throw new NotSupportedException();
             }
@@ -445,6 +463,8 @@ namespace Microsoft.Data.Analysis
                     return ElementwiseNotEqualsImplementation(column as PrimitiveDataFrameColumn<ulong>);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
                     return ElementwiseNotEqualsImplementation(column as PrimitiveDataFrameColumn<ushort>);
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
+                    return ElementwiseNotEqualsImplementation(column as PrimitiveDataFrameColumn<DateTime>);
                 default:
                     throw new NotSupportedException();
             }
@@ -490,6 +510,8 @@ namespace Microsoft.Data.Analysis
                     return ElementwiseGreaterThanOrEqualImplementation(column as PrimitiveDataFrameColumn<ulong>);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
                     return ElementwiseGreaterThanOrEqualImplementation(column as PrimitiveDataFrameColumn<ushort>);
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
+                    return ElementwiseGreaterThanOrEqualImplementation(column as PrimitiveDataFrameColumn<DateTime>);
                 default:
                     throw new NotSupportedException();
             }
@@ -535,6 +557,8 @@ namespace Microsoft.Data.Analysis
                     return ElementwiseLessThanOrEqualImplementation(column as PrimitiveDataFrameColumn<ulong>);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
                     return ElementwiseLessThanOrEqualImplementation(column as PrimitiveDataFrameColumn<ushort>);
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
+                    return ElementwiseLessThanOrEqualImplementation(column as PrimitiveDataFrameColumn<DateTime>);
                 default:
                     throw new NotSupportedException();
             }
@@ -580,6 +604,8 @@ namespace Microsoft.Data.Analysis
                     return ElementwiseGreaterThanImplementation(column as PrimitiveDataFrameColumn<ulong>);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
                     return ElementwiseGreaterThanImplementation(column as PrimitiveDataFrameColumn<ushort>);
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
+                    return ElementwiseGreaterThanImplementation(column as PrimitiveDataFrameColumn<DateTime>);
                 default:
                     throw new NotSupportedException();
             }
@@ -625,6 +651,8 @@ namespace Microsoft.Data.Analysis
                     return ElementwiseLessThanImplementation(column as PrimitiveDataFrameColumn<ulong>);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
                     return ElementwiseLessThanImplementation(column as PrimitiveDataFrameColumn<ushort>);
+                case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
+                    return ElementwiseLessThanImplementation(column as PrimitiveDataFrameColumn<DateTime>);
                 default:
                     throw new NotSupportedException();
             }
@@ -674,6 +702,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.Add(column.CloneAsDecimalColumn()._columnContainer);
                         return decimalColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -749,6 +779,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.Add(DecimalConverter<U>.Instance.GetDecimal(value));
                         return decimalColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -829,6 +861,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.Subtract(column.CloneAsDecimalColumn()._columnContainer);
                         return decimalColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -904,6 +938,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.Subtract(DecimalConverter<U>.Instance.GetDecimal(value));
                         return decimalColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -984,6 +1020,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.Multiply(column.CloneAsDecimalColumn()._columnContainer);
                         return decimalColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -1059,6 +1097,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.Multiply(DecimalConverter<U>.Instance.GetDecimal(value));
                         return decimalColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -1139,6 +1179,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.Divide(column.CloneAsDecimalColumn()._columnContainer);
                         return decimalColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -1214,6 +1256,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.Divide(DecimalConverter<U>.Instance.GetDecimal(value));
                         return decimalColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -1294,6 +1338,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.Modulo(column.CloneAsDecimalColumn()._columnContainer);
                         return decimalColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -1369,6 +1415,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.Modulo(DecimalConverter<U>.Instance.GetDecimal(value));
                         return decimalColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -1445,6 +1493,7 @@ namespace Microsoft.Data.Analysis
                 case Type uintType when uintType == typeof(uint):
                 case Type ulongType when ulongType == typeof(ulong):
                 case Type ushortType when ushortType == typeof(ushort):
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
                 default:
                     throw new NotSupportedException();
             }
@@ -1474,6 +1523,7 @@ namespace Microsoft.Data.Analysis
                 case Type uintType when uintType == typeof(uint):
                 case Type ulongType when ulongType == typeof(ulong):
                 case Type ushortType when ushortType == typeof(ushort):
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
                 default:
                     throw new NotSupportedException();
             }
@@ -1508,6 +1558,7 @@ namespace Microsoft.Data.Analysis
                 case Type uintType when uintType == typeof(uint):
                 case Type ulongType when ulongType == typeof(ulong):
                 case Type ushortType when ushortType == typeof(ushort):
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
                 default:
                     throw new NotSupportedException();
             }
@@ -1537,6 +1588,7 @@ namespace Microsoft.Data.Analysis
                 case Type uintType when uintType == typeof(uint):
                 case Type ulongType when ulongType == typeof(ulong):
                 case Type ushortType when ushortType == typeof(ushort):
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
                 default:
                     throw new NotSupportedException();
             }
@@ -1571,6 +1623,7 @@ namespace Microsoft.Data.Analysis
                 case Type uintType when uintType == typeof(uint):
                 case Type ulongType when ulongType == typeof(ulong):
                 case Type ushortType when ushortType == typeof(ushort):
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
                 default:
                     throw new NotSupportedException();
             }
@@ -1600,6 +1653,7 @@ namespace Microsoft.Data.Analysis
                 case Type uintType when uintType == typeof(uint):
                 case Type ulongType when ulongType == typeof(ulong):
                 case Type ushortType when ushortType == typeof(ushort):
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
                 default:
                     throw new NotSupportedException();
             }
@@ -1661,6 +1715,8 @@ namespace Microsoft.Data.Analysis
                     PrimitiveDataFrameColumn<ushort> newushortColumn = inPlace ? ushortColumn : ushortColumn.Clone();
                     newushortColumn._columnContainer.LeftShift(value);
                     return newushortColumn;
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 default:
                     throw new NotSupportedException();
             }
@@ -1722,6 +1778,8 @@ namespace Microsoft.Data.Analysis
                     PrimitiveDataFrameColumn<ushort> newushortColumn = inPlace ? ushortColumn : ushortColumn.Clone();
                     newushortColumn._columnContainer.RightShift(value);
                     return newushortColumn;
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 default:
                     throw new NotSupportedException();
             }
@@ -1740,9 +1798,9 @@ namespace Microsoft.Data.Analysis
                     {
                         throw new NotSupportedException();
                     }
-                    PrimitiveDataFrameColumn<bool> retColumn = CloneAsBooleanColumn();
-                    (this as PrimitiveDataFrameColumn<U>)._columnContainer.ElementwiseEquals(column._columnContainer, retColumn._columnContainer);
-                    return retColumn;
+                    PrimitiveDataFrameColumn<bool> retboolColumn = CloneAsBooleanColumn();
+                    (this as PrimitiveDataFrameColumn<U>)._columnContainer.ElementwiseEquals(column._columnContainer, retboolColumn._columnContainer);
+                    return retboolColumn;
                 case Type decimalType when decimalType == typeof(decimal):
                     if (typeof(U) == typeof(bool))
                     {
@@ -1763,6 +1821,14 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.ElementwiseEquals(column.CloneAsDecimalColumn()._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    if (typeof(U) != typeof(DateTime))
+                    {
+                        throw new NotSupportedException();
+                    }
+                    PrimitiveDataFrameColumn<bool> retDateTimeColumn = CloneAsBooleanColumn();
+                    (this as PrimitiveDataFrameColumn<U>)._columnContainer.ElementwiseEquals(column._columnContainer, retDateTimeColumn._columnContainer);
+                    return retDateTimeColumn;
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -1816,9 +1882,9 @@ namespace Microsoft.Data.Analysis
                     {
                         throw new NotSupportedException();
                     }
-                    PrimitiveDataFrameColumn<bool> retColumn = CloneAsBooleanColumn();
-                    (this as PrimitiveDataFrameColumn<bool>)._columnContainer.ElementwiseEquals(Unsafe.As<U, bool>(ref value), retColumn._columnContainer);
-                    return retColumn;
+                    PrimitiveDataFrameColumn<bool> retboolColumn = CloneAsBooleanColumn();
+                    (this as PrimitiveDataFrameColumn<bool>)._columnContainer.ElementwiseEquals(Unsafe.As<U, bool>(ref value), retboolColumn._columnContainer);
+                    return retboolColumn;
                 case Type decimalType when decimalType == typeof(decimal):
                     if (typeof(U) == typeof(bool))
                     {
@@ -1839,6 +1905,14 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.ElementwiseEquals(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
                         return newColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    if (typeof(U) != typeof(DateTime))
+                    {
+                        throw new NotSupportedException();
+                    }
+                    PrimitiveDataFrameColumn<bool> retDateTimeColumn = CloneAsBooleanColumn();
+                    (this as PrimitiveDataFrameColumn<bool>)._columnContainer.ElementwiseEquals(Unsafe.As<U, bool>(ref value), retDateTimeColumn._columnContainer);
+                    return retDateTimeColumn;
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -1897,9 +1971,9 @@ namespace Microsoft.Data.Analysis
                     {
                         throw new NotSupportedException();
                     }
-                    PrimitiveDataFrameColumn<bool> retColumn = CloneAsBooleanColumn();
-                    (this as PrimitiveDataFrameColumn<U>)._columnContainer.ElementwiseNotEquals(column._columnContainer, retColumn._columnContainer);
-                    return retColumn;
+                    PrimitiveDataFrameColumn<bool> retboolColumn = CloneAsBooleanColumn();
+                    (this as PrimitiveDataFrameColumn<U>)._columnContainer.ElementwiseNotEquals(column._columnContainer, retboolColumn._columnContainer);
+                    return retboolColumn;
                 case Type decimalType when decimalType == typeof(decimal):
                     if (typeof(U) == typeof(bool))
                     {
@@ -1920,6 +1994,14 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.ElementwiseNotEquals(column.CloneAsDecimalColumn()._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    if (typeof(U) != typeof(DateTime))
+                    {
+                        throw new NotSupportedException();
+                    }
+                    PrimitiveDataFrameColumn<bool> retDateTimeColumn = CloneAsBooleanColumn();
+                    (this as PrimitiveDataFrameColumn<U>)._columnContainer.ElementwiseNotEquals(column._columnContainer, retDateTimeColumn._columnContainer);
+                    return retDateTimeColumn;
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -1973,9 +2055,9 @@ namespace Microsoft.Data.Analysis
                     {
                         throw new NotSupportedException();
                     }
-                    PrimitiveDataFrameColumn<bool> retColumn = CloneAsBooleanColumn();
-                    (this as PrimitiveDataFrameColumn<bool>)._columnContainer.ElementwiseNotEquals(Unsafe.As<U, bool>(ref value), retColumn._columnContainer);
-                    return retColumn;
+                    PrimitiveDataFrameColumn<bool> retboolColumn = CloneAsBooleanColumn();
+                    (this as PrimitiveDataFrameColumn<bool>)._columnContainer.ElementwiseNotEquals(Unsafe.As<U, bool>(ref value), retboolColumn._columnContainer);
+                    return retboolColumn;
                 case Type decimalType when decimalType == typeof(decimal):
                     if (typeof(U) == typeof(bool))
                     {
@@ -1996,6 +2078,14 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.ElementwiseNotEquals(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
                         return newColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    if (typeof(U) != typeof(DateTime))
+                    {
+                        throw new NotSupportedException();
+                    }
+                    PrimitiveDataFrameColumn<bool> retDateTimeColumn = CloneAsBooleanColumn();
+                    (this as PrimitiveDataFrameColumn<bool>)._columnContainer.ElementwiseNotEquals(Unsafe.As<U, bool>(ref value), retDateTimeColumn._columnContainer);
+                    return retDateTimeColumn;
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -2071,6 +2161,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.ElementwiseGreaterThanOrEqual(column.CloneAsDecimalColumn()._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -2141,6 +2233,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.ElementwiseGreaterThanOrEqual(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
                         return newColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -2216,6 +2310,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.ElementwiseLessThanOrEqual(column.CloneAsDecimalColumn()._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -2286,6 +2382,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.ElementwiseLessThanOrEqual(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
                         return newColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -2361,6 +2459,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.ElementwiseGreaterThan(column.CloneAsDecimalColumn()._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -2431,6 +2531,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.ElementwiseGreaterThan(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
                         return newColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -2506,6 +2608,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.ElementwiseLessThan(column.CloneAsDecimalColumn()._columnContainer, newColumn._columnContainer);
                         return newColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -2576,6 +2680,8 @@ namespace Microsoft.Data.Analysis
                         decimalColumn._columnContainer.ElementwiseLessThan(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
                         return newColumn;
                     }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):

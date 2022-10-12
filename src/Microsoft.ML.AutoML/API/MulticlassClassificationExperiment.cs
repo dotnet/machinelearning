@@ -159,8 +159,7 @@ namespace Microsoft.ML.AutoML
             // split cross validation result according to sample key as well.
             if (rowCount < crossValRowCountThreshold)
             {
-                const int numCrossValFolds = 10;
-                _experiment.SetDataset(trainData, numCrossValFolds);
+                _experiment.SetDataset(trainData, 10);
             }
             else
             {
@@ -379,12 +378,14 @@ namespace Microsoft.ML.AutoML
                         MulticlassClassificationMetric.TopKAccuracy => res.Metrics.TopKAccuracy,
                         _ => throw new NotImplementedException($"{metricManager.MetricName} is not supported!"),
                     };
+                    var loss = metricManager.IsMaximize ? -metric : metric;
 
                     stopWatch.Stop();
 
 
                     return new TrialResult<MulticlassClassificationMetrics>()
                     {
+                        Loss = loss,
                         Metric = metric,
                         Model = model,
                         TrialSettings = settings,
@@ -412,12 +413,14 @@ namespace Microsoft.ML.AutoML
                         MulticlassClassificationMetric.TopKAccuracy => metrics.TopKAccuracy,
                         _ => throw new NotImplementedException($"{metricManager.Metric} is not supported!"),
                     };
+                    var loss = metricManager.IsMaximize ? -metric : metric;
 
                     stopWatch.Stop();
 
 
                     return new TrialResult<MulticlassClassificationMetrics>()
                     {
+                        Loss = loss,
                         Metric = metric,
                         Model = model,
                         TrialSettings = settings,

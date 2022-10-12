@@ -29,17 +29,15 @@ namespace Microsoft.ML.AutoML
         private readonly bool _minimize;
         private readonly double _convergeSpeed = 2;
         private Parameter _bestConfig;
-        private readonly Dictionary<int, Parameter> _configs = new Dictionary<int, Parameter>();
         private double _costComplete4Incumbent = 0;
         private readonly int _dim;
         private double[] _directionTried = null;
         private double[] _incumbent;
         private int _numAllowed4Incumbent = 0;
-        private readonly Dictionary<int, double[]> _proposedBy = new Dictionary<int, double[]>();
         private readonly double _stepUpperBound;
         private int _trialCount = 1;
 
-        public Flow2(SearchSpace.SearchSpace searchSpace, Parameter initValue = null, bool minimizeMode = true, double convergeSpeed = 1.5)
+        public Flow2(SearchSpace.SearchSpace searchSpace, Parameter initValue = null, bool minimizeMode = true, double convergeSpeed = 1.5, RandomNumberGenerator rng = null)
         {
             _searchSpace = searchSpace;
             _minimize = minimizeMode;
@@ -56,6 +54,8 @@ namespace Microsoft.ML.AutoML
             {
                 _step = _stepUpperBound;
             }
+
+            _rng = rng;
         }
 
         public bool IsConverged
@@ -70,7 +70,7 @@ namespace Microsoft.ML.AutoML
 
         public SearchThread CreateSearchThread(Parameter config, double metric, double cost)
         {
-            var flow2 = new Flow2(_searchSpace, config, _minimize, convergeSpeed: _convergeSpeed);
+            var flow2 = new Flow2(_searchSpace, config, _minimize, convergeSpeed: _convergeSpeed, rng: _rng);
             flow2.BestObj = metric;
             flow2.CostIncumbent = cost;
             return new SearchThread(flow2);
@@ -94,23 +94,20 @@ namespace Microsoft.ML.AutoML
 
             move = Project(move);
             var config = _searchSpace.SampleFromFeatureSpace(move);
-            _proposedBy[trialId] = _incumbent;
-            _configs[trialId] = config;
             return config;
         }
 
-        public void ReceiveTrialResult(int trialId, double metric, double cost)
+        public void ReceiveTrialResult(Parameter parameter, double metric, double cost)
         {
             _trialCount += 1;
             if (BestObj == null || metric < BestObj)
             {
                 BestObj = metric;
-                _bestConfig = _configs[trialId];
+                _bestConfig = parameter;
                 _incumbent = _searchSpace.MappingToFeatureSpace(_bestConfig);
                 CostIncumbent = cost;
                 _costComplete4Incumbent = 0;
                 _numAllowed4Incumbent = 2 * _dim;
-                _proposedBy.Clear();
                 _step *= _convergeSpeed;
                 _step = Math.Min(_step, _stepUpperBound);
                 _directionTried = null;

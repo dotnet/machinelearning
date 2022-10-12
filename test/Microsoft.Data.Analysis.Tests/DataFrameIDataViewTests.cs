@@ -19,7 +19,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             DataDebuggerPreview preview = dataView.Preview();
             Assert.Equal(10, preview.RowView.Length);
-            Assert.Equal(15, preview.ColumnView.Length);
+            Assert.Equal(16, preview.ColumnView.Length);
 
             Assert.Equal("Byte", preview.ColumnView[0].Column.Name);
             Assert.Equal((byte)0, preview.ColumnView[0].Values[0]);
@@ -73,13 +73,17 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal((ushort)65, preview.ColumnView[12].Values[0]);
             Assert.Equal((ushort)66, preview.ColumnView[12].Values[1]);
 
-            Assert.Equal("Bool", preview.ColumnView[13].Column.Name);
-            Assert.Equal(true, preview.ColumnView[13].Values[0]);
-            Assert.Equal(false, preview.ColumnView[13].Values[1]);
+            Assert.Equal("DateTime", preview.ColumnView[13].Column.Name);
+            Assert.Equal(new DateTime(2021, 06, 04), preview.ColumnView[13].Values[0]);
+            Assert.Equal(new DateTime(2021, 06, 05), preview.ColumnView[13].Values[1]);
 
-            Assert.Equal("ArrowString", preview.ColumnView[14].Column.Name);
-            Assert.Equal("foo".ToString(), preview.ColumnView[14].Values[0].ToString());
-            Assert.Equal("foo".ToString(), preview.ColumnView[14].Values[1].ToString());
+            Assert.Equal("Bool", preview.ColumnView[14].Column.Name);
+            Assert.Equal(true, preview.ColumnView[14].Values[0]);
+            Assert.Equal(false, preview.ColumnView[14].Values[1]);
+
+            Assert.Equal("ArrowString", preview.ColumnView[15].Column.Name);
+            Assert.Equal("foo".ToString(), preview.ColumnView[15].Values[0].ToString());
+            Assert.Equal("foo".ToString(), preview.ColumnView[15].Values[1].ToString());
         }
 
         [Fact]
@@ -90,16 +94,16 @@ namespace Microsoft.Data.Analysis.Tests
             IDataView dataView = df;
 
             DataViewSchema schema = dataView.Schema;
-            Assert.Equal(14, schema.Count);
+            Assert.Equal(15, schema.Count);
 
             df.Columns.Remove("Bool");
             schema = dataView.Schema;
-            Assert.Equal(13, schema.Count);
+            Assert.Equal(14, schema.Count);
 
             DataFrameColumn boolColumn = new PrimitiveDataFrameColumn<bool>("Bool", Enumerable.Range(0, (int)df.Rows.Count).Select(x => x % 2 == 1));
             df.Columns.Insert(0, boolColumn);
             schema = dataView.Schema;
-            Assert.Equal(14, schema.Count);
+            Assert.Equal(15, schema.Count);
             Assert.Equal("Bool", schema[0].Name);
 
             DataFrameColumn boolClone = boolColumn.Clone();
@@ -117,7 +121,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             DataDebuggerPreview preview = dataView.Preview();
             Assert.Equal(length, preview.RowView.Length);
-            Assert.Equal(15, preview.ColumnView.Length);
+            Assert.Equal(16, preview.ColumnView.Length);
 
             Assert.Equal("Byte", preview.ColumnView[0].Column.Name);
             Assert.Equal((byte)0, preview.ColumnView[0].Values[0]);
@@ -210,19 +214,26 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal((ushort)0, preview.ColumnView[12].Values[5]); // null row
             Assert.Equal((ushort)71, preview.ColumnView[12].Values[6]);
 
-            Assert.Equal("Bool", preview.ColumnView[13].Column.Name);
-            Assert.Equal(true, preview.ColumnView[13].Values[0]);
-            Assert.Equal(false, preview.ColumnView[13].Values[1]);
-            Assert.Equal(true, preview.ColumnView[13].Values[4]);
-            Assert.Equal(false, preview.ColumnView[13].Values[5]); // null row
-            Assert.Equal(true, preview.ColumnView[13].Values[6]);
+            Assert.Equal("DateTime", preview.ColumnView[13].Column.Name);
+            Assert.Equal(new DateTime(2021, 06, 04), preview.ColumnView[13].Values[0]);
+            Assert.Equal(new DateTime(2021, 06, 05), preview.ColumnView[13].Values[1]);
+            Assert.Equal(new DateTime(2021, 06, 08), preview.ColumnView[13].Values[4]);
+            Assert.Equal(new DateTime(), preview.ColumnView[13].Values[5]); // null row
+            Assert.Equal(new DateTime(2021, 06, 10), preview.ColumnView[13].Values[6]);
 
-            Assert.Equal("ArrowString", preview.ColumnView[14].Column.Name);
-            Assert.Equal("foo", preview.ColumnView[14].Values[0].ToString());
-            Assert.Equal("foo", preview.ColumnView[14].Values[1].ToString());
-            Assert.Equal("foo", preview.ColumnView[14].Values[4].ToString());
-            Assert.Equal("", preview.ColumnView[14].Values[5].ToString()); // null row
-            Assert.Equal("foo", preview.ColumnView[14].Values[6].ToString());
+            Assert.Equal("Bool", preview.ColumnView[14].Column.Name);
+            Assert.Equal(true, preview.ColumnView[14].Values[0]);
+            Assert.Equal(false, preview.ColumnView[14].Values[1]);
+            Assert.Equal(true, preview.ColumnView[14].Values[4]);
+            Assert.Equal(false, preview.ColumnView[14].Values[5]); // null row
+            Assert.Equal(true, preview.ColumnView[14].Values[6]);
+
+            Assert.Equal("ArrowString", preview.ColumnView[15].Column.Name);
+            Assert.Equal("foo", preview.ColumnView[15].Values[0].ToString());
+            Assert.Equal("foo", preview.ColumnView[15].Values[1].ToString());
+            Assert.Equal("foo", preview.ColumnView[15].Values[4].ToString());
+            Assert.Equal("", preview.ColumnView[15].Values[5].ToString()); // null row
+            Assert.Equal("foo", preview.ColumnView[15].Values[6].ToString());
         }
 
         [Fact]

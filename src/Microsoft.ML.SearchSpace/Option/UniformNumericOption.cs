@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.Contracts;
 using System.Linq;
-using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.SearchSpace.Option
 {
@@ -21,8 +21,8 @@ namespace Microsoft.ML.SearchSpace.Option
         /// <param name="logBase">Indicate whether it should be log base or not.</param>
         public UniformNumericOption(double min, double max, bool logBase = false)
         {
-            Contracts.Check(max > min, "max must be larger than min.");
-            Contracts.Check(min > 0 || logBase == false, "min must be larger than 0 if logBase is true.");
+            Contract.Assert(max > min, "max must be larger than min.");
+            Contract.Assert(min > 0 || logBase == false, "min must be larger than 0 if logBase is true.");
             Min = min;
             Max = max;
             LogBase = logBase;
@@ -60,7 +60,7 @@ namespace Microsoft.ML.SearchSpace.Option
         public override double[] MappingToFeatureSpace(Parameter param)
         {
             var x = param.AsType<double>();
-            Contracts.Check(x <= Max && x >= Min, $"{x} is not within [{Min}, {Max}]");
+            Contract.Assert(x <= Max && x >= Min, $"{x} is not within [{Min}, {Max}]");
             if (LogBase)
             {
                 var logMax = Math.Log(Max);
@@ -80,9 +80,9 @@ namespace Microsoft.ML.SearchSpace.Option
         /// </summary>
         public override Parameter SampleFromFeatureSpace(double[] values)
         {
-            Contracts.Check(values.Length == 1, "values length must be 1");
+            Contract.Assert(values.Length == 1, "values length must be 1");
             var value = values[0];
-            Contracts.Check(value <= 1 && value >= 0, $"{value} must be between [0,1]");
+            Contract.Assert(value <= 1 && value >= 0, $"{value} must be between [0,1]");
 
             if (LogBase)
             {

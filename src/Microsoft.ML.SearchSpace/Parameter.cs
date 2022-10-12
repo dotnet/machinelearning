@@ -5,10 +5,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.SearchSpace.Converter;
 
 namespace Microsoft.ML.SearchSpace
@@ -374,7 +374,7 @@ namespace Microsoft.ML.SearchSpace
 
         private void VerifyIfParameterIsObjectType()
         {
-            Contracts.Check(ParameterType == ParameterType.Object, "parameter is not object type.");
+            Contract.Assert(ParameterType == ParameterType.Object, "parameter is not object type.");
         }
 
         /// <summary>
