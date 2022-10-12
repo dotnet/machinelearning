@@ -11,45 +11,58 @@ using System.Threading;
 using FluentAssertions;
 using Microsoft.ML.AutoML.CodeGen;
 using Microsoft.ML.SearchSpace;
+using Microsoft.ML.SearchSpace.Tuner;
 using Microsoft.ML.TestFramework;
+using Tensorflow.Contexts;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    public class CostFrugalTunerTests : BaseTestClass
+    public class TunerTests : BaseTestClass
     {
-        public CostFrugalTunerTests(ITestOutputHelper output)
+        public TunerTests(ITestOutputHelper output)
             : base(output)
         {
         }
 
         [Fact]
-        public void CFO_e2e_test()
+        public void tuner_e2e_test()
         {
+            var context = new MLContext(1);
             var searchSpace = new SearchSpace<LbfgsOption>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
             var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues));
-            for (int i = 0; i != 1000; ++i)
+            var smac = new SmacTuner(context, searchSpace, seed: 1);
+            var tunerCandidates = new Dictionary<string, ITuner>()
             {
-                var trialSettings = new TrialSettings()
+                {"cfo", cfo },
+                {"smac", smac },
+            };
+            foreach (var kv in tunerCandidates)
+            {
+                var tuner = kv.Value;
+                for (int i = 0; i != 1000; ++i)
                 {
-                    TrialId = i,
-                };
+                    var trialSettings = new TrialSettings()
+                    {
+                        TrialId = i,
+                    };
 
-                var param = cfo.Propose(trialSettings);
-                trialSettings.Parameter = param;
-                var option = param.AsType<LbfgsOption>();
+                    var param = tuner.Propose(trialSettings);
+                    trialSettings.Parameter = param;
+                    var option = param.AsType<LbfgsOption>();
 
-                option.L1Regularization.Should().BeInRange(0.03125f, 32768.0f);
-                option.L2Regularization.Should().BeInRange(0.03125f, 32768.0f);
+                    option.L1Regularization.Should().BeInRange(0.03125f, 32768.0f);
+                    option.L2Regularization.Should().BeInRange(0.03125f, 32768.0f);
 
-                cfo.Update(new TrialResult()
-                {
-                    DurationInMilliseconds = i * 1000,
-                    Metric = i,
-                    TrialSettings = trialSettings,
-                });
+                    tuner.Update(new TrialResult()
+                    {
+                        DurationInMilliseconds = i * 1000,
+                        Metric = i,
+                        TrialSettings = trialSettings,
+                    });
+                }
             }
         }
 
@@ -115,122 +128,157 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
-        public void CFO_should_find_maximum_value_when_function_is_convex()
+        public void LSE_maximize_test()
         {
+            // this test verify if tuner can find max value for LSE.
+            var context = new MLContext(1);
             var searchSpace = new SearchSpace<LSE3DSearchSpace>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
             var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues));
-            double bestMetric = 0;
-            for (int i = 0; i != 100; ++i)
+            var smac = new SmacTuner(context, searchSpace, seed: 1, numberOfTrees: 3);
+            var randomTuner = new RandomSearchTuner(searchSpace, seed: 1);
+            var tunerCandidates = new Dictionary<string, ITuner>()
             {
-                var trialSettings = new TrialSettings()
-                {
-                    TrialId = 0,
-                };
+                {"cfo", cfo },
+                {"smac", smac },
+                {"rnd", randomTuner },
+            };
 
-                var param = cfo.Propose(trialSettings);
-                trialSettings.Parameter = param;
-                var lseParam = param.AsType<LSE3DSearchSpace>();
-                var x = lseParam.X;
-                var y = lseParam.Y;
-                var z = lseParam.Z;
-                var metric = LSE3D(x, y, z);
-                bestMetric = Math.Max(bestMetric, metric);
-                Output.WriteLine($"{i} x: {x} y: {y} z: {z}");
-                if (x == 10 && y == 10 && z == 10)
+            foreach (var kv in tunerCandidates)
+            {
+                Output.WriteLine($"verify tuner {kv.Key}");
+                var tuner = kv.Value;
+                double bestMetric = double.MinValue;
+                for (int i = 0; i != 100; ++i)
                 {
-                    break;
+                    var trialSettings = new TrialSettings()
+                    {
+                        TrialId = 0,
+                    };
+
+                    var param = tuner.Propose(trialSettings);
+                    trialSettings.Parameter = param;
+                    var lseParam = param.AsType<LSE3DSearchSpace>();
+                    var x = lseParam.X;
+                    var y = lseParam.Y;
+                    var z = lseParam.Z;
+                    var metric = LSE3D(x, y, z);
+                    bestMetric = Math.Max(bestMetric, metric);
+                    tuner.Update(new TrialResult()
+                    {
+                        Loss = -metric,
+                        DurationInMilliseconds = 1 * 1000,
+                        Metric = metric,
+                        TrialSettings = trialSettings,
+                    });
                 }
-                cfo.Update(new TrialResult()
-                {
-                    Loss = -metric,
-                    DurationInMilliseconds = 1 * 1000,
-                    Metric = metric,
-                    TrialSettings = trialSettings,
-                });
-            }
 
-            bestMetric.Should().BeGreaterThan(LSE3D(10, 10, 10) - 2);
+                Output.WriteLine($"best metric: {bestMetric}");
+
+                // 10.5 is the best metric from random tuner
+                // and the other tuners should achieve better metric comparing with random tuner.
+                bestMetric.Should().BeGreaterOrEqualTo(10.5);
+            }
         }
 
         [Fact]
-        public void CFO_should_find_minimum_value_when_function_is_convex()
+        public void LSE_minimize_test()
         {
+            // this test verify if tuner can find min value for LSE.
+            var context = new MLContext(1);
+
             var searchSpace = new SearchSpace<LSE3DSearchSpace>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
             var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues));
-            double loss = 0;
-            for (int i = 0; i != 100; ++i)
+            var smac = new SmacTuner(context, searchSpace, numberOfTrees: 3, seed: 1);
+            var randomTuner = new RandomSearchTuner(searchSpace, seed: 1);
+            var tunerCandidates = new Dictionary<string, ITuner>()
             {
-                var trialSettings = new TrialSettings()
-                {
-                    TrialId = i,
-                };
+                {"cfo", cfo },
+                {"smac", smac },
+                {"rnd", randomTuner },
+            };
 
-                var param = cfo.Propose(trialSettings);
-                trialSettings.Parameter = param;
-                var lseParam = param.AsType<LSE3DSearchSpace>();
-                var x = lseParam.X;
-                var y = lseParam.Y;
-                var z = lseParam.Z;
-                loss = LSE3D(x, y, z);
-                Output.WriteLine(loss.ToString());
-                Output.WriteLine($"{i} x: {x} y: {y} z: {z}");
-
-                if (x == -10 && y == -10 && z == -10)
+            foreach (var kv in tunerCandidates)
+            {
+                Output.WriteLine($"verify tuner {kv.Key}");
+                var tuner = kv.Value;
+                double bestLoss = double.MaxValue;
+                for (int i = 0; i != 200; ++i)
                 {
-                    break;
+                    var trialSettings = new TrialSettings()
+                    {
+                        TrialId = i,
+                    };
+
+                    var param = tuner.Propose(trialSettings);
+                    trialSettings.Parameter = param;
+                    var lseParam = param.AsType<LSE3DSearchSpace>();
+                    var x = lseParam.X;
+                    var y = lseParam.Y;
+                    var z = lseParam.Z;
+                    var loss = LSE3D(x, y, z);
+                    bestLoss = Math.Min(bestLoss, loss);
+                    tuner.Update(new TrialResult()
+                    {
+                        Loss = loss,
+                        DurationInMilliseconds = 1000,
+                        TrialSettings = trialSettings,
+                    });
                 }
 
-                cfo.Update(new TrialResult()
-                {
-                    Loss = loss,
-                    DurationInMilliseconds = 1000,
-                    Metric = loss,
-                    TrialSettings = trialSettings,
-                });
+                Output.WriteLine($"best metric: {bestLoss}");
+                bestLoss.Should().BeLessThan(-7);
             }
-
-            loss.Should().BeLessThan(LSE3D(-10, -10, -10) + 2);
         }
 
         [Fact]
-        public void CFO_should_find_minimum_value_when_function_is_F1()
+        public void F1_minimize_test()
         {
+            var context = new MLContext(1);
             var searchSpace = new SearchSpace<LSE3DSearchSpace>();
             var initValues = searchSpace.SampleFromFeatureSpace(searchSpace.Default);
             var cfo = new CostFrugalTuner(searchSpace, Parameter.FromObject(initValues));
-            double bestMetric = 0;
-            for (int i = 0; i != 1000; ++i)
+            var smac = new SmacTuner(context, searchSpace, seed: 1, localSearchParentCount: 10);
+            var randomTuner = new RandomSearchTuner(searchSpace, seed: 1);
+            var tunerCandidates = new Dictionary<string, ITuner>()
             {
-                var trialSettings = new TrialSettings()
+                {"cfo", cfo },
+                {"rnd", randomTuner },
+                {"smac", smac },
+            };
+            foreach (var kv in tunerCandidates)
+            {
+                var tuner = kv.Value;
+                double bestMetric = double.MaxValue;
+                for (int i = 0; i != 100; ++i)
                 {
-                    TrialId = i,
-                };
-                var param = cfo.Propose(trialSettings);
-                trialSettings.Parameter = param;
-                var lseParam = param.AsType<LSE3DSearchSpace>();
-                var x = lseParam.X;
-                var y = lseParam.Y;
-                var z = lseParam.Z;
-                var metric = F1(x, y, z);
-                bestMetric = Math.Min(bestMetric, metric);
-                Output.WriteLine($"{i} x: {x} y: {y} z: {z}");
-
-                if (x == -1 && y == 1 && z == 0)
-                {
-                    break;
+                    var trialSettings = new TrialSettings()
+                    {
+                        TrialId = i,
+                    };
+                    var param = tuner.Propose(trialSettings);
+                    trialSettings.Parameter = param;
+                    var lseParam = param.AsType<LSE3DSearchSpace>();
+                    var x = lseParam.X;
+                    var y = lseParam.Y;
+                    var z = lseParam.Z;
+                    var metric = F1(x, y, z);
+                    bestMetric = Math.Min(bestMetric, metric);
+                    tuner.Update(new TrialResult()
+                    {
+                        DurationInMilliseconds = 1,
+                        Metric = metric,
+                        TrialSettings = trialSettings,
+                        Loss = metric,
+                    });
                 }
+                Output.WriteLine($"{kv.Key} - best metric {bestMetric}");
 
-                cfo.Update(new TrialResult()
-                {
-                    DurationInMilliseconds = 1,
-                    Metric = metric,
-                    TrialSettings = trialSettings,
-                });
+                // 6.1 is the best metric from random tuner.
+                // and we assume that other tuners should achieve better result than random tuner
+                bestMetric.Should().BeLessThan(6.1);
             }
-
-            bestMetric.Should().BeLessThan(F1(-1, 1, 0) + 2);
         }
 
         [Fact]
