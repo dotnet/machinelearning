@@ -500,6 +500,12 @@ namespace Microsoft.ML.Trainers.FastTree
         [Argument(ArgumentType.AtMostOnce, HelpText = "Print execution time breakdown to stdout", ShortName = "et")]
         public bool ExecutionTime;
 
+        /// <summary>
+        /// Print memory statistics to ML.NET channel.
+        /// </summary>
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Print memory statistics to stdout", ShortName = "memstats")]
+        public bool MemoryStatistics = true;
+
         // REVIEW: Different from original FastRank arguments (shortname l vs. nl). Different default from TLC FR Wrapper (20 vs. 20).
         /// <summary>
         /// The max number of leaves in each regression tree.
