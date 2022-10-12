@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.Analysis.Tests;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Xunit;
@@ -475,7 +476,31 @@ namespace Microsoft.Data.Analysis.Tests
 
             Assert.Equal(2, df.Columns.Count);
             Assert.Equal(2, df.Rows.Count);
+
+            var value = df[0, 0];
+            var a = df.Preview();
         }
 
+        [Fact]
+        public void VBufferTest2()
+        {
+            var data = new[]
+            {
+                new {
+                    NumericData=Enumerable.Range(0,10).ToArray(),
+                    TextData=Enumerable.Repeat("html",15).ToArray()
+                },
+                new {
+                    NumericData=Enumerable.Range(5,10).ToArray(),
+                    TextData=Enumerable.Repeat("div",10).ToArray()
+                }
+            };
+
+            var ctx = new MLContext();
+
+            var idv = ctx.Data.LoadFromEnumerable(data);
+
+            var df = idv.ToDataFrame();
+        }
     }
 }

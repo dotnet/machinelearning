@@ -21,28 +21,36 @@ namespace Microsoft.Data.Analysis
     /// </summary>
     public partial class VBufferDataFrameColumn<T> : DataFrameColumn, IEnumerable<VBuffer<T>>
     {
-        // private readonly IList<List<VBuffer<T>>> _dataBuffers;
+        private readonly List<List<VBuffer<T>>> _vBuffers = new List<List<VBuffer<T>>>(); // To store more than intMax number of vbuffers
 
-        private readonly List<VBuffer<T>> _vBuffers = new List<VBuffer<T>>();
+        //private readonly List<VBuffer<T>> _vBuffers2 = new List<VBuffer<T>>();
 
         /// <summary>
-        /// Constructs an empty <see cref="ArrowStringDataFrameColumn"/> with the given <paramref name="name"/>.
+        /// Constructs an empty VBufferDataFrameColumn with the given <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the column.</param>
-        public VBufferDataFrameColumn(string name) : base(name, 0, typeof(VBuffer<T>))
+        /// <param name="length">Length of values</param>
+        public VBufferDataFrameColumn(string name, long length = 0) : base(name, 0, typeof(VBuffer<T>))
         {
-            _vBuffers = new List<VBuffer<T>>();
-            _nullCount = 0;
+            int numberOfBuffersRequired = Math.Max((int)(length / int.MaxValue), 1);
+            for (int i = 0; i < numberOfBuffersRequired; i++)
+            {
+                long bufferLen = length - _vBuffers.Count * int.MaxValue;
+                List<VBuffer<T>> buffer = new List<VBuffer<T>>((int)Math.Min(int.MaxValue, bufferLen));
+                _vBuffers.Add(buffer);
+                for (int j = 0; j < bufferLen; j++)
+                {
+                    buffer.Add(default);
+                }
+            }
         }
 
         public VBufferDataFrameColumn(string name, IEnumerable<VBuffer<T>> values) : base(name, 0, typeof(VBuffer<T>))
         {
-            _vBuffers = new List<VBuffer<T>>();
-
             values = values ?? throw new ArgumentNullException(nameof(values));
             if (_vBuffers.Count == 0)
             {
-                _vBuffers.Add(new VBuffer<T>());
+                _vBuffers.Add(new List<VBuffer<T>>());
             }
             foreach (var value in values)
             {
@@ -50,10 +58,20 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        private readonly long _nullCount;
+        private long _nullCount;
 
-        /// <inheritdoc/>
         public override long NullCount => _nullCount;
+
+        protected internal override void Resize(long length)
+        {
+            if (length < Length)
+                throw new ArgumentException(Strings.CannotResizeDown, nameof(length));
+
+            for (long i = Length; i < length; i++)
+            {
+                Append(default);
+            }
+        }
 
         /// <summary>
         /// Indicates if the value at this <paramref name="index"/> is <see langword="null" />.
@@ -62,58 +80,90 @@ namespace Microsoft.Data.Analysis
         /// <returns>A boolean value indicating the validity at this <paramref name="index"/>.</returns>
         public bool IsValid(long index) => NullCount == 0;
 
-        private void Append(VBuffer<T> value)
+        public void Append(VBuffer<T> value)
         {
-            Length++;
-            _vBuffers.Add(value);
-        }
-
-        /// <inheritdoc/>
-        protected override object GetValue(long rowIndex) => GetValueImplementation(rowIndex);
-
-        private VBuffer<T> GetValueImplementation(long rowIndex)
-        {
-            if (!IsValid(rowIndex))
+            List<VBuffer<T>> lastBuffer = _vBuffers[_vBuffers.Count - 1];
+            if (lastBuffer.Count == int.MaxValue)
             {
-                throw new ArgumentOutOfRangeException(nameof(rowIndex));
+                lastBuffer = new List<VBuffer<T>>();
+                _vBuffers.Add(lastBuffer);
             }
-            return _vBuffers.ElementAt((int)rowIndex);
+            lastBuffer.Add(value);
+            if (value.Length == 0) //TODO
+                _nullCount++;
+            Length++;
+            Length++;
         }
 
-        /// <inheritdoc/>
+        private int GetBufferIndexContainingRowIndex(ref long rowIndex)
+        {
+            if (rowIndex > Length)
+            {
+                throw new ArgumentOutOfRangeException(Strings.ColumnIndexOutOfRange, nameof(rowIndex));
+            }
+            return (int)(rowIndex / int.MaxValue);
+        }
+
+        protected override object GetValue(long rowIndex)
+        {
+            int bufferIndex = GetBufferIndexContainingRowIndex(ref rowIndex);
+            return _vBuffers[bufferIndex][(int)rowIndex];
+        }
+
         protected override IReadOnlyList<object> GetValues(long startIndex, int length)
         {
             var ret = new List<object>();
-            while (ret.Count < length)
+            int bufferIndex = GetBufferIndexContainingRowIndex(ref startIndex);
+            while (ret.Count < length && bufferIndex < _vBuffers.Count)
             {
-                ret.Add(GetValueImplementation(startIndex++));
+                for (int i = (int)startIndex; ret.Count < length && i < _vBuffers[bufferIndex].Count; i++)
+                {
+                    ret.Add(_vBuffers[bufferIndex][i]);
+                }
+                bufferIndex++;
+                startIndex = 0;
             }
             return ret;
         }
 
-        /// <inheritdoc/>
-        protected override void SetValue(long rowIndex, object value) => throw new NotSupportedException(Strings.ImmutableColumn);
+        protected override void SetValue(long rowIndex, object value)
+        {
+            if (value == null || value is VBuffer<T>)
+            {
+                int bufferIndex = GetBufferIndexContainingRowIndex(ref rowIndex);
+                var oldValue = this[rowIndex];
+                _vBuffers[bufferIndex][(int)rowIndex] = (VBuffer<T>)value;
+                if (!oldValue.Equals((VBuffer<T>)value))
+                {
+                    if (value == null)
+                        _nullCount++;
+                    if (oldValue.Length == 0 && _nullCount > 0)
+                        _nullCount--;
+                }
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(VBuffer<T>)), nameof(value));
+            }
+        }
 
-
-        /// <summary>
-        /// Indexer to get values. This is an immutable column
-        /// </summary>
-        /// <param name="rowIndex">Zero based row index</param>
-        /// <returns>The value stored at this <paramref name="rowIndex"/></returns>
         public new VBuffer<T> this[long rowIndex]
         {
-            get => GetValueImplementation(rowIndex);
-            set => throw new NotSupportedException(Strings.ImmutableColumn);
+            get => (VBuffer<T>)GetValue(rowIndex);
+            set => SetValue(rowIndex, value);
         }
 
         /// <summary>
-        /// Returns an enumerator that iterates through the string values in this column.
+        /// Returns an enumerator that iterates through the VBuffer values in this column.
         /// </summary>
         public IEnumerator<VBuffer<T>> GetEnumerator()
         {
-            for (long i = 0; i < Length; i++)
+            foreach (List<VBuffer<T>> buffer in _vBuffers)
             {
-                yield return this[i];
+                foreach (VBuffer<T> value in buffer)
+                {
+                    yield return value;
+                }
             }
         }
 
@@ -165,7 +215,65 @@ namespace Microsoft.Data.Analysis
         /// <inheritdoc/>
         protected internal override void AddDataViewColumn(DataViewSchema.Builder builder)
         {
-            builder.AddColumn(Name, TextDataViewType.Instance);
+            builder.AddColumn(Name, GetDataViewType());
+        }
+
+        private static VectorDataViewType GetDataViewType()
+        {
+            if (typeof(T) == typeof(bool))
+            {
+                return new VectorDataViewType(BooleanDataViewType.Instance);
+            }
+            else if (typeof(T) == typeof(byte))
+            {
+                return new VectorDataViewType(NumberDataViewType.Byte);
+            }
+            else if (typeof(T) == typeof(double))
+            {
+                return new VectorDataViewType(NumberDataViewType.Double);
+            }
+            else if (typeof(T) == typeof(float))
+            {
+                return new VectorDataViewType(NumberDataViewType.Single);
+            }
+            else if (typeof(T) == typeof(int))
+            {
+                return new VectorDataViewType(NumberDataViewType.Int32);
+            }
+            else if (typeof(T) == typeof(long))
+            {
+                return new VectorDataViewType(NumberDataViewType.Int64);
+            }
+            else if (typeof(T) == typeof(sbyte))
+            {
+                return new VectorDataViewType(NumberDataViewType.SByte);
+            }
+            else if (typeof(T) == typeof(short))
+            {
+                return new VectorDataViewType(NumberDataViewType.Int16);
+            }
+            else if (typeof(T) == typeof(uint))
+            {
+                return new VectorDataViewType(NumberDataViewType.UInt32);
+            }
+            else if (typeof(T) == typeof(ulong))
+            {
+                return new VectorDataViewType(NumberDataViewType.UInt64);
+            }
+            else if (typeof(T) == typeof(ushort))
+            {
+                return new VectorDataViewType(NumberDataViewType.UInt16);
+            }
+            else if (typeof(T) == typeof(char))
+            {
+                return new VectorDataViewType(NumberDataViewType.UInt16);
+            }
+            else if (typeof(T) == typeof(decimal))
+            {
+                return new VectorDataViewType(NumberDataViewType.Double);
+            }
+
+            throw new NotSupportedException();
         }
 
         /// <inheritdoc/>
@@ -174,26 +282,14 @@ namespace Microsoft.Data.Analysis
             return CreateValueGetterDelegate(cursor);
         }
 
-
         private ValueGetter<VBuffer<T>> CreateValueGetterDelegate(DataViewRowCursor cursor) =>
             (ref VBuffer<T> value) => value = this[cursor.Position];
 
-        /// <summary>
-        /// Returns a boolean column that is the result of an elementwise equality comparison of each value in the column with <paramref name="value"/>
-        /// </summary>
-        public PrimitiveDataFrameColumn<bool> ElementwiseEquals(VBuffer<T> value)
-        {
-            throw new NotImplementedException();
-        }
 
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseEquals<U>(U value)
         {
-            if (value is DataFrameColumn column)
-            {
-                return ElementwiseEquals(column);
-            }
-            return ElementwiseEquals(value.ToString());
+            throw new NotImplementedException();
         }
 
         public override Dictionary<long, ICollection<long>> GetGroupedOccurrences(DataFrameColumn other, out HashSet<long> otherColumnNullIndices)
