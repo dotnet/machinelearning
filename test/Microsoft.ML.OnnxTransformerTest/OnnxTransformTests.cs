@@ -500,7 +500,7 @@ namespace Microsoft.ML.Tests
             /// Image will be consumed by ONNX image multiclass classification model.
             /// </summary>
             [ImageType(Height, Width)]
-            public ImageBase Image { get; set; }
+            public Imager Image { get; set; }
 
             /// <summary>
             /// Output of ONNX model. It contains probabilities of all classes.
@@ -525,7 +525,7 @@ namespace Microsoft.ML.Tests
                     imageData[i + 3] = 255;
                 }
 
-                Image = ImageBase.CreateBgra32Image(Width, Height, imageData);
+                Image = Imager.CreateFromBgra32PixelData(Width, Height, imageData);
             }
         }
 

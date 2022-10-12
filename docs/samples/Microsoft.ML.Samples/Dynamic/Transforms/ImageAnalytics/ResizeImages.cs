@@ -72,8 +72,8 @@ namespace Samples.Dynamic
                 // column -type validation once, rather than many times.
                 ReadOnlyMemory<char> imagePath = default;
                 ReadOnlyMemory<char> name = default;
-                ImageBase imageObject = null;
-                ImageBase resizedImageObject = null;
+                Imager imageObject = null;
+                Imager resizedImageObject = null;
 
                 var imagePathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor
                     .Schema["ImagePath"]);
@@ -81,10 +81,10 @@ namespace Samples.Dynamic
                 var nameGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor
                     .Schema["Name"]);
 
-                var imageObjectGetter = cursor.GetGetter<ImageBase>(cursor.Schema[
+                var imageObjectGetter = cursor.GetGetter<Imager>(cursor.Schema[
                     "ImageObject"]);
 
-                var resizedImageGetter = cursor.GetGetter<ImageBase>(cursor.Schema[
+                var resizedImageGetter = cursor.GetGetter<Imager>(cursor.Schema[
                     "ImageObjectResized"]);
 
                 while (cursor.MoveNext())

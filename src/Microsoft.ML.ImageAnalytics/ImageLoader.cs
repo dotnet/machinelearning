@@ -217,7 +217,7 @@ namespace Microsoft.ML.Data
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                var lastImage = default(ImageBase);
+                var lastImage = default(Imager);
 
                 disposer = () =>
                 {
@@ -230,8 +230,8 @@ namespace Microsoft.ML.Data
 
                 var getSrc = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[ColMapNewToOld[iinfo]]);
                 ReadOnlyMemory<char> src = default;
-                ValueGetter<ImageBase> del =
-                    (ref ImageBase dst) =>
+                ValueGetter<Imager> del =
+                    (ref Imager dst) =>
                     {
                         if (dst != null)
                         {
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Data
                             // to avoid locking file, use the construct below to load the image
                             var bytes = File.ReadAllBytes(path);
                             var ms = new MemoryStream(bytes);
-                            dst = ImageBase.CreateFromStream(ms);
+                            dst = new Imager(ms);
                             dst.Tag = path;
                         }
 
@@ -381,14 +381,14 @@ namespace Microsoft.ML.Data
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
-    /// | Output column data type | <xref:Microsoft.ML.Data.ImageBase> |
+    /// | Output column data type | <xref:Microsoft.ML.Data.Imager> |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
     /// | Exportable to ONNX | No |
     ///
     /// The resulting <xref:Microsoft.ML.Data.ImageLoadingTransformer> creates a new column, named as specified in the output column name parameters, and
     /// loads in it images specified in the input column.
     /// Loading is the first step of almost every pipeline that does image processing, and further analysis on images.
-    /// The images to load need to be in the formats supported by <xref:Microsoft.ML.Data.ImageBase> implementation.
+    /// The images to load need to be in the formats supported by <xref:Microsoft.ML.Data.Imager> implementation.
     /// For end-to-end image processing pipelines, and scenarios in your applications, see the
     /// [examples](https://github.com/dotnet/machinelearning-samples/tree/main/samples/csharp/getting-started) in the machinelearning-samples github repository.</a>
     ///

@@ -152,8 +152,8 @@ namespace Microsoft.ML.Tests
             {
                 var pathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cropped.Schema["ImagePath"]);
                 ReadOnlyMemory<char> path = default;
-                var imageCropGetter = cursor.GetGetter<ImageBase>(cropped.Schema["ImageCropped"]);
-                ImageBase image = default;
+                var imageCropGetter = cursor.GetGetter<Imager>(cropped.Schema["ImageCropped"]);
+                Imager image = default;
                 while (cursor.MoveNext())
                 {
                     pathGetter(ref path);
@@ -199,8 +199,8 @@ namespace Microsoft.ML.Tests
             grey.Schema.TryGetColumnIndex("ImageGrey", out int greyColumn);
             using (var cursor = grey.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<ImageBase>(grey.Schema["ImageGrey"]);
-                ImageBase image = default;
+                var imageGetter = cursor.GetGetter<Imager>(grey.Schema["ImageGrey"]);
+                Imager image = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref image);
@@ -280,10 +280,10 @@ namespace Microsoft.ML.Tests
         private class ImageDataPoint
         {
             [ImageType(10, 10)]
-            public ImageBase Image { get; set; }
+            public Imager Image { get; set; }
 
             [ImageType(10, 10)]
-            public ImageBase GrayImage { get; set; }
+            public Imager GrayImage { get; set; }
 
             public ImageDataPoint()
             {
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Tests
                     imageData[i + 3] = 255;
                 }
 
-                Image = ImageBase.CreateBgra32Image(width, height, imageData);
+                Image = Imager.CreateFromBgra32PixelData(width, height, imageData);
             }
         }
 
@@ -341,11 +341,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageRestored"]);
-                ImageBase restoredImage = default;
+                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
+                Imager restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageCropped"]);
-                ImageBase croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
+                Imager croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -403,11 +403,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageRestored"]);
-                ImageBase restoredImage = default;
+                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
+                Imager restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageCropped"]);
-                ImageBase croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
+                Imager croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -466,11 +466,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageRestored"]);
-                ImageBase restoredImage = default;
+                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
+                Imager restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageCropped"]);
-                ImageBase croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
+                Imager croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -528,11 +528,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageRestored"]);
-                ImageBase restoredImage = default;
+                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
+                Imager restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageCropped"]);
-                ImageBase croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
+                Imager croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -590,11 +590,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageRestored"]);
-                ImageBase restoredImage = default;
+                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
+                Imager restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageCropped"]);
-                ImageBase croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
+                Imager croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -653,11 +653,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageRestored"]);
-                ImageBase restoredImage = default;
+                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
+                Imager restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageCropped"]);
-                ImageBase croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
+                Imager croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -715,11 +715,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageRestored"]);
-                ImageBase restoredImage = default;
+                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
+                Imager restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageCropped"]);
-                ImageBase croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
+                Imager croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -778,11 +778,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageRestored"]);
-                ImageBase restoredImage = default;
+                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
+                Imager restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageCropped"]);
-                ImageBase croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
+                Imager croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -839,11 +839,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageRestored"]);
-                ImageBase restoredImage = default;
+                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
+                Imager restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<ImageBase>(backToImages.Schema["ImageCropped"]);
-                ImageBase croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
+                Imager croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -889,7 +889,7 @@ namespace Microsoft.ML.Tests
             var rowView = pipe.Preview(data).RowView;
             Assert.Single(rowView);
 
-            using (var image = (ImageBase)rowView.First().Values.Last().Value)
+            using (var image = (Imager)rowView.First().Values.Last().Value)
             {
                 ReadOnlySpan<byte> imageData = image.Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex);
                 int pixelSize = image.BitsPerPixel / 8;
@@ -978,7 +978,7 @@ namespace Microsoft.ML.Tests
         public class InMemoryImage
         {
             [ImageType(229, 299)]
-            public ImageBase LoadedImage;
+            public Imager LoadedImage;
             public string Label;
 
             public static List<InMemoryImage> LoadFromTsv(MLContext mlContext, string tsvPath, string imageFolder)
@@ -1020,17 +1020,17 @@ namespace Microsoft.ML.Tests
 
             }
 
-            private static ImageBase LoadImageFromFile(string imagePath)
+            private static Imager LoadImageFromFile(string imagePath)
             {
                 using Stream stream = new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                return ImageBase.CreateFromStream(stream);
+                return new Imager(stream);
             }
         }
 
         public class InMemoryImageOutput : InMemoryImage
         {
             [ImageType(100, 100)]
-            public ImageBase ResizedImage;
+            public Imager ResizedImage;
         }
 
         [Fact]
@@ -1048,7 +1048,7 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(dataView);
             var resizedDV = model.Transform(dataView);
             var rowView = resizedDV.Preview().RowView;
-            var resizedImage = (ImageBase)rowView.First().Values.Last().Value;
+            var resizedImage = (Imager)rowView.First().Values.Last().Value;
             Assert.Equal(100, resizedImage.Height);
             Assert.NotEqual(100, dataObjects[0].LoadedImage.Height);
 

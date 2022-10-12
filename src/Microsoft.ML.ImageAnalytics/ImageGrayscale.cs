@@ -164,8 +164,8 @@ namespace Microsoft.ML.Transforms.Image
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
-                var src = default(ImageBase);
-                var getSrc = input.GetGetter<ImageBase>(input.Schema[ColMapNewToOld[iinfo]]);
+                var src = default(Imager);
+                var getSrc = input.GetGetter<Imager>(input.Schema[ColMapNewToOld[iinfo]]);
 
                 disposer =
                     () =>
@@ -177,8 +177,8 @@ namespace Microsoft.ML.Transforms.Image
                         }
                     };
 
-                ValueGetter<ImageBase> del =
-                    (ref ImageBase dst) =>
+                ValueGetter<Imager> del =
+                    (ref Imager dst) =>
                     {
                         if (dst != null)
                             dst.Dispose();
@@ -207,8 +207,8 @@ namespace Microsoft.ML.Transforms.Image
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | <xref:Microsoft.ML.Data.ImageBase> |
-    /// | Output column data type | <xref:Microsoft.ML.Data.ImageBase> |
+    /// | Input column data type | <xref:Microsoft.ML.Data.Imager> |
+    /// | Output column data type | <xref:Microsoft.ML.Data.Imager> |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
     /// | Exportable to ONNX | No |
     ///

@@ -13,212 +13,84 @@ using System.Runtime.InteropServices;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Provides the base class for the image provider which allow registering a provider to use instead of the default provider.
+    /// Provide interfaces for imaging operations.
     /// </summary>
-    internal abstract class ImageProvider
-    {
-        internal static ImageProvider DefaultProvider { get; set; }
-
-        /// <summary>
-        /// Register an image provider to use instead of the default provider.
-        /// </summary>
-        /// <param name="provider">A provider to use for imaging operations.</param>
-        public void RegisterDefaultProvider(ImageProvider provider) => DefaultProvider = provider;
-
-        /// <summary>
-        /// Create image object from a stream.
-        /// </summary>
-        /// <param name="imageStream">The stream to create the image from.</param>
-        /// <returns>Image object.</returns>
-        public abstract ImageBase CreateImageFromStream(Stream imageStream);
-
-        /// <summary>
-        /// Create image object from the pixel data buffer span.
-        /// </summary>
-        /// <param name="width">The width of the image in pixels.</param>
-        /// <param name="height">The height of the image in pixels.</param>
-        /// <param name="imagePixelData">The pixels data to create the image from.</param>
-        /// <returns>Image object.</returns>
-        public abstract ImageBase CreateBgra32ImageFromPixelData(int width, int height, Span<byte> imagePixelData);
-    }
-
-    /// <summary>
-    /// The mode to decide how the image should be resized.
-    /// </summary>
-    public enum ImageResizeMode
-    {
-        /// <summary>
-        /// Pads the resized image to fit the bounds of its container.
-        /// </summary>
-        Pad,
-
-        /// <summary>
-        /// Ignore aspect ratio and squeeze/stretch into target dimensions.
-        /// </summary>
-        Fill,
-
-        /// <summary>
-        /// Resized image to fit the bounds of its container using cropping with top anchor.
-        /// </summary>
-        CropAnchorTop,
-
-        /// <summary>
-        /// Resized image to fit the bounds of its container using cropping with bottom anchor.
-        /// </summary>
-        CropAnchorBottom,
-
-        /// <summary>
-        /// Resized image to fit the bounds of its container using cropping with left anchor.
-        /// </summary>
-        CropAnchorLeft,
-
-        /// <summary>
-        /// Resized image to fit the bounds of its container using cropping with right anchor.
-        /// </summary>
-        CropAnchorRight,
-
-        /// <summary>
-        /// Resized image to fit the bounds of its container using cropping with central anchor.
-        /// </summary>
-        CropAnchorCentral
-    }
-
-    /// <summary>
-    /// Base class provide all interfaces for imaging operations.
-    /// </summary>
-    public abstract class ImageBase : IDisposable
-    {
-        /// <summary>
-        /// Gets or sets the image tag.
-        /// </summary>
-        public string Tag { get; set; }
-
-        /// <summary>
-        /// Gets the image width in pixels.
-        /// </summary>
-        public abstract int Width { get; }
-
-        /// <summary>
-        /// Gets the image height in pixels.
-        /// </summary>
-        public abstract int Height { get; }
-
-        /// <summary>
-        /// Gets how many bits per pixel used by current image object.
-        /// </summary>
-        public abstract int BitsPerPixel { get; }
-
-        /// <summary>
-        /// Create image object from a stream.
-        /// </summary>
-        /// <param name="imageStream">The stream to create the image from.</param>
-        /// <returns>Image object.</returns>
-        public static ImageBase CreateFromStream(Stream imageStream)
-        {
-            ImageProvider provider = ImageProvider.DefaultProvider;
-            return provider is not null ? provider.CreateImageFromStream(imageStream) : SkiaSharpImage.Create(imageStream);
-        }
-
-        /// <summary>
-        /// Create BRGA32 pixel format image object from the pixel data buffer span.
-        /// </summary>
-        /// <param name="width">The width of the image in pixels.</param>
-        /// <param name="height">The height of the image in pixels.</param>
-        /// <param name="imagePixelData">The pixels data to create the image from.</param>
-        /// <returns>Image object.</returns>
-        public static ImageBase CreateBgra32Image(int width, int height, Span<byte> imagePixelData)
-        {
-            ImageProvider provider = ImageProvider.DefaultProvider;
-            return provider is not null ? provider.CreateBgra32ImageFromPixelData(width, height, imagePixelData) : SkiaSharpImage.CreateFromPixelData(width, height, imagePixelData);
-        }
-
-        /// <summary>
-        /// Clones the current image with resizing it.
-        /// </summary>
-        /// <param name="width">The new width of the image.</param>
-        /// <param name="height">The new height of the image.</param>
-        /// <param name="mode">How to resize the image.</param>
-        /// <returns>The new cloned image.</returns>
-        public abstract ImageBase CloneWithResizing(int width, int height, ImageResizeMode mode);
-
-        /// <summary>
-        /// Clones the current image with grayscale.
-        /// </summary>
-        /// <returns>The new cloned image.</returns>
-        public abstract ImageBase CloneWithGrayscale();
-
-        /// <summary>
-        /// Gets the image pixel data and how the colors are ordered in the used pixel format.
-        /// </summary>
-        /// <param name="alphaIndex">The index of the alpha in the pixel format.</param>
-        /// <param name="redIndex">The index of the red color in the pixel format.</param>
-        /// <param name="greenIndex">The index of the green color in the pixel format.</param>
-        /// <param name="blueIndex">The index of the blue color in the pixel format.</param>
-        /// <returns>The buffer containing the image pixel data.</returns>
-        public abstract ReadOnlySpan<byte> Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex);
-
-        /// <summary>
-        /// Save the current image to a file.
-        /// </summary>
-        /// <param name="imagePath">The path of the file to save the image to.</param>
-        /// <remarks>The saved image encoding will be detected from the file extension.</remarks>
-        public abstract void Save(string imagePath);
-
-        /// <summary>
-        /// Releases the unmanaged resources used by the image object and optionally releases the managed resources.
-        /// </summary>
-        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-        }
-
-        /// <summary>
-        /// Releases all resources used by the image object.
-        /// </summary>
-        public void Dispose() => Dispose(disposing: true);
-    }
-
-    internal class SkiaSharpImage : ImageBase
+    public class Imager : IDisposable
     {
         private SKBitmap _image;
 
-        private SkiaSharpImage(SKBitmap image)
-        {
-            Debug.Assert(image is not null);
-
-            // Most of the time SkiaSharp create images with Bgra8888 or Rgba8888 pixel format.
-            if (image.Info.ColorType != SKColorType.Bgra8888 && image.Info.ColorType != SKColorType.Rgba8888)
-            {
-                if (!image.CanCopyTo(SKColorType.Bgra8888))
-                {
-                    throw new InvalidOperationException("Unsupported image format.");
-                }
-
-                SKBitmap image1 = image.Copy(SKColorType.Bgra8888);
-                image.Dispose();
-                image = image1;
-            }
-
-            _image = image;
-        }
-
-        public static ImageBase Create(Stream imageStream)
+        /// <summary>
+        /// Create a new imager instance from a stream.
+        /// </summary>
+        /// <param name="imageStream">The stream to create the image from.</param>
+        public Imager(Stream imageStream)
         {
             if (imageStream is null)
             {
                 throw new ArgumentNullException(nameof(imageStream));
             }
 
-            SKBitmap image = SKBitmap.Decode(imageStream);
-            if (image is null)
+            _image = SKBitmap.Decode(imageStream);
+            if (_image is null)
             {
                 throw new ArgumentException($"Invalid input stream contents", nameof(imageStream));
             }
 
-            return new SkiaSharpImage(image);
+            EnsureSupportedPixelFormat();
         }
 
-        public static unsafe ImageBase CreateFromPixelData(int width, int height, Span<byte> imagePixelData)
+        /// <summary>
+        /// Create a new imager instance from image file.
+        /// </summary>
+        /// <param name="imagePath">The image file path to create the image from.</param>
+        public Imager(string imagePath)
+        {
+            if (imagePath is null)
+            {
+                throw new ArgumentNullException(nameof(imagePath));
+            }
+
+            _image = SKBitmap.Decode(imagePath);
+            if (_image is null)
+            {
+                throw new ArgumentException($"Invalid path", nameof(imagePath));
+            }
+
+            EnsureSupportedPixelFormat();
+        }
+
+        private Imager(SKBitmap image)
+        {
+            _image = image;
+            EnsureSupportedPixelFormat();
+        }
+
+        private void EnsureSupportedPixelFormat()
+        {
+            Debug.Assert(_image is not null);
+
+            // Most of the time SkiaSharp create images with Bgra8888 or Rgba8888 pixel format.
+            if (_image.Info.ColorType != SKColorType.Bgra8888 && _image.Info.ColorType != SKColorType.Rgba8888)
+            {
+                if (!_image.CanCopyTo(SKColorType.Bgra8888))
+                {
+                    throw new InvalidOperationException("Unsupported image format.");
+                }
+
+                SKBitmap image1 = _image.Copy(SKColorType.Bgra8888);
+                _image.Dispose();
+                _image = image1;
+            }
+        }
+
+        /// <summary>
+        /// Create BRGA32 pixel format imager object from the pixel data buffer span.
+        /// </summary>
+        /// <param name="width">The width of the image in pixels.</param>
+        /// <param name="height">The height of the image in pixels.</param>
+        /// <param name="imagePixelData">The pixels data to create the image from.</param>
+        /// <returns>Imager object.</returns>
+        public static unsafe Imager CreateFromBgra32PixelData(int width, int height, Span<byte> imagePixelData)
         {
             if (imagePixelData.Length != width * height * 4)
             {
@@ -232,10 +104,18 @@ namespace Microsoft.ML.Data
 
             imagePixelData.CopyTo(new Span<byte>(image.GetPixels().ToPointer(), image.Width * image.Height * 4));
 
-            return new SkiaSharpImage(image);
+            return new Imager(image);
         }
 
-        public override ReadOnlySpan<byte> Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex)
+        /// <summary>
+        /// Gets the image pixel data and how the colors are ordered in the used pixel format.
+        /// </summary>
+        /// <param name="alphaIndex">The index of the alpha in the pixel format.</param>
+        /// <param name="redIndex">The index of the red color in the pixel format.</param>
+        /// <param name="greenIndex">The index of the green color in the pixel format.</param>
+        /// <param name="blueIndex">The index of the blue color in the pixel format.</param>
+        /// <returns>The byte span containing the image pixel data.</returns>
+        public ReadOnlySpan<byte> Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex)
         {
             ThrowInvalidOperationExceptionIfDisposed();
 
@@ -260,7 +140,7 @@ namespace Microsoft.ML.Data
             return _image.GetPixelSpan();
         }
 
-        public override ImageBase CloneWithResizing(int width, int height, ImageResizeMode mode)
+        internal Imager CloneWithResizing(int width, int height, ImageResizeMode mode)
         {
             ThrowInvalidOperationExceptionIfDisposed();
 
@@ -277,7 +157,7 @@ namespace Microsoft.ML.Data
                 throw new InvalidOperationException($"Couldn't resize the image");
             }
 
-            return new SkiaSharpImage(image);
+            return new Imager(image);
         }
 
         private SKBitmap ResizeFull(int width, int height) => _image.Resize(new SKSizeI(width, height), SKFilterQuality.None);
@@ -382,7 +262,7 @@ namespace Microsoft.ML.Data
                                                                             0,    0,     0,     1, 0
                                                                         });
 
-        public override ImageBase CloneWithGrayscale()
+        internal Imager CloneWithGrayscale()
         {
             ThrowInvalidOperationExceptionIfDisposed();
 
@@ -396,10 +276,18 @@ namespace Microsoft.ML.Data
             SKBitmap destBitmap = new SKBitmap(_image.Width, _image.Height, isOpaque: true);
             using SKCanvas canvas = new SKCanvas(destBitmap);
             canvas.DrawBitmap(_image, 0f, 0f, paint: paint);
-            return new SkiaSharpImage(destBitmap);
+            return new Imager(destBitmap);
         }
 
-        public override int Width
+        /// <summary>
+        /// Gets or sets the image tag.
+        /// </summary>
+        public string Tag { get; set; }
+
+        /// <summary>
+        /// Gets the image width in pixels.
+        /// </summary>
+        public int Width
         {
             get
             {
@@ -408,7 +296,10 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public override int Height
+        /// <summary>
+        /// Gets the image height in pixels.
+        /// </summary>
+        public int Height
         {
             get
             {
@@ -417,7 +308,10 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public override int BitsPerPixel
+        /// <summary>
+        /// Gets how many bits per pixel used by current image object.
+        /// </summary>
+        public int BitsPerPixel
         {
             get
             {
@@ -445,7 +339,12 @@ namespace Microsoft.ML.Data
             { ".webp", SKEncodedImageFormat.Webp }
         };
 
-        public override void Save(string imagePath)
+        /// <summary>
+        /// Save the current image to a file.
+        /// </summary>
+        /// <param name="imagePath">The path of the file to save the image to.</param>
+        /// <remarks>The saved image encoding will be detected from the file extension.</remarks>
+        public void Save(string imagePath)
         {
             ThrowInvalidOperationExceptionIfDisposed();
             string ext = Path.GetExtension(imagePath);
@@ -460,7 +359,7 @@ namespace Microsoft.ML.Data
             data.SaveTo(stream);
         }
 
-        protected override void Dispose(bool disposing)
+        public void Dispose()
         {
             if (_image != null)
             {
@@ -476,5 +375,46 @@ namespace Microsoft.ML.Data
                 throw new InvalidOperationException("Object is disposed.");
             }
         }
+    }
+
+    /// <summary>
+    /// The mode to decide how the image should be resized.
+    /// </summary>
+    internal enum ImageResizeMode
+    {
+        /// <summary>
+        /// Pads the resized image to fit the bounds of its container.
+        /// </summary>
+        Pad,
+
+        /// <summary>
+        /// Ignore aspect ratio and squeeze/stretch into target dimensions.
+        /// </summary>
+        Fill,
+
+        /// <summary>
+        /// Resized image to fit the bounds of its container using cropping with top anchor.
+        /// </summary>
+        CropAnchorTop,
+
+        /// <summary>
+        /// Resized image to fit the bounds of its container using cropping with bottom anchor.
+        /// </summary>
+        CropAnchorBottom,
+
+        /// <summary>
+        /// Resized image to fit the bounds of its container using cropping with left anchor.
+        /// </summary>
+        CropAnchorLeft,
+
+        /// <summary>
+        /// Resized image to fit the bounds of its container using cropping with right anchor.
+        /// </summary>
+        CropAnchorRight,
+
+        /// <summary>
+        /// Resized image to fit the bounds of its container using cropping with central anchor.
+        /// </summary>
+        CropAnchorCentral
     }
 }

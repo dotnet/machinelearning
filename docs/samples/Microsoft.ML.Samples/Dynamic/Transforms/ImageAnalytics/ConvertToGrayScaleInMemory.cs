@@ -69,10 +69,10 @@ namespace Samples.Dynamic
         private class ImageDataPoint
         {
             [ImageType(3, 4)]
-            public ImageBase Image { get; set; }
+            public Imager Image { get; set; }
 
             [ImageType(3, 4)]
-            public ImageBase GrayImage { get; set; }
+            public Imager GrayImage { get; set; }
 
             public ImageDataPoint()
             {
@@ -92,7 +92,7 @@ namespace Samples.Dynamic
                     imageData[i + 3] = 255;
                 }
 
-                Image = ImageBase.CreateBgra32Image(width, height, imageData);
+                Image = Imager.CreateFromBgra32PixelData(width, height, imageData);
             }
         }
     }

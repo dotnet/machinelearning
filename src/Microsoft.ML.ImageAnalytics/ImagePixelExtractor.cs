@@ -320,8 +320,8 @@ namespace Microsoft.ML.Transforms.Image
                 Contracts.Assert(size == planes * height * width);
                 int cpix = height * width;
 
-                var getSrc = input.GetGetter<ImageBase>(input.Schema[ColMapNewToOld[iinfo]]);
-                var src = default(ImageBase);
+                var getSrc = input.GetGetter<Imager>(input.Schema[ColMapNewToOld[iinfo]]);
+                var src = default(Imager);
 
                 disposer =
                     () =>
@@ -480,7 +480,7 @@ namespace Microsoft.ML.Transforms.Image
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | <xref:Microsoft.ML.Data.ImageBase> |
+    /// | Input column data type | <xref:Microsoft.ML.Data.Imager> |
     /// | Output column data type | Known-sized vector of <xref:System.Single> or <xref:System.Byte> |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
     /// | Exportable to ONNX | No |

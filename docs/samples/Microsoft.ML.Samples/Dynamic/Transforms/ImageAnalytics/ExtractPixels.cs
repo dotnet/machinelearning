@@ -78,8 +78,8 @@ namespace Samples.Dynamic
 
                 ReadOnlyMemory<char> imagePath = default;
                 ReadOnlyMemory<char> name = default;
-                ImageBase imageObject = null;
-                ImageBase resizedImageObject = null;
+                Imager imageObject = null;
+                Imager resizedImageObject = null;
                 VBuffer<float> pixels = default;
 
                 var imagePathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor
@@ -88,10 +88,10 @@ namespace Samples.Dynamic
                 var nameGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor
                     .Schema["Name"]);
 
-                var imageObjectGetter = cursor.GetGetter<ImageBase>(cursor.Schema[
+                var imageObjectGetter = cursor.GetGetter<Imager>(cursor.Schema[
                     "ImageObject"]);
 
-                var resizedImageGetter = cursor.GetGetter<ImageBase>(cursor.Schema[
+                var resizedImageGetter = cursor.GetGetter<Imager>(cursor.Schema[
                     "ImageObjectResized"]);
 
                 var pixelsGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema[
