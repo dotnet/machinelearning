@@ -5,10 +5,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.SearchSpace.Converter;
 
 namespace Microsoft.ML.SearchSpace
@@ -53,7 +53,7 @@ namespace Microsoft.ML.SearchSpace
     /// <see cref="Parameter"/> is used to save sweeping result from tuner and is used to restore mlnet pipeline from sweepable pipline.
     /// </summary>
     [JsonConverter(typeof(ParameterConverter))]
-    public sealed class Parameter : IDictionary<string, Parameter>, IEquatable<Parameter>
+    public sealed class Parameter : IDictionary<string, Parameter>, IEquatable<Parameter>, IEqualityComparer<Parameter>
     {
         private readonly JsonSerializerOptions _settings = new JsonSerializerOptions()
         {
@@ -374,7 +374,7 @@ namespace Microsoft.ML.SearchSpace
 
         private void VerifyIfParameterIsObjectType()
         {
-            Contracts.Check(ParameterType == ParameterType.Object, "parameter is not object type.");
+            Contract.Assert(ParameterType == ParameterType.Object, "parameter is not object type.");
         }
 
         /// <summary>
@@ -404,6 +404,9 @@ namespace Microsoft.ML.SearchSpace
             return (_value as IDictionary<string, Parameter>).Remove(key);
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public bool Equals(Parameter other)
         {
             //Check whether the compared object is null.
@@ -418,10 +421,28 @@ namespace Microsoft.ML.SearchSpace
             return thisJson == otherJson;
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public override int GetHashCode()
         {
             var thisJson = JsonSerializer.Serialize(this);
             return thisJson.GetHashCode();
+        }
+
+        public bool Equals(Parameter x, Parameter y)
+        {
+            return x.GetHashCode() == y.GetHashCode();
+        }
+
+        public int GetHashCode(Parameter obj)
+        {
+            return obj.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return JsonSerializer.Serialize(this);
         }
     }
 }

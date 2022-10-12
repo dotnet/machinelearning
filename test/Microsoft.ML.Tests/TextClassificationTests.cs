@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.Analysis;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
@@ -27,6 +28,11 @@ namespace Microsoft.ML.Tests
         {
             public string Sentence1;
             public string Sentiment;
+        }
+
+        private class TestSingleSentenceDataNoLabel
+        {
+            public string Sentence1;
         }
 
         private class TestDoubleSentenceData
@@ -82,11 +88,11 @@ namespace Microsoft.ML.Tests
                          Sentiment = "Negative"
                      }
                 }));
-            var estimator = ML.Transforms.Conversion.MapValueToKey("Label", "Sentiment")
+            var chain = new EstimatorChain<ITransformer>();
+            var estimator = chain.Append(ML.Transforms.Conversion.MapValueToKey("Label", "Sentiment"), TransformerScope.TrainTest)
                 .Append(ML.MulticlassClassification.Trainers.TextClassification(outputColumnName: "outputColumn"))
                 .Append(ML.Transforms.Conversion.MapKeyToValue("outputColumn"));
 
-            TestEstimatorCore(estimator, dataView);
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
 
             Assert.Equal(5, estimatorSchema.Count);
@@ -96,20 +102,79 @@ namespace Microsoft.ML.Tests
             var transformer = estimator.Fit(dataView);
             var transformerSchema = transformer.GetOutputSchema(dataView.Schema);
 
-            Assert.Equal(6, transformerSchema.Count);
-            Assert.Equal("outputColumn", transformerSchema[4].Name);
-            Assert.Equal(TextDataViewType.Instance, transformerSchema[4].Type);
+            var filteredModel = transformer.GetModelFor(TransformerScope.Scoring);
 
-            var predictedLabel = transformer.Transform(dataView).GetColumn<ReadOnlyMemory<char>>(transformerSchema[4].Name);
+            Assert.Equal(5, transformerSchema.Count);
+            Assert.Equal("outputColumn", transformerSchema[3].Name);
+            Assert.Equal(TextDataViewType.Instance, transformerSchema[3].Type);
+
+            var dataNoLabel = ML.Data.LoadFromEnumerable(
+                new List<TestSingleSentenceDataNoLabel>(new TestSingleSentenceDataNoLabel[] {
+                    new ()
+                    {   // Testing longer than 512 words.
+                        Sentence1 = "ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community . ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community . ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community . ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .",
+                    },
+                     new ()
+                     {
+                         Sentence1 = "with a sharp script and strong performances",
+                     },
+                     new ()
+                     {
+                         Sentence1 = "that director m. night shyamalan can weave an eerie spell and",
+                     },
+                     new ()
+                     {
+                         Sentence1 = "comfortable",
+                     },
+                     new ()
+                     {
+                         Sentence1 = "does have its charms .",
+                     },
+                     new ()
+                     {
+                         Sentence1 = "banal as the telling",
+                     },
+                     new ()
+                     {
+                         Sentence1 = "faithful without being forceful , sad without being shrill , `` a walk to remember '' succeeds through sincerity .",
+                     },
+                     new ()
+                     {
+                         Sentence1 = "leguizamo 's best movie work so far",
+                     }
+                }));
+
+            var predictedLabel = filteredModel.Transform(dataNoLabel).GetColumn<ReadOnlyMemory<char>>(transformerSchema[3].Name);
 
             // Make sure that we can use the multiclass evaluate method
-            var metrics = ML.MulticlassClassification.Evaluate(transformer.Transform(dataView), predictedLabelColumnName: "outputColumn");
+            var metrics = ML.MulticlassClassification.Evaluate(transformer.Transform(dataView, TransformerScope.Everything), predictedLabelColumnName: "outputColumn");
             Assert.NotNull(metrics);
 
-            // Not enough training is done to get good results so just make sure the count is right and are negative.
+            // Not enough training is done to get good results so just make sure the count is right.
             var a = predictedLabel.ToList();
             Assert.Equal(8, a.Count());
-            Assert.True(predictedLabel.All(value => value.ToString() == "Negative"));
+        }
+
+        // To run the TestTextClassificationWithBigDataOnGpu, set the EnableRunningGpuTest property to true and in the csproj enable the package TorchSharp-cuda-windows and disable libtorch-cpu-win-x64.
+        private static bool EnableRunningGpuTest => false;
+
+        [ConditionalFact(nameof(EnableRunningGpuTest))]
+        public void TestTextClassificationWithBigDataOnGpu()
+        {
+            var mlContext = new MLContext();
+            mlContext.GpuDeviceId = 0;
+            mlContext.FallbackToCpu = false;
+            var df = DataFrame.LoadCsv(@"Data\github-issues-train.tsv", separator: '\t', header: true, columnNames: new[] { "ID", "Label", "Title", "Description" });
+            var trainTestSplit = mlContext.Data.TrainTestSplit(df, testFraction: 0.2);
+            var pipeline =
+                    mlContext.Transforms.Conversion.MapValueToKey("Label")
+                        .Append(mlContext.MulticlassClassification.Trainers.TextClassification(sentence1ColumnName: "Title", sentence2ColumnName: "Description", maxEpochs: 10, batchSize: 8))
+                        .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+            var model = pipeline.Fit(trainTestSplit.TrainSet);
+            var predictionIdv = model.Transform(trainTestSplit.TestSet);
+            var metrics = mlContext.MulticlassClassification.Evaluate(predictionIdv);
+            Assert.True(metrics.MacroAccuracy > .69);
+            Assert.True(metrics.MicroAccuracy > .70);
         }
 
         [Fact]

@@ -15,8 +15,8 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
 
         public override BaseHead GetHead() => _predictionHead;
 
-        public TextClassificationModel(TextClassificationTrainer.Options options, Vocabulary vocabulary, int numClasses)
-            : base(options, vocabulary)
+        public TextClassificationModel(TextClassificationTrainer.Options options, int padIndex, int symbolsCount, int numClasses)
+            : base(options, padIndex, symbolsCount)
         {
             _predictionHead = new PredictionHead(
                 inputDim: Options.EncoderOutputDim,

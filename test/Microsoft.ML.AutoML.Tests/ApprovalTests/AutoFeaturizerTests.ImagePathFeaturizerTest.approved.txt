@@ -1,0 +1,42 @@
+{
+  "schema": "e0 * e1 * e2 * e3",
+  "currentSchema": "e0 * e1 * e2 * e3",
+  "estimators": {
+    "e0": {
+      "estimatorType": "LoadImages",
+      "parameter": {
+        "OutputColumnName": "imagePath",
+        "InputColumnName": "imagePath"
+      }
+    },
+    "e1": {
+      "estimatorType": "ResizeImages",
+      "parameter": {
+        "OutputColumnName": "imagePath",
+        "InputColumnName": "imagePath",
+        "ImageHeight": 224,
+        "ImageWidth": 224,
+        "CropAnchor": "Center",
+        "Resizing": "Fill"
+      }
+    },
+    "e2": {
+      "estimatorType": "ExtractPixels",
+      "parameter": {
+        "OutputColumnName": "imagePath",
+        "InputColumnName": "imagePath",
+        "ColorsToExtract": "Rgb",
+        "OrderOfExtraction": "ARGB",
+        "OutputAsFloatArray": true
+      }
+    },
+    "e3": {
+      "estimatorType": "DnnFeaturizerImage",
+      "parameter": {
+        "OutputColumnName": "imagePath",
+        "InputColumnName": "imagePath",
+        "ModelFactory": "resnet_18"
+      }
+    }
+  }
+}

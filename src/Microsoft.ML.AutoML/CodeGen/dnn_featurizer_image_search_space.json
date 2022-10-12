@@ -1,0 +1,22 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "dnn_featurizer_image_option",
+  "search_space": [
+    {
+      "name": "OutputColumnName",
+      "type": "string"
+    },
+    {
+      "name": "InputColumnName",
+      "type": "string"
+    },
+    {
+      "name": "ModelFactory",
+      "type": "dnnModelFactory",
+      "default": "resnet_18",
+      "search_space": [
+        "alexnet", "resnet_101", "resnet_18", "resnet_50"
+      ]
+    }
+  ]
+}

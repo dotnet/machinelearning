@@ -2,6 +2,29 @@
   "$schema": "http://json-schema.org/draft-04/schema",
   "title": "Search Space",
   "definitions": {
+    "boolArray": {
+      "type": "array",
+      "items": { "type": "boolean" }
+    },
+    "intArray": {
+      "type": "array",
+      "items": { "type": "integer" }
+    },
+    "dnnModelFactoryArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/dnnModelFactoryType"
+      }
+    },
+    "dnnModelFactoryType": {
+      "type": "string",
+      "enum": [
+        "resnet_18",
+        "resnet_50",
+        "resnet_101",
+        "alexnet"
+      ]
+    },
     "range": {
       "type": "object",
       "properties": {
@@ -12,18 +35,17 @@
       "required": [ "min", "max" ]
     },
     "choice": {
-      "type": "object",
-      "properties": {
-        "value": {
-          "oneOf": [
-            { "type": "string" },
-            { "type": "number" },
-            { "type": "integer" },
-            { "type": "boolean" }
-          ]
+      "oneOf": [
+        {
+          "$ref": "#/definitions/intArray"
+        },
+        {
+          "$ref": "#/definitions/dnnModelFactoryArray"
+        },
+        {
+          "$ref": "#/definitions/boolArray"
         }
-      },
-      "required": [ "value" ]
+      ]
     },
     "option": {
       "type": "object",
@@ -86,7 +108,9 @@
         "extract_pixels_option",
         "load_image_option",
         "image_classification_option",
-        "matrix_factorization_option"
+        "matrix_factorization_option",
+        "dnn_featurizer_image_option",
+        "text_classification_option"
       ]
     },
     "option_name": {
@@ -130,7 +154,9 @@
         "ApproximationRank",
         "NumberOfIterations",
         "Quiet",
-        "OutputAsFloatArray"
+        "OutputAsFloatArray",
+        "ModelFactory",
+        "Sentence1ColumnName"
       ]
     },
     "option_type": {
@@ -145,7 +171,8 @@
         "resizingKind",
         "colorBits",
         "colorsOrder",
-        "anchor"
+        "anchor",
+        "dnnModelFactory"
       ]
     }
   },

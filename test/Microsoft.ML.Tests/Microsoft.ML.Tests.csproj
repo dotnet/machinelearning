@@ -11,11 +11,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.Data.Analysis\Microsoft.Data.Analysis.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Vision\Microsoft.ML.Vision.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Experimental\Microsoft.ML.Experimental.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.ML.Featurizers\Microsoft.ML.Featurizers.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
@@ -58,11 +58,19 @@
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
     <PackageReference Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimeVersion)" />
+    <PackageReference Include="FluentAssertions" Version="$(FluentAssertionVersion)" />
     <PackageReference Include="System.Data.SQLite.Core" Version="$(SystemDataSQLiteCoreVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Data\**">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
     <PackageReference Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+    <!-- <PackageReference Include="TorchSharp-cuda-windows" Version="0.96.8" Condition="$([MSBuild]::IsOSPlatform('Windows'))" /> -->
     <PackageReference Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
     <PackageReference Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
   </ItemGroup>

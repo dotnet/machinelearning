@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
@@ -102,12 +103,32 @@ namespace Microsoft.ML
             foreach (var split in DataOperationsCatalog.CrossValidationSplit(Environment, data, splitColumn, numFolds))
             {
                 var model = estimator.Fit(split.TrainSet);
-                var scoredTest = model.Transform(split.TestSet);
+                IDataView scoredTest;
+
+                if (IsCastableToTransformerChainOfITransformer(model))
+                    scoredTest = (Unsafe.As<TransformerChain<ITransformer>>(model)).Transform(split.TestSet, TransformerScope.Everything);
+                else
+                    scoredTest = model.Transform(split.TestSet);
                 result[fold] = new CrossValidationResult(model, scoredTest, fold);
                 fold++;
             }
 
             return result;
+        }
+
+        private static bool IsCastableToTransformerChainOfITransformer(object o)
+        {
+            var type = o.GetType();
+            while (!type!.FullName!.StartsWith("Microsoft.ML.Data.TransformerChain`1[", StringComparison.Ordinal))
+            {
+                type = type!.BaseType;
+                if (type is null)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         [BestFriend]

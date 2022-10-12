@@ -20,7 +20,7 @@ jobs:
     ${{ if eq(parameters.nightlyBuild, 'true') }}:
       timeoutInMinutes: 30
     ${{ if and(eq(parameters.nightlyBuild, 'false'), eq(parameters.codeCoverage, 'false')) }}:
-      timeoutInMinutes: 90
+      timeoutInMinutes: 120
     ${{ if eq(parameters.codeCoverage, 'true') }}:
       timeoutInMinutes: 120
     cancelTimeoutInMinutes: 10
@@ -37,7 +37,7 @@ jobs:
         spaceValue: ' '
       ${{ if eq(parameters.buildScript, './build.sh') }}:
         spaceValue: '%20'
-      ${{ if and(eq(parameters.pool.vmImage, 'ubuntu-18.04'), contains(parameters.name, 'cross')) }}:
+      ${{ if and(contains(parameters.pool.demands, 'ubuntu'), contains(parameters.name, 'cross')) }}:
         ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
       ${{ if eq(parameters.codeCoverage, 'true') }}:
         hardLink: ''
@@ -66,14 +66,8 @@ jobs:
       container: ${{ parameters.container }}
 
     steps:
-    # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
-    - ${{ if eq(parameters.pool.vmImage, 'macOS-10.15') }}:
-      - script: |
-          rm -rf /usr/local/bin/2to3
-        displayName: MacOS Homebrew bug Workaround
-        continueOnError: true
     # Extra MacOS step required to install OS-specific dependencies
-    - ${{ if and(eq(parameters.pool.vmImage, 'macOS-10.15'), not(contains(parameters.name, 'cross')))  }}:
+    - ${{ if and(contains(parameters.pool.vmImage, 'macOS'), not(contains(parameters.name, 'cross')))  }}:
       - script: export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=TRUE && brew update && brew install mono-libgdiplus && brew unlink libomp && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
         displayName: Install MacOS build dependencies
     # Extra Apple MacOS step required to install OS-specific dependencies

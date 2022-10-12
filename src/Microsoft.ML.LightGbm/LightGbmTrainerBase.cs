@@ -539,7 +539,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.UseCategoricalSplit) + " = " + useCat);
             if (useCat)
             {
-                var featureCol = trainData.Schema.Schema[DefaultColumnNames.Features];
+                var featureCol = trainData.Schema.Feature.Value;
                 AnnotationUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureCol.Index, out categoricalFeatures);
             }
             var colType = trainData.Schema.Feature.Value.Type;
@@ -619,7 +619,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             Host.AssertValue(pch);
             Host.AssertValue(dtrain);
             Host.AssertValueOrNull(dvalid);
-
+            Host.CheckAlive();
             // For multi class, the number of labels is required.
             ch.Assert(((ITrainer)this).PredictionKind != PredictionKind.MulticlassClassification || GbmOptions.ContainsKey("num_class"),
                 "LightGBM requires the number of classes to be specified in the parameters.");
@@ -628,7 +628,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             lock (LightGbmShared.LockForMultiThreadingInside)
             {
                 ch.Info("LightGBM objective={0}", GbmOptions["objective"]);
-                using (Booster bst = WrappedLightGbmTraining.Train(ch, pch, GbmOptions, dtrain,
+                using (Booster bst = WrappedLightGbmTraining.Train(Host, ch, pch, GbmOptions, dtrain,
                 dvalid: dvalid, numIteration: LightGbmTrainerOptions.NumberOfIterations,
                 verboseEval: LightGbmTrainerOptions.Verbose, earlyStoppingRound: LightGbmTrainerOptions.EarlyStoppingRound))
                 {
