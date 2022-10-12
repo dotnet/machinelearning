@@ -6,9 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.Pfa;
@@ -298,9 +298,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 unsafe
                 {
-    #pragma warning disable MSML_SingleVariableDeclaration // Have only a single variable present per declaration
+#pragma warning disable MSML_SingleVariableDeclaration // Have only a single variable present per declaration
                     fixed (void* featuresPtr = &featuresArray[0], modelPtr = &_oneDalModel[0])
-    #pragma warning restore MSML_SingleVariableDeclaration // Have only a single variable present per declaration
+#pragma warning restore MSML_SingleVariableDeclaration // Have only a single variable present per declaration
                     {
                         if (_oneDalModelType == OneDalModelType.Classification)
                             output = OneDal.DecisionForestClassificationPrediction(featuresPtr, nFeatures, 2, modelPtr, _oneDalModelSize);

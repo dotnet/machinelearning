@@ -3,15 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.ML;
-using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
