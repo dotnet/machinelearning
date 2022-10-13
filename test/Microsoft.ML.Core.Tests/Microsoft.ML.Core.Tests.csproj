@@ -2,6 +2,8 @@
   <PropertyGroup>
     <DefineConstants>CORECLR</DefineConstants>
     <StrongNameKeyId>Test</StrongNameKeyId>
+    <!-- Temporary workaround for https://github.com/dotnet/roslyn/issues/64365 -->
+    <LangVersion>10.0</LangVersion>
   </PropertyGroup>
 
     <!-- Import the test signing certificate -->

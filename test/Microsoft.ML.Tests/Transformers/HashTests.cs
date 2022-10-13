@@ -84,17 +84,17 @@ namespace Microsoft.ML.Tests.Transformers
         {
             VBuffer<ReadOnlyMemory<char>> keys = default;
             var column = result.Schema["HashA"];
-            Assert.Equal(column.Annotations.Schema.Single().Name, AnnotationUtils.Kinds.KeyValues);
+            Assert.Equal(AnnotationUtils.Kinds.KeyValues, column.Annotations.Schema.Single().Name);
             column.GetKeyValues(ref keys);
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "2.5", "3.5" });
 
             column = result.Schema["HashAUnlim"];
-            Assert.Equal(column.Annotations.Schema.Single().Name, AnnotationUtils.Kinds.KeyValues);
+            Assert.Equal(AnnotationUtils.Kinds.KeyValues, column.Annotations.Schema.Single().Name);
             column.GetKeyValues(ref keys);
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "2.5", "3.5" });
 
             column = result.Schema["HashAUnlimOrdered"];
-            Assert.Equal(column.Annotations.Schema.Single().Name, AnnotationUtils.Kinds.KeyValues);
+            Assert.Equal(AnnotationUtils.Kinds.KeyValues, column.Annotations.Schema.Single().Name);
             column.GetKeyValues(ref keys);
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "0:3.5", "1:2.5" });
         }
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestCommandLine()
         {
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Hash{col=B:A} in=f:\2.txt" }), (int)0);
+            Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Hash{col=B:A} in=f:\2.txt" }));
         }
 
         [Fact]

@@ -646,36 +646,36 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestCommandLine()
         {
             var dataFile = GetDataPath("QuotingData.csv");
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{keyCol=ID valueCol=Text data="
+            Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{keyCol=ID valueCol=Text data="
                                     + dataFile
-                                    + @" col=A:B loader=Text{col=ID:U8:0 col=Text:TX:1 sep=, header=+} } in=f:\1.txt" }), (int)0);
+                                    + @" col=A:B loader=Text{col=ID:U8:0 col=Text:TX:1 sep=, header=+} } in=f:\1.txt" }));
         }
 
         [Fact]
         public void TestCommandLineNoLoader()
         {
             var dataFile = GetDataPath("lm.labels.txt");
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{data="
+            Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{data="
                                     + dataFile
-                                    + @" col=A:B } in=f:\1.txt" }), (int)0);
+                                    + @" col=A:B } in=f:\1.txt" }));
         }
 
         [Fact]
         public void TestCommandLineNoLoaderWithColumnNames()
         {
             var dataFile = GetDataPath("lm.labels.txt");
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{data="
+            Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{data="
                                     + dataFile
-                                    + @" col=A:B keyCol=foo valueCol=bar} in=f:\1.txt" }), (int)0);
+                                    + @" col=A:B keyCol=foo valueCol=bar} in=f:\1.txt" }));
         }
 
         [Fact]
         public void TestCommandLineNoLoaderWithoutTreatValuesAsKeys()
         {
             var dataFile = GetDataPath("lm.labels.txt");
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{data="
+            Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{data="
                                     + dataFile
-                                    + @" col=A:B valuesAsKeyType=-} in=f:\1.txt" }), (int)0);
+                                    + @" col=A:B valuesAsKeyType=-} in=f:\1.txt" }));
         }
 
         [Fact]
