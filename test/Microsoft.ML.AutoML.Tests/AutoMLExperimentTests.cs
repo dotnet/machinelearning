@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -346,31 +347,19 @@ namespace Microsoft.ML.AutoML.Test
         {
         }
 
-        public TrialResult Run(TrialSettings settings)
-        {
-            _logger.Info("Update Running Trial");
-            Task.Delay(_finishAfterNSeconds * 1000).Wait(_ct);
-            _ct.ThrowIfCancellationRequested();
-            _logger.Info("Update Completed Trial");
-            return new TrialResult
-            {
-                TrialSettings = settings,
-                DurationInMilliseconds = _finishAfterNSeconds * 1000,
-                Metric = 1.000 + 0.01 * settings.TrialId,
-            };
-        }
-
         public async Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
         {
             _logger.Info("Update Running Trial");
             await Task.Delay(_finishAfterNSeconds * 1000, ct);
             _ct.ThrowIfCancellationRequested();
             _logger.Info("Update Completed Trial");
+            var metric = 1.000 + 0.01 * settings.TrialId;
             return new TrialResult
             {
                 TrialSettings = settings,
                 DurationInMilliseconds = _finishAfterNSeconds * 1000,
-                Metric = 1.000 + 0.01 * settings.TrialId,
+                Metric = metric,
+                Loss = - -metric,
             };
         }
     }

@@ -5873,6 +5873,18 @@
           "Default": false
         },
         {
+          "Name": "MemoryStatistics",
+          "Type": "Bool",
+          "Desc": "Print memory statistics to stdout",
+          "Aliases": [
+            "memstats"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
           "Name": "FeatureFraction",
           "Type": "Float",
           "Desc": "The fraction of features (chosen randomly) to use on each iteration",
@@ -6483,6 +6495,18 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": false
+        },
+        {
+          "Name": "MemoryStatistics",
+          "Type": "Bool",
+          "Desc": "Print memory statistics to stdout",
+          "Aliases": [
+            "memstats"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
         },
         {
           "Name": "FeatureFraction",
@@ -7382,6 +7406,18 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": false
+        },
+        {
+          "Name": "MemoryStatistics",
+          "Type": "Bool",
+          "Desc": "Print memory statistics to stdout",
+          "Aliases": [
+            "memstats"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
         },
         {
           "Name": "FeatureFraction",
@@ -8373,6 +8409,18 @@
           "Default": false
         },
         {
+          "Name": "MemoryStatistics",
+          "Type": "Bool",
+          "Desc": "Print memory statistics to stdout",
+          "Aliases": [
+            "memstats"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
           "Name": "FeatureFraction",
           "Type": "Float",
           "Desc": "The fraction of features (chosen randomly) to use on each iteration",
@@ -9258,6 +9306,18 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": false
+        },
+        {
+          "Name": "MemoryStatistics",
+          "Type": "Bool",
+          "Desc": "Print memory statistics to stdout",
+          "Aliases": [
+            "memstats"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
         },
         {
           "Name": "FeatureFraction",
@@ -10154,6 +10214,18 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": false
+        },
+        {
+          "Name": "MemoryStatistics",
+          "Type": "Bool",
+          "Desc": "Print memory statistics to stdout",
+          "Aliases": [
+            "memstats"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
         },
         {
           "Name": "FeatureFraction",
@@ -27045,6 +27117,18 @@
               "Default": false
             },
             {
+              "Name": "MemoryStatistics",
+              "Type": "Bool",
+              "Desc": "Print memory statistics to stdout",
+              "Aliases": [
+                "memstats"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": true
+            },
+            {
               "Name": "FeatureFraction",
               "Type": "Float",
               "Desc": "The fraction of features (chosen randomly) to use on each iteration",
@@ -28016,6 +28100,18 @@
               "Default": false
             },
             {
+              "Name": "MemoryStatistics",
+              "Type": "Bool",
+              "Desc": "Print memory statistics to stdout",
+              "Aliases": [
+                "memstats"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": true
+            },
+            {
               "Name": "FeatureFraction",
               "Type": "Float",
               "Desc": "The fraction of features (chosen randomly) to use on each iteration",
@@ -28883,6 +28979,18 @@
               "SortOrder": 150.0,
               "IsNullable": false,
               "Default": false
+            },
+            {
+              "Name": "MemoryStatistics",
+              "Type": "Bool",
+              "Desc": "Print memory statistics to stdout",
+              "Aliases": [
+                "memstats"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": true
             },
             {
               "Name": "FeatureFraction",
@@ -29761,6 +29869,18 @@
               "SortOrder": 150.0,
               "IsNullable": false,
               "Default": false
+            },
+            {
+              "Name": "MemoryStatistics",
+              "Type": "Bool",
+              "Desc": "Print memory statistics to stdout",
+              "Aliases": [
+                "memstats"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": true
             },
             {
               "Name": "FeatureFraction",

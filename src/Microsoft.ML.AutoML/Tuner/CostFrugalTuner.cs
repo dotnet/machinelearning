@@ -23,20 +23,31 @@ namespace Microsoft.ML.AutoML
         private bool _initUsed = false;
         private double _bestLoss;
 
-        public CostFrugalTuner(AutoMLExperiment.AutoMLExperimentSettings settings)
-            : this(settings.SearchSpace, settings.SearchSpace.SampleFromFeatureSpace(settings.SearchSpace.Default))
+        public CostFrugalTuner(AutoMLExperiment.AutoMLExperimentSettings settings, ITrialResultManager trialResultManager = null)
+            : this(settings.SearchSpace, settings.SearchSpace.SampleFromFeatureSpace(settings.SearchSpace.Default), trialResultManager.GetAllTrialResults(), settings.Seed)
         {
         }
 
-        public CostFrugalTuner(SearchSpace.SearchSpace searchSpace, Parameter initValue = null)
+        public CostFrugalTuner(SearchSpace.SearchSpace searchSpace, Parameter initValue = null, IEnumerable<TrialResult> trialResults = null, int? seed = null)
         {
             _searchSpace = searchSpace;
-            _localSearch = new Flow2(searchSpace, initValue, true);
             _currentThreadId = 0;
             _lsBoundMin = _searchSpace.MappingToFeatureSpace(initValue);
             _lsBoundMax = _searchSpace.MappingToFeatureSpace(initValue);
             _initUsed = false;
             _bestLoss = double.MaxValue;
+            if (seed is int s)
+            {
+                _rng = new RandomNumberGenerator(s);
+            }
+            _localSearch = new Flow2(searchSpace, initValue, true, rng: _rng);
+            if (trialResults != null)
+            {
+                foreach (var trial in trialResults)
+                {
+                    Update(trial);
+                }
+            }
         }
 
         public Parameter Propose(TrialSettings settings)
@@ -65,6 +76,7 @@ namespace Microsoft.ML.AutoML
             var trialId = result.TrialSettings.TrialId;
             var parameter = result.TrialSettings.Parameter;
             var loss = result.Loss;
+
             if (loss < _bestLoss)
             {
                 BestConfig = parameter;
@@ -81,7 +93,7 @@ namespace Microsoft.ML.AutoML
             }
             else
             {
-                _searchThreadPool[threadId].OnTrialComplete(trialId, loss, cost);
+                _searchThreadPool[threadId].OnTrialComplete(parameter, loss, cost);
                 if (_searchThreadPool[threadId].IsConverged)
                 {
                     _searchThreadPool.Remove(threadId);

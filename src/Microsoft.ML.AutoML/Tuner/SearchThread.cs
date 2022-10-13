@@ -37,9 +37,9 @@ namespace Microsoft.ML.AutoML
 
         public Flow2 SearchArg { get => _searchAlg; }
 
-        public void OnTrialComplete(int trialId, double metric, double cost)
+        public void OnTrialComplete(Parameter parameter, double metric, double cost)
         {
-            _searchAlg.ReceiveTrialResult(trialId, metric, cost);
+            _searchAlg.ReceiveTrialResult(parameter, metric, cost);
             _costLast = cost;
             _costTotal += cost;
             if (metric < _objBest1)
