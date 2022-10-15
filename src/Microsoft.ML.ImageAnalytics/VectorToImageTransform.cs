@@ -341,7 +341,7 @@ namespace Microsoft.ML.Transforms.Image
                     throw Contracts.Except("We only support float, double or byte arrays");
             }
 
-            private ValueGetter<Imager> GetterFromType<TValue>(PrimitiveDataViewType srcType, DataViewRow input, int iinfo,
+            private ValueGetter<MLImage> GetterFromType<TValue>(PrimitiveDataViewType srcType, DataViewRow input, int iinfo,
                 VectorToImageConvertingEstimator.ColumnOptions ex, bool needScale) where TValue : IConvertible
             {
                 Contracts.Assert(typeof(TValue) == srcType.RawType);
@@ -353,7 +353,7 @@ namespace Microsoft.ML.Transforms.Image
                 float scale = ex.ScaleImage;
 
                 return
-                    (ref Imager dst) =>
+                    (ref MLImage dst) =>
                     {
                         getSrc(ref src);
                         if (src.GetValues().Length == 0)
@@ -415,7 +415,7 @@ namespace Microsoft.ML.Transforms.Image
                             }
                         }
 
-                        dst = Imager.CreateFromBgra32PixelData(width, height, imageData);
+                        dst = MLImage.CreateFromPixels(width, height, MLPixelFormat.Bgra32, imageData);
                         dst.Tag = nameof(VectorToImageConvertingTransformer);
                     };
             }
@@ -438,7 +438,7 @@ namespace Microsoft.ML.Transforms.Image
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Known-sized vector of <xref:System.Single>, <xref:System.Double> or <xref:System.Byte>. |
-    /// | Output column data type | <xref:Microsoft.ML.Data.Imager> |
+    /// | Output column data type | <xref:Microsoft.ML.Data.MLImage> |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
     /// | Exportable to ONNX | No |
     ///

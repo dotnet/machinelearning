@@ -38,8 +38,23 @@ namespace Samples.Dynamic
             {
                 var image = dataPoint.Image;
                 var grayImage = dataPoint.GrayImage;
-                ReadOnlySpan<byte> imageData = image.Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex);
-                ReadOnlySpan<byte> grayImageData = grayImage.Get32bbpImageData(out int alphaIndex1, out int redIndex1, out int greenIndex1, out int blueIndex1);
+
+                ReadOnlySpan<byte> imageData = image.Pixels;
+                (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = image.PixelFormat switch
+                {
+                    MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                    MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                    _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                };
+
+                ReadOnlySpan<byte> grayImageData = grayImage.Pixels;
+                (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = grayImage.PixelFormat switch
+                {
+                    MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                    MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                    _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                };
+
                 int pixelSize = image.BitsPerPixel / 8;
 
                 for (int i = 0; i < imageData.Length; i += pixelSize)
@@ -69,10 +84,10 @@ namespace Samples.Dynamic
         private class ImageDataPoint
         {
             [ImageType(3, 4)]
-            public Imager Image { get; set; }
+            public MLImage Image { get; set; }
 
             [ImageType(3, 4)]
-            public Imager GrayImage { get; set; }
+            public MLImage GrayImage { get; set; }
 
             public ImageDataPoint()
             {
@@ -92,7 +107,7 @@ namespace Samples.Dynamic
                     imageData[i + 3] = 255;
                 }
 
-                Image = Imager.CreateFromBgra32PixelData(width, height, imageData);
+                Image = MLImage.CreateFromPixels(width, height, MLPixelFormat.Bgra32, imageData);
             }
         }
     }

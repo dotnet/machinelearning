@@ -152,8 +152,8 @@ namespace Microsoft.ML.Tests
             {
                 var pathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cropped.Schema["ImagePath"]);
                 ReadOnlyMemory<char> path = default;
-                var imageCropGetter = cursor.GetGetter<Imager>(cropped.Schema["ImageCropped"]);
-                Imager image = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(cropped.Schema["ImageCropped"]);
+                MLImage image = default;
                 while (cursor.MoveNext())
                 {
                     pathGetter(ref path);
@@ -199,14 +199,20 @@ namespace Microsoft.ML.Tests
             grey.Schema.TryGetColumnIndex("ImageGrey", out int greyColumn);
             using (var cursor = grey.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<Imager>(grey.Schema["ImageGrey"]);
-                Imager image = default;
+                var imageGetter = cursor.GetGetter<MLImage>(grey.Schema["ImageGrey"]);
+                MLImage image = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref image);
                     Assert.NotNull(image);
 
-                    ReadOnlySpan<byte> imageData = image.Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex);
+                    ReadOnlySpan<byte> imageData = image.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = image.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
                     int pixelSize = image.BitsPerPixel / 8;
 
                     for (int i = 0; i < imageData.Length; i += pixelSize)
@@ -250,7 +256,13 @@ namespace Microsoft.ML.Tests
                 Assert.Equal(image.Width, grayImage.Width);
                 Assert.Equal(image.Height, grayImage.Height);
 
-                ReadOnlySpan<byte> imageData = grayImage.Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex);
+                ReadOnlySpan<byte> imageData = grayImage.Pixels;
+                (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = grayImage.PixelFormat switch
+                {
+                    MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                    MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                    _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                };
                 int pixelSize = grayImage.BitsPerPixel / 8;
 
                 for (int i = 0; i < imageData.Length; i += pixelSize)
@@ -267,7 +279,13 @@ namespace Microsoft.ML.Tests
             Assert.Equal(singleImage.Image.Height, transformedSingleImage.GrayImage.Height);
             Assert.Equal(singleImage.Image.Width, transformedSingleImage.GrayImage.Width);
 
-            ReadOnlySpan<byte> imageData1 = transformedSingleImage.GrayImage.Get32bbpImageData(out int alphaIndex1, out int redIndex1, out int greenIndex1, out int blueIndex1);
+            ReadOnlySpan<byte> imageData1 = transformedSingleImage.GrayImage.Pixels;
+            (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = transformedSingleImage.GrayImage.PixelFormat switch
+            {
+                MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                _ => throw new InvalidOperationException($"Image pixel format is not supported")
+            };
             int pixelSize1 = transformedSingleImage.GrayImage.BitsPerPixel / 8;
 
             for (int i = 0; i < imageData1.Length; i += pixelSize1)
@@ -280,10 +298,10 @@ namespace Microsoft.ML.Tests
         private class ImageDataPoint
         {
             [ImageType(10, 10)]
-            public Imager Image { get; set; }
+            public MLImage Image { get; set; }
 
             [ImageType(10, 10)]
-            public Imager GrayImage { get; set; }
+            public MLImage GrayImage { get; set; }
 
             public ImageDataPoint()
             {
@@ -303,7 +321,7 @@ namespace Microsoft.ML.Tests
                     imageData[i + 3] = 255;
                 }
 
-                Image = Imager.CreateFromBgra32PixelData(width, height, imageData);
+                Image = MLImage.CreateFromPixels(width, height, MLPixelFormat.Bgra32, imageData);
             }
         }
 
@@ -341,11 +359,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
-                Imager restoredImage = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
-                Imager croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -353,8 +371,21 @@ namespace Microsoft.ML.Tests
                     imageCropGetter(ref croppedImage);
                     Assert.NotNull(croppedImage);
 
-                    ReadOnlySpan<byte> restoredImageData = restoredImage.Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex);
-                    ReadOnlySpan<byte> croppedImageData = croppedImage.Get32bbpImageData(out int alphaIndex1, out int redIndex1, out int greenIndex1, out int blueIndex1);
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
 
                     int pixelSize = restoredImage.BitsPerPixel / 8;
 
@@ -403,11 +434,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
-                Imager restoredImage = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
-                Imager croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -415,8 +446,21 @@ namespace Microsoft.ML.Tests
                     imageCropGetter(ref croppedImage);
                     Assert.NotNull(croppedImage);
 
-                    ReadOnlySpan<byte> restoredImageData = restoredImage.Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex);
-                    ReadOnlySpan<byte> croppedImageData = croppedImage.Get32bbpImageData(out int alphaIndex1, out int redIndex1, out int greenIndex1, out int blueIndex1);
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
 
                     int pixelSize = restoredImage.BitsPerPixel / 8;
 
@@ -466,11 +510,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
-                Imager restoredImage = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
-                Imager croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -478,8 +522,21 @@ namespace Microsoft.ML.Tests
                     imageCropGetter(ref croppedImage);
                     Assert.NotNull(croppedImage);
 
-                    ReadOnlySpan<byte> restoredImageData = restoredImage.Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex);
-                    ReadOnlySpan<byte> croppedImageData = croppedImage.Get32bbpImageData(out int alphaIndex1, out int redIndex1, out int greenIndex1, out int blueIndex1);
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
 
                     int pixelSize = restoredImage.BitsPerPixel / 8;
 
@@ -528,11 +585,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
-                Imager restoredImage = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
-                Imager croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -540,8 +597,21 @@ namespace Microsoft.ML.Tests
                     imageCropGetter(ref croppedImage);
                     Assert.NotNull(croppedImage);
 
-                    ReadOnlySpan<byte> restoredImageData = restoredImage.Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex);
-                    ReadOnlySpan<byte> croppedImageData = croppedImage.Get32bbpImageData(out int alphaIndex1, out int redIndex1, out int greenIndex1, out int blueIndex1);
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
 
                     int pixelSize = restoredImage.BitsPerPixel / 8;
 
@@ -590,11 +660,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
-                Imager restoredImage = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
-                Imager croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -602,8 +672,21 @@ namespace Microsoft.ML.Tests
                     imageCropGetter(ref croppedImage);
                     Assert.NotNull(croppedImage);
 
-                    ReadOnlySpan<byte> restoredImageData = restoredImage.Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex);
-                    ReadOnlySpan<byte> croppedImageData = croppedImage.Get32bbpImageData(out int alphaIndex1, out int redIndex1, out int greenIndex1, out int blueIndex1);
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
 
                     int pixelSize = restoredImage.BitsPerPixel / 8;
 
@@ -653,11 +736,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
-                Imager restoredImage = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
-                Imager croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -665,8 +748,21 @@ namespace Microsoft.ML.Tests
                     imageCropGetter(ref croppedImage);
                     Assert.NotNull(croppedImage);
 
-                    ReadOnlySpan<byte> restoredImageData = restoredImage.Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex);
-                    ReadOnlySpan<byte> croppedImageData = croppedImage.Get32bbpImageData(out int alphaIndex1, out int redIndex1, out int greenIndex1, out int blueIndex1);
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
 
                     int pixelSize = restoredImage.BitsPerPixel / 8;
 
@@ -715,11 +811,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
-                Imager restoredImage = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
-                Imager croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -727,8 +823,21 @@ namespace Microsoft.ML.Tests
                     imageCropGetter(ref croppedImage);
                     Assert.NotNull(croppedImage);
 
-                    ReadOnlySpan<byte> restoredImageData = restoredImage.Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex);
-                    ReadOnlySpan<byte> croppedImageData = croppedImage.Get32bbpImageData(out int alphaIndex1, out int redIndex1, out int greenIndex1, out int blueIndex1);
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
 
                     int pixelSize = restoredImage.BitsPerPixel / 8;
 
@@ -778,11 +887,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
-                Imager restoredImage = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
-                Imager croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -790,8 +899,21 @@ namespace Microsoft.ML.Tests
                     imageCropGetter(ref croppedImage);
                     Assert.NotNull(croppedImage);
 
-                    ReadOnlySpan<byte> restoredImageData = restoredImage.Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex);
-                    ReadOnlySpan<byte> croppedImageData = croppedImage.Get32bbpImageData(out int alphaIndex1, out int redIndex1, out int greenIndex1, out int blueIndex1);
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
 
                     int pixelSize = restoredImage.BitsPerPixel / 8;
 
@@ -839,11 +961,11 @@ namespace Microsoft.ML.Tests
 
             using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var imageGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageRestored"]);
-                Imager restoredImage = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var imageCropGetter = cursor.GetGetter<Imager>(backToImages.Schema["ImageCropped"]);
-                Imager croppedImage = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
                     imageGetter(ref restoredImage);
@@ -851,8 +973,21 @@ namespace Microsoft.ML.Tests
                     imageCropGetter(ref croppedImage);
                     Assert.NotNull(croppedImage);
 
-                    ReadOnlySpan<byte> restoredImageData = restoredImage.Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex);
-                    ReadOnlySpan<byte> croppedImageData = croppedImage.Get32bbpImageData(out int alphaIndex1, out int redIndex1, out int greenIndex1, out int blueIndex1);
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
 
                     int pixelSize = restoredImage.BitsPerPixel / 8;
 
@@ -889,9 +1024,15 @@ namespace Microsoft.ML.Tests
             var rowView = pipe.Preview(data).RowView;
             Assert.Single(rowView);
 
-            using (var image = (Imager)rowView.First().Values.Last().Value)
+            using (var image = (MLImage)rowView.First().Values.Last().Value)
             {
-                ReadOnlySpan<byte> imageData = image.Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex);
+                ReadOnlySpan<byte> imageData = image.Pixels;
+                (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = image.PixelFormat switch
+                {
+                    MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                    MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                    _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                };
                 int pixelSize = image.BitsPerPixel / 8;
 
                 // these points must be white
@@ -978,7 +1119,7 @@ namespace Microsoft.ML.Tests
         public class InMemoryImage
         {
             [ImageType(229, 299)]
-            public Imager LoadedImage;
+            public MLImage LoadedImage;
             public string Label;
 
             public static List<InMemoryImage> LoadFromTsv(MLContext mlContext, string tsvPath, string imageFolder)
@@ -1020,17 +1161,13 @@ namespace Microsoft.ML.Tests
 
             }
 
-            private static Imager LoadImageFromFile(string imagePath)
-            {
-                using Stream stream = new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                return new Imager(stream);
-            }
+            private static MLImage LoadImageFromFile(string imagePath) => MLImage.CreateFromFile(imagePath);
         }
 
         public class InMemoryImageOutput : InMemoryImage
         {
             [ImageType(100, 100)]
-            public Imager ResizedImage;
+            public MLImage ResizedImage;
         }
 
         [Fact]
@@ -1048,7 +1185,7 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(dataView);
             var resizedDV = model.Transform(dataView);
             var rowView = resizedDV.Preview().RowView;
-            var resizedImage = (Imager)rowView.First().Values.Last().Value;
+            var resizedImage = (MLImage)rowView.First().Values.Last().Value;
             Assert.Equal(100, resizedImage.Height);
             Assert.NotEqual(100, dataObjects[0].LoadedImage.Height);
 

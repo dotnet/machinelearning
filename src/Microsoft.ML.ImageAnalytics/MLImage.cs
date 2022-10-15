@@ -15,132 +15,203 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Provide interfaces for imaging operations.
     /// </summary>
-    public class Imager : IDisposable
+    public class MLImage : IDisposable
     {
         private SKBitmap _image;
 
         /// <summary>
-        /// Create a new imager instance from a stream.
+        /// Create a new MLImage instance from a stream.
         /// </summary>
         /// <param name="imageStream">The stream to create the image from.</param>
-        public Imager(Stream imageStream)
+        /// <returns>MLImage object.</returns>
+        public static MLImage CreateFromStream(Stream imageStream)
         {
             if (imageStream is null)
             {
                 throw new ArgumentNullException(nameof(imageStream));
             }
 
-            _image = SKBitmap.Decode(imageStream);
-            if (_image is null)
+            SKBitmap image = SKBitmap.Decode(imageStream);
+            if (image is null)
             {
                 throw new ArgumentException($"Invalid input stream contents", nameof(imageStream));
             }
 
-            EnsureSupportedPixelFormat();
+            return new MLImage(image);
         }
 
         /// <summary>
-        /// Create a new imager instance from image file.
+        /// Create a new MLImage instance from a stream.
         /// </summary>
         /// <param name="imagePath">The image file path to create the image from.</param>
-        public Imager(string imagePath)
+        /// <returns>MLImage object.</returns>
+        public static MLImage CreateFromFile(string imagePath)
         {
             if (imagePath is null)
             {
                 throw new ArgumentNullException(nameof(imagePath));
             }
 
-            _image = SKBitmap.Decode(imagePath);
-            if (_image is null)
+            SKBitmap image = SKBitmap.Decode(imagePath);
+            if (image is null)
             {
                 throw new ArgumentException($"Invalid path", nameof(imagePath));
             }
 
-            EnsureSupportedPixelFormat();
-        }
-
-        private Imager(SKBitmap image)
-        {
-            _image = image;
-            EnsureSupportedPixelFormat();
-        }
-
-        private void EnsureSupportedPixelFormat()
-        {
-            Debug.Assert(_image is not null);
-
-            // Most of the time SkiaSharp create images with Bgra8888 or Rgba8888 pixel format.
-            if (_image.Info.ColorType != SKColorType.Bgra8888 && _image.Info.ColorType != SKColorType.Rgba8888)
-            {
-                if (!_image.CanCopyTo(SKColorType.Bgra8888))
-                {
-                    throw new InvalidOperationException("Unsupported image format.");
-                }
-
-                SKBitmap image1 = _image.Copy(SKColorType.Bgra8888);
-                _image.Dispose();
-                _image = image1;
-            }
+            return new MLImage(image);
         }
 
         /// <summary>
-        /// Create BRGA32 pixel format imager object from the pixel data buffer span.
+        /// Creates MLImage object from the pixel data span.
         /// </summary>
         /// <param name="width">The width of the image in pixels.</param>
         /// <param name="height">The height of the image in pixels.</param>
+        /// <param name="pixelFormat">The pixel format to create the image with.</param>
         /// <param name="imagePixelData">The pixels data to create the image from.</param>
-        /// <returns>Imager object.</returns>
-        public static unsafe Imager CreateFromBgra32PixelData(int width, int height, Span<byte> imagePixelData)
+        /// <returns>MLImage object.</returns>
+        public static unsafe MLImage CreateFromPixels(int width, int height, MLPixelFormat pixelFormat, ReadOnlySpan<byte> imagePixelData)
         {
+            if (pixelFormat != MLPixelFormat.Bgra32 && pixelFormat != MLPixelFormat.Rgba32)
+            {
+                throw new ArgumentException($"Unsupported pixel format", nameof(pixelFormat));
+            }
+
             if (imagePixelData.Length != width * height * 4)
             {
                 throw new ArgumentException($"Invalid {nameof(imagePixelData)} buffer size.");
             }
 
-            SKBitmap image = new SKBitmap(new SKImageInfo(width, height, SKColorType.Bgra8888));
+            SKBitmap image = new SKBitmap(new SKImageInfo(width, height, pixelFormat == MLPixelFormat.Bgra32 ? SKColorType.Bgra8888 : SKColorType.Rgba8888));
 
             Debug.Assert(image.Info.BitsPerPixel == 32);
             Debug.Assert(image.RowBytes * image.Height == width * height * 4);
 
             imagePixelData.CopyTo(new Span<byte>(image.GetPixels().ToPointer(), image.Width * image.Height * 4));
 
-            return new Imager(image);
+            return new MLImage(image);
         }
 
         /// <summary>
-        /// Gets the image pixel data and how the colors are ordered in the used pixel format.
+        /// Gets the pixel format for this Image.
         /// </summary>
-        /// <param name="alphaIndex">The index of the alpha in the pixel format.</param>
-        /// <param name="redIndex">The index of the red color in the pixel format.</param>
-        /// <param name="greenIndex">The index of the green color in the pixel format.</param>
-        /// <param name="blueIndex">The index of the blue color in the pixel format.</param>
-        /// <returns>The byte span containing the image pixel data.</returns>
-        public ReadOnlySpan<byte> Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex)
+        public MLPixelFormat PixelFormat { get; private set; }
+
+        /// <summary>
+        /// Gets the image pixel data.
+        /// </summary>
+        public ReadOnlySpan<byte> Pixels
         {
-            ThrowInvalidOperationExceptionIfDisposed();
-
-            if (_image.Info.ColorType == SKColorType.Rgba8888)
+            get
             {
-                redIndex = 0;
-                greenIndex = 1;
-                blueIndex = 2;
-                alphaIndex = 3;
-            }
-            else
-            {
-                Debug.Assert(_image.Info.ColorType == SKColorType.Bgra8888);
-                blueIndex = 0;
-                greenIndex = 1;
-                redIndex = 2;
-                alphaIndex = 3;
-            }
+                ThrowInvalidOperationExceptionIfDisposed();
+                Debug.Assert(_image.Info.BytesPerPixel == 4);
 
-            Debug.Assert(_image.Info.BytesPerPixel == 4);
-
-            return _image.GetPixelSpan();
+                return _image.GetPixelSpan();
+            }
         }
 
-        internal Imager CloneWithResizing(int width, int height, ImageResizeMode mode)
+        /// <summary>
+        /// Gets or sets the image tag.
+        /// </summary>
+        public string Tag { get; set; }
+
+        /// <summary>
+        /// Gets the image width in pixels.
+        /// </summary>
+        public int Width
+        {
+            get
+            {
+                ThrowInvalidOperationExceptionIfDisposed();
+                return _image.Width;
+            }
+        }
+
+        /// <summary>
+        /// Gets the image height in pixels.
+        /// </summary>
+        public int Height
+        {
+            get
+            {
+                ThrowInvalidOperationExceptionIfDisposed();
+                return _image.Height;
+            }
+        }
+
+        /// <summary>
+        /// Gets how many bits per pixel used by current image object.
+        /// </summary>
+        public int BitsPerPixel
+        {
+            get
+            {
+                ThrowInvalidOperationExceptionIfDisposed();
+                Debug.Assert(_image.Info.BitsPerPixel == 32);
+                return _image.Info.BitsPerPixel;
+            }
+        }
+
+        /// <summary>
+        /// Save the current image to a file.
+        /// </summary>
+        /// <param name="imagePath">The path of the file to save the image to.</param>
+        /// <remarks>The saved image encoding will be detected from the file extension.</remarks>
+        public void Save(string imagePath)
+        {
+            ThrowInvalidOperationExceptionIfDisposed();
+            string ext = Path.GetExtension(imagePath);
+
+            if (!_extensionToEncodingFormat.TryGetValue(ext, out SKEncodedImageFormat encodingFormat))
+            {
+                throw new ArgumentException($"Path with invalid image file extension.", nameof(imagePath));
+            }
+
+            using var stream = new FileStream(imagePath, FileMode.Create, FileAccess.Write);
+            SKData data = _image.Encode(encodingFormat, 100);
+            data.SaveTo(stream);
+        }
+
+        /// <summary>
+        /// Disposes the image.
+        /// </summary>
+        public void Dispose()
+        {
+            if (_image != null)
+            {
+                _image.Dispose();
+                _image = null;
+            }
+        }
+
+        private MLImage(SKBitmap image)
+        {
+            _image = image;
+
+            PixelFormat = _image.Info.ColorType switch
+            {
+                SKColorType.Bgra8888 => MLPixelFormat.Bgra32,
+                SKColorType.Rgba8888 => MLPixelFormat.Rgba32,
+                _ => CloneImageToSupportedFormat()
+            };
+        }
+
+        private MLPixelFormat CloneImageToSupportedFormat()
+        {
+            Debug.Assert(_image.Info.ColorType != SKColorType.Bgra8888 && _image.Info.ColorType != SKColorType.Rgba8888);
+
+            if (!_image.CanCopyTo(SKColorType.Bgra8888))
+            {
+                throw new InvalidOperationException("Unsupported image format.");
+            }
+
+            SKBitmap image1 = _image.Copy(SKColorType.Bgra8888);
+            _image.Dispose();
+            _image = image1;
+            return MLPixelFormat.Bgra32;
+        }
+
+        internal MLImage CloneWithResizing(int width, int height, ImageResizeMode mode)
         {
             ThrowInvalidOperationExceptionIfDisposed();
 
@@ -157,7 +228,7 @@ namespace Microsoft.ML.Data
                 throw new InvalidOperationException($"Couldn't resize the image");
             }
 
-            return new Imager(image);
+            return new MLImage(image);
         }
 
         private SKBitmap ResizeFull(int width, int height) => _image.Resize(new SKSizeI(width, height), SKFilterQuality.None);
@@ -262,7 +333,7 @@ namespace Microsoft.ML.Data
                                                                             0,    0,     0,     1, 0
                                                                         });
 
-        internal Imager CloneWithGrayscale()
+        internal MLImage CloneWithGrayscale()
         {
             ThrowInvalidOperationExceptionIfDisposed();
 
@@ -276,49 +347,7 @@ namespace Microsoft.ML.Data
             SKBitmap destBitmap = new SKBitmap(_image.Width, _image.Height, isOpaque: true);
             using SKCanvas canvas = new SKCanvas(destBitmap);
             canvas.DrawBitmap(_image, 0f, 0f, paint: paint);
-            return new Imager(destBitmap);
-        }
-
-        /// <summary>
-        /// Gets or sets the image tag.
-        /// </summary>
-        public string Tag { get; set; }
-
-        /// <summary>
-        /// Gets the image width in pixels.
-        /// </summary>
-        public int Width
-        {
-            get
-            {
-                ThrowInvalidOperationExceptionIfDisposed();
-                return _image.Width;
-            }
-        }
-
-        /// <summary>
-        /// Gets the image height in pixels.
-        /// </summary>
-        public int Height
-        {
-            get
-            {
-                ThrowInvalidOperationExceptionIfDisposed();
-                return _image.Height;
-            }
-        }
-
-        /// <summary>
-        /// Gets how many bits per pixel used by current image object.
-        /// </summary>
-        public int BitsPerPixel
-        {
-            get
-            {
-                ThrowInvalidOperationExceptionIfDisposed();
-                Debug.Assert(_image.Info.BitsPerPixel == 32);
-                return _image.Info.BitsPerPixel;
-            }
+            return new MLImage(destBitmap);
         }
 
         private static readonly Dictionary<string, SKEncodedImageFormat> _extensionToEncodingFormat = new Dictionary<string, SKEncodedImageFormat>(StringComparer.OrdinalIgnoreCase)
@@ -339,35 +368,6 @@ namespace Microsoft.ML.Data
             { ".webp", SKEncodedImageFormat.Webp }
         };
 
-        /// <summary>
-        /// Save the current image to a file.
-        /// </summary>
-        /// <param name="imagePath">The path of the file to save the image to.</param>
-        /// <remarks>The saved image encoding will be detected from the file extension.</remarks>
-        public void Save(string imagePath)
-        {
-            ThrowInvalidOperationExceptionIfDisposed();
-            string ext = Path.GetExtension(imagePath);
-
-            if (!_extensionToEncodingFormat.TryGetValue(ext, out SKEncodedImageFormat encodingFormat))
-            {
-                throw new ArgumentException($"Path with invalid image file extension.", nameof(imagePath));
-            }
-
-            using var stream = new FileStream(imagePath, FileMode.Create, FileAccess.Write);
-            SKData data = _image.Encode(encodingFormat, 100);
-            data.SaveTo(stream);
-        }
-
-        public void Dispose()
-        {
-            if (_image != null)
-            {
-                _image.Dispose();
-                _image = null;
-            }
-        }
-
         private void ThrowInvalidOperationExceptionIfDisposed()
         {
             if (_image is null)
@@ -375,6 +375,27 @@ namespace Microsoft.ML.Data
                 throw new InvalidOperationException("Object is disposed.");
             }
         }
+    }
+
+    /// <summary>
+    /// The mode to decide how the image should be resized.
+    /// </summary>
+    public enum MLPixelFormat
+    {
+        /// <summary>
+        /// Pads the resized image to fit the bounds of its container.
+        /// </summary>
+        Unknown,
+
+        /// <summary>
+        /// Specifies that the format is 32 bits per pixel; 8 bits each are used for the blue, green, red, and alpha components.
+        /// </summary>
+        Bgra32,
+
+        /// <summary>
+        /// Specifies that the format is 32 bits per pixel; 8 bits each are used for the red, green, blue, and alpha components.
+        /// </summary>
+        Rgba32
     }
 
     /// <summary>

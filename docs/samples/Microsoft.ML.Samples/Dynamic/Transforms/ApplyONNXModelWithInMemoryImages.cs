@@ -90,7 +90,7 @@ namespace Samples.Dynamic
 
             // Image will be consumed by ONNX image multiclass classification model.
             [ImageType(height, width)]
-            public Imager Image { get; set; }
+            public MLImage Image { get; set; }
 
             // Expected output of ONNX model. It contains probabilities of all
             // classes. Note that the ColumnName below should match the output name
@@ -115,7 +115,7 @@ namespace Samples.Dynamic
                     imageData[i + 3] = 255;
                 }
 
-                Image = Imager.CreateFromBgra32PixelData(width, height, imageData);
+                Image = MLImage.CreateFromPixels(width, height, MLPixelFormat.Bgra32, imageData);
             }
         }
     }

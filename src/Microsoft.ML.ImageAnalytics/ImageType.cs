@@ -63,7 +63,7 @@ namespace Microsoft.ML.Transforms.Image
 
         public override void Register()
         {
-            DataViewTypeManager.Register(new ImageDataViewType(Height, Width), typeof(Imager), this);
+            DataViewTypeManager.Register(new ImageDataViewType(Height, Width), typeof(MLImage), this);
         }
     }
 
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Transforms.Image
         public readonly int Width;
 
         public ImageDataViewType(int height, int width)
-           : base(typeof(Imager))
+           : base(typeof(MLImage))
         {
             Contracts.CheckParam(height > 0, nameof(height), "Must be positive.");
             Contracts.CheckParam(width > 0, nameof(width), " Must be positive.");
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Transforms.Image
             Width = width;
         }
 
-        public ImageDataViewType() : base(typeof(Imager))
+        public ImageDataViewType() : base(typeof(MLImage))
         {
         }
 

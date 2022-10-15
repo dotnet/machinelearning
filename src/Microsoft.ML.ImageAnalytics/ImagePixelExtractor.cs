@@ -320,8 +320,8 @@ namespace Microsoft.ML.Transforms.Image
                 Contracts.Assert(size == planes * height * width);
                 int cpix = height * width;
 
-                var getSrc = input.GetGetter<Imager>(input.Schema[ColMapNewToOld[iinfo]]);
-                var src = default(Imager);
+                var getSrc = input.GetGetter<MLImage>(input.Schema[ColMapNewToOld[iinfo]]);
+                var src = default(MLImage);
 
                 disposer =
                     () =>
@@ -362,7 +362,13 @@ namespace Microsoft.ML.Transforms.Image
 
                         ImagePixelExtractingEstimator.GetOrder(ex.OrderOfExtraction, ex.ColorsToExtract, out int a, out int r, out int b, out int g);
 
-                        ReadOnlySpan<byte> pixelData = src.Get32bbpImageData(out int alphaIndex, out int redIndex, out int greenIndex, out int blueIndex);
+                        ReadOnlySpan<byte> pixelData = src.Pixels;
+                        (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = src.PixelFormat switch
+                        {
+                            MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                            MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                            _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                        };
 
                         int h = height;
                         int w = width;
@@ -480,7 +486,7 @@ namespace Microsoft.ML.Transforms.Image
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | <xref:Microsoft.ML.Data.Imager> |
+    /// | Input column data type | <xref:Microsoft.ML.Data.MLImage> |
     /// | Output column data type | Known-sized vector of <xref:System.Single> or <xref:System.Byte> |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
     /// | Exportable to ONNX | No |

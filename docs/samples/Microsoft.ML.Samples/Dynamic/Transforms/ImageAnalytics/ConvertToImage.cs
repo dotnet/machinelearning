@@ -58,7 +58,7 @@ namespace Samples.Dynamic
                 // column -type validation once, rather than many times.
                 VBuffer<float> features = default;
                 VBuffer<float> pixels = default;
-                Imager imageObject = null;
+                MLImage imageObject = null;
 
                 var featuresGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema[
                     "Features"]);
@@ -66,7 +66,7 @@ namespace Samples.Dynamic
                 var pixelsGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema[
                     "Pixels"]);
 
-                var imageGetter = cursor.GetGetter<Imager>(cursor.Schema["Image"]);
+                var imageGetter = cursor.GetGetter<MLImage>(cursor.Schema["Image"]);
                 while (cursor.MoveNext())
                 {
 
