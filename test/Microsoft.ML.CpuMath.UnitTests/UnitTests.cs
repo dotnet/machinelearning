@@ -214,7 +214,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                     { _defaultMode, "0", "0", "0", null },
                     { _defaultMode, "1", "1", "0", null },
                     { _defaultMode, "1", "0", "1", null },
-#if NETCOREAPP3_1
+#if NETCOREAPP3_1_OR_GREATER
                     { _disableAvx, "0", "0", "0", _disableAvxEnvironmentVariables },
                     { _disableAvx, "1", "1", "0", _disableAvxEnvironmentVariables },
                     { _disableAvx, "1", "0", "1", _disableAvxEnvironmentVariables },
