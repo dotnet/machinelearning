@@ -430,16 +430,28 @@ namespace Microsoft.ML.SearchSpace
             return thisJson.GetHashCode();
         }
 
+        /// <summary>
+        /// Determines wether two <see cref="Parameter"/> objects have the same value.
+        /// </summary>
+        /// <param name="x">The first parameter to compare.</param>
+        /// <param name="y">The second parameter to compare.</param>
+        /// <returns>true if the value of <paramref name="x" /> is the same as the value of <paramref name="y" />; otherwise, false.</returns>
         public bool Equals(Parameter x, Parameter y)
         {
             return x.GetHashCode() == y.GetHashCode();
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public int GetHashCode(Parameter obj)
         {
             return obj.GetHashCode();
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public override string ToString()
         {
             return JsonSerializer.Serialize(this);

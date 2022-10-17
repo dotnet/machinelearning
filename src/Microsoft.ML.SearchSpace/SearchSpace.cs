@@ -155,6 +155,9 @@ namespace Microsoft.ML.SearchSpace
             return res.ToArray();
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public override int GetHashCode()
         {
             // hash code is calculated in the following process

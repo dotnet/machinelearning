@@ -254,10 +254,11 @@ namespace Microsoft.ML.AutoML
 
                 return tuner;
             });
-            
+
             return experiment;
         }
 
+        /// <summary>
         /// Set checkpoint folder for <see cref="AutoMLExperiment"/>. The checkpoint folder will be used to save
         /// temporary output, run history and many other stuff which will be used for restoring training process 
         /// from last checkpoint and continue training.
