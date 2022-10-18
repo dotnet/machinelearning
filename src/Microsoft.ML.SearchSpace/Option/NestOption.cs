@@ -17,19 +17,13 @@ namespace Microsoft.ML.SearchSpace.Option
     {
         private readonly Dictionary<string, OptionBase> _options = new Dictionary<string, OptionBase>();
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public OptionBase this[string key] { get => ((IDictionary<string, OptionBase>)_options)[key]; set => ((IDictionary<string, OptionBase>)_options)[key] = value; }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override int FeatureSpaceDim => _options.Values.Select(x => x.FeatureSpaceDim).Sum();
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override double[] Default
         {
             get
@@ -40,9 +34,7 @@ namespace Microsoft.ML.SearchSpace.Option
             }
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override int?[] Step
         {
             get
@@ -53,9 +45,7 @@ namespace Microsoft.ML.SearchSpace.Option
             }
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override Parameter SampleFromFeatureSpace(double[] values)
         {
             var param = Parameter.CreateNestedParameter();
@@ -71,9 +61,7 @@ namespace Microsoft.ML.SearchSpace.Option
             return param;
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override double[] MappingToFeatureSpace(Parameter parameter)
         {
             var res = new List<double>();
@@ -88,109 +76,79 @@ namespace Microsoft.ML.SearchSpace.Option
             return res.ToArray();
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public ICollection<string> Keys => ((IDictionary<string, OptionBase>)_options).Keys;
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public ICollection<OptionBase> Values => ((IDictionary<string, OptionBase>)_options).Values;
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public int Count => ((ICollection<KeyValuePair<string, OptionBase>>)_options).Count;
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public bool IsReadOnly => ((ICollection<KeyValuePair<string, OptionBase>>)_options).IsReadOnly;
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public void Add(string key, OptionBase value)
         {
             ((IDictionary<string, OptionBase>)_options).Add(key, value);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public void Add(KeyValuePair<string, OptionBase> item)
         {
             ((ICollection<KeyValuePair<string, OptionBase>>)_options).Add(item);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public void Clear()
         {
             ((ICollection<KeyValuePair<string, OptionBase>>)_options).Clear();
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public bool Contains(KeyValuePair<string, OptionBase> item)
         {
             return ((ICollection<KeyValuePair<string, OptionBase>>)_options).Contains(item);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public bool ContainsKey(string key)
         {
             return ((IDictionary<string, OptionBase>)_options).ContainsKey(key);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public void CopyTo(KeyValuePair<string, OptionBase>[] array, int arrayIndex)
         {
             ((ICollection<KeyValuePair<string, OptionBase>>)_options).CopyTo(array, arrayIndex);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public IEnumerator<KeyValuePair<string, OptionBase>> GetEnumerator()
         {
             return ((IEnumerable<KeyValuePair<string, OptionBase>>)_options).GetEnumerator();
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public bool Remove(string key)
         {
             return ((IDictionary<string, OptionBase>)_options).Remove(key);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public bool Remove(KeyValuePair<string, OptionBase> item)
         {
             return ((ICollection<KeyValuePair<string, OptionBase>>)_options).Remove(item);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public bool TryGetValue(string key, out OptionBase value)
         {
             return ((IDictionary<string, OptionBase>)_options).TryGetValue(key, out value);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return ((IEnumerable)_options).GetEnumerator();
