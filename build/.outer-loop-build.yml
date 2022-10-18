@@ -32,7 +32,7 @@ resources:
 jobs:
 - template: /build/ci/job-template.yml
   parameters:
-    name: Centos_x64_NetCoreApp31
+    name: Centos_x64_Net60
     buildScript: ./build.sh
     container: CentosContainer
     customMatrixes:
@@ -49,7 +49,7 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Ubuntu_x64_NetCoreApp21
+    name: Ubuntu_x64_Net60
     buildScript: ./build.sh
     container: UbuntuContainer
     pool:
@@ -57,14 +57,14 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: MacOS_x64_NetCoreApp21
+    name: MacOS_x64_Net60
     buildScript: ./build.sh
     pool:
       vmImage: macOS-10.15
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Windows_x64_NetCoreApp31
+    name: Windows_x64_Net60
     buildScript: build.cmd
     customMatrixes:
       Debug_Build:
@@ -80,7 +80,7 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Windows_x64_NetCoreApp21
+    name: Windows_x64_Net60
     buildScript: build.cmd
     pool:
       vmImage: windows-2019
@@ -105,7 +105,7 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Windows_x86_NetCoreApp21
+    name: Windows_x86_Net60
     architecture: x86
     buildScript: build.cmd
     pool:

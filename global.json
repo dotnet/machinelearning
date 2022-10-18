@@ -3,10 +3,10 @@
     "dotnet": "7.0.100-rc.2.22477.23",
     "runtimes": {
       "dotnet/x64": [
-        "$(DotNetRuntime31Version)"
+        "$(DotNetRuntime60Version)"
       ],
       "dotnet/x86": [
-        "$(DotNetRuntime31Version)"
+        "$(DotNetRuntime60Version)"
       ]
     }
   },

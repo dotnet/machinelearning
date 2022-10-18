@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Versioning;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains;
@@ -43,8 +44,9 @@ namespace Microsoft.ML.PerformanceTests
             var tfm = "net461";
             var csProj = CsProjClassicNetToolchain.From(tfm, timeout: timeout);
 #else
-            var settings = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null
-                ? NetCoreAppSettings.NetCoreApp21 : NetCoreAppSettings.NetCoreApp31;
+            var frameworkName = new FrameworkName(AppContext.TargetFrameworkName);
+            var frameworkVersion = frameworkName.Version.ToString(2);
+            var settings = new NetCoreAppSettings($"net{frameworkVersion}", null, $".NET {frameworkVersion}");
 
             settings = settings.WithTimeout(timeout);
 
@@ -60,9 +62,7 @@ namespace Microsoft.ML.PerformanceTests
 
         protected static string GetBuildConfigurationName()
         {
-#if NETCOREAPP3_1
-            return "Release-netcoreapp3_1";
-#elif NET461
+#if NETFRAMEWORK
             return "Release-netfx";
 #else
             return "Release";
