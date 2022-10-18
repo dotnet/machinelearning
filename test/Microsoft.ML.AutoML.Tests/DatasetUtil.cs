@@ -203,7 +203,16 @@ namespace Microsoft.ML.AutoML.Test
             if (File.Exists(relativeFilePath))
                 return;
 
-            new WebClient().DownloadFile(url, relativeFilePath);
+            using (var client = new HttpClient())
+            {
+                var response = await client.GetAsync(url).EnsureSuccessStatusCode();
+                var stream = await response.Content.ReadAsStreamAsync();
+                var fileInfo = new FileInfo(relativeFilePath);
+                using (var fileStream = fileInfo.OpenWrite())
+                {
+                    await stream.CopyToAsync(fileStream);
+                }
+            }
             return;
         }
 
