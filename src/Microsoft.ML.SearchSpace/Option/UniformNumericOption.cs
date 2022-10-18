@@ -44,19 +44,13 @@ namespace Microsoft.ML.SearchSpace.Option
         /// </summary>
         public bool LogBase { get; }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override int FeatureSpaceDim => 1;
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override int?[] Step => new int?[] { null };
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override double[] MappingToFeatureSpace(Parameter param)
         {
             var x = param.AsType<double>();
@@ -75,9 +69,7 @@ namespace Microsoft.ML.SearchSpace.Option
             }
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override Parameter SampleFromFeatureSpace(double[] values)
         {
             Contract.Assert(values.Length == 1, "values length must be 1");
@@ -140,9 +132,7 @@ namespace Microsoft.ML.SearchSpace.Option
             }
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override double[] MappingToFeatureSpace(Parameter param)
         {
             var singleValue = param.AsType<float>();
@@ -150,9 +140,7 @@ namespace Microsoft.ML.SearchSpace.Option
             return base.MappingToFeatureSpace(Parameter.FromDouble(doubleValue));
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override Parameter SampleFromFeatureSpace(double[] values)
         {
             var doubleValue = base.SampleFromFeatureSpace(values).AsType<double>();
@@ -182,9 +170,7 @@ namespace Microsoft.ML.SearchSpace.Option
             }
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override Parameter SampleFromFeatureSpace(double[] values)
         {
             var param = base.SampleFromFeatureSpace(values);
@@ -193,9 +179,7 @@ namespace Microsoft.ML.SearchSpace.Option
             return Parameter.FromInt(intValue);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override double[] MappingToFeatureSpace(Parameter param)
         {
             var value = param.AsType<int>();
