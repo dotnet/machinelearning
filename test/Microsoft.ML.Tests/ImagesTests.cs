@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -1214,6 +1215,183 @@ namespace Microsoft.ML.Tests
             }
 
             Assert.False(disposed, "The last in memory image had been disposed by running ResizeImageTransformer");
+        }
+
+        public static IEnumerable<object[]> ImageListData()
+        {
+            yield return new object[] { "tomato.bmp" };
+            yield return new object[] { "hotdog.jpg" };
+            yield return new object[] { "banana.jpg" };
+            yield return new object[] { "tomato.jpg" };
+        }
+
+        [Theory]
+        [MemberData(nameof(ImageListData))]
+        public void MLImageCreationTests(string imageName)
+        {
+            var dataFile = GetDataPath($"images/{imageName}");
+
+            using MLImage image1 = MLImage.CreateFromFile(dataFile);
+            using FileStream imageStream = new FileStream(dataFile, FileMode.Open, FileAccess.Read);
+            using MLImage image2 = MLImage.CreateFromStream(imageStream);
+
+            Assert.Equal(image1.Tag, image2.Tag);
+            Assert.Equal(image1.Width, image2.Width);
+            Assert.Equal(image1.Height, image2.Height);
+            Assert.Equal(32, image1.BitsPerPixel);
+            Assert.Equal(image1.BitsPerPixel, image2.BitsPerPixel);
+            Assert.Equal(image1.PixelFormat, image2.PixelFormat);
+            Assert.Equal(image1.Pixels.ToArray(), image2.Pixels.ToArray());
+            Assert.Equal(image1.Width * image1.Height * (image1.BitsPerPixel / 8), image1.Pixels.Length);
+            Assert.True(image1.PixelFormat == MLPixelFormat.Rgba32 || image1.PixelFormat == MLPixelFormat.Bgra32);
+
+            image1.Tag = "image1";
+            Assert.Equal("image1", image1.Tag);
+            image2.Tag = "image2";
+            Assert.Equal("image2", image2.Tag);
+
+            using MLImage image3 = MLImage.CreateFromPixels(image1.Width, image1.Height, image1.PixelFormat, image1.Pixels);
+            Assert.Equal(image1.Width, image3.Width);
+            Assert.Equal(image1.Height, image3.Height);
+            Assert.Equal(image1.BitsPerPixel, image3.BitsPerPixel);
+            Assert.Equal(image1.PixelFormat, image3.PixelFormat);
+            Assert.Equal(image1.Pixels.ToArray(), image3.Pixels.ToArray());
+        }
+
+        [Fact]
+        public void MLImageCreateThrowingTest()
+        {
+            Assert.Throws<ArgumentNullException>(() => MLImage.CreateFromFile(null));
+            Assert.Throws<ArgumentException>(() => MLImage.CreateFromFile("This is Invalid Path"));
+            Assert.Throws<ArgumentNullException>(() => MLImage.CreateFromStream(null));
+            Assert.Throws<ArgumentException>(() => MLImage.CreateFromStream(new MemoryStream(new byte[10])));
+            Assert.Throws<ArgumentException>(() => MLImage.CreateFromPixels(10, 10, MLPixelFormat.Unknown, Array.Empty<byte>()));
+            Assert.Throws<ArgumentException>(() => MLImage.CreateFromPixels(10, 10, MLPixelFormat.Bgra32, Array.Empty<byte>()));
+            Assert.Throws<ArgumentException>(() => MLImage.CreateFromPixels(0, 10, MLPixelFormat.Bgra32, new byte[10]));
+            Assert.Throws<ArgumentException>(() => MLImage.CreateFromPixels(10, 0, MLPixelFormat.Bgra32, new byte[10]));
+            Assert.Throws<ArgumentException>(() => MLImage.CreateFromPixels(10, 10, MLPixelFormat.Bgra32, new byte[401]));
+        }
+
+        [Theory]
+        [MemberData(nameof(ImageListData))]
+        public void MLImageSaveTests(string imageName)
+        {
+            var dataFile = GetDataPath($"images/{imageName}");
+            using MLImage image1 = MLImage.CreateFromFile(dataFile);
+            string extension = Path.GetExtension(imageName);
+            string imageTempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + extension);
+
+            if (extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
+                extension.Equals(".webp", StringComparison.OrdinalIgnoreCase))
+            {
+                image1.Save(imageTempPath);
+                using MLImage image2 = MLImage.CreateFromFile(imageTempPath);
+
+                Assert.Equal(image1.Width, image2.Width);
+                Assert.Equal(image1.Height, image2.Height);
+                Assert.Equal(image1.BitsPerPixel, image2.BitsPerPixel);
+                Assert.Equal(image1.PixelFormat, image2.PixelFormat);
+
+                // When saving the image with specific encoding, the image decoder can manipulate the color
+                // and don't have to keep the exact original colors. 
+            }
+            else
+            {
+                Assert.Throws<ArgumentException>(() => image1.Save(imageTempPath));
+            }
+        }
+
+        [Fact]
+        public void MLImageDisposingTest()
+        {
+            MLImage image = MLImage.CreateFromPixels(10, 10, MLPixelFormat.Bgra32, new byte[10 * 10 * 4]);
+            image.Tag = "Blank";
+
+            Assert.Equal(10, image.Width);
+            Assert.Equal(10, image.Height);
+            Assert.Equal(32, image.BitsPerPixel);
+            Assert.Equal(MLPixelFormat.Bgra32, image.PixelFormat);
+
+            image.Dispose();
+
+            Assert.Throws<InvalidOperationException>(() => image.Tag);
+            Assert.Throws<InvalidOperationException>(() => image.Tag = "Something");
+            Assert.Throws<InvalidOperationException>(() => image.Width);
+            Assert.Throws<InvalidOperationException>(() => image.Height);
+            Assert.Throws<InvalidOperationException>(() => image.PixelFormat);
+            Assert.Throws<InvalidOperationException>(() => image.BitsPerPixel);
+            Assert.Throws<InvalidOperationException>(() => image.Pixels[0]);
+        }
+
+        [Theory]
+        [MemberData(nameof(ImageListData))]
+        public void MLImageSourceDisposingTest(string imageName)
+        {
+            var imageFile = GetDataPath($"images/{imageName}");
+            using MLImage image1 = MLImage.CreateFromFile(imageFile);
+
+            // Create image from stream then close the stream and then try to access the image data
+            FileStream stream = new FileStream(imageFile, FileMode.Open, FileAccess.Read, FileShare.None);
+            MLImage image2 = MLImage.CreateFromStream(stream);
+            stream.Dispose();
+            Assert.Equal(image1.Pixels.ToArray(), image2.Pixels.ToArray());
+            image2.Dispose();
+
+            // Create image from non-seekable stream
+            stream = new FileStream(imageFile, FileMode.Open, FileAccess.Read, FileShare.None);
+            NonSeekableStream nonSeekableStream = new NonSeekableStream(stream);
+            image2 = MLImage.CreateFromStream(nonSeekableStream);
+            Assert.Equal(image1.Pixels.ToArray(), image2.Pixels.ToArray());
+            stream.Close();
+            Assert.Equal(image1.Pixels.ToArray(), image2.Pixels.ToArray());
+            image2.Dispose();
+
+            // Now test image stream starts with image data and appended with extra unrelated data.
+            stream = new FileStream(imageFile, FileMode.Open, FileAccess.Read, FileShare.None);
+            MemoryStream ms = new MemoryStream((int)stream.Length);
+            stream.CopyTo(ms);
+            for (int i = 0; i < stream.Length; i++)
+            {
+                ms.WriteByte((byte)(i % 255));
+            }
+
+            ms.Seek(0, SeekOrigin.Begin);
+            image2 = MLImage.CreateFromStream(ms);
+            stream.Close();
+            ms.Close();
+            Assert.Equal(image1.Width, image2.Width);
+            Assert.Equal(image1.Height, image2.Height);
+            Assert.Equal(image1.Pixels.ToArray(), image2.Pixels.ToArray());
+            image2.Dispose();
+        }
+
+        private class NonSeekableStream : Stream
+        {
+            private Stream _stream;
+
+            public NonSeekableStream(Stream stream) => _stream = stream;
+
+            public override bool CanRead => _stream.CanRead;
+
+            public override bool CanSeek => false;
+
+            public override bool CanWrite => _stream.CanWrite;
+
+            public override long Length => _stream.Length;
+
+            public override long Position { get => _stream.Position; set => throw new InvalidOperationException($"The stream is not seekable"); }
+
+            public override void Flush() => _stream.Flush();
+
+            public override int Read(byte[] buffer, int offset, int count) => _stream.Read(buffer, offset, count);
+
+            public override long Seek(long offset, SeekOrigin origin) => throw new InvalidOperationException($"The stream is not seekable");
+
+            public override void SetLength(long value) => throw new InvalidOperationException($"The stream is not seekable");
+
+            public override void Write(byte[] buffer, int offset, int count) => _stream.Write(buffer, offset, count);
         }
     }
 }

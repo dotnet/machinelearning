@@ -15,9 +15,16 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Provide interfaces for imaging operations.
     /// </summary>
-    public class MLImage : IDisposable
+    public sealed class MLImage : IDisposable
     {
         private SKBitmap _image;
+        private MLPixelFormat _pixelFormat;
+        private string _tag;
+
+        // disallow instantiating image object from the default constructor
+        private MLImage()
+        {
+        }
 
         /// <summary>
         /// Create a new MLImage instance from a stream.
@@ -76,6 +83,16 @@ namespace Microsoft.ML.Data
                 throw new ArgumentException($"Unsupported pixel format", nameof(pixelFormat));
             }
 
+            if (width <= 0)
+            {
+                throw new ArgumentException($"Invalid width value.", nameof(width));
+            }
+
+            if (height <= 0)
+            {
+                throw new ArgumentException($"Invalid height value.", nameof(height));
+            }
+
             if (imagePixelData.Length != width * height * 4)
             {
                 throw new ArgumentException($"Invalid {nameof(imagePixelData)} buffer size.");
@@ -94,7 +111,20 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Gets the pixel format for this Image.
         /// </summary>
-        public MLPixelFormat PixelFormat { get; private set; }
+        public MLPixelFormat PixelFormat
+        {
+            get
+            {
+                ThrowInvalidOperationExceptionIfDisposed();
+                return _pixelFormat;
+            }
+
+            private set
+            {
+                Debug.Assert(_image is not null);
+                _pixelFormat = value;
+            }
+        }
 
         /// <summary>
         /// Gets the image pixel data.
@@ -113,7 +143,20 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Gets or sets the image tag.
         /// </summary>
-        public string Tag { get; set; }
+        public string Tag
+        {
+            get
+            {
+                ThrowInvalidOperationExceptionIfDisposed();
+                return _tag;
+            }
+
+            set
+            {
+                ThrowInvalidOperationExceptionIfDisposed();
+                _tag = value;
+            }
+        }
 
         /// <summary>
         /// Gets the image width in pixels.
@@ -164,11 +207,16 @@ namespace Microsoft.ML.Data
 
             if (!_extensionToEncodingFormat.TryGetValue(ext, out SKEncodedImageFormat encodingFormat))
             {
-                throw new ArgumentException($"Path with invalid image file extension.", nameof(imagePath));
+                throw new ArgumentException($"Path has invalid image file extension.", nameof(imagePath));
+            }
+
+            using SKData data = _image.Encode(encodingFormat, 100);
+            if (data is null)
+            {
+                throw new ArgumentException($"Saving image with the format '{ext}' is not supported. Try save it with `Jpeg`, `Png`, or `Webp` format.", nameof(imagePath));
             }
 
             using var stream = new FileStream(imagePath, FileMode.Create, FileAccess.Write);
-            SKData data = _image.Encode(encodingFormat, 100);
             data.SaveTo(stream);
         }
 
@@ -378,22 +426,24 @@ namespace Microsoft.ML.Data
     }
 
     /// <summary>
-    /// The mode to decide how the image should be resized.
+    /// Specifies the format of the color data for each pixel in the image.
     /// </summary>
     public enum MLPixelFormat
     {
         /// <summary>
-        /// Pads the resized image to fit the bounds of its container.
+        /// The pixel format is unknown.
         /// </summary>
         Unknown,
 
         /// <summary>
         /// Specifies that the format is 32 bits per pixel; 8 bits each are used for the blue, green, red, and alpha components.
+        /// The color components are stored in blue, green, red, and alpha order
         /// </summary>
         Bgra32,
 
         /// <summary>
         /// Specifies that the format is 32 bits per pixel; 8 bits each are used for the red, green, blue, and alpha components.
+        /// The color components are stored in red, green, blue, and alpha order
         /// </summary>
         Rgba32
     }

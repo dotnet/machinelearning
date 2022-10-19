@@ -542,7 +542,7 @@ namespace Microsoft.ML.Tests
             var dataPoints = new ImageDataPoint[]
             {
                 new ImageDataPoint(red: 255, green: 0, blue: 0),
-                new ImageDataPoint(red: 0, green: 255, blue: 0),
+                new ImageDataPoint(red: 0, green: 128, blue: 0),
             };
 
             // Convert training data to IDataView, the general data type used in ML.NET.
