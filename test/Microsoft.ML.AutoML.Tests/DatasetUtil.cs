@@ -202,8 +202,9 @@ namespace Microsoft.ML.AutoML.Test
 
             if (File.Exists(relativeFilePath))
                 return;
-
+#pragma warning disable SYSLIB0014
             new WebClient().DownloadFile(url, relativeFilePath);
+#pragma warning restore SYSLIB0014
             return;
         }
 
