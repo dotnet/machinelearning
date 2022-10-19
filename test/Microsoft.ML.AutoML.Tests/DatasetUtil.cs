@@ -207,12 +207,12 @@ namespace Microsoft.ML.AutoML.Test
 
             using (var client = new HttpClient())
             {
-                var response = await client.GetAsync(url);
-                var stream = await response.EnsureSuccessStatusCode().Content.ReadAsStreamAsync();
+                var response = await client.GetAsync(url).ConfigureAwait(false);
+                var stream = await response.EnsureSuccessStatusCode().Content.ReadAsStreamAsync().ConfigureAwait(false);
                 var fileInfo = new FileInfo(relativeFilePath);
                 using (var fileStream = fileInfo.OpenWrite())
                 {
-                    await stream.CopyToAsync(fileStream);
+                    await stream.CopyToAsync(fileStream).ConfigureAwait(false);
                 }
             }
             return;
