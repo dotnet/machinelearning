@@ -8,8 +8,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFrameworkCommon;
 
@@ -187,13 +185,13 @@ namespace Microsoft.ML.AutoML.Test
             string fileName = "flower_photos_tiny_set_for_unit_tests.zip";
             string url = $"https://aka.ms/mlnet-resources/datasets/flower_photos_tiny_set_for_unit_test.zip";
 
-            Download(url, imagesDownloadFolder, fileName).Wait();
+            Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);
 
             return Path.GetFileNameWithoutExtension(fileName);
         }
 
-        private static async Task Download(string url, string destDir, string destFileName)
+        private static void Download(string url, string destDir, string destFileName)
         {
             if (destFileName == null)
                 destFileName = Path.GetFileName(new Uri(url).AbsolutePath); ;
@@ -205,16 +203,7 @@ namespace Microsoft.ML.AutoML.Test
             if (File.Exists(relativeFilePath))
                 return;
 
-            using (var client = new HttpClient())
-            {
-                var response = await client.GetAsync(url).ConfigureAwait(false);
-                var stream = await response.EnsureSuccessStatusCode().Content.ReadAsStreamAsync().ConfigureAwait(false);
-                var fileInfo = new FileInfo(relativeFilePath);
-                using (var fileStream = fileInfo.OpenWrite())
-                {
-                    await stream.CopyToAsync(fileStream).ConfigureAwait(false);
-                }
-            }
+            new WebClient().DownloadFile(url, relativeFilePath);
             return;
         }
 
