@@ -12,7 +12,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Optimizers
 {
     internal sealed class Adam : BaseOptimizer
     {
-        public Adam(TextClassificationTrainer.Options options, IEnumerable<Parameter> parameters)
+        public Adam(NasBertTrainer.Options options, IEnumerable<Parameter> parameters)
             : base(nameof(Adam), options, parameters)
         {
             Optimizer = torch.optim.Adam(Parameters, options.LearningRate[0],

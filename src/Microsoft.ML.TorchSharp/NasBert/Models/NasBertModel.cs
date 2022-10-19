@@ -9,13 +9,13 @@ using TorchSharp;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Models
 {
-    internal sealed class TextClassificationModel : BaseModel
+    internal sealed class NasBertModel : BaseModel
     {
         private readonly PredictionHead _predictionHead;
 
         public override BaseHead GetHead() => _predictionHead;
 
-        public TextClassificationModel(TextClassificationTrainer.Options options, int padIndex, int symbolsCount, int numClasses)
+        public NasBertModel(NasBertTrainer.Options options, int padIndex, int symbolsCount, int numClasses)
             : base(options, padIndex, symbolsCount)
         {
             _predictionHead = new PredictionHead(

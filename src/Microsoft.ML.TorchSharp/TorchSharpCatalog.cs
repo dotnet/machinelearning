@@ -46,5 +46,32 @@ namespace Microsoft.ML.TorchSharp
             BertArchitecture architecture = BertArchitecture.Roberta,
             IDataView validationSet = null)
             => new TextClassificationTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, outputColumnName, scoreColumnName, sentence1ColumnName, sentence2ColumnName, batchSize, maxEpochs, validationSet, architecture);
+
+        /// <summary>
+        /// Fine tune a NAS-BERT model for NLP sentence Similarity. The limit for any sentence is 512 tokens. Each word typically
+        /// will map to a single token, and we automatically add 2 specical tokens (a start token and a separator token)
+        /// so in general this limit will be 510 words for all sentences.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="labelColumnName">Name of the label column. Column should be a float type.</param>
+        /// <param name="scoreColumnName">Name of the score column.</param>
+        /// <param name="sentence1ColumnName">Name of the column for the first sentence.</param>
+        /// <param name="sentence2ColumnName">Name of the column for the second sentence. Only required if your NLP classification requires sentence pairs.</param>
+        /// <param name="batchSize">Number of rows in the batch.</param>
+        /// <param name="maxEpochs">Maximum number of times to loop through your training set.</param>
+        /// <param name="architecture">Architecture for the model. Defaults to Roberta.</param>
+        /// <param name="validationSet">The validation set used while training to improve model quality.</param>
+        /// <returns></returns>
+        public static SentenceSimilarityTrainer SentenceSimilarity(
+            this RegressionCatalog.RegressionTrainers catalog,
+            string labelColumnName = DefaultColumnNames.Label,
+            string scoreColumnName = DefaultColumnNames.Score,
+            string sentence1ColumnName = "Sentence1",
+            string sentence2ColumnName = "Sentence2",
+            int batchSize = 32,
+            int maxEpochs = 10,
+            BertArchitecture architecture = BertArchitecture.Roberta,
+            IDataView validationSet = null)
+            => new SentenceSimilarityTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, scoreColumnName, sentence1ColumnName, sentence2ColumnName, batchSize, maxEpochs, validationSet, architecture);
     }
 }

@@ -4,8 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Apache.Arrow;
+using ICSharpCode.SharpZipLib.Tar;
+using MathNet.Numerics.Statistics;
 using Microsoft.Data.Analysis;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
@@ -40,6 +44,13 @@ namespace Microsoft.ML.Tests
             public string Sentence;
             public string Sentence2;
             public string Label;
+        }
+
+        private class TestSentenceSimilarityData
+        {
+            public string Sentence;
+            public string Sentence2;
+            public float Label;
         }
 
         [Fact]
@@ -342,6 +353,136 @@ namespace Microsoft.ML.Tests
             var predictedLabel = transformer.Transform(preppedData).GetColumn<ReadOnlyMemory<char>>(transformerSchema[5].Name);
             // Not enough training is done to get good results so just make sure there is the correct number.
             Assert.NotNull(predictedLabel);
+        }
+
+        [Fact]
+        public void TestSentenceSimilarity()
+        {
+            var dataView = ML.Data.LoadFromEnumerable(
+                new List<TestSentenceSimilarityData>(new TestSentenceSimilarityData[] {
+                     new ()
+                     {
+                         Sentence = "Two females jump off of swings.",
+                         Sentence2 = "Two females jump off of swings.",
+                         Label = 1
+                     },
+                     new ()
+                     {
+                         Sentence = "Avengers sets box office record",
+                         Sentence2 = "The Hunger Games breaks US box office record",
+                         Label = .24f
+                     },
+                     new ()
+                     {
+                        Sentence = "A plane is taking off.",
+                        Sentence2 = "An air plane is taking off.",
+                        Label = 1
+                     },
+                     new ()
+                     {
+                        Sentence = "A man is playing a large flute.",
+                        Sentence2 = "A man is playing a flute.",
+                        Label = .75f
+                     },
+                     new ()
+                     {
+                        Sentence = "A man is smoking.",
+                        Sentence2 = "A man is skating.",
+                        Label = .1f
+                     },
+                     new ()
+                     {
+                        Sentence = "The man drove his little red car around the traffic.",
+                        Sentence2 = "The dog ran in the water at the beach.",
+                        Label = 0
+                     }
+                }));
+
+            var estimator = ML.Regression.Trainers.SentenceSimilarity(sentence1ColumnName: "Sentence", sentence2ColumnName: "Sentence2");
+
+            TestEstimatorCore(estimator, dataView);
+            var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
+
+            Assert.Equal(4, estimatorSchema.Count);
+            Assert.Equal("Score", estimatorSchema[3].Name);
+            Assert.Equal(NumberDataViewType.Single, estimatorSchema[3].ItemType);
+
+            var transformer = estimator.Fit(dataView);
+            var transformerSchema = transformer.GetOutputSchema(dataView.Schema);
+
+            Assert.Equal(4, transformerSchema.Count);
+            Assert.Equal("Score", estimatorSchema[3].Name);
+            Assert.Equal(NumberDataViewType.Single, estimatorSchema[3].ItemType);
+
+            var score = transformer.Transform(dataView).GetColumn<float>(transformerSchema[3].Name);
+            // Not enough training is done to get good results so just make sure there is the correct number.
+            Assert.NotNull(score);
+        }
+
+        [ConditionalFact(nameof(EnableRunningGpuTest))]
+        public void TestSentenceSimilarityWithBigDataOnGpu()
+        {
+            var mlContext = new MLContext();
+            mlContext.GpuDeviceId = 0;
+            mlContext.FallbackToCpu = false;
+
+            //var df1 = mlContext.Data.LoadFromTextFile(@"D:\Temp\NasBertData\STS-B-full2.txt", new TextLoader.Options()
+            //{
+            //    Columns = new TextLoader.Column[]
+            //    {
+            //        new TextLoader.Column("sentence1", DataKind.String, 0),
+            //        new TextLoader.Column("sentence2", DataKind.String, 1),
+            //        new TextLoader.Column("Label", DataKind.Single, 2),
+            //    }
+            //});
+            //var trainTestSplit = mlContext.Data.TrainTestSplit(df1, testFraction: 0.2);
+
+            var df = mlContext.Data.LoadFromTextFile(@"D:\Temp\NasBertData\STS-B\original\sts-train.tsv", new TextLoader.Options()
+            {
+                Columns = new TextLoader.Column[]
+                {
+                    new TextLoader.Column("sentence1", DataKind.String, 5),
+                    new TextLoader.Column("sentence2", DataKind.String, 6),
+                    new TextLoader.Column("Label", DataKind.Single, 4),
+                }
+
+            });
+            var d = df.Preview();
+
+            var testdf = mlContext.Data.LoadFromTextFile(@"D:\Temp\NasBertData\STS-B\original\sts-test.tsv", new TextLoader.Options()
+            {
+                Columns = new TextLoader.Column[]
+                {
+                    new TextLoader.Column("sentence1", DataKind.String, 5),
+                    new TextLoader.Column("sentence2", DataKind.String, 6),
+                    new TextLoader.Column("Label", DataKind.Single, 4),
+                }
+            });
+
+            var t = testdf.Preview();
+
+
+
+            //var df = DataFrame.LoadCsv(@"D:\Temp\NasBertData\STS-B-full2.txt", separator: '\t', header: true, columnNames: new[] { "sentence1", "sentence2", "label" });
+            var pipeline = mlContext.Regression.Trainers.SentenceSimilarity(sentence1ColumnName: "sentence1", sentence2ColumnName: "sentence2", maxEpochs: 100, batchSize: 32);
+            //var model = pipeline.Fit(trainTestSplit.TrainSet);
+            var model = pipeline.Fit(df);
+
+            //var predictionIdv = model.Transform(trainTestSplit.TestSet);
+            var predictionIdv = model.Transform(testdf);
+            var pred = predictionIdv.Preview(1400);
+            double[] score = new double[pred.ColumnView[3].Values.Length];
+            double[] target = new double[pred.ColumnView[3].Values.Length];
+
+            for (int i = 0; i < score.Length; i++)
+            {
+                score[i] = Convert.ToDouble(pred.ColumnView[2].Values[i]);
+                target[i] = Convert.ToDouble(pred.ColumnView[3].Values[i]);
+            }
+
+            var spear = Correlation.Spearman(score, target);
+            var x = 1;
+            x += x;
         }
     }
 
