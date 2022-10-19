@@ -1341,7 +1341,7 @@ namespace Microsoft.ML.Tests
 
             // Create image from non-seekable stream
             stream = new FileStream(imageFile, FileMode.Open, FileAccess.Read, FileShare.None);
-            NonSeekableStream nonSeekableStream = new NonSeekableStream(stream);
+            ReadOnlyNonSeekableStream nonSeekableStream = new ReadOnlyNonSeekableStream(stream);
             image2 = MLImage.CreateFromStream(nonSeekableStream);
             Assert.Equal(image1.Pixels.ToArray(), image2.Pixels.ToArray());
             stream.Close();
@@ -1367,17 +1367,17 @@ namespace Microsoft.ML.Tests
             image2.Dispose();
         }
 
-        private class NonSeekableStream : Stream
+        private class ReadOnlyNonSeekableStream : Stream
         {
             private Stream _stream;
 
-            public NonSeekableStream(Stream stream) => _stream = stream;
+            public ReadOnlyNonSeekableStream(Stream stream) => _stream = stream;
 
             public override bool CanRead => _stream.CanRead;
 
             public override bool CanSeek => false;
 
-            public override bool CanWrite => _stream.CanWrite;
+            public override bool CanWrite => false;
 
             public override long Length => _stream.Length;
 
@@ -1391,7 +1391,7 @@ namespace Microsoft.ML.Tests
 
             public override void SetLength(long value) => throw new InvalidOperationException($"The stream is not seekable");
 
-            public override void Write(byte[] buffer, int offset, int count) => _stream.Write(buffer, offset, count);
+            public override void Write(byte[] buffer, int offset, int count) => throw new InvalidOperationException($"The stream is not writable");
         }
     }
 }
