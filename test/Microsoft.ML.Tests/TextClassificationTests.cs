@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text;
 using Apache.Arrow;
 using ICSharpCode.SharpZipLib.Tar;
-using MathNet.Numerics.Statistics;
 using Microsoft.Data.Analysis;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
@@ -417,72 +416,6 @@ namespace Microsoft.ML.Tests
             var score = transformer.Transform(dataView).GetColumn<float>(transformerSchema[3].Name);
             // Not enough training is done to get good results so just make sure there is the correct number.
             Assert.NotNull(score);
-        }
-
-        [ConditionalFact(nameof(EnableRunningGpuTest))]
-        public void TestSentenceSimilarityWithBigDataOnGpu()
-        {
-            var mlContext = new MLContext();
-            mlContext.GpuDeviceId = 0;
-            mlContext.FallbackToCpu = false;
-
-            //var df1 = mlContext.Data.LoadFromTextFile(@"D:\Temp\NasBertData\STS-B-full2.txt", new TextLoader.Options()
-            //{
-            //    Columns = new TextLoader.Column[]
-            //    {
-            //        new TextLoader.Column("sentence1", DataKind.String, 0),
-            //        new TextLoader.Column("sentence2", DataKind.String, 1),
-            //        new TextLoader.Column("Label", DataKind.Single, 2),
-            //    }
-            //});
-            //var trainTestSplit = mlContext.Data.TrainTestSplit(df1, testFraction: 0.2);
-
-            var df = mlContext.Data.LoadFromTextFile(@"D:\Temp\NasBertData\STS-B\original\sts-train.tsv", new TextLoader.Options()
-            {
-                Columns = new TextLoader.Column[]
-                {
-                    new TextLoader.Column("sentence1", DataKind.String, 5),
-                    new TextLoader.Column("sentence2", DataKind.String, 6),
-                    new TextLoader.Column("Label", DataKind.Single, 4),
-                }
-
-            });
-            var d = df.Preview();
-
-            var testdf = mlContext.Data.LoadFromTextFile(@"D:\Temp\NasBertData\STS-B\original\sts-test.tsv", new TextLoader.Options()
-            {
-                Columns = new TextLoader.Column[]
-                {
-                    new TextLoader.Column("sentence1", DataKind.String, 5),
-                    new TextLoader.Column("sentence2", DataKind.String, 6),
-                    new TextLoader.Column("Label", DataKind.Single, 4),
-                }
-            });
-
-            var t = testdf.Preview();
-
-
-
-            //var df = DataFrame.LoadCsv(@"D:\Temp\NasBertData\STS-B-full2.txt", separator: '\t', header: true, columnNames: new[] { "sentence1", "sentence2", "label" });
-            var pipeline = mlContext.Regression.Trainers.SentenceSimilarity(sentence1ColumnName: "sentence1", sentence2ColumnName: "sentence2", maxEpochs: 100, batchSize: 32);
-            //var model = pipeline.Fit(trainTestSplit.TrainSet);
-            var model = pipeline.Fit(df);
-
-            //var predictionIdv = model.Transform(trainTestSplit.TestSet);
-            var predictionIdv = model.Transform(testdf);
-            var pred = predictionIdv.Preview(1400);
-            double[] score = new double[pred.ColumnView[3].Values.Length];
-            double[] target = new double[pred.ColumnView[3].Values.Length];
-
-            for (int i = 0; i < score.Length; i++)
-            {
-                score[i] = Convert.ToDouble(pred.ColumnView[2].Values[i]);
-                target[i] = Convert.ToDouble(pred.ColumnView[3].Values[i]);
-            }
-
-            var spear = Correlation.Spearman(score, target);
-            var x = 1;
-            x += x;
         }
     }
 
