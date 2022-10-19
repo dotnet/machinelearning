@@ -68,7 +68,19 @@ they enable, in (a more complete description can be found [here](https://learn.m
 
 # What can I use deep learning for?
 
-# Deep learning in ML.NET  http://ml.net/
+As stated above, the scope of application of DL techniques is rapidly
+expanding.  DL architectures, however, have shown amazing
+(close-to-human in some cases) performance in tasks having to do with
+"unstructured data": images, audio, free-form text and the like.  In
+this way, DL is constantly featured in image/audio classification and
+generation applications.  When it comes to text processing, more
+generally Natural Language Processing, DL methods have shown amazing
+results in tasks like translation, classification, generation and
+similar.  Some of the more spectacular, recent applications of ML,
+such as "Stable Diffusion" are powered by sophisticated, large Neural
+Network architectures.
+
+# Deep learning in ML.NET
 
 # Train custom models
 
