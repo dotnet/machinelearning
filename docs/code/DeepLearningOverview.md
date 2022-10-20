@@ -77,10 +77,12 @@ generation applications.  When it comes to text processing, more
 generally Natural Language Processing, DL methods have shown amazing
 results in tasks like translation, classification, generation and
 similar.  Some of the more spectacular, recent applications of ML,
-such as "Stable Diffusion" are powered by sophisticated, large Neural
+such as "[Stable Diffusion](https://en.wikipedia.org/wiki/Stable_Diffusion)" are powered by sophisticated, large Neural
 Network architectures.
 
 # Deep learning in ML.NET
+
+A central concern of DL is what Neural Network architecture (specific configuration of operations) will the model have, and to this end, DL frameworks like Tensorflow and Pytorch feature expressive Domain-Specific Languages to describe in detail such architectures.  ML.NET departs from this practice and concentrates on the consumption of pre-trained models (i.e., architectures that have been specified *and* trained in other frameworks).
 
 # Train custom models
 
