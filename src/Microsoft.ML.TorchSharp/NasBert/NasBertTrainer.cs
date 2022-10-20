@@ -294,7 +294,6 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 // Initialize the model and load pre-trained weights
                 Model = new NasBertModel(Parent.Option, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, Parent.Option.NumberOfClasses);
                 Model.GetEncoder().load(GetModelPath());
-                Model.train();
 
                 // Figure out if we are running on GPU or CPU
                 Device = TorchUtils.InitializeDevice(Parent.Host);
@@ -426,11 +425,6 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
             public void Train(IDataView input)
             {
-                // Set the torch random seed to match ML.NET if one was provided
-                //if (((IHostEnvironmentInternal)_host).Seed.HasValue)
-                torch.random.manual_seed(10);
-                torch.cuda.manual_seed(10);
-
                 // Get the cursor and the correct columns based on the inputs
                 DataViewRowCursor cursor = default;
                 if (Parent.Option.Sentence2ColumnName != default)
@@ -486,6 +480,8 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
                 Updates++;
 
+                torch.random.manual_seed(1 + Updates);
+                torch.cuda.manual_seed(1 + Updates);
                 Model.train();
                 Optimizer.zero_grad();
 
