@@ -1295,7 +1295,7 @@ namespace Microsoft.ML.Tests
                 Assert.Equal(image1.PixelFormat, image2.PixelFormat);
 
                 // When saving the image with specific encoding, the image decoder can manipulate the color
-                // and don't have to keep the exact original colors. 
+                // and don't have to keep the exact original colors.
             }
             else
             {
@@ -1348,16 +1348,23 @@ namespace Microsoft.ML.Tests
             Assert.Equal(image1.Pixels.ToArray(), image2.Pixels.ToArray());
             image2.Dispose();
 
-            // Now test image stream starts with image data and appended with extra unrelated data.
+            // Now test image stream contains image data prepended and appended with extra unrelated data.
             stream = new FileStream(imageFile, FileMode.Open, FileAccess.Read, FileShare.None);
             MemoryStream ms = new MemoryStream((int)stream.Length);
+            for (int i = 0; i < stream.Length; i++)
+            {
+                ms.WriteByte((byte)(i % 255));
+            }
+
+            long position = ms.Position;
+
             stream.CopyTo(ms);
             for (int i = 0; i < stream.Length; i++)
             {
                 ms.WriteByte((byte)(i % 255));
             }
 
-            ms.Seek(0, SeekOrigin.Begin);
+            ms.Seek(position, SeekOrigin.Begin);
             image2 = MLImage.CreateFromStream(ms);
             stream.Close();
             ms.Close();
