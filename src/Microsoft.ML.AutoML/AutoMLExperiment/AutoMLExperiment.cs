@@ -65,7 +65,7 @@ namespace Microsoft.ML.AutoML
 
             _serviceCollection.TryAddSingleton(_settings);
             _serviceCollection.TryAddSingleton(((IChannelProvider)_context).Start(nameof(AutoMLExperiment)));
-            _serviceCollection.TryAddSingleton<IMLContextManager>(new DefaultMLContextManager(_context, $"{nameof(AutoMLExperiment)}-ChildContext");
+            _serviceCollection.TryAddSingleton<IMLContextManager>(new DefaultMLContextManager(_context, $"{nameof(AutoMLExperiment)}-ChildContext"));
             this.SetPerformanceMonitor(2000);
         }
 
