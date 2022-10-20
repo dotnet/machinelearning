@@ -1043,34 +1043,6 @@ namespace Microsoft.ML.Scenarios
 
                 Assert.Equal(7, numRows);
             }
-
-            Assert.Contains(
-                @"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image " +
-                GetDataPath("images/tomato_indexedpixelformat.gif") +
-                " of unsupported pixel format Format8bppIndexed but converting it to Format32bppArgb.",
-                logMessages);
-
-            // taco_invalidpixelformat.jpg has '8207' pixel format on Windows but this format translates to Format32bppRgb
-            // on macOS and Linux, hence on Windows this image's pixel format is converted in resize transformer to Format32bppArgb
-            // and on linux and macOS it is not converted in resize transform since pixel format 'Format32bppRgb' can be resized but
-            // in ImagePixelExtractingTransformer it is converted to Format32bppArgb since there we just support two 
-            // pixel formats, i.e Format32bppArgb and Format16bppArgb.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                Assert.Contains(
-                    @"[Source=Mapper; ImagePixelExtractingTransformer, Kind=Warning] Encountered image " +
-                    GetDataPath("images/taco_invalidpixelformat.jpg") +
-                    " of unsupported pixel format Format32bppRgb but converting it to Format32bppArgb.",
-                    logMessages);
-            }
-            else
-            {
-                Assert.Contains(
-                    @"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image " +
-                    GetDataPath("images/taco_invalidpixelformat.jpg") +
-                    " of unsupported pixel format 8207 but converting it to Format32bppArgb.",
-                    logMessages);
-            }
         }
 
         [TensorFlowFact]

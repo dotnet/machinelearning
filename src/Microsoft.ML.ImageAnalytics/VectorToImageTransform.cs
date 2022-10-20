@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -343,7 +341,7 @@ namespace Microsoft.ML.Transforms.Image
                     throw Contracts.Except("We only support float, double or byte arrays");
             }
 
-            private ValueGetter<Bitmap> GetterFromType<TValue>(PrimitiveDataViewType srcType, DataViewRow input, int iinfo,
+            private ValueGetter<MLImage> GetterFromType<TValue>(PrimitiveDataViewType srcType, DataViewRow input, int iinfo,
                 VectorToImageConvertingEstimator.ColumnOptions ex, bool needScale) where TValue : IConvertible
             {
                 Contracts.Assert(typeof(TValue) == srcType.RawType);
@@ -355,7 +353,7 @@ namespace Microsoft.ML.Transforms.Image
                 float scale = ex.ScaleImage;
 
                 return
-                    (ref Bitmap dst) =>
+                    (ref MLImage dst) =>
                     {
                         getSrc(ref src);
                         if (src.GetValues().Length == 0)
@@ -366,70 +364,59 @@ namespace Microsoft.ML.Transforms.Image
                         VBuffer<TValue> dense = default;
                         src.CopyToDense(ref dense);
                         var values = dense.GetValues();
-                        dst = new Bitmap(width, height);
-                        dst.SetResolution(width, height);
                         int cpix = height * width;
                         int position = 0;
                         ImagePixelExtractingEstimator.GetOrder(ex.Order, ex.Colors, out int a, out int r, out int b, out int g);
 
-                        BitmapData bmpData = null;
-                        try
+                        byte[] imageData = new byte[width * height * 4]; // 4 for bgra data blue, green, red, and alpha.
+                        int ix = 0;
+                        for (int y = 0; y < height; ++y)
                         {
-                            bmpData = dst.LockBits(new Rectangle(0, 0, dst.Width, dst.Height), ImageLockMode.WriteOnly, dst.PixelFormat);
-                            for (int y = 0; y < height; ++y)
+                            for (int x = 0; x < width; x++)
                             {
-                                byte[] row = new byte[bmpData.Stride];
-                                int ix = 0;
-                                for (int x = 0; x < width; x++)
+                                float red = ex.DefaultRed;
+                                float green = ex.DefaultGreen;
+                                float blue = ex.DefaultBlue;
+                                float alpha = ex.DefaultAlpha;
+                                if (ex.InterleavedColors)
                                 {
-                                    float red = ex.DefaultRed;
-                                    float green = ex.DefaultGreen;
-                                    float blue = ex.DefaultBlue;
-                                    float alpha = ex.DefaultAlpha;
-                                    if (ex.InterleavedColors)
-                                    {
-                                        if (ex.Alpha)
-                                            alpha = Convert.ToSingle(values[position + a]);
-                                        if (ex.Red)
-                                            red = Convert.ToSingle(values[position + r]);
-                                        if (ex.Green)
-                                            green = Convert.ToSingle(values[position + g]);
-                                        if (ex.Blue)
-                                            blue = Convert.ToSingle(values[position + b]);
-                                        position += ex.Planes;
-                                    }
-                                    else
-                                    {
-                                        position = y * width + x;
-                                        if (ex.Alpha) alpha = Convert.ToSingle(values[position + cpix * a]);
-                                        if (ex.Red) red = Convert.ToSingle(values[position + cpix * r]);
-                                        if (ex.Green) green = Convert.ToSingle(values[position + cpix * g]);
-                                        if (ex.Blue) blue = Convert.ToSingle(values[position + cpix * b]);
-                                    }
-                                    if (!needScale)
-                                    {
-                                        row[ix++] = (byte)blue;
-                                        row[ix++] = (byte)green;
-                                        row[ix++] = (byte)red;
-                                        row[ix++] = (byte)alpha;
-                                    }
-                                    else
-                                    {
-                                        row[ix++] = (byte)Math.Round(blue * scale - offset);
-                                        row[ix++] = (byte)Math.Round(green * scale - offset);
-                                        row[ix++] = (byte)Math.Round(red * scale - offset);
-                                        row[ix++] = (byte)(ex.Alpha ? Math.Round(alpha * scale - offset) : 0);
-                                    }
+                                    if (ex.Alpha)
+                                        alpha = Convert.ToSingle(values[position + a]);
+                                    if (ex.Red)
+                                        red = Convert.ToSingle(values[position + r]);
+                                    if (ex.Green)
+                                        green = Convert.ToSingle(values[position + g]);
+                                    if (ex.Blue)
+                                        blue = Convert.ToSingle(values[position + b]);
+                                    position += ex.Planes;
                                 }
-                                Marshal.Copy(row, 0, bmpData.Scan0 + y * bmpData.Stride, bmpData.Stride);
+                                else
+                                {
+                                    position = y * width + x;
+                                    if (ex.Alpha) alpha = Convert.ToSingle(values[position + cpix * a]);
+                                    if (ex.Red) red = Convert.ToSingle(values[position + cpix * r]);
+                                    if (ex.Green) green = Convert.ToSingle(values[position + cpix * g]);
+                                    if (ex.Blue) blue = Convert.ToSingle(values[position + cpix * b]);
+                                }
+                                if (!needScale)
+                                {
+                                    imageData[ix++] = (byte)blue;
+                                    imageData[ix++] = (byte)green;
+                                    imageData[ix++] = (byte)red;
+                                    imageData[ix++] = (byte)alpha;
+                                }
+                                else
+                                {
+                                    imageData[ix++] = (byte)Math.Round(blue * scale - offset);
+                                    imageData[ix++] = (byte)Math.Round(green * scale - offset);
+                                    imageData[ix++] = (byte)Math.Round(red * scale - offset);
+                                    imageData[ix++] = (byte)(ex.Alpha ? Math.Round(alpha * scale - offset) : 0);
+                                }
                             }
-                            dst.Tag = nameof(VectorToImageConvertingTransformer);
                         }
-                        finally
-                        {
-                            if (bmpData != null)
-                                dst.UnlockBits(bmpData);
-                        }
+
+                        dst = MLImage.CreateFromPixels(width, height, MLPixelFormat.Bgra32, imageData);
+                        dst.Tag = nameof(VectorToImageConvertingTransformer);
                     };
             }
 
@@ -451,7 +438,7 @@ namespace Microsoft.ML.Transforms.Image
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Known-sized vector of <xref:System.Single>, <xref:System.Double> or <xref:System.Byte>. |
-    /// | Output column data type | <xref:System.Drawing.Bitmap> |
+    /// | Output column data type | <xref:Microsoft.ML.Data.MLImage> |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
     /// | Exportable to ONNX | No |
     ///

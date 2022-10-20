@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.IO;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -9,7 +8,7 @@ namespace Samples.Dynamic
     public static class ConvertToGrayscale
     {
         // Sample that loads images from the file system, and converts them to
-        // grayscale. 
+        // grayscale.
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for
@@ -20,7 +19,7 @@ namespace Samples.Dynamic
             // list of the files from the dotnet/machinelearning/test/data/images/.
             // If you inspect the fileSystem, after running this line, an "images"
             // folder will be created, containing 4 images, and a .tsv file
-            // enumerating the images. 
+            // enumerating the images.
             var imagesDataFile = Microsoft.ML.SamplesUtils.DatasetUtils
                 .GetSampleImages();
 
@@ -42,7 +41,7 @@ namespace Samples.Dynamic
             }).Load(imagesDataFile);
 
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
-            // Image loading pipeline. 
+            // Image loading pipeline.
             var pipeline = mlContext.Transforms.LoadImages("ImageObject",
                 imagesFolder, "ImagePath")
                 .Append(mlContext.Transforms.ConvertToGrayscale("Grayscale",
@@ -67,12 +66,12 @@ namespace Samples.Dynamic
                 .Schema))
             {
                 // Note that it is best to get the getters and values *before*
-                // iteration, so as to faciliate buffer sharing (if applicable), and
+                // iteration, so as to facilitate buffer sharing (if applicable), and
                 // column -type validation once, rather than many times.
                 ReadOnlyMemory<char> imagePath = default;
                 ReadOnlyMemory<char> name = default;
-                Bitmap imageObject = null;
-                Bitmap grayscaleImageObject = null;
+                MLImage imageObject = null;
+                MLImage grayscaleImageObject = null;
 
                 var imagePathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor
                     .Schema["ImagePath"]);
@@ -80,10 +79,10 @@ namespace Samples.Dynamic
                 var nameGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor
                     .Schema["Name"]);
 
-                var imageObjectGetter = cursor.GetGetter<Bitmap>(cursor.Schema[
+                var imageObjectGetter = cursor.GetGetter<MLImage>(cursor.Schema[
                     "ImageObject"]);
 
-                var grayscaleGetter = cursor.GetGetter<Bitmap>(cursor.Schema[
+                var grayscaleGetter = cursor.GetGetter<MLImage>(cursor.Schema[
                     "Grayscale"]);
 
                 while (cursor.MoveNext())
@@ -94,8 +93,8 @@ namespace Samples.Dynamic
                     grayscaleGetter(ref grayscaleImageObject);
 
                     Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25}",
-                        imagePath, name, imageObject.PhysicalDimension,
-                        grayscaleImageObject.PhysicalDimension);
+                        imagePath, name, $"Width={imageObject.Width}, Height={imageObject.Height}",
+                        $"Width={grayscaleImageObject.Width}, Height={grayscaleImageObject.Height}");
                 }
 
                 // Dispose the image.

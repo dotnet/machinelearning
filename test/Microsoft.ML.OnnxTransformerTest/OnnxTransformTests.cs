@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
@@ -501,7 +500,7 @@ namespace Microsoft.ML.Tests
             /// Image will be consumed by ONNX image multiclass classification model.
             /// </summary>
             [ImageType(Height, Width)]
-            public Bitmap Image { get; set; }
+            public MLImage Image { get; set; }
 
             /// <summary>
             /// Output of ONNX model. It contains probabilities of all classes.
@@ -514,12 +513,19 @@ namespace Microsoft.ML.Tests
                 Image = null;
             }
 
-            public ImageDataPoint(Color color)
+            public ImageDataPoint(byte red, byte green, byte blue)
             {
-                Image = new Bitmap(Width, Height);
-                for (int i = 0; i < Width; ++i)
-                    for (int j = 0; j < Height; ++j)
-                        Image.SetPixel(i, j, color);
+                byte[] imageData = new byte[Width * Height * 4]; // 4 for the red, green, blue and alpha colors
+                for (int i = 0; i < imageData.Length; i += 4)
+                {
+                    // Fill the buffer with the Bgra32 format
+                    imageData[i] = blue;
+                    imageData[i + 1] = green;
+                    imageData[i + 2] = red;
+                    imageData[i + 3] = 255;
+                }
+
+                Image = MLImage.CreateFromPixels(Width, Height, MLPixelFormat.Bgra32, imageData);
             }
         }
 
@@ -535,8 +541,8 @@ namespace Microsoft.ML.Tests
             // Create in-memory data points. Its Image/Scores field is the input/output of the used ONNX model.
             var dataPoints = new ImageDataPoint[]
             {
-                new ImageDataPoint(Color.Red),
-                new ImageDataPoint(Color.Green)
+                new ImageDataPoint(red: 255, green: 0, blue: 0),
+                new ImageDataPoint(red: 0, green: 128, blue: 0),
             };
 
             // Convert training data to IDataView, the general data type used in ML.NET.
