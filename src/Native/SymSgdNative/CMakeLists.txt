@@ -43,6 +43,8 @@ target_link_libraries(SymSgdNative PUBLIC ${MKL_LIBRARY} PUBLIC ${OPENMP_LIBRARY
 
 if(APPLE)
     set_target_properties(SymSgdNative PROPERTIES INSTALL_RPATH "@loader_path;@loader_path/${MKL_LIB_RPATH}}")
+else()
+    SET(UNUSED_MKL_LIB_RPATH, "${MKL_LIB_RPATH}")
 endif()
 
 install_library_and_symbols (SymSgdNative)
