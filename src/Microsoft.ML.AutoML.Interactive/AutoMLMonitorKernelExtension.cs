@@ -14,7 +14,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Plotly.NET.CSharp;
 using static Microsoft.DotNet.Interactive.Formatting.PocketViewTags;
-
+using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.AutoML
 {
@@ -22,6 +22,7 @@ namespace Microsoft.ML.AutoML
     {
         public async Task OnLoadAsync(Kernel kernel)
         {
+            Formatter.Register<Parameter>((parameter) => JsonSerializer.Serialize(parameter, new JsonSerializerOptions() { WriteIndented = true, }));
             Formatter.Register<NotebookMonitor>((monitor, writer) =>
             {
                 WriteSummary(monitor, writer);
