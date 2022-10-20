@@ -108,7 +108,7 @@ jobs:
   pool:
     vmImage: macOS-12
   steps:
-  - script: brew update && brew unlink python@3.8 && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula && brew link libomp --force
+  - script: brew update && brew unlink python@3.8 && brew unlink libomp && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
     displayName: Install build dependencies
   - script: ./restore.sh
     displayName: restore all projects
