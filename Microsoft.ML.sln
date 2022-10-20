@@ -113,8 +113,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Extensions.ML", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Extensions.ML.Tests", "test\Microsoft.Extensions.ML.Tests\Microsoft.Extensions.ML.Tests.csproj", "{21CAD3A1-5E1F-42C1-BB73-46B6E67F4206}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.StableApi", "tools-local\Microsoft.ML.StableApi\Microsoft.ML.StableApi.csproj", "{F308DC6B-7E59-40D7-A581-834E8CD99CFE}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.AutoML.Tests", "test\Microsoft.ML.AutoML.Tests\Microsoft.ML.AutoML.Tests.csproj", "{C2652287-CD6D-40FB-B042-95FB56D09DB8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.AutoML", "src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj", "{E48285BF-F49A-4EA3-AED0-1BDDBF77EB80}"
@@ -569,14 +567,6 @@ Global
 		{21CAD3A1-5E1F-42C1-BB73-46B6E67F4206}.Release|Any CPU.Build.0 = Release|Any CPU
 		{21CAD3A1-5E1F-42C1-BB73-46B6E67F4206}.Release|x64.ActiveCfg = Release|Any CPU
 		{21CAD3A1-5E1F-42C1-BB73-46B6E67F4206}.Release|x64.Build.0 = Release|Any CPU
-		{F308DC6B-7E59-40D7-A581-834E8CD99CFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F308DC6B-7E59-40D7-A581-834E8CD99CFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F308DC6B-7E59-40D7-A581-834E8CD99CFE}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{F308DC6B-7E59-40D7-A581-834E8CD99CFE}.Debug|x64.Build.0 = Debug|Any CPU
-		{F308DC6B-7E59-40D7-A581-834E8CD99CFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F308DC6B-7E59-40D7-A581-834E8CD99CFE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F308DC6B-7E59-40D7-A581-834E8CD99CFE}.Release|x64.ActiveCfg = Release|Any CPU
-		{F308DC6B-7E59-40D7-A581-834E8CD99CFE}.Release|x64.Build.0 = Release|Any CPU
 		{C2652287-CD6D-40FB-B042-95FB56D09DB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C2652287-CD6D-40FB-B042-95FB56D09DB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2652287-CD6D-40FB-B042-95FB56D09DB8}.Debug|x64.ActiveCfg = Debug|Any CPU

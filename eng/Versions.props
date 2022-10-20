@@ -56,7 +56,6 @@
     <CoverletMsbuildVersion>3.1.2</CoverletMsbuildVersion>
     <MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>3.3.1</MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>
     <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
-    <MicrosoftDotNetApiCompatVersion>1.0.0-beta.19225.5</MicrosoftDotNetApiCompatVersion>
     <MicrosoftSourceLinkVersion>1.1.0-beta-20206-02</MicrosoftSourceLinkVersion>
     <MicrosoftSymbolUploaderBuildTaskVersion>1.1.225302</MicrosoftSymbolUploaderBuildTaskVersion>
     <ReportGeneratorVersion>4.3.6</ReportGeneratorVersion>
