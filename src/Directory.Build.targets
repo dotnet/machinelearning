@@ -28,8 +28,8 @@
 
   <!-- API Compat -->
   <PropertyGroup Condition="'$(IsPackable)' == 'true'">
-    <EnablePackageValidation Condition="'$(EnablePackageValidation)' == ''">$(IsStableProject)</EnablePackageValidation>
-    <PackageValidationBaselineVersion Condition="'$(EnablePackageValidation)' == 'true' AND '$(PackageValidationBaselineVersion)' == ''">1.7.0</PackageValidationBaselineVersion>
+    <!-- Enable API compat for any packages unless they've set EnablePackageValidation -->
+    <EnablePackageValidation Condition="'$(EnablePackageValidation)' == ''">true</EnablePackageValidation>
   </PropertyGroup>
   
 </Project>
