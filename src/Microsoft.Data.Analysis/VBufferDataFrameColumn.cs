@@ -23,8 +23,6 @@ namespace Microsoft.Data.Analysis
     {
         private readonly List<List<VBuffer<T>>> _vBuffers = new List<List<VBuffer<T>>>(); // To store more than intMax number of vbuffers
 
-        //private readonly List<VBuffer<T>> _vBuffers2 = new List<VBuffer<T>>();
-
         /// <summary>
         /// Constructs an empty VBufferDataFrameColumn with the given <paramref name="name"/>.
         /// </summary>
@@ -91,7 +89,6 @@ namespace Microsoft.Data.Analysis
             lastBuffer.Add(value);
             if (value.Length == 0) //TODO
                 _nullCount++;
-            Length++;
             Length++;
         }
 
@@ -182,30 +179,7 @@ namespace Microsoft.Data.Analysis
         /// <inheritdoc/>
         public VBufferDataFrameColumn<T> FillNulls(VBuffer<T> value, bool inPlace = false)
         {
-            if (inPlace)
-            {
-                // For now throw an exception if inPlace = true.
-                throw new NotSupportedException();
-            }
-
-            VBufferDataFrameColumn<T> ret = new VBufferDataFrameColumn<T>(Name);
-            for (long i = 0; i < Length; i++)
-            {
-                ret.Append(value);
-            }
-            return ret;
-        }
-
-        protected override DataFrameColumn FillNullsImplementation(object value, bool inPlace)
-        {
-            if (value is VBuffer<T> valueBuffer)
-            {
-                return FillNulls(valueBuffer, inPlace);
-            }
-            else
-            {
-                throw new ArgumentException(String.Format(Strings.MismatchedValueType, typeof(VBuffer<T>)), nameof(value));
-            }
+            throw new NotImplementedException();
         }
 
         public override DataFrameColumn Clamp<U>(U min, U max, bool inPlace = false) => throw new NotSupportedException();

@@ -204,10 +204,6 @@ namespace Microsoft.ML
             {
                 return new VBufferDataFrameColumn<decimal>(name);
             }
-            else if (itemType.RawType == typeof(String))
-            {
-                return new VBufferDataFrameColumn<string>(name);
-            }
 
             throw new NotSupportedException("Specified vector subtype " + itemType.ToString() + " is not supported.");
         }

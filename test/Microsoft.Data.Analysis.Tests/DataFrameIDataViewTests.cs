@@ -16,9 +16,13 @@ namespace Microsoft.Data.Analysis.Tests
     {
         [LoadColumn(0, 1)]
         [VectorType(2)]
-        public float[] Features { get; set; }
+        public float[] FloatFeatures { get; set; }
 
-        [LoadColumn(3)]
+        [LoadColumn(3, 4)]
+        [VectorType(2)]
+        public Int32[] IntFeatures { get; set; }
+
+        [LoadColumn(5)]
         public bool Label { get; set; }
     }
 
@@ -471,12 +475,14 @@ namespace Microsoft.Data.Analysis.Tests
             {
                 new VectorInput()
                 {
-                    Features = new float[] {33, 44},
+                    FloatFeatures = new float[] {33, 44},
+                    IntFeatures = new int[] {5, 6},
                     Label = true
                 },
                 new VectorInput()
                 {
-                    Features = new float[] {55, 66},
+                    FloatFeatures = new float[] {55, 66},
+                    IntFeatures = new int[] {5, 6},
                     Label = false
                 }
             };
@@ -485,33 +491,11 @@ namespace Microsoft.Data.Analysis.Tests
 
             var df = data.ToDataFrame();
 
-            Assert.Equal(2, df.Columns.Count);
+            Assert.Equal(3, df.Columns.Count);
             Assert.Equal(2, df.Rows.Count);
 
             var value = df[0, 0];
             var a = df.Preview();
-        }
-
-        [Fact]
-        public void VBufferTest2()
-        {
-            var data = new[]
-            {
-                new {
-                    NumericData=Enumerable.Range(0,10).ToArray(),
-                    TextData=Enumerable.Repeat("html",15).ToArray()
-                },
-                new {
-                    NumericData=Enumerable.Range(5,10).ToArray(),
-                    TextData=Enumerable.Repeat("div",10).ToArray()
-                }
-            };
-
-            var ctx = new MLContext();
-
-            var idv = ctx.Data.LoadFromEnumerable(data);
-
-            var df = idv.ToDataFrame();
         }
     }
 }
