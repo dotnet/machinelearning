@@ -150,6 +150,7 @@ namespace Microsoft.ML.AutoML
             {
                 _experiment.SetMaximumMemoryUsageInMegaByte(d);
             }
+            _experiment.SetMaxModelToExplore(settings.MaxModels);
         }
 
         public override ExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<BinaryClassificationMetrics>> progressHandler = null)
