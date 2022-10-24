@@ -362,7 +362,7 @@ jobs:
       msbuildVersion: 15.0
     continueOnError: true
 
-  - template: eng\common\templates\post-build\post-build.yml
+  - template: /eng/common/templates/post-build/post-build.yml
     parameters:
       publishingInfraVersion: 3
       # This is to enable SDL runs part of Post-Build Validation Stage
