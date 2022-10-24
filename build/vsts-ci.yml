@@ -369,21 +369,21 @@ stages:
     - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
       displayName: Dotnet Server Shutdown
 
-  - template: /eng/common/templates/post-build/post-build.yml
-    parameters:
-      publishingInfraVersion: 3
-      # This is to enable SDL runs part of Post-Build Validation Stage
-      SDLValidationParameters:
-        enable: true
-        publishGdn: true
-        continueOnError: false
-        params: ' -SourceToolsList @("policheck","credscan")
-        -TsaInstanceURL $(_TsaInstanceURL)
-        -TsaProjectName $(_TsaProjectName)
-        -TsaNotificationEmail $(_TsaNotificationEmail)
-        -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
-        -TsaBugAreaPath $(_TsaBugAreaPath)
-        -TsaIterationPath $(_TsaIterationPath)
-        -TsaRepositoryName "machinelearning"
-        -TsaCodebaseName "machinelearning"
-        -TsaPublish $True'
+template: /eng/common/templates/post-build/post-build.yml
+  parameters:
+    publishingInfraVersion: 3
+    # This is to enable SDL runs part of Post-Build Validation Stage
+    SDLValidationParameters:
+      enable: true
+      publishGdn: true
+      continueOnError: false
+      params: ' -SourceToolsList @("policheck","credscan")
+      -TsaInstanceURL $(_TsaInstanceURL)
+      -TsaProjectName $(_TsaProjectName)
+      -TsaNotificationEmail $(_TsaNotificationEmail)
+      -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
+      -TsaBugAreaPath $(_TsaBugAreaPath)
+      -TsaIterationPath $(_TsaIterationPath)
+      -TsaRepositoryName "machinelearning"
+      -TsaCodebaseName "machinelearning"
+      -TsaPublish $True'
