@@ -96,7 +96,7 @@ namespace Microsoft.ML.AutoML
 
         public bool IsStopTrainingRequested()
         {
-            return _exploredModel > _maxModel;
+            return _exploredModel >= _maxModel;
         }
 
         public void Update(TrialResult result)
