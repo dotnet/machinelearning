@@ -1098,7 +1098,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             const int cases = 8;
             Contracts.Assert(cases == Enum.GetValues(typeof(GenLogic)).Length);
             subcase = (GenLogic)rgen.Next(cases);
-            // VBufferEditor<float> bEditor;
+            VBufferEditor<float> bEditor;
             switch (subcase)
             {
                 case GenLogic.BothDense:
@@ -1116,21 +1116,21 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 case GenLogic.BothSparseASameB:
                     GenerateVBuffer(rgen, len, rgen.Next(len), out a);
                     GenerateVBuffer(rgen, len, a.GetValues().Length, out b);
-                    /*bEditor = VBufferEditor.CreateFromBuffer(ref b);
+                    bEditor = VBufferEditor.CreateFromBuffer(ref b);
                     for (int i = 0; i < a.GetIndices().Length; ++i)
                         bEditor.Indices[i] = a.GetIndices()[i];
-                    b = bEditor.Commit();*/
+                    b = bEditor.Commit();
                     break;
                 case GenLogic.BothSparseASubsetB:
                 case GenLogic.BothSparseBSubsetA:
                     GenerateVBuffer(rgen, len, rgen.Next(len), out a);
                     GenerateVBuffer(rgen, a.GetValues().Length, rgen.Next(a.GetValues().Length), out b);
-                    /*bEditor = VBufferEditor.Create(ref b, len, b.GetValues().Length);
+                    bEditor = VBufferEditor.Create(ref b, len, b.GetValues().Length);
                     for (int i = 0; i < bEditor.Values.Length; ++i)
                         bEditor.Indices[i] = a.GetIndices()[bEditor.Indices[i]];
                     b = bEditor.Commit();
                     if (subcase == GenLogic.BothSparseASubsetB)
-                        Utils.Swap(ref a, ref b);*/
+                        Utils.Swap(ref a, ref b);
                     break;
                 case GenLogic.BothSparseAUnrelatedB:
                     GenerateVBuffer(rgen, len, rgen.Next(len), out a);
@@ -1143,14 +1143,14 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                     if (a.GetValues().Length != 0 && b.GetValues().Length != 0 && a.GetValues().Length != b.GetValues().Length)
                     {
                         var aEditor = VBufferEditor.CreateFromBuffer(ref a);
-                        /*bEditor = VBufferEditor.CreateFromBuffer(ref b);
+                        bEditor = VBufferEditor.CreateFromBuffer(ref b);
                         Utils.Shuffle(rgen, aEditor.Indices);
                         aEditor.Indices.Slice(boundary).CopyTo(bEditor.Indices);
 
                         GenericSpanSortHelper<int>.Sort(aEditor.Indices, 0, boundary);
                         GenericSpanSortHelper<int>.Sort(bEditor.Indices, 0, bEditor.Indices.Length);
                         a = aEditor.CommitTruncated(boundary);
-                        b = bEditor.Commit();*/
+                        b = bEditor.Commit();
                     }
                     if (rgen.Next(2) == 0)
                         Utils.Swap(ref a, ref b);

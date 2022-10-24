@@ -71,13 +71,6 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        /// <summary>
-        /// Indicates if the value at this <paramref name="index"/> is <see langword="null" />.
-        /// </summary>
-        /// <param name="index">The index to look up.</param>
-        /// <returns>A boolean value indicating the validity at this <paramref name="index"/>.</returns>
-        public bool IsValid(long index) => NullCount == 0;
-
         public void Append(VBuffer<T> value)
         {
             List<VBuffer<T>> lastBuffer = _vBuffers[_vBuffers.Count - 1];
@@ -87,8 +80,6 @@ namespace Microsoft.Data.Analysis
                 _vBuffers.Add(lastBuffer);
             }
             lastBuffer.Add(value);
-            if (value.Length == 0) //TODO
-                _nullCount++;
             Length++;
         }
 
@@ -168,28 +159,50 @@ namespace Microsoft.Data.Analysis
         protected override IEnumerator GetEnumeratorCore() => GetEnumerator();
 
         /// <inheritdoc/>
-        public override DataFrameColumn Sort(bool ascending = true) => throw new NotSupportedException();
-
-        /// <inheritdoc/>
-        public override DataFrameColumn Clone(DataFrameColumn mapIndices = null, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public VBufferDataFrameColumn<T> FillNulls(VBuffer<T> value, bool inPlace = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override DataFrameColumn Clamp<U>(U min, U max, bool inPlace = false) => throw new NotSupportedException();
-
-        public override DataFrameColumn Filter<U>(U min, U max) => throw new NotSupportedException();
-
-        /// <inheritdoc/>
         protected internal override void AddDataViewColumn(DataViewSchema.Builder builder)
         {
             builder.AddColumn(Name, GetDataViewType());
+        }
+
+        /// <inheritdoc/>
+        protected internal override Delegate GetDataViewGetter(DataViewRowCursor cursor)
+        {
+            return CreateValueGetterDelegate(cursor);
+        }
+
+        private ValueGetter<VBuffer<T>> CreateValueGetterDelegate(DataViewRowCursor cursor) =>
+            (ref VBuffer<T> value) => value = this[cursor.Position];
+
+        public override Dictionary<long, ICollection<long>> GetGroupedOccurrences(DataFrameColumn other, out HashSet<long> otherColumnNullIndices)
+        {
+            return GetGroupedOccurrences<string>(other, out otherColumnNullIndices);
+        }
+
+        protected internal override Delegate GetValueGetterUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column schemaColumn)
+        {
+            return cursor.GetGetter<VBuffer<T>>(schemaColumn);
+        }
+
+        protected internal override void AddValueUsingCursor(DataViewRowCursor cursor, Delegate getter)
+        {
+            long row = cursor.Position;
+            VBuffer<T> value = default;
+            Debug.Assert(getter != null, "Excepted getter to be valid");
+
+            (getter as ValueGetter<VBuffer<T>>)(ref value);
+
+            if (Length > row)
+            {
+                this[row] = value;
+            }
+            else if (Length == row)
+            {
+                Append(value);
+            }
+            else
+            {
+                throw new IndexOutOfRangeException(nameof(row));
+            }
         }
 
         private static VectorDataViewType GetDataViewType()
@@ -248,59 +261,6 @@ namespace Microsoft.Data.Analysis
             }
 
             throw new NotSupportedException();
-        }
-
-        /// <inheritdoc/>
-        protected internal override Delegate GetDataViewGetter(DataViewRowCursor cursor)
-        {
-            return CreateValueGetterDelegate(cursor);
-        }
-
-        private ValueGetter<VBuffer<T>> CreateValueGetterDelegate(DataViewRowCursor cursor) =>
-            (ref VBuffer<T> value) => value = this[cursor.Position];
-
-
-        /// <inheritdoc/>
-        public override PrimitiveDataFrameColumn<bool> ElementwiseEquals<U>(U value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Dictionary<long, ICollection<long>> GetGroupedOccurrences(DataFrameColumn other, out HashSet<long> otherColumnNullIndices)
-        {
-            return GetGroupedOccurrences<string>(other, out otherColumnNullIndices);
-        }
-
-        protected internal override Delegate GetValueGetterUsingCursor(DataViewRowCursor cursor, DataViewSchema.Column schemaColumn)
-        {
-            return cursor.GetGetter<VBuffer<T>>(schemaColumn);
-        }
-
-        IEnumerator<VBuffer<T>> IEnumerable<VBuffer<T>>.GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override void AddValueUsingCursor(DataViewRowCursor cursor, Delegate getter)
-        {
-            long row = cursor.Position;
-            VBuffer<T> value = default;
-            Debug.Assert(getter != null, "Excepted getter to be valid");
-
-            (getter as ValueGetter<VBuffer<T>>)(ref value);
-
-            if (Length > row)
-            {
-                this[row] = value;
-            }
-            else if (Length == row)
-            {
-                Append(value);
-            }
-            else
-            {
-                throw new IndexOutOfRangeException(nameof(row));
-            }
         }
     }
 }

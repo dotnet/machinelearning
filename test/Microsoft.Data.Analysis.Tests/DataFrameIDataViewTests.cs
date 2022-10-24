@@ -9,23 +9,11 @@ using Microsoft.Data.Analysis.Tests;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Xunit;
+using Microsoft.ML.Trainers;
+
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public class VectorInput
-    {
-        [LoadColumn(0, 1)]
-        [VectorType(2)]
-        public float[] FloatFeatures { get; set; }
-
-        [LoadColumn(3, 4)]
-        [VectorType(2)]
-        public Int32[] IntFeatures { get; set; }
-
-        [LoadColumn(5)]
-        public bool Label { get; set; }
-    }
-
     public partial class DataFrameIDataViewTests
     {
         [Fact]
@@ -365,25 +353,6 @@ namespace Microsoft.Data.Analysis.Tests
             return data;
         }
 
-        private IDataView GetASampleIDataViewVBuffer()
-        {
-            var mlContext = new MLContext();
-
-            // Get a small dataset as an IEnumerable.
-            var enumerableOfData = new[]
-            {
-                new InputData() { Name = "Joey", FilterNext = false, Value = 1.0f },
-                new InputData() { Name = "Chandler", FilterNext = false , Value = 2.0f},
-                new InputData() { Name = "Ross", FilterNext = false , Value = 3.0f},
-                new InputData() { Name = "Monica", FilterNext = true , Value = 4.0f},
-                new InputData() { Name = "Rachel", FilterNext = true , Value = 5.0f},
-                new InputData() { Name = "Phoebe", FilterNext = false , Value = 6.0f},
-            };
-
-            IDataView data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
-            return data;
-        }
-
         private void VerifyDataFrameColumnAndDataViewColumnValues<T>(string columnName, IDataView data, DataFrame df, int maxRows = -1)
         {
             int cc = 0;
@@ -467,35 +436,46 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void VBufferTest()
+        public void TestDataFrameFromIDataView_VBufferType()
         {
             var mlContext = new MLContext();
 
-            List<VectorInput> inputs = new List<VectorInput>()
+            var inputData = new[]
             {
-                new VectorInput()
-                {
-                    FloatFeatures = new float[] {33, 44},
-                    IntFeatures = new int[] {5, 6},
-                    Label = true
+                new {
+                    boolFeature = new bool[] {false, false},
+                    byteFeatures = new byte[] {0, 0},
+                    doubleFeatures = new double[] {0, 0},
+                    floatFeatures = new float[] {0, 0},
+                    intFeatures = new int[] {0, 0},
+                    longFeatures = new long[] {0, 0},
+                    sbyteFeatures = new sbyte[] {0, 0},
+                    shortFeatures = new short[] {0, 0},
+                    ushortFeatures = new ushort[] {0, 0},
+                    uintFeatures = new uint[] {0, 0},
+                    ulongFeatures = new ulong[] {0, 0},
                 },
-                new VectorInput()
-                {
-                    FloatFeatures = new float[] {55, 66},
-                    IntFeatures = new int[] {5, 6},
-                    Label = false
+                new {
+                    boolFeature = new bool[] {false, false},
+                    byteFeatures = new byte[] {0, 0},
+                    doubleFeatures = new double[] {0, 0},
+                    floatFeatures = new float[] {1, 1},
+                    intFeatures = new int[] {0, 0},
+                    longFeatures = new long[] {0, 0},
+                    sbyteFeatures = new sbyte[] {0, 0},
+                    shortFeatures = new short[] {0, 0},
+                    ushortFeatures = new ushort[] {0, 0},
+                    uintFeatures = new uint[] {0, 0},
+                    ulongFeatures = new ulong[] {0, 0},
                 }
             };
 
-            var data = mlContext.Data.LoadFromEnumerable<VectorInput>(inputs);
-
+            var data = mlContext.Data.LoadFromEnumerable(inputData);
             var df = data.ToDataFrame();
 
-            Assert.Equal(3, df.Columns.Count);
+            Assert.Equal(11, df.Columns.Count);
             Assert.Equal(2, df.Rows.Count);
-
-            var value = df[0, 0];
-            var a = df.Preview();
         }
     }
 }
+
