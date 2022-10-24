@@ -260,7 +260,7 @@ stages:
     - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
       displayName: Dotnet Server Shutdown
 
-################################################################################
+  ################################################################################
   - job: Package
   ################################################################################
     dependsOn:
@@ -369,7 +369,7 @@ stages:
     - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
       displayName: Dotnet Server Shutdown
 
-template: /eng/common/templates/post-build/post-build.yml
+- template: /eng/common/templates/post-build/post-build.yml
   parameters:
     publishingInfraVersion: 3
     # This is to enable SDL runs part of Post-Build Validation Stage
