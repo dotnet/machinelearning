@@ -42,7 +42,7 @@ stages:
       displayName: Publish Linux package assets
       inputs:
         pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-        artifactName: PackageAssets
+        artifactName: pkgassets
         artifactType: container
 
     - template: /eng/common/templates/steps/generate-sbom.yml
@@ -65,7 +65,7 @@ stages:
       displayName: Publish Linux package assets
       inputs:
         pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-        artifactName: PackageAssets
+        artifactName: pkgassets
         artifactType: container
 
     - template: /eng/common/templates/steps/generate-sbom.yml
@@ -88,7 +88,7 @@ stages:
       displayName: Publish Linux package assets
       inputs:
         pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-        artifactName: PackageAssets
+        artifactName: pkgassets
         artifactType: container
 
     - template: /eng/common/templates/steps/generate-sbom.yml
@@ -109,7 +109,7 @@ stages:
       displayName: Publish macOS package assets
       inputs:
         pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-        artifactName: PackageAssets
+        artifactName: pkgassets
         artifactType: container
 
     - template: /eng/common/templates/steps/generate-sbom.yml
@@ -135,7 +135,7 @@ stages:
       displayName: Publish macOS package assets
       inputs:
         pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-        artifactName: PackageAssets
+        artifactName: pkgassets
         artifactType: container
 
     - template: /eng/common/templates/steps/generate-sbom.yml
@@ -157,7 +157,7 @@ stages:
       displayName: Publish Windows_x86 package assets
       inputs:
         pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-        artifactName: PackageAssets
+        artifactName: pkgassets
         artifactType: container
 
     - template: /eng/common/templates/steps/generate-sbom.yml
@@ -191,7 +191,7 @@ stages:
       displayName: Publish Windows_x64 package assets
       inputs:
         pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-        artifactName: PackageAssets
+        artifactName: pkgassets
         artifactType: container
 
     - template: /eng/common/templates/steps/generate-sbom.yml
@@ -237,15 +237,8 @@ stages:
     - task: DownloadBuildArtifacts@0
       displayName: Download package assets
       inputs:
-        artifactName: PackageAssets
-        downloadPath: $(Build.SourcesDirectory)/artifacts/pkgassets
-
-    # Workaround https://github.com/Microsoft/vsts-tasks/issues/6739
-    - task: CopyFiles@2
-      displayName: Copy package assets to correct folder
-      inputs:
-        sourceFolder: $(Build.SourcesDirectory)/artifacts/pkgassets/PackageAssets
-        targetFolder: $(Build.SourcesDirectory)/artifacts/pkgassets
+        artifactName: pkgassets
+        downloadPath: $(Build.SourcesDirectory)/artifacts
 
     # Depending on the value of DotNetFinalVersionKind, the name of the package will change.
     # For our nightly builds we want it to be empty, and when creating the official nugets, we want it to be "release"
