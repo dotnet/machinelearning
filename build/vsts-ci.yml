@@ -279,17 +279,17 @@ stages:
     - script: ./build.cmd -configuration $(BuildConfig) -pack -publish -ci /p:DotNetFinalVersionKind=$(DotnetVersionKind) $(_InternalBuildArgs)
       displayName: Build Packages
 
-    - template: /eng/common/templates/job/publish-build-assets.yml
-      parameters:
-        enablePublishBuildArtifacts: true
-        publishAssetsImmediately: true
-        publishUsingPipelines: true
-
     - template: /eng/common/templates/steps/generate-sbom.yml
 
     # Terminate all dotnet build processes.
     - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
       displayName: Dotnet Server Shutdown
+
+  - template: /eng/common/templates/job/publish-build-assets.yml
+    parameters:
+      enablePublishBuildArtifacts: true
+      publishAssetsImmediately: true
+      publishUsingPipelines: true
 
 - template: /eng/common/templates/post-build/post-build.yml
   parameters:
