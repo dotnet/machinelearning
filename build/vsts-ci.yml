@@ -276,8 +276,14 @@ stages:
     # For our nightly builds we want it to be empty, and when creating the official nugets, we want it to be "release"
     # the value of the version kind is set when queuing the publishing job on AzureDevOps by adding a VERSIONKIND variable
     # See more info in: https://github.com/dotnet/arcade/blob/master/Documentation/CorePackages/Versioning.md#package-version
-    - script: ./build.cmd -configuration $(BuildConfig) -pack -ci /p:DotNetFinalVersionKind=$(DotnetVersionKind) $(_InternalBuildArgs)
+    - script: ./build.cmd -configuration $(BuildConfig) -pack -publish -ci /p:DotNetFinalVersionKind=$(DotnetVersionKind) $(_InternalBuildArgs)
       displayName: Build Packages
+
+    - template: /eng/common/templates/job/publish-build-assets.yml
+      parameters:
+        enablePublishBuildArtifacts: true
+        publishAssetsImmediately: true
+        publishUsingPipelines: true
 
     - template: /eng/common/templates/steps/generate-sbom.yml
 
