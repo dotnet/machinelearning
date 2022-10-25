@@ -139,6 +139,7 @@ namespace Microsoft.ML.AutoML
             }
 
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
+            _experiment.SetMaxModelToExplore(Settings.MaxModels);
         }
 
         public override ExperimentResult<RegressionMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<RegressionMetrics>> progressHandler = null)

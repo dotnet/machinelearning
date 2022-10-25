@@ -142,6 +142,7 @@ namespace Microsoft.ML.AutoML
             {
                 _experiment.SetMaximumMemoryUsageInMegaByte(d);
             }
+            _experiment.SetMaxModelToExplore(settings.MaxModels);
         }
 
         public override ExperimentResult<MulticlassClassificationMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<MulticlassClassificationMetrics>> progressHandler = null)
