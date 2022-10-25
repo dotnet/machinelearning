@@ -28,7 +28,7 @@ namespace Microsoft.Data.Analysis
         /// </summary>
         /// <param name="name">The name of the column.</param>
         /// <param name="length">Length of values</param>
-        public VBufferDataFrameColumn(string name, long length = 0) : base(name, 0, typeof(VBuffer<T>))
+        public VBufferDataFrameColumn(string name, long length = 0) : base(name, length, typeof(VBuffer<T>))
         {
             int numberOfBuffersRequired = Math.Max((int)(length / int.MaxValue), 1);
             for (int i = 0; i < numberOfBuffersRequired; i++)
@@ -203,6 +203,137 @@ namespace Microsoft.Data.Analysis
             {
                 throw new IndexOutOfRangeException(nameof(row));
             }
+        }
+
+        private VBufferDataFrameColumn<T> Clone(PrimitiveDataFrameColumn<bool> boolColumn)
+        {
+            if (boolColumn.Length > Length)
+                throw new ArgumentException(Strings.MapIndicesExceedsColumnLenth, nameof(boolColumn));
+            VBufferDataFrameColumn<T> ret = new VBufferDataFrameColumn<T>(Name, 0);
+            for (long i = 0; i < boolColumn.Length; i++)
+            {
+                bool? value = boolColumn[i];
+                if (value.HasValue && value.Value == true)
+                    ret.Append(this[i]);
+            }
+            return ret;
+        }
+
+        private VBufferDataFrameColumn<T> Clone(PrimitiveDataFrameColumn<long> mapIndices = null, bool invertMapIndex = false)
+        {
+            if (mapIndices is null)
+            {
+                VBufferDataFrameColumn<T> ret = new VBufferDataFrameColumn<T>(Name, Length);
+                for (long i = 0; i < Length; i++)
+                {
+                    ret[i] = this[i];
+                }
+                return ret;
+            }
+            else
+            {
+                return CloneImplementation(mapIndices, invertMapIndex);
+            }
+        }
+
+        private VBufferDataFrameColumn<T> Clone(PrimitiveDataFrameColumn<int> mapIndices, bool invertMapIndex = false)
+        {
+            return CloneImplementation(mapIndices, invertMapIndex);
+        }
+
+        private VBufferDataFrameColumn<T> CloneImplementation<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
+           where U : unmanaged
+        {
+            mapIndices = mapIndices ?? throw new ArgumentNullException(nameof(mapIndices));
+            VBufferDataFrameColumn<T> ret = new VBufferDataFrameColumn<T>(Name, mapIndices.Length);
+
+            List<VBuffer<T>> setBuffer = ret._vBuffers[0];
+            long setBufferMinRange = 0;
+            long setBufferMaxRange = int.MaxValue;
+            List<VBuffer<T>> getBuffer = _vBuffers[0];
+            long getBufferMinRange = 0;
+            long getBufferMaxRange = int.MaxValue;
+            long maxCapacity = int.MaxValue;
+            if (mapIndices.DataType == typeof(long))
+            {
+                PrimitiveDataFrameColumn<long> longMapIndices = mapIndices as PrimitiveDataFrameColumn<long>;
+                longMapIndices.ApplyElementwise((long? mapIndex, long rowIndex) =>
+                {
+                    long index = rowIndex;
+                    if (invertMapIndices)
+                        index = longMapIndices.Length - 1 - index;
+                    if (index < setBufferMinRange || index >= setBufferMaxRange)
+                    {
+                        int bufferIndex = (int)(index / maxCapacity);
+                        setBuffer = ret._vBuffers[bufferIndex];
+                        setBufferMinRange = bufferIndex * maxCapacity;
+                        setBufferMaxRange = (bufferIndex + 1) * maxCapacity;
+                    }
+                    index -= setBufferMinRange;
+
+                    if (mapIndex.Value < getBufferMinRange || mapIndex.Value >= getBufferMaxRange)
+                    {
+                        int bufferIndex = (int)(mapIndex.Value / maxCapacity);
+                        getBuffer = _vBuffers[bufferIndex];
+                        getBufferMinRange = bufferIndex * maxCapacity;
+                        getBufferMaxRange = (bufferIndex + 1) * maxCapacity;
+                    }
+                    int bufferLocalMapIndex = (int)(mapIndex - getBufferMinRange);
+                    VBuffer<T> value = getBuffer[bufferLocalMapIndex];
+                    setBuffer[(int)index] = value;
+
+                    return mapIndex;
+                });
+            }
+            else if (mapIndices.DataType == typeof(int))
+            {
+                PrimitiveDataFrameColumn<int> intMapIndices = mapIndices as PrimitiveDataFrameColumn<int>;
+                intMapIndices.ApplyElementwise((int? mapIndex, long rowIndex) =>
+                {
+                    long index = rowIndex;
+                    if (invertMapIndices)
+                        index = intMapIndices.Length - 1 - index;
+
+                    VBuffer<T> value = getBuffer[mapIndex.Value];
+                    setBuffer[(int)index] = value;
+
+                    return mapIndex;
+                });
+            }
+            else
+            {
+                Debug.Assert(false, nameof(mapIndices.DataType));
+            }
+
+            return ret;
+        }
+
+        public new VBufferDataFrameColumn<T> Clone(DataFrameColumn mapIndices, bool invertMapIndices, long numberOfNullsToAppend)
+        {
+            VBufferDataFrameColumn<T> clone;
+            if (!(mapIndices is null))
+            {
+                Type dataType = mapIndices.DataType;
+                if (dataType != typeof(long) && dataType != typeof(int) && dataType != typeof(bool))
+                    throw new ArgumentException(String.Format(Strings.MultipleMismatchedValueType, typeof(long), typeof(int), typeof(bool)), nameof(mapIndices));
+                if (mapIndices.DataType == typeof(long))
+                    clone = Clone(mapIndices as PrimitiveDataFrameColumn<long>, invertMapIndices);
+                else if (dataType == typeof(int))
+                    clone = Clone(mapIndices as PrimitiveDataFrameColumn<int>, invertMapIndices);
+                else
+                    clone = Clone(mapIndices as PrimitiveDataFrameColumn<bool>);
+            }
+            else
+            {
+                clone = Clone();
+            }
+
+            return clone;
+        }
+
+        protected override DataFrameColumn CloneImplementation(DataFrameColumn mapIndices = null, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
+        {
+            return Clone(mapIndices, invertMapIndices, numberOfNullsToAppend);
         }
 
         private static VectorDataViewType GetDataViewType()

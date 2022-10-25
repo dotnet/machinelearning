@@ -11,7 +11,6 @@ using Microsoft.ML.Data;
 using Xunit;
 using Microsoft.ML.Trainers;
 
-
 namespace Microsoft.Data.Analysis.Tests
 {
     public partial class DataFrameIDataViewTests
@@ -23,7 +22,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             DataDebuggerPreview preview = dataView.Preview();
             Assert.Equal(10, preview.RowView.Length);
-            Assert.Equal(16, preview.ColumnView.Length);
+            Assert.Equal(17, preview.ColumnView.Length);
 
             Assert.Equal("Byte", preview.ColumnView[0].Column.Name);
             Assert.Equal((byte)0, preview.ColumnView[0].Values[0]);
@@ -88,6 +87,10 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal("ArrowString", preview.ColumnView[15].Column.Name);
             Assert.Equal("foo".ToString(), preview.ColumnView[15].Values[0].ToString());
             Assert.Equal("foo".ToString(), preview.ColumnView[15].Values[1].ToString());
+
+            Assert.Equal("VBuffer", preview.ColumnView[16].Column.Name);
+            Assert.Equal("Dense vector of size 5", preview.ColumnView[16].Values[0].ToString());
+            Assert.Equal("Dense vector of size 5", preview.ColumnView[16].Values[1].ToString());
         }
 
         [Fact]
@@ -125,7 +128,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             DataDebuggerPreview preview = dataView.Preview();
             Assert.Equal(length, preview.RowView.Length);
-            Assert.Equal(16, preview.ColumnView.Length);
+            Assert.Equal(17, preview.ColumnView.Length);
 
             Assert.Equal("Byte", preview.ColumnView[0].Column.Name);
             Assert.Equal((byte)0, preview.ColumnView[0].Values[0]);
@@ -238,12 +241,16 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal("foo", preview.ColumnView[15].Values[4].ToString());
             Assert.Equal("", preview.ColumnView[15].Values[5].ToString()); // null row
             Assert.Equal("foo", preview.ColumnView[15].Values[6].ToString());
+
+            Assert.Equal("VBuffer", preview.ColumnView[16].Column.Name);
+            Assert.True(preview.ColumnView[16].Values[0] is VBuffer<int>);
+            Assert.True(preview.ColumnView[16].Values[6] is VBuffer<int>);
         }
 
         [Fact]
         public void TestDataFrameFromIDataView()
         {
-            DataFrame df = DataFrameTests.MakeDataFrameWithAllColumnTypes(10, withNulls: false);
+            DataFrame df = DataFrameTests.MakeDataFrameWithAllMutableAndArrowColumnTypes(10, withNulls: false);
             df.Columns.Remove("Char"); // Because chars are returned as uint16 by IDataView, so end up comparing CharDataFrameColumn to UInt16DataFrameColumn and fail asserts
             IDataView dfAsIDataView = df;
             DataFrame newDf = dfAsIDataView.ToDataFrame();
