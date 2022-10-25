@@ -214,16 +214,16 @@ stages:
       - Windows_x64
       - MacOS_Apple_Silicon
       variables:
-        DotnetVersionKind: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
-        NUGET_PACKAGES: $(Build.SourcesDirectory)/.packages
-        _SignType: real
-        _TeamName: DotNetCore
-        _InternalBuildArgs: /p:DotNetSignType=$(_SignType) 
-                            /p:TeamName=$(_TeamName)
-                            /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-                            /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
-                            /p:OfficialBuildId=$(OfficialBuildId)
-                            /p:DotNetPublishUsingPipelines=$true
+        - DotnetVersionKind: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
+        - NUGET_PACKAGES: $(Build.SourcesDirectory)/.packages
+        - _SignType: real
+        - _TeamName: DotNetCore
+        - _InternalBuildArgs: /p:DotNetSignType=$(_SignType) 
+                              /p:TeamName=$(_TeamName)
+                              /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+                              /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
+                              /p:OfficialBuildId=$(OfficialBuildId)
+                              /p:DotNetPublishUsingPipelines=$true
       pool:
         name: NetCore1ESPool-Internal
         demands: ImageOverride -equals Build.Server.Amd64.VS2019
