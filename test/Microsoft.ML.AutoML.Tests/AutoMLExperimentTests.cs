@@ -228,7 +228,7 @@ namespace Microsoft.ML.AutoML.Test
             var context = new MLContext(1);
             context.Log += (o, e) =>
             {
-                if (e.Source.StartsWith("AutoMLExperiment"))
+                if (e.RawMessage.Contains("Trial"))
                 {
                     this.Output.WriteLine(e.RawMessage);
                 }
@@ -327,6 +327,20 @@ namespace Microsoft.ML.AutoML.Test
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.5);
+        }
+
+        [Fact]
+        public void AutoMLExperiment_should_use_seed_from_context_if_provided()
+        {
+            var context = new MLContext();
+            var experiment = context.Auto().CreateExperiment();
+            var settings = experiment.ServiceCollection.BuildServiceProvider().GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+            settings.Seed.Should().BeNull();
+
+            context = new MLContext(1);
+            experiment = context.Auto().CreateExperiment();
+            settings = experiment.ServiceCollection.BuildServiceProvider().GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+            settings.Seed.Should().Be(1);
         }
     }
 
