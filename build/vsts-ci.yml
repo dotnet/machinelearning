@@ -201,57 +201,51 @@ stages:
       displayName: Dotnet Server Shutdown
 
   ################################################################################
-  - job: Package
+  - template: /eng/common/templates/job/job.yml
+    parameters:
+      name: Package
   ################################################################################
-    dependsOn:
-    - Linux_x64
-    - Linux_arm
-    - Linux_arm64
-    - MacOS
-    - Windows_x86
-    - Windows_x64
-    - MacOS_Apple_Silicon
-    variables:
-      DotnetVersionKind: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
-      NUGET_PACKAGES: $(Build.SourcesDirectory)/.packages
-      _SignType: real
-      _TeamName: DotNetCore
-      _InternalBuildArgs: /p:DotNetSignType=$(_SignType) 
-                          /p:TeamName=$(_TeamName)
-                          /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-                          /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
-                          /p:OfficialBuildId=$(OfficialBuildId)
-                          /p:DotNetPublishUsingPipelines=$true
-                          
-      # Only enable publishing in non-public, non PR scenarios.
-      ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-        # DotNet-Symbol-Server-Pats provides: microsoft-symbol-server-pat symweb-symbol-server-pat
-        group: DotNet-Symbol-Server-Pats
+      dependsOn:
+      - Linux_x64
+      - Linux_arm
+      - Linux_arm64
+      - MacOS
+      - Windows_x86
+      - Windows_x64
+      - MacOS_Apple_Silicon
+      variables:
+        DotnetVersionKind: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
+        NUGET_PACKAGES: $(Build.SourcesDirectory)/.packages
+        _SignType: real
+        _TeamName: DotNetCore
+        _InternalBuildArgs: /p:DotNetSignType=$(_SignType) 
+                            /p:TeamName=$(_TeamName)
+                            /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+                            /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
+                            /p:OfficialBuildId=$(OfficialBuildId)
+                            /p:DotNetPublishUsingPipelines=$true
+      pool:
+        name: NetCore1ESPool-Internal
+        demands: ImageOverride -equals Build.Server.Amd64.VS2019
+      steps:
 
-    pool:
-      name: NetCore1ESPool-Internal
-      demands: ImageOverride -equals Build.Server.Amd64.VS2019
-    steps:
+      # Download all agent packages from all previous phases
+      - task: DownloadBuildArtifacts@0
+        displayName: Download package assets
+        inputs:
+          artifactName: pkgassets
+          downloadPath: $(Build.SourcesDirectory)/artifacts
 
-    # Download all agent packages from all previous phases
-    - task: DownloadBuildArtifacts@0
-      displayName: Download package assets
-      inputs:
-        artifactName: pkgassets
-        downloadPath: $(Build.SourcesDirectory)/artifacts
+      # Depending on the value of DotNetFinalVersionKind, the name of the package will change.
+      # For our nightly builds we want it to be empty, and when creating the official nugets, we want it to be "release"
+      # the value of the version kind is set when queuing the publishing job on AzureDevOps by adding a VERSIONKIND variable
+      # See more info in: https://github.com/dotnet/arcade/blob/master/Documentation/CorePackages/Versioning.md#package-version
+      - script: ./build.cmd -configuration $(BuildConfig) -pack -publish -ci /p:DotNetFinalVersionKind=$(DotnetVersionKind) $(_InternalBuildArgs)
+        displayName: Build Packages
 
-    # Depending on the value of DotNetFinalVersionKind, the name of the package will change.
-    # For our nightly builds we want it to be empty, and when creating the official nugets, we want it to be "release"
-    # the value of the version kind is set when queuing the publishing job on AzureDevOps by adding a VERSIONKIND variable
-    # See more info in: https://github.com/dotnet/arcade/blob/master/Documentation/CorePackages/Versioning.md#package-version
-    - script: ./build.cmd -configuration $(BuildConfig) -pack -publish -ci /p:DotNetFinalVersionKind=$(DotnetVersionKind) $(_InternalBuildArgs)
-      displayName: Build Packages
-
-    - template: /eng/common/templates/steps/generate-sbom.yml
-
-    # Terminate all dotnet build processes.
-    - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
-      displayName: Dotnet Server Shutdown
+      # Terminate all dotnet build processes.
+      - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
+        displayName: Dotnet Server Shutdown
 
   - template: /eng/common/templates/job/publish-build-assets.yml
     parameters:
