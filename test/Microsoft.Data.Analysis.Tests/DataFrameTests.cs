@@ -230,14 +230,13 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void VBufferDataFrameTest()
+        public void TestVBufferColumn()
         {
-            var vbuf1 = new VBuffer<int>();
-            var vbuf2 = new VBuffer<int>();
-            var l1 = new List<VBuffer<int>>() { vbuf1, vbuf2 };
-            var column = new VBufferDataFrameColumn<int>("vbuff", l1);
+            var vBufferColumn = CreateVBufferDataFrame(10);
 
-            Assert.Equal(2, column.Length);
+            Assert.Equal(10, vBufferColumn.Length);
+            Assert.Equal(5, vBufferColumn[0].GetValues().Length);
+            Assert.Equal(0, vBufferColumn[0].GetValues()[0]);
         }
 
         [Fact]
