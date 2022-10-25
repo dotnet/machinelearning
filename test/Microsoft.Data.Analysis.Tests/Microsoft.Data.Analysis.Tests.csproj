@@ -32,7 +32,9 @@
 
     <ItemGroup>
         <Compile Include="../../src/Microsoft.Data.Analysis/Strings.Designer.cs" />
-        <EmbeddedResource Include="../../src/Microsoft.Data.Analysis/Strings.resx" LogicalName="Microsoft.Data.Analysis.Strings.resources" />
+        <EmbeddedResource Include="../../src/Microsoft.Data.Analysis/Strings.resx" LogicalName="Microsoft.Data.Analysis.Strings.resources">
+          <Generator></Generator>
+        </EmbeddedResource>
     </ItemGroup>
 
 </Project>

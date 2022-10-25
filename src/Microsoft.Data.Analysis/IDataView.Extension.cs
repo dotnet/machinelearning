@@ -205,7 +205,7 @@ namespace Microsoft.ML
                 return new VBufferDataFrameColumn<decimal>(name);
             }
 
-            throw new NotSupportedException("Specified vector subtype " + itemType.ToString() + " is not supported.");
+            throw new NotSupportedException(String.Format(Microsoft.Data.Strings.VectorSubTypeNotSupported, itemType.ToString()));
         }
     }
 
