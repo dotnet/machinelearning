@@ -164,25 +164,11 @@ stages:
   - job: Windows_x86
   ################################################################################
     variables:
-      _SignType: real
-      _UseEsrpSigning: true
       _TeamName: DotNetCore
     pool:
       name: NetCore1ESPool-Internal
       demands: ImageOverride -equals Build.Server.Amd64.VS2019
     steps:
-
-    - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@4
-      displayName: Install MicroBuild Signing Plugin
-      inputs:
-        signType: '$(_SignType)'
-        zipSources: false
-        esrpSigning: '$(_UseEsrpSigning)'
-        feedSource: 'https://dnceng.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
-      env:
-        TeamName: $(_TeamName)
-      continueOnError: false
-      condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
 
     - script: ./restore.cmd
       displayName: restore all projects
@@ -191,9 +177,6 @@ stages:
     # Only build native assets to avoid conflicts.
     - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:CopyPackageAssets=true
       displayName: Build Native Assets
-
-    - script: ./sign.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:SignBinaries=true
-      displayName: sign binaries
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Windows_x86 package assets
@@ -213,25 +196,11 @@ stages:
   ################################################################################
     variables:
       Codeql.SkipTaskAutoInjection: False  # run CodeQL in this job
-      _SignType: real
-      _UseEsrpSigning: true
       _TeamName: DotNetCore
     pool:
       name: NetCore1ESPool-Internal
       demands: ImageOverride -equals Build.Server.Amd64.VS2019
     steps:
-
-    - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@4
-      displayName: Install MicroBuild Signing Plugin
-      inputs:
-        signType: '$(_SignType)'
-        zipSources: false
-        esrpSigning: '$(_UseEsrpSigning)'
-        feedSource: 'https://dnceng.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
-      env:
-        TeamName: $(_TeamName)
-      continueOnError: false
-      condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
 
     # Build both native and managed assets.
     - script: ./build.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
@@ -242,10 +211,6 @@ stages:
         scanType: 'Register'
         verbosity: 'Verbose'
         alertWarningLevel: 'High'
-
-
-    - script: ./sign.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:SignBinaries=true
-      displayName: sign binaries
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Windows_x64 package assets
@@ -275,12 +240,14 @@ stages:
       DotnetVersionKind: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
       NUGET_PACKAGES: $(Build.SourcesDirectory)/.packages
       _SignType: real
-      _UseEsrpSigning: true
       _TeamName: DotNetCore
-      _AzureDevopsFeedUrl: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
-      _SymwebSymbolServerPath: https://microsoft.artifacts.visualstudio.com/DefaultCollection
-      _MsdlSymbolServerPath: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection
-
+      _InternalBuildArgs: /p:DotNetSignType=$(_SignType) 
+                          /p:TeamName=$(_TeamName)
+                          /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+                          /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
+                          /p:OfficialBuildId=$(OfficialBuildId)
+                          /p:DotNetPublishUsingPipelines=$true
+                          
       # Only enable publishing in non-public, non PR scenarios.
       ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
         # DotNet-Symbol-Server-Pats provides: microsoft-symbol-server-pat symweb-symbol-server-pat
@@ -290,19 +257,6 @@ stages:
       name: NetCore1ESPool-Internal
       demands: ImageOverride -equals Build.Server.Amd64.VS2019
     steps:
-
-    # Install MicroBuild plugin
-    - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@4
-      displayName: Install MicroBuild Signing Plugin
-      inputs:
-        signType: '$(_SignType)'
-        zipSources: false
-        esrpSigning: '$(_UseEsrpSigning)'
-        feedSource: 'https://dnceng.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
-      env:
-        TeamName: $(_TeamName)
-      continueOnError: false
-      condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
 
     # Download all agent packages from all previous phases
     - task: DownloadBuildArtifacts@0
@@ -322,48 +276,10 @@ stages:
     # For our nightly builds we want it to be empty, and when creating the official nugets, we want it to be "release"
     # the value of the version kind is set when queuing the publishing job on AzureDevOps by adding a VERSIONKIND variable
     # See more info in: https://github.com/dotnet/arcade/blob/master/Documentation/CorePackages/Versioning.md#package-version
-    - script: ./build.cmd -configuration $(BuildConfig) -pack -ci /p:OfficialBuildId=$(OfficialBuildId) /p:DotNetFinalVersionKind=$(DotnetVersionKind)
+    - script: ./build.cmd -configuration $(BuildConfig) -pack -ci /p:DotNetFinalVersionKind=$(DotnetVersionKind) $(_InternalBuildArgs)
       displayName: Build Packages
 
-    - script: ./sign.cmd /p:SignNugetPackages=true
-      displayName: sign packages
-      continueOnError: false
-
     - template: /eng/common/templates/steps/generate-sbom.yml
-
-    # The generated .nupkgs and .snupkgs packages are published to Azure artifacts,
-    # in case we need to debug them. They're found under Release/Shipping
-    - task: PublishBuildArtifacts@1
-      displayName: Push packages and symbol packages to Azure Artifacts
-      inputs:
-        pathToPublish: $(Build.SourcesDirectory)/artifacts/packages
-        artifactName: PackageAssets
-        artifactType: container
-      continueOnError: true
-
-    - task: NuGetCommand@2
-      displayName: Push packages to AzureDevOps feed
-      inputs:
-        command: push
-        nuGetFeedType: 'internal'
-        publishVstsFeed: 'public/MachineLearning'
-        packagesToPush: $(Build.SourcesDirectory)/artifacts/**/*.nupkg;!$(Build.SourcesDirectory)/artifacts/**/*.snupkg
-
-    - task: MSBuild@1
-      displayName: Publish Symbols to SymWeb Symbol Server
-      inputs:
-        solution: build/publish.proj
-        msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_SymwebSymbolServerPath) /p:SymbolServerPAT=$(symweb-symbol-server-pat)
-        msbuildVersion: 15.0
-      continueOnError: true
-
-    - task: MSBuild@1
-      displayName: Publish Symbols to Msdl Symbol Server
-      inputs:
-        solution: build/publish.proj
-        msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(microsoft-symbol-server-pat)
-        msbuildVersion: 15.0
-      continueOnError: true
 
     # Terminate all dotnet build processes.
     - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
