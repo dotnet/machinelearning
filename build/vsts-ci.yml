@@ -34,10 +34,6 @@ stages:
       demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
     container: CentosContainer
     steps:
-    - script: ./restore.sh
-      displayName: restore all projects
-    - script: ./build.sh -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
-      displayName: build redist
     # Only build native assets to avoid conflicts.
     - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
       displayName: Build Native Assets
@@ -61,10 +57,6 @@ stages:
       demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
     container: UbuntuCrossArmContainer
     steps:
-    - script: ./restore.sh
-      displayName: restore all projects
-    - script: ./build.sh -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
-      displayName: build redist
     # Only build native assets to avoid conflicts.
     - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm /p:CopyPackageAssets=true
       displayName: Build Native Assets
@@ -88,10 +80,6 @@ stages:
       demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
     container: UbuntuCrossArm64Container
     steps:
-    - script: ./restore.sh
-      displayName: restore all projects
-    - script: ./build.sh -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
-      displayName: build redist
     # Only build native assets to avoid conflicts.
     - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
       displayName: Build Native Assets
@@ -113,10 +101,6 @@ stages:
     steps:
     - script: brew update && brew unlink python@3.8 && brew unlink libomp && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
       displayName: Install build dependencies
-    - script: ./restore.sh
-      displayName: restore all projects
-    - script: ./build.sh -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
-      displayName: build redist
     # Only build native assets to avoid conflicts.
     - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
       displayName: Build Native Assets
@@ -143,10 +127,6 @@ stages:
       continueOnError: true
     - script: brew update && brew unlink python@3.8 && brew install libomp && brew link libomp --force
       displayName: Install build dependencies
-    - script: ./restore.sh
-      displayName: restore all projects
-    - script: ./build.sh -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
-      displayName: build redist
     # Only build native assets to avoid conflicts.
     - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
       displayName: Build Native Assets
@@ -169,11 +149,6 @@ stages:
       name: NetCore1ESPool-Internal
       demands: ImageOverride -equals Build.Server.Amd64.VS2019
     steps:
-
-    - script: ./restore.cmd
-      displayName: restore all projects
-    - script: ./build.cmd -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
-      displayName: build redist
     # Only build native assets to avoid conflicts.
     - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:CopyPackageAssets=true
       displayName: Build Native Assets
