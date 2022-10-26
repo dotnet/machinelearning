@@ -13,14 +13,7 @@ resources:
   - container: UbuntuCrossArm64Container
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64
 variables:
-- group: SDL_Settings
-  BuildConfig: Release
-  OfficialBuildId: $(BUILD.BUILDNUMBER)
-  DOTNET_CLI_TELEMETRY_OPTOUT: 1
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-  DOTNET_MULTILEVEL_LOOKUP: 0
-  Codeql.Enabled: true
-  Codeql.SkipTaskAutoInjection: True  #default to not inject CodeQL tasks, we'll enable it in a single job.
+- template: /eng/common-variables.yml
   
 stages:
 - stage: build
