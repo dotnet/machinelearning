@@ -6,6 +6,5 @@
 
   <PropertyGroup>
     <UseDotNetCertificate>true</UseDotNetCertificate>
-    <PostBuildSign>true</PostBuildSign>
   </PropertyGroup>
 </Project>
