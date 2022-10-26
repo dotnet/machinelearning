@@ -249,6 +249,7 @@ stages:
 
   - template: /eng/common/templates/job/publish-build-assets.yml
     parameters:
+      dependsOn: Package
       enablePublishBuildArtifacts: true
       publishAssetsImmediately: true
       publishUsingPipelines: true
