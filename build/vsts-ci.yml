@@ -205,6 +205,7 @@ stages:
     parameters:
       name: Package
   ################################################################################
+      enablePublishUsingPipelines: true
       dependsOn:
       - Linux_x64
       - Linux_arm
