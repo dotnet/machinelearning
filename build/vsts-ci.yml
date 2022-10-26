@@ -259,6 +259,8 @@ stages:
         demands: ImageOverride -equals windows.vs2019.amd64
 
 - template: /eng/common/templates/post-build/post-build.yml
+  variables:
+    - group: SDL_Settings
   parameters:
     publishingInfraVersion: 3
     # This is to enable SDL runs part of Post-Build Validation Stage
