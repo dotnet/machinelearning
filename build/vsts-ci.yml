@@ -205,7 +205,14 @@ stages:
     parameters:
       name: Package
   ################################################################################
+      artifacts:
+        publish:
+          artifacts: true
+          logs: true
+          manifests: true
+      enableMicrobuild: true
       enablePublishUsingPipelines: true
+      enableSourceIndex: true
       dependsOn:
       - Linux_x64
       - Linux_arm
@@ -228,10 +235,6 @@ stages:
       pool:
         name: NetCore1ESPool-Internal
         demands: ImageOverride -equals Build.Server.Amd64.VS2019
-      artifacts:
-        publish:
-          artifacts: true
-          logs: true
       steps:
 
       # Download all agent packages from all previous phases
