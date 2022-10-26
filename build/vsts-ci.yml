@@ -21,7 +21,7 @@ variables:
   DOTNET_MULTILEVEL_LOOKUP: 0
   Codeql.Enabled: true
   Codeql.SkipTaskAutoInjection: True  #default to not inject CodeQL tasks, we'll enable it in a single job.
-
+  - group: SDL_Settings
 stages:
 - stage: build
   displayName: Build
@@ -266,8 +266,6 @@ stages:
         demands: ImageOverride -equals windows.vs2019.amd64
 
 - template: /eng/common/templates/post-build/post-build.yml
-  variables:
-    - group: SDL_Settings
   parameters:
     publishingInfraVersion: 3
     # This is to enable SDL runs part of Post-Build Validation Stage
