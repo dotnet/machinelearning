@@ -54,6 +54,7 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                         "colorBits" => "ColorBits",
                         "colorsOrder" => "ColorsOrder",
                         "dnnModelFactory" => "string",
+                        "bertArchitecture" => "BertArchitecture",
                         _ => throw new ArgumentException("unknown type"),
                     };
 
@@ -70,6 +71,7 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                         (_, "ResizingKind") => defaultToken.GetValue<string>(),
                         (_, "ColorBits") => defaultToken.GetValue<string>(),
                         (_, "ColorsOrder") => defaultToken.GetValue<string>(),
+                        (_, "BertArchitecture") => defaultToken.GetValue<string>(),
                         (_, _) => throw new ArgumentException("unknown"),
                     };
 

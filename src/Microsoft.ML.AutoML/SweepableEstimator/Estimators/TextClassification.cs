@@ -14,7 +14,15 @@ namespace Microsoft.ML.AutoML.CodeGen
     {
         public override IEstimator<ITransformer> BuildFromOption(MLContext context, TextClassificationOption param)
         {
-            return context.MulticlassClassification.Trainers.TextClassification(labelColumnName: param.LabelColumnName, sentence1ColumnName: param.Sentence1ColumnName);
+            return context.MulticlassClassification.Trainers.TextClassification(
+                    labelColumnName: param.LabelColumnName,
+                    sentence1ColumnName: param.Sentence1ColumnName,
+                    scoreColumnName: param.ScoreColumnName,
+                    sentence2ColumnName: param.Sentence2ColumnName,
+                    outputColumnName: param.OutputColumnName,
+                    batchSize: param.BatchSize,
+                    maxEpochs: param.MaxEpochs,
+                    architecture: param.Architecture);
         }
     }
 }
