@@ -1,0 +1,17 @@
+variables:
+- group: SDL_Settings
+- name: BuildConfig
+  value: Release
+- name: OfficialBuildId
+  value: $(BUILD.BUILDNUMBER)
+- name: DOTNET_CLI_TELEMETRY_OPTOUT
+  value: 1
+- name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+  value: 1
+- name: DOTNET_MULTILEVEL_LOOKUP
+  value: 0
+- name: Codeql.Enabled
+  value: true
+- name: Codeql.SkipTaskAutoInjection
+  value: True  #default to not inject CodeQL tasks, we'll enable it in a single job.
+ 

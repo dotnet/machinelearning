@@ -143,8 +143,10 @@
   </Target>
 
   <Target Name="Pack" />
-  <Target Name="Restore" />
   <Target Name="Test" />
 
+  <ItemGroup>
+    <PackageDownload Include="MlNetMklDeps" Version="[$(MlNetMklDepsVersion)]" />
+  </ItemGroup>
 
 </Project>
