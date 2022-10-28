@@ -212,24 +212,26 @@ namespace Microsoft.ML.Trainers.FastTree
             ValidData = context.ValidationSet;
             TestData = context.TestSet;
 
-            using (var ch = Host.Start("Training"));
-            ch.CheckValue(trainData, nameof(trainData));
-            trainData.CheckBinaryLabel();
-            trainData.CheckFeatureFloatVector();
-            trainData.CheckOptFloatWeight();
-            FeatureCount = trainData.Schema.Feature.Value.Type.GetValueCount();
-            ConvertData(trainData);
-            TrainCore(ch);
+            using (var ch = Host.Start("Training"))
+            {
+                ch.CheckValue(trainData, nameof(trainData));
+                trainData.CheckBinaryLabel();
+                trainData.CheckFeatureFloatVector();
+                trainData.CheckOptFloatWeight();
+                FeatureCount = trainData.Schema.Feature.Value.Type.GetValueCount();
+                ConvertData(trainData);
+                TrainCore(ch);
 
-            // LogitBoost is naturally calibrated to
-            // output probabilities when transformed using
-            // the logistic function, so if we have trained no
-            // calibrator, transform the scores using that.
+                // LogitBoost is naturally calibrated to
+                // output probabilities when transformed using
+                // the logistic function, so if we have trained no
+                // calibrator, transform the scores using that.
 
-            var pred = new FastForestBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
+                var pred = new FastForestBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
 
-            var cali = new PlattCalibratorTrainer(Host).CreateCalibrator(ch);
-            return new FeatureWeightsCalibratedModelParameters<FastForestBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
+                var cali = new PlattCalibratorTrainer(Host).CreateCalibrator(ch);
+                return new FeatureWeightsCalibratedModelParameters<FastForestBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
+            }
         }
 
         private protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
