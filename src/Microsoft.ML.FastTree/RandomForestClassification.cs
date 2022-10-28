@@ -229,7 +229,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 var pred = new FastForestBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
 
-                var cali = new PlattCalibratorTrainer(Host).CreateCalibrator(ch);
+                var cali = new PlattCalibratorTrainer(Host).CreateCalibrator(ch) as PlattCalibrator;
                 return new FeatureWeightsCalibratedModelParameters<FastForestBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
             }
         }
