@@ -212,16 +212,15 @@ namespace Microsoft.ML.Trainers.FastTree
             ValidData = context.ValidationSet;
             TestData = context.TestSet;
 
-            using (var ch = Host.Start("Training"))
-            {
-                ch.CheckValue(trainData, nameof(trainData));
-                trainData.CheckBinaryLabel();
-                trainData.CheckFeatureFloatVector();
-                trainData.CheckOptFloatWeight();
-                FeatureCount = trainData.Schema.Feature.Value.Type.GetValueCount();
-                ConvertData(trainData);
-                TrainCore(ch);
-            }
+            using (var ch = Host.Start("Training"));
+            ch.CheckValue(trainData, nameof(trainData));
+            trainData.CheckBinaryLabel();
+            trainData.CheckFeatureFloatVector();
+            trainData.CheckOptFloatWeight();
+            FeatureCount = trainData.Schema.Feature.Value.Type.GetValueCount();
+            ConvertData(trainData);
+            TrainCore(ch);
+
             // LogitBoost is naturally calibrated to
             // output probabilities when transformed using
             // the logistic function, so if we have trained no
