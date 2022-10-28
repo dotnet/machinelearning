@@ -329,7 +329,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             var trainer = new FastForestBinaryTrainer(Env, _trainerOptions);
             var trained = trainer.Fit(input);
-            return trained.Model;
+            return trained.Model.SubModel;
         }
     }
 
