@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 2.8.12)
 
+project(Native)
+
+if (POLICY CMP0042)
+  cmake_policy(SET CMP0042 NEW) # MACOSX_RPATH enabled by default
+endif()
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_INSTALL_PREFIX $ENV{__CMakeBinDir})
 set(RESOURCES)
