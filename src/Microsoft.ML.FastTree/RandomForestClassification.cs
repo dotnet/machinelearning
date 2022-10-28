@@ -140,7 +140,9 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <seealso cref="TreeExtensions.FastForest(BinaryClassificationCatalog.BinaryClassificationTrainers, FastForestBinaryTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed partial class FastForestBinaryTrainer :
-        RandomForestTrainerBase<FastForestBinaryTrainer.Options, BinaryPredictionTransformer<FastForestBinaryModelParameters>, FastForestBinaryModelParameters>
+        RandomForestTrainerBase<FastForestBinaryTrainer.Options,
+        BinaryPredictionTransformer<CalibratedModelParametersBase<FastForestBinaryModelParameters, PlattCalibrator>>,
+        CalibratedModelParametersBase<FastForestBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
         /// Options for the <see cref="FastForestBinaryTrainer"/> as used in
@@ -204,7 +206,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        private protected override FastForestBinaryModelParameters TrainModelCore(TrainContext context)
+        private protected override CalibratedModelParametersBase<FastForestBinaryModelParameters, PlattCalibrator>> TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -225,9 +227,11 @@ namespace Microsoft.ML.Trainers.FastTree
             // output probabilities when transformed using
             // the logistic function, so if we have trained no
             // calibrator, transform the scores using that.
+            
+            var pred = new FastForestBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions)
 
-            // REVIEW: Need a way to signal the outside world that we prefer simple sigmoid?
-            return new FastForestBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
+            var cali = new PlattCalibrator(Host, -1 * _sigmoidParameter, 0);
+            return new FeatureWeightsCalibratedModelParameters<FastForestBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
         }
 
         private protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
@@ -247,14 +251,15 @@ namespace Microsoft.ML.Trainers.FastTree
             return new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, 1);
         }
 
-        private protected override BinaryPredictionTransformer<FastForestBinaryModelParameters> MakeTransformer(FastForestBinaryModelParameters model, DataViewSchema trainSchema)
-         => new BinaryPredictionTransformer<FastForestBinaryModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
+        private protected override BinaryPredictionTransformer<CalibratedModelParametersBase<FastForestBinaryModelParameters, PlattCalibrator>> MakeTransformer(
+            CalibratedModelParametersBase<FastForestBinaryModelParameters, PlattCalibrator> model, DataViewSchema trainSchema)
+            => new BinaryPredictionTransformer<CalibratedModelParametersBase<FastForestBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
         /// Trains a <see cref="FastForestBinaryTrainer"/> using both training and validation data, returns
         /// a <see cref="BinaryPredictionTransformer{FastForestClassificationModelParameters}"/>.
         /// </summary>
-        public BinaryPredictionTransformer<FastForestBinaryModelParameters> Fit(IDataView trainData, IDataView validationData)
+        public BinaryPredictionTransformer<CalibratedModelParametersBase<FastForestBinaryModelParameters, PlattCalibrator>> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
