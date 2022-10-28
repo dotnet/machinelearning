@@ -171,7 +171,6 @@ namespace Microsoft.ML.Trainers.FastTree
         private bool[] _trainSetLabels;
 
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-        private protected override bool NeedCalibration => true;
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastForestBinaryTrainer"/>
@@ -227,10 +226,10 @@ namespace Microsoft.ML.Trainers.FastTree
             // output probabilities when transformed using
             // the logistic function, so if we have trained no
             // calibrator, transform the scores using that.
-            
+
             var pred = new FastForestBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
 
-            var cali = new PlattCalibrator(Host, -1 * _sigmoidParameter, 0);
+            var cali = new PlattCalibratorTrainer(Host).CreateCalibrator(ch);
             return new FeatureWeightsCalibratedModelParameters<FastForestBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
         }
 
