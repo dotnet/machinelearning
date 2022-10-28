@@ -206,7 +206,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        private protected override CalibratedModelParametersBase<FastForestBinaryModelParameters, PlattCalibrator>> TrainModelCore(TrainContext context)
+        private protected override CalibratedModelParametersBase<FastForestBinaryModelParameters, PlattCalibrator> TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // the logistic function, so if we have trained no
             // calibrator, transform the scores using that.
             
-            var pred = new FastForestBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions)
+            var pred = new FastForestBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
 
             var cali = new PlattCalibrator(Host, -1 * _sigmoidParameter, 0);
             return new FeatureWeightsCalibratedModelParameters<FastForestBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
