@@ -985,9 +985,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var transformer = estimator.Fit(dataView);
 
-            var trainedTreeEnsemble = transformer.LastTransformer.Model.TrainedTreeEnsemble;
+            var trainedTreeEnsemble = transformer.LastTransformer.Model.SubModel.TrainedTreeEnsemble;
 
-            var modelParameters = transformer.LastTransformer.Model as ICanGetSummaryAsIDataView;
+            var modelParameters = transformer.LastTransformer.Model.SubModel as ICanGetSummaryAsIDataView;
             Assert.NotNull(modelParameters);
 
             CheckSummary(modelParameters, trainedTreeEnsemble.Bias, trainedTreeEnsemble.TreeWeights, trainedTreeEnsemble.Trees);

@@ -197,7 +197,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             const string treesColumnName = "MyTrees";
             const string leavesColumnName = "MyLeaves";
             const string pathsColumnName = "MyPaths";
-            var treeFeaturizer = new TreeEnsembleFeaturizationTransformer(ML, dataView.Schema, dataView.Schema["Features"], model.Model,
+            var treeFeaturizer = new TreeEnsembleFeaturizationTransformer(ML, dataView.Schema, dataView.Schema["Features"], model.Model.SubModel,
                 treesColumnName: treesColumnName, leavesColumnName: leavesColumnName, pathsColumnName: pathsColumnName);
 
             // Apply TreeEnsembleFeaturizer to the input data.
@@ -214,8 +214,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             for (int dataPointIndex = 0; dataPointIndex < dataPointCount; ++dataPointIndex)
             {
                 int treeIndex = 0;
-                var leafId = model.Model.GetLeaf(treeIndex, new VBuffer<float>(10, features[dataPointIndex]), ref path);
-                var leafValue = model.Model.GetLeafValue(0, leafId);
+                var leafId = model.Model.SubModel.GetLeaf(treeIndex, new VBuffer<float>(10, features[dataPointIndex]), ref path);
+                var leafValue = model.Model.SubModel.GetLeafValue(0, leafId);
                 Assert.Equal(leafValues[dataPointIndex][treeIndex], leafValue);
                 Assert.Equal(1.0, leafIds[dataPointIndex][leafId]);
                 foreach (var nodeId in path)
