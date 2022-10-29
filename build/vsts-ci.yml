@@ -200,7 +200,7 @@ stages:
   ################################################################################
       artifacts:
         publish:
-          artifacts: true
+          artifacts: false
           logs: true
           manifests: true
       enableMicrobuild: true
