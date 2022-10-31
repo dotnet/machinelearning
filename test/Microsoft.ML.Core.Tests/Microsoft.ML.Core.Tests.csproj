@@ -4,6 +4,7 @@
     <StrongNameKeyId>Test</StrongNameKeyId>
     <!-- Temporary workaround for https://github.com/dotnet/roslyn/issues/64365 -->
     <LangVersion>10.0</LangVersion>
+    <NoWarn>$(NoWarn);MSB3270</NoWarn>
   </PropertyGroup>
 
     <!-- Import the test signing certificate -->
