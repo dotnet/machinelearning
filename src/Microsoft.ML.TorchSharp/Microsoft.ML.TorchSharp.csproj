@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <NoWarn>$(NoWarn);CS8002</NoWarn>
+    <NoWarn>$(NoWarn);CS8002;MSB3270</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageDescription>Microsoft.ML.TorchSharp contains ML.NET integration of TorchSharp.</PackageDescription>
   </PropertyGroup>
@@ -27,13 +27,13 @@
   <ItemGroup>
       <EmbeddedResource Include="Resources\dict.txt">
         <LogicalName>dict.txt</LogicalName>
-      </EmbeddedResource>    
+      </EmbeddedResource>
       <EmbeddedResource Include="Resources\encoder.json">
         <LogicalName>encoder.json</LogicalName>
-      </EmbeddedResource>    
+      </EmbeddedResource>
       <EmbeddedResource Include="Resources\vocab.bpe">
         <LogicalName>vocab.bpe</LogicalName>
-      </EmbeddedResource>    
+      </EmbeddedResource>
   </ItemGroup>
 
 </Project>

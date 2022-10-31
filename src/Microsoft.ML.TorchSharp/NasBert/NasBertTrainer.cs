@@ -489,16 +489,15 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 var targetsTensor = CreateTargetsTensor(ref targets, device: Device);
                 var logits = Model.forward(inputTensor);
 
-                Loss lossFunction;
+                torch.Tensor loss;
                 if (Parent.Option.TaskType == BertTaskType.TextClassification)
-                    lossFunction = torch.nn.functional.cross_entropy_loss(reduction: Parent.Option.Reduction);
+                    loss = torch.nn.CrossEntropyLoss(reduction: Parent.Option.Reduction).forward(logits, targetsTensor);
                 else
                 {
-                    lossFunction = torch.nn.functional.mse_loss(reduction: Parent.Option.Reduction);
+                    loss = torch.nn.MSELoss(reduction: Parent.Option.Reduction).forward(logits, targetsTensor);
                     logits = logits.squeeze();
                 }
 
-                var loss = lossFunction(logits, targetsTensor);
                 loss.backward();
                 OptimizeStep();
 
@@ -523,7 +522,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 LearningRateScheduler.step();
             }
 
-            private torch.Tensor PrepareData(ValueGetter<ReadOnlyMemory<char>> sentence1Getter, ValueGetter<ReadOnlyMemory<char>> sentence2Getter)
+            protected torch.Tensor PrepareData(ValueGetter<ReadOnlyMemory<char>> sentence1Getter, ValueGetter<ReadOnlyMemory<char>> sentence2Getter)
             {
                 ReadOnlyMemory<char> sentence1 = default;
                 sentence1Getter(ref sentence1);

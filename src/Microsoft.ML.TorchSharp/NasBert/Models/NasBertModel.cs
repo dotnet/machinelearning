@@ -11,7 +11,7 @@ using TorchSharp;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Models
 {
-    internal class TextClassificationModel : BaseModel
+    internal class NasBertModel : BaseModel
     {
         private readonly PredictionHead _predictionHead;
 
@@ -20,7 +20,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
 
         protected readonly TransformerEncoder Encoder;
 
-        public TextClassificationModel(TextClassificationTrainer.Options options, int padIndex, int symbolsCount, int numClasses)
+        public NasBertModel(TextClassificationTrainer.Options options, int padIndex, int symbolsCount, int numClasses)
             : base(options)
         {
             _predictionHead = new PredictionHead(
