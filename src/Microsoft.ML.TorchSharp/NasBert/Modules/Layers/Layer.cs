@@ -9,7 +9,7 @@ using TorchSharp;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Modules.Layers
 {
-    internal class Layer : BaseModule
+    internal class Layer : torch.nn.Module<torch.Tensor, Dictionary<string, object>, torch.Tensor>
     {
         public const string AttentionMaskKey = "selfAttentionMask";
         public const string PaddingMaskKey = "selfAttentionPaddingMask";
@@ -19,7 +19,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules.Layers
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
-        public virtual torch.Tensor forward(torch.Tensor x, Dictionary<string, object> param = null)
+        public override torch.Tensor forward(torch.Tensor x, Dictionary<string, object> param = null)
         {
             return x.alias();
         }

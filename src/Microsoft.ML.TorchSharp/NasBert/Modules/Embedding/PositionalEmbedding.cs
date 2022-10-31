@@ -9,7 +9,7 @@ using TorchSharp;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Modules
 {
-    internal class PositionalEmbedding : BaseModule
+    internal class PositionalEmbedding : torch.nn.Module<torch.Tensor, Dictionary<string, object>, torch.Tensor>
     {
         public const string TimeStepKey = "timeStep";
         public const string IncrementalStateKey = "incrementalState";
@@ -27,10 +27,8 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
-        public virtual torch.Tensor forward(torch.Tensor input, Dictionary<string, object> param = null)
-        {
-            return input.alias();
-        }
+        public override torch.Tensor forward(torch.Tensor input, Dictionary<string, object> param = null)
+            => throw new NotImplementedException();
 
         public static PositionalEmbedding GetPositionalEmbedding(int numEmbeddings, int embeddingDim,
             int padTokenIndex = -1, bool learned = false)
@@ -57,7 +55,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
         {
             using var disposeScope = torch.NewDisposeScope();
             var mask = tensor.ne(padTokenIndex).@long();
-            var positions = torch.cumsum(mask, dimension: 1).mul_(mask);
+            var positions = torch.cumsum(mask, dim: 1).mul_(mask);
             positions.add_(PadPositionIndex);
             return positions.MoveToOuterDisposeScope();
         }

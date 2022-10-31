@@ -119,8 +119,119 @@ namespace Microsoft.ML.TorchSharp.NasBert
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private protected override int GetNumCorrect(torch.Tensor predictions, torch.Tensor targets)
             {
-                predictions = predictions ?? throw new ArgumentNullException(nameof(predictions));
-                return (int)predictions.eq(targets).sum().ToInt64();
+                // Make sure list is clear before use
+                inputTensors.Clear();
+                targets.Clear();
+                using var disposeScope = torch.NewDisposeScope();
+                var cursorValid = true;
+                for (int i = 0; i < _parent._options.BatchSize && cursorValid; i++)
+                {
+                    cursorValid = cursor.MoveNext();
+                    if (cursorValid)
+                    {
+                        inputTensors.Add(PrepareData(sentence1Getter, sentence2Getter));
+                        uint target = default;
+                        labelGetter(ref target);
+                        // keys are 1 based but the model is 0 based
+                        targets.Add(target - 1);
+                    }
+                    else
+                    {
+                        inputTensors.TrimExcess();
+                        targets.TrimExcess();
+                        if (inputTensors.Count() == 0)
+                            return cursorValid;
+                    }
+                }
+
+                using (torch.no_grad())
+                {
+                    var inputTensor = DataUtils.CollateTokens(inputTensors, Tokenizer.RobertaModel().PadIndex, device: Device);
+                    var targetsTensor = tensor(targets, device: Device);
+                    var logits = Model.forward(inputTensor);
+                    var predictions = GetPredictions(logits);
+                    var targetss = GetTargets(targetsTensor);
+                    numCorrect = GetNumCorrect(predictions, targetss);
+                    numRows = inputTensors.Count;
+                }
+
+                return cursorValid;
+            }
+
+            public void Train(IDataView input)
+            {
+                // Set the torch random seed to match ML.NET if one was provided
+                //if (((IHostEnvironmentInternal)_host).Seed.HasValue)
+                torch.random.manual_seed(1);
+                torch.cuda.manual_seed(1);
+
+                // Get the cursor and the correct columns based on the inputs
+                DataViewRowCursor cursor = default;
+                if (_parent._options.Sentence2ColumnName != default)
+                    cursor = input.GetRowCursor(input.Schema[_parent._options.Sentence1ColumnName], input.Schema[_parent._options.Sentence2ColumnName], input.Schema[_parent._options.LabelColumnName]);
+                else
+                    cursor = input.GetRowCursor(input.Schema[_parent._options.Sentence1ColumnName], input.Schema[_parent._options.LabelColumnName]);
+
+                var sentence1Getter = cursor.GetGetter<ReadOnlyMemory<char>>(input.Schema[_parent._options.Sentence1ColumnName]);
+                var sentence2Getter = _parent._options.Sentence2ColumnName != default ? cursor.GetGetter<ReadOnlyMemory<char>>(input.Schema[_parent._options.Sentence2ColumnName]) : default;
+                var labelGetter = cursor.GetGetter<UInt32>(input.Schema[_parent._options.LabelColumnName]);
+
+                // Pre-allocate the memory so it's only done once (though this step needs to be optimized)
+                List<Tensor> inputTensors = new List<Tensor>(_parent._options.BatchSize);
+                List<long> targets = new List<long>(_parent._options.BatchSize);
+
+                var cursorValid = true;
+                while (cursorValid)
+                {
+                    cursorValid = TrainStep(cursor, sentence1Getter, sentence2Getter, labelGetter, ref inputTensors, ref targets);
+                }
+            }
+
+            private bool TrainStep(DataViewRowCursor cursor,
+            ValueGetter<ReadOnlyMemory<char>> sentence1Getter,
+            ValueGetter<ReadOnlyMemory<char>> sentence2Getter,
+            ValueGetter<UInt32> labelGetter,
+            ref List<Tensor> inputTensors,
+            ref List<long> targets)
+            {
+                // Make sure list is clear before use
+                inputTensors.Clear();
+                targets.Clear();
+                using var disposeScope = torch.NewDisposeScope();
+                var cursorValid = true;
+                for (int i = 0; i < _parent._options.BatchSize && cursorValid; i++)
+                {
+                    cursorValid = cursor.MoveNext();
+                    if (cursorValid)
+                    {
+                        inputTensors.Add(PrepareData(sentence1Getter, sentence2Getter));
+                        UInt32 target = default;
+                        labelGetter(ref target);
+                        // keys are 1 based but the model is 0 based
+                        targets.Add(target - 1);
+                    }
+                    else
+                    {
+                        inputTensors.TrimExcess();
+                        targets.TrimExcess();
+                        if (inputTensors.Count() == 0)
+                            return cursorValid;
+                    }
+                }
+
+                Updates++;
+
+                Optimizer.zero_grad();
+
+                var inputTensor = DataUtils.CollateTokens(inputTensors, Tokenizer.RobertaModel().PadIndex, device: Device);
+                var targetsTensor = tensor(targets, device: Device);
+                var logits = Model.forward(inputTensor);
+                var lossFunction = torch.nn.CrossEntropyLoss(reduction: _parent._options.Reduction);
+                var loss = lossFunction.forward(logits, targetsTensor);
+                loss.backward();
+                OptimizeStep();
+
+                return cursorValid;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
