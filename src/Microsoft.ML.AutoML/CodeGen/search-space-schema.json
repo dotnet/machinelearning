@@ -25,6 +25,18 @@
         "alexnet"
       ]
     },
+    "bertArchitecture": {
+      "type": "string",
+      "enum": [
+        "BertArchitecture.Roberta"
+      ]
+    },
+    "bertArchitectureArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/bertArchitecture"
+      }
+    },
     "range": {
       "type": "object",
       "properties": {
@@ -44,6 +56,9 @@
         },
         {
           "$ref": "#/definitions/boolArray"
+        },
+        {
+          "$ref": "#/definitions/bertArchitectureArray"
         }
       ]
     },
@@ -58,6 +73,7 @@
         },
         "default": {
           "oneOf": [
+            { "$ref": "#/definitions/bertArchitecture" },
             { "type": "string" },
             { "type": "number" },
             { "type": "boolean" }
@@ -156,7 +172,11 @@
         "Quiet",
         "OutputAsFloatArray",
         "ModelFactory",
-        "Sentence1ColumnName"
+        "Sentence1ColumnName",
+        "Sentence2ColumnName",
+        "BatchSize",
+        "MaxEpochs",
+        "Architecture"
       ]
     },
     "option_type": {
@@ -172,7 +192,8 @@
         "colorBits",
         "colorsOrder",
         "anchor",
-        "dnnModelFactory"
+        "dnnModelFactory",
+        "bertArchitecture"
       ]
     }
   },
