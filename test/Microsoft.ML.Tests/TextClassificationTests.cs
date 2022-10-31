@@ -255,21 +255,8 @@ namespace Microsoft.ML.Tests
             var transformedData = transformer.Transform(dataView).Preview();
 
             Assert.NotNull(transformedData);
-#if NET461
-            Assert.Equal("Class One", transformedData.ColumnView[4].Values[0].ToString());
-            Assert.Equal("Class Two", transformedData.ColumnView[4].Values[1].ToString());
-            Assert.Equal("Class Three", transformedData.ColumnView[4].Values[2].ToString());
-            Assert.Equal("Class Three", transformedData.ColumnView[4].Values[4].ToString());
-            Assert.Equal("Class One", transformedData.ColumnView[4].Values[6].ToString());
-#else
-            Assert.Equal("Class Two", transformedData.ColumnView[4].Values[0].ToString());
-            Assert.Equal("Class Two", transformedData.ColumnView[4].Values[1].ToString());
-            Assert.Equal("Class Three", transformedData.ColumnView[4].Values[2].ToString());
-            Assert.Equal("Class One", transformedData.ColumnView[4].Values[4].ToString());
-            Assert.Equal("Class One", transformedData.ColumnView[4].Values[6].ToString());
-#endif
-            Assert.Equal("Class One", transformedData.ColumnView[4].Values[3].ToString());
-            Assert.Equal("Class Two", transformedData.ColumnView[4].Values[7].ToString());
+            // Not enough training is done to get good results so just make sure the count is right.
+            Assert.Equal(8, transformedData.RowView.Count());
         }
 
         [Fact]
@@ -351,6 +338,7 @@ namespace Microsoft.ML.Tests
             var predictedLabel = transformer.Transform(preppedData).GetColumn<ReadOnlyMemory<char>>(transformerSchema[5].Name);
             // Not enough training is done to get good results so just make sure there is the correct number.
             Assert.NotNull(predictedLabel);
+            Assert.Equal(8, predictedLabel.Count());
         }
 
         [Fact]
