@@ -11,12 +11,13 @@ using TorchSharp.Modules;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Modules
 {
-    internal abstract class HiddenTransfer : BaseModule
+    internal abstract class HiddenTransfer : torch.nn.Module<torch.Tensor, int, bool, torch.Tensor>
     {
         protected HiddenTransfer(string name) : base(name) { }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
-        public abstract torch.Tensor forward(torch.Tensor x, int hiddenSize, bool inputTransfer);
+        public override torch.Tensor forward(torch.Tensor x, int hiddenSize, bool inputTransfer)
+            => throw new NotImplementedException();
     }
 
     internal sealed class HiddenTransferDiscrete : HiddenTransfer

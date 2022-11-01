@@ -10,9 +10,9 @@ using TorchSharp;
 namespace Microsoft.ML.TorchSharp.NasBert.Modules
 {
 
-    internal sealed class ActivationFunction : BaseModule
+    internal sealed class ActivationFunction : torch.nn.Module<torch.Tensor, torch.Tensor>
     {
-        private readonly torch.nn.Module _function;
+        private readonly torch.nn.Module<torch.Tensor, torch.Tensor> _function;
 
         public ActivationFunction(string name) : base(name)
         {
@@ -43,7 +43,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
     /// See https://arxiv.org/pdf/1606.08415.pdf:
     /// y = 0.5x * (1 + tanh(sqrt(2/Pi) * (x + 0.044715 x^3)))
     /// </summary>
-    public class GeLUFast : torch.nn.Module
+    public class GeLUFast : torch.nn.Module<torch.Tensor, torch.Tensor>
     {
         private readonly double _alpha = Math.Sqrt(2 / Math.PI);
         private readonly double _beta = 0.044715;

@@ -12,26 +12,26 @@ using TorchSharp.Modules;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Modules
 {
-    internal abstract class EmbedTransfer : BaseModule
+    internal abstract class EmbedTransfer : torch.nn.Module<torch.Tensor, int, torch.Tensor>
     {
         protected EmbedTransfer(string name) : base(name) { }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
-        public abstract torch.Tensor forward(torch.Tensor x, int hiddenSize);
+        public override torch.Tensor forward(torch.Tensor x, int hiddenSize) => throw new NotImplementedException();
     }
 
     internal sealed class EmbedTransferNonDiscrete : EmbedTransfer
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:not in _camelCase format", Justification = "Need to match TorchSharp.")]
-        private readonly ModuleList HiddenTransfer;
+        private readonly ModuleList<Linear> HiddenTransfer;
 
         public EmbedTransferNonDiscrete() : base(nameof(EmbedTransferNonDiscrete))
         {
             //var hiddenTransfer = SearchSpace.HiddenSizeChoices[Range.EndAt(Index.FromEnd(1))]
             var hiddenTransfer = SearchSpace.HiddenSizeChoices.Where((source, index) => index != SearchSpace.HiddenSizeChoices.Length - 1)
-                .Select(hidden => torch.nn.Linear(hidden, SearchSpace.HiddenSizeChoices[SearchSpace.HiddenSizeChoices.Length - 1]) as torch.nn.Module)
+                .Select(hidden => torch.nn.Linear(hidden, SearchSpace.HiddenSizeChoices[SearchSpace.HiddenSizeChoices.Length - 1]))
                 .ToArray();
-            HiddenTransfer = new ModuleList(hiddenTransfer);
+            HiddenTransfer = new ModuleList<Linear>(hiddenTransfer);
             RegisterComponents();
         }
 
