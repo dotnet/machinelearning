@@ -56,7 +56,7 @@ Alternatively, you can add the Microsoft.ML package from within Visual Studio's 
 
 Daily NuGet builds of the project are also available in our Azure DevOps feed:
 
-> [https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json](https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json)
+> [https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-libraries/nuget/v3/index.json](https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-libraries/nuget/v3/index.json)
 
 ## Building ML.NET (For contributors building ML.NET open source code)
 
