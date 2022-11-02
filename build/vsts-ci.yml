@@ -12,8 +12,16 @@ resources:
 
   - container: UbuntuCrossArm64Container
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64
+
 variables:
-- template: /eng/common-variables.yml
+  BuildConfig: Release
+  _BuildConfig: $(BuildConfig)
+  OfficialBuildId: $(BUILD.BUILDNUMBER)
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_MULTILEVEL_LOOKUP: 0
+  Codeql.Enabled: true
+  Codeql.SkipTaskAutoInjection: True  #default to not inject CodeQL tasks, we'll enable it in a single job.
   
 stages:
 - stage: build
@@ -267,12 +275,12 @@ stages:
       publishGdn: true
       continueOnError: false
       params: ' -SourceToolsList @("policheck","credscan")
-      -TsaInstanceURL $(_TsaInstanceURL)
-      -TsaProjectName $(_TsaProjectName)
-      -TsaNotificationEmail $(_TsaNotificationEmail)
-      -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
-      -TsaBugAreaPath $(_TsaBugAreaPath)
-      -TsaIterationPath $(_TsaIterationPath)
-      -TsaRepositoryName "machinelearning"
-      -TsaCodebaseName "machinelearning"
+      -TsaInstanceURL https://devdiv.visualstudio.com/
+      -TsaProjectName DEVDIV
+      -TsaNotificationEmail mlnetcore@microsoft.com
+      -TsaCodebaseAdmin REDMOND\ericstj
+      -TsaBugAreaPath "DevDiv\Net Libraries"
+      -TsaIterationPath DevDiv
+      -TsaRepositoryName machinelearning
+      -TsaCodebaseName machinelearning
       -TsaPublish $True'
