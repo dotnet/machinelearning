@@ -512,7 +512,7 @@
       "searchOption": "image_classification_option"
     },
     {
-      "functionName": "TextClassifcation",
+      "functionName": "TextClassification",
       "estimatorTypes": [ "MultiClassification" ],
       "arguments": [
         {

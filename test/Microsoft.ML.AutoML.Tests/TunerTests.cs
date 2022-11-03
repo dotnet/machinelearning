@@ -128,6 +128,40 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void EciCfo_should_handle_trial_result_with_nan_value()
+        {
+            // this test verify if tuner can find max value for LSE.
+            var context = new MLContext(1);
+            var pipeline = this.CreateDummySweepablePipeline(context);
+            var searchSpace = new SearchSpace.SearchSpace();
+            searchSpace["_pipeline_"] = pipeline.SearchSpace;
+            var tuner = new EciCostFrugalTuner(pipeline, new AutoMLExperiment.AutoMLExperimentSettings
+            {
+                SearchSpace = searchSpace,
+                Seed = 1,
+            });
+            var invalidLosses = new[] { double.NaN, double.NegativeInfinity, double.PositiveInfinity };
+            var id = 0;
+            foreach (var loss in invalidLosses)
+            {
+                var trialSetting = new TrialSettings
+                {
+                    TrialId = id++,
+                    Parameter = Parameter.CreateNestedParameter(),
+                };
+                var parameter = tuner.Propose(trialSetting);
+                trialSetting.Parameter = parameter;
+                var trialResult = new TrialResult
+                {
+                    TrialSettings = trialSetting,
+                    DurationInMilliseconds = 10000,
+                    Loss = double.NaN,
+                };
+                tuner.Update(trialResult);
+            }
+        }
+
+        [Fact]
         public void LSE_maximize_test()
         {
             // this test verify if tuner can find max value for LSE.
@@ -345,6 +379,17 @@ namespace Microsoft.ML.AutoML.Test
 
             [Range(-10.0, 10.0, 0.0, false)]
             public double Z { get; set; }
+        }
+
+        private SweepablePipeline CreateDummySweepablePipeline(MLContext context)
+        {
+            var mapKeyToValue = SweepableEstimatorFactory.CreateMapKeyToValue(new MapKeyToValueOption
+            {
+                InputColumnName = "input",
+                OutputColumnName = "output",
+            });
+
+            return mapKeyToValue.Append(context.Auto().BinaryClassification());
         }
     }
 }
