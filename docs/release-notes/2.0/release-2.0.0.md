@@ -35,7 +35,7 @@ Below are some of the highlights from this release:
 ### ONNX
 
 - **Support for 1 unknown dimension** ([#6265](https://github.com/dotnet/machinelearning/pull/6265))
-- **Support loading ONNX model using GPU** ([#6143](https://github.com/dotnet/machinelearning/pull/6143)) - Prior to this change, when you saved an ML.NET model that contained ONNX as part of the pipeline, the flag to use the GPU was not saved. This change fixes that.  
+- **Support saving model with ONNX GPU flag** ([#6143](https://github.com/dotnet/machinelearning/pull/6143)) - Prior to this change, when you saved an ML.NET model that contained ONNX as part of the pipeline, the flag to use the GPU was not saved. This change fixes that.  
 
 ### DataFrame
 
