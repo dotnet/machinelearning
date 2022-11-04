@@ -36,7 +36,7 @@ jobs:
         _targetFramework: net6.0
     innerLoop: true
     pool:
-      name: NetCore-Public
+      name: NetCore-Svc-Public
       demands: ImageOverride -equals build.ubuntu.1804.amd64.open
     helixQueue: Ubuntu.1804.ArmArch.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-helix-arm32v7
 
@@ -59,7 +59,7 @@ jobs:
         _targetFramework: net6.0
     innerLoop: true
     pool:
-      name: NetCore-Public
+      name: NetCore-Svc-Public
       demands: ImageOverride -equals build.ubuntu.1804.amd64.open
     helixQueue: Ubuntu.1804.ArmArch.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-helix-arm64v8
 
@@ -70,7 +70,7 @@ jobs:
     container: CentosContainer
     innerLoop: true
     pool:
-      name: NetCore-Public
+      name: NetCore-Svc-Public
       demands: ImageOverride -equals build.ubuntu.1804.amd64.open
     helixQueue: Ubuntu.1804.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet-helix
 
@@ -81,7 +81,7 @@ jobs:
     container: UbuntuContainer
     innerLoop: true
     pool:
-      name: NetCore-Public
+      name: NetCore-Svc-Public
       demands: ImageOverride -equals build.ubuntu.1804.amd64.open
     helixQueue: Ubuntu.1804.Amd64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-helix
 
@@ -122,7 +122,7 @@ jobs:
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.1"
     pool:
-      name: NetCore-Public
+      name: NetCore-Svc-Public
       demands: ImageOverride -equals 1es-windows-2019-open
     helixQueue: Windows.10.Amd64.Open
 
@@ -144,7 +144,7 @@ jobs:
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v4.0"
     pool:
-      name: NetCore-Public
+      name: NetCore-Svc-Public
       demands: ImageOverride -equals 1es-windows-2019-open
     helixQueue: Windows.10.Amd64.Open
 
@@ -156,6 +156,6 @@ jobs:
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.1"
     pool:
-      name: NetCore-Public
+      name: NetCore-Svc-Public
       demands: ImageOverride -equals 1es-windows-2019-open
     helixQueue: Windows.10.Amd64.Open

@@ -31,7 +31,7 @@ stages:
   - job: Linux_x64
   ################################################################################
     pool:
-      name: NetCore1ESPool-Internal
+      name: NetCore1ESPool-Svc-Internal
       demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
     container: CentosContainer
     steps:
@@ -54,7 +54,7 @@ stages:
     variables:
       ROOTFS_DIR: '/crossrootfs/arm'
     pool:
-      name: NetCore1ESPool-Internal
+      name: NetCore1ESPool-Svc-Internal
       demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
     container: UbuntuCrossArmContainer
     steps:
@@ -77,7 +77,7 @@ stages:
     variables:
       ROOTFS_DIR: '/crossrootfs/arm64'
     pool:
-      name: NetCore1ESPool-Internal
+      name: NetCore1ESPool-Svc-Internal
       demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
     container: UbuntuCrossArm64Container
     steps:
@@ -147,7 +147,7 @@ stages:
     variables:
       _TeamName: DotNetCore
     pool:
-      name: NetCore1ESPool-Internal
+      name: NetCore1ESPool-Svc-Internal
       demands: ImageOverride -equals Build.Server.Amd64.VS2019
     steps:
     # Only build native assets to avoid conflicts.
@@ -174,7 +174,7 @@ stages:
       Codeql.SkipTaskAutoInjection: False  # run CodeQL in this job
       _TeamName: DotNetCore
     pool:
-      name: NetCore1ESPool-Internal
+      name: NetCore1ESPool-Svc-Internal
       demands: ImageOverride -equals Build.Server.Amd64.VS2019
     steps:
 
@@ -234,7 +234,7 @@ stages:
                               /p:OfficialBuildId=$(OfficialBuildId)
                               /p:DotNetPublishUsingPipelines=$true
       pool:
-        name: NetCore1ESPool-Internal
+        name: NetCore1ESPool-Svc-Internal
         demands: ImageOverride -equals Build.Server.Amd64.VS2019
       steps:
 
