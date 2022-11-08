@@ -166,9 +166,6 @@ jobs:
                 MsBuildScript: '$(Build.SourcesDirectory)/eng/common/msbuild.sh'
                 WarnAsError: '--warnAsError false'
                 TestTargetFramework: '$(testTargetFramework)'
-              # Don't have M1 failures fail the build for now.
-              ${{ if and(contains(parameters.pool.vmImage, 'macOS'), contains(parameters.name, 'cross'))  }}:
-                continueOnError: true
     - script: $(dotnetPath) msbuild -restore build/Codecoverage.proj
       displayName: Upload coverage to codecov.io
       condition: and(succeeded(), eq(${{ parameters.codeCoverage }}, True))
