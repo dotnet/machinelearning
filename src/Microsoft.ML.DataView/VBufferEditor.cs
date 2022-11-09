@@ -20,7 +20,7 @@ namespace Microsoft.ML.Data
         /// of this passed in object, and so whatever <see cref="VBuffer{T}"/> was passed in as this parameter should not be used again, since its
         /// underlying buffers are being potentially reused.</param>
         public static VBufferEditor<T> CreateFromBuffer<T>(
-            ref VBuffer<T> destination)
+            scoped ref VBuffer<T> destination)
         {
             return destination.GetEditor();
         }
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Data
         /// True means to ensure the Indices buffer is available, even if the buffer will be dense.
         /// </param>
         public static VBufferEditor<T> Create<T>(
-            ref VBuffer<T> destination,
+            scoped ref VBuffer<T> destination,
             int newLogicalLength,
             int? valuesCount = null,
             int? maxValuesCapacity = null,
