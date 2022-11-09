@@ -18,7 +18,8 @@ To see the plans for ML.NET tooling, check out the [Model Builder repo](https://
 - DataFrame
   - Bug fixes and getting the basics right
 - Untyped PredictionEngine
-
+- Responsible AI
+  - Integrate fairness detection and mitigation APIs into ML.NET
 
 ## Feedback and contributions
 
