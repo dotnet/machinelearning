@@ -4,6 +4,22 @@ The goal of ML.NET is to democratize machine learning for .NET developers. This 
 
 To see the plans for ML.NET tooling, check out the [Model Builder repo](https://github.com/dotnet/machinelearning-modelbuilder/issues/1707).
 
+## Goals through November 2023
+
+- Keep docs, samples, and repo up to date.
+- Deep learning
+  - Make it easier to consume ONNX models in ML.NET
+  - More NLP / CV scenarios powered by TorchSharp
+  - Accelerate deep learning workflows through improved batch support and accelerators (i.e. ONNX Execution Providers)
+  - Build a bridge between ONNX and TorchSharp
+- LightGBM
+  - Update to the latest version
+  - Enable collaboration by enabling loading / saving of models in native LightGBM format.
+- DataFrame
+  - Bug fixes and getting the basics right
+- Untyped PredictionEngine
+
+
 ## Feedback and contributions
 
 ML.NET is a community effort and we welcome community feedback on our plans. The best way to give feedback is to [open an issue](https://github.com/dotnet/machinelearning/issues/new/choose) in this repo.
