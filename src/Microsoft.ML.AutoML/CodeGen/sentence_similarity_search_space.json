@@ -22,11 +22,6 @@
       "default": "Score"
     },
     {
-      "name": "OutputColumnName",
-      "type": "string",
-      "default": "PredictedLabel"
-    },
-    {
       "name": "BatchSize",
       "type": "integer",
       "default": 32

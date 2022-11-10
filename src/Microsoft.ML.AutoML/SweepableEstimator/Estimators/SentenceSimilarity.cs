@@ -19,7 +19,6 @@ namespace Microsoft.ML.AutoML.CodeGen
                     sentence1ColumnName: param.Sentence1ColumnName,
                     scoreColumnName: param.ScoreColumnName,
                     sentence2ColumnName: param.Sentence2ColumnName,
-                    outputColumnName: param.OutputColumnName,
                     batchSize: param.BatchSize,
                     maxEpochs: param.MaxEpochs,
                     architecture: param.Architecture);
