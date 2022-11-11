@@ -53,6 +53,7 @@
   <PropertyGroup>
     <OneDalLibExtension Condition="'$(OS)' == 'Windows_NT'">.$(OneDalMajorBinaryVersion)$(NativeLibExtension)</OneDalLibExtension>
     <OneDalLibExtension Condition="'$(OS)' != 'Windows_NT'">$(NativeLibExtension).$(OneDalMajorBinaryVersion).$(OneDalMinorBinaryVersion)</OneDalLibExtension>
+    <OneDalLibExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.$(OneDalMajorBinaryVersion).$(OneDalMinorBinaryVersion)$(NativeLibExtension)</OneDalLibExtension>
 
     <OneDalLibDir Condition="'$(OS)' == 'Windows_NT'">redist\intel64</OneDalLibDir>
     <OneDalLibDir Condition="'$(OS)' != 'Windows_NT'">lib\intel64</OneDalLibDir>
