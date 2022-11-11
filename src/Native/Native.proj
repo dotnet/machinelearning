@@ -88,7 +88,7 @@
           DependsOnTargets="GenerateNativeVersionFile">
 
     <PropertyGroup>
-      <BuildArgs>$(Configuration) $(TargetArchitecture) --mkllibpath $(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsVersion)\runtimes\$(PackageRid)\native --onedallibpath $(NuGetPackageRoot)inteldal.redist.$(PackageRid).$(OneDalRedistVersion)\build\native</BuildArgs>
+      <BuildArgs>$(Configuration) $(TargetArchitecture) --mkllibpath $(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsVersion)\runtimes\$(PackageRid)\native --onedallibpath $(NuGetPackageRoot)inteldal.redist.$(PackageRid)\$(OneDalRedistVersion)\build\native</BuildArgs>
     </PropertyGroup>
 
     <!-- Run script that invokes Cmake to create VS files, and then calls msbuild to compile them -->
