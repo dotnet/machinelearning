@@ -10,6 +10,7 @@ usage()
     echo "  --configuration <Configuration>   Build Configuration (Debug, Release)"
     echo "  --stripSymbols                    Enable symbol stripping (to external file)"
     echo "  --mkllibpath                      Path to mkl library."
+    echo "  --onedallibpath                   Path to oneDAL library."
     exit 1
 }
 
@@ -30,6 +31,7 @@ __baseIntermediateOutputPath="$RootRepo/artifacts/obj"
 __versionSourceFile="$__baseIntermediateOutputPath/version.c"
 __mkllibpath=""
 __mkllibrpath=""
+__onedallibpath=""
 
 while [ "$1" != "" ]; do
         lowerI="$(echo $1 | awk '{print tolower($0)}')"
@@ -54,6 +56,10 @@ while [ "$1" != "" ]; do
             shift
             __mkllibrpath=$1
             ;;
+        --onedallibpath)
+            shift
+            __onedallibpath=$1
+            ;;
         --stripsymbols)
             __strip_argument="-DSTRIP_SYMBOLS=true"
             ;;
@@ -71,6 +77,10 @@ fi
 
 if [ -n "$__mkllibrpath" ]; then
     __cmake_defines="${__cmake_defines} -DMKL_LIB_RPATH=${__mkllibrpath}"
+fi
+
+if [ -n "$__onedallibpath" ]; then
+    __cmake_defines="${__cmake_defines} -DONEDAL_LIB_PATH=${__onedallibpath}"
 fi
 
 __IntermediatesDir="$__baseIntermediateOutputPath/Native/$__build_arch.$__configuration"

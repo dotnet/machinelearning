@@ -258,6 +258,7 @@ if(NOT ${ARCHITECTURE} MATCHES "arm.*")
     add_subdirectory(CpuMathNative)
     add_subdirectory(FastTreeNative)
     add_subdirectory(MklProxyNative)
+    add_subdirectory(OneDalNative)
     # TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in.
     add_subdirectory(SymSgdNative)
 endif()
