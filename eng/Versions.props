@@ -39,6 +39,9 @@
     <MicrosoftDotNetInteractiveVersion>1.0.0-beta.22504.6</MicrosoftDotNetInteractiveVersion>
     <MicrosoftMLOnnxRuntimeVersion>1.10.0</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
+    <OneDalRedistVersion>2021.7.0</OneDalRedistVersion>
+    <OneDalMajorBinaryVersion>1</OneDalMajorBinaryVersion>
+    <OneDalMinorBinaryVersion>1</OneDalMinorBinaryVersion>
     <MSTestTestAdapterVersion>2.1.0</MSTestTestAdapterVersion>
     <MSTestTestFrameworkVersion>2.1.0</MSTestTestFrameworkVersion>
     <NewtonsoftJsonVersion>13.0.1</NewtonsoftJsonVersion>
