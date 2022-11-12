@@ -79,7 +79,7 @@ namespace Microsoft.ML
         /// <param name="stream">The stream to write the protobuf model to.</param>
         /// <returns>An ONNX model equivalent to the converted ML.NET model.</returns>
         public static void ConvertToOnnx(this ModelOperationsCatalog catalog, ITransformer transform, IDataView inputData, Stream stream) =>
-            ConvertToOnnxProtobuf(catalog, transform, inputData).WriteTo(stream);
+            ConvertToOnnxProtobuf(catalog, transform, new EmptyDataView(catalog.GetEnvironment(), inputData.Schema)).WriteTo(stream);
 
         /// <summary>
         /// Convert the specified <see cref="ITransformer"/> to ONNX format and writes to a stream.
@@ -91,7 +91,7 @@ namespace Microsoft.ML
         /// <param name="stream">The stream to write the protobuf model to.</param>
         /// <returns>An ONNX model equivalent to the converted ML.NET model.</returns>
         public static void ConvertToOnnx(this ModelOperationsCatalog catalog, ITransformer transform, IDataView inputData, int opSetVersion, Stream stream) =>
-            ConvertToOnnxProtobuf(catalog, transform, inputData, opSetVersion).WriteTo(stream);
+            ConvertToOnnxProtobuf(catalog, transform, new EmptyDataView(catalog.GetEnvironment(), inputData.Schema), opSetVersion).WriteTo(stream);
 
         /// <summary>
         /// Convert the specified <see cref="ITransformer"/> to ONNX format and writes to a stream.
@@ -103,6 +103,41 @@ namespace Microsoft.ML
         /// <param name="outputColumns">List of output columns we want to keep.</param>
         /// <returns>An ONNX model equivalent to the converted ML.NET model.</returns>
         public static void ConvertToOnnx(this ModelOperationsCatalog catalog, ITransformer transform, IDataView inputData, Stream stream, params string[] outputColumns) =>
-            ConvertToOnnxProtobuf(catalog, transform, inputData, outputColumns).WriteTo(stream);
+            ConvertToOnnxProtobuf(catalog, transform, new EmptyDataView(catalog.GetEnvironment(), inputData.Schema), outputColumns).WriteTo(stream);
+        
+        /// <summary>
+        /// Convert the specified <see cref="ITransformer"/> to ONNX format and writes to a stream.
+        /// </summary>
+        /// <param name="catalog">The class that <see cref="ConvertToOnnx(ModelOperationsCatalog, ITransformer, IDataView, Stream)"/> attached to.</param>
+        /// <param name="transform">The <see cref="ITransformer"/> that will be converted into ONNX format.</param>
+        /// <param name="inputSchema">The schema of the input to the transformer.</param>
+        /// <param name="stream">The stream to write the protobuf model to.</param>
+        /// <returns>An ONNX model equivalent to the converted ML.NET model.</returns>
+        public static void ConvertToOnnx(this ModelOperationsCatalog catalog, ITransformer transform, DataViewSchema inputSchema, Stream stream) =>
+            ConvertToOnnxProtobuf(catalog, transform, new EmptyDataView(catalog.GetEnvironment(), inputSchema)).WriteTo(stream);
+
+        /// <summary>
+        /// Convert the specified <see cref="ITransformer"/> to ONNX format and writes to a stream.
+        /// </summary>
+        /// <param name="catalog">The class that <see cref="ConvertToOnnx(ModelOperationsCatalog, ITransformer, IDataView, int, Stream)"/> attached to.</param>
+        /// <param name="transform">The <see cref="ITransformer"/> that will be converted into ONNX format.</param>
+        /// <param name="inputSchema">The schema of the input to the transformer.</param>
+        /// <param name="opSetVersion">The OpSet version to use for exporting the model. This value must be greater than or equal to 9 and less than or equal to 12</param>
+        /// <param name="stream">The stream to write the protobuf model to.</param>
+        /// <returns>An ONNX model equivalent to the converted ML.NET model.</returns>
+        public static void ConvertToOnnx(this ModelOperationsCatalog catalog, ITransformer transform, DataViewSchema inputSchema, int opSetVersion, Stream stream) =>
+            ConvertToOnnxProtobuf(catalog, transform, new EmptyDataView(catalog.GetEnvironment(), inputSchema), opSetVersion).WriteTo(stream);
+
+        /// <summary>
+        /// Convert the specified <see cref="ITransformer"/> to ONNX format and writes to a stream.
+        /// </summary>
+        /// <param name="catalog">The class that <see cref="ConvertToOnnx(ModelOperationsCatalog, ITransformer, IDataView, Stream)"/> attached to.</param>
+        /// <param name="transform">The <see cref="ITransformer"/> that will be converted into ONNX format.</param>
+        /// <param name="inputSchema">The schema of the input to the transformer.</param>
+        /// <param name="stream">The stream to write the protobuf model to.</param>
+        /// <param name="outputColumns">List of output columns we want to keep.</param>
+        /// <returns>An ONNX model equivalent to the converted ML.NET model.</returns>
+        public static void ConvertToOnnx(this ModelOperationsCatalog catalog, ITransformer transform, DataViewSchema inputSchema, Stream stream, params string[] outputColumns) =>
+            ConvertToOnnxProtobuf(catalog, transform, new EmptyDataView(catalog.GetEnvironment(), inputSchema), outputColumns).WriteTo(stream);
     }
 }
