@@ -264,7 +264,7 @@ namespace Microsoft.ML.AutoML.Test
             var label = "Label";
             var pipeline = context.Auto().Featurizer(data, excludeColumns: new[] { label })
                                 .Append(context.Transforms.Conversion.MapValueToKey(label, label))
-                                .Append(context.Auto().MultiClassification(label, useLgbm: false, useSdca: false, useLbfgs: false));
+                                .Append(context.Auto().MultiClassification(label, useLgbm: false, useSdcaMaximumEntrophy: false, useLbfgsMaximumEntrophy: false));
 
             experiment.SetDataset(data, 5)
                     .SetMulticlassClassificationMetric(MulticlassClassificationMetric.MacroAccuracy, label)
@@ -291,7 +291,7 @@ namespace Microsoft.ML.AutoML.Test
             var label = "Label";
             var pipeline = context.Auto().Featurizer(data, excludeColumns: new[] { label })
                                 .Append(context.Transforms.Conversion.MapValueToKey(label, label))
-                                .Append(context.Auto().MultiClassification(label, useLgbm: false, useSdca: false, useLbfgs: false));
+                                .Append(context.Auto().MultiClassification(label, useLgbm: false, useSdcaMaximumEntrophy: false, useLbfgsMaximumEntrophy: false));
 
             experiment.SetDataset(context.Data.TrainTestSplit(data))
                     .SetMulticlassClassificationMetric(MulticlassClassificationMetric.MacroAccuracy, label)
