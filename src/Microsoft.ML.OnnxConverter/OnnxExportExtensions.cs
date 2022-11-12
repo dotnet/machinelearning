@@ -145,7 +145,7 @@ namespace Microsoft.ML
     sealed class EmptyDataView : IDataView
     {
         private readonly DataViewSchema _schema;
-        
+
         public EmptyDataView(DataViewSchema schema)
         {
             _schema = schema;
