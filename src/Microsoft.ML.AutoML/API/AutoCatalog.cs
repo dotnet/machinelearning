@@ -319,8 +319,8 @@ namespace Microsoft.ML.AutoML
         /// <param name="fastTreeOption">if provided, use it as initial option for fast tree, otherwise the default option will be used.</param>
         /// <param name="lgbmOption">if provided, use it as initial option for lgbm, otherwise the default option will be used.</param>
         /// <param name="fastForestOption">if provided, use it as initial option for fast forest, otherwise the default option will be used.</param>
-        /// <param name="lbfgsOption">if provided, use it as initial option for lbfgs, otherwise the default option will be used.</param>
-        /// <param name="sdcaOption">if provided, use it as initial option for sdca, otherwise the default option will be used.</param>
+        /// <param name="lbfgsLogisticRegressionOption">if provided, use it as initial option for <paramref name="lbfgsLogisticRegressionSearchSpace"/>, otherwise the default option will be used.</param>
+        /// <param name="sdcaLogisticRegressionOption">if provided, use it as initial option for <paramref name="sdcaLogisticRegressionSearchSpace"/>, otherwise the default option will be used.</param>
         /// <param name="fastTreeSearchSpace">if provided, use it as search space for fast tree, otherwise the default search space will be used.</param>
         /// <param name="lgbmSearchSpace">if provided, use it as search space for lgbm, otherwise the default search space will be used.</param>
         /// <param name="fastForestSearchSpace">if provided, use it as search space for fast forest, otherwise the default search space will be used.</param>
@@ -338,8 +338,8 @@ namespace Microsoft.ML.AutoML
             FastTreeOption fastTreeOption = null,
             LgbmOption lgbmOption = null,
             FastForestOption fastForestOption = null,
-            LbfgsOption lbfgsOption = null,
-            SdcaOption sdcaOption = null,
+            LbfgsOption lbfgsLogisticRegressionOption = null,
+            SdcaOption sdcaLogisticRegressionOption = null,
             SearchSpace<FastTreeOption> fastTreeSearchSpace = null,
             SearchSpace<LgbmOption> lgbmSearchSpace = null,
             SearchSpace<FastForestOption> fastForestSearchSpace = null,
@@ -377,20 +377,20 @@ namespace Microsoft.ML.AutoML
 
             if (useLbfgsLogisticRegression)
             {
-                lbfgsOption = lbfgsOption ?? new LbfgsOption();
-                lbfgsOption.LabelColumnName = labelColumnName;
-                lbfgsOption.FeatureColumnName = featureColumnName;
-                lbfgsOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateSdcaLogisticRegressionBinary(lbfgsOption, lbfgsSearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsOption)));
+                lbfgsLogisticRegressionOption = lbfgsLogisticRegressionOption ?? new LbfgsOption();
+                lbfgsLogisticRegressionOption.LabelColumnName = labelColumnName;
+                lbfgsLogisticRegressionOption.FeatureColumnName = featureColumnName;
+                lbfgsLogisticRegressionOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateLbfgsPoissonRegressionRegression(lbfgsLogisticRegressionOption, lbfgsLogisticRegressionSearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsLogisticRegressionOption)));
             }
 
             if (useSdcaLogisticRegression)
             {
-                sdcaOption = sdcaOption ?? new SdcaOption();
-                sdcaOption.LabelColumnName = labelColumnName;
-                sdcaOption.FeatureColumnName = featureColumnName;
-                sdcaOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateSdcaLogisticRegressionBinary(sdcaOption, sdcaSearchSpace ?? new SearchSpace<SdcaOption>(sdcaOption)));
+                sdcaLogisticRegressionOption = sdcaLogisticRegressionOption ?? new SdcaOption();
+                sdcaLogisticRegressionOption.LabelColumnName = labelColumnName;
+                sdcaLogisticRegressionOption.FeatureColumnName = featureColumnName;
+                sdcaLogisticRegressionOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateSdcaLogisticRegressionBinary(sdcaLogisticRegressionOption, sdcaLogisticRegressionSearchSpace ?? new SearchSpace<SdcaOption>(sdcaLogisticRegressionOption)));
             }
 
             return new SweepablePipeline().Append(res.ToArray());
@@ -412,15 +412,17 @@ namespace Microsoft.ML.AutoML
         /// <param name="fastTreeOption">if provided, use it as initial option for fast tree, otherwise the default option will be used.</param>
         /// <param name="lgbmOption">if provided, use it as initial option for lgbm, otherwise the default option will be used.</param>
         /// <param name="fastForestOption">if provided, use it as initial option for fast forest, otherwise the default option will be used.</param>
-        /// <param name="lbfgsOption">if provided, use it as initial option for lbfgs, otherwise the default option will be used.</param>
-        /// <param name="sdcaOption">if provided, use it as initial option for sdca, otherwise the default option will be used.</param>
+        /// <param name="lbfgsMaximumEntrophyOption">if provided, use it as initial option for <paramref name="lbfgsMaximumEntrophySearchSpace"/>, otherwise the default option will be used.</param>
+        /// <param name="lbfgsLogisticRegressionOption">if provided, use it as initial option for <paramref name="lbfgsLogisticRegressionSearchSpace"/>, otherwise the default option will be used.</param>
+        /// <param name="sdcaMaximumEntrophyOption">if provided, use it as initial option for <paramref name="sdcaMaximumEntorphySearchSpace"/>, otherwise the default option will be used.</param>
+        /// <param name="sdcaLogisticRegressionOption">if provided, use it as initial option for <paramref name="sdcaLogisticRegressionSearchSpace"/>, otherwise the default option will be used.</param>
         /// <param name="fastTreeSearchSpace">if provided, use it as search space for fast tree, otherwise the default search space will be used.</param>
         /// <param name="lgbmSearchSpace">if provided, use it as search space for lgbm, otherwise the default search space will be used.</param>
         /// <param name="fastForestSearchSpace">if provided, use it as search space for fast forest, otherwise the default search space will be used.</param>
         /// <param name="lbfgsMaximumEntrophySearchSpace">if provided, use it as search space for <see cref="LbfgsMaximumEntropyMulticlassTrainer"/>, otherwise the default search space will be used.</param>
-        /// <param name="lbfgsLogisticRegressionSearchSpace">if provided, use it as search space for <see cref="LbfgsLogisticRegressionBinaryTrainer"/>, otherwise the default search space will be used.</param>
+        /// <param name="lbfgsLogisticRegressionSearchSpace">if provided, use it as search space for <see cref="LbfgsMaximumEntropyMulticlassTrainer"/>, otherwise the default search space will be used.</param>
         /// <param name="sdcaMaximumEntorphySearchSpace">if provided, use it as search space for <see cref="SdcaMaximumEntropyMulti"/>, otherwise the default search space will be used.</param>
-        /// <param name="sdcaMaximumEntorphySearchSpace">if provided, use it as search space for <see cref="SdcaLogisticRegressionBinaryTrainer"/>, otherwise the default search space will be used.</param>
+        /// <param name="sdcaLogisticRegressionSearchSpace">if provided, use it as search space for <see cref="SdcaLogisticRegressionBinaryTrainer"/>, otherwise the default search space will be used.</param>
         /// <returns></returns>
         public SweepablePipeline MultiClassification(
             string labelColumnName = DefaultColumnNames.Label,
@@ -436,8 +438,10 @@ namespace Microsoft.ML.AutoML
             FastTreeOption fastTreeOption = null,
             LgbmOption lgbmOption = null,
             FastForestOption fastForestOption = null,
-            LbfgsOption lbfgsOption = null,
-            SdcaOption sdcaOption = null,
+            LbfgsOption lbfgsMaximumEntrophyOption = null,
+            LbfgsOption lbfgsLogisticRegressionOption = null,
+            SdcaOption sdcaMaximumEntrophyOption = null,
+            SdcaOption sdcaLogisticRegressionOption = null,
             SearchSpace<FastTreeOption> fastTreeSearchSpace = null,
             SearchSpace<LgbmOption> lgbmSearchSpace = null,
             SearchSpace<FastForestOption> fastForestSearchSpace = null,
@@ -477,38 +481,38 @@ namespace Microsoft.ML.AutoML
 
             if (useLbfgsMaximumEntrophy)
             {
-                lbfgsOption = lbfgsOption ?? new LbfgsOption();
-                lbfgsOption.LabelColumnName = labelColumnName;
-                lbfgsOption.FeatureColumnName = featureColumnName;
-                lbfgsOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateLbfgsMaximumEntropyMulti(lbfgsOption, lbfgsMaximumEntrophySearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsOption)));
+                lbfgsMaximumEntrophyOption = lbfgsMaximumEntrophyOption ?? new LbfgsOption();
+                lbfgsMaximumEntrophyOption.LabelColumnName = labelColumnName;
+                lbfgsMaximumEntrophyOption.FeatureColumnName = featureColumnName;
+                lbfgsMaximumEntrophyOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateLbfgsMaximumEntropyMulti(lbfgsMaximumEntrophyOption, lbfgsMaximumEntrophySearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsMaximumEntrophyOption)));
             }
 
             if (useLbfgsLogisticRegression)
             {
-                lbfgsOption = lbfgsOption ?? new LbfgsOption();
-                lbfgsOption.LabelColumnName = labelColumnName;
-                lbfgsOption.FeatureColumnName = featureColumnName;
-                lbfgsOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateLbfgsLogisticRegressionOva(lbfgsOption, lbfgsLogisticRegressionSearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsOption)));
+                lbfgsLogisticRegressionOption = lbfgsLogisticRegressionOption ?? new LbfgsOption();
+                lbfgsLogisticRegressionOption.LabelColumnName = labelColumnName;
+                lbfgsLogisticRegressionOption.FeatureColumnName = featureColumnName;
+                lbfgsLogisticRegressionOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateLbfgsLogisticRegressionOva(lbfgsLogisticRegressionOption, lbfgsLogisticRegressionSearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsLogisticRegressionOption)));
             }
 
             if (useSdcaMaximumEntrophy)
             {
-                sdcaOption = sdcaOption ?? new SdcaOption();
-                sdcaOption.LabelColumnName = labelColumnName;
-                sdcaOption.FeatureColumnName = featureColumnName;
-                sdcaOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateSdcaMaximumEntropyMulti(sdcaOption, sdcaMaximumEntorphySearchSpace ?? new SearchSpace<SdcaOption>(sdcaOption)));
+                sdcaMaximumEntrophyOption = sdcaMaximumEntrophyOption ?? new SdcaOption();
+                sdcaMaximumEntrophyOption.LabelColumnName = labelColumnName;
+                sdcaMaximumEntrophyOption.FeatureColumnName = featureColumnName;
+                sdcaMaximumEntrophyOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateSdcaMaximumEntropyMulti(sdcaMaximumEntrophyOption, sdcaMaximumEntorphySearchSpace ?? new SearchSpace<SdcaOption>(sdcaMaximumEntrophyOption)));
             }
 
             if (useSdcaLogisticRegression)
             {
-                sdcaOption = sdcaOption ?? new SdcaOption();
-                sdcaOption.LabelColumnName = labelColumnName;
-                sdcaOption.FeatureColumnName = featureColumnName;
-                sdcaOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateSdcaLogisticRegressionOva(sdcaOption, sdcaLogisticRegressionSearchSpace ?? new SearchSpace<SdcaOption>(sdcaOption)));
+                sdcaLogisticRegressionOption = sdcaLogisticRegressionOption ?? new SdcaOption();
+                sdcaLogisticRegressionOption.LabelColumnName = labelColumnName;
+                sdcaLogisticRegressionOption.FeatureColumnName = featureColumnName;
+                sdcaLogisticRegressionOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateSdcaLogisticRegressionOva(sdcaLogisticRegressionOption, sdcaLogisticRegressionSearchSpace ?? new SearchSpace<SdcaOption>(sdcaLogisticRegressionOption)));
             }
 
             return new SweepablePipeline().Append(res.ToArray());
@@ -524,11 +528,12 @@ namespace Microsoft.ML.AutoML
         /// <param name="useLgbm">true if use lgbm as available trainer.</param>
         /// <param name="useFastTree">true if use fast tree as available trainer.</param>
         /// <param name="useLbfgsPoissonRegression">true if use <see cref="LbfgsPoissonRegressionTrainer"/> as available trainer.</param>
+        /// <param name="useSdca">true if use <see cref="SdcaRegressionTrainer"/> as available trainer.</param>
         /// <param name="fastTreeOption">if provided, use it as initial option for fast tree, otherwise the default option will be used.</param>
         /// <param name="lgbmOption">if provided, use it as initial option for lgbm, otherwise the default option will be used.</param>
         /// <param name="fastForestOption">if provided, use it as initial option for fast forest, otherwise the default option will be used.</param>
-        /// <param name="lbfgsOption">if provided, use it as initial option for lbfgs, otherwise the default option will be used.</param>
-        /// <param name="sdcaOption">if provided, use it as initial option for sdca, otherwise the default option will be used.</param>
+        /// <param name="lbfgsPoissonRegressionOption">if provided, use it as initial option for <paramref name="lbfgsPoissonRegressionSearchSpace"/>, otherwise the default option will be used.</param>
+        /// <param name="sdcaOption">if provided, use it as initial option for <paramref name="sdcaSearchSpace"/>, otherwise the default option will be used.</param>
         /// <param name="fastTreeSearchSpace">if provided, use it as search space for fast tree, otherwise the default search space will be used.</param>
         /// <param name="lgbmSearchSpace">if provided, use it as search space for lgbm, otherwise the default search space will be used.</param>
         /// <param name="fastForestSearchSpace">if provided, use it as search space for fast forest, otherwise the default search space will be used.</param>
@@ -547,7 +552,7 @@ namespace Microsoft.ML.AutoML
             FastTreeOption fastTreeOption = null,
             LgbmOption lgbmOption = null,
             FastForestOption fastForestOption = null,
-            LbfgsOption lbfgsOption = null,
+            LbfgsOption lbfgsPoissonRegressionOption = null,
             SdcaOption sdcaOption = null,
             SearchSpace<FastTreeOption> fastTreeSearchSpace = null,
             SearchSpace<LgbmOption> lgbmSearchSpace = null,
@@ -586,11 +591,11 @@ namespace Microsoft.ML.AutoML
 
             if (useLbfgsPoissonRegression)
             {
-                lbfgsOption = lbfgsOption ?? new LbfgsOption();
-                lbfgsOption.LabelColumnName = labelColumnName;
-                lbfgsOption.FeatureColumnName = featureColumnName;
-                lbfgsOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateLbfgsPoissonRegressionRegression(lbfgsOption, lbfgsPoissonRegressionSearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsOption)));
+                lbfgsPoissonRegressionOption = lbfgsPoissonRegressionOption ?? new LbfgsOption();
+                lbfgsPoissonRegressionOption.LabelColumnName = labelColumnName;
+                lbfgsPoissonRegressionOption.FeatureColumnName = featureColumnName;
+                lbfgsPoissonRegressionOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateLbfgsPoissonRegressionRegression(lbfgsPoissonRegressionOption, lbfgsPoissonRegressionSearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsPoissonRegressionOption)));
             }
 
             if (useSdca)
