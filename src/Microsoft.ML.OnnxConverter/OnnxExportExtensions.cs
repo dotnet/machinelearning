@@ -140,53 +140,53 @@ namespace Microsoft.ML
         /// <returns>An ONNX model equivalent to the converted ML.NET model.</returns>
         public static void ConvertToOnnx(this ModelOperationsCatalog catalog, ITransformer transform, DataViewSchema inputSchema, Stream stream, params string[] outputColumns) =>
             ConvertToOnnxProtobuf(catalog, transform, new EmptyDataView(inputSchema), outputColumns).WriteTo(stream);
-    }
 
-    sealed class EmptyDataView : IDataView
-    {
-        private readonly DataViewSchema _schema;
-
-        public EmptyDataView(DataViewSchema schema)
+        private sealed class EmptyDataView : IDataView
         {
-            _schema = schema;
+            private readonly DataViewSchema _schema;
+
+            public EmptyDataView(DataViewSchema schema)
+            {
+                _schema = schema;
+            }
+
+            public DataViewSchema Schema => _schema;
+
+            public bool CanShuffle => true;
+
+            public long? GetRowCount() => 0L;
+
+            public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
+                => new EmptyDataViewRowCursor(Schema);
+
+            public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
+                => Array.Empty<DataViewRowCursor>();
         }
 
-        public DataViewSchema Schema => _schema;
-
-        public bool CanShuffle => true;
-
-        public long? GetRowCount() => 0L;
-
-        public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
-            => new EmptyDataViewRowCursor(Schema);
-
-        public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
-            => Array.Empty<DataViewRowCursor>();
-    }
-
-    sealed class EmptyDataViewRowCursor : DataViewRowCursor
-    {
-        private readonly DataViewSchema schema;
-
-        public EmptyDataViewRowCursor(DataViewSchema Schema)
+        private sealed class EmptyDataViewRowCursor : DataViewRowCursor
         {
-            schema = Schema;
+            private readonly DataViewSchema _schema;
+
+            public EmptyDataViewRowCursor(DataViewSchema schema)
+            {
+                _schema = schema;
+            }
+
+            public override DataViewSchema Schema => _schema;
+
+            public override long Position => -1L;
+
+            public override bool IsColumnActive(DataViewSchema.Column column) => false;
+
+            public override bool MoveNext() => false;
+
+            public override long Batch => 0L;
+
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
+                => throw new InvalidOperationException();
+
+            public override ValueGetter<DataViewRowId> GetIdGetter()
+                => throw new InvalidOperationException();
         }
-
-        public override DataViewSchema Schema => schema;
-
-        public override long Position => -1L;
-
-        public override bool IsColumnActive(DataViewSchema.Column column) => false;
-
-        public override bool MoveNext() => false;
-
-        public override long Batch => 0L;
-
-        public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
-            => throw new InvalidOperationException();
-
-        public override ValueGetter<DataViewRowId> GetIdGetter()
-            => throw new InvalidOperationException();
     }
 }
