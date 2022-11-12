@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -141,8 +142,17 @@ namespace Microsoft.ML
             ConvertToOnnxProtobuf(catalog, transform, new EmptyDataView(inputSchema), outputColumns).WriteTo(stream);
     }
 
-    sealed record EmptyDataView(DataViewSchema Schema) : IDataView
+    sealed class EmptyDataView : IDataView
     {
+        private readonly DataViewSchema _schema;
+        
+        public EmptyDataView(DataViewSchema schema)
+        {
+            _schema = schema;
+        }
+
+        public DataViewSchema Schema => _schema;
+
         public bool CanShuffle => true;
 
         public long? GetRowCount() => 0L;
