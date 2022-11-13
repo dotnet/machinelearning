@@ -79,7 +79,7 @@ namespace Microsoft.ML
         /// <param name="stream">The stream to write the protobuf model to.</param>
         /// <returns>An ONNX model equivalent to the converted ML.NET model.</returns>
         public static void ConvertToOnnx(this ModelOperationsCatalog catalog, ITransformer transform, IDataView inputData, Stream stream) =>
-            ConvertToOnnxProtobuf(catalog, transform, new EmptyDataView(catalog.GetEnvironment(), inputData.Schema)).WriteTo(stream);
+            ConvertToOnnxProtobuf(catalog, transform, inputData).WriteTo(stream);
 
         /// <summary>
         /// Convert the specified <see cref="ITransformer"/> to ONNX format and writes to a stream.
@@ -91,7 +91,7 @@ namespace Microsoft.ML
         /// <param name="stream">The stream to write the protobuf model to.</param>
         /// <returns>An ONNX model equivalent to the converted ML.NET model.</returns>
         public static void ConvertToOnnx(this ModelOperationsCatalog catalog, ITransformer transform, IDataView inputData, int opSetVersion, Stream stream) =>
-            ConvertToOnnxProtobuf(catalog, transform, new EmptyDataView(catalog.GetEnvironment(), inputData.Schema), opSetVersion).WriteTo(stream);
+            ConvertToOnnxProtobuf(catalog, transform, inputData, opSetVersion).WriteTo(stream);
 
         /// <summary>
         /// Convert the specified <see cref="ITransformer"/> to ONNX format and writes to a stream.
@@ -103,7 +103,7 @@ namespace Microsoft.ML
         /// <param name="outputColumns">List of output columns we want to keep.</param>
         /// <returns>An ONNX model equivalent to the converted ML.NET model.</returns>
         public static void ConvertToOnnx(this ModelOperationsCatalog catalog, ITransformer transform, IDataView inputData, Stream stream, params string[] outputColumns) =>
-            ConvertToOnnxProtobuf(catalog, transform, new EmptyDataView(catalog.GetEnvironment(), inputData.Schema), outputColumns).WriteTo(stream);
+            ConvertToOnnxProtobuf(catalog, transform, inputData, outputColumns).WriteTo(stream);
 
         /// <summary>
         /// Convert the specified <see cref="ITransformer"/> to ONNX format and writes to a stream.
