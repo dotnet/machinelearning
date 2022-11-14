@@ -47,7 +47,13 @@ namespace Microsoft.ML.Data
             private readonly bool[] _active;
 
             public override DataViewSchema Schema { get; }
-            public override long Batch => 0;
+            public override long Batch
+            {
+                get {
+                    Console.WriteLine("EmptyDataView.Cursor.Batch");
+                    return 0L;
+                }
+            }
 
             public Cursor(IChannelProvider provider, DataViewSchema schema, IEnumerable<DataViewSchema.Column> columnsNeeded)
                 : base(provider)
@@ -55,6 +61,7 @@ namespace Microsoft.ML.Data
                 Ch.AssertValue(schema);
                 Schema = schema;
                 _active = Utils.BuildArray(Schema.Count, columnsNeeded);
+                Console.WriteLine("new EmptyDataView.Cursor");
             }
 
             public override ValueGetter<DataViewRowId> GetIdGetter()
