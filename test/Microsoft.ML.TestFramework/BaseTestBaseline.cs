@@ -678,9 +678,6 @@ namespace Microsoft.ML.RunTests
             var leftColumn = left.Schema[leftColumnName];
             var leftType = leftColumn.Type.GetItemType();
 
-            Console.WriteLine("leftColumnName: " + leftColumnName);
-            Console.WriteLine("leftType: " + leftType);
-
             if (leftType == NumberDataViewType.SByte)
                 CompareSelectedColumns<sbyte>(leftColumnName, rightColumnName, left, right, isRightColumnOnnxScalar: isRightColumnOnnxScalar);
             else if (leftType == NumberDataViewType.Byte)
@@ -711,9 +708,6 @@ namespace Microsoft.ML.RunTests
         {
             var leftColumn = left.Schema[leftColumnName];
             var rightColumn = right.Schema[rightColumnName];
-
-            Console.WriteLine("leftColumnName: " + leftColumnName);
-            Console.WriteLine("rightColumnName: " + rightColumnName);
 
             using (var expectedCursor = left.GetRowCursor(leftColumn))
             using (var actualCursor = right.GetRowCursor(rightColumn))
@@ -749,7 +743,7 @@ namespace Microsoft.ML.RunTests
 
                 while (expectedCursor.MoveNext() && actualCursor.MoveNext())
                 {
-                    Console.WriteLine("MoveNext()");
+
                     if (leftColumn.Type is VectorDataViewType)
                     {
                         expectedVectorGetter(ref expectedVector);
