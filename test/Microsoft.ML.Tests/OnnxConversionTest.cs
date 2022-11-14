@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
 using Microsoft.ML.Data;
+using Microsoft.Data.Analysis;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.RunTests;
@@ -1825,7 +1826,7 @@ namespace Microsoft.ML.Tests
                 {
                     Assert.EndsWith(stdSuffix, name);
                     var colName = name.Replace(stdSuffix, "");
-                    CompareResults(colName, colName, onnxResult, onnxResult2);
+                    CompareResults(colName, colName, onnxResult.ToDataFrame(), onnxResult2.ToDataFrame());
                 }
                 (onnxTransformer as IDisposable)?.Dispose();
                 (onnxTransformer2 as IDisposable)?.Dispose();
