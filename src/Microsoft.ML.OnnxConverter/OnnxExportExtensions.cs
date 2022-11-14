@@ -65,7 +65,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Convert the specified <see cref="ITransformer"/> to ONNX format. Note that ONNX uses Google's Protobuf so the returned value is a Protobuf object.
         /// </summary>
-        /// <param name="catalog">The class that <see cref="ConvertToOnnxProtobuf(ModelOperationsCatalog, ITransformer, IDataView, string[])"/> attached to.</param>
+        /// <param name="catalog">The class that <see cref="ConvertToOnnxProtobuf(ModelOperationsCatalog, ITransformer, DataViewSchema, string[])"/> attached to.</param>
         /// <param name="transform">The <see cref="ITransformer"/> that will be converted into ONNX format.</param>
         /// <param name="inputSchema">The schema of the input to the transformer.</param>
         /// <param name="outputColumns">List of output columns we want to keep.</param>
@@ -81,7 +81,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Convert the specified <see cref="ITransformer"/> to ONNX format. Note that ONNX uses Google's Protobuf so the returned value is a Protobuf object.
         /// </summary>
-        /// <param name="catalog">The class that <see cref="ConvertToOnnxProtobuf(ModelOperationsCatalog, ITransformer, IDataView, int)"/> attached to.</param>
+        /// <param name="catalog">The class that <see cref="ConvertToOnnxProtobuf(ModelOperationsCatalog, ITransformer, DataViewSchema, int)"/> attached to.</param>
         /// <param name="transform">The <see cref="ITransformer"/> that will be converted into ONNX format.</param>
         /// <param name="inputSchema">The schema of the input to the transformer.</param>
         /// <param name="opSetVersion">The OpSet version to use for exporting the model. This value must be greater than or equal to 9 and less than or equal to 12</param>
@@ -132,7 +132,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Convert the specified <see cref="ITransformer"/> to ONNX format and writes to a stream.
         /// </summary>
-        /// <param name="catalog">The class that <see cref="ConvertToOnnx(ModelOperationsCatalog, ITransformer, IDataView, Stream)"/> attached to.</param>
+        /// <param name="catalog">The class that <see cref="ConvertToOnnx(ModelOperationsCatalog, ITransformer, DataViewSchema, Stream)"/> attached to.</param>
         /// <param name="transform">The <see cref="ITransformer"/> that will be converted into ONNX format.</param>
         /// <param name="inputSchema">The schema of the input to the transformer.</param>
         /// <param name="stream">The stream to write the protobuf model to.</param>
@@ -143,7 +143,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Convert the specified <see cref="ITransformer"/> to ONNX format and writes to a stream.
         /// </summary>
-        /// <param name="catalog">The class that <see cref="ConvertToOnnx(ModelOperationsCatalog, ITransformer, IDataView, int, Stream)"/> attached to.</param>
+        /// <param name="catalog">The class that <see cref="ConvertToOnnx(ModelOperationsCatalog, ITransformer, DataViewSchema, int, Stream)"/> attached to.</param>
         /// <param name="transform">The <see cref="ITransformer"/> that will be converted into ONNX format.</param>
         /// <param name="inputSchema">The schema of the input to the transformer.</param>
         /// <param name="opSetVersion">The OpSet version to use for exporting the model. This value must be greater than or equal to 9 and less than or equal to 12</param>
@@ -155,7 +155,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Convert the specified <see cref="ITransformer"/> to ONNX format and writes to a stream.
         /// </summary>
-        /// <param name="catalog">The class that <see cref="ConvertToOnnx(ModelOperationsCatalog, ITransformer, IDataView, Stream)"/> attached to.</param>
+        /// <param name="catalog">The class that <see cref="ConvertToOnnx(ModelOperationsCatalog, ITransformer, DataViewSchema, Stream)"/> attached to.</param>
         /// <param name="transform">The <see cref="ITransformer"/> that will be converted into ONNX format.</param>
         /// <param name="inputSchema">The schema of the input to the transformer.</param>
         /// <param name="stream">The stream to write the protobuf model to.</param>
