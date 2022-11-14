@@ -622,6 +622,11 @@ namespace Microsoft.ML.Transforms.Onnx
                         inputNameOnnxValues.Add(srcNamedOnnxValueGetters[i].GetNamedOnnxValue());
                     }
 
+                    foreach (var v in inputNameOnnxValues)
+                    {
+                        Console.WriteLine(v.Name);
+                    }
+
                     outputCache.OutputOnnxValues?.Dispose();
                     outputCache.OutputOnnxValues = _parent.Model.Run(inputNameOnnxValues, activeOutputColNames);
                     Contracts.Assert(outputCache.OutputOnnxValues.Count > 0);
