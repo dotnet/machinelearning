@@ -49,7 +49,8 @@ namespace Microsoft.ML.Data
             public override DataViewSchema Schema { get; }
             public override long Batch
             {
-                get {
+                get
+                {
                     Console.WriteLine("EmptyDataView.Cursor.Batch");
                     return 0L;
                 }
