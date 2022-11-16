@@ -28,54 +28,6 @@ namespace Microsoft.ML.TorchSharp.Utils
             typeof(double),
         };
 
-        public static string LoadFromFileOrDownloadFromWeb(string path, string fileName, Uri url, IChannel ch)
-        {
-            Contracts.AssertNonWhiteSpace(fileName, "Filename can't be empty");
-
-            var contents = "";
-            var filePath = Path.Combine(path, fileName);
-            if (!File.Exists(filePath))
-            {
-                try
-                {
-                    using var webClient = new WebClient();
-                    contents = webClient.DownloadString(url);
-
-                }
-                catch (WebException e)
-                {
-                    throw new WebException($"File {fileName} not found and cannot be downloaded from {url}.\n" +
-                                           $"Error message: {e.Message}", e);
-                }
-
-                try
-                {
-                    File.WriteAllText(filePath, contents);
-                    ch.Info($"File {fileName} successfully downloaded from {url} and saved to {path}.");
-                }
-                catch (Exception e)
-                {
-                    ch.Warning($"{DateTime.Now} - WARNING: File {fileName} successfully downloaded from {url}, " +
-                                      $"but error occurs when saving file {fileName} into {path}.\n" +
-                                      $"Error message: {e.Message}");
-                }
-            }
-            else
-            {
-                try
-                {
-                    contents = File.ReadAllText(filePath);
-                }
-                catch (Exception e)
-                {
-                    throw new IOException($"Problems met when reading {filePath}.\n" +
-                                          $"Error message: {e.Message}", e);
-                }
-            }
-
-            return contents;
-        }
-
         /// <summary>
         /// Load a continuous segment of bytes from stream and parse them into a number array.
         /// NOTE: this function is only for little-endian storage!

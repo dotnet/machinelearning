@@ -48,19 +48,13 @@ namespace Microsoft.ML.SearchSpace.Option
         /// </summary>
         public Parameter[] Choices { get; }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override int FeatureSpaceDim => Choices.Length == 1 ? 0 : 1;
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override int?[] Step => new int?[] { Choices.Length };
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override double[] MappingToFeatureSpace(Parameter param)
         {
             if (FeatureSpaceDim == 0)
@@ -74,9 +68,7 @@ namespace Microsoft.ML.SearchSpace.Option
             return _option.MappingToFeatureSpace(Parameter.FromInt(x));
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override Parameter SampleFromFeatureSpace(double[] values)
         {
             Contract.Assert(values.Length >= 0, "values length must be greater than 0");

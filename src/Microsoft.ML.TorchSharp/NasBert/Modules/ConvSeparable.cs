@@ -11,7 +11,7 @@ using TorchSharp.Modules;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Modules
 {
-    internal sealed class ConvSeparable : BaseModule
+    internal sealed class ConvSeparable : torch.nn.Module<torch.Tensor, torch.Tensor>
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:Private field name not in: _camelCase format", Justification = "Have to match TorchSharp model.")]
         private readonly Sequential Conv;

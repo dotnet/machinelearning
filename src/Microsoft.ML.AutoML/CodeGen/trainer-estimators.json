@@ -525,7 +525,7 @@
         }
       ],
       "nugetDependencies": [ "Microsoft.ML", "Microsoft.ML.TorchSharp" ],
-      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers", "Microsoft.ML.TorchSharp" ],
       "searchOption": "text_classification_option"
     },
     {

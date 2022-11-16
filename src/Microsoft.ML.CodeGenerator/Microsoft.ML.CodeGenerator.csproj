@@ -5,6 +5,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.CodeGenerator</IncludeInPackage>
     <PackageDescription>ML.NET Code Generator</PackageDescription>
+    <NoWarn>$(NoWarn);MSB3270</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

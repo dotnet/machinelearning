@@ -171,6 +171,32 @@ namespace Microsoft.ML.AutoML.Test
             cts.IsCancellationRequested.Should().BeFalse();
         }
 
+        [Fact]
+        public async Task AutoMLExperiment_finish_training_when_reach_to_max_model_async()
+        {
+            var context = new MLContext(1);
+            var experiment = context.Auto().CreateExperiment();
+            experiment.SetMaxModelToExplore(5)
+                      .SetTrialRunner((serviceProvider) =>
+                      {
+                          var channel = serviceProvider.GetService<IChannel>();
+                          var settings = serviceProvider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
+                          return new DummyTrialRunner(settings, 1, channel);
+                      })
+                      .SetTuner<RandomSearchTuner>();
+
+            var runModelCounts = 0;
+            context.Log += (o, e) =>
+            {
+                if (e.RawMessage.Contains("Update Completed Trial"))
+                {
+                    runModelCounts++;
+                }
+            };
+            await experiment.RunAsync();
+            runModelCounts.Should().Be(5);
+        }
+
 
         [Fact]
         public async Task AutoMLExperiment_UCI_Adult_Train_Test_Split_Test()
@@ -228,7 +254,7 @@ namespace Microsoft.ML.AutoML.Test
             var context = new MLContext(1);
             context.Log += (o, e) =>
             {
-                if (e.Source.StartsWith("AutoMLExperiment"))
+                if (e.RawMessage.Contains("Trial"))
                 {
                     this.Output.WriteLine(e.RawMessage);
                 }
@@ -297,7 +323,7 @@ namespace Microsoft.ML.AutoML.Test
             experiment.SetDataset(train, test)
                     .SetRegressionMetric(RegressionMetric.RSquared, label)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(50);
+                    .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.5);
@@ -307,13 +333,6 @@ namespace Microsoft.ML.AutoML.Test
         public async Task AutoMLExperiment_Taxi_Fare_CV_5_Test()
         {
             var context = new MLContext(1);
-            context.Log += (o, e) =>
-            {
-                if (e.Source.StartsWith("AutoMLExperiment"))
-                {
-                    this.Output.WriteLine(e.RawMessage);
-                }
-            };
             var train = DatasetUtil.GetTaxiFareTrainDataView();
             var experiment = context.Auto().CreateExperiment();
             var label = DatasetUtil.TaxiFareLabel;
@@ -323,10 +342,24 @@ namespace Microsoft.ML.AutoML.Test
             experiment.SetDataset(train, 5)
                     .SetRegressionMetric(RegressionMetric.RSquared, label)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(50);
+                    .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.5);
+        }
+
+        [Fact]
+        public void AutoMLExperiment_should_use_seed_from_context_if_provided()
+        {
+            var context = new MLContext();
+            var experiment = context.Auto().CreateExperiment();
+            var settings = experiment.ServiceCollection.BuildServiceProvider().GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+            settings.Seed.Should().BeNull();
+
+            context = new MLContext(1);
+            experiment = context.Auto().CreateExperiment();
+            settings = experiment.ServiceCollection.BuildServiceProvider().GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+            settings.Seed.Should().Be(1);
         }
     }
 

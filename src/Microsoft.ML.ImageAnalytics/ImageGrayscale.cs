@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using Microsoft.ML;
@@ -140,16 +138,6 @@ namespace Microsoft.ML.Transforms.Image
             base.SaveColumns(ctx);
         }
 
-        private static readonly ColorMatrix _grayscaleColorMatrix = new ColorMatrix(
-                new float[][]
-                {
-                    new float[] {.3f, .3f, .3f, 0, 0},
-                    new float[] {.59f, .59f, .59f, 0, 0},
-                    new float[] {.11f, .11f, .11f, 0, 0},
-                    new float[] {0, 0, 0, 1, 0},
-                    new float[] {0, 0, 0, 0, 1}
-                });
-
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
@@ -176,8 +164,8 @@ namespace Microsoft.ML.Transforms.Image
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
-                var src = default(Bitmap);
-                var getSrc = input.GetGetter<Bitmap>(input.Schema[ColMapNewToOld[iinfo]]);
+                var src = default(MLImage);
+                var getSrc = input.GetGetter<MLImage>(input.Schema[ColMapNewToOld[iinfo]]);
 
                 disposer =
                     () =>
@@ -189,8 +177,8 @@ namespace Microsoft.ML.Transforms.Image
                         }
                     };
 
-                ValueGetter<Bitmap> del =
-                    (ref Bitmap dst) =>
+                ValueGetter<MLImage> del =
+                    (ref MLImage dst) =>
                     {
                         if (dst != null)
                             dst.Dispose();
@@ -199,16 +187,9 @@ namespace Microsoft.ML.Transforms.Image
                         if (src == null || src.Height <= 0 || src.Width <= 0)
                             return;
 
-                        dst = new Bitmap(src.Width, src.Height);
-                        ImageAttributes attributes = new ImageAttributes();
-                        attributes.SetColorMatrix(_grayscaleColorMatrix);
-                        var srcRectangle = new Rectangle(0, 0, src.Width, src.Height);
-                        using (var g = Graphics.FromImage(dst))
-                        {
-                            g.DrawImage(src, srcRectangle, 0, 0, src.Width, src.Height, GraphicsUnit.Pixel, attributes);
-                        }
-
+                        dst = src.CloneWithGrayscale();
                         dst.Tag = src.Tag;
+
                         Contracts.Assert(dst.Width == src.Width && dst.Height == src.Height);
                     };
 
@@ -226,8 +207,8 @@ namespace Microsoft.ML.Transforms.Image
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | <xref:System.Drawing.Bitmap> |
-    /// | Output column data type | <xref:System.Drawing.Bitmap> |
+    /// | Input column data type | <xref:Microsoft.ML.Data.MLImage> |
+    /// | Output column data type | <xref:Microsoft.ML.Data.MLImage> |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
     /// | Exportable to ONNX | No |
     ///

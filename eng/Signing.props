@@ -1,21 +1,10 @@
 <Project>
-    <ItemGroup Condition="'$(SignBinaries)' == 'true'">
-        <ItemsToSign Remove="@(ItemsToSign)" />
-        <ItemsToSign Include="$(ArtifactsDir)pkgassets\**\*.dll" />
-        <FileExtensionSignInfo Include="*.dll" CertificateName="MicrosoftDotNet500" />
-    </ItemGroup>
-    <ItemGroup Condition="'$(SignNugetPackages)' == 'true'">
-        <ItemsToSign Remove="@(ItemsToSign)" />
-        <ItemsToSign Include="$(ArtifactsDir)packages\**\*.nupkg" />
-        <ItemsToSign Include="$(ArtifactsDir)packages\**\*.snupkg" />
-        <FileExtensionSignInfo Include="*.nupkg" CertificateName="NuGet" />
-        <FileExtensionSignInfo Include="*.snupkg" CertificateName="NuGet" />
-    </ItemGroup>
+  <ItemGroup>
+    <ItemsToSign Include="$(ArtifactsPackagesDir)**\*.snupkg" />
+    <FileExtensionSignInfo Include="*.snupkg" CertificateName="NuGet" />
+  </ItemGroup>
 
-    <!-- Since this repo isn't on Arcade 6, the UseDotNetCertificate optionis not available. Do the update here instead. -->
-    <ItemGroup>
-      <FileExtensionSignInfo Update="@(FileExtensionSignInfo->WithMetadataValue('CertificateName','Microsoft400'))" CertificateName="MicrosoftDotNet500" />
-      <StrongNameSignInfo Update="@(StrongNameSignInfo->WithMetadataValue('CertificateName','Microsoft400'))" CertificateName="MicrosoftDotNet500" />
-      <FileSignInfo Update="@(FileSignInfo->WithMetadataValue('CertificateName','Microsoft400'))" CertificateName="MicrosoftDotNet500" />
-    </ItemGroup>
+  <PropertyGroup>
+    <UseDotNetCertificate>true</UseDotNetCertificate>
+  </PropertyGroup>
 </Project>

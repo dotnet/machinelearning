@@ -78,10 +78,10 @@ namespace Samples.Dynamic
             {
                 FeatureColumnName = "Image",
                 LabelColumnName = "Label",
-                // Just by changing/selecting InceptionV3/MobilenetV2 
-                // here instead of 
+                // Just by changing/selecting InceptionV3/MobilenetV2
+                // here instead of
                 // ResnetV2101 you can try a different architecture/
-                // pre-trained model. 
+                // pre-trained model.
                 Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
                 Epoch = 182,
                 BatchSize = 128,
@@ -92,8 +92,8 @@ namespace Samples.Dynamic
                 ReuseTrainSetBottleneckCachedValues = false,
                 // Use linear scaling rule and Learning rate decay as an option
                 // This is known to do well for Cifar dataset and Resnet models
-                // You can also try other types of Learning rate scheduling 
-                // methods available in LearningRateScheduler.cs  
+                // You can also try other types of Learning rate scheduling
+                // methods available in LearningRateScheduler.cs
                 LearningRateScheduler = new LsrDecay()
             };
 
@@ -111,7 +111,7 @@ namespace Samples.Dynamic
 
             // Train the model.
             // This involves calculating the bottleneck values, and then
-            // training the final layer. Sample output is: 
+            // training the final layer. Sample output is:
             // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   1
             // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   2
             // ...
@@ -271,8 +271,9 @@ namespace Samples.Dynamic
             // get a set of images to teach the network about the new classes
             // CIFAR dataset ( 50000 train images and 10000 test images )
             string fileName = "cifar10.zip";
-            string url = $"https://aka.ms/mlnet-resources/" +
-                "datasets/cifar10.zip";
+
+            // https://github.com/YoongiKim/CIFAR-10-images
+            string url = $"https://github.com/YoongiKim/CIFAR-10-images/archive/refs/heads/master.zip";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName),

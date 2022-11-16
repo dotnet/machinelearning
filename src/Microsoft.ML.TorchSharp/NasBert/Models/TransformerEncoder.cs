@@ -16,7 +16,7 @@ using TorchSharp.Modules;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Models
 {
-    internal sealed class TransformerEncoder : BaseModule
+    internal sealed class TransformerEncoder : torch.nn.Module, torch.nn.IModule<torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor>
     {
 #pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format Have to match TorchSharp model
 
@@ -44,8 +44,8 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
         private readonly LayerNorm EmbeddingLayerNorm;
         private readonly EmbedTransfer EmbedTransfer;
         private readonly Dropout DropoutLayer;
-        private readonly ModuleList Layers;
-        private readonly ModuleList HiddenTransferList;
+        private readonly ModuleList<TransformerCell> Layers;
+        private readonly ModuleList<torch.nn.Module> HiddenTransferList;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
 
         public Parameter TokenEmbeddingMatrix => TokenEmbedding.weight;
@@ -116,9 +116,9 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
                     activationFn,
                     addBiasKv,
                     addZeroAttention,
-                    dynamicDropout) as torch.nn.Module)
+                    dynamicDropout))
                 .ToArray();
-            Layers = new ModuleList(layers);
+            Layers = new ModuleList<TransformerCell>(layers);
 
             var blockPerLayer = numEncoderLayers / DistillBlocks;
             HiddenSizePerBlock = CheckBlockHiddenSize(blockPerLayer);
@@ -129,7 +129,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
                 .Select(i => new HiddenTransferDiscrete(hiddenSizePerBlockExtend[i],
                         hiddenSizePerBlockExtend[i + 1]) as torch.nn.Module)
                 .ToArray();
-            HiddenTransferList = new ModuleList(hiddenTransferList);
+            HiddenTransferList = new ModuleList<torch.nn.Module>(hiddenTransferList);
 
             if (freezeEmbeddings)
             {

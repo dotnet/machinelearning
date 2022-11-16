@@ -81,7 +81,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
-        public async void ToknizationTest()
+        public async void TokenizationTest()
         {
             string vocabFile = Utils.CreateTemporaryFile("json");
             string mergeFile = Utils.CreateTemporaryFile("txt");
@@ -100,6 +100,12 @@ namespace Microsoft.ML.Tokenizers.Tests
                 paths = tokenizer.Model.Save(Path.GetTempPath(), "roberta");
                 Tokenizer tokenizer1 = new Tokenizer(new EnglishRoberta(paths[0], paths[1], paths[2]), RobertaPreTokenizer.Instance);
                 TestTokenizer(tokenizer1);
+
+                using Stream vocabStream = File.OpenRead(vocabFile);
+                using Stream mergeStream = File.OpenRead(mergeFile);
+                using Stream translationStream = File.OpenRead(translationFile);
+                tokenizer = new Tokenizer(new EnglishRoberta(vocabStream, mergeStream, translationStream), RobertaPreTokenizer.Instance);
+                TestTokenizer(tokenizer);
             }
             finally
             {

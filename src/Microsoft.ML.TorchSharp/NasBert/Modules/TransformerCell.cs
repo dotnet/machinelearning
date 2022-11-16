@@ -12,7 +12,7 @@ using TorchSharp.Modules;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Modules
 {
-    internal abstract class TransformerCell : BaseModule
+    internal abstract class TransformerCell : torch.nn.Module
     {
         protected TransformerCell(string name) : base(name) { }
 
@@ -35,7 +35,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
         /// The operations in search space.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:not in _camelCase format", Justification = "Need to match TorchSharp.")]
-        private readonly ModuleList Operations;
+        private readonly ModuleList<Layer> Operations;
 
         public TransformerCellNonDiscrete(
             float dropout = 0.1f,
@@ -50,9 +50,9 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
             _activationFn = new ActivationFunction(activationFn);
             var operations = Enumerable.Range(0, SearchSpace.NumLayerChoices)
                 .Select(i => SearchSpace.GetLayer(i, dropout, attentionDropout, activationDropout, activationFn,
-                    addBiasKv, addZeroAttention, dynamicDropout) as torch.nn.Module)
+                    addBiasKv, addZeroAttention, dynamicDropout))
                 .ToArray();
-            Operations = new ModuleList(operations);
+            Operations = new ModuleList<Layer>(operations);
 
             RegisterComponents();
         }
@@ -97,7 +97,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
             bool addBiasKv = false,
             bool addZeroAttention = false,
             bool dynamicDropout = false)
-            : base(nameof(TransformerCellDiscrete))
+            : base(nameof(TransformerCell))
         {
             _activationFn = new ActivationFunction(activationFn);
             Operation = SearchSpace.GetLayer(arch, dropout, attentionDropout, activationDropout, activationFn, addBiasKv,

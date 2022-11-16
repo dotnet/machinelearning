@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Drawing;
 using Microsoft.ML;
+using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.Image;
 
 namespace Samples.Dynamic
@@ -11,16 +11,17 @@ namespace Samples.Dynamic
         {
             var mlContext = new MLContext();
             // Create an image list.
-            var images = new[] { new ImageDataPoint(2, 3, Color.Blue), new
-                ImageDataPoint(2, 3, Color.Red) };
+            var images = new[]
+            {
+                new ImageDataPoint(2, 3, red: 0, green: 0, blue: 255),    // Blue color
+                new ImageDataPoint(2, 3, red: 255, green: 0, blue: 0) };  // red color
 
             // Convert the list of data points to an IDataView object, which is
             // consumable by ML.NET API.
             var data = mlContext.Data.LoadFromEnumerable(images);
 
             // Convert image to gray scale.
-            var pipeline = mlContext.Transforms.ConvertToGrayscale("GrayImage",
-                "Image");
+            var pipeline = mlContext.Transforms.ConvertToGrayscale("GrayImage", "Image");
 
             // Fit the model.
             var model = pipeline.Fit(data);
@@ -37,15 +38,31 @@ namespace Samples.Dynamic
             {
                 var image = dataPoint.Image;
                 var grayImage = dataPoint.GrayImage;
-                for (int x = 0; x < grayImage.Width; ++x)
+
+                ReadOnlySpan<byte> imageData = image.Pixels;
+                (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = image.PixelFormat switch
                 {
-                    for (int y = 0; y < grayImage.Height; ++y)
-                    {
-                        var pixel = image.GetPixel(x, y);
-                        var grayPixel = grayImage.GetPixel(x, y);
-                        Console.WriteLine($"The original pixel is {pixel} and its" +
-                            $"pixel in gray is {grayPixel}");
-                    }
+                    MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                    MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                    _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                };
+
+                ReadOnlySpan<byte> grayImageData = grayImage.Pixels;
+                (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = grayImage.PixelFormat switch
+                {
+                    MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                    MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                    _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                };
+
+                int pixelSize = image.BitsPerPixel / 8;
+
+                for (int i = 0; i < imageData.Length; i += pixelSize)
+                {
+                    string pixelString = $"[A = {imageData[i + alphaIndex]}, R = {imageData[i + redIndex]}, G = {imageData[i + greenIndex]}, B = {imageData[i + blueIndex]}]";
+                    string grayPixelString = $"[A = {grayImageData[i + alphaIndex1]}, R = {grayImageData[i + redIndex1]}, G = {grayImageData[i + greenIndex1]}, B = {grayImageData[i + blueIndex1]}]";
+
+                    Console.WriteLine($"The original pixel is {pixelString} and its pixel in gray is {grayPixelString}");
                 }
             }
 
@@ -67,10 +84,10 @@ namespace Samples.Dynamic
         private class ImageDataPoint
         {
             [ImageType(3, 4)]
-            public Bitmap Image { get; set; }
+            public MLImage Image { get; set; }
 
             [ImageType(3, 4)]
-            public Bitmap GrayImage { get; set; }
+            public MLImage GrayImage { get; set; }
 
             public ImageDataPoint()
             {
@@ -78,12 +95,19 @@ namespace Samples.Dynamic
                 GrayImage = null;
             }
 
-            public ImageDataPoint(int width, int height, Color color)
+            public ImageDataPoint(int width, int height, byte red, byte green, byte blue)
             {
-                Image = new Bitmap(width, height);
-                for (int i = 0; i < width; ++i)
-                    for (int j = 0; j < height; ++j)
-                        Image.SetPixel(i, j, color);
+                byte[] imageData = new byte[width * height * 4]; // 4 for the red, green, blue and alpha colors
+                for (int i = 0; i < imageData.Length; i += 4)
+                {
+                    // Fill the buffer with the Bgra32 format
+                    imageData[i] = blue;
+                    imageData[i + 1] = green;
+                    imageData[i + 2] = red;
+                    imageData[i + 3] = 255;
+                }
+
+                Image = MLImage.CreateFromPixels(width, height, MLPixelFormat.Bgra32, imageData);
             }
         }
     }

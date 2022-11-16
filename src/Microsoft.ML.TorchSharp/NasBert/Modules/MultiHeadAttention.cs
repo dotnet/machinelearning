@@ -14,7 +14,7 @@ using TorchSharp.Modules;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Modules
 {
-    internal sealed class MultiHeadAttention : BaseModule
+    internal sealed class MultiHeadAttention : torch.nn.Module, IIncrementalState
     {
         private const string PrevKeyKey = "prevKey";
         private const string PrevValueKey = "prevValue";
@@ -135,6 +135,8 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
                 ModelUtils.InitXavierUniform(KBias);
                 ModelUtils.InitXavierUniform(VBias);
             }
+
+            InitIncrementalState();
         }
 
         /// <summary>
@@ -201,8 +203,8 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
             {
                 var kRepeat = KBias.repeat(1, batchSize, 1);
                 var vRepeat = VBias.repeat(1, batchSize, 1);
-                k = torch.cat(new List<torch.Tensor> { k, kRepeat }, dimension: 0);
-                v = torch.cat(new List<torch.Tensor> { v, vRepeat }, dimension: 0);
+                k = torch.cat(new List<torch.Tensor> { k, kRepeat }, dim: 0);
+                v = torch.cat(new List<torch.Tensor> { v, vRepeat }, dim: 0);
                 attentionMaskPad = PadMask(attentionMaskPad);
                 keyPaddingMaskPad = PadMask(keyPaddingMaskPad);
             }
@@ -219,7 +221,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
                     var prevKey = savedState[PrevKeyKey].view(batchSize * _numHeads, -1, _headDim);
                     k = staticKv
                         ? prevKey
-                        : torch.cat(new List<torch.Tensor> { prevKey, k }, dimension: 1);
+                        : torch.cat(new List<torch.Tensor> { prevKey, k }, dim: 1);
                 }
 
                 if (savedState.ContainsKey(PrevValueKey))
@@ -227,7 +229,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
                     var prevValue = savedState[PrevValueKey].view(batchSize * _numHeads, -1, _headDim);
                     v = staticKv
                         ? prevValue
-                        : torch.cat(new List<torch.Tensor> { prevValue, v }, dimension: 1);
+                        : torch.cat(new List<torch.Tensor> { prevValue, v }, dim: 1);
                 }
 
                 savedState[PrevKeyKey].Dispose();
@@ -253,8 +255,8 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
                 zeroPadSize[1] = 1;
                 var kZeros = k.new_zeros(zeroPadSize);
                 var vZeros = v!.new_zeros(zeroPadSize);
-                k = torch.cat(new List<torch.Tensor> { k, kZeros }, dimension: 1);
-                v = torch.cat(new List<torch.Tensor> { v, vZeros }, dimension: 1);
+                k = torch.cat(new List<torch.Tensor> { k, kZeros }, dim: 1);
+                v = torch.cat(new List<torch.Tensor> { v, vZeros }, dim: 1);
                 attentionMaskPad = PadMask(attentionMaskPad);
                 keyPaddingMaskPad = PadMask(keyPaddingMaskPad);
             }
@@ -305,20 +307,20 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
             }
 
             using var zeros = tensor.new_zeros(tensor.size(0), 1);
-            return torch.cat(new List<torch.Tensor> { tensor, zeros }, dimension: 1);
+            return torch.cat(new List<torch.Tensor> { tensor, zeros }, dim: 1);
         }
 
         private Dictionary<string, torch.Tensor> GetInputBuffer(
             Dictionary<string, Dictionary<string, torch.Tensor>> incrementalState)
         {
-            return ModelUtils.GetIncrementalState(this, incrementalState, AttentionStateKey) ?? new Dictionary<string, torch.Tensor>();
+            return GetIncrementalState(this, incrementalState, AttentionStateKey) ?? new Dictionary<string, torch.Tensor>();
         }
 
         private void SetInputBuffer(
             Dictionary<string, Dictionary<string, torch.Tensor>> incrementalState,
             Dictionary<string, torch.Tensor> buffer)
         {
-            ModelUtils.SetIncrementalState(this, incrementalState, AttentionStateKey, buffer);
+            SetIncrementalState(this, incrementalState, AttentionStateKey, buffer);
         }
 
         private (torch.Tensor, torch.Tensor, torch.Tensor) QkvProjection(
@@ -357,5 +359,24 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
 
             return (q.MoveToOuterDisposeScope(), k.MoveToOuterDisposeScope(), v.MoveToOuterDisposeScope());
         }
+
+        #region Incremental State
+        private readonly IIncrementalState _incrementalState = new IncrementalState();
+
+        public void InitIncrementalState()
+        {
+            _incrementalState.InitIncrementalState();
+        }
+
+        public Dictionary<string, torch.Tensor> GetIncrementalState(torch.nn.Module module, Dictionary<string, Dictionary<string, torch.Tensor>> incrementalState, string key)
+        {
+            return _incrementalState.GetIncrementalState(module, incrementalState, key);
+        }
+
+        public void SetIncrementalState(torch.nn.Module module, Dictionary<string, Dictionary<string, torch.Tensor>> incrementalState, string key, Dictionary<string, torch.Tensor> value)
+        {
+            _incrementalState.SetIncrementalState(module, incrementalState, key, value);
+        }
+        #endregion
     }
 }

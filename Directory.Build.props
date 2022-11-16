@@ -36,7 +36,7 @@
     <PkgDir>$(RepoRoot)pkg/</PkgDir>
   </PropertyGroup>
 
-  <!-- Need to explicitly set these properties for the -netcoreapp3_1 or -netfx configurations becuase they are typically based off 'Debug' or 'Release' configs -->
+  <!-- Need to explicitly set these properties for the -net6_0 or -netfx configurations becuase they are typically based off 'Debug' or 'Release' configs -->
   <!-- Taken from https://github.com/dotnet/sdk/blob/073c98b92c81066c6c2e17c3674adbb6e833409a/src/Tasks/Microsoft.NET.Build.Tasks/targets/Microsoft.NET.Sdk.props#L41-L47 -->
   <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))">
     <DebugSymbols>true</DebugSymbols>

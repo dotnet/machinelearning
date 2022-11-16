@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.IO;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -8,7 +7,7 @@ namespace Samples.Dynamic
 {
     public static class ResizeImages
     {
-        // Example on how to load the images from the file system, and resize them. 
+        // Example on how to load the images from the file system, and resize them.
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for
@@ -19,7 +18,7 @@ namespace Samples.Dynamic
             // list of the files from the dotnet/machinelearning/test/data/images/.
             // If you inspect the fileSystem, after running this line, an "images"
             // folder will be created, containing 4 images, and a .tsv file
-            // enumerating the images. 
+            // enumerating the images.
             var imagesDataFile = Microsoft.ML.SamplesUtils.DatasetUtils
                 .GetSampleImages();
 
@@ -41,7 +40,7 @@ namespace Samples.Dynamic
             }).Load(imagesDataFile);
 
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
-            // Image loading pipeline. 
+            // Image loading pipeline.
             var pipeline = mlContext.Transforms.LoadImages("ImageObject",
                 imagesFolder, "ImagePath")
                 .Append(mlContext.Transforms.ResizeImages("ImageObjectResized",
@@ -50,7 +49,7 @@ namespace Samples.Dynamic
             var transformedData = pipeline.Fit(data).Transform(data);
             // The transformedData IDataView contains the resized images now.
 
-            // Preview the transformedData. 
+            // Preview the transformedData.
             PrintColumns(transformedData);
 
             // ImagePath    Name         ImageObject               ImageObjectResized
@@ -69,12 +68,12 @@ namespace Samples.Dynamic
                 .Schema))
             {
                 // Note that it is best to get the getters and values *before*
-                // iteration, so as to faciliate buffer sharing (if applicable), and
+                // iteration, so as to facilitate buffer sharing (if applicable), and
                 // column -type validation once, rather than many times.
                 ReadOnlyMemory<char> imagePath = default;
                 ReadOnlyMemory<char> name = default;
-                Bitmap imageObject = null;
-                Bitmap resizedImageObject = null;
+                MLImage imageObject = null;
+                MLImage resizedImageObject = null;
 
                 var imagePathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor
                     .Schema["ImagePath"]);
@@ -82,10 +81,10 @@ namespace Samples.Dynamic
                 var nameGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor
                     .Schema["Name"]);
 
-                var imageObjectGetter = cursor.GetGetter<Bitmap>(cursor.Schema[
+                var imageObjectGetter = cursor.GetGetter<MLImage>(cursor.Schema[
                     "ImageObject"]);
 
-                var resizedImageGetter = cursor.GetGetter<Bitmap>(cursor.Schema[
+                var resizedImageGetter = cursor.GetGetter<MLImage>(cursor.Schema[
                     "ImageObjectResized"]);
 
                 while (cursor.MoveNext())
@@ -96,8 +95,9 @@ namespace Samples.Dynamic
                     resizedImageGetter(ref resizedImageObject);
 
                     Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25}",
-                        imagePath, name, imageObject.PhysicalDimension,
-                        resizedImageObject.PhysicalDimension);
+                        imagePath, name,
+                        $"Width={imageObject.Width}, Height={imageObject.Height}",
+                        $"Width={resizedImageObject.Width}, Height={resizedImageObject.Height}");
                 }
 
                 // Dispose the image.

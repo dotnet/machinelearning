@@ -20,7 +20,7 @@ namespace Microsoft.Data.Analysis.Interactive
         public async Task OnLoadAsync(Kernel kernel)
         {
             RegisterDataFrame();
-            if (Kernel.Root?.FindKernel("csharp") is { } csKernel)
+            if (Kernel.Root?.FindKernelByName("csharp") is { } csKernel)
             {
                 await LoadExtensionApiAsync(csKernel);
             }
