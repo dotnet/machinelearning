@@ -52,7 +52,7 @@ namespace Microsoft.ML.Fairlearn.reductions
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             //DataFrameColumn signedWeights = null;
-            var pipeline = _pipeline.BuildFromOption(_context, settings.Parameter);
+            var pipeline = _pipeline.BuildFromOption(_context, settings.Parameter["_pipeline_"]);
             // get lambda 
             var lambdas = settings.Parameter["_lambda_search_space"];
             var key = lambdas.Keys;
@@ -96,6 +96,7 @@ namespace Microsoft.ML.Fairlearn.reductions
                 FairnessMetric = fairnessLost,
                 Metric = metric,
                 Model = model,
+                Loss = -metric,
                 TrialSettings = settings,
                 DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
             });

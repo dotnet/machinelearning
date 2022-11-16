@@ -68,16 +68,18 @@ namespace Microsoft.ML.Fairlearn.Tests
             var pipeline = context.Transforms.Categorical.OneHotHashEncoding("sensitiveFeature_encode", "sensitiveFeature")
                                    .Append(context.Transforms.Concatenate("Features", "sensitiveFeature_encode", "X"))
                                     .Append(context.Auto().BinaryClassification(labelColumnName: "y_true", exampleWeightColumnName: "signedWeight"));
-            var trialRunner = new GridSearchTrailRunner(context, this.CreateDummyDataset(), this.CreateDummyDataset(), "y_true");
+            var trialRunner = new GridSearchTrailRunner(context, this.CreateDummyDataset(), this.CreateDummyDataset(), "y_true", pipeline, moment);
             experiment.SetPipeline(pipeline)
-                        .SetEvaluateMetric(BinaryClassificationMetric.Accuracy, "y_true", "PredictedLabel")
+                        .SetBinaryClassificationMetric(BinaryClassificationMetric.Accuracy, "y_true", "PredictedLabel")
                         .SetTrialRunner(trialRunner)
                         .SetBinaryClassificationMoment(moment)
+                        .SetGridLimit(10)
                         .SetTrainingTimeInSeconds(20);
 
             var bestResult = experiment.Run();
             bestResult.Metric.Should().BeGreaterOrEqualTo(0.8);
         }
+
         // Data generated so it is identical from Binary_Classification.ipynb from Fairlearn.github on Github
         private DataFrame CreateGridScearhDataset()
         {
@@ -132,9 +134,9 @@ namespace Microsoft.ML.Fairlearn.Tests
             var pipeline = context.Transforms.Categorical.OneHotHashEncoding("sensitiveFeature_encode", "sensitiveFeature")
                                    .Append(context.Transforms.Concatenate("Features", "sensitiveFeature_encode", "score_feature"))
                                     .Append(context.Auto().BinaryClassification(labelColumnName: "y", exampleWeightColumnName: "signedWeight"));
-            var trialRunner = new GridSearchTrailRunner(context, trainTestSplit.TrainSet, trainTestSplit.TestSet, "y");
+            var trialRunner = new GridSearchTrailRunner(context, trainTestSplit.TrainSet, trainTestSplit.TestSet, "y", pipeline, moment);
             experiment.SetPipeline(pipeline)
-                        .SetEvaluateMetric(BinaryClassificationMetric.Accuracy, "y", "PredictedLabel")
+                        .SetBinaryClassificationMetric(BinaryClassificationMetric.Accuracy, "y", "PredictedLabel")
                         .SetTrialRunner(trialRunner)
                         .SetBinaryClassificationMoment(moment)
                         .SetGridLimit(10F)
