@@ -27,7 +27,6 @@ namespace Microsoft.ML.Fairlearn.AutoML
         public static AutoMLExperiment SetBinaryClassificationMoment(this AutoMLExperiment experiment, ClassificationMoment moment)
         {
             experiment.ServiceCollection.AddSingleton(moment);
-            experiment.SetTunerFactory<CostFrugalWithLambdaTunerFactory>();
 
             return experiment;
         }
@@ -37,7 +36,7 @@ namespace Microsoft.ML.Fairlearn.AutoML
             var gridLimitObject = new GridLimit();
             gridLimitObject.Value = gridLimit;
             experiment.ServiceCollection.AddSingleton(gridLimitObject);
-            experiment.SetTunerFactory<CostFrugalWithLambdaTunerFactory>();
+            experiment.SetTuner<CostFrugalWithLambdaTunerFactory>();
 
             return experiment;
         }

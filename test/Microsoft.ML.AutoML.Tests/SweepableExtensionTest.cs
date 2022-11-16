@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -43,53 +44,41 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
-        public void CreateSweepableEstimatorPipelineFromIEstimatorTest()
+        public void CreateSweepablePipelineFromIEstimatorTest()
         {
             var context = new MLContext();
             var estimator = context.Transforms.Concatenate("output", "input");
             var pipeline = estimator.Append(SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption()));
 
-            pipeline.ToString().Should().Be("Unknown=>FastForestBinary");
+            pipeline.Should().BeOfType<SweepablePipeline>();
         }
 
         [Fact]
-        public void AppendIEstimatorToSweepabeEstimatorPipelineTest()
-        {
-            var context = new MLContext();
-            var estimator = context.Transforms.Concatenate("output", "input");
-            var pipeline = estimator.Append(SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption()));
-            pipeline = pipeline.Append(context.Transforms.CopyColumns("output", "input"));
-
-            pipeline.ToString().Should().Be("Unknown=>FastForestBinary=>Unknown");
-        }
-
-        [Fact]
-        public void CreateSweepableEstimatorPipelineFromSweepableEstimatorTest()
+        public void CreateSweepablePipelineFromSweepableEstimatorTest()
         {
             var estimator = SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption());
             var pipeline = estimator.Append(estimator);
 
-            pipeline.ToString().Should().Be("FastForestBinary=>FastForestBinary");
+            pipeline.Should().BeOfType<SweepablePipeline>();
         }
 
         [Fact]
-        public void CreateSweepableEstimatorPipelineFromSweepableEstimatorAndIEstimatorTest()
+        public void CreateSweepablePipelineFromSweepableEstimatorAndIEstimatorTest()
         {
             var context = new MLContext();
             var estimator = SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption());
             var pipeline = estimator.Append(context.Transforms.Concatenate("output", "input"));
 
-            pipeline.ToString().Should().Be("FastForestBinary=>Unknown");
-
+            pipeline.Should().BeOfType<SweepablePipeline>();
         }
 
         [Fact]
         [UseReporter(typeof(DiffReporter))]
         [UseApprovalSubdirectory("ApprovalTests")]
-        public void CreateMultiModelPipelineFromIEstimatorAndBinaryClassifiers()
+        public void CreateSweepablePipelineFromIEstimatorAndBinaryClassifiers()
         {
             var context = new MLContext();
-            var pipeline = context.Transforms.Concatenate("output", "input")
+            SweepablePipeline pipeline = context.Transforms.Concatenate("output", "input")
                                 .Append(context.Auto().BinaryClassification());
 
             var json = JsonSerializer.Serialize(pipeline, _jsonSerializerOptions);
@@ -99,10 +88,10 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         [UseApprovalSubdirectory("ApprovalTests")]
         [UseReporter(typeof(DiffReporter))]
-        public void CreateMultiModelPipelineFromIEstimatorAndMultiClassifiers()
+        public void CreateSweepablePipelineFromIEstimatorAndMultiClassifiers()
         {
             var context = new MLContext();
-            var pipeline = context.Transforms.Concatenate("output", "input")
+            SweepablePipeline pipeline = context.Transforms.Concatenate("output", "input")
                                 .Append(context.Auto().MultiClassification());
 
             var json = JsonSerializer.Serialize(pipeline, _jsonSerializerOptions);
@@ -112,10 +101,10 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         [UseApprovalSubdirectory("ApprovalTests")]
         [UseReporter(typeof(DiffReporter))]
-        public void CreateMultiModelPipelineFromIEstimatorAndRegressors()
+        public void CreateSweepablePipelineFromIEstimatorAndRegressors()
         {
             var context = new MLContext();
-            var pipeline = context.Transforms.Concatenate("output", "input")
+            SweepablePipeline pipeline = context.Transforms.Concatenate("output", "input")
                                 .Append(context.Auto().MultiClassification());
 
             var json = JsonSerializer.Serialize(pipeline, _jsonSerializerOptions);
@@ -125,7 +114,7 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         [UseApprovalSubdirectory("ApprovalTests")]
         [UseReporter(typeof(DiffReporter))]
-        public void CreateMultiModelPipelineFromSweepableEstimatorAndMultiClassifiers()
+        public void CreateSweepablePipelineFromSweepableEstimatorAndMultiClassifiers()
         {
             var context = new MLContext();
             var pipeline = SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption())
@@ -138,13 +127,68 @@ namespace Microsoft.ML.AutoML.Test
         [Fact]
         [UseApprovalSubdirectory("ApprovalTests")]
         [UseReporter(typeof(DiffReporter))]
-        public void CreateMultiModelPipelineFromSweepableEstimatorPipelineAndMultiClassifiers()
+        public void CreateSweepablePipelineFromSweepablePipelineAndMultiClassifiers()
         {
             var context = new MLContext();
-            var pipeline = context.Transforms.Concatenate("output", "input")
+            SweepablePipeline pipeline = context.Transforms.Concatenate("output", "input")
                                 .Append(SweepableEstimatorFactory.CreateFeaturizeText(new FeaturizeTextOption()))
                                 .Append(context.Auto().MultiClassification());
 
+            var json = JsonSerializer.Serialize(pipeline, _jsonSerializerOptions);
+            Approvals.Verify(json);
+        }
+
+        [Fact]
+        [UseApprovalSubdirectory("ApprovalTests")]
+        [UseReporter(typeof(DiffReporter))]
+        public void CreateSweepablePipelineFromSweepablePipelineAndSweepableEstimatorArray()
+        {
+            var context = new MLContext();
+            SweepablePipeline pipeline = context.Transforms.Concatenate("output", "input")
+                                .Append(SweepableEstimatorFactory.CreateFeaturizeText(new FeaturizeTextOption()))
+                                .Append(context.Auto().MultiClassification().Estimators.Select(kv => kv.Value).ToArray());
+
+            var json = JsonSerializer.Serialize(pipeline, _jsonSerializerOptions);
+            Approvals.Verify(json);
+        }
+
+        [Fact]
+        [UseApprovalSubdirectory("ApprovalTests")]
+        [UseReporter(typeof(DiffReporter))]
+        public void CreateSweepablePipelineFromSweepableEstimatorAndSweepableEstimatorArray()
+        {
+            var context = new MLContext();
+            SweepablePipeline pipeline = SweepableEstimatorFactory.CreateFeaturizeText(new FeaturizeTextOption())
+                                .Append(context.Auto().MultiClassification().Estimators.Select(kv => kv.Value).ToArray());
+
+            var json = JsonSerializer.Serialize(pipeline, _jsonSerializerOptions);
+            Approvals.Verify(json);
+        }
+
+        [Fact]
+        [UseApprovalSubdirectory("ApprovalTests")]
+        [UseReporter(typeof(DiffReporter))]
+        public void CreateSweepablePipelineFromIEstimatorAndSweepableEstimatorArray()
+        {
+            var context = new MLContext();
+            SweepablePipeline pipeline = context.Transforms.Concatenate("output", "input")
+                                .Append(context.Auto().MultiClassification().Estimators.Select(kv => kv.Value).ToArray());
+
+            var json = JsonSerializer.Serialize(pipeline, _jsonSerializerOptions);
+            Approvals.Verify(json);
+        }
+
+        [Fact]
+        [UseApprovalSubdirectory("ApprovalTests")]
+        [UseReporter(typeof(DiffReporter))]
+        public void AppendIEstimatorToSweepabePipelineTest()
+        {
+            var context = new MLContext();
+            var estimator = context.Transforms.Concatenate("output", "input");
+            var pipeline = estimator.Append(SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption()), SweepableEstimatorFactory.CreateFastForestBinary(new FastForestOption()));
+            pipeline = pipeline.Append(context.Transforms.CopyColumns("output", "input"));
+
+            pipeline.Should().BeOfType<SweepablePipeline>();
             var json = JsonSerializer.Serialize(pipeline, _jsonSerializerOptions);
             Approvals.Verify(json);
         }

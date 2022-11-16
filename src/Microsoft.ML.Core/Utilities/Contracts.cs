@@ -877,6 +877,7 @@ namespace Microsoft.ML.Runtime
             if (object.ReferenceEquals(val, null))
                 DbgFailValue(paramName);
         }
+
         [Conditional("DEBUG")]
         public static void AssertValue<T>(this IExceptionContext ctx, T val, string paramName) where T : class
         {

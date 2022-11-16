@@ -11,9 +11,21 @@ namespace Microsoft.ML.SearchSpace.Tuner
     {
         private readonly Random _rnd;
 
-        public RandomTuner()
+        public RandomTuner(int? seed = null)
         {
-            _rnd = new Random();
+            if (seed is int)
+            {
+                _rnd = new Random(seed.Value);
+            }
+            else
+            {
+                _rnd = new Random();
+            }
+        }
+
+        public RandomTuner(int seed)
+        {
+            _rnd = new Random(seed);
         }
 
         public Parameter Propose(SearchSpace searchSpace)

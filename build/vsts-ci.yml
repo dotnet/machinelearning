@@ -5,414 +5,282 @@
 resources:
   containers:
   - container: CentosContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet-8bba86b-20190314145033
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet
 
   - container: UbuntuCrossArmContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm-20210512124625-2e59a5f
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm
 
   - container: UbuntuCrossArm64Container
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64-20210512124625-2e59a5f
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64
 
-jobs:
-################################################################################
-- job: Linux_x64
-################################################################################
-  variables:
-    BuildConfig: Release
-    OfficialBuildId: $(BUILD.BUILDNUMBER)
-    DOTNET_CLI_TELEMETRY_OPTOUT: 1
-    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-    DOTNET_MULTILEVEL_LOOKUP: 0
-  pool:
-    name: NetCore1ESPool-Internal
-    demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
-  container: CentosContainer
-  steps:
-  - script: ./restore.sh
-    displayName: restore all projects
-  - script: ./build.sh -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
-    displayName: build redist
-  # Only build native assets to avoid conflicts.
-  - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
-    displayName: Build Native Assets
+variables:
+  BuildConfig: Release
+  _BuildConfig: $(BuildConfig)
+  OfficialBuildId: $(BUILD.BUILDNUMBER)
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_MULTILEVEL_LOOKUP: 0
+  Codeql.Enabled: true
+  Codeql.SkipTaskAutoInjection: True  #default to not inject CodeQL tasks, we'll enable it in a single job.
+  
+stages:
+- stage: build
+  displayName: Build
+  jobs:
+  ################################################################################
+  - job: Linux_x64
+  ################################################################################
+    pool:
+      name: NetCore1ESPool-Internal
+      demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+    container: CentosContainer
+    steps:
+    # Only build native assets to avoid conflicts.
+    - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
+      displayName: Build Native Assets
 
-  - task: PublishBuildArtifacts@1
-    displayName: Publish Linux package assets
-    inputs:
-      pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-      artifactName: PackageAssets
-      artifactType: container
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Linux package assets
+      inputs:
+        pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+        artifactName: pkgassets
+        artifactType: container
 
-  - template: /eng/common/templates/steps/generate-sbom.yml
+    - template: /eng/common/templates/steps/generate-sbom.yml
 
-################################################################################
-- job: Linux_arm
-################################################################################
-  variables:
-    BuildConfig: Release
-    OfficialBuildId: $(BUILD.BUILDNUMBER)
-    DOTNET_CLI_TELEMETRY_OPTOUT: 1
-    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-    DOTNET_MULTILEVEL_LOOKUP: 0
-    ROOTFS_DIR: '/crossrootfs/arm'
-  pool:
-    name: NetCore1ESPool-Internal
-    demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
-  container: UbuntuCrossArmContainer
-  steps:
-  - script: ./restore.sh
-    displayName: restore all projects
-  - script: ./build.sh -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
-    displayName: build redist
-  # Only build native assets to avoid conflicts.
-  - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm /p:CopyPackageAssets=true
-    displayName: Build Native Assets
+  ################################################################################
+  - job: Linux_arm
+  ################################################################################
+    variables:
+      ROOTFS_DIR: '/crossrootfs/arm'
+    pool:
+      name: NetCore1ESPool-Internal
+      demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+    container: UbuntuCrossArmContainer
+    steps:
+    # Only build native assets to avoid conflicts.
+    - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm /p:CopyPackageAssets=true
+      displayName: Build Native Assets
 
-  - task: PublishBuildArtifacts@1
-    displayName: Publish Linux package assets
-    inputs:
-      pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-      artifactName: PackageAssets
-      artifactType: container
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Linux package assets
+      inputs:
+        pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+        artifactName: pkgassets
+        artifactType: container
 
-  - template: /eng/common/templates/steps/generate-sbom.yml
+    - template: /eng/common/templates/steps/generate-sbom.yml
 
-################################################################################
-- job: Linux_arm64
-################################################################################
-  variables:
-    BuildConfig: Release
-    OfficialBuildId: $(BUILD.BUILDNUMBER)
-    DOTNET_CLI_TELEMETRY_OPTOUT: 1
-    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-    DOTNET_MULTILEVEL_LOOKUP: 0
-    ROOTFS_DIR: '/crossrootfs/arm64'
-  pool:
-    name: NetCore1ESPool-Internal
-    demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
-  container: UbuntuCrossArm64Container
-  steps:
-  - script: ./restore.sh
-    displayName: restore all projects
-  - script: ./build.sh -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
-    displayName: build redist
-  # Only build native assets to avoid conflicts.
-  - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
-    displayName: Build Native Assets
+  ################################################################################
+  - job: Linux_arm64
+  ################################################################################
+    variables:
+      ROOTFS_DIR: '/crossrootfs/arm64'
+    pool:
+      name: NetCore1ESPool-Internal
+      demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+    container: UbuntuCrossArm64Container
+    steps:
+    # Only build native assets to avoid conflicts.
+    - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
+      displayName: Build Native Assets
 
-  - task: PublishBuildArtifacts@1
-    displayName: Publish Linux package assets
-    inputs:
-      pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-      artifactName: PackageAssets
-      artifactType: container
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Linux package assets
+      inputs:
+        pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+        artifactName: pkgassets
+        artifactType: container
 
-  - template: /eng/common/templates/steps/generate-sbom.yml
+    - template: /eng/common/templates/steps/generate-sbom.yml
 
-################################################################################
-- job: MacOS
-################################################################################
-  variables:
-    BuildConfig: Release
-    OfficialBuildId: $(BUILD.BUILDNUMBER)
-    DOTNET_CLI_TELEMETRY_OPTOUT: 1
-    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-    DOTNET_MULTILEVEL_LOOKUP: 0
-  pool:
-    vmImage: macOS-10.15
-  steps:
-  # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
-  - script: |
-      rm -rf /usr/local/bin/2to3
-    displayName: MacOS Homebrew bug Workaround
-    continueOnError: true
-  - script: brew update && brew unlink python@3.8 && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula && brew link libomp --force
-    displayName: Install build dependencies
-  - script: ./restore.sh
-    displayName: restore all projects
-  - script: ./build.sh -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
-    displayName: build redist
-  # Only build native assets to avoid conflicts.
-  - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
-    displayName: Build Native Assets
+  ################################################################################
+  - job: MacOS
+  ################################################################################
+    pool:
+      vmImage: macOS-12
+    steps:
+    - script: brew update && brew unlink python@3.8 && brew unlink libomp && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
+      displayName: Install build dependencies
+    # Only build native assets to avoid conflicts.
+    - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
+      displayName: Build Native Assets
 
-  - task: PublishBuildArtifacts@1
-    displayName: Publish macOS package assets
-    inputs:
-      pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-      artifactName: PackageAssets
-      artifactType: container
+    - task: PublishBuildArtifacts@1
+      displayName: Publish macOS package assets
+      inputs:
+        pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+        artifactName: pkgassets
+        artifactType: container
 
-  - template: /eng/common/templates/steps/generate-sbom.yml
+    - template: /eng/common/templates/steps/generate-sbom.yml
 
-################################################################################
-- job: MacOS_Apple_Silicon
-################################################################################
-  variables:
-    BuildConfig: Release
-    OfficialBuildId: $(BUILD.BUILDNUMBER)
-    DOTNET_CLI_TELEMETRY_OPTOUT: 1
-    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-    DOTNET_MULTILEVEL_LOOKUP: 0
-  pool:
-    vmImage: macOS-10.15
-  steps:
-  # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
-  - script: |
-      rm -rf /usr/local/bin/2to3
-    displayName: MacOS Homebrew bug Workaround
-    continueOnError: true
-  - script: brew update && brew unlink python@3.8 && brew install mono-libgdiplus && brew install libomp && brew link libomp --force
-    displayName: Install build dependencies
-  - script: ./restore.sh
-    displayName: restore all projects
-  - script: ./build.sh -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
-    displayName: build redist
-  # Only build native assets to avoid conflicts.
-  - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
-    displayName: Build Native Assets
+  ################################################################################
+  - job: MacOS_Apple_Silicon
+  ################################################################################
+    pool:
+      vmImage: macOS-12
+    steps:
+    # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
+    - script: |
+        rm -rf /usr/local/bin/2to3
+      displayName: MacOS Homebrew bug Workaround
+      continueOnError: true
+    - script: brew update && brew unlink python@3.8 && brew install libomp && brew link libomp --force
+      displayName: Install build dependencies
+    # Only build native assets to avoid conflicts.
+    - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
+      displayName: Build Native Assets
 
-  - task: PublishBuildArtifacts@1
-    displayName: Publish macOS package assets
-    inputs:
-      pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-      artifactName: PackageAssets
-      artifactType: container
+    - task: PublishBuildArtifacts@1
+      displayName: Publish macOS package assets
+      inputs:
+        pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+        artifactName: pkgassets
+        artifactType: container
 
-  - template: /eng/common/templates/steps/generate-sbom.yml
+    - template: /eng/common/templates/steps/generate-sbom.yml
 
-################################################################################
-- job: Windows_x86
-################################################################################
-  variables:
-    BuildConfig: Release
-    OfficialBuildId: $(BUILD.BUILDNUMBER)
-    DOTNET_CLI_TELEMETRY_OPTOUT: 1
-    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-    DOTNET_MULTILEVEL_LOOKUP: 0
-    _SignType: real
-    _UseEsrpSigning: true
-    _TeamName: DotNetCore
-  pool:
-    name: NetCore1ESPool-Internal
-    demands: ImageOverride -equals Build.Server.Amd64.VS2019
-  steps:
+  ################################################################################
+  - job: Windows_x86
+  ################################################################################
+    variables:
+      _TeamName: DotNetCore
+    pool:
+      name: NetCore1ESPool-Internal
+      demands: ImageOverride -equals Build.Server.Amd64.VS2019
+    steps:
+    # Only build native assets to avoid conflicts.
+    - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:CopyPackageAssets=true
+      displayName: Build Native Assets
 
-  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@4
-    displayName: Install MicroBuild Signing Plugin
-    inputs:
-      signType: '$(_SignType)'
-      zipSources: false
-      esrpSigning: '$(_UseEsrpSigning)'
-      feedSource: 'https://dnceng.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
-    env:
-      TeamName: $(_TeamName)
-    continueOnError: false
-    condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Windows_x86 package assets
+      inputs:
+        pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+        artifactName: pkgassets
+        artifactType: container
 
-  - script: ./restore.cmd
-    displayName: restore all projects
-  - script: ./build.cmd -configuration $(BuildConfig) /p:CopyPackageAssets=true /p:SkipRIDAgnosticAssets=true -projects $(Build.SourcesDirectory)/src/Redist/Microsoft.ML.DnnImageFeaturizer.ModelRedist/Microsoft.ML.DnnImageFeaturizer.ModelRedist.proj
-    displayName: build redist
-  # Only build native assets to avoid conflicts.
-  - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:CopyPackageAssets=true
-    displayName: Build Native Assets
+    - template: /eng/common/templates/steps/generate-sbom.yml
 
-  - script: ./sign.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:SignBinaries=true
-    displayName: sign binaries
+    # Terminate all dotnet build processes.
+    - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
+      displayName: Dotnet Server Shutdown
 
-  - task: PublishBuildArtifacts@1
-    displayName: Publish Windows_x86 package assets
-    inputs:
-      pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-      artifactName: PackageAssets
-      artifactType: container
+  ################################################################################
+  - job: Windows_x64
+  ################################################################################
+    variables:
+      Codeql.SkipTaskAutoInjection: False  # run CodeQL in this job
+      _TeamName: DotNetCore
+    pool:
+      name: NetCore1ESPool-Internal
+      demands: ImageOverride -equals Build.Server.Amd64.VS2019
+    steps:
 
-  - template: /eng/common/templates/steps/generate-sbom.yml
+    # Build both native and managed assets.
+    - script: ./build.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
+      displayName: Build
 
-  # Terminate all dotnet build processes.
-  - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
-    displayName: Dotnet Server Shutdown
+    - task: ComponentGovernanceComponentDetection@0
+      inputs:
+        scanType: 'Register'
+        verbosity: 'Verbose'
+        alertWarningLevel: 'High'
 
-################################################################################
-- job: Windows_x64
-################################################################################
-  variables:
-    BuildConfig: Release
-    OfficialBuildId: $(BUILD.BUILDNUMBER)
-    DOTNET_CLI_TELEMETRY_OPTOUT: 1
-    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-    DOTNET_MULTILEVEL_LOOKUP: 0
-    _SignType: real
-    _UseEsrpSigning: true
-    _TeamName: DotNetCore
-  pool:
-    name: NetCore1ESPool-Internal
-    demands: ImageOverride -equals Build.Server.Amd64.VS2019
-  steps:
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Windows_x64 package assets
+      inputs:
+        pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+        artifactName: pkgassets
+        artifactType: container
 
-  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@4
-    displayName: Install MicroBuild Signing Plugin
-    inputs:
-      signType: '$(_SignType)'
-      zipSources: false
-      esrpSigning: '$(_UseEsrpSigning)'
-      feedSource: 'https://dnceng.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
-    env:
-      TeamName: $(_TeamName)
-    continueOnError: false
-    condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
+    - template: /eng/common/templates/steps/generate-sbom.yml
 
-  # Build both native and managed assets.
-  - script: ./build.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
-    displayName: Build
+    # Terminate all dotnet build processes.
+    - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
+      displayName: Dotnet Server Shutdown
 
-  - task: ComponentGovernanceComponentDetection@0
-    inputs:
-      scanType: 'Register'
-      verbosity: 'Verbose'
-      alertWarningLevel: 'High'
+  ################################################################################
+  - template: /eng/common/templates/job/job.yml
+    parameters:
+      name: Package
+  ################################################################################
+      artifacts:
+        publish:
+          artifacts: false
+          logs: true
+          manifests: true
+      enableMicrobuild: true
+      enablePublishUsingPipelines: true
+      enableSourceIndex: true
+      dependsOn:
+      - Linux_x64
+      - Linux_arm
+      - Linux_arm64
+      - MacOS
+      - Windows_x86
+      - Windows_x64
+      - MacOS_Apple_Silicon
+      variables:
+        - DotnetVersionKind: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
+        - NUGET_PACKAGES: $(Build.SourcesDirectory)/.packages
+        - _SignType: real
+        - _TeamName: DotNetCore
+        - _InternalBuildArgs: /p:DotNetSignType=$(_SignType) 
+                              /p:TeamName=$(_TeamName)
+                              /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+                              /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
+                              /p:OfficialBuildId=$(OfficialBuildId)
+                              /p:DotNetPublishUsingPipelines=$true
+      pool:
+        name: NetCore1ESPool-Internal
+        demands: ImageOverride -equals Build.Server.Amd64.VS2019
+      steps:
 
+      # Download all agent packages from all previous phases
+      - task: DownloadBuildArtifacts@0
+        displayName: Download package assets
+        inputs:
+          artifactName: pkgassets
+          downloadPath: $(Build.SourcesDirectory)/artifacts
 
-  - script: ./sign.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:SignBinaries=true
-    displayName: sign binaries
+      # Depending on the value of DotNetFinalVersionKind, the name of the package will change.
+      # For our nightly builds we want it to be empty, and when creating the official nugets, we want it to be "release"
+      # the value of the version kind is set when queuing the publishing job on AzureDevOps by adding a VERSIONKIND variable
+      # See more info in: https://github.com/dotnet/arcade/blob/master/Documentation/CorePackages/Versioning.md#package-version
+      - script: ./build.cmd -configuration $(BuildConfig) -pack -sign -publish -ci /p:DotNetFinalVersionKind=$(DotnetVersionKind) $(_InternalBuildArgs)
+        displayName: Build Packages
 
-  - task: PublishBuildArtifacts@1
-    displayName: Publish Windows_x64 package assets
-    inputs:
-      pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-      artifactName: PackageAssets
-      artifactType: container
+      # Terminate all dotnet build processes.
+      - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
+        displayName: Dotnet Server Shutdown
 
-  - template: /eng/common/templates/steps/generate-sbom.yml
+  - template: /eng/common/templates/job/publish-build-assets.yml
+    parameters:
+      dependsOn: Package
+      enablePublishBuildArtifacts: true
+      publishAssetsImmediately: true
+      publishUsingPipelines: true
+      pool:
+        name: NetCore1ESPool-Svc-Internal
+        demands: ImageOverride -equals windows.vs2019.amd64
 
-  # Terminate all dotnet build processes.
-  - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
-    displayName: Dotnet Server Shutdown
-
-################################################################################
-- job: Package
-################################################################################
-  dependsOn:
-  - Linux_x64
-  - Linux_arm
-  - Linux_arm64
-  - MacOS
-  - Windows_x86
-  - Windows_x64
-  - MacOS_Apple_Silicon
-  variables:
-    - name: BuildConfig
-      value:  Release
-    - name: OfficialBuildId
-      value: $(BUILD.BUILDNUMBER)
-    - name: DotnetVersionKind
-      value: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
-    - name: DOTNET_CLI_TELEMETRY_OPTOUT
-      value: 1
-    - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
-      value: 1
-    - name: DOTNET_MULTILEVEL_LOOKUP
-      value: 0
-    - name: NUGET_PACKAGES
-      value: $(Build.SourcesDirectory)/.packages
-    - name: _SignType
-      value: real
-    - name: _UseEsrpSigning
-      value: true
-    - name: _TeamName
-      value: DotNetCore
-    - name: _AzureDevopsFeedUrl
-      value: https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json
-    - name: _SymwebSymbolServerPath
-      value: https://microsoft.artifacts.visualstudio.com/DefaultCollection
-    - name: _MsdlSymbolServerPath
-      value: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection
-
-    # Only enable publishing in non-public, non PR scenarios.
-    - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-      # DotNet-Symbol-Server-Pats provides: microsoft-symbol-server-pat symweb-symbol-server-pat
-      - group: DotNet-Symbol-Server-Pats
-
-  pool:
-    name: NetCore1ESPool-Internal
-    demands: ImageOverride -equals Build.Server.Amd64.VS2019
-  steps:
-
-  # Install MicroBuild plugin
-  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@4
-    displayName: Install MicroBuild Signing Plugin
-    inputs:
-      signType: '$(_SignType)'
-      zipSources: false
-      esrpSigning: '$(_UseEsrpSigning)'
-      feedSource: 'https://dnceng.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
-    env:
-      TeamName: $(_TeamName)
-    continueOnError: false
-    condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
-
-  # Download all agent packages from all previous phases
-  - task: DownloadBuildArtifacts@0
-    displayName: Download package assets
-    inputs:
-      artifactName: PackageAssets
-      downloadPath: $(Build.SourcesDirectory)/artifacts/pkgassets
-
-  # Workaround https://github.com/Microsoft/vsts-tasks/issues/6739
-  - task: CopyFiles@2
-    displayName: Copy package assets to correct folder
-    inputs:
-      sourceFolder: $(Build.SourcesDirectory)/artifacts/pkgassets/PackageAssets
-      targetFolder: $(Build.SourcesDirectory)/artifacts/pkgassets
-
-  # Depending on the value of DotNetFinalVersionKind, the name of the package will change.
-  # For our nightly builds we want it to be empty, and when creating the official nugets, we want it to be "release"
-  # the value of the version kind is set when queuing the publishing job on AzureDevOps by adding a VERSIONKIND variable
-  # See more info in: https://github.com/dotnet/arcade/blob/master/Documentation/CorePackages/Versioning.md#package-version
-  - script: ./build.cmd -configuration $(BuildConfig) -pack -ci /p:OfficialBuildId=$(OfficialBuildId) /p:DotNetFinalVersionKind=$(DotnetVersionKind)
-    displayName: Build Packages
-
-  - script: ./sign.cmd /p:SignNugetPackages=true
-    displayName: sign packages
-    continueOnError: false
-
-  - template: /eng/common/templates/steps/generate-sbom.yml
-
-  # The generated .nupkgs and .snupkgs packages are published to Azure artifacts,
-  # in case we need to debug them. They're found under Release/Shipping
-  - task: PublishBuildArtifacts@1
-    displayName: Push packages and symbol packages to Azure Artifacts
-    inputs:
-      pathToPublish: $(Build.SourcesDirectory)/artifacts/packages
-      artifactName: PackageAssets
-      artifactType: container
-    continueOnError: true
-
-  - task: NuGetCommand@2
-    displayName: Push packages to AzureDevOps feed
-    inputs:
-      command: push
-      nuGetFeedType: 'internal'
-      publishVstsFeed: 'public/MachineLearning'
-      packagesToPush: $(Build.SourcesDirectory)/artifacts/**/*.nupkg;!$(Build.SourcesDirectory)/artifacts/**/*.snupkg
-
-  - task: MSBuild@1
-    displayName: Publish Symbols to SymWeb Symbol Server
-    inputs:
-      solution: build/publish.proj
-      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_SymwebSymbolServerPath) /p:SymbolServerPAT=$(symweb-symbol-server-pat)
-      msbuildVersion: 15.0
-    continueOnError: true
-
-  - task: MSBuild@1
-    displayName: Publish Symbols to Msdl Symbol Server
-    inputs:
-      solution: build/publish.proj
-      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(microsoft-symbol-server-pat)
-      msbuildVersion: 15.0
-    continueOnError: true
-
-  # Terminate all dotnet build processes.
-  - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
-    displayName: Dotnet Server Shutdown
+- template: /eng/common/templates/post-build/post-build.yml
+  parameters:
+    publishingInfraVersion: 3
+    # This is to enable SDL runs part of Post-Build Validation Stage
+    SDLValidationParameters:
+      enable: true
+      publishGdn: true
+      continueOnError: false
+      params: ' -SourceToolsList @("policheck","credscan")
+      -TsaInstanceURL https://devdiv.visualstudio.com/
+      -TsaProjectName DEVDIV
+      -TsaNotificationEmail mlnetcore@microsoft.com
+      -TsaCodebaseAdmin REDMOND\ericstj
+      -TsaBugAreaPath "DevDiv\Net Libraries"
+      -TsaIterationPath DevDiv
+      -TsaRepositoryName machinelearning
+      -TsaCodebaseName machinelearning
+      -TsaPublish $True'

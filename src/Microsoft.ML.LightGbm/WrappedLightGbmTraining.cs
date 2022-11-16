@@ -15,7 +15,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         /// <summary>
         /// Train and return a booster.
         /// </summary>
-        public static Booster Train(IChannel ch, IProgressChannel pch,
+        public static Booster Train(IHost host, IChannel ch, IProgressChannel pch,
             Dictionary<string, object> parameters, Dataset dtrain, Dataset dvalid = null, int numIteration = 100,
             bool verboseEval = true, int earlyStoppingRound = 0)
         {
@@ -67,6 +67,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             });
             for (iter = 0; iter < numIteration; ++iter)
             {
+                host.CheckAlive();
                 if (bst.Update())
                     break;
 

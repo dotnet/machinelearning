@@ -3,20 +3,26 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
+using System.Text.Json;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.SearchSpace;
 using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Microsoft.ML.AutoML
 {
     public class AutoMLExperiment
     {
+        internal const string PipelineSearchspaceName = "_pipeline_";
         private readonly AutoMLExperimentSettings _settings;
         private readonly MLContext _context;
-        private double _bestError = double.MaxValue;
+        private double _bestLoss = double.MaxValue;
         private TrialResult _bestTrialResult = null;
         private readonly IServiceCollection _serviceCollection;
 
@@ -24,69 +30,149 @@ namespace Microsoft.ML.AutoML
         {
             _context = context;
             _settings = settings;
+
+            if (_settings.Seed == null)
+            {
+                _settings.Seed = ((IHostEnvironmentInternal)_context.Model.GetEnvironment()).Seed;
+            }
+
+            if (_settings.SearchSpace == null)
+            {
+                _settings.SearchSpace = new SearchSpace.SearchSpace();
+            }
+
             _serviceCollection = new ServiceCollection();
+            InitializeServiceCollection();
         }
 
         private void InitializeServiceCollection()
         {
-            _serviceCollection.TryAddSingleton(_context);
+            _serviceCollection.TryAddTransient((provider) =>
+            {
+                var contextManager = provider.GetRequiredService<IMLContextManager>();
+                var trainingStopManager = provider.GetRequiredService<AggregateTrainingStopManager>();
+                var context = contextManager.CreateMLContext();
+                trainingStopManager.OnStopTraining += (s, e) =>
+                {
+                    // only force-canceling running trials when there's completed trials.
+                    // otherwise, wait for the current running trial to be completed.
+                    if (_bestTrialResult != null)
+                        context.CancelExecution();
+                };
+
+                return context;
+            });
+
             _serviceCollection.TryAddSingleton(_settings);
-            _serviceCollection.TryAddSingleton<IMonitor, MLContextMonitor>();
-            _serviceCollection.TryAddSingleton<ITrialRunnerFactory, TrialRunnerFactory>();
-            _serviceCollection.TryAddSingleton<ITunerFactory, CostFrugalTunerFactory>();
-            _serviceCollection.TryAddTransient<BinaryClassificationCVRunner>();
-            _serviceCollection.TryAddTransient<BinaryClassificationTrainTestRunner>();
-            _serviceCollection.TryAddTransient<RegressionTrainTestRunner>();
-            _serviceCollection.TryAddTransient<RegressionCVRunner>();
-            _serviceCollection.TryAddTransient<MultiClassificationCVRunner>();
-            _serviceCollection.TryAddTransient<MultiClassificationTrainTestRunner>();
-            _serviceCollection.TryAddScoped<HyperParameterProposer>();
-            _serviceCollection.TryAddScoped<PipelineProposer>();
+            _serviceCollection.TryAddSingleton(((IChannelProvider)_context).Start(nameof(AutoMLExperiment)));
+            _serviceCollection.TryAddSingleton<IMLContextManager>(new DefaultMLContextManager(_context, $"{nameof(AutoMLExperiment)}-ChildContext"));
+            this.SetPerformanceMonitor(2000);
         }
+
+        internal IServiceCollection ServiceCollection { get => _serviceCollection; }
 
         public AutoMLExperiment SetTrainingTimeInSeconds(uint trainingTimeInSeconds)
         {
             _settings.MaxExperimentTimeInSeconds = trainingTimeInSeconds;
-            return this;
-        }
-
-        public AutoMLExperiment SetDataset(IDataView train, IDataView test)
-        {
-            var datasetManager = new TrainTestDatasetManager()
+            _serviceCollection.AddScoped<IStopTrainingManager>((provider) =>
             {
-                TrainDataset = train,
-                TestDataset = test
-            };
+                var channel = provider.GetRequiredService<IChannel>();
+                var timeoutManager = new TimeoutTrainingStopManager(TimeSpan.FromSeconds(trainingTimeInSeconds), channel);
 
-            _serviceCollection.AddSingleton<IDatasetManager>(datasetManager);
-
-            return this;
-        }
-
-        public AutoMLExperiment SetDataset(TrainTestData trainTestSplit)
-        {
-            SetDataset(trainTestSplit.TrainSet, trainTestSplit.TestSet);
+                return timeoutManager;
+            });
 
             return this;
         }
 
-        public AutoMLExperiment SetDataset(IDataView dataset, int fold = 10)
+        public AutoMLExperiment SetMaxModelToExplore(int maxModel)
         {
-            var datasetManager = new CrossValidateDatasetManager()
+            _context.Assert(maxModel > 0, "maxModel has to be greater than 0");
+            _settings.MaxModels = maxModel;
+            _serviceCollection.AddScoped<IStopTrainingManager>((provider) =>
             {
-                Dataset = dataset,
-                Fold = fold,
-            };
+                var channel = provider.GetRequiredService<IChannel>();
+                var maxModelManager = new MaxModelStopManager(maxModel, channel);
 
-            _serviceCollection.AddSingleton<IDatasetManager>(datasetManager);
+                return maxModelManager;
+            });
 
             return this;
         }
 
-        public AutoMLExperiment SetTunerFactory<TTunerFactory>()
-            where TTunerFactory : ITunerFactory
+        public AutoMLExperiment SetMaximumMemoryUsageInMegaByte(double value = double.MaxValue)
         {
-            var descriptor = new ServiceDescriptor(typeof(ITunerFactory), typeof(TTunerFactory), ServiceLifetime.Singleton);
+            Contracts.Assert(!double.IsNaN(value) && value > 0, "value can't be nan or non-positive");
+            _settings.MaximumMemoryUsageInMegaByte = value;
+            return this;
+        }
+
+        public AutoMLExperiment AddSearchSpace(string key, SearchSpace.SearchSpace searchSpace)
+        {
+            _settings.SearchSpace[key] = searchSpace;
+
+            return this;
+        }
+
+        public AutoMLExperiment SetMonitor<TMonitor>(TMonitor monitor)
+            where TMonitor : class, IMonitor
+        {
+            _serviceCollection.AddSingleton<IMonitor>(monitor);
+
+            return this;
+        }
+
+        public AutoMLExperiment SetMonitor<TMonitor>()
+            where TMonitor : class, IMonitor
+        {
+            _serviceCollection.AddSingleton<IMonitor, TMonitor>();
+
+            return this;
+        }
+
+        public AutoMLExperiment SetMonitor<TMonitor>(Func<IServiceProvider, TMonitor> factory)
+            where TMonitor : class, IMonitor
+        {
+            _serviceCollection.AddSingleton<IMonitor>(factory);
+
+            return this;
+        }
+
+        public AutoMLExperiment SetTrialRunner<TTrialRunner>(TTrialRunner runner)
+            where TTrialRunner : class, ITrialRunner
+        {
+            _serviceCollection.AddSingleton<ITrialRunner>(runner);
+
+            return this;
+        }
+
+        public AutoMLExperiment SetTrialRunner<TTrialRunner>(Func<IServiceProvider, TTrialRunner> factory)
+            where TTrialRunner : class, ITrialRunner
+        {
+            _serviceCollection.AddTransient<ITrialRunner>(factory);
+
+            return this;
+        }
+
+        public AutoMLExperiment SetTrialRunner<TTrialRunner>()
+            where TTrialRunner : class, ITrialRunner
+        {
+            _serviceCollection.AddTransient<ITrialRunner, TTrialRunner>();
+
+            return this;
+        }
+
+        public AutoMLExperiment SetTuner<TTuner>(TTuner proposer)
+            where TTuner : class, ITuner
+        {
+            return this.SetTuner((service) => proposer);
+        }
+
+        public AutoMLExperiment SetTuner<TTuner>(Func<IServiceProvider, TTuner> factory)
+            where TTuner : class, ITuner
+        {
+            var descriptor = ServiceDescriptor.Singleton<ITuner>(factory);
+
             if (_serviceCollection.Contains(descriptor))
             {
                 _serviceCollection.Replace(descriptor);
@@ -99,105 +185,30 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        public AutoMLExperiment SetMonitor(IMonitor monitor)
+        public AutoMLExperiment SetTuner<TTuner>()
+            where TTuner : class, ITuner
         {
-            var descriptor = new ServiceDescriptor(typeof(IMonitor), monitor);
-            if (_serviceCollection.Contains(descriptor))
-            {
-                _serviceCollection.Replace(descriptor);
-            }
-            else
-            {
-                _serviceCollection.Add(descriptor);
-            }
+            _serviceCollection.AddSingleton<ITuner, TTuner>();
 
             return this;
         }
 
-        public AutoMLExperiment SetPipeline(MultiModelPipeline pipeline)
+        internal AutoMLExperiment SetPerformanceMonitor<TPerformanceMonitor>()
+            where TPerformanceMonitor : class, IPerformanceMonitor
         {
-            _settings.Pipeline = pipeline;
-            return this;
-        }
-
-        public AutoMLExperiment SetIsMaximizeMetric(bool isMaximize)
-        {
-            _settings.IsMaximizeMetric = isMaximize;
-            return this;
-        }
-
-        public AutoMLExperiment SetTrialRunner(ITrialRunner runner)
-        {
-            var factory = new CustomRunnerFactory(runner);
-            var descriptor = new ServiceDescriptor(typeof(ITrialRunnerFactory), factory);
-            if (_serviceCollection.Contains(descriptor))
-            {
-                _serviceCollection.Replace(descriptor);
-            }
-            else
-            {
-                _serviceCollection.Add(descriptor);
-            }
+            _serviceCollection.AddTransient<IPerformanceMonitor, TPerformanceMonitor>();
 
             return this;
         }
 
-        public AutoMLExperiment SetPipeline(SweepableEstimatorPipeline pipeline)
+        internal AutoMLExperiment SetPerformanceMonitor<TPerformanceMonitor>(Func<IServiceProvider, TPerformanceMonitor> factory)
+            where TPerformanceMonitor : class, IPerformanceMonitor
         {
-            var res = new MultiModelPipeline();
-            foreach (var e in pipeline.Estimators)
-            {
-                res = res.Append(e);
-            }
-
-            SetPipeline(res);
+            _serviceCollection.AddTransient<IPerformanceMonitor>(factory);
 
             return this;
         }
 
-        public AutoMLExperiment SetEvaluateMetric(BinaryClassificationMetric metric, string labelColumn = "label", string predictedColumn = "Predicted")
-        {
-            var metricManager = new BinaryMetricManager()
-            {
-                Metric = metric,
-                PredictedColumn = predictedColumn,
-                LabelColumn = labelColumn,
-            };
-            _serviceCollection.AddSingleton<IMetricManager>(metricManager);
-            SetIsMaximizeMetric(metricManager.IsMaximize);
-
-            return this;
-        }
-
-        public AutoMLExperiment SetEvaluateMetric(MulticlassClassificationMetric metric, string labelColumn = "label", string predictedColumn = "Predicted")
-        {
-            var metricManager = new MultiClassMetricManager()
-            {
-                Metric = metric,
-                PredictedColumn = predictedColumn,
-                LabelColumn = labelColumn,
-            };
-            _serviceCollection.AddSingleton<IMetricManager>(metricManager);
-            SetIsMaximizeMetric(metricManager.IsMaximize);
-
-            return this;
-        }
-
-        public AutoMLExperiment SetEvaluateMetric(RegressionMetric metric, string labelColumn = "Label", string scoreColumn = "Score")
-        {
-            var metricManager = new RegressionMetricManager()
-            {
-                Metric = metric,
-                ScoreColumn = scoreColumn,
-                LabelColumn = labelColumn,
-            };
-            _serviceCollection.AddSingleton<IMetricManager>(metricManager);
-            SetIsMaximizeMetric(metricManager.IsMaximize);
-
-            return this;
-        }
-
-        internal IServiceCollection ServiceCollection { get => _serviceCollection; }
         /// <summary>
         /// Run experiment and return the best trial result synchronizely.
         /// </summary>
@@ -216,65 +227,128 @@ namespace Microsoft.ML.AutoML
         public async Task<TrialResult> RunAsync(CancellationToken ct = default)
         {
             ValidateSettings();
-            var cts = new CancellationTokenSource();
-            _settings.CancellationToken = ct;
-            cts.CancelAfter((int)_settings.MaxExperimentTimeInSeconds * 1000);
-            _settings.CancellationToken.Register(() => cts.Cancel());
-            cts.Token.Register(() => _context.CancelExecution());
-
-            InitializeServiceCollection();
-            var serviceProvider = _serviceCollection.BuildServiceProvider();
-            var monitor = serviceProvider.GetService<IMonitor>();
-            var trialNum = 0;
-            var pipelineProposer = serviceProvider.GetService<PipelineProposer>();
-            var hyperParameterProposer = serviceProvider.GetService<HyperParameterProposer>();
-            var runnerFactory = serviceProvider.GetService<ITrialRunnerFactory>();
-
-            while (true)
+            _serviceCollection.AddScoped((serviceProvider) =>
             {
-                try
+                var logger = serviceProvider.GetRequiredService<IChannel>();
+                var stopServices = serviceProvider.GetServices<IStopTrainingManager>();
+                var cancellationTrainingStopManager = new CancellationTokenStopTrainingManager(ct, logger);
+
+                // always get the most recent added stop service for each type.
+                var mostRecentAddedStopServices = stopServices.GroupBy(s => s.GetType()).Select(g => g.Last()).ToList();
+                mostRecentAddedStopServices.Add(cancellationTrainingStopManager);
+                return new AggregateTrainingStopManager(logger, mostRecentAddedStopServices.ToArray());
+            });
+
+            var serviceProvider = _serviceCollection.BuildServiceProvider();
+
+            _settings.CancellationToken = ct;
+            var logger = serviceProvider.GetRequiredService<IChannel>();
+            var aggregateTrainingStopManager = serviceProvider.GetRequiredService<AggregateTrainingStopManager>();
+            var monitor = serviceProvider.GetService<IMonitor>();
+            var trialResultManager = serviceProvider.GetService<ITrialResultManager>();
+            var trialNum = trialResultManager?.GetAllTrialResults().Max(t => t.TrialSettings?.TrialId) + 1 ?? 0;
+            var tuner = serviceProvider.GetService<ITuner>();
+            Contracts.Assert(tuner != null, "tuner can't be null");
+            while (!aggregateTrainingStopManager.IsStopTrainingRequested())
+            {
+                var setting = new TrialSettings()
                 {
-                    if (cts.Token.IsCancellationRequested)
+                    TrialId = trialNum++,
+                    Parameter = Parameter.CreateNestedParameter(),
+                };
+                var parameter = tuner.Propose(setting);
+                setting.Parameter = parameter;
+
+                monitor?.ReportRunningTrial(setting);
+                using (var trialCancellationTokenSource = new CancellationTokenSource())
+                {
+                    void handler(object o, EventArgs e)
+                    {
+                        // only force-canceling running trials when there's completed trials.
+                        // otherwise, wait for the current running trial to be completed.
+                        if (_bestTrialResult != null)
+                            trialCancellationTokenSource.Cancel();
+                    }
+                    try
+                    {
+                        using (var performanceMonitor = serviceProvider.GetService<IPerformanceMonitor>())
+                        using (var runner = serviceProvider.GetRequiredService<ITrialRunner>())
+                        {
+                            aggregateTrainingStopManager.OnStopTraining += handler;
+
+                            performanceMonitor.MemoryUsageInMegaByte += (o, m) =>
+                            {
+                                if (_settings.MaximumMemoryUsageInMegaByte is double d && m > d && !trialCancellationTokenSource.IsCancellationRequested)
+                                {
+                                    logger.Trace($"cancel current trial {setting.TrialId} because it uses {m} mb memory and the maximum memory usage is {d}");
+                                    trialCancellationTokenSource.Cancel();
+
+                                    GC.AddMemoryPressure(Convert.ToInt64(m) * 1024 * 1024);
+                                    GC.Collect();
+                                }
+                            };
+
+                            performanceMonitor.Start();
+                            logger.Trace($"trial setting - {JsonSerializer.Serialize(setting)}");
+                            var trialResult = await runner.RunAsync(setting, trialCancellationTokenSource.Token);
+
+                            var peakCpu = performanceMonitor?.GetPeakCpuUsage();
+                            var peakMemoryInMB = performanceMonitor?.GetPeakMemoryUsageInMegaByte();
+                            trialResult.PeakCpu = peakCpu;
+                            trialResult.PeakMemoryInMegaByte = peakMemoryInMB;
+
+                            monitor?.ReportCompletedTrial(trialResult);
+                            tuner.Update(trialResult);
+                            trialResultManager?.AddOrUpdateTrialResult(trialResult);
+                            aggregateTrainingStopManager.Update(trialResult);
+
+                            var loss = trialResult.Loss;
+                            if (loss < _bestLoss)
+                            {
+                                _bestTrialResult = trialResult;
+                                _bestLoss = loss;
+                                monitor?.ReportBestTrial(trialResult);
+                            }
+                        }
+                    }
+                    catch (OperationCanceledException ex) when (aggregateTrainingStopManager.IsStopTrainingRequested() == false)
+                    {
+                        monitor?.ReportFailTrial(setting, ex);
+                        var result = new TrialResult
+                        {
+                            TrialSettings = setting,
+                            Loss = double.MaxValue,
+                        };
+
+                        tuner.Update(result);
+                        continue;
+                    }
+                    catch (OperationCanceledException) when (aggregateTrainingStopManager.IsStopTrainingRequested())
                     {
                         break;
                     }
-
-                    var setting = new TrialSettings()
+                    catch (Exception ex)
                     {
-                        ExperimentSettings = _settings,
-                        TrialId = trialNum++,
-                    };
+                        monitor?.ReportFailTrial(setting, ex);
 
-                    setting = pipelineProposer.Propose(setting);
-                    setting = hyperParameterProposer.Propose(setting);
-                    monitor.ReportRunningTrial(setting);
-                    var runner = runnerFactory.CreateTrialRunner();
-                    var trialResult = runner.Run(setting, serviceProvider);
-                    monitor.ReportCompletedTrial(trialResult);
-                    hyperParameterProposer.Update(setting, trialResult);
-                    pipelineProposer.Update(setting, trialResult);
-
-                    var error = _settings.IsMaximizeMetric ? 1 - trialResult.Metric : trialResult.Metric;
-                    if (error < _bestError)
-                    {
-                        _bestTrialResult = trialResult;
-                        _bestError = error;
-                        monitor.ReportBestTrial(trialResult);
+                        if (!aggregateTrainingStopManager.IsStopTrainingRequested() && _bestTrialResult == null)
+                        {
+                            // TODO
+                            // it's questionable on whether to abort the entire training process
+                            // for a single fail trial. We should make it an option and only exit
+                            // when error is fatal (like schema mismatch).
+                            throw;
+                        }
                     }
-                }
-                catch (Exception)
-                {
-                    if (cts.Token.IsCancellationRequested)
+                    finally
                     {
-                        break;
-                    }
-                    else
-                    {
-                        throw;
+                        aggregateTrainingStopManager.OnStopTraining -= handler;
+
                     }
                 }
             }
 
+            trialResultManager?.Save();
             if (_bestTrialResult == null)
             {
                 throw new TimeoutException("Training time finished without completing a trial run");
@@ -293,11 +367,9 @@ namespace Microsoft.ML.AutoML
 
         public class AutoMLExperimentSettings : ExperimentSettings
         {
-            public MultiModelPipeline Pipeline { get; set; }
-
             public int? Seed { get; set; }
 
-            public bool IsMaximizeMetric { get; set; }
+            public SearchSpace.SearchSpace SearchSpace { get; set; }
         }
     }
 }

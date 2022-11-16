@@ -15,7 +15,7 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Code
     public class BaseTestClassTest
     {
         internal static readonly ReferenceAssemblies ReferenceAssemblies = ReferenceAssemblies.Default
-            .AddPackages(ImmutableArray.Create(new PackageIdentity("xunit", "2.4.0")));
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("xunit", "2.4.2")));
 
         [Fact]
         public async Task TestClassWithFact()

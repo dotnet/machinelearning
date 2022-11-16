@@ -302,24 +302,16 @@ namespace Microsoft.ML.AutoML
         {
             switch (binaryTrainer)
             {
-                case BinaryClassificationTrainer.AveragedPerceptron:
-                    return TrainerName.AveragedPerceptronBinary;
                 case BinaryClassificationTrainer.FastForest:
                     return TrainerName.FastForestBinary;
                 case BinaryClassificationTrainer.FastTree:
                     return TrainerName.FastTreeBinary;
                 case BinaryClassificationTrainer.LightGbm:
                     return TrainerName.LightGbmBinary;
-                case BinaryClassificationTrainer.LinearSvm:
-                    return TrainerName.LinearSvmBinary;
                 case BinaryClassificationTrainer.LbfgsLogisticRegression:
                     return TrainerName.LbfgsLogisticRegressionBinary;
                 case BinaryClassificationTrainer.SdcaLogisticRegression:
                     return TrainerName.SdcaLogisticRegressionBinary;
-                case BinaryClassificationTrainer.SgdCalibrated:
-                    return TrainerName.SgdCalibratedBinary;
-                case BinaryClassificationTrainer.SymbolicSgdLogisticRegression:
-                    return TrainerName.SymbolicSgdLogisticRegressionBinary;
             }
 
             // never expected to reach here
@@ -330,26 +322,18 @@ namespace Microsoft.ML.AutoML
         {
             switch (multiTrainer)
             {
-                case MulticlassClassificationTrainer.AveragedPerceptronOva:
-                    return TrainerName.AveragedPerceptronOva;
                 case MulticlassClassificationTrainer.FastForestOva:
                     return TrainerName.FastForestOva;
                 case MulticlassClassificationTrainer.FastTreeOva:
                     return TrainerName.FastTreeOva;
                 case MulticlassClassificationTrainer.LightGbm:
                     return TrainerName.LightGbmMulti;
-                case MulticlassClassificationTrainer.LinearSupportVectorMachinesOva:
-                    return TrainerName.LinearSvmOva;
                 case MulticlassClassificationTrainer.LbfgsMaximumEntropy:
                     return TrainerName.LbfgsMaximumEntropyMulti;
                 case MulticlassClassificationTrainer.LbfgsLogisticRegressionOva:
                     return TrainerName.LbfgsLogisticRegressionOva;
                 case MulticlassClassificationTrainer.SdcaMaximumEntropy:
                     return TrainerName.SdcaMaximumEntropyMulti;
-                case MulticlassClassificationTrainer.SgdCalibratedOva:
-                    return TrainerName.SgdCalibratedOva;
-                case MulticlassClassificationTrainer.SymbolicSgdLogisticRegressionOva:
-                    return TrainerName.SymbolicSgdLogisticRegressionOva;
             }
 
             // never expected to reach here
@@ -368,10 +352,6 @@ namespace Microsoft.ML.AutoML
                     return TrainerName.FastTreeTweedieRegression;
                 case RegressionTrainer.LightGbm:
                     return TrainerName.LightGbmRegression;
-                case RegressionTrainer.OnlineGradientDescent:
-                    return TrainerName.OnlineGradientDescentRegression;
-                case RegressionTrainer.Ols:
-                    return TrainerName.OlsRegression;
                 case RegressionTrainer.LbfgsPoissonRegression:
                     return TrainerName.LbfgsPoissonRegression;
                 case RegressionTrainer.StochasticDualCoordinateAscent:

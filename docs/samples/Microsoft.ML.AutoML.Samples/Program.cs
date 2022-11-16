@@ -23,6 +23,9 @@ namespace Microsoft.ML.AutoML.Samples
                 RankingExperiment.Run();
                 Console.Clear();
 
+                Cifar10.Run();
+                Console.Clear();
+
                 Console.WriteLine("Done");
             }
             catch (Exception ex)

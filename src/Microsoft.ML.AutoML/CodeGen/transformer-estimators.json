@@ -63,7 +63,7 @@
         }
       ],
       "nugetDependencies": [ "Microsoft.ML" ],
-      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data", "Microsoft.ML.Transforms" ],
       "searchOption": "one_hot_option"
     },
     {
@@ -80,7 +80,7 @@
         }
       ],
       "nugetDependencies": [ "Microsoft.ML" ],
-      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data", "Microsoft.ML.Transforms" ],
       "searchOption": "one_hot_option"
     },
     {
@@ -321,6 +321,27 @@
       "nugetDependencies": [ "Microsoft.ML", "Microsoft.ML.ImageAnalytics" ],
       "usingStatements": [ "Microsoft.ML" ],
       "searchOption": "load_image_option"
+    },
+    {
+      "functionName": "DnnFeaturizerImage",
+      "estimatorTypes": [ "Transforms" ],
+      "arguments": [
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "inputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "modelFactory",
+          "argumentType": "dnnModelFactory"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML.OnnxTransformer", "Microsoft.ML.OnnxRuntime" ],
+      "usingStatements": [ "Microsoft.ML" ],
+      "searchOption": "dnn_featurizer_image_option"
     }
   ]
 }

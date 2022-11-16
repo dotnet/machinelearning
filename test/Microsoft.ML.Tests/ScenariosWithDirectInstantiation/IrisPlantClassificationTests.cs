@@ -61,9 +61,9 @@ namespace Microsoft.ML.Scenarios
                 PetalWidth = 0.2f,
             });
 
-            Assert.Equal(1, prediction.PredictedLabels[0], 2);
-            Assert.Equal(0, prediction.PredictedLabels[1], 2);
-            Assert.Equal(0, prediction.PredictedLabels[2], 2);
+            Assert.Equal(1d, prediction.PredictedLabels[0], 2);
+            Assert.Equal(0d, prediction.PredictedLabels[1], 2);
+            Assert.Equal(0d, prediction.PredictedLabels[2], 2);
 
             prediction = model.Predict(new IrisData()
             {
@@ -73,9 +73,9 @@ namespace Microsoft.ML.Scenarios
                 PetalWidth = 2.2f,
             });
 
-            Assert.Equal(0, prediction.PredictedLabels[0], 2);
-            Assert.Equal(0, prediction.PredictedLabels[1], 2);
-            Assert.Equal(1, prediction.PredictedLabels[2], 2);
+            Assert.Equal(0d, prediction.PredictedLabels[0], 2);
+            Assert.Equal(0d, prediction.PredictedLabels[1], 2);
+            Assert.Equal(1d, prediction.PredictedLabels[2], 2);
 
             prediction = model.Predict(new IrisData()
             {
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Scenarios
 
             Assert.Equal(.2, prediction.PredictedLabels[0], 1);
             Assert.Equal(.8, prediction.PredictedLabels[1], 1);
-            Assert.Equal(0, prediction.PredictedLabels[2], 2);
+            Assert.Equal(0d, prediction.PredictedLabels[2], 2);
         }
 
         private void CompareMetrics(MulticlassClassificationMetrics metrics)
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(metrics.LogLossReduction, 0.94, 0.96);
 
             Assert.Equal(3, metrics.PerClassLogLoss.Count);
-            Assert.Equal(0, metrics.PerClassLogLoss[0], 1);
+            Assert.Equal(0d, metrics.PerClassLogLoss[0], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[1], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[2], 1);
         }

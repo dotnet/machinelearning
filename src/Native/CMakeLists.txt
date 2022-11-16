@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 2.8.12)
 
+project(Native)
+
+if (POLICY CMP0042)
+  cmake_policy(SET CMP0042 NEW) # MACOSX_RPATH enabled by default
+endif()
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_INSTALL_PREFIX $ENV{__CMakeBinDir})
 set(RESOURCES)
@@ -83,11 +89,10 @@ else()
     add_compile_options(-fPIC)
     add_compile_options(-fvisibility=hidden)
     add_definitions(-Werror) # treat warnings as errors
+    add_compile_options(-g) # generate debug information
 
     # On Unix CMAKE_BUILD_TYPE is not passed in as just Debug/Release, so manually adding the extra flags
-    if(${CMAKE_BUILD_TYPE} MATCHES "Debug*")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-    else()
+    if(${CMAKE_BUILD_TYPE} MATCHES "Release*")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG")
     endif()
 
@@ -185,11 +190,21 @@ function(strip_symbols targetName outputFilename)
             if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
                 set(strip_destination_file ${strip_source_file}.dwarf)
 
+                execute_process(
+                    COMMAND ${DSYMUTIL} --help
+                    OUTPUT_VARIABLE DSYMUTIL_HELP_OUTPUT
+                )
+
+                set(DSYMUTIL_OPTS "--flat")
+                if ("${DSYMUTIL_HELP_OUTPUT}" MATCHES "--minimize")
+                    list(APPEND DSYMUTIL_OPTS "--minimize")
+                endif ()
+
                 add_custom_command(
                     TARGET ${targetName}
                     POST_BUILD
                     VERBATIM
-                    COMMAND ${DSYMUTIL} --flat --minimize ${strip_source_file}
+                    COMMAND ${DSYMUTIL} ${DSYMUTIL_OPTS} ${strip_source_file}
                     COMMAND ${STRIP} -u -r ${strip_source_file}
                     COMMENT Stripping symbols from ${strip_source_file} into file ${strip_destination_file}
                 )

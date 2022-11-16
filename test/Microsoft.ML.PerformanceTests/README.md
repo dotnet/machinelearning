@@ -20,21 +20,6 @@ This project contains performance benchmarks.
     build.cmd -configuration Release -performanceTest
 ```
 
-## .NET Core 3.1
-
-**Pre-requisite:** Follow the [netcoreapp3.1 instructions](../../docs/building/netcoreapp3.1-instructions.md).
-
-**Pre-requisite:** To use dotnet cli from the root directory remember to set `DOTNET_MULTILEVEL_LOOKUP` environment variable to `0`!
-
-    $env:DOTNET_MULTILEVEL_LOOKUP=0
-
-1. Navigate to the benchmarks directory (machinelearning\test\Microsoft.ML.PerformanceTests)
-
-2. Run the benchmarks in `Release-netcoreapp3_1` configuration:
-
-```log
-    build.cmd -configuration Release-netcoreapp3_1 -performanceTest
-```
 ## Authoring new benchmarks
 
 1. The type which contains benchmark(s) has to be a public, non-sealed, non-static class.

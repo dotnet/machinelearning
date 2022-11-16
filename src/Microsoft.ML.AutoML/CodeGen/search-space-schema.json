@@ -2,6 +2,41 @@
   "$schema": "http://json-schema.org/draft-04/schema",
   "title": "Search Space",
   "definitions": {
+    "boolArray": {
+      "type": "array",
+      "items": { "type": "boolean" }
+    },
+    "intArray": {
+      "type": "array",
+      "items": { "type": "integer" }
+    },
+    "dnnModelFactoryArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/dnnModelFactoryType"
+      }
+    },
+    "dnnModelFactoryType": {
+      "type": "string",
+      "enum": [
+        "resnet_18",
+        "resnet_50",
+        "resnet_101",
+        "alexnet"
+      ]
+    },
+    "bertArchitecture": {
+      "type": "string",
+      "enum": [
+        "BertArchitecture.Roberta"
+      ]
+    },
+    "bertArchitectureArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/bertArchitecture"
+      }
+    },
     "range": {
       "type": "object",
       "properties": {
@@ -12,18 +47,20 @@
       "required": [ "min", "max" ]
     },
     "choice": {
-      "type": "object",
-      "properties": {
-        "value": {
-          "oneOf": [
-            { "type": "string" },
-            { "type": "number" },
-            { "type": "integer" },
-            { "type": "boolean" }
-          ]
+      "oneOf": [
+        {
+          "$ref": "#/definitions/intArray"
+        },
+        {
+          "$ref": "#/definitions/dnnModelFactoryArray"
+        },
+        {
+          "$ref": "#/definitions/boolArray"
+        },
+        {
+          "$ref": "#/definitions/bertArchitectureArray"
         }
-      },
-      "required": [ "value" ]
+      ]
     },
     "option": {
       "type": "object",
@@ -36,6 +73,7 @@
         },
         "default": {
           "oneOf": [
+            { "$ref": "#/definitions/bertArchitecture" },
             { "type": "string" },
             { "type": "number" },
             { "type": "boolean" }
@@ -86,7 +124,9 @@
         "extract_pixels_option",
         "load_image_option",
         "image_classification_option",
-        "matrix_factorization_option"
+        "matrix_factorization_option",
+        "dnn_featurizer_image_option",
+        "text_classification_option"
       ]
     },
     "option_name": {
@@ -130,7 +170,13 @@
         "ApproximationRank",
         "NumberOfIterations",
         "Quiet",
-        "OutputAsFloatArray"
+        "OutputAsFloatArray",
+        "ModelFactory",
+        "Sentence1ColumnName",
+        "Sentence2ColumnName",
+        "BatchSize",
+        "MaxEpochs",
+        "Architecture"
       ]
     },
     "option_type": {
@@ -145,7 +191,9 @@
         "resizingKind",
         "colorBits",
         "colorsOrder",
-        "anchor"
+        "anchor",
+        "dnnModelFactory",
+        "bertArchitecture"
       ]
     }
   },

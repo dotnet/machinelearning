@@ -1018,7 +1018,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             {
                 featuresDelegatePeriod.Invoke(ref featuresPeriod);
                 foreach (float feature in featuresPeriod.GetValues().ToArray())
-                    Assert.Equal(feature, Single.NaN);
+                    Assert.Equal(Single.NaN, feature);
             }
         }
 

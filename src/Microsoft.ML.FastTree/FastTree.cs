@@ -223,7 +223,8 @@ namespace Microsoft.ML.Trainers.FastTree
                     PrintPrologInfo(ch);
 
                     Initialize(ch);
-                    PrintMemoryStats(ch);
+                    if (FastTreeTrainerOptions.MemoryStatistics)
+                        PrintMemoryStats(ch);
                 }
                 using (Timer.Time(TimerEvent.TotalTrain))
                     Train(ch);
@@ -647,6 +648,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 pch.SetHeader(new ProgressHeader("trees"), e => e.SetProgress(0, Ensemble.NumTrees, numTotalTrees));
                 while (Ensemble.NumTrees < numTotalTrees)
                 {
+                    ch.Trace($"numTotalTrees left: {numTotalTrees}");
+                    Host.CheckAlive();
                     using (Timer.Time(TimerEvent.Iteration))
                     {
 #if NO_STORE
@@ -687,6 +690,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                     baggingProvider.GetCurrentOutOfBagPartition().Documents);
                         }
 
+                        Host.CheckAlive();
                         CustomizedTrainingIteration(tree);
 
                         using (Timer.Time(TimerEvent.Test))
@@ -738,6 +742,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
+            Host.CheckAlive();
             if (earlyStoppingRule != null)
             {
                 Contracts.Assert(numTotalTrees == 0 || bestIteration > 0);
@@ -750,8 +755,13 @@ namespace Microsoft.ML.Trainers.FastTree
                 bestIteration = GetBestIteration(ch);
             }
 
+            Host.CheckAlive();
             OptimizationAlgorithm.FinalizeLearning(bestIteration);
+
+            Host.CheckAlive();
             Ensemble.PopulateRawThresholds(TrainSet);
+
+            Host.CheckAlive();
             ParallelTraining.FinalizeTreeLearner();
         }
 

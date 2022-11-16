@@ -1,0 +1,45 @@
+﻿{
+  "$schema": "./search-space-schema.json#",
+  "name": "text_classification_option",
+  "search_space": [
+    {
+      "name": "LabelColumnName",
+      "type": "string",
+      "default": "Label"
+    },
+    {
+      "name": "Sentence1ColumnName",
+      "type": "string",
+      "default": "Sentence1"
+    },
+    {
+      "name": "Sentence2ColumnName",
+      "type": "string"
+    },
+    {
+      "name": "ScoreColumnName",
+      "type": "string",
+      "default": "Score"
+    },
+    {
+      "name": "OutputColumnName",
+      "type": "string",
+      "default": "PredictedLabel"
+    },
+    {
+      "name": "BatchSize",
+      "type": "integer",
+      "default": 32
+    },
+    {
+      "name": "MaxEpochs",
+      "type": "integer",
+      "default": 10
+    },
+    {
+      "name": "Architecture",
+      "type": "bertArchitecture",
+      "default": "BertArchitecture.Roberta"
+    }
+  ]
+}

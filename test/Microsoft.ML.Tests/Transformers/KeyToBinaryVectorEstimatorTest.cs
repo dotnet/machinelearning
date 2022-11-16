@@ -130,7 +130,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Empty(column.Annotations.Schema);
 
             column = result.Schema["CatD"];
-            Assert.Equal(column.Annotations.Schema.Single().Name, AnnotationUtils.Kinds.IsNormalized);
+            Assert.Equal(AnnotationUtils.Kinds.IsNormalized, column.Annotations.Schema.Single().Name);
             Assert.True(column.IsNormalized());
         }
 

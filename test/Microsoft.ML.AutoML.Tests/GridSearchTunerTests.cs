@@ -12,7 +12,7 @@ using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.AutoML.Tests
+namespace Microsoft.ML.AutoML.Test
 {
     public class GridSearchTunerTests : BaseTestClass
     {

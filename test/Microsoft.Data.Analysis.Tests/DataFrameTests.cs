@@ -84,7 +84,7 @@ namespace Microsoft.Data.Analysis.Tests
 
         public static DataFrame MakeDataFrameWithAllMutableColumnTypes(int length, bool withNulls = true)
         {
-            DataFrame df = MakeDataFrameWithNumericAndStringColumns(length, withNulls);
+            DataFrame df = MakeDataFrameWithNumericStringAndDateTimeColumns(length, withNulls);
             DataFrameColumn boolColumn = new BooleanDataFrameColumn("Bool", Enumerable.Range(0, length).Select(x => x % 2 == 0));
             df.Columns.Insert(df.Columns.Count, boolColumn);
             if (withNulls)
@@ -130,7 +130,7 @@ namespace Microsoft.Data.Analysis.Tests
         {
             DataFrame df = MakeDataFrameWithNumericAndStringColumns(length, withNulls);
 
-            DataFrameColumn dateTimeColumn = new PrimitiveDataFrameColumn<DateTime>("DateTime", Enumerable.Range(0, length).Select(x => SampleDateTime.AddDays(x)));
+            DataFrameColumn dateTimeColumn = new DateTimeDataFrameColumn("DateTime", Enumerable.Range(0, length).Select(x => SampleDateTime.AddDays(x)));
             df.Columns.Insert(df.Columns.Count, dateTimeColumn);
             if (withNulls)
             {
@@ -467,6 +467,40 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void TestBinaryOperationsOnDateTimeColumn()
+        {
+            var df = new DataFrame();
+            var dataFrameColumn1 = new DateTimeDataFrameColumn("DateTime1", Enumerable.Range(0, 5).Select(x => SampleDateTime.AddDays(x)));
+            // Make the second data frame column have one value that is different
+            var dataFrameColumn2 = new DateTimeDataFrameColumn("DateTime2", Enumerable.Range(0, 4).Select(x => SampleDateTime.AddDays(x)));
+            dataFrameColumn2.Append(SampleDateTime.AddDays(6));
+            df.Columns.Insert(0, dataFrameColumn1);
+            df.Columns.Insert(1, dataFrameColumn2);
+
+            // DateTime + int should throw
+            Assert.Throws<NotSupportedException>(() => df.Add(5));
+            // Left shift should throw
+            Assert.Throws<NotSupportedException>(() => df.LeftShift(5));
+            // Right shift should throw
+            Assert.Throws<NotSupportedException>(() => df.RightShift(5));
+
+            // And should throw
+            Assert.Throws<NotSupportedException>(() => df.And(true));
+            // Or should throw
+            Assert.Throws<NotSupportedException>(() => df.Or(true));
+            // Xor should throw
+            Assert.Throws<NotSupportedException>(() => df.Xor(true));
+
+            var equalsResult = dataFrameColumn1.ElementwiseEquals(dataFrameColumn2);
+            Assert.True(equalsResult[0]);
+            Assert.False(equalsResult[4]);
+
+            var notEqualsResult = dataFrameColumn1.ElementwiseNotEquals(dataFrameColumn2);
+            Assert.False(notEqualsResult[0]);
+            Assert.True(notEqualsResult[4]);
+        }
+
+        [Fact]
         public void TestBinaryOperationsOnArrowStringColumn()
         {
             var df = new DataFrame();
@@ -701,6 +735,8 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Throws<NotSupportedException>(() => df.Columns["Byte"].Any());
             Assert.Throws<NotSupportedException>(() => df.Columns["Char"].All());
             Assert.Throws<NotSupportedException>(() => df.Columns["Char"].Any());
+            Assert.Throws<NotSupportedException>(() => df.Columns["DateTime"].All());
+            Assert.Throws<NotSupportedException>(() => df.Columns["DateTime"].Any());
             Assert.Throws<NotSupportedException>(() => df.Columns["Decimal"].All());
             Assert.Throws<NotSupportedException>(() => df.Columns["Decimal"].Any());
             Assert.Throws<NotSupportedException>(() => df.Columns["Double"].All());
@@ -819,6 +855,20 @@ namespace Microsoft.Data.Analysis.Tests
                     Assert.Throws<NotImplementedException>(() => column.Sum());
                     continue;
                 }
+                else if (column.DataType == typeof(DateTime))
+                {
+                    column.CumulativeMax();
+                    column.CumulativeMin();
+                    column.Max();
+                    column.Min();
+
+                    Assert.Throws<NotSupportedException>(() => column.CumulativeProduct());
+                    Assert.Throws<NotSupportedException>(() => column.CumulativeSum());
+                    Assert.Throws<NotSupportedException>(() => column.Product());
+                    Assert.Throws<NotSupportedException>(() => column.Sum());
+                    continue;
+                }
+
                 column.CumulativeMax();
                 column.CumulativeMin();
                 column.CumulativeProduct();
@@ -1791,7 +1841,7 @@ namespace Microsoft.Data.Analysis.Tests
             for (int i = 0; i < boolColumnFiltered.Columns.Count; i++)
             {
                 DataFrameColumn column = boolColumnFiltered.Columns[i];
-                if (column.Name == "Char" || column.Name == "Bool" || column.Name == "String")
+                if (column.Name == "Char" || column.Name == "Bool" || column.Name == "String" || column.Name == "DateTime")
                     continue;
                 for (int j = 0; j < column.Length; j++)
                 {
@@ -2587,14 +2637,6 @@ namespace Microsoft.Data.Analysis.Tests
         {
             DataFrame df = MakeDataFrameWithAllMutableColumnTypes(10);
 
-            // Add a column manually here until we fix https://github.com/dotnet/corefxlab/issues/2784
-            PrimitiveDataFrameColumn<DateTime> dateTimes = new PrimitiveDataFrameColumn<DateTime>("DateTimes");
-            for (int i = 0; i < 10; i++)
-            {
-                dateTimes.Append(DateTime.Parse("2019/01/01"));
-            }
-            df.Columns.Add(dateTimes);
-
             DataFrame description = df.Description();
             DataFrameColumn descriptionColumn = description.Columns[0];
             Assert.Equal("Description", descriptionColumn.Name);
@@ -2615,9 +2657,9 @@ namespace Microsoft.Data.Analysis.Tests
 
             // Explicitly check the dateTimes column
             DataFrameColumn dateTimeColumn = description.Columns[description.Columns.Count - 1];
-            Assert.Equal(dateTimeColumn.Name, dateTimes.Name);
+            Assert.Equal("DateTime", dateTimeColumn.Name);
             Assert.Equal(4, dateTimeColumn.Length);
-            Assert.Equal((float)10, dateTimeColumn[0]);
+            Assert.Equal((float)9, dateTimeColumn[0]);
             Assert.Null(dateTimeColumn[1]);
             Assert.Null(dateTimeColumn[2]);
             Assert.Null(dateTimeColumn[3]);

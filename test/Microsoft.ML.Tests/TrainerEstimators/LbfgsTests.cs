@@ -118,7 +118,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var modelAndSchemaPath = GetOutputPath("TestLRWithStats.zip");
 
-            // Save model. 
+            // Save model.
             ML.Model.Save(transformer, dataView.Schema, modelAndSchemaPath);
 
             ITransformer transformerChain;
@@ -198,8 +198,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var stats = modelParams.Statistics;
                 Assert.NotNull(stats);
 
-#if NETCOREAPP3_1
-                CompareNumbersWithTolerance(stats.Deviance, 45.79, digitsOfPrecision: 2);
+#if NETCOREAPP3_1_OR_GREATER
+                CompareNumbersWithTolerance(stats.Deviance, 45.79, digitsOfPrecision: 0);
                 CompareNumbersWithTolerance(stats.NullDeviance, 329.58, digitsOfPrecision: 2);
 #else
                 CompareNumbersWithTolerance(stats.Deviance, 45.35, digitsOfPrecision: 0);
@@ -212,7 +212,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             validateStats(model);
 
             var modelAndSchemaPath = GetOutputPath("TestMLRWithStats.zip");
-            // Save model. 
+            // Save model.
             ML.Model.Save(transformer, dataView.Schema, modelAndSchemaPath);
 
             // Load model.

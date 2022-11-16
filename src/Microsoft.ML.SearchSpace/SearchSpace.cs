@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
-using Microsoft.ML.Runtime;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.ML.SearchSpace.Option;
 
 namespace Microsoft.ML.SearchSpace
@@ -40,9 +42,7 @@ namespace Microsoft.ML.SearchSpace
             _options = new Dictionary<string, OptionBase>();
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override double[] Default
         {
             get
@@ -61,9 +61,7 @@ namespace Microsoft.ML.SearchSpace
             _defaultOption = defaultOption;
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override int FeatureSpaceDim
         {
             get
@@ -72,29 +70,19 @@ namespace Microsoft.ML.SearchSpace
             }
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public ICollection<string> Keys => ((IDictionary<string, OptionBase>)_options).Keys;
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public ICollection<OptionBase> Values => ((IDictionary<string, OptionBase>)_options).Values;
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public int Count => ((ICollection<KeyValuePair<string, OptionBase>>)_options).Count;
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public bool IsReadOnly => ((ICollection<KeyValuePair<string, OptionBase>>)_options).IsReadOnly;
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override int?[] Step
         {
             get
@@ -105,17 +93,13 @@ namespace Microsoft.ML.SearchSpace
             }
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public OptionBase this[string key] { get => ((IDictionary<string, OptionBase>)_options)[key]; set => ((IDictionary<string, OptionBase>)_options)[key] = value; }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override Parameter SampleFromFeatureSpace(double[] feature)
         {
-            Contracts.Check(feature.Length == FeatureSpaceDim, "input feature doesn't match");
+            Contract.Assert(feature.Length == FeatureSpaceDim, "input feature doesn't match");
             var param = Parameter.CreateNestedParameter();
             var cur = 0;
 
@@ -136,9 +120,7 @@ namespace Microsoft.ML.SearchSpace
             return param;
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public override double[] MappingToFeatureSpace(Parameter parameter)
         {
             var res = new List<double>();
@@ -151,6 +133,31 @@ namespace Microsoft.ML.SearchSpace
             }
 
             return res.ToArray();
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            // hash code is calculated in the following process
+            // 1. sample parameter from search space with all feature value equals to 0.5
+            // 2. serialize sampled parameter to json string
+            // 3. return json string hash code
+
+            var featureSpace = Enumerable.Repeat(0.5, FeatureSpaceDim).ToArray();
+            var parameter = SampleFromFeatureSpace(featureSpace);
+            var json = JsonSerializer.Serialize(parameter);
+
+            // we need to make sure the hash code is the same not only during the same training session, but also
+            // on different platform/CLR, so we can't use string.GetHashCode() here.
+            uint hash = 31;
+            foreach (var c in json)
+            {
+                hash = ((hash << 5) + hash) ^ c;
+            }
+
+            // make sure hash code is greater than 0
+
+            return (int)(hash >> 1);
         }
 
         private Dictionary<string, OptionBase> GetOptionsFromType(Type typeInfo)
@@ -187,7 +194,7 @@ namespace Microsoft.ML.SearchSpace
                 var nestOptionAttributes = field.GetCustomAttributes(typeof(NestOptionAttribute), false);
 
                 var attributes = choiceAttributes.Concat(rangeAttributes).Concat(booleanChoiceAttributes).Concat(nestOptionAttributes);
-                Contracts.Check(attributes.Count() <= 1, $"{field.Name} can only define one of the choice|range|option attribute");
+                Contract.Assert(attributes.Count() <= 1, $"{field.Name} can only define one of the choice|range|option attribute");
                 if (attributes.Count() == 0)
                 {
                     continue;
@@ -225,7 +232,7 @@ namespace Microsoft.ML.SearchSpace
                 var nestOptionAttributes = property.GetCustomAttributes(typeof(NestOptionAttribute), false);
 
                 var attributes = choiceAttributes.Concat(rangeAttributes).Concat(booleanChoiceAttributes).Concat(nestOptionAttributes);
-                Contracts.Check(attributes.Count() <= 1, $"{property.Name} can only define one of the choice|range|option attribute");
+                Contract.Assert(attributes.Count() <= 1, $"{property.Name} can only define one of the choice|range|option attribute");
                 if (attributes.Count() == 0)
                 {
                     continue;
@@ -254,108 +261,86 @@ namespace Microsoft.ML.SearchSpace
         {
             if (attribute is BooleanChoiceAttribute)
             {
-                Contracts.Assert(type == typeof(bool), $"[Option:{optionName}] BooleanChoice can only apply to property or field which type is bool");
+                Contract.Assert(type == typeof(bool), $"[Option:{optionName}] BooleanChoice can only apply to property or field which type is bool");
                 return;
             }
 
             if (attribute is RangeAttribute range && (range.Option is UniformDoubleOption || range.Option is UniformSingleOption))
             {
-                Contracts.Assert(type != typeof(int) && type != typeof(short) && type != typeof(long), $"[Option:{optionName}] UniformDoubleOption or UniformSingleOption can't apply to property or field which type is int or short or long");
+                Contract.Assert(type != typeof(int) && type != typeof(short) && type != typeof(long), $"[Option:{optionName}] UniformDoubleOption or UniformSingleOption can't apply to property or field which type is int or short or long");
                 return;
             }
 
             if (attribute is ChoiceAttribute)
             {
                 var supportTypes = new Type[] { typeof(string), typeof(int), typeof(short), typeof(long), typeof(float), typeof(double), typeof(char) };
-                Contracts.Assert(supportTypes.Contains(type) || type.IsEnum, $"[Option:{optionName}] ChoiceAttribute can only apply to enum or the following types {string.Join(",", supportTypes.Select(x => x.Name))}");
+                Contract.Assert(supportTypes.Contains(type) || type.IsEnum, $"[Option:{optionName}] ChoiceAttribute can only apply to enum or the following types {string.Join(",", supportTypes.Select(x => x.Name))}");
                 return;
             }
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
 
         public void Add(string key, OptionBase value)
         {
             ((IDictionary<string, OptionBase>)_options).Add(key, value);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public bool ContainsKey(string key)
         {
             return ((IDictionary<string, OptionBase>)_options).ContainsKey(key);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public bool Remove(string key)
         {
             return ((IDictionary<string, OptionBase>)_options).Remove(key);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public bool TryGetValue(string key, out OptionBase value)
         {
             return ((IDictionary<string, OptionBase>)_options).TryGetValue(key, out value);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public void Add(KeyValuePair<string, OptionBase> item)
         {
             ((ICollection<KeyValuePair<string, OptionBase>>)_options).Add(item);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public void Clear()
         {
             ((ICollection<KeyValuePair<string, OptionBase>>)_options).Clear();
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public bool Contains(KeyValuePair<string, OptionBase> item)
         {
             return ((ICollection<KeyValuePair<string, OptionBase>>)_options).Contains(item);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public void CopyTo(KeyValuePair<string, OptionBase>[] array, int arrayIndex)
         {
             ((ICollection<KeyValuePair<string, OptionBase>>)_options).CopyTo(array, arrayIndex);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public bool Remove(KeyValuePair<string, OptionBase> item)
         {
             return ((ICollection<KeyValuePair<string, OptionBase>>)_options).Remove(item);
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public IEnumerator<KeyValuePair<string, OptionBase>> GetEnumerator()
         {
             return ((IEnumerable<KeyValuePair<string, OptionBase>>)_options).GetEnumerator();
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return ((System.Collections.IEnumerable)_options).GetEnumerator();
@@ -385,9 +370,7 @@ namespace Microsoft.ML.SearchSpace
         }
     }
 
-    /// <summary>
     /// <inheritdoc/>
-    /// </summary>
     public sealed class SearchSpace<T> : SearchSpace
         where T : class, new()
     {
@@ -410,9 +393,7 @@ namespace Microsoft.ML.SearchSpace
             _defaultOption = defaultOption;
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public new T SampleFromFeatureSpace(double[] feature)
         {
             var param = base.SampleFromFeatureSpace(feature);
@@ -421,9 +402,7 @@ namespace Microsoft.ML.SearchSpace
             return option;
         }
 
-        /// <summary>
         /// <inheritdoc/>
-        /// </summary>
         public double[] MappingToFeatureSpace(T input)
         {
             var param = Parameter.FromObject(input);

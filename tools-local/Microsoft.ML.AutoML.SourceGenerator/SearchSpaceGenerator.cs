@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
@@ -52,6 +53,8 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                         "anchor" => "Anchor",
                         "colorBits" => "ColorBits",
                         "colorsOrder" => "ColorsOrder",
+                        "dnnModelFactory" => "string",
+                        "bertArchitecture" => "BertArchitecture",
                         _ => throw new ArgumentException("unknown type"),
                     };
 
@@ -68,6 +71,7 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                         (_, "ResizingKind") => defaultToken.GetValue<string>(),
                         (_, "ColorBits") => defaultToken.GetValue<string>(),
                         (_, "ColorsOrder") => defaultToken.GetValue<string>(),
+                        (_, "BertArchitecture") => defaultToken.GetValue<string>(),
                         (_, _) => throw new ArgumentException("unknown"),
                     };
 
@@ -78,42 +82,38 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                         // default option
                         optionAttribution = string.Empty;
                     }
+                    else if (searchSpaceNode is JsonObject searchSpaceObject && searchSpaceObject.ContainsKey("min"))
+                    {
+                        // range option
+                        var minToken = searchSpaceNode["min"];
+                        var minValue = searchSpaceNode["min"].GetValue<double>();
+                        var maxValue = searchSpaceNode["max"].GetValue<double>();
+                        var logBase = searchSpaceObject.ContainsKey("log_base") is false ? "false" : searchSpaceNode["log_base"].GetValue<bool>() ? "true" : "false";
+                        optionAttribution = (optionTypeName, minValue, maxValue, logBase, optionDefaultValue) switch
+                        {
+                            ("int", _, _, _, null) => $"Range((int){Convert.ToInt32(minValue).ToString(CultureInfo.InvariantCulture)}, (int){Convert.ToInt32(maxValue).ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
+                            ("float", _, _, _, null) => $"Range((float){Convert.ToSingle(minValue).ToString(CultureInfo.InvariantCulture)}, (float){Convert.ToSingle(maxValue).ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
+                            ("double", _, _, _, null) => $"Range((double){minValue.ToString(CultureInfo.InvariantCulture)}, (double){maxValue.ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
+                            ("int", _, _, _, _) => $"Range((int){Convert.ToInt32(minValue).ToString(CultureInfo.InvariantCulture)}, (int){Convert.ToInt32(maxValue).ToString(CultureInfo.InvariantCulture)}, init: (int){optionDefaultValue.ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
+                            ("float", _, _, _, _) => $"Range((float){Convert.ToSingle(minValue).ToString(CultureInfo.InvariantCulture)}, (float){Convert.ToSingle(maxValue).ToString(CultureInfo.InvariantCulture)}, init: (float){optionDefaultValue.ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
+                            ("double", _, _, _, _) => $"Range((double){minValue.ToString(CultureInfo.InvariantCulture)}, (double){maxValue.ToString(CultureInfo.InvariantCulture)}, init: (double){optionDefaultValue.ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
+                            _ => throw new NotImplementedException(),
+                        };
+                        optionAttribution = $"[{optionAttribution}]";
+                    }
                     else
                     {
-                        var searchSpaceObject = searchSpaceNode.AsObject();
-                        if (searchSpaceObject.ContainsKey("min"))
+                        // choice option
+                        var values = searchSpaceNode.AsArray().Select(x => x.Deserialize<string>());
+                        var valuesParam = optionTypeName switch
                         {
-                            // range option
-                            var minToken = searchSpaceNode["min"];
-                            var minValue = searchSpaceNode["min"].GetValue<double>();
-                            var maxValue = searchSpaceNode["max"].GetValue<double>();
-                            var logBase = searchSpaceObject.ContainsKey("log_base") is false ? "false" : searchSpaceNode["log_base"].GetValue<bool>() ? "true" : "false";
-                            optionAttribution = (optionTypeName, minValue, maxValue, logBase, optionDefaultValue) switch
-                            {
-                                ("int", _, _, _, null) => $"Range((int){Convert.ToInt32(minValue).ToString(CultureInfo.InvariantCulture)}, (int){Convert.ToInt32(maxValue).ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
-                                ("float", _, _, _, null) => $"Range((float){Convert.ToSingle(minValue).ToString(CultureInfo.InvariantCulture)}, (float){Convert.ToSingle(maxValue).ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
-                                ("double", _, _, _, null) => $"Range((double){minValue.ToString(CultureInfo.InvariantCulture)}, (double){maxValue.ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
-                                ("int", _, _, _, _) => $"Range((int){Convert.ToInt32(minValue).ToString(CultureInfo.InvariantCulture)}, (int){Convert.ToInt32(maxValue).ToString(CultureInfo.InvariantCulture)}, init: (int){optionDefaultValue.ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
-                                ("float", _, _, _, _) => $"Range((float){Convert.ToSingle(minValue).ToString(CultureInfo.InvariantCulture)}, (float){Convert.ToSingle(maxValue).ToString(CultureInfo.InvariantCulture)}, init: (float){optionDefaultValue.ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
-                                ("double", _, _, _, _) => $"Range((double){minValue.ToString(CultureInfo.InvariantCulture)}, (double){maxValue.ToString(CultureInfo.InvariantCulture)}, init: (double){optionDefaultValue.ToString(CultureInfo.InvariantCulture)}, logBase: {logBase.ToString(CultureInfo.InvariantCulture)})",
-                                _ => throw new NotImplementedException(),
-                            };
-                            optionAttribution = $"[{optionAttribution}]";
-                        }
-                        else
-                        {
-                            // choice option
-                            var values = searchSpaceNode["value"].GetValue<string[]>();
-                            var valuesParam = optionTypeName switch
-                            {
-                                "int" => $"new object[]{{ {string.Join(",", values)} }}",
-                                "boolean" => $"new object[]{{ {string.Join(",", values)} }}",
-                                "string" => $"new object[]{{ {string.Join(",", values.Select(x => $"\"{x}\""))} }}",
-                                _ => throw new NotImplementedException("only support int|boolean|string"),
-                            };
+                            "int" => $"new object[]{{ {string.Join(",", values)} }}",
+                            "boolean" => $"new object[]{{ {string.Join(",", values)} }}",
+                            "string" => $"new object[]{{ {string.Join(",", values.Select(x => $"\"{x}\""))} }}",
+                            _ => throw new NotImplementedException("only support int|boolean|string"),
+                        };
 
-                            optionAttribution = optionDefaultValue == null ? $"[Choice({valuesParam})]" : $"[Choice({valuesParam}, {optionDefaultValue})]";
-                        }
+                        optionAttribution = optionDefaultValue == null ? $"[Choice({valuesParam})]" : $"[Choice({valuesParam}, {optionDefaultValue})]";
                     }
 
                     return (optionTypeName, optionName, optionAttribution, optionDefaultValue);

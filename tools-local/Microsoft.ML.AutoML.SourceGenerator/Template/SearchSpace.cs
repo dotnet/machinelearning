@@ -32,6 +32,7 @@ using ColorsOrder = Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.
 using ColorBits = Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorBits;
 using ResizingKind = Microsoft.ML.Transforms.Image.ImageResizingEstimator.ResizingKind;
 using Anchor = Microsoft.ML.Transforms.Image.ImageResizingEstimator.Anchor;
+using BertArchitecture = Microsoft.ML.TorchSharp.NasBert.BertArchitecture;
 
 #nullable enable
 

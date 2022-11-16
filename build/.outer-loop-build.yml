@@ -24,15 +24,15 @@ schedules:
 resources:
   containers:
   - container: CentosContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet-8bba86b-20190314145033
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet
 
   - container: UbuntuContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-20200515184230-2c829e8
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet
 
 jobs:
 - template: /build/ci/job-template.yml
   parameters:
-    name: Centos_x64_NetCoreApp31
+    name: Centos_x64_Net60
     buildScript: ./build.sh
     container: CentosContainer
     customMatrixes:
@@ -49,7 +49,7 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Ubuntu_x64_NetCoreApp21
+    name: Ubuntu_x64_Net60
     buildScript: ./build.sh
     container: UbuntuContainer
     pool:
@@ -57,14 +57,14 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: MacOS_x64_NetCoreApp21
+    name: MacOS_x64_Net60
     buildScript: ./build.sh
     pool:
       vmImage: macOS-10.15
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Windows_x64_NetCoreApp31
+    name: Windows_x64_Net60
     buildScript: build.cmd
     customMatrixes:
       Debug_Build:
@@ -80,7 +80,7 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Windows_x64_NetCoreApp21
+    name: Windows_x64_Net60
     buildScript: build.cmd
     pool:
       vmImage: windows-2019
@@ -105,7 +105,7 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Windows_x86_NetCoreApp21
+    name: Windows_x86_Net60
     architecture: x86
     buildScript: build.cmd
     pool:

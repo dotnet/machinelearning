@@ -512,6 +512,23 @@
       "searchOption": "image_classification_option"
     },
     {
+      "functionName": "TextClassifcation",
+      "estimatorTypes": [ "MultiClassification" ],
+      "arguments": [
+        {
+          "argumentName": "labelColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "sentence1ColumnName",
+          "argumentType": "string"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML", "Microsoft.ML.TorchSharp" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers", "Microsoft.ML.TorchSharp" ],
+      "searchOption": "text_classification_option"
+    },
+    {
       "functionName": "ForecastBySsa",
       "estimatorTypes": [ "Forecasting" ],
       "arguments": [

@@ -23,27 +23,27 @@ schedules:
 resources:
   containers:
   - container: CentosContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet-8bba86b-20190314145033
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet
 
   - container: UbuntuContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-20200515184230-2c829e8
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet
 
 jobs:
 - template: /build/ci/job-template.yml
   parameters:
-    name: Centos_x64_NetCoreApp31
+    name: Centos_x64_Net60
     buildScript: ./build.sh
     container: CentosContainer
     customMatrixes:
       Debug_Build:
         _configuration: Debug
         _config_short: DI
-        _targetFramework: netcoreapp3.1
+        _targetFramework: net6.0
         _includeBenchmarkData: false
       Release_Build:
         _configuration: Release
         _config_short: RI
-        _targetFramework: netcoreapp3.1
+        _targetFramework: net6.0
         _includeBenchmarkData: true
     nightlyBuild: true
     pool:
@@ -64,11 +64,11 @@ jobs:
     buildScript: ./build.sh
     nightlyBuild: true
     pool:
-      vmImage: macOS-10.15
+      vmImage: macOS-12
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Windows_x64_NetCoreApp31
+    name: Windows_x64_Net60
     buildScript: build.cmd
     customMatrixes:
       Debug_Build:

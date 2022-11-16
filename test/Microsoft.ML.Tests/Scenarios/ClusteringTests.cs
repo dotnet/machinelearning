@@ -84,10 +84,10 @@ namespace Microsoft.ML.Scenarios
             var metrics = mlContext.Clustering.Evaluate(predicted);
 
             //Label is not specified, so NMI would be equal to NaN
-            Assert.Equal(metrics.NormalizedMutualInformation, double.NaN);
+            Assert.Equal(double.NaN, metrics.NormalizedMutualInformation);
             //Calculate dbi is false by default so Dbi would be 0
-            Assert.Equal(metrics.DaviesBouldinIndex, (double)0.0);
-            Assert.Equal(metrics.AverageDistance, (double)0.0, 5);
+            Assert.Equal(0d, metrics.DaviesBouldinIndex);
+            Assert.Equal(0d, metrics.AverageDistance, 5);
         }
     }
 }

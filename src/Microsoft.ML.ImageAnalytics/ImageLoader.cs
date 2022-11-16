@@ -217,7 +217,7 @@ namespace Microsoft.ML.Data
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                var lastImage = default(Bitmap);
+                var lastImage = default(MLImage);
 
                 disposer = () =>
                 {
@@ -230,8 +230,8 @@ namespace Microsoft.ML.Data
 
                 var getSrc = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[ColMapNewToOld[iinfo]]);
                 ReadOnlyMemory<char> src = default;
-                ValueGetter<Bitmap> del =
-                    (ref Bitmap dst) =>
+                ValueGetter<MLImage> del =
+                    (ref MLImage dst) =>
                     {
                         if (dst != null)
                         {
@@ -247,15 +247,11 @@ namespace Microsoft.ML.Data
                             if (!string.IsNullOrWhiteSpace(_parent.ImageFolder))
                                 path = Path.Combine(_parent.ImageFolder, path);
 
-                            // to avoid locking file, use the construct below to load bitmap
+                            // to avoid locking file, use the construct below to load the image
                             var bytes = File.ReadAllBytes(path);
                             var ms = new MemoryStream(bytes);
-                            dst = (Bitmap)Image.FromStream(ms);
+                            dst = MLImage.CreateFromStream(ms);
                             dst.Tag = path;
-
-                            // Check for an incorrect pixel format which indicates the loading failed
-                            if (dst.PixelFormat == System.Drawing.Imaging.PixelFormat.DontCare)
-                                throw Host.Except($"Failed to load image {src.ToString()}.");
                         }
 
                         lastImage = dst;
@@ -385,14 +381,14 @@ namespace Microsoft.ML.Data
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
-    /// | Output column data type | <xref:System.Drawing.Bitmap> |
+    /// | Output column data type | <xref:Microsoft.ML.Data.MLImage> |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
     /// | Exportable to ONNX | No |
     ///
     /// The resulting <xref:Microsoft.ML.Data.ImageLoadingTransformer> creates a new column, named as specified in the output column name parameters, and
     /// loads in it images specified in the input column.
     /// Loading is the first step of almost every pipeline that does image processing, and further analysis on images.
-    /// The images to load need to be in the formats supported by <xref:System.Drawing.Bitmap>.
+    /// The images to load need to be in the formats supported by <xref:Microsoft.ML.Data.MLImage> implementation.
     /// For end-to-end image processing pipelines, and scenarios in your applications, see the
     /// [examples](https://github.com/dotnet/machinelearning-samples/tree/main/samples/csharp/getting-started) in the machinelearning-samples github repository.</a>
     ///

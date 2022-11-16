@@ -68,8 +68,10 @@
               "ApplyOnnxModel",
               "ResizeImages",
               "ExtractPixels",
+              "DnnFeaturizerImage",
               "Naive",
-              "ForecastBySsa"
+              "ForecastBySsa",
+              "TextClassifcation"
             ]
           },
           "nugetDependencies": {
@@ -88,6 +90,7 @@
                 "Microsoft.ML.ImageAnalytics",
                 "SciSharp.TensorFlow.Redist",
                 "Microsoft.ML.OnnxTransformer",
+                "Microsoft.ML.TorchSharp",
                 "Microsoft.ML.OnnxRuntime",
                 "Microsoft.ML.TimeSeries"
               ]
@@ -180,22 +183,13 @@
                     "confidenceLowerBoundColumn",
                     "confidenceUpperBoundColumn",
                     "confidenceLevel",
-                    "variableHorizon"
+                    "variableHorizon",
+                    "modelFactory",
+                    "sentence1ColumnName"
                   ]
                 },
                 "argumentType": {
-                  "type": "string",
-                  "enum": [
-                    "integer",
-                    "float",
-                    "double",
-                    "string",
-                    "boolean",
-                    "resizingKind",
-                    "colorBits",
-                    "colorsOrder",
-                    "anchor"
-                  ]
+                  "$ref": "search-space-schema.json#/definitions/option_type"
                 }
               }
             }

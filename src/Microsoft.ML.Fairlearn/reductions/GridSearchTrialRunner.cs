@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Data.Analysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.AutoML;
@@ -28,24 +30,29 @@ namespace Microsoft.ML.Fairlearn.reductions
         private readonly IDataView _trainDataset;
         private readonly IDataView _testDataset;
         private readonly string _labelColumn;
+        private readonly SweepablePipeline _pipeline;
+        private readonly ClassificationMoment _moment;
 
-        public GridSearchTrailRunner(MLContext context, IDataView trainDataset, IDataView testDataset, string labelColumn)
+        public GridSearchTrailRunner(MLContext context, IDataView trainDataset, IDataView testDataset, string labelColumn, SweepablePipeline pipeline, ClassificationMoment moment)
         {
             _context = context;
             this._trainDataset = trainDataset;
             this._testDataset = testDataset;
             this._labelColumn = labelColumn;
+            _pipeline = pipeline;
+            _moment = moment;
         }
 
-        public TrialResult Run(TrialSettings settings, IServiceProvider provider)
+        public void Dispose()
         {
-            var moment = provider.GetService<ClassificationMoment>();
+        }
+
+        public Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
+        {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             //DataFrameColumn signedWeights = null;
-
-            var pipeline = settings.Pipeline.BuildTrainingPipeline(_context, settings.Parameter);
-
+            var pipeline = _pipeline.BuildFromOption(_context, settings.Parameter);
             // get lambda 
             var lambdas = settings.Parameter["_lambda_search_space"];
             var key = lambdas.Keys;
@@ -63,8 +70,8 @@ namespace Microsoft.ML.Fairlearn.reductions
             df["sign"] = DataFrameColumn.Create("sign", lambdasValue.Select(x => x.sign));
             df["group_id"] = DataFrameColumn.Create("group_id", lambdasValue.Select(x => x.e));
             df["value"] = DataFrameColumn.Create("value", lambdasValue.Select(x => x.value));
-            moment.LoadData(this._trainDataset, DataFrameColumn.Create("y", this._trainDataset.GetColumn<bool>(this._labelColumn)), DataFrameColumn.Create("group_id", this._trainDataset.GetColumn<string>("sensitiveFeature")));
-            var signWeightColumn = moment.SignedWeights(df);
+            _moment.LoadData(this._trainDataset, DataFrameColumn.Create("y", this._trainDataset.GetColumn<bool>(this._labelColumn)), DataFrameColumn.Create("group_id", this._trainDataset.GetColumn<string>("sensitiveFeature")));
+            var signWeightColumn = _moment.SignedWeights(df);
             var trainDataset = this._trainDataset.ToDataFrame();
             trainDataset["signedWeight"] = signWeightColumn;
             var model = pipeline.Fit(trainDataset);
@@ -74,8 +81,8 @@ namespace Microsoft.ML.Fairlearn.reductions
             var predictedLabel = eval.GetColumn<bool>("PredictedLabel").Select(b => b ? 1f : 0f).ToArray();
             var column = DataFrameColumn.Create<float>("pred", predictedLabel);
             //Get the gamma based on the predicted label of the testDataset
-            moment.LoadData(this._testDataset, DataFrameColumn.Create("y", eval.GetColumn<bool>(this._labelColumn)), DataFrameColumn.Create("group_id", eval.GetColumn<string>("sensitiveFeature")));
-            DataFrame gamma = moment.Gamma(column);
+            _moment.LoadData(this._testDataset, DataFrameColumn.Create("y", eval.GetColumn<bool>(this._labelColumn)), DataFrameColumn.Create("group_id", eval.GetColumn<string>("sensitiveFeature")));
+            var gamma = _moment.Gamma(column);
             double fairnessLost = Convert.ToSingle(gamma["value"].Max());
             var metrics = _context.BinaryClassification.EvaluateNonCalibrated(eval, this._labelColumn);
             // the metric should be the combination of the observed loss from the model and the fairness loss
@@ -84,14 +91,14 @@ namespace Microsoft.ML.Fairlearn.reductions
 
             stopWatch.Stop();
 
-            return new FairnessTrialResult()
+            return Task.FromResult<TrialResult>(new FairnessTrialResult()
             {
                 FairnessMetric = fairnessLost,
                 Metric = metric,
                 Model = model,
                 TrialSettings = settings,
                 DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
-            };
+            });
         }
     }
 }
