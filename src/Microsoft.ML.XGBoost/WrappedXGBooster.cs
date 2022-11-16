@@ -32,13 +32,12 @@ namespace Microsoft.ML.Trainers.XGBoost
     /// </summary>
     internal class Booster : IDisposable
     {
-
+#pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format
         private bool disposed;
         private readonly IntPtr _handle;
         private const int normalPrediction = 0; // Value for the optionMask in prediction
-#pragma warning disable CS0414
         private int numClass = 1;
-#pragma warning restore CS0414
+#pragma warning restore MSML_PrivateFieldName
 
         public IntPtr Handle => _handle;
 
@@ -179,8 +178,9 @@ namespace Microsoft.ML.Trainers.XGBoost
         }
 
         #region Create Models
-
+#pragma warning disable MSML_ParameterLocalVarName
         public string[] DumpModelEx(string fmap, int with_stats, string format)
+#pragma warning restore MSML_ParameterLocalVarName
         {
             int length;
             IntPtr treePtr;
@@ -233,10 +233,12 @@ namespace Microsoft.ML.Trainers.XGBoost
 
         private class TablePopulator
         {
+#pragma warning disable MSML_GeneralName
             public Dictionary<int, List<JsonElement>> dict = new();
             public Dictionary<string, int> nodes = new();
             public Dictionary<string, string> lte = new();
             public Dictionary<string, string> gt = new();
+#pragma warning restore MSML_GeneralName
 
             public TablePopulator(JsonElement elm)
             {

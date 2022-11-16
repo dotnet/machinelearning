@@ -12,14 +12,19 @@ namespace Microsoft.ML.Trainers.XGBoost
     /// </summary>
     internal sealed class DMatrix : IDisposable
     {
+#pragma warning disable MSML_PrivateFieldName
         private bool disposed = false;
+#pragma warning restore MSML_PrivateFieldName
+#pragma warning disable IDE0044
         private IntPtr _handle;
+#pragma warning restore IDE0044
         public IntPtr Handle => _handle;
         private const float Missing = 0f;
 
         /// <summary>
         /// Create a <see cref="DMatrix"/> for storing training and prediction data under XGBoost framework.
         /// </summary>
+#nullable enable
         public unsafe DMatrix(float[] data, uint nrows, uint ncols, float[]? labels = null)
         {
             int errp = WrappedXGBoostInterface.XGDMatrixCreateFromMat(data, nrows, ncols, Missing, out _handle);
@@ -35,6 +40,7 @@ namespace Microsoft.ML.Trainers.XGBoost
             }
 
         }
+#nullable disable
 
         public ulong GetNumRows()
         {

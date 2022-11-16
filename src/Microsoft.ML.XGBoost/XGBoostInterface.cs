@@ -39,7 +39,9 @@ namespace Microsoft.ML.Trainers.XGBoost
 
         public static XGBoostVersion Version()
         {
-            int major, minor, patch;
+            int major;
+            int minor;
+            int patch;
             WrappedXGBoostInterface.XGBoostVersion(out major, out minor, out patch);
             return new XGBoostVersion
             {

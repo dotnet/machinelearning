@@ -88,11 +88,13 @@ namespace Microsoft.ML.Trainers.XGBoost
         #endregion
 
         #region API serialization
+#pragma warning disable MSML_ParameterLocalVarName
         [DllImport(DllName)]
         public static extern int XGBoosterDumpModel(IntPtr handle, string fmap, int with_stats, out int out_len, out IntPtr dumpStr);
 
         [DllImport(DllName)]
         public static extern int XGBoosterDumpModelEx(IntPtr handle, string fmap, int with_stats, string format, out int out_len, out IntPtr dumpStr);
+#pragma warning restore MSML_ParameterLocalVarName
         #endregion
 
     }
