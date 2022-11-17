@@ -45,6 +45,8 @@ namespace Microsoft.ML.Transforms.Text
         private readonly bool _useAllLengths;
         private readonly int _maxNumTerms;
         private readonly NgramExtractingEstimator.WeightingCriteria _weighting;
+        private readonly char _termSeparator;
+        private readonly char _freqSeparator;
 
         /// <summary>
         /// Options for how the n-grams are extracted.
@@ -99,6 +101,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
+        /// <param name="termSeparator">Separator used to separate terms/frequency pairs.</param>
+        /// <param name="freqSeparator">Separator used to separate terms from their frequency.</param>
         internal WordBagEstimator(IHostEnvironment env,
             string outputColumnName,
             string inputColumnName = null,
@@ -106,8 +110,10 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool useAllLengths = true,
             int maximumNgramsCount = 10000000,
-            NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
-            : this(env, outputColumnName, new[] { inputColumnName ?? outputColumnName }, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting)
+            NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf,
+            char termSeparator = default,
+            char freqSeparator = default)
+            : this(env, outputColumnName, new[] { inputColumnName ?? outputColumnName }, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting, termSeparator, freqSeparator)
         {
         }
 
@@ -123,6 +129,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
+        /// <param name="termSeparator">Separator used to separate terms/frequency pairs.</param>
+        /// <param name="freqSeparator">Separator used to separate terms from their frequency.</param>
         internal WordBagEstimator(IHostEnvironment env,
             string outputColumnName,
             string[] inputColumnNames,
@@ -130,8 +138,10 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool useAllLengths = true,
             int maximumNgramsCount = 10000000,
-            NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
-            : this(env, new[] { (outputColumnName, inputColumnNames) }, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting)
+            NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf,
+            char termSeparator = default,
+            char freqSeparator = default)
+            : this(env, new[] { (outputColumnName, inputColumnNames) }, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting, termSeparator, freqSeparator)
         {
         }
 
@@ -146,13 +156,17 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
+        /// <param name="termSeparator">Separator used to separate terms/frequency pairs.</param>
+        /// <param name="freqSeparator">Separator used to separate terms from their frequency.</param>
         internal WordBagEstimator(IHostEnvironment env,
             (string outputColumnName, string[] inputColumnNames)[] columns,
             int ngramLength = 1,
             int skipLength = 0,
             bool useAllLengths = true,
             int maximumNgramsCount = 10000000,
-            NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
+            NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf,
+            char termSeparator = default,
+            char freqSeparator = default)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(WordBagEstimator));
@@ -169,6 +183,8 @@ namespace Microsoft.ML.Transforms.Text
             _useAllLengths = useAllLengths;
             _maxNumTerms = maximumNgramsCount;
             _weighting = weighting;
+            _termSeparator = termSeparator;
+            _freqSeparator = freqSeparator;
         }
 
         /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
@@ -187,7 +203,9 @@ namespace Microsoft.ML.Transforms.Text
                 SkipLength = _skipLength,
                 UseAllLengths = _useAllLengths,
                 MaxNumTerms = new[] { _maxNumTerms },
-                Weighting = _weighting
+                Weighting = _weighting,
+                TermSeparator = _termSeparator,
+                FreqSeparator = _freqSeparator,
             };
         }
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
+using static Microsoft.ML.Transforms.Text.WordBagBuildingTransformer;
 
 [assembly: LoadableClass(WordBagBuildingTransformer.Summary, typeof(IDataTransform), typeof(WordBagBuildingTransformer), typeof(WordBagBuildingTransformer.Options), typeof(SignatureDataTransform),
     "Word Bag Transform", "WordBagTransform", "WordBag")]
@@ -20,6 +22,16 @@ using Microsoft.ML.Transforms.Text;
     typeof(SignatureNgramExtractorFactory), "Ngram Extractor Transform", "NgramExtractorTransform", "Ngram", NgramExtractorTransform.LoaderSignature)]
 
 [assembly: EntryPointModule(typeof(NgramExtractorTransform.NgramExtractorArguments))]
+
+// These are for the internal only TextExpandingTransformer. Not exposed publically
+[assembly: LoadableClass(TextExpandingTransformer.Summary, typeof(IDataTransform), typeof(TextExpandingTransformer), null, typeof(SignatureLoadDataTransform),
+    TextExpandingTransformer.UserName, TextExpandingTransformer.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(TextExpandingTransformer), null, typeof(SignatureLoadModel),
+    TextExpandingTransformer.UserName, TextExpandingTransformer.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(TextExpandingTransformer), null, typeof(SignatureLoadRowMapper),
+    TextExpandingTransformer.UserName, TextExpandingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Text
 {
@@ -144,18 +156,227 @@ namespace Microsoft.ML.Transforms.Text
                         NgramLength = column.NgramLength,
                         SkipLength = column.SkipLength,
                         Weighting = column.Weighting,
-                        UseAllLengths = column.UseAllLengths
+                        UseAllLengths = column.UseAllLengths,
                     };
             }
 
             IEstimator<ITransformer> estimator = NgramExtractionUtils.GetConcatEstimator(h, options.Columns);
-            estimator = estimator.Append(new WordTokenizingEstimator(env, tokenizeColumns));
+            if (options.FreqSeparator != default)
+            {
+                //estimator = estimator.Append(new ColumnCopyingEstimator(h, ("Text", tokenizeColumns[0].InputColumnName)));
+                //estimator = estimator.Append(new CustomMappingEstimator<CustomIn, CustomOut>(h, new CustomInputTransformAction().GetMapping(), "CustomInputTransform"));
+                //estimator = estimator.Append(new ColumnCopyingEstimator(h, (tokenizeColumns[0].InputColumnName, "ExpandedText")));
+                //estimator = estimator.Append(new ColumnSelectingEstimator(h, null, new string[] { "ExpandedText" }));
+                estimator = estimator.Append(new TextExpandingEstimator(h, tokenizeColumns[0].InputColumnName, options.FreqSeparator, options.TermSeparator));
+
+                //h.ComponentCatalog.RegisterAssembly(typeof(CustomInputTransformAction).Assembly);
+            }
+            estimator = estimator.Append(new WordTokenizingEstimator(h, tokenizeColumns));
             estimator = estimator.Append(NgramExtractorTransform.CreateEstimator(h, extractorArgs, estimator.GetOutputSchema(inputSchema)));
             return estimator;
         }
 
         internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input) =>
             (IDataTransform)CreateEstimator(env, options, SchemaShape.Create(input.Schema)).Fit(input).Transform(input);
+
+        #region TextExpander
+
+        internal sealed class TextExpandingEstimator : TrivialEstimator<TextExpandingTransformer>
+        {
+            private readonly string _columnName;
+            public TextExpandingEstimator(IHostEnvironment env, string columnName, char freqSeparator, char termSeparator)
+                : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TextExpandingEstimator)), new TextExpandingTransformer(env, columnName, freqSeparator, termSeparator))
+            {
+                _columnName = columnName;
+            }
+
+            public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+            {
+                Host.CheckValue(inputSchema, nameof(inputSchema));
+                if (!inputSchema.TryFindColumn(_columnName, out SchemaShape.Column outCol) && outCol.ItemType != TextDataViewType.Instance)
+                {
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _columnName);
+                }
+
+                return inputSchema;
+            }
+        }
+
+        internal sealed class TextExpandingTransformer : RowToRowTransformerBase
+        {
+            internal const string Summary = "Expands text in the format of term:freq; to have the correct number of terms";
+            internal const string UserName = "Text Expanding Transform";
+            internal const string LoadName = "TextExpand";
+
+            internal const string LoaderSignature = "TextExpandTransform";
+
+            private readonly string _columnName;
+            private readonly char _freqSeparator;
+            private readonly char _termSeparator;
+
+            public TextExpandingTransformer(IHostEnvironment env, string columnName, char freqSeparator, char termSeparator)
+                : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TextExpandingTransformer)))
+            {
+                _columnName = columnName;
+                _freqSeparator = freqSeparator;
+                _termSeparator = termSeparator;
+            }
+
+            private static VersionInfo GetVersionInfo()
+            {
+                return new VersionInfo(
+                    modelSignature: "TEXT EXP",
+                    verWrittenCur: 0x00010001, // Initial
+                    verReadableCur: 0x00010001,
+                    verWeCanReadBack: 0x00010001,
+                    loaderSignature: LoaderSignature,
+                    loaderAssemblyName: typeof(TextExpandingTransformer).Assembly.FullName);
+            }
+
+            /// <summary>
+            /// Factory method for SignatureLoadModel.
+            /// </summary>
+            private TextExpandingTransformer(IHostEnvironment env, ModelLoadContext ctx) :
+                base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnConcatenatingTransformer)))
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+                ctx.CheckAtModel(GetVersionInfo());
+                // *** Binary format ***
+                // string: column n ame
+                // char: frequency separator
+                // char: term separator
+
+                _columnName = ctx.Reader.ReadString();
+                _freqSeparator = ctx.Reader.ReadChar();
+                _termSeparator = ctx.Reader.ReadChar();
+            }
+
+            /// <summary>
+            /// Factory method for SignatureLoadRowMapper.
+            /// </summary>
+            private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
+                => new TextExpandingTransformer(env, ctx).MakeRowMapper(inputSchema);
+
+            /// <summary>
+            /// Factory method for SignatureLoadDataTransform.
+            /// </summary>
+            private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+                => new TextExpandingTransformer(env, ctx).MakeDataTransform(input);
+
+            private protected override IRowMapper MakeRowMapper(DataViewSchema schema)
+            {
+                return new Mapper(Host, schema, this);
+            }
+
+            private protected override void SaveModel(ModelSaveContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+                ctx.CheckAtModel();
+                ctx.SetVersionInfo(GetVersionInfo());
+
+                // *** Binary format ***
+                // string: column n ame
+                // char: frequency separator
+                // char: term separator
+
+                ctx.Writer.Write(_columnName);
+                ctx.Writer.Write(_freqSeparator);
+                ctx.Writer.Write(_termSeparator);
+            }
+
+            private sealed class Mapper : MapperBase
+            {
+                private readonly TextExpandingTransformer _parent;
+                public Mapper(IHost host, DataViewSchema inputSchema, RowToRowTransformerBase parent)
+                    : base(host, inputSchema, parent)
+                {
+                    _parent = (TextExpandingTransformer)parent;
+                }
+
+                protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
+                {
+                    return new DataViewSchema.DetachedColumn[]
+                    {
+                        new DataViewSchema.DetachedColumn(_parent._columnName, TextDataViewType.Instance)
+                    };
+                }
+
+                protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+                {
+                    disposer = null;
+                    ValueGetter<ReadOnlyMemory<char>> srcGetter = input.GetGetter<ReadOnlyMemory<char>>(input.Schema.GetColumnOrNull(_parent._columnName).Value);
+                    ReadOnlyMemory<char> inputMem = default;
+                    var sb = new StringBuilder();
+
+                    ValueGetter<ReadOnlyMemory<char>> result = (ref ReadOnlyMemory<char> dst) =>
+                    {
+                        sb.Clear();
+                        srcGetter(ref inputMem);
+                        var inputText = inputMem.ToString();
+                        foreach (var termFreq in inputText.Split(_parent._termSeparator))
+                        {
+                            var tf = termFreq.Split(_parent._freqSeparator);
+                            if (tf.Length != 2)
+                                sb.Append(tf[0] + " ");
+                            else
+                            {
+                                for (int i = 0; i < int.Parse(tf[1]); i++)
+                                    sb.Append(tf[0] + " ");
+                            }
+                        }
+
+                        dst = sb.ToString().AsMemory();
+                    };
+
+                    return result;
+                }
+
+                private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
+                {
+                    var active = new bool[InputSchema.Count];
+                    if (activeOutput(0))
+                    {
+                        active[InputSchema.GetColumnOrNull(_parent._columnName).Value.Index] = true;
+                    }
+                    return col => active[col];
+                }
+
+                private protected override void SaveModel(ModelSaveContext ctx)
+                {
+                    _parent.SaveModel(ctx);
+                }
+            }
+        }
+        private class CustomIn { public string Text { get; set; } }
+
+        private class CustomOut { public string ExpandedText { get; set; } }
+
+        [CustomMappingFactoryAttribute("CustomInputTransform")]
+        private class CustomInputTransformAction : CustomMappingFactory<CustomIn, CustomOut>
+        {
+            // We define the custom mapping between input and output rows that will
+            // be applied by the transformation.
+            public static void CustomAction(CustomIn rowIn, CustomOut rowOut)
+            {
+                var sb = new StringBuilder();
+                foreach (var termFreq in rowIn.Text.Split(';'))
+                {
+                    var tf = termFreq.Split(':');
+                    if (tf.Length != 2)
+                        sb.Append(tf[0] + " ");
+                    else
+                    {
+                        for (int i = 0; i < int.Parse(tf[1]); i++)
+                            sb.Append(tf[0] + " ");
+                    }
+                }
+
+                rowOut.ExpandedText = sb.ToString();
+            }
+
+            public override Action<CustomIn, CustomOut> GetMapping() => CustomAction;
+        }
+        #endregion TextExpander
     }
 
     /// <summary>
@@ -235,6 +456,13 @@ namespace Microsoft.ML.Transforms.Text
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
             public NgramExtractingEstimator.WeightingCriteria Weighting = NgramExtractingEstimator.Defaults.Weighting;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Separator used to separate terms/frequency pairs.")]
+            public char TermSeparator = default;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Separator used to separate terms from their frequency.")]
+            public char FreqSeparator = default;
+
         }
 
         [TlcModule.Component(Name = "NGram", FriendlyName = "NGram Extractor Transform", Alias = "NGramExtractorTransform,NGramExtractor",
