@@ -163,7 +163,7 @@ namespace Microsoft.ML.Transforms.Text
             IEstimator<ITransformer> estimator = NgramExtractionUtils.GetConcatEstimator(h, options.Columns);
             if (options.FreqSeparator != default)
             {
-               estimator = estimator.Append(new TextExpandingEstimator(h, tokenizeColumns[0].InputColumnName, options.FreqSeparator, options.TermSeparator));
+                estimator = estimator.Append(new TextExpandingEstimator(h, tokenizeColumns[0].InputColumnName, options.FreqSeparator, options.TermSeparator));
             }
             estimator = estimator.Append(new WordTokenizingEstimator(h, tokenizeColumns));
             estimator = estimator.Append(NgramExtractorTransform.CreateEstimator(h, extractorArgs, estimator.GetOutputSchema(inputSchema)));
