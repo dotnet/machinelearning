@@ -163,13 +163,7 @@ namespace Microsoft.ML.Transforms.Text
             IEstimator<ITransformer> estimator = NgramExtractionUtils.GetConcatEstimator(h, options.Columns);
             if (options.FreqSeparator != default)
             {
-                //estimator = estimator.Append(new ColumnCopyingEstimator(h, ("Text", tokenizeColumns[0].InputColumnName)));
-                //estimator = estimator.Append(new CustomMappingEstimator<CustomIn, CustomOut>(h, new CustomInputTransformAction().GetMapping(), "CustomInputTransform"));
-                //estimator = estimator.Append(new ColumnCopyingEstimator(h, (tokenizeColumns[0].InputColumnName, "ExpandedText")));
-                //estimator = estimator.Append(new ColumnSelectingEstimator(h, null, new string[] { "ExpandedText" }));
-                estimator = estimator.Append(new TextExpandingEstimator(h, tokenizeColumns[0].InputColumnName, options.FreqSeparator, options.TermSeparator));
-
-                //h.ComponentCatalog.RegisterAssembly(typeof(CustomInputTransformAction).Assembly);
+               estimator = estimator.Append(new TextExpandingEstimator(h, tokenizeColumns[0].InputColumnName, options.FreqSeparator, options.TermSeparator));
             }
             estimator = estimator.Append(new WordTokenizingEstimator(h, tokenizeColumns));
             estimator = estimator.Append(NgramExtractorTransform.CreateEstimator(h, extractorArgs, estimator.GetOutputSchema(inputSchema)));
@@ -181,6 +175,7 @@ namespace Microsoft.ML.Transforms.Text
 
         #region TextExpander
 
+        // Internal only estimator used to facilitate the expansion of ngrams with pre-defined weights
         internal sealed class TextExpandingEstimator : TrivialEstimator<TextExpandingTransformer>
         {
             private readonly string _columnName;
@@ -202,6 +197,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
+        // Internal only transformer used to facilitate the expansion of ngrams with pre-defined weights
         internal sealed class TextExpandingTransformer : RowToRowTransformerBase
         {
             internal const string Summary = "Expands text in the format of term:freq; to have the correct number of terms";
@@ -347,35 +343,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
         }
-        private class CustomIn { public string Text { get; set; } }
 
-        private class CustomOut { public string ExpandedText { get; set; } }
-
-        [CustomMappingFactoryAttribute("CustomInputTransform")]
-        private class CustomInputTransformAction : CustomMappingFactory<CustomIn, CustomOut>
-        {
-            // We define the custom mapping between input and output rows that will
-            // be applied by the transformation.
-            public static void CustomAction(CustomIn rowIn, CustomOut rowOut)
-            {
-                var sb = new StringBuilder();
-                foreach (var termFreq in rowIn.Text.Split(';'))
-                {
-                    var tf = termFreq.Split(':');
-                    if (tf.Length != 2)
-                        sb.Append(tf[0] + " ");
-                    else
-                    {
-                        for (int i = 0; i < int.Parse(tf[1]); i++)
-                            sb.Append(tf[0] + " ");
-                    }
-                }
-
-                rowOut.ExpandedText = sb.ToString();
-            }
-
-            public override Action<CustomIn, CustomOut> GetMapping() => CustomAction;
-        }
         #endregion TextExpander
     }
 
