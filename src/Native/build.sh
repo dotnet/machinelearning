@@ -31,7 +31,9 @@ __baseIntermediateOutputPath="$RootRepo/artifacts/obj"
 __versionSourceFile="$__baseIntermediateOutputPath/version.c"
 __mkllibpath=""
 __mkllibrpath=""
-__onedallibpath=""
+__onedalredistpath=""
+__onedaldevelpath=""
+__onetbblibpath=""
 
 while [ "$1" != "" ]; do
         lowerI="$(echo $1 | awk '{print tolower($0)}')"
@@ -56,9 +58,17 @@ while [ "$1" != "" ]; do
             shift
             __mkllibrpath=$1
             ;;
-        --onedallibpath)
+        --onedalredistpath)
             shift
-            __onedallibpath=$1
+            __onedalredistpath=$1
+            ;;
+        --onedaldevelpath)
+            shift
+            __onedaldevelpath=$1
+            ;;
+        --onetbblibpath)
+            shift
+            __onetbblibpath=$1
             ;;
         --stripsymbols)
             __strip_argument="-DSTRIP_SYMBOLS=true"
@@ -79,8 +89,16 @@ if [ -n "$__mkllibrpath" ]; then
     __cmake_defines="${__cmake_defines} -DMKL_LIB_RPATH=${__mkllibrpath}"
 fi
 
-if [ -n "$__onedallibpath" ]; then
-    __cmake_defines="${__cmake_defines} -DONEDAL_LIB_PATH=${__onedallibpath}"
+if [ -n "$__onedalredistpath" ]; then
+    __cmake_defines="${__cmake_defines} -DONEDAL_REDIST_PATH=${__onedalredistpath}"
+fi
+
+if [ -n "$__onedaldevelpath" ]; then
+    __cmake_defines="${__cmake_defines} -DONEDAL_DEVEL_PATH=${__onedaldevelpath}"
+fi
+
+if [ -n "$__onetbblibpath" ]; then
+    __cmake_defines="${__cmake_defines} -DONETBB_LIB_PATH=${__onetbblibpath}"
 fi
 
 __IntermediatesDir="$__baseIntermediateOutputPath/Native/$__build_arch.$__configuration"

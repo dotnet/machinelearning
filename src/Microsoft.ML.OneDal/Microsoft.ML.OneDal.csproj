@@ -28,7 +28,10 @@
     <TargetSystem Condition="$([MSBuild]::IsOSPlatform('osx'))">osx</TargetSystem>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="inteldal.redist.$(TargetSystem)-x64" Version="$(OneDalRedistVersion)" >
+    <PackageReference Include="inteldal.redist.$(TargetSystem)-x64" Version="$(OneDalPkgVersion)" >
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="inteldal.devel.win-x64" Version="$(OneDalPkgVersion)" >
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>

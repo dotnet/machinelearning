@@ -4,19 +4,23 @@ if(NOT ${ARCHITECTURE} MATCHES "arm.*")
     add_definitions(-DUSESSE)
 endif()
 
-set(USE_DPCPP no)
-set(TARGET_LINK dynamic)
-set(TBB_FIND_COMPONENTS "tbb;tbbmalloc")
+# libraries
+if(UNIX)
+    if(APPLE)
+        set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${ONEDAL_REDIST_PATH}/lib ${ONETBB_LIB_PATH})
+        link_libraries(libonedal_core.1.1.dylib libonedal_thread.1.1.dylib tbb tbbmalloc)
+    else()
+        set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${ONEDAL_REDIST_PATH}/lib/intel64 ${ONETBB_LIB_PATH})
+        link_libraries(libonedal_core.so.1.1 libonedal_thread.so.1.1 tbb tbbmalloc)
+    endif()
+else()
+    set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${ONEDAL_REDIST_PATH}/lib/intel64 ${ONETBB_LIB_PATH})
+    set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${ONEDAL_REDIST_PATH}/redist/intel64)
+    link_libraries(onedal_core.1.dll onedal_thread.1.dll tbb12.dll tbbmalloc.dll)
+endif()
 
-set(DALROOT "${ONEDAL_LIB_PATH}/daal")
-
-list(APPEND CMAKE_PREFIX_PATH "${ONEDAL_LIB_PATH}/daal")
-list(APPEND CMAKE_PREFIX_PATH "${ONEDAL_LIB_PATH}/tbb")
-
-find_package(oneDAL CONFIG REQUIRED onedal_core onedal_thread)
-
-include_directories(${oneDAL_INCLUDE_DIRS})
-link_libraries(${oneDAL_IMPORTED_TARGETS})
+# headers
+include_directories(${ONEDAL_DEVEL_PATH}/include)
 
 set(SOURCES OneDalAlgorithms.cpp)
 
