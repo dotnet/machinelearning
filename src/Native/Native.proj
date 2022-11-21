@@ -70,10 +70,10 @@
 
     <TbbLibrary Condition="'$(OS)' == 'Windows_NT'">tbb12.dll</TbbLibrary>
     <TbbLibrary Condition="'$(OS)' != 'Windows_NT'">libtbb.so.12</TbbLibrary>
-    <TbbLibrary Condition="$([MSBuild]::IsOSPlatform('osx'))">libtbb.2.dylib</TbbLibrary>
+    <TbbLibrary Condition="$([MSBuild]::IsOSPlatform('osx'))">libtbb.12.dylib</TbbLibrary>
 
     <TbbMallocLibrary Condition="'$(OS)' == 'Windows_NT'">tbbmalloc.dll</TbbMallocLibrary>
-    <TbbMallocLibrary Condition="'$(OS)' != 'Windows_NT'">libtbbmalloc.so.12</TbbMallocLibrary>
+    <TbbMallocLibrary Condition="'$(OS)' != 'Windows_NT'">libtbbmalloc.so.2</TbbMallocLibrary>
     <TbbMallocLibrary Condition="$([MSBuild]::IsOSPlatform('osx'))">libtbbmalloc.2.dylib</TbbMallocLibrary>
   </PropertyGroup>
 
