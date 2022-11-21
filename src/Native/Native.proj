@@ -64,6 +64,17 @@
     <TbbSystem Condition="'$(OS)' == 'Windows_NT'">win</TbbSystem>
     <TbbSystem Condition="'$(OS)' != 'Windows_NT'">linux</TbbSystem>
     <TbbSystem Condition="$([MSBuild]::IsOSPlatform('osx'))">osx</TbbSystem>
+
+    <TbbPkgType Condition="'$(OS)' == 'Windows_NT'">redist</TbbPkgType>
+    <TbbPkgType Condition="'$(OS)' != 'Windows_NT'">devel</TbbPkgType>
+
+    <TbbLibrary Condition="'$(OS)' == 'Windows_NT'">tbb12.dll</TbbLibrary>
+    <TbbLibrary Condition="'$(OS)' != 'Windows_NT'">libtbb.so</TbbLibrary>
+    <TbbLibrary Condition="$([MSBuild]::IsOSPlatform('osx'))">libtbb.dylib</TbbLibrary>
+
+    <TbbMallocLibrary Condition="'$(OS)' == 'Windows_NT'">tbbmalloc.dll</TbbMallocLibrary>
+    <TbbMallocLibrary Condition="'$(OS)' != 'Windows_NT'">libtbbmalloc.so</TbbMallocLibrary>
+    <TbbMallocLibrary Condition="$([MSBuild]::IsOSPlatform('osx'))">libtbbmalloc.dylib</TbbMallocLibrary>
   </PropertyGroup>
 
   <Target Name="BuildNativeUnix"
@@ -124,14 +135,20 @@
     <Copy Condition="'$(NonArmOnWindows)' == 'true'" SourceFiles="$(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsVersion)\runtimes\$(PackageRid)\native\libiomp5md$(NativeLibExtension)"
           DestinationFolder="$(NativeAssetsBuiltPath)" />
 
-    <!-- Copy OneDal -->
+    <!-- Copy oneDAL -->
     <Copy Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
           SourceFiles="$(NuGetPackageRoot)inteldal.redist.$(PackageRid)\$(OneDalPkgVersion)\build\native\daal\latest\$(OneDalLibDir)\$(NativeLibPrefix)onedal_core$(OneDalLibExtension)"
           DestinationFolder="$(NativeAssetsBuiltPath)" />
     <Copy Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
           SourceFiles="$(NuGetPackageRoot)inteldal.redist.$(PackageRid)\$(OneDalPkgVersion)\build\native\daal\latest\$(OneDalLibDir)\$(NativeLibPrefix)onedal_thread$(OneDalLibExtension)"
           DestinationFolder="$(NativeAssetsBuiltPath)" />
-    <!-- Copy TBB (dependency of oneDAL) -->
+    <!-- Copy oneTBB (dependency of oneDAL) -->
+    <Copy Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
+          SourceFiles="$(NuGetPackageRoot)inteltbb.$(TbbPkgType).$(TbbSystem)\$(OneTbbPkgVersion)\runtimes\$(PackageRid)\native\$(TbbLibrary)"
+          DestinationFolder="$(NativeAssetsBuiltPath)" />
+    <Copy Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
+          SourceFiles="$(NuGetPackageRoot)inteltbb.$(TbbPkgType).$(TbbSystem)\$(OneTbbPkgVersion)\runtimes\$(PackageRid)\native\$(TbbMallocLibrary)"
+          DestinationFolder="$(NativeAssetsBuiltPath)" />
 
     <ItemGroup>
       <NativePackageAsset Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
