@@ -10,7 +10,7 @@ if(UNIX)
 else()
     set(LIBPATH ${ONEDAL_DEVEL_PATH}/lib/intel64;${ONETBB_DEVEL_PATH};${LIBPATH})
     set(LIB ${ONEDAL_DEVEL_PATH}/lib/intel64;${ONETBB_DEVEL_PATH};${LIB})
-    set(WRAPPER_LINK_OPTIONS onedal_core.lib onedal_thread.lib tbb12.lib tbbmalloc.lib)
+    set(WRAPPER_LINK_OPTIONS onedal_core_dll.1.lib tbb12.lib tbbmalloc.lib)
 endif()
 
 # headers
