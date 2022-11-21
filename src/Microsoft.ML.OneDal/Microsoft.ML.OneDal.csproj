@@ -28,14 +28,6 @@
     <TargetSystem Condition="$([MSBuild]::IsOSPlatform('osx'))">osx</TargetSystem>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="inteldal.redist.$(TargetSystem)-x64" Version="$(OneDalPkgVersion)" >
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="inteldal.devel.win-x64" Version="$(OneDalPkgVersion)" >
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="$(RepoRoot)eng\pkg\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
   </ItemGroup>
 </Project>
