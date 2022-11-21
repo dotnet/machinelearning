@@ -18,7 +18,8 @@ set CMAKE_BUILD_TYPE=Debug
 set MKL_LIB_PATH=""
 set ONEDAL_REDIST_PATH=""
 set ONEDAL_DEVEL_PATH=""
-set ONETBB_LIB_PATH=""
+set ONETBB_REDIST_PATH=""
+set ONETBB_DEVEL_PATH=""
 
 :Arg_Loop
 if [%1] == [] goto :ToolsVersion
