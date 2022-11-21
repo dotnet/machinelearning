@@ -42,6 +42,7 @@
     <OneDalPkgVersion Condition="'$(OS)' == 'Windows_NT'">2023.0.0.22182</OneDalPkgVersion>
     <OneDalPkgVersion Condition="'$(OS)' != 'Windows_NT'">2023.0.0.21961</OneDalPkgVersion>
     <OneDalPkgVersion Condition="$([MSBuild]::IsOSPlatform('osx'))">2023.0.0.21926</OneDalPkgVersion>
+    <OneDalDevelPkgVersion>2023.0.0.22182</OneDalDevelPkgVersion>
     <OneTbbPkgVersion Condition="'$(OS)' == 'Windows_NT'">2021.8.0.9812</OneTbbPkgVersion>
     <OneTbbPkgVersion Condition="'$(OS)' != 'Windows_NT'">2021.8.0.9730</OneTbbPkgVersion>
     <OneTbbPkgVersion Condition="$([MSBuild]::IsOSPlatform('osx'))">2021.8.0.9986</OneTbbPkgVersion>

@@ -82,7 +82,7 @@
            we need to add the NuGet cache relative location. -->
       <BuildArgs Condition="$([MSBuild]::IsOSPlatform('osx'))">$(BuildArgs) --mkllibrpath ../../../../../microsoft.ml.mkl.redist/$(Version)/runtimes/$(PackageRid)/native</BuildArgs>
       <BuildArgs>$(BuildArgs) --onedalredistpath $(NuGetPackageRoot)inteldal.redist.$(PackageRid)/$(OneDalPkgVersion)/build/native/daal/latest</BuildArgs>
-      <BuildArgs>$(BuildArgs) --onedaldevelpath $(NuGetPackageRoot)inteldal.devel.win-x64/$(OneDalPkgVersion)/build/native/daal/latest</BuildArgs>
+      <BuildArgs>$(BuildArgs) --onedaldevelpath $(NuGetPackageRoot)inteldal.devel.win-x64/$(OneDalDevelPkgVersion)/build/native/daal/latest</BuildArgs>
       <BuildArgs>$(BuildArgs) --onetbblibpath $(NuGetPackageRoot)inteltbb.devel.$(TbbSystem)/$(OneTbbPkgVersion)/runtimes/$(PackageRid)/native</BuildArgs>
     </PropertyGroup>
 
@@ -98,7 +98,7 @@
     <PropertyGroup>
       <BuildArgs>$(Configuration) $(TargetArchitecture) --mkllibpath $(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsVersion)\runtimes\$(PackageRid)\native</BuildArgs>
       <BuildArgs>$(BuildArgs) --onedalredistpath $(NuGetPackageRoot)inteldal.redist.$(PackageRid)\$(OneDalPkgVersion)\build\native\daal\latest</BuildArgs>
-      <BuildArgs>$(BuildArgs) --onedaldevelpath $(NuGetPackageRoot)inteldal.devel.win-x64\$(OneDalPkgVersion)\build\native\daal\latest</BuildArgs>
+      <BuildArgs>$(BuildArgs) --onedaldevelpath $(NuGetPackageRoot)inteldal.devel.win-x64\$(OneDalDevelPkgVersion)\build\native\daal\latest</BuildArgs>
       <BuildArgs>$(BuildArgs) --onetbblibpath $(NuGetPackageRoot)inteltbb.redist.$(TbbSystem)\$(OneTbbPkgVersion)\runtimes\$(PackageRid)\native</BuildArgs>
     </PropertyGroup>
 
