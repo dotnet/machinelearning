@@ -21,6 +21,8 @@ bool getVerboseVariable()
     size_t size;
     errno_t err = _dupenv_s(&env_p, &size, "MLNET_BACKEND_VERBOSE");
     if(!err && env_p)
+    #else
+    if(false)
     #endif
         verbose = true;
     #ifdef _WIN32
@@ -64,7 +66,7 @@ public:
         {
             _gtChild[_previousNodes[desc.level - 1]] = _currentLeaf;
         }
-        _leafValues[-_currentLeaf - 1] = desc.response;
+        _leafValues[-_currentLeaf - 1] = (FPType)desc.response;
         _previousLevel = desc.level;
         _currentLeaf--;
 
@@ -95,7 +97,7 @@ public:
             _gtChild[_previousNodes[desc.level - 1]] = _currentNode;
         }
         _splitFeature[_currentNode] = desc.featureIndex;
-        _featureThreshold[_currentNode] = desc.featureValue;
+        _featureThreshold[_currentNode] = (FPType)desc.featureValue;
         _previousNodes[desc.level] = _currentNode;
         _previousLevel = desc.level;
         _currentNode++;
@@ -314,7 +316,7 @@ public:
         {
             _gtChild[_previousNodes[desc.level - 1]] = _currentLeaf;
         }
-        _leafValues[-_currentLeaf - 1] = 1 - 2 * desc.prob[0];
+        _leafValues[-_currentLeaf - 1] = 1 - 2 * (FPType)desc.prob[0];
         _previousLevel = desc.level;
         _currentLeaf--;
 
@@ -352,7 +354,7 @@ public:
             _gtChild[_previousNodes[desc.level - 1]] = _currentNode;
         }
         _splitFeature[_currentNode] = desc.featureIndex;
-        _featureThreshold[_currentNode] = desc.featureValue;
+        _featureThreshold[_currentNode] = (FPType)desc.featureValue;
         _previousNodes[desc.level] = _currentNode;
         _previousLevel = desc.level;
         _currentNode++;
@@ -534,53 +536,6 @@ EXPORT_API(int) decisionForestClassificationCompute(
         numberOfThreads, featureFractionPerSplit, numberOfTrees, numberOfLeaves, minimumExampleCountPerLeaf, maxBins,
         (int *)lteChildPtr, (int *)gtChildPtr, (int *)splitFeaturePtr, (float *)featureThresholdPtr, (float *)leafValuesPtr, (byte *)modelPtr);
 }
-
-/*
-    [DllImport(OneDalLibPath, EntryPoint = "decisionForestClassificationPrediction")]
-    public static extern unsafe double DecisionForestClassificationPrediction(
-        void* featuresPtr, int nColumns, int nClasses, void* modelPtr, int modelSize);
-*/
-template <typename FPType>
-double decisionForestClassificationPredictionTemplate(
-    FPType * featuresPtr, int nColumns, int nClasses, byte* modelPtr, int modelSize)
-{
-    OutputDataArchive dataArch(modelPtr, modelSize);
-
-    decision_forest::classification::training::ResultPtr trainingResult(new decision_forest::classification::training::Result());
-    trainingResult->deserialize(dataArch);
-
-    double output;
-    NumericTablePtr featuresTable(new HomogenNumericTable<FPType>(featuresPtr, nColumns, 1));
-
-    decision_forest::classification::prediction::Batch<FPType> algorithm(nClasses);
-
-    algorithm.input.set(classifier::prediction::data, featuresTable);
-    algorithm.input.set(classifier::prediction::model, trainingResult->get(classifier::training::model));
-
-    algorithm.parameter().votingMethod = decision_forest::classification::prediction::weighted;
-    algorithm.parameter().resultsToEvaluate |= static_cast<DAAL_UINT64>(classifier::computeClassProbabilities);
-
-    algorithm.compute();
-
-    classifier::prediction::ResultPtr predictionResult = algorithm.getResult();
-
-    NumericTablePtr predictionTable(predictionResult->get(classifier::prediction::probabilities));
-    BlockDescriptor<FPType> predictionBlock;
-    predictionTable->getBlockOfRows(0, predictionTable->getNumberOfRows(), readWrite, predictionBlock);
-    FPType * prediction = predictionBlock.getBlockPtr();
-    output = prediction[0];
-    predictionTable->releaseBlockOfRows(predictionBlock);
-
-    return output;
-}
-
-EXPORT_API(int) decisionForestClassificationPrediction(
-    void * featuresPtr, int nColumns, int nClasses, void* modelPtr, int modelSize)
-{
-    return decisionForestClassificationPredictionTemplate<float>(
-        (float *)featuresPtr, nColumns, nClasses, (byte *)modelPtr, modelSize);
-}
-
 /*
     ### Logistic regression wrapper ###
     public unsafe static extern void LogisticRegressionCompute(void* featuresPtr, void* labelsPtr, void* weightsPtr, bool useSampleWeights, void* betaPtr,
