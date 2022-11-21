@@ -69,12 +69,12 @@
     <TbbPkgType Condition="'$(OS)' != 'Windows_NT'">devel</TbbPkgType>
 
     <TbbLibrary Condition="'$(OS)' == 'Windows_NT'">tbb12.dll</TbbLibrary>
-    <TbbLibrary Condition="'$(OS)' != 'Windows_NT'">libtbb.so</TbbLibrary>
-    <TbbLibrary Condition="$([MSBuild]::IsOSPlatform('osx'))">libtbb.dylib</TbbLibrary>
+    <TbbLibrary Condition="'$(OS)' != 'Windows_NT'">libtbb.so.12</TbbLibrary>
+    <TbbLibrary Condition="$([MSBuild]::IsOSPlatform('osx'))">libtbb.2.dylib</TbbLibrary>
 
     <TbbMallocLibrary Condition="'$(OS)' == 'Windows_NT'">tbbmalloc.dll</TbbMallocLibrary>
-    <TbbMallocLibrary Condition="'$(OS)' != 'Windows_NT'">libtbbmalloc.so</TbbMallocLibrary>
-    <TbbMallocLibrary Condition="$([MSBuild]::IsOSPlatform('osx'))">libtbbmalloc.dylib</TbbMallocLibrary>
+    <TbbMallocLibrary Condition="'$(OS)' != 'Windows_NT'">libtbbmalloc.so.12</TbbMallocLibrary>
+    <TbbMallocLibrary Condition="$([MSBuild]::IsOSPlatform('osx'))">libtbbmalloc.2.dylib</TbbMallocLibrary>
   </PropertyGroup>
 
   <Target Name="BuildNativeUnix"
