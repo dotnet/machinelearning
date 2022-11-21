@@ -33,7 +33,7 @@ __mkllibpath=""
 __mkllibrpath=""
 __onedalredistpath=""
 __onedaldevelpath=""
-__onetbblibpath=""
+__onetbbredistpath=""set(LIBPATH ${ONEDAL_DEVEL_PATH}\lib\intel64;${ONETBB_DEVEL_PATH};${LIBPATH})
 
 while [ "$1" != "" ]; do
         lowerI="$(echo $1 | awk '{print tolower($0)}')"
@@ -66,9 +66,9 @@ while [ "$1" != "" ]; do
             shift
             __onedaldevelpath=$1
             ;;
-        --onetbblibpath)
+        --onetbbredistpath)
             shift
-            __onetbblibpath=$1
+            __onetbbredistpath=$1
             ;;
         --stripsymbols)
             __strip_argument="-DSTRIP_SYMBOLS=true"
@@ -97,8 +97,8 @@ if [ -n "$__onedaldevelpath" ]; then
     __cmake_defines="${__cmake_defines} -DONEDAL_DEVEL_PATH=${__onedaldevelpath}"
 fi
 
-if [ -n "$__onetbblibpath" ]; then
-    __cmake_defines="${__cmake_defines} -DONETBB_LIB_PATH=${__onetbblibpath}"
+if [ -n "$__onetbbredistpath" ]; then
+    __cmake_defines="${__cmake_defines} -DONETBB_REDIST_PATH=${__onetbbredistpath}"
 fi
 
 __IntermediatesDir="$__baseIntermediateOutputPath/Native/$__build_arch.$__configuration"

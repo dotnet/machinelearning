@@ -34,7 +34,8 @@ if /i [%1] == [arm64]       ( set __BuildArch=arm64&&set __VCBuildArch=x86_arm64
 if /i [%1] == [--mkllibpath] ( set MKL_LIB_PATH=%2&&shift&goto Arg_Loop)
 if /i [%1] == [--onedalredistpath] ( set ONEDAL_REDIST_PATH=%2&&shift&goto Arg_Loop)
 if /i [%1] == [--onedaldevelpath] ( set ONEDAL_DEVEL_PATH=%2&&shift&goto Arg_Loop)
-if /i [%1] == [--onetbblibpath] ( set ONETBB_LIB_PATH=%2&&shift&goto Arg_Loop)
+if /i [%1] == [--onetbbredistpath] ( set ONETBB_REDIST_PATH=%2&&shift&goto Arg_Loop)
+if /i [%1] == [--onetbbdevelpath] ( set ONETBB_DEVEL_PATH=%2&&shift&goto Arg_Loop)
 shift
 goto :Arg_Loop
 
