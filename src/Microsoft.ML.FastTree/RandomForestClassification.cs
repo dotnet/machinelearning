@@ -143,7 +143,6 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <seealso cref="TreeExtensions.FastForest(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, int, int, int)"/>
     /// <seealso cref="TreeExtensions.FastForest(BinaryClassificationCatalog.BinaryClassificationTrainers, FastForestBinaryTrainer.Options)"/>
     /// <seealso cref="Options"/>
-    [BestFriend]
     public sealed partial class FastForestBinaryTrainer :
         RandomForestTrainerBase<FastForestBinaryTrainer.Options, BinaryPredictionTransformer<FastForestBinaryModelParameters>, FastForestBinaryModelParameters>
     {
@@ -263,6 +262,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 void* lteChildPtr, void* gtChildPtr, void* splitFeaturePtr, void* featureThresholdPtr, void* leafValuesPtr, void* modelPtr);
         }
 
+        [BestFriend]
         private void TrainCoreOneDal(IChannel ch, FloatLabelCursor.Factory cursorFactory, int featureCount)
         {
             CheckOptions(ch);
