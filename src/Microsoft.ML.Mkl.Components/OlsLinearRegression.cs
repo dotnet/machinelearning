@@ -64,6 +64,7 @@ namespace Microsoft.ML.Trainers
     /// <seealso cref="MklComponentsCatalog.Ols(RegressionCatalog.RegressionTrainers, string, string, string)"/>
     /// <seealso cref="MklComponentsCatalog.Ols(RegressionCatalog.RegressionTrainers, OlsTrainer.Options)"/>
     /// <seealso cref="Options"/>
+    [BestFriend]
     public sealed class OlsTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OlsModelParameters>, OlsModelParameters>
     {
         /// <summary>

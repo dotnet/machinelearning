@@ -290,6 +290,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <seealso cref="TreeExtensions.FastForest(RegressionCatalog.RegressionTrainers, string, string, string, int, int, int)"/>
     /// <seealso cref="TreeExtensions.FastForest(RegressionCatalog.RegressionTrainers, FastForestRegressionTrainer.Options)"/>
     /// <seealso cref="Options"/>
+    [BestFriend]
     public sealed partial class FastForestRegressionTrainer
         : RandomForestTrainerBase<FastForestRegressionTrainer.Options, RegressionPredictionTransformer<FastForestRegressionModelParameters>, FastForestRegressionModelParameters>
     {
@@ -395,7 +396,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 void* lteChildPtr, void* gtChildPtr, void* splitFeaturePtr, void* featureThresholdPtr, void* leafValuesPtr, void* modelPtr);
         }
 
-        private protected void TrainCoreOneDal(IChannel ch, FloatLabelCursor.Factory cursorFactory, int featureCount)
+        private void TrainCoreOneDal(IChannel ch, FloatLabelCursor.Factory cursorFactory, int featureCount)
         {
             CheckOptions(ch);
             Initialize(ch);
