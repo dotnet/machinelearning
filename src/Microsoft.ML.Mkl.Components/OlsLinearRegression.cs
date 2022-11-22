@@ -64,7 +64,6 @@ namespace Microsoft.ML.Trainers
     /// <seealso cref="MklComponentsCatalog.Ols(RegressionCatalog.RegressionTrainers, string, string, string)"/>
     /// <seealso cref="MklComponentsCatalog.Ols(RegressionCatalog.RegressionTrainers, OlsTrainer.Options)"/>
     /// <seealso cref="Options"/>
-    [BestFriend]
     public sealed class OlsTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OlsModelParameters>, OlsModelParameters>
     {
         /// <summary>
@@ -193,6 +192,7 @@ namespace Microsoft.ML.Trainers
                 float l2Reg, void* partialResultPtr, int partialResultSize, void* betaPtr, void* xtyPtr, void* xtxPtr);
         }
 
+        [BestFriend]
         private void ComputeOneDalRegression(IChannel ch, FloatLabelCursor.Factory cursorFactory, int m, ref Double[] beta, Double[] xtx, ref long n, ref Double yMean)
         {
             var xty = new Double[m];
@@ -406,6 +406,12 @@ namespace Microsoft.ML.Trainers
             xty = null;
         }
 
+        [BestFriend]
+        private bool IsDispatchingToOneDalEnabled()
+        {
+            return OneDalUtils.IsDispatchingEnabled();
+        }
+
         private OlsModelParameters TrainCore(IChannel ch, FloatLabelCursor.Factory cursorFactory, int featureCount)
         {
             Host.AssertValue(ch);
@@ -426,7 +432,7 @@ namespace Microsoft.ML.Trainers
             var beta = new Double[m];
             Double yMean = 0;
 
-            if (OneDalUtils.IsDispatchingEnabled())
+            if (IsDispatchingToOneDalEnabled())
             {
                 ComputeOneDalRegression(ch, cursorFactory, m, ref beta, xtx, ref n, ref yMean);
             }
