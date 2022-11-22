@@ -15,12 +15,14 @@ namespace Microsoft.ML.OneDal
     [BestFriend]
     internal static class OneDalUtils
     {
+        [BestFriend]
         internal static bool IsDispatchingEnabled()
         {
             return Environment.GetEnvironmentVariable("MLNET_BACKEND") == "ONEDAL" && 
                 System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.X64;
         }
 
+        [BestFriend]
         internal static long GetTrainData(IChannel channel, FloatLabelCursor.Factory cursorFactory, ref List<float> featuresList, ref List<float> labelsList, int numberOfFeatures)
         {
             long n = 0;
