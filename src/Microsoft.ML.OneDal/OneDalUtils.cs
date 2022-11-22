@@ -12,15 +12,16 @@ using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.OneDal
 {
+    [BestFriend]
     internal static class OneDalUtils
     {
-        public static bool IsDispatchingEnabled()
+        internal static bool IsDispatchingEnabled()
         {
             return Environment.GetEnvironmentVariable("MLNET_BACKEND") == "ONEDAL" && 
                 System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.X64;
         }
 
-        public static long GetTrainData(IChannel channel, FloatLabelCursor.Factory cursorFactory, ref List<float> featuresList, ref List<float> labelsList, int numberOfFeatures)
+        internal static long GetTrainData(IChannel channel, FloatLabelCursor.Factory cursorFactory, ref List<float> featuresList, ref List<float> labelsList, int numberOfFeatures)
         {
             long n = 0;
             using (var cursor = cursorFactory.Create())
