@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataview = mlContext.Data.LoadFromEnumerable(samples);
             var textPipeline =
-                mlContext.Transforms.Text.ProduceWordBagsPreDefinedWeight("Text", "Text", termSeparator: ';', freqSeparator: ':');
+                mlContext.Transforms.Text.ProduceWordBags("Text", termSeparator: ';', freqSeparator: ':');
 
 
             var textTransformer = textPipeline.Fit(dataview);
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataview = mlContext.Data.LoadFromEnumerable(samples);
             var textPipeline =
-                mlContext.Transforms.Text.ProduceWordBagsPreDefinedWeight("Text", "Text", termSeparator: ':', freqSeparator: ';');
+                mlContext.Transforms.Text.ProduceWordBags("Text", termSeparator: ':', freqSeparator: ';');
 
 
             var textTransformer = textPipeline.Fit(dataview);
@@ -104,8 +104,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataviewDefault = mlContext.Data.LoadFromEnumerable(samplesDefault);
             var dataviewNonDefault = mlContext.Data.LoadFromEnumerable(samplesNonDefault);
-            var textPipelineDefault = mlContext.Transforms.Text.ProduceWordBagsPreDefinedWeight("Text", "Text");
-            var textPipelineNonDefault = mlContext.Transforms.Text.ProduceWordBagsPreDefinedWeight("Text", "Text", termSeparator: ':', freqSeparator: ';');
+            var textPipelineDefault = mlContext.Transforms.Text.ProduceWordBags("Text", termSeparator: ';', freqSeparator: ':');
+            var textPipelineNonDefault = mlContext.Transforms.Text.ProduceWordBags("Text", termSeparator: ':', freqSeparator: ';');
 
 
             var textTransformerDefault = textPipelineDefault.Fit(dataviewDefault);

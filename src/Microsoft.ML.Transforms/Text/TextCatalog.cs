@@ -378,12 +378,12 @@ namespace Microsoft.ML
         /// <param name="termSeparator">Separator used to separate terms/frequency pairs.</param>
         /// <param name="freqSeparator">Separator used to separate terms from their frequency.</param>
         /// This estimator operates over vector of text.</param>
-        public static WordBagEstimator ProduceWordBagsPreDefinedWeight(this TransformsCatalog.TextTransforms catalog,
+        public static WordBagEstimator ProduceWordBags(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
+            char termSeparator,
+            char freqSeparator,
             string inputColumnName = null,
-            int maximumNgramsCount = NgramExtractingEstimator.Defaults.MaximumNgramsCount,
-            char termSeparator = ';',
-            char freqSeparator = ':')
+            int maximumNgramsCount = NgramExtractingEstimator.Defaults.MaximumNgramsCount)
             => new WordBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
                 outputColumnName, inputColumnName, 1, 0, true, maximumNgramsCount, NgramExtractingEstimator.WeightingCriteria.Tf, termSeparator: termSeparator, freqSeparator: freqSeparator);
 
