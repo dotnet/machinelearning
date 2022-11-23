@@ -16,9 +16,11 @@ endif()
 # headers
 include_directories(${ONEDAL_DEVEL_PATH}/include)
 
-add_compile_options(/wd4996)
-add_compile_options(/wd4477)
-add_compile_options(/wd4267)
+if(WIN32)
+    add_compile_options(/wd4996)
+    add_compile_options(/wd4477)
+    add_compile_options(/wd4267)
+endif()
 
 set(SOURCES OneDalAlgorithms.cpp)
 add_library(OneDalNative SHARED ${SOURCES} ${RESOURCES})
