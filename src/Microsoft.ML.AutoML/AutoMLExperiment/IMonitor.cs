@@ -13,6 +13,9 @@ namespace Microsoft.ML.AutoML
     /// </summary>
     public interface IMonitor
     {
+        /// <summary>
+        /// Interval in milliseconds to report resource usage.
+        /// </summary>
         int ResourceUsageCheckInterval { get; }
         void ReportCompletedTrial(TrialResult result);
         void ReportBestTrial(TrialResult result);
