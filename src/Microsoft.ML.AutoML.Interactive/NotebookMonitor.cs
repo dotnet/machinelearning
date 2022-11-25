@@ -24,6 +24,8 @@ namespace Microsoft.ML.AutoML
         public List<TrialResult> CompletedTrials { get; set; }
         public DataFrame TrialData { get; set; }
 
+        public int ResourceUsageCheckInterval => 5000;
+
         public NotebookMonitor(SweepablePipeline pipeline)
         {
             CompletedTrials = new List<TrialResult>();
@@ -83,6 +85,10 @@ namespace Microsoft.ML.AutoML
         {
             _valueToUpdate = valueToUpdate;
             ThrottledUpdate();
+        }
+
+        public void ReportTrialResourceUsage(TrialSettings setting)
+        {
         }
     }
 }

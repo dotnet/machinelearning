@@ -407,9 +407,7 @@ namespace Microsoft.ML.AutoML.Test
             _checkIntervalInMilliseconds = 1000;
         }
 
-        public event EventHandler<double> CpuUsage;
-
-        public event EventHandler<double> MemoryUsageInMegaByte;
+        public event EventHandler<TrialPerformanceMetrics> PerformanceMetricsUpdated;
 
         public void Dispose()
         {
@@ -432,8 +430,7 @@ namespace Microsoft.ML.AutoML.Test
                 _timer = new System.Timers.Timer(_checkIntervalInMilliseconds);
                 _timer.Elapsed += (o, e) =>
                 {
-                    CpuUsage?.Invoke(this, 100);
-                    MemoryUsageInMegaByte?.Invoke(this, 1000);
+                    PerformanceMetricsUpdated?.Invoke(this, new TrialPerformanceMetrics() { PeakCpuUsage = 100, PeakMemoryUsage = 1000 });
                 };
 
                 _timer.AutoReset = true;

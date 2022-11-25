@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
@@ -22,9 +24,7 @@ namespace Microsoft.ML.AutoML
 
         double? GetPeakCpuUsage();
 
-        public event EventHandler<double> CpuUsage;
-
-        public event EventHandler<double> MemoryUsageInMegaByte;
+        public event EventHandler<TrialPerformanceMetrics> PerformanceMetricsUpdated;
     }
 
     internal class DefaultPerformanceMonitor : IPerformanceMonitor
@@ -43,9 +43,7 @@ namespace Microsoft.ML.AutoML
         }
 
 
-        public event EventHandler<double> CpuUsage;
-
-        public event EventHandler<double> MemoryUsageInMegaByte;
+        public event EventHandler<TrialPerformanceMetrics> PerformanceMetricsUpdated;
 
 
         public void Dispose()
@@ -110,9 +108,19 @@ namespace Microsoft.ML.AutoML
                 // calculate Memory Usage in MB
                 var memoryUsage = process.PrivateMemorySize64 * 1.0 / (1024 * 1024);
                 _peakMemoryUsage = Math.Max(memoryUsage, _peakMemoryUsage ?? 0);
+
+                var metrics = new TrialPerformanceMetrics()
+                {
+                    CpuUsage = cpuUsageInTotal,
+                    MemoryUsage = memoryUsage,
+                    PeakCpuUsage = _peakCpuUsage,
+                    PeakMemoryUsage = _peakMemoryUsage,
+                    FreeSpaceOnDrives = DriveInfo.GetDrives().Select(d => (float)d.AvailableFreeSpace / (1024 * 1024)).ToArray()
+                };
+
                 _logger?.Trace($"current CPU: {cpuUsageInTotal}, current Memory(mb): {memoryUsage}");
-                MemoryUsageInMegaByte?.Invoke(this, memoryUsage);
-                CpuUsage?.Invoke(this, cpuUsageInTotal);
+
+                PerformanceMetricsUpdated?.Invoke(this, metrics);
             }
         }
     }

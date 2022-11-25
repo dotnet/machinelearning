@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -249,19 +250,37 @@ namespace Microsoft.ML.AutoML
             var trialNum = trialResultManager?.GetAllTrialResults().Max(t => t.TrialSettings?.TrialId) + 1 ?? 0;
             var tuner = serviceProvider.GetService<ITuner>();
             Contracts.Assert(tuner != null, "tuner can't be null");
+
             while (!aggregateTrainingStopManager.IsStopTrainingRequested())
             {
-                var setting = new TrialSettings()
+                var trialSettings = new TrialSettings()
                 {
                     TrialId = trialNum++,
                     Parameter = Parameter.CreateNestedParameter(),
+                    StartedAtUtc = DateTime.UtcNow,
+                    CancellationTokenSource = null,
+                    PerformanceMetrics = new TrialPerformanceMetrics(),
                 };
-                var parameter = tuner.Propose(setting);
-                setting.Parameter = parameter;
+                var parameter = tuner.Propose(trialSettings);
+                trialSettings.Parameter = parameter;
 
-                monitor?.ReportRunningTrial(setting);
                 using (var trialCancellationTokenSource = new CancellationTokenSource())
                 {
+                    trialSettings.CancellationTokenSource = trialCancellationTokenSource;
+                    monitor?.ReportRunningTrial(trialSettings);
+
+                    System.Timers.Timer resourceUsageTimer = null;
+                    if ((monitor != null) && (monitor?.ResourceUsageCheckInterval > 0))
+                    {
+                        resourceUsageTimer = new System.Timers.Timer(monitor.ResourceUsageCheckInterval);
+                        resourceUsageTimer.Elapsed += (o, e) =>
+                        {
+                            monitor?.ReportTrialResourceUsage(trialSettings);
+                        };
+                        resourceUsageTimer.AutoReset = true;
+                        resourceUsageTimer.Enabled = false;
+                    }
+
                     void handler(object o, EventArgs e)
                     {
                         // only force-canceling running trials when there's completed trials.
@@ -276,21 +295,25 @@ namespace Microsoft.ML.AutoML
                         {
                             aggregateTrainingStopManager.OnStopTraining += handler;
 
-                            performanceMonitor.MemoryUsageInMegaByte += (o, m) =>
+                            performanceMonitor.PerformanceMetricsUpdated += (o, metrics) =>
                             {
-                                if (_settings.MaximumMemoryUsageInMegaByte is double d && m > d && !trialCancellationTokenSource.IsCancellationRequested)
+                                trialSettings.PerformanceMetrics = metrics;
+
+                                if (_settings.MaximumMemoryUsageInMegaByte is double d && metrics.PeakMemoryUsage > d && !trialCancellationTokenSource.IsCancellationRequested)
                                 {
-                                    logger.Trace($"cancel current trial {setting.TrialId} because it uses {m} mb memory and the maximum memory usage is {d}");
+                                    logger.Trace($"cancel current trial {trialSettings.TrialId} because it uses {metrics.PeakMemoryUsage} mb memory and the maximum memory usage is {d}");
                                     trialCancellationTokenSource.Cancel();
 
-                                    GC.AddMemoryPressure(Convert.ToInt64(m) * 1024 * 1024);
+                                    GC.AddMemoryPressure(Convert.ToInt64(metrics.PeakMemoryUsage) * 1024 * 1024);
                                     GC.Collect();
                                 }
                             };
 
+                            var trialTask = runner.RunAsync(trialSettings, trialCancellationTokenSource.Token);
                             performanceMonitor.Start();
-                            logger.Trace($"trial setting - {JsonSerializer.Serialize(setting)}");
-                            var trialResult = await runner.RunAsync(setting, trialCancellationTokenSource.Token);
+                            resourceUsageTimer?.Start();
+                            logger.Trace($"trial setting - {JsonSerializer.Serialize(trialSettings)}");
+                            var trialResult = await trialTask;
 
                             var peakCpu = performanceMonitor?.GetPeakCpuUsage();
                             var peakMemoryInMB = performanceMonitor?.GetPeakMemoryUsageInMegaByte();
@@ -313,10 +336,10 @@ namespace Microsoft.ML.AutoML
                     }
                     catch (OperationCanceledException ex) when (aggregateTrainingStopManager.IsStopTrainingRequested() == false)
                     {
-                        monitor?.ReportFailTrial(setting, ex);
+                        monitor?.ReportFailTrial(trialSettings, ex);
                         var result = new TrialResult
                         {
-                            TrialSettings = setting,
+                            TrialSettings = trialSettings,
                             Loss = double.MaxValue,
                         };
 
@@ -329,7 +352,7 @@ namespace Microsoft.ML.AutoML
                     }
                     catch (Exception ex)
                     {
-                        monitor?.ReportFailTrial(setting, ex);
+                        monitor?.ReportFailTrial(trialSettings, ex);
 
                         if (!aggregateTrainingStopManager.IsStopTrainingRequested() && _bestTrialResult == null)
                         {
@@ -343,7 +366,7 @@ namespace Microsoft.ML.AutoML
                     finally
                     {
                         aggregateTrainingStopManager.OnStopTraining -= handler;
-
+                        resourceUsageTimer?.Stop();
                     }
                 }
             }
