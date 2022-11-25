@@ -15,13 +15,14 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.AutoML
 {
-    internal class SweepablePipelineRunner : ITrialRunner
+    public class SweepablePipelineRunner : ITrialRunner
     {
         private MLContext? _mLContext;
         private readonly IEvaluateMetricManager _metricManager;
         private readonly IDatasetManager _datasetManager;
         private readonly SweepablePipeline _pipeline;
         private readonly IChannel? _logger;
+        private CancellationTokenRegistration _ctRegistration;
 
         public SweepablePipelineRunner(MLContext context, SweepablePipeline pipeline, IEvaluateMetricManager metricManager, IDatasetManager datasetManager, IChannel? logger = null)
         {
@@ -91,13 +92,12 @@ namespace Microsoft.ML.AutoML
         {
             try
             {
-                using (var ctRegistration = ct.Register(() =>
+                _ctRegistration = ct.Register(() =>
                 {
                     _mLContext?.CancelExecution();
-                }))
-                {
-                    return Task.Run(() => Run(settings));
-                }
+                });
+
+                return Task.Run(() => Run(settings));
             }
             catch (Exception ex) when (ct.IsCancellationRequested)
             {
