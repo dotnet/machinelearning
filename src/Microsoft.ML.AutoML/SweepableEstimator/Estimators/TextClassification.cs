@@ -10,7 +10,7 @@ using Microsoft.ML.TorchSharp;
 
 namespace Microsoft.ML.AutoML.CodeGen
 {
-    internal partial class TextClassifcationMulti
+    internal partial class TextClassificationMulti
     {
         public override IEstimator<ITransformer> BuildFromOption(MLContext context, TextClassificationOption param)
         {

@@ -71,7 +71,7 @@
               "DnnFeaturizerImage",
               "Naive",
               "ForecastBySsa",
-              "TextClassifcation"
+              "TextClassification"
             ]
           },
           "nugetDependencies": {
