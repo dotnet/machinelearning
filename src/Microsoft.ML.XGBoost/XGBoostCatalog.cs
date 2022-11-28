@@ -13,8 +13,7 @@ using Microsoft.ML.Trainers.XGBoost;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Collection of extension methods for the <see cref="RegressionCatalog.RegressionTrainers"/> and
-    ///  <see cref="BinaryClassificationCatalog.BinaryClassificationTrainers"/> catalogs.
+    /// Collection of extension methods for the <see cref="RegressionCatalog.RegressionTrainers"/> catalog.
     /// </summary>
     public static class XGBoostExtensions
     {
@@ -29,7 +28,7 @@ namespace Microsoft.ML
         /// <param name="minimumExampleCountPerLeaf">The minimal number of data points required to form a new tree leaf.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="numberOfIterations">The number of boosting iterations. A new tree is created in each iteration, so this is equivalent to the number of trees.</param>
-        public static XGBoostRegressionTrainer LightGbm(this RegressionCatalog.RegressionTrainers catalog,
+        public static XGBoostRegressionTrainer XGBoost(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
