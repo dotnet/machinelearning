@@ -5,8 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Runtime.InteropServices;
 using System.Runtime;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 
 namespace Microsoft.ML.Trainers.XGBoost
@@ -16,13 +17,18 @@ namespace Microsoft.ML.Trainers.XGBoost
     /// Refer to https://xgboost.readthedocs.io/en/stable/tutorials/c_api_tutorial.html to get the details.
     /// </summary>
 
-    internal static class WrappedXGBoostInterface
+    internal static partial class WrappedXGBoostInterface
     {
 
         private const string DllName = "xgboost";
 
+#if false
         [DllImport(DllName)]
         public static extern void XGBoostVersion(out int major, out int minor, out int patch);
+#else
+        [LibraryImport(DllName, EntryPoint = "XGBoostVersion")]
+        public static partial void XGBoostVersion(out int major, out int minor, out int patch);
+#endif
 
         #region Error API 
 

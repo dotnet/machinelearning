@@ -6,13 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Text.Json;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.ML.Runtime;
-//#if false
-using Microsoft.ML.Trainers.FastTree;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 //#else
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -22,6 +19,9 @@ using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 //using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
+//#if false
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
 //#endif
 
