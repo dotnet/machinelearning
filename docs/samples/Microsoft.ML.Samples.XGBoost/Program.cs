@@ -2,12 +2,16 @@
 using Microsoft.ML;
 using Microsoft.ML.Data;
 
+using Microsoft.ML.Trainers.XGBoost;
+
 namespace Microsoft.ML.Samples.XGBoost
 {
     public static class Program
     {
         public static void Main(string[] args)
         {
+
+#if false
             // Create a new context for ML.NET operations. It can be used for
             // exception tracking and logging, as a catalog of available operations
             // and as the source of randomness. Setting the seed to a fixed number
@@ -63,6 +67,14 @@ namespace Microsoft.ML.Samples.XGBoost
             //   Mean Squared Error: 0.01
             //   Root Mean Squared Error: 0.11
             //   RSquared: 0.89 (closer to 1 is better. The worst case is 0)
+#else
+            //            var v =
+            //	    XGBoost.XGBoostVersion v;
+            Console.WriteLine($"Trying the test dummy string: [{Dummy.Test}]");
+            var vm = Dummy.XgbMajorVersion();
+            Console.WriteLine($"The output of the function is [{vm}]");
+            //            Console.WriteLine($"The major version of XGBoost is {v.Major}.");
+#endif
 
             //Console.WriteLine("Number of samples that ran without any exception: " + samples);
             Console.WriteLine("*** Done!!!");

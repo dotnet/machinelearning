@@ -10,6 +10,19 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.XGBoost
 {
+    public class Dummy
+    {
+        public const string Test = "tst dummy";
+
+        public static int XgbMajorVersion()
+        {
+            int major;
+            int minor;
+            int patch;
+            WrappedXGBoostInterface.XGBoostVersion(out major, out minor, out patch);
+            return major;
+        }
+    }
 
 #pragma warning disable MSML_GeneralName
     public class XGBoostDLLException : Exception
