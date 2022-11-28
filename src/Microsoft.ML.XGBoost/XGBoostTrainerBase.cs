@@ -62,7 +62,6 @@ namespace Microsoft.ML.Trainers.XGBoost
 	/// range: [0,\infnty]
         /// </summary>
 	public int? MinSplitLoss;
-#endif
 
         /// <summary>
         /// Maximum depth of a tree. Increasing this value will make the model more complex and
@@ -81,10 +80,12 @@ namespace Microsoft.ML.Trainers.XGBoost
         /// range: [0,\infnty]
         /// </summary>
         public float? MinChildWeight;
+#endif
 
         private protected XGBoostTrainerBase(IHost host,
             SchemaShape.Column feature,
-            SchemaShape.Column label, SchemaShape.Column weight = default, SchemaShape.Column groupId = default) : base(host, feature, label, weight, groupId)
+            SchemaShape.Column label, SchemaShape.Column weight = default, SchemaShape.Column groupId = default)
+            : base(host, feature, label, weight, groupId)
         {
         }
 
@@ -110,20 +111,30 @@ namespace Microsoft.ML.Trainers.XGBoost
             private protected static Dictionary<string, string> NameMapping = new Dictionary<string, string>()
             {
 #if false
+// -------------------- xgboost ----------------------
                {nameof(MinSplitLoss),                         "min_split_loss"},
-               {nameof(NumberOfLeaves),                       "num_leaves"},
 #endif
+               {nameof(NumberOfLeaves),                       "max_leaves"},
+#if false
 	           {nameof(MaxDepth),                             "max_depth" },
                {nameof(MinChildWeight),                   "min_child_weight" },
-#if false
     	       {nameof(L2Regularization),          	      "lambda" },
-       	       {nameof(L1Regularization),          	      "alpha" }
+       	       {nameof(L1Regularization),          	      "alpha" },
+// -------------------- lightgbm ----------------------
+               {nameof(MinimumExampleCountPerLeaf),           "min_data_per_leaf"},
+               {nameof(NumberOfLeaves),                       "num_leaves"},
+               {nameof(MaximumBinCountPerFeature),            "max_bin" },
+               {nameof(MinimumExampleCountPerGroup),          "min_data_per_group" },
+               {nameof(MaximumCategoricalSplitPointCount),    "max_cat_threshold" },
+               {nameof(CategoricalSmoothing),                 "cat_smooth" },
+               {nameof(L2CategoricalRegularization),          "cat_l2" },
+               {nameof(HandleMissingValue),                   "use_missing" },
+               {nameof(UseZeroAsMissingValue),                "zero_as_missing" }
 #endif
             };
 
             private BoosterParameterBase.OptionsBase _boosterParameter;
 
-#if true
             /// <summary>
             /// Determines which booster to use.
             /// </summary>
@@ -135,7 +146,6 @@ namespace Microsoft.ML.Trainers.XGBoost
                         Name = "Booster",
                         SortOrder = 3)]
             internal IBoosterParameterFactory BoosterFactory = new GradientBooster.Options();
-#endif
 
             /// <summary>
             /// Booster parameter to use
@@ -158,7 +168,69 @@ namespace Microsoft.ML.Trainers.XGBoost
                     return NameMapping[name];
                 return XGBoostInterfaceUtils.GetOptionName(name);
             }
+
+
+            internal virtual Dictionary<string, object> ToDictionary(IHost host)
+            {
+                Contracts.CheckValue(host, nameof(host));
+                Dictionary<string, object> res = new Dictionary<string, object>();
+
+                var boosterParams = BoosterFactory.CreateComponent(host);
+                boosterParams.UpdateParameters(res);
+                res["booster"] = boosterParams.BoosterName;
+
+#if false
+                res["verbose"] = Silent ? "-1" : "1";
+                if (NumberOfThreads.HasValue)
+                    res["nthread"] = NumberOfThreads.Value;
+
+                res["seed"] = (Seed.HasValue) ? Seed : host.Rand.Next();
+
+                res[GetOptionName(nameof(MaximumBinCountPerFeature))] = MaximumBinCountPerFeature;
+                res[GetOptionName(nameof(HandleMissingValue))] = HandleMissingValue;
+                res[GetOptionName(nameof(UseZeroAsMissingValue))] = UseZeroAsMissingValue;
+                res[GetOptionName(nameof(MinimumExampleCountPerGroup))] = MinimumExampleCountPerGroup;
+                res[GetOptionName(nameof(MaximumCategoricalSplitPointCount))] = MaximumCategoricalSplitPointCount;
+                res[GetOptionName(nameof(CategoricalSmoothing))] = CategoricalSmoothing;
+                res[GetOptionName(nameof(L2CategoricalRegularization))] = L2CategoricalRegularization;
+#endif
+                return res;
+            }
+
+            /// <summary>
+            /// The number of boosting iterations. A new tree is created in each iteration, so this is equivalent to the number of trees.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations.", SortOrder = 1, ShortName = "iter")]
+            public int NumberOfIterations = Defaults.NumberOfIterations;
+
+            /// <summary>
+            /// The shrinkage rate for trees, used to prevent over-fitting.
+            /// </summary>
+            /// <value>
+            /// Valid range is (0,1].
+            /// </value>
+            [Argument(ArgumentType.AtMostOnce,
+                HelpText = "Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].",
+                SortOrder = 2, ShortName = "lr", NullName = "<Auto>")]
+            public double? LearningRate;
+
+            /// <summary>
+            /// The maximum number of leaves in one tree.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum leaves for trees.",
+                SortOrder = 2, ShortName = "nl", NullName = "<Auto>")]
+            public int? NumberOfLeaves;
         }
+
+        // Contains the passed in options when the API is called
+        private protected readonly TOptions XGBoostTrainerOptions;
+
+        /// <summary>
+        /// Stores arguments as objects to convert them to invariant string type in the end so that
+        /// the code is culture agnostic. When retrieving key value from this dictionary as string
+        /// please convert to string invariant by string.Format(CultureInfo.InvariantCulture, "{0}", Option[key]).
+        /// </summary>
+        private protected readonly Dictionary<string, object> GbmOptions;
 
         private protected override TModel TrainModelCore(TrainContext context)
         {
@@ -199,6 +271,33 @@ namespace Microsoft.ML.Trainers.XGBoost
 #endif
         }
 
+        private protected XGBoostTrainerBase(IHostEnvironment env,
+            string name,
+            SchemaShape.Column labelColumn,
+            string featureColumnName,
+            string exampleWeightColumnName,
+            string rowGroupColumnName, /*
+            int? numberOfLeaves,
+            int? minimumExampleCountPerLeaf,
+            double? learningRate, */
+            int numberOfIterations)
+        : this(env, name, new TOptions()
+        {
+#if false
+        NumberOfLeaves = numberOfLeaves,
+        MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
+        LearningRate = learningRate,
+        NumberOfIterations = numberOfIterations,
+#endif
+            LabelColumnName = labelColumn.Name,
+            FeatureColumnName = featureColumnName,
+            ExampleWeightColumnName = exampleWeightColumnName,
+            RowGroupColumnName = rowGroupColumnName
+        },
+          labelColumn)
+        {
+        }
+
         private protected XGBoostTrainerBase(IHostEnvironment env, string name, TOptions options, SchemaShape.Column label)
            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), label,
          TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName), TrainerUtils.MakeU4ScalarColumn(options.RowGroupColumnName))
@@ -213,9 +312,30 @@ namespace Microsoft.ML.Trainers.XGBoost
             Contracts.CheckUserArg(options.L2CategoricalRegularization >= 0.0, nameof(options.L2CategoricalRegularization), "must be >= 0.");
 #endif
 
-#if false
             XGBoostTrainerOptions = options;
+#if false
             GbmOptions = XGBoostTrainerOption.ToDictionary(Host);
+#endif
+        }
+
+        private protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
+        {
+#if false
+            double learningRate = XGBoostTrainerOptions.LearningRate ?? DefaultLearningRate(numRow, hasCategorical, totalCats);
+            int numberOfLeaves = XGBoostTrainerOptions.NumberOfLeaves ?? DefaultNumLeaves(numRow, hasCategorical, totalCats);
+            int minimumExampleCountPerLeaf = XGBoostTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, numberOfLeaves, 1);
+            GbmOptions["learning_rate"] = learningRate;
+            GbmOptions["num_leaves"] = numberOfLeaves;
+            GbmOptions["min_data_per_leaf"] = minimumExampleCountPerLeaf;
+            if (!hiddenMsg)
+            {
+                if (!XGBoostTrainerOptions.LearningRate.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(XGBoostTrainerOptions.LearningRate) + " = " + learningRate);
+                if (!XGBoostTrainerOptions.NumberOfLeaves.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(XGBoostTrainerOptions.NumberOfLeaves) + " = " + numberOfLeaves);
+                if (!XGBoostTrainerOptions.MinimumExampleCountPerLeaf.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(XGBoostTrainerOptions.MinimumExampleCountPerLeaf) + " = " + minimumExampleCountPerLeaf);
+            }
 #endif
         }
 

@@ -83,7 +83,8 @@ namespace Microsoft.ML.Trainers.XGBoost
         internal const string ShortName = "XGBoostR";
         internal new const string UserNameValue = "XGBoost Regressor";
 
-        public XGBoostRegressionTrainer(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight = default, SchemaShape.Column groupId = default) : base(host, feature, label, weight, groupId)
+        public XGBoostRegressionTrainer(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight = default, SchemaShape.Column groupId = default)
+            : base(host, feature, label, weight, groupId)
         {
         }
 
@@ -125,7 +126,6 @@ namespace Microsoft.ML.Trainers.XGBoost
                 ShortName = "em")]
             public EvaluateMetricType EvaluationMetric = EvaluateMetricType.RootMeanSquaredError;
 
-#if false
             static Options()
             {
                 NameMapping.Add(nameof(EvaluateMetricType), "metric");
@@ -143,7 +143,6 @@ namespace Microsoft.ML.Trainers.XGBoost
 
                 return res;
             }
-#endif
         }
 
         /// <summary>

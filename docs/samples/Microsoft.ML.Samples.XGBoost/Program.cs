@@ -10,8 +10,6 @@ namespace Microsoft.ML.Samples.XGBoost
     {
         public static void Main(string[] args)
         {
-
-#if false
             // Create a new context for ML.NET operations. It can be used for
             // exception tracking and logging, as a catalog of available operations
             // and as the source of randomness. Setting the seed to a fixed number
@@ -31,6 +29,7 @@ namespace Microsoft.ML.Samples.XGBoost
                 labelColumnName: nameof(DataPoint.Label),
                 featureColumnName: nameof(DataPoint.Features));
 
+#if false
             // Train the model.
             var model = pipeline.Fit(trainingData);
 
