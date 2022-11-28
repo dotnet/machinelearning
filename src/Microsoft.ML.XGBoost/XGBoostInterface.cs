@@ -10,17 +10,16 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.XGBoost
 {
-    public class Dummy
+    public class XGBoostUtils
     {
-        public const string Test = "tst dummy";
 
-        public static int XgbMajorVersion()
+        public static System.Version XgbMajorVersion()
         {
             int major;
             int minor;
             int patch;
             WrappedXGBoostInterface.XGBoostVersion(out major, out minor, out patch);
-            return major;
+            return new System.Version(major, minor, patch);
         }
     }
 
@@ -39,29 +38,5 @@ namespace Microsoft.ML.Trainers.XGBoost
             /* empty */
         }
 
-    }
-
-    public static class XGBoost
-    {
-        public struct XGBoostVersion
-        {
-            public int Major;
-            public int Minor;
-            public int Patch;
-        }
-
-        public static XGBoostVersion Version()
-        {
-            int major;
-            int minor;
-            int patch;
-            WrappedXGBoostInterface.XGBoostVersion(out major, out minor, out patch);
-            return new XGBoostVersion
-            {
-                Major = major,
-                Minor = minor,
-                Patch = patch
-            };
-        }
     }
 }

@@ -70,10 +70,8 @@ namespace Microsoft.ML.Samples.XGBoost
 #else
             //            var v =
             //	    XGBoost.XGBoostVersion v;
-            Console.WriteLine($"Trying the test dummy string: [{Dummy.Test}]");
-            var vm = Dummy.XgbMajorVersion();
-            Console.WriteLine($"The output of the function is [{vm}]");
-            //            Console.WriteLine($"The major version of XGBoost is {v.Major}.");
+            var vm = XGBoostUtils.XgbMajorVersion();
+            Console.WriteLine($"The output of the function is [{vm.Major}.{vm.Minor}]");
 #endif
 
             //Console.WriteLine("Number of samples that ran without any exception: " + samples);
