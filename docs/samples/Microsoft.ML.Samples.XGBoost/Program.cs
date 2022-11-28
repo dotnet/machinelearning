@@ -74,7 +74,7 @@ namespace Microsoft.ML.Samples.XGBoost
             Console.WriteLine($"The output of the function is [{vm.Major}.{vm.Minor}]");
 #endif
 
-            //Console.WriteLine("Number of samples that ran without any exception: " + samples);
+            Console.WriteLine($"The build information on the XGBoost library is {XGBoostUtils.BuildInfo()}");
             Console.WriteLine("*** Done!!!");
         }
 

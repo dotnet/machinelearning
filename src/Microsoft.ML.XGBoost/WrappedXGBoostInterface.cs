@@ -22,13 +22,11 @@ namespace Microsoft.ML.Trainers.XGBoost
 
         private const string DllName = "xgboost";
 
-#if false
-        [DllImport(DllName)]
-        public static extern void XGBoostVersion(out int major, out int minor, out int patch);
-#else
         [LibraryImport(DllName, EntryPoint = "XGBoostVersion")]
         public static partial void XGBoostVersion(out int major, out int minor, out int patch);
-#endif
+
+        [LibraryImport(DllName, EntryPoint = "XGBuildInfo")]
+        public static unsafe partial int XGBuildInfo(byte** result);
 
         #region Error API 
 
