@@ -30,58 +30,61 @@ namespace Microsoft.ML.Trainers.XGBoost
 
         #region Error API 
 
-        [DllImport(DllName)]
-        public static extern string XGBGetLastError();
+        [LibraryImport(DllName, EntryPoint = "XGBGetLastError", StringMarshalling = StringMarshalling.Utf8)]
+        public static partial string XGBGetLastError();
 
         #endregion
 
         #region DMatrix API 
 
-        [DllImport(DllName)]
-        public static extern int XGDMatrixCreateFromMat(float[] data, ulong nrow, ulong ncol,
-                                                    float missing, out IntPtr handle);
+        [LibraryImport(DllName, EntryPoint = "XGDMatrixCreateFromMat")]
+        public static partial int XGDMatrixCreateFromMat(ReadOnlySpan<float> data, ulong nrow, ulong ncol,
+                                                        float missing, out IntPtr handle);
 
-        [DllImport(DllName)]
-        public static extern int XGDMatrixFree(IntPtr handle);
+        [LibraryImport(DllName, EntryPoint = "XGDMatrixFree")]
+        public static partial int XgdMatrixFree(IntPtr handle);
 
-        [DllImport(DllName)]
-        public static extern int XGDMatrixNumRow(IntPtr handle, out ulong nrows);
+        [LibraryImport(DllName, EntryPoint = "XGDMatrixNumRow")]
+        public static partial int XGDMatrixNumRow(IntPtr handle, out ulong nrows);
 
-        [DllImport(DllName)]
-        public static extern int XGDMatrixNumCol(IntPtr handle, out ulong ncols);
+        [LibraryImport(DllName, EntryPoint = "XGDMatrixNumCol")]
+        public static partial int XGDMatrixNumCol(IntPtr handle, out ulong ncols);
 
-        [DllImport(DllName)]
-        public static extern int XGDMatrixGetFloatInfo(IntPtr handle, string field,
-                                                           out ulong len, out IntPtr result);
+        [LibraryImport(DllName, EntryPoint = "XGDMatrixGetFloatInfo", StringMarshalling = StringMarshalling.Utf8)]
+        public static partial int XGDMatrixGetFloatInfo(IntPtr handle, string field,
+                                                               out ulong len, [MarshalUsing(CountElementName = "len")] out Span<float> result);
 
-        [DllImport(DllName)]
-        public static extern int XGDMatrixSetFloatInfo(IntPtr handle, string field,
-                                                   IntPtr array, ulong len);
+        [LibraryImport(DllName, EntryPoint = "XGDMatrixSetFloatInfo", StringMarshalling = StringMarshalling.Utf8)]
+        public static partial int XGDMatrixSetFloatInfo(IntPtr handle, string field,
+                                                            ReadOnlySpan<float> array, ulong len);
         #endregion
 
 
         #region API Booster
 
-        [DllImport(DllName)]
-        public static extern int XGBoosterCreate(IntPtr[] dmats,
-                                                 ulong len, out IntPtr handle);
+        [LibraryImport(DllName, EntryPoint = "XGBoosterCreate")]
+        public static partial int XGBoosterCreate(IntPtr[] dmats,
+                                                     ulong len, out IntPtr handle);
 
-        [DllImport(DllName)]
-        public static extern int XGBoosterFree(IntPtr handle);
+        [LibraryImport(DllName, EntryPoint = "XGBoosterFree")]
+        public static partial int XGBoosterFree(IntPtr handle);
 
-        [DllImport(DllName)]
-        public static extern int XGBoosterSetParam(IntPtr handle, string name, string val);
+        [LibraryImport(DllName, EntryPoint = "XGBoosterSetParam", StringMarshalling = StringMarshalling.Utf8)]
+        public static partial int XGBoosterSetParam(IntPtr handle, string name, string val);
+
+        [LibraryImport(DllName, EntryPoint = "XGBoosterGetAttrNames")]
+        public static unsafe partial int XGBoosterGetAttrNames(IntPtr bHandle, out ulong out_len, out byte** result);
 
         #endregion
 
 
         #region API train
-        [DllImport(DllName)]
-        public static extern int XGBoosterUpdateOneIter(IntPtr bHandle, int iter,
-                                                            IntPtr dHandle);
+        [LibraryImport(DllName, EntryPoint = "XGBoosterUpdateOneIter")]
+        public static partial int XGBoosterUpdateOneIter(IntPtr bHandle, int iter, IntPtr dHandle);
 
         [DllImport(DllName)]
         public static extern int XGBoosterEvalOneIter();
+
         #endregion
 
         #region API predict
@@ -96,9 +99,19 @@ namespace Microsoft.ML.Trainers.XGBoost
         [DllImport(DllName)]
         public static extern int XGBoosterDumpModel(IntPtr handle, string fmap, int with_stats, out int out_len, out IntPtr dumpStr);
 
+#if false
         [DllImport(DllName)]
         public static extern int XGBoosterDumpModelEx(IntPtr handle, string fmap, int with_stats, string format, out int out_len, out IntPtr dumpStr);
 #pragma warning restore MSML_ParameterLocalVarName
+#endif
+
+        [LibraryImport(DllName, EntryPoint = "XGBoosterSaveJsonConfig", StringMarshalling = StringMarshalling.Utf8)]
+        public static unsafe partial int XGBoosterSaveJsonConfig(IntPtr handle, out ulong out_len, [MarshalUsing(CountElementName = "out_len")] byte** result);
+
+        [LibraryImport(DllName, EntryPoint = "XGBoosterDumpModelEx", StringMarshalling = StringMarshalling.Utf8)]
+        public static unsafe partial int XGBoosterDumpModelEx(IntPtr handle, string fmap, int with_stats, string format, out ulong out_len, out byte** result);
+
+
         #endregion
 
     }

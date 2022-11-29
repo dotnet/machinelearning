@@ -4,6 +4,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.XGBoost
 {
@@ -42,7 +43,7 @@ namespace Microsoft.ML.Trainers.XGBoost
         }
 #nullable disable
 
-        public ulong GetNumRows()
+        public int GetNumRows()
         {
             ulong numRows;
             int errp = WrappedXGBoostInterface.XGDMatrixNumRow(_handle, out numRows);
@@ -51,7 +52,7 @@ namespace Microsoft.ML.Trainers.XGBoost
                 string reason = WrappedXGBoostInterface.XGBGetLastError();
                 throw new XGBoostDLLException(reason);
             }
-            return numRows;
+            return (int)numRows;
         }
 
         public ulong GetNumCols()
@@ -66,20 +67,16 @@ namespace Microsoft.ML.Trainers.XGBoost
             return numCols;
         }
 
-        public unsafe void SetLabel(float[] labels)
+        public void SetLabel(float[] labels)
         {
-#if false
             Contracts.AssertValue(labels);
             Contracts.Assert(labels.Length == GetNumRows());
-#endif
-            fixed (float* ptr = labels)
+
+            int errp = WrappedXGBoostInterface.XGDMatrixSetFloatInfo(_handle, "label", labels, (ulong)labels.Length);
+            if (errp == -1)
             {
-                int errp = WrappedXGBoostInterface.XGDMatrixSetFloatInfo(_handle, "label", (IntPtr)ptr, (ulong)labels.Length);
-                if (errp == -1)
-                {
-                    string reason = WrappedXGBoostInterface.XGBGetLastError();
-                    throw new XGBoostDLLException(reason);
-                }
+                string reason = WrappedXGBoostInterface.XGBGetLastError();
+                throw new XGBoostDLLException(reason);
             }
         }
 
@@ -96,7 +93,7 @@ namespace Microsoft.ML.Trainers.XGBoost
                 return;
             }
 
-            int errp = WrappedXGBoostInterface.XGDMatrixFree(_handle);
+            int errp = WrappedXGBoostInterface.XgdMatrixFree(_handle);
             if (errp == -1)
             {
                 string reason = WrappedXGBoostInterface.XGBGetLastError();

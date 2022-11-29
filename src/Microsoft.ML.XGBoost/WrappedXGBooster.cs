@@ -178,6 +178,8 @@ namespace Microsoft.ML.Trainers.XGBoost
         }
 
         #region Create Models
+#if false
+#if false
 #pragma warning disable MSML_ParameterLocalVarName
         public string[] DumpModelEx(string fmap, int with_stats, string format)
 #pragma warning restore MSML_ParameterLocalVarName
@@ -186,7 +188,7 @@ namespace Microsoft.ML.Trainers.XGBoost
             IntPtr treePtr;
             var intptrSize = IntPtr.Size;
 
-            WrappedXGBoostInterface.XGBoosterDumpModelEx(_handle, fmap, with_stats, format, out length, out treePtr);
+            WrappedXGBoostInterface.XGBoosterDumpModelEx(_handle, fmap, with_stats, format, out (ulong)length, out (byte**)treePtr);
 
             var trees = new string[length];
             int readSize = 0;
@@ -204,10 +206,50 @@ namespace Microsoft.ML.Trainers.XGBoost
             handle2.Free();
             return trees;
         }
+#else
+        public unsafe void DumpModel()
+        {
+            ulong boostersLen;
+            byte** boosterRawArr;
+            var errp = WrappedXGBoostInterface.XGBoosterDumpModelEx(_handle, "", 0, "json", out boostersLen, out boosterRawArr);
+            if (errp == -1)
+            {
+                string reason = WrappedXGBoostInterface.XGBGetLastError();
+                throw new XGBoostDLLException(reason);
+            }
+
+            var result = new string[boostersLen];
+#if false
+            var boosterPattern = @"^booster\[\d+\]";
+#endif
+
+            for (ulong i = 0; i < boostersLen; ++i)
+            {
+                result[i] = Marshal.PtrToStringUTF8((nint)boosterRawArr[i]) ?? "";
+                Console.WriteLine($"**** Trying to parse booster {i}, which is {result[i]}");
+                var doc = JsonDocument.Parse(result[i]);
+#if false
+                    TreeNode t = TreeNode.Create(doc.RootElement);
+                    ensemble.Add(t);
+#else
+                //var table = new TablePopulator(doc);
+                Console.WriteLine($"**** Booster {i} has an element of type: {doc.RootElement.ValueKind}.");
+#endif
+            }
+
+            //Console.WriteLine($"**** The length of the boosters are {result.Length}.");
+            //Console.WriteLine($"**** The first booster is {result[0]}.");
+
+        }
+#endif
 
         public void GetModel()
         {
+#if false
             var ss = DumpModelEx("", with_stats: 0, format: "json");
+#else
+            string ss = DumpModel();
+#endif
             var boosterPattern = @"^booster\[\d+\]";
 #if false
             List<TreeNode> ensemble = new List<TreeNode>(); // should probably return this
@@ -288,6 +330,7 @@ namespace Microsoft.ML.Trainers.XGBoost
                 }
             }
         }
+#endif
         #endregion
 
         #region IDisposable Support
