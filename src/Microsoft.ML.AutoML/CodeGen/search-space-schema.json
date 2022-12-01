@@ -126,7 +126,8 @@
         "image_classification_option",
         "matrix_factorization_option",
         "dnn_featurizer_image_option",
-        "text_classification_option"
+        "text_classification_option",
+        "sentence_similarity_option"
       ]
     },
     "option_name": {

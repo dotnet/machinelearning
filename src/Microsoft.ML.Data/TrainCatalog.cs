@@ -297,7 +297,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// The list of trainers for performing binary classification.
+        /// The list of calibrators for performing binary classification.
         /// </summary>
         public CalibratorsCatalog Calibrators { get; }
 
