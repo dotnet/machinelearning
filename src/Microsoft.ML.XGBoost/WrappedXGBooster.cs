@@ -200,6 +200,188 @@ namespace Microsoft.ML.Trainers.XGBoost
         }
 
         #region Create Models
+
+        public class XgbNode
+        {
+#pragma warning disable MSML_GeneralName // Private field name not in: _camelCase format
+            public int nodeid { get; set; }
+#pragma warning restore MSML_GeneralName
+        }
+
+        public class XgbNodeLeaf : XgbNode
+        {
+#pragma warning disable MSML_GeneralName // Private field name not in: _camelCase format
+            public float leaf { get; set; }
+#pragma warning restore MSML_GeneralName // Private field name not in: _camelCase format
+        }
+
+        public class XgbNodeSplit : XgbNode
+        {
+#pragma warning disable MSML_GeneralName // Private field name not in: _camelCase format
+            public int depth { get; set; }
+            public int split { get; set; }
+            public float split_condition { get; set; }
+            public int yes { get; set; }
+            public int no { get; set; }
+            public float missing { get; set; }
+#pragma warning restore MSML_GeneralName // Private field name not in: _camelCase format
+        }
+
+        class TablePopulator
+        {
+            public Dictionary<int, XgbNodeLeaf> Leaves = new();
+            public Dictionary<int, XgbNodeSplit> Decisions = new();
+
+            public TablePopulator(string jsonFragment)
+            {
+                PopulateTable(JsonDocument.Parse(jsonFragment).RootElement);
+            }
+
+            public void PopulateTable(JsonElement elm)
+            {
+                int nodeId = default;
+                if (elm.TryGetProperty("nodeid", out JsonElement nodeidElm))
+                {
+                    // If this test fails, should probably bail, as the syntax of the booster is incorrect
+                    nodeId = nodeidElm.GetInt32();
+                }
+
+                if (elm.TryGetProperty("leaf", out JsonElement leafJsonNode))
+                {
+                    Leaves.Add(nodeId, new XgbNodeLeaf { nodeid = nodeId, leaf = leafJsonNode.GetSingle() });
+                }
+                else if (elm.TryGetProperty("children", out JsonElement internalJsonNode))
+                {
+                    var node = new XgbNodeSplit { nodeid = nodeId };
+                    Decisions.Add(nodeId, node);
+                    if (elm.TryGetProperty("yes", out JsonElement yesNodeId))
+                    {
+                        node.yes = yesNodeId.GetInt32();
+                    }
+
+                    if (elm.TryGetProperty("no", out JsonElement noNodeId))
+                    {
+                        node.no = noNodeId.GetInt32();
+                    }
+
+                    // TODO: missing "missing"
+                    if (elm.TryGetProperty("split", out JsonElement splitFeature))
+                    {
+                        var candidate = splitFeature.GetString();
+                        if (Regex.IsMatch(candidate, "f[0-9]+"))
+                        {
+                            if (int.TryParse(candidate.Substring(1), out int splitFeatureIndex))
+                            {
+                                node.split = splitFeatureIndex;
+                            }
+                        }
+                    }
+
+                    if (elm.TryGetProperty("split_condition", out JsonElement splitThreshold))
+                    {
+                        node.split_condition = splitThreshold.GetSingle();
+                    }
+
+
+                    foreach (var e in internalJsonNode.EnumerateArray())
+                    {
+                        PopulateTable(e);
+                    }
+                }
+                else
+                {
+                    throw new Exception("Invalid booster content");
+                }
+            }
+
+#if false
+            public (int[], int[]) Sequentialize()
+#else
+            public InternalRegressionTree Sequentialize()
+#endif
+            {
+                int nextNode = 0;
+                int nextLeaf = 1;
+                Dictionary<int, int> mapNodes = new(); // internal nodes original id-to-seq id
+                Dictionary<int, int> mapLeaves = new(); // leaves original id-to-seq-id map
+
+                foreach (var n in Decisions)
+                {
+                    if (!mapNodes.ContainsKey(n.Key))
+                    {
+                        mapNodes.Add(n.Key, nextNode++);
+                    }
+                }
+                foreach (var n in Leaves)
+                {
+                    if (!mapLeaves.ContainsKey(n.Key))
+                    {
+                        mapLeaves.Add(n.Key, nextLeaf++);
+                    }
+                }
+
+                int[] lte = new int[mapNodes.Count];
+                int[] gt = new int[mapNodes.Count];
+                int[] splitFeatures = new int[mapNodes.Count];
+                float[] rawThresholds = new float[mapNodes.Count];
+                double[] leafValues = new double[mapLeaves.Count];
+
+                // TODO: Can this be done with LINQ in a better way?
+                foreach (var n in Decisions)
+                {
+                    if (Leaves.ContainsKey(n.Value.yes))
+                    {
+                        lte[mapNodes[n.Key]] = -mapLeaves[n.Value.yes];
+                    }
+                    else
+                    {
+                        lte[mapNodes[n.Key]] = mapNodes[n.Value.yes];
+                    }
+
+                    if (Leaves.ContainsKey(n.Value.no))
+                    {
+                        gt[mapNodes[n.Key]] = -mapLeaves[n.Value.no];
+                    }
+                    else
+                    {
+                        gt[mapNodes[n.Key]] = mapNodes[n.Value.no];
+                    }
+                    splitFeatures[mapNodes[n.Key]] = n.Value.split;
+                    rawThresholds[mapNodes[n.Key]] = n.Value.split_condition;
+                    // TODO: The rest
+                }
+
+                foreach (var l in Leaves)
+                {
+                    leafValues[mapLeaves[l.Key] - 1] = l.Value.leaf;
+                }
+
+                Console.WriteLine($"----------------- running constraints -------------------");
+                Console.WriteLine($"Number of leaves: {Leaves.Count}.");
+                Console.WriteLine($"Size of lte: [{lte.Length}] ");
+                Console.WriteLine($"LTE: [{lte}] ");
+                Console.WriteLine($"Size of gt: [{gt.Length}]");
+
+                var tree = InternalRegressionTree.Create(Leaves.Count,
+                splitFeatures,
+                null, // double[] splitGain
+                rawThresholds,
+                null, // float[] defaultValueForMissing
+                lte,
+                gt,
+                null, // double[] leafValues
+                null, // int[][] categoricalSplitFeatures
+                null // bool[] categoricalSplit
+                );
+
+#if false
+                return (lte, gt);
+#else
+                return tree;
+#endif
+            }
+        }
+
 #if false
 #if false
 #pragma warning disable MSML_ParameterLocalVarName
