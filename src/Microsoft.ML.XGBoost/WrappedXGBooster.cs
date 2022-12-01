@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-//#else
+
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -20,10 +20,9 @@ using Microsoft.ML.Internal.Utilities;
 //using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
-//#if false
+
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
-//#endif
 
 namespace Microsoft.ML.Trainers.XGBoost
 {
@@ -74,6 +73,29 @@ namespace Microsoft.ML.Trainers.XGBoost
                 string reason = WrappedXGBoostInterface.XGBGetLastError();
                 throw new XGBoostDLLException(reason);
             }
+        }
+
+        public unsafe void DumpAttributes()
+        {
+#pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format
+            ulong attrsLen;
+            byte** attrs;
+#pragma warning restore MSML_PrivateFieldName
+
+            var errp = WrappedXGBoostInterface.XGBoosterGetAttrNames(_handle, out attrsLen, out attrs);
+            if (errp == -1)
+            {
+                string reason = WrappedXGBoostInterface.XGBGetLastError();
+                throw new XGBoostDLLException(reason);
+            }
+            // TODO: Return Dictionary<string, object>
+
+            var options = new JsonSerializerOptions
+            {
+                Converters = { new Utils.DictionaryStringObjectConverter() }
+            };
+            // return JsonSerializer.Deserialize<Dictionary<string, object>>(attrs, options);
+
         }
 
         public float[] Predict(DMatrix test)
