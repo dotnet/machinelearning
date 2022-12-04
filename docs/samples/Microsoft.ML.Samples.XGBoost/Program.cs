@@ -23,6 +23,7 @@ namespace Microsoft.ML.Samples.XGBoost
             // consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
+#if false
             // Define the trainer.
             var pipeline = mlContext.Regression.Trainers.
                 XGBoost(
@@ -30,6 +31,20 @@ namespace Microsoft.ML.Samples.XGBoost
                 featureColumnName: nameof(DataPoint.Features),
         numberOfLeaves: 8
         );
+#else
+            var pipeline = mlContext.Regression.Trainers.XGBoost(
+             new XGBoostRegressionTrainer.Options
+             {
+                 //                    LabelColumnName = labelName,
+                 NumberOfLeaves = 4,
+                 MinimumExampleCountPerLeaf = 6,
+                 LearningRate = 0.001,
+                 Booster = new DartBooster.Options()
+                 {
+                     TreeDropFraction = 0.124
+                 }
+             });
+#endif
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
