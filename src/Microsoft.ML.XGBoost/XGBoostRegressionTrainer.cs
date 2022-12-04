@@ -124,8 +124,7 @@ namespace Microsoft.ML.Trainers.XGBoost
                 None,
                 Default,
                 MeanAbsoluteError,
-                RootMeanSquaredError,
-                MeanSquaredError
+                RootMeanSquaredError
             };
 
             /// <summary>
@@ -138,12 +137,12 @@ namespace Microsoft.ML.Trainers.XGBoost
 
             static Options()
             {
-                NameMapping.Add(nameof(EvaluateMetricType), "metric");
+                NameMapping.Add(nameof(EvaluateMetricType), "eval_metric");
+                // TODO -- should `none` not be the default?
                 NameMapping.Add(nameof(EvaluateMetricType.None), "None");
                 NameMapping.Add(nameof(EvaluateMetricType.Default), "");
                 NameMapping.Add(nameof(EvaluateMetricType.MeanAbsoluteError), "mae");
                 NameMapping.Add(nameof(EvaluateMetricType.RootMeanSquaredError), "rmse");
-                NameMapping.Add(nameof(EvaluateMetricType.MeanSquaredError), "mse");
             }
 
             internal override Dictionary<string, object> ToDictionary(IHost host)
