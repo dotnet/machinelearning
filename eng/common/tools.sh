@@ -448,7 +448,40 @@ function MSBuild {
     args+=( "-logger:$selectedPath" )
   fi
 
+  Download-OneDAL
+
   MSBuild-Core ${args[@]}
+}
+
+function Download-OneDAL {
+
+    packages=(
+      "inteldal.redist linux-x64 2023.0.0.23046"
+      "inteldal.devel win-x64 2023.0.0.23189"
+      "inteltbb.devel linux 2021.7.1.15005"
+    )
+
+    STAGE_DIR=$(mktemp -d)
+    #TARGET_DIR=$(mktemp -d)
+    ROOT_URL="https://globalcdn.nuget.org/packages"
+    TARGET_DIR=$_GetNuGetPackageCachePath
+    for i in $(seq ${#packages[@]}); do
+      idx=$((i-1))
+      package_spec=(${packages[$idx]})
+      dload_name="${package_spec[0]}.${package_spec[1]}.${package_spec[2]}.nupkg"
+      wget "$ROOT_URL/$dload_name" -O "$STAGE_DIR/$dload_name"
+      if [ -e $STAGE_DIR/$dload_name ]; then
+        dir_prefix="${STAGE_DIR}/${package_spec[0]}.${package_spec[1]}"
+	dir_name="${dir_prefix}/${package_spec[2]}"
+	echo "Should be creating directory $dir_name"
+	mkdir -p $dir_name
+	echo "Now uncompressing"
+	unzip $STAGE_DIR/$dload_name -d $dir_name
+	mv $dir_prefix $TARGET_DIR
+      else
+	echo "something went wrong when downloading $dload_name to $STAGE_DIR"
+      fi
+    done
 }
 
 function MSBuild-Core {
