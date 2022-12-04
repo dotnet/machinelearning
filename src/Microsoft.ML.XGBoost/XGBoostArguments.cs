@@ -21,7 +21,6 @@ using Microsoft.ML.Trainers.XGBoost;
 
 namespace Microsoft.ML.Trainers.XGBoost
 {
-#if true
     internal delegate void SignatureXGBoostBooster();
 
     [TlcModule.ComponentKind("BoosterParameterFunction")]
@@ -29,7 +28,6 @@ namespace Microsoft.ML.Trainers.XGBoost
     {
         new BoosterParameterBase CreateComponent(IHostEnvironment env);
     }
-#endif
 
     public abstract class BoosterParameterBase
     {
@@ -37,14 +35,14 @@ namespace Microsoft.ML.Trainers.XGBoost
         private protected static Dictionary<string, string> NameMapping = new Dictionary<string, string>()
         {
            {nameof(OptionsBase.MinimumSplitGain),               "min_split_gain" },
-#if false
             {nameof(OptionsBase.MaximumTreeDepth),               "max_depth"},
+	    #if false
            {nameof(OptionsBase.MinimumChildWeight),             "min_child_weight"},
-           {nameof(OptionsBase.SubsampleFraction),              "subsample"},
+	   #endif
+{nameof(OptionsBase.SubsampleFraction),              "subsample"},
            {nameof(OptionsBase.SubsampleFrequency),             "subsample_freq"},
            {nameof(OptionsBase.L1Regularization),               "reg_alpha"},
            {nameof(OptionsBase.L2Regularization),               "reg_lambda"},
-#endif
         };
 
 
@@ -76,7 +74,6 @@ namespace Microsoft.ML.Trainers.XGBoost
             [TlcModule.Range(Min = 0.0)]
             public double MinimumSplitGain = 0;
 
-#if false
             /// <summary>
             /// The maximum depth of a tree.
             /// </summary>
@@ -85,10 +82,10 @@ namespace Microsoft.ML.Trainers.XGBoost
             /// </value>
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.")]
-            [TlcModule.Range(Min = 0, Max = int.MaxValue)]
             public int MaximumTreeDepth = 0;
 
-            /// <summary>
+#if false
+/// <summary>
             /// The minimum sum of instance weight needed to form a new node.
             /// </summary>
             /// <value>
@@ -102,6 +99,7 @@ namespace Microsoft.ML.Trainers.XGBoost
                     "this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.")]
             [TlcModule.Range(Min = 0.0)]
             public double MinimumChildWeight = 0.1;
+#endif
 
             /// <summary>
             /// The frequency of performing subsampling (bagging).
@@ -114,7 +112,6 @@ namespace Microsoft.ML.Trainers.XGBoost
                 HelpText = "Subsample frequency for bagging. 0 means no subsample. "
                 + "Specifies the frequency at which the bagging occurs, where if this is set to N, the subsampling will happen at every N iterations." +
                 "This must be set with Subsample as this specifies the amount to subsample.")]
-            [TlcModule.Range(Min = 0, Max = int.MaxValue)]
             public int SubsampleFrequency = 0;
 
             /// <summary>
@@ -124,10 +121,10 @@ namespace Microsoft.ML.Trainers.XGBoost
             /// Setting it to 0.5 means that LightGBM randomly picks half of the data points to grow trees.
             /// This can be used to speed up training and to reduce over-fitting. Valid range is (0,1].
             /// </value>
+            /// TODO: Fix LightGBM-specific comment
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected " +
                     "half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].")]
-            [TlcModule.Range(Inf = 0.0, Max = 1.0)]
             public double SubsampleFraction = 1;
 
             /// <summary>
@@ -141,7 +138,6 @@ namespace Microsoft.ML.Trainers.XGBoost
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Subsample ratio of columns when constructing each tree. Range: (0,1].",
                 ShortName = "ff")]
-            [TlcModule.Range(Inf = 0.0, Max = 1.0)]
             public double FeatureFraction = 1;
 
             /// <summary>
@@ -153,9 +149,6 @@ namespace Microsoft.ML.Trainers.XGBoost
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "L2 regularization term on weights, increasing this value will make model more conservative.",
                 ShortName = "l2")]
-            [TlcModule.Range(Min = 0.0)]
-            [TGUI(Label = "Lambda(L2)", SuggestedSweeps = "0,0.5,1")]
-            [TlcModule.SweepableDiscreteParam("RegLambda", new object[] { 0f, 0.5f, 1f })]
             public double L2Regularization = 0.01;
 
             /// <summary>
@@ -167,11 +160,7 @@ namespace Microsoft.ML.Trainers.XGBoost
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "L1 regularization term on weights, increase this value will make model more conservative.",
                 ShortName = "l1")]
-            [TlcModule.Range(Min = 0.0)]
-            [TGUI(Label = "Alpha(L1)", SuggestedSweeps = "0,0.5,1")]
-            [TlcModule.SweepableDiscreteParam("RegAlpha", new object[] { 0f, 0.5f, 1f })]
             public double L1Regularization = 0;
-#endif
 
             BoosterParameterBase IComponentFactory<BoosterParameterBase>.CreateComponent(IHostEnvironment env)
                 => BuildOptions();

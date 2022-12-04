@@ -44,53 +44,6 @@ namespace Microsoft.ML.Trainers.XGBoost
         private protected int FeatureCount;
         private protected InternalTreeEnsemble TrainedEnsemble;
 
-#if false
-        /// <summary>
-        /// The shrinkage rate for trees, used to prevent over-fitting.
-	/// Also aliased to "eta"
-        /// </summary>
-        /// <value>
-        /// Valid range is (0,1].
-        /// </value>
-        [Argument(ArgumentType.AtMostOnce,
-            HelpText = "Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].",
-            SortOrder = 2, ShortName = "lr", NullName = "<Auto>")]
-        public double? LearningRate;
-
-        /// <summary>
-        /// The maximum number of leaves in one tree.
-        /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum leaves for trees.",
-            SortOrder = 2, ShortName = "nl", NullName = "<Auto>")]
-        public int? NumberOfLeaves;
-
-        /// <summary>
-        /// Minimum loss reduction required to make a further partition on a leaf node of
-	/// the tree. The larger gamma is, the more conservative the algorithm will be.
-	/// aka: gamma
-	/// range: [0,\infnty]
-        /// </summary>
-	public int? MinSplitLoss;
-
-        /// <summary>
-        /// Maximum depth of a tree. Increasing this value will make the model more complex and
-        /// more likely to overfit. 0 indicates no limit on depth. Beware that XGBoost aggressively
-        /// consumes memory when training a deep tree. exact tree method requires non-zero value.
-        /// range: [0,\infnty], default=6
-        /// </summary>
-        public int? MaxDepth;
-
-        /// <summary>
-        /// Minimum sum of instance weight (hessian) needed in a child. If the tree partition step
-        /// results in a leaf node with the sum of instance weight less than min_child_weight, then
-        /// the building process will give up further partitioning. In linear regression task, this
-        /// simply corresponds to minimum number of instances needed to be in each node. The larger
-        /// <cref>MinChildWeight</cref> is, the more conservative the algorithm will be.
-        /// range: [0,\infnty]
-        /// </summary>
-        public float? MinChildWeight;
-#endif
-
         private protected XGBoostTrainerBase(IHost host,
             SchemaShape.Column feature,
             SchemaShape.Column label, SchemaShape.Column weight = default, SchemaShape.Column groupId = default)
@@ -120,10 +73,8 @@ namespace Microsoft.ML.Trainers.XGBoost
             // For a complete list, see https://xgboost.readthedocs.io/en/latest/parameter.html
             private protected static Dictionary<string, string> NameMapping = new Dictionary<string, string>()
             {
-#if false
 // -------------------- xgboost ----------------------
                {nameof(MinSplitLoss),                         "min_split_loss"},
-#endif
                {nameof(NumberOfLeaves),                       "max_leaves"},
 #if false
 	           {nameof(MaxDepth),                             "max_depth" },
@@ -133,15 +84,129 @@ namespace Microsoft.ML.Trainers.XGBoost
 // -------------------- lightgbm ----------------------
                {nameof(MinimumExampleCountPerLeaf),           "min_data_per_leaf"},
                {nameof(NumberOfLeaves),                       "num_leaves"},
+	       #endif
                {nameof(MaximumBinCountPerFeature),            "max_bin" },
                {nameof(MinimumExampleCountPerGroup),          "min_data_per_group" },
                {nameof(MaximumCategoricalSplitPointCount),    "max_cat_threshold" },
+	       	       	       #if false
                {nameof(CategoricalSmoothing),                 "cat_smooth" },
                {nameof(L2CategoricalRegularization),          "cat_l2" },
+	       #endif
                {nameof(HandleMissingValue),                   "use_missing" },
                {nameof(UseZeroAsMissingValue),                "zero_as_missing" }
-#endif
             };
+
+            /// <summary>
+            /// The maximum number of bins that feature values will be bucketed in.
+            /// </summary>
+            /// <remarks>
+            /// The small number of bins may reduce training accuracy but may increase general power (deal with over-fitting).
+            /// </remarks>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of bucket bin for features.", ShortName = "mb")]
+            public int MaximumBinCountPerFeature = 255;
+
+            /// <summary>
+            /// The random seed for XGBoost to use.
+            /// </summary>
+            /// <value>
+            /// If not specified, <see cref="MLContext"/> will generate a random seed to be used.
+            /// </value>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Sets the random seed for XGBoost to use.")]
+            public int? Seed;
+
+            /// <summary>
+            /// Whether to enable special handling of missing value or not.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable special handling of missing value or not.", ShortName = "hmv")]
+            public bool HandleMissingValue = true;
+
+            /// <summary>
+            /// Whether to enable the usage of zero (0) as missing value.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable usage of zero (0) as missing value.", ShortName = "uzam")]
+            public bool UseZeroAsMissingValue = false;
+
+            /// <summary>
+            /// The shrinkage rate for trees, used to prevent over-fitting.
+            /// Also aliased to "eta"
+            /// </summary>
+            /// <value>
+            /// Valid range is (0,1].
+            /// </value>
+            [Argument(ArgumentType.AtMostOnce,
+                HelpText = "Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].",
+                SortOrder = 2, ShortName = "lr", NullName = "<Auto>")]
+            public double? LearningRate;
+
+            /// <summary>
+            /// The maximum number of leaves in one tree.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum leaves for trees.",
+                SortOrder = 2, ShortName = "nl", NullName = "<Auto>")]
+            public int? NumberOfLeaves;
+
+            /// <summary>
+            /// The minimal number of data points required to form a new tree leaf.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Minimum number of instances needed in a child.",
+                SortOrder = 2, ShortName = "mil", NullName = "<Auto>")]
+            public int? MinimumExampleCountPerLeaf;
+
+            /// <summary>
+            /// Maximum categorical split points to consider when splitting on a categorical feature.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of categorical thresholds.", ShortName = "maxcat")]
+            [TlcModule.Range(Inf = 0, Max = int.MaxValue)]
+            [TlcModule.SweepableDiscreteParam("MaxCatThreshold", new object[] { 8, 16, 32, 64 })]
+            public int MaximumCategoricalSplitPointCount = 32;
+
+            /// <summary>
+            /// Laplace smooth term in categorical feature split.
+            /// This can reduce the effect of noises in categorical features, especially for categories with few data.
+            /// </summary>
+            /// <value>
+            /// Constraints: <see cref="CategoricalSmoothing"/> >= 0.0
+            /// </value>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.")]
+            public double CategoricalSmoothing = 10;
+
+            /// <summary>
+            /// L2 regularization for categorical split.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization for categorical split.")]
+            public double L2CategoricalRegularization = 10;
+
+            /// <summary>
+            /// Minimum loss reduction required to make a further partition on a leaf node of
+            /// the tree. The larger gamma is, the more conservative the algorithm will be.
+            /// aka: gamma
+            /// range: [0,\infnty]
+            /// </summary>
+            public int? MinSplitLoss;
+
+            /// <summary>
+            /// Maximum depth of a tree. Increasing this value will make the model more complex and
+            /// more likely to overfit. 0 indicates no limit on depth. Beware that XGBoost aggressively
+            /// consumes memory when training a deep tree. exact tree method requires non-zero value.
+            /// range: [0,\infnty], default=6
+            /// </summary>
+            public int? MaxDepth;
+
+            /// <summary>
+            /// Minimum sum of instance weight (hessian) needed in a child. If the tree partition step
+            /// results in a leaf node with the sum of instance weight less than min_child_weight, then
+            /// the building process will give up further partitioning. In linear regression task, this
+            /// simply corresponds to minimum number of instances needed to be in each node. The larger
+            /// <cref>MinChildWeight</cref> is, the more conservative the algorithm will be.
+            /// range: [0,\infnty]
+            /// </summary>
+            public float? MinChildWeight;
+
+            /// <summary>
+            /// The minimum number of data points per categorical group.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Minimum number of instances per categorical group.", ShortName = "mdpg")]
+            public int MinimumExampleCountPerGroup = 100;
 
             private BoosterParameterBase.OptionsBase _boosterParameter;
 
@@ -172,6 +237,21 @@ namespace Microsoft.ML.Trainers.XGBoost
 
             }
 
+            /// <summary>
+            /// Determines whether to output progress status during training and evaluation.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Verbose", ShortName = "v")]
+            public bool Verbose = false;
+
+            /// <summary>
+            /// Controls the logging level in LighGBM.
+            /// </summary>
+            /// <value>
+            /// <see langword="true"/> means only output Fatal errors. <see langword="false"/> means output Fatal, Warning, and Info level messages.
+            /// </value>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Printing running messages.")]
+            public bool Silent = true;
+
             private protected string GetOptionName(string name)
             {
                 if (NameMapping.ContainsKey(name))
@@ -189,13 +269,13 @@ namespace Microsoft.ML.Trainers.XGBoost
                 boosterParams.UpdateParameters(res);
                 res["booster"] = boosterParams.BoosterName;
 
-#if false
                 res["verbose"] = Silent ? "-1" : "1";
-                if (NumberOfThreads.HasValue)
+#if false
+if (NumberOfThreads.HasValue)
                     res["nthread"] = NumberOfThreads.Value;
+#endif
 
                 res["seed"] = (Seed.HasValue) ? Seed : host.Rand.Next();
-
                 res[GetOptionName(nameof(MaximumBinCountPerFeature))] = MaximumBinCountPerFeature;
                 res[GetOptionName(nameof(HandleMissingValue))] = HandleMissingValue;
                 res[GetOptionName(nameof(UseZeroAsMissingValue))] = UseZeroAsMissingValue;
@@ -203,7 +283,6 @@ namespace Microsoft.ML.Trainers.XGBoost
                 res[GetOptionName(nameof(MaximumCategoricalSplitPointCount))] = MaximumCategoricalSplitPointCount;
                 res[GetOptionName(nameof(CategoricalSmoothing))] = CategoricalSmoothing;
                 res[GetOptionName(nameof(L2CategoricalRegularization))] = L2CategoricalRegularization;
-#endif
                 return res;
             }
 
@@ -212,24 +291,6 @@ namespace Microsoft.ML.Trainers.XGBoost
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations.", SortOrder = 1, ShortName = "iter")]
             public int NumberOfIterations = Defaults.NumberOfIterations;
-
-            /// <summary>
-            /// The shrinkage rate for trees, used to prevent over-fitting.
-            /// </summary>
-            /// <value>
-            /// Valid range is (0,1].
-            /// </value>
-            [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].",
-                SortOrder = 2, ShortName = "lr", NullName = "<Auto>")]
-            public double? LearningRate;
-
-            /// <summary>
-            /// The maximum number of leaves in one tree.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum leaves for trees.",
-                SortOrder = 2, ShortName = "nl", NullName = "<Auto>")]
-            public int? NumberOfLeaves;
         }
 
         // Contains the passed in options when the API is called
@@ -302,27 +363,6 @@ namespace Microsoft.ML.Trainers.XGBoost
 
         private protected virtual void InitializeBeforeTraining() { }
 
-#if false
-        private protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
-        {
-            double learningRate = LightGbmTrainerOptions.LearningRate ?? DefaultLearningRate(numRow, hasCategorical, totalCats);
-            int numberOfLeaves = LightGbmTrainerOptions.NumberOfLeaves ?? DefaultNumLeaves(numRow, hasCategorical, totalCats);
-            int minimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, numberOfLeaves, 1);
-            GbmOptions["learning_rate"] = learningRate;
-            GbmOptions["num_leaves"] = numberOfLeaves;
-            GbmOptions["min_data_per_leaf"] = minimumExampleCountPerLeaf;
-            if (!hiddenMsg)
-            {
-                if (!LightGbmTrainerOptions.LearningRate.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.LearningRate) + " = " + learningRate);
-                if (!LightGbmTrainerOptions.NumberOfLeaves.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.NumberOfLeaves) + " = " + numberOfLeaves);
-                if (!LightGbmTrainerOptions.MinimumExampleCountPerLeaf.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.MinimumExampleCountPerLeaf) + " = " + minimumExampleCountPerLeaf);
-            }
-        }
-#endif
-
         private DMatrix LoadTrainingData(IChannel ch, RoleMappedData trainData
 #if false
 	, out CategoricalMetaData catMetaData
@@ -340,9 +380,12 @@ namespace Microsoft.ML.Trainers.XGBoost
             var factory = CreateCursorFactory(trainData);
             GetMetainfo(ch, factory, out int numRow, out float[] labels, out float[] weights, out int[] groups);
             catMetaData = GetCategoricalMetaData(ch, trainData, numRow);
-            GetDefaultParameters(ch, numRow, catMetaData.CategoricalBoudaries != null, catMetaData.TotalCats);
 #endif
-
+            GetDefaultParameters(ch
+#if false
+, numRow, catMetaData.CategoricalBoudaries != null, catMetaData.TotalCats
+#endif
+        );
             CheckAndUpdateParametersBeforeTraining(ch, trainData
 #if false
 	    , labels, groups
@@ -429,25 +472,102 @@ namespace Microsoft.ML.Trainers.XGBoost
             ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "Need a label column");
         }
 
-        private protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
+        private static double DefaultLearningRate(
+#if false
+	int numRow, bool useCat, int totalCats
+#endif
+    )
         {
 #if false
-            double learningRate = XGBoostTrainerOptions.LearningRate ?? DefaultLearningRate(numRow, hasCategorical, totalCats);
-            int numberOfLeaves = XGBoostTrainerOptions.NumberOfLeaves ?? DefaultNumLeaves(numRow, hasCategorical, totalCats);
-            int minimumExampleCountPerLeaf = XGBoostTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, numberOfLeaves, 1);
+            if (useCat)
+            {
+                if (totalCats < 1e6)
+                    return 0.1;
+                else
+                    return 0.15;
+            }
+            else if (numRow <= 100000)
+                return 0.2;
+            else
+                return 0.25;
+#else
+            return 0.25;
+#endif
+        }
+
+        private static int DefaultNumLeaves(
+#if false
+	int numRow, bool useCat, int totalCats
+#endif
+    )
+        {
+#if false
+            if (useCat && totalCats > 100)
+            {
+                if (totalCats < 1e6)
+                    return 20;
+                else
+                    return 30;
+            }
+            else if (numRow <= 100000)
+                return 20;
+            else
+                return 30;
+#else
+            return 30;
+#endif
+        }
+
+        private protected static int DefaultMinDataPerLeaf(
+#if false
+	int numRow, int numberOfLeaves, int numClass
+#endif
+    )
+        {
+#if false
+            if (numClass > 1)
+            {
+                int ret = numRow / numberOfLeaves / numClass / 10;
+                ret = Math.Max(ret, 5);
+                ret = Math.Min(ret, 50);
+                return ret;
+            }
+            else
+            {
+                return 20;
+            }
+#else
+            return 20;
+#endif
+        }
+
+        private protected virtual void GetDefaultParameters(IChannel ch
+#if false
+, int numRow, bool hasCategorical, int totalCats
+#endif
+    , bool hiddenMsg = false
+    )
+        {
+            double learningRate = XGBoostTrainerOptions.LearningRate ?? DefaultLearningRate(
+#if false
+	    numRow, hasCategorical, totalCats
+#endif
+        );
+            int numberOfLeaves = XGBoostTrainerOptions.NumberOfLeaves ?? DefaultNumLeaves(
+#if false
+	    numRow, hasCategorical, totalCats
+#endif
+        );
+
+            int minimumExampleCountPerLeaf = XGBoostTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(
+#if false
+	    numRow, numberOfLeaves, 1
+#endif
+        );
+
             GbmOptions["learning_rate"] = learningRate;
             GbmOptions["num_leaves"] = numberOfLeaves;
             GbmOptions["min_data_per_leaf"] = minimumExampleCountPerLeaf;
-            if (!hiddenMsg)
-            {
-                if (!XGBoostTrainerOptions.LearningRate.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(XGBoostTrainerOptions.LearningRate) + " = " + learningRate);
-                if (!XGBoostTrainerOptions.NumberOfLeaves.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(XGBoostTrainerOptions.NumberOfLeaves) + " = " + numberOfLeaves);
-                if (!XGBoostTrainerOptions.MinimumExampleCountPerLeaf.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(XGBoostTrainerOptions.MinimumExampleCountPerLeaf) + " = " + minimumExampleCountPerLeaf);
-            }
-#endif
         }
 
         private protected abstract TModel CreatePredictor();

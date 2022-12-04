@@ -27,12 +27,14 @@ namespace Microsoft.ML.Samples.XGBoost
             var pipeline = mlContext.Regression.Trainers.
                 XGBoost(
                 labelColumnName: nameof(DataPoint.Label),
-                featureColumnName: nameof(DataPoint.Features));
+                featureColumnName: nameof(DataPoint.Features),
+        numberOfLeaves: 8
+        );
 
-#if false
             // Train the model.
             var model = pipeline.Fit(trainingData);
 
+#if false
             // Create testing data. Use different random seed to make it different
             // from training data.
             var testData = mlContext.Data.LoadFromEnumerable(
@@ -70,7 +72,7 @@ namespace Microsoft.ML.Samples.XGBoost
             //            var v =
             //	    XGBoost.XGBoostVersion v;
             var vm = XGBoostUtils.XgbMajorVersion();
-            Console.WriteLine($"The output of the function is [{vm.Major}.{vm.Minor}]");
+            Console.WriteLine($"The output of checking the version is [{vm.Major}.{vm.Minor}]");
 #endif
 
             Console.WriteLine($"The build information on the XGBoost library is {XGBoostUtils.BuildInfo()}");

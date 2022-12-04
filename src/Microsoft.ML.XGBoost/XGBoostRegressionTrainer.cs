@@ -180,8 +180,8 @@ namespace Microsoft.ML.Trainers.XGBoost
                 LabelColumnName = labelColumnName,
                 FeatureColumnName = featureColumnName,
                 ExampleWeightColumnName = exampleWeightColumnName,
-#if false
                 NumberOfLeaves = numberOfLeaves,
+#if false
                 MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
                 LearningRate = learningRate,
                 NumberOfIterations = numberOfIterations
@@ -210,7 +210,6 @@ namespace Microsoft.ML.Trainers.XGBoost
 #endif
         }
 
-        //#if false
         private protected override void CheckDataValid(IChannel ch, RoleMappedData data)
         {
             Host.AssertValue(ch);
@@ -222,7 +221,6 @@ namespace Microsoft.ML.Trainers.XGBoost
                     $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType.RawType}', but must be an unsigned int, boolean or float.");
             }
         }
-        //#endif
 
         private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data
 #if false
