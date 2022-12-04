@@ -1,14 +1,14 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.OneDal
 {
@@ -18,7 +18,7 @@ namespace Microsoft.ML.OneDal
         [BestFriend]
         internal static bool IsDispatchingEnabled()
         {
-            return Environment.GetEnvironmentVariable("MLNET_BACKEND") == "ONEDAL" && 
+            return Environment.GetEnvironmentVariable("MLNET_BACKEND") == "ONEDAL" &&
                 System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.X64;
         }
 

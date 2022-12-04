@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
@@ -439,7 +439,7 @@ namespace Microsoft.ML.Trainers
 
             using (var ch = Host.Start("Training"))
             {
-                if (Environment.GetEnvironmentVariable("MLNET_BACKEND") == "ONEDAL" && 
+                if (Environment.GetEnvironmentVariable("MLNET_BACKEND") == "ONEDAL" &&
                     System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.X64)
                 {
                     TrainCoreOneDal(ch, data);
