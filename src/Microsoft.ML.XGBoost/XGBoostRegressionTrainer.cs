@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -83,10 +84,13 @@ namespace Microsoft.ML.Trainers.XGBoost
         internal const string ShortName = "XGBoostR";
         internal new const string UserNameValue = "XGBoost Regressor";
 
+#if false
         public XGBoostRegressionTrainer(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight = default, SchemaShape.Column groupId = default)
             : base(host, feature, label, weight, groupId)
         {
+            Console.WriteLine("In the constructor of the trainer 1");
         }
+#endif
 
         public override TrainerInfo Info => throw new System.NotImplementedException();
 
@@ -101,7 +105,13 @@ namespace Microsoft.ML.Trainers.XGBoost
         }
 
         private protected override RegressionPredictionTransformer<XGBoostRegressionModelParameters> MakeTransformer(XGBoostRegressionModelParameters model, DataViewSchema trainSchema)
-            => new RegressionPredictionTransformer<XGBoostRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
+#if false
+=> new RegressionPredictionTransformer<XGBoostRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
+#else
+        {
+            return null;
+        }
+#endif
 
         /// <summary>
         /// Options for the <see cref="XGBoostRegressionTrainer"/> as used in
@@ -178,11 +188,14 @@ namespace Microsoft.ML.Trainers.XGBoost
 #endif
             })
         {
+
+            Console.WriteLine("In the constructor of the trainer 2");
         }
 
         internal XGBoostRegressionTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName))
         {
+            Console.WriteLine("In the constructor of the trainer 3");
         }
 
         private protected override XGBoostRegressionModelParameters CreatePredictor()
@@ -197,7 +210,7 @@ namespace Microsoft.ML.Trainers.XGBoost
 #endif
         }
 
-#if false
+        //#if false
         private protected override void CheckDataValid(IChannel ch, RoleMappedData data)
         {
             Host.AssertValue(ch);
@@ -209,12 +222,19 @@ namespace Microsoft.ML.Trainers.XGBoost
                     $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType.RawType}', but must be an unsigned int, boolean or float.");
             }
         }
+        //#endif
 
-        private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
+        private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data
+#if false
+	, float[] labels, int[] groups
+#endif
+    )
         {
-            GbmOptions["objective"] = "regression";
+            System.Console.WriteLine("****** Checking and updating parameters");
+            GbmOptions["objective"] = "reg:squarederror";
         }
 
+#if false
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
@@ -222,9 +242,6 @@ namespace Microsoft.ML.Trainers.XGBoost
                 new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
-
-        private protected override RegressionPredictionTransformer<LightGbmRegressionModelParameters> MakeTransformer(LightGbmRegressionModelParameters model, DataViewSchema trainSchema)
-            => new RegressionPredictionTransformer<LightGbmRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 #endif
     }
 }

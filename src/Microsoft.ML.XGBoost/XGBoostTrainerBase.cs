@@ -23,6 +23,15 @@ namespace Microsoft.ML.Trainers.XGBoost
         public const int NumberOfIterations = 100;
     }
 
+    /// <summary>
+    /// Lock for XGBoost trainer.
+    /// </summary>
+    internal static class LightGbmShared
+    {
+        // Lock for the operations that are multi-threading inside in XGBoost.
+        public static readonly object LockForMultiThreadingInside = new object();
+    }
+
     public abstract class XGBoostTrainerBase<TOptions, TOutput, TTransformer, TModel> : TrainerEstimatorBaseWithGroupId<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class // IPredictorProducing<float>
@@ -87,6 +96,7 @@ namespace Microsoft.ML.Trainers.XGBoost
             SchemaShape.Column label, SchemaShape.Column weight = default, SchemaShape.Column groupId = default)
             : base(host, feature, label, weight, groupId)
         {
+            System.Console.WriteLine("**** In base trainer ctor 1");
         }
 
 #if false
@@ -234,40 +244,135 @@ namespace Microsoft.ML.Trainers.XGBoost
 
         private protected override TModel TrainModelCore(TrainContext context)
         {
-#if true
-            return null;
-#else
             InitializeBeforeTraining();
-
             Host.CheckValue(context, nameof(context));
 
+#if false
             Dataset dtrain = null;
             Dataset dvalid = null;
             CategoricalMetaData catMetaData;
+#else
+#pragma warning disable 0219
+            DMatrix dtrain = null;
+#pragma warning restore 0219
+#endif
             try
             {
                 using (var ch = Host.Start("Loading data for XGBoost"))
                 {
                     using (var pch = Host.StartProgressChannel("Loading data for XGBoost"))
                     {
-                        dtrain = LoadTrainingData(ch, context.TrainingSet, out catMetaData);
+                        dtrain = LoadTrainingData(ch, context.TrainingSet
+#if false
+			, out catMetaData
+#endif
+            );
+#if false
                         if (context.ValidationSet != null)
                             dvalid = LoadValidationData(ch, dtrain, context.ValidationSet, catMetaData);
+#endif
                     }
+
                 }
+
                 using (var ch = Host.Start("Training with XGBoost"))
                 {
                     using (var pch = Host.StartProgressChannel("Training with XGBoost"))
+#if false
                         TrainCore(ch, pch, dtrain, catMetaData, dvalid);
+#else
+                        System.Console.WriteLine("**** Should be calling Traincore here **** ");
+#endif
                 }
             }
             finally
             {
+#if false
                 dtrain?.Dispose();
                 dvalid?.Dispose();
                 DisposeParallelTraining();
+#endif
             }
+#if false
             return CreatePredictor();
+#else
+            return null;
+#endif
+        }
+
+        private protected virtual void InitializeBeforeTraining() { }
+
+#if false
+        private protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
+        {
+            double learningRate = LightGbmTrainerOptions.LearningRate ?? DefaultLearningRate(numRow, hasCategorical, totalCats);
+            int numberOfLeaves = LightGbmTrainerOptions.NumberOfLeaves ?? DefaultNumLeaves(numRow, hasCategorical, totalCats);
+            int minimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, numberOfLeaves, 1);
+            GbmOptions["learning_rate"] = learningRate;
+            GbmOptions["num_leaves"] = numberOfLeaves;
+            GbmOptions["min_data_per_leaf"] = minimumExampleCountPerLeaf;
+            if (!hiddenMsg)
+            {
+                if (!LightGbmTrainerOptions.LearningRate.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.LearningRate) + " = " + learningRate);
+                if (!LightGbmTrainerOptions.NumberOfLeaves.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.NumberOfLeaves) + " = " + numberOfLeaves);
+                if (!LightGbmTrainerOptions.MinimumExampleCountPerLeaf.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.MinimumExampleCountPerLeaf) + " = " + minimumExampleCountPerLeaf);
+            }
+        }
+#endif
+
+        private DMatrix LoadTrainingData(IChannel ch, RoleMappedData trainData
+#if false
+	, out CategoricalMetaData catMetaData
+#endif
+    )
+        {
+            // Verifications.
+            Host.AssertValue(ch);
+            ch.CheckValue(trainData, nameof(trainData));
+
+#if false
+            CheckDataValid(ch, trainData);
+
+            // Load metadata first.
+            var factory = CreateCursorFactory(trainData);
+            GetMetainfo(ch, factory, out int numRow, out float[] labels, out float[] weights, out int[] groups);
+            catMetaData = GetCategoricalMetaData(ch, trainData, numRow);
+            GetDefaultParameters(ch, numRow, catMetaData.CategoricalBoudaries != null, catMetaData.TotalCats);
+#endif
+
+            CheckAndUpdateParametersBeforeTraining(ch, trainData
+#if false
+	    , labels, groups
+#endif
+        );
+
+            foreach (var k in GbmOptions.Keys)
+            {
+                System.Console.WriteLine($"Got key {k}: [{GbmOptions[k]}]");
+            }
+
+#if false
+            string param = LightGbmInterfaceUtils.JoinParameters(GbmOptions);
+
+            Dataset dtrain;
+#if false
+            // To reduce peak memory usage, only enable one sampling task at any given time.
+            lock (LightGbmShared.SampleLock)
+            {
+                CreateDatasetFromSamplingData(ch, factory, numRow,
+                    param, labels, weights, groups, catMetaData, out dtrain);
+            }
+#endif
+
+            // Push rows into dataset.
+            LoadDataset(ch, factory, dtrain, numRow, LightGbmTrainerOptions.BatchSize, catMetaData);
+
+            return dtrain;
+#else
+            return null;
 #endif
         }
 
@@ -296,6 +401,7 @@ namespace Microsoft.ML.Trainers.XGBoost
         },
           labelColumn)
         {
+            System.Console.WriteLine("***** In base trainer ctor 2");
         }
 
         private protected XGBoostTrainerBase(IHostEnvironment env, string name, TOptions options, SchemaShape.Column label)
@@ -311,11 +417,16 @@ namespace Microsoft.ML.Trainers.XGBoost
             Contracts.CheckUserArg(options.CategoricalSmoothing >= 0, nameof(options.CategoricalSmoothing), "must be >= 0.");
             Contracts.CheckUserArg(options.L2CategoricalRegularization >= 0.0, nameof(options.L2CategoricalRegularization), "must be >= 0.");
 #endif
+            System.Console.WriteLine("***** In base trainer ctor 3");
 
             XGBoostTrainerOptions = options;
-#if false
-            GbmOptions = XGBoostTrainerOption.ToDictionary(Host);
-#endif
+            GbmOptions = XGBoostTrainerOptions.ToDictionary(Host);
+        }
+
+        private protected virtual void CheckDataValid(IChannel ch, RoleMappedData data)
+        {
+            data.CheckFeatureFloatVector();
+            ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "Need a label column");
         }
 
         private protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
@@ -340,5 +451,15 @@ namespace Microsoft.ML.Trainers.XGBoost
         }
 
         private protected abstract TModel CreatePredictor();
+
+        /// <summary>
+        /// This function will be called before training. It will check the label/group and add parameters for specific applications.
+        /// </summary>
+        private protected abstract void CheckAndUpdateParametersBeforeTraining(IChannel ch,
+            RoleMappedData data
+#if false
+	    , float[] labels, int[] groups
+#endif
+        );
     }
 }

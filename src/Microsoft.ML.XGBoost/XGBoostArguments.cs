@@ -214,7 +214,7 @@ namespace Microsoft.ML.Trainers.XGBoost
     /// </remarks>
     public sealed class GradientBooster : BoosterParameterBase
     {
-        internal const string Name = "gbdt";
+        internal const string Name = "gbtree";
         internal const string FriendlyName = "Tree Booster";
 
         /// <summary>
