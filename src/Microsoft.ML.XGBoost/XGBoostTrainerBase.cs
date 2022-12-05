@@ -52,18 +52,6 @@ namespace Microsoft.ML.Trainers.XGBoost
             System.Console.WriteLine("**** In base trainer ctor 1");
         }
 
-#if false
-        /// <summary>
-        /// L2 regularization term on weights. Increasing this value will make model more conservative
-        /// </summary>
-        public float? L2Regularization;
-
-        /// <summary>
-	/// L1 regularization term on weights. Increasing this value will make model more conservative.
-	/// </summary>
-        public float? L1Regularization;
-#endif
-
         public class OptionsBase : TrainerInputBaseWithGroupId
         {
 
@@ -76,8 +64,9 @@ namespace Microsoft.ML.Trainers.XGBoost
 // -------------------- xgboost ----------------------
                {nameof(MinSplitLoss),                         "min_split_loss"},
                {nameof(NumberOfLeaves),                       "max_leaves"},
-#if false
 	           {nameof(MaxDepth),                             "max_depth" },
+               
+ #if false
                {nameof(MinChildWeight),                   "min_child_weight" },
     	       {nameof(L2Regularization),          	      "lambda" },
        	       {nameof(L1Regularization),          	      "alpha" },
