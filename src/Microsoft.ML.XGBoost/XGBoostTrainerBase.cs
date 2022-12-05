@@ -14,6 +14,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Microsoft.ML.Trainers.XGBoost
 {
@@ -362,11 +363,12 @@ if (NumberOfThreads.HasValue)
             Host.AssertValue(ch);
             ch.CheckValue(trainData, nameof(trainData));
 
-#if false
             CheckDataValid(ch, trainData);
 
-            // Load metadata first.
-            var factory = CreateCursorFactory(trainData);
+            var loadFlags = CursOpt.AllLabels | CursOpt.AllFeatures;
+            var factory = new FloatLabelCursor.Factory(trainData, loadFlags);
+
+#if false
             GetMetainfo(ch, factory, out int numRow, out float[] labels, out float[] weights, out int[] groups);
             catMetaData = GetCategoricalMetaData(ch, trainData, numRow);
 #endif
@@ -390,21 +392,73 @@ if (NumberOfThreads.HasValue)
             string param = LightGbmInterfaceUtils.JoinParameters(GbmOptions);
 
             Dataset dtrain;
-#if false
-            // To reduce peak memory usage, only enable one sampling task at any given time.
-            lock (LightGbmShared.SampleLock)
-            {
-                CreateDatasetFromSamplingData(ch, factory, numRow,
-                    param, labels, weights, groups, catMetaData, out dtrain);
-            }
-#endif
 
-            // Push rows into dataset.
             LoadDataset(ch, factory, dtrain, numRow, LightGbmTrainerOptions.BatchSize, catMetaData);
 
             return dtrain;
 #else
             return null;
+#endif
+        }
+
+        /// <summary>
+        /// Load dataset. Use row batch way to reduce peak memory cost.
+        /// </summary>
+        private void LoadDMatrix(IChannel ch, FloatLabelCursor.Factory factory, DMatrix dataset
+#if false
+            , int numRow, int batchSize, CategoricalMetaData catMetaData
+#endif
+            )
+        {
+
+            Host.AssertValue(ch);
+            ch.AssertValue(factory);
+            ch.AssertValue(dataset);
+#if false
+            ch.Assert(dataset.GetNumRows() == numRow);
+            var rand = Host.Rand;
+            // To avoid array resize, batch size should bigger than size of one row.
+            batchSize = Math.Max(batchSize, catMetaData.NumCol);
+            double density = DetectDensity(factory);
+            int numElem = 0;
+            int totalRowCount = 0;
+            int curRowCount = 0;
+
+            int batchRow = batchSize / catMetaData.NumCol;
+                batchRow = Math.Max(1, batchRow);
+                if (batchRow > numRow)
+                    batchRow = numRow;
+
+                float[] features = new float[catMetaData.NumCol * batchRow];
+
+                using (var cursor = factory.Create())
+                {
+                    while (cursor.MoveNext())
+                    {
+                        ch.Assert(totalRowCount < numRow);
+                        CopyToArray(ch, cursor, features, catMetaData, rand, ref numElem);
+                        ++totalRowCount;
+                        ++curRowCount;
+                        if (batchRow == curRowCount)
+                        {
+                            ch.Assert(numElem == curRowCount * catMetaData.NumCol);
+                            // PushRows is run by multi-threading inside, so lock here.
+                            lock (LightGbmShared.LockForMultiThreadingInside)
+                                dataset.PushRows(features, curRowCount, catMetaData.NumCol, totalRowCount - curRowCount);
+                            curRowCount = 0;
+                            numElem = 0;
+                        }
+                    }
+                    ch.Assert(totalRowCount == numRow);
+                    if (curRowCount > 0)
+                    {
+                        ch.Assert(numElem == curRowCount * catMetaData.NumCol);
+                        // PushRows is run by multi-threading inside, so lock here.
+                        lock (LightGbmShared.LockForMultiThreadingInside)
+                            dataset.PushRows(features, curRowCount, catMetaData.NumCol, totalRowCount - curRowCount);
+                    }
+                }
+            }
 #endif
         }
 
