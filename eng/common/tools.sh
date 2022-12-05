@@ -472,11 +472,15 @@ function Download-OneDAL {
       wget "$ROOT_URL/$dload_name" -O "$STAGE_DIR/$dload_name"
       if [ -e $STAGE_DIR/$dload_name ]; then
         dir_prefix="${STAGE_DIR}/${package_spec[0]}.${package_spec[1]}"
+        dir_at_target="${TARGET_DIR}/${package_spec[0]}.${package_spec[1]}"
 	dir_name="${dir_prefix}/${package_spec[2]}"
 	echo "Should be creating directory $dir_name"
 	mkdir -p $dir_name
 	echo "Now uncompressing"
 	unzip $STAGE_DIR/$dload_name -d $dir_name
+	# TODO -- should probably check that these exist before downloading
+	# TODO -- also, this may blow away other versions of the libraries
+	rm -rf ${dir_at_target}
 	mv $dir_prefix $TARGET_DIR
       else
 	echo "something went wrong when downloading $dload_name to $STAGE_DIR"
