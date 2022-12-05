@@ -64,7 +64,7 @@ namespace Microsoft.ML.Trainers.XGBoost
 // -------------------- xgboost ----------------------
                {nameof(MinSplitLoss),                         "min_split_loss"},
                {nameof(NumberOfLeaves),                       "max_leaves"},
-	           {nameof(MaxDepth),                             "max_depth" },
+               {nameof(MaxDepth),                             "max_depth" },
                
  #if false
                {nameof(MinChildWeight),                   "min_child_weight" },
