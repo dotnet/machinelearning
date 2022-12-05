@@ -368,6 +368,9 @@ if (NumberOfThreads.HasValue)
             var loadFlags = CursOpt.AllLabels | CursOpt.AllFeatures;
             var factory = new FloatLabelCursor.Factory(trainData, loadFlags);
 
+            Console.WriteLine($"******** Should be loading a DMatrix with {trainData.Data.GetRowCount()} rows");
+            Console.WriteLine($"******** The feature column is: {trainData.Schema.Feature}.");
+
 #if false
             GetMetainfo(ch, factory, out int numRow, out float[] labels, out float[] weights, out int[] groups);
             catMetaData = GetCategoricalMetaData(ch, trainData, numRow);
@@ -397,7 +400,20 @@ if (NumberOfThreads.HasValue)
 
             return dtrain;
 #else
+#if true
+            //DMatrix dtrain = null;
+
+            LoadDMatrix(ch, factory, null /*dtrain*/
+#if false
+            , numRow, LightGbmTrainerOptions.BatchSize, catMetaData
+#endif
+            );
+
+            return null /* dtrain */;
+#else
             return null;
+#endif
+
 #endif
         }
 
@@ -413,7 +429,9 @@ if (NumberOfThreads.HasValue)
 
             Host.AssertValue(ch);
             ch.AssertValue(factory);
+#if false         
             ch.AssertValue(dataset);
+#endif
 #if false
             ch.Assert(dataset.GetNumRows() == numRow);
             var rand = Host.Rand;
@@ -424,17 +442,27 @@ if (NumberOfThreads.HasValue)
             int totalRowCount = 0;
             int curRowCount = 0;
 
+
             int batchRow = batchSize / catMetaData.NumCol;
                 batchRow = Math.Max(1, batchRow);
                 if (batchRow > numRow)
                     batchRow = numRow;
 
                 float[] features = new float[catMetaData.NumCol * batchRow];
+#endif
+            Console.WriteLine("**** Should be calling LoadDMatrix here **** ");
 
-                using (var cursor = factory.Create())
+            using (var cursor = factory.Create())
+            {
+
+                while (cursor.MoveNext())
                 {
-                    while (cursor.MoveNext())
-                    {
+
+
+                    string strVec = string.Join(",", (cursor.Features.GetValues().ToArray()).Select(x => x.ToString()).ToArray());
+                    Console.WriteLine($"features: [{strVec}], label: {cursor.Label}");
+
+#if false
                         ch.Assert(totalRowCount < numRow);
                         CopyToArray(ch, cursor, features, catMetaData, rand, ref numElem);
                         ++totalRowCount;
@@ -448,8 +476,11 @@ if (NumberOfThreads.HasValue)
                             curRowCount = 0;
                             numElem = 0;
                         }
-                    }
-                    ch.Assert(totalRowCount == numRow);
+#endif
+                }
+
+#if false
+                ch.Assert(totalRowCount == numRow);
                     if (curRowCount > 0)
                     {
                         ch.Assert(numElem == curRowCount * catMetaData.NumCol);
@@ -458,8 +489,9 @@ if (NumberOfThreads.HasValue)
                             dataset.PushRows(features, curRowCount, catMetaData.NumCol, totalRowCount - curRowCount);
                     }
                 }
-            }
 #endif
+            }
+
         }
 
         private protected XGBoostTrainerBase(IHostEnvironment env,

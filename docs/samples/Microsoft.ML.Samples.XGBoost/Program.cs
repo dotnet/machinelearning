@@ -3,6 +3,7 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 
 using Microsoft.ML.Trainers.XGBoost;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Samples.XGBoost
 {
@@ -17,13 +18,23 @@ namespace Microsoft.ML.Samples.XGBoost
             var mlContext = new MLContext(seed: 0);
 
             // Create a list of training data points.
-            var dataPoints = GenerateRandomDataPoints(1000);
+            var dataPoints = GenerateRandomDataPoints(10/*00*/);
+
+            foreach (var dataPoint in dataPoints)
+            {
+                var feats = dataPoint.Features;
+                if (feats != null)
+                {
+                    string strVec = string.Join(",", feats.Select(x => x.ToString()).ToArray());
+                    Console.WriteLine($"features: [{strVec}], label: {dataPoint.Label}");
+                }
+            }
 
             // Convert the list of data points to an IDataView object, which is
             // consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
-#if false
+#if true
             // Define the trainer.
             var pipeline = mlContext.Regression.Trainers.
                 XGBoost(
@@ -105,7 +116,8 @@ namespace Microsoft.ML.Samples.XGBoost
                 {
                     Label = label,
                     // Create random features that are correlated with the label.
-                    Features = Enumerable.Repeat(label, 50).Select(
+                    Features = Enumerable.Repeat(label, 10).Select(
+                    //Features = Enumerable.Repeat(label, 50).Select(
                         x => x + (float)random.NextDouble()).ToArray()
                 };
             }
@@ -116,7 +128,8 @@ namespace Microsoft.ML.Samples.XGBoost
         private class DataPoint
         {
             public float Label { get; set; }
-            [VectorType(50)]
+            //[VectorType(50)]
+            [VectorType(10)]
             public float[]? Features { get; set; }
         }
 
