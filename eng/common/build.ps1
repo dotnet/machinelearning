@@ -90,7 +90,7 @@ function InitializeCustomToolset {
 }
 
 function Build {
-  Download-OneDAL
+#  Download-OneDAL
   $toolsetBuildProj = InitializeToolset
   InitializeCustomToolset
 
