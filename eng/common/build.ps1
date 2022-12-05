@@ -90,6 +90,7 @@ function InitializeCustomToolset {
 }
 
 function Build {
+  Download-OneDAL
   $toolsetBuildProj = InitializeToolset
   InitializeCustomToolset
 
@@ -125,6 +126,51 @@ function Build {
     /p:Sign=$sign `
     /p:Publish=$publish `
     @properties
+}
+
+function Download-OneDAL {
+  Add-Type -AssemblyName System.IO.Compression.FileSystem
+  $nuget_cache = GetNuGetPackageCachePath
+  $ROOT_URL="https://globalcdn.nuget.org/packages"
+
+  $parent = [System.IO.Path]::GetTempPath()
+  $name = [System.IO.Path]::GetRandomFileName()
+  $STAGE_DIR = (Join-Path $parent $name)
+  New-Item -ItemType Directory -Path $STAGE_DIR
+
+  $packages = @(
+    @("inteldal.redist", "win-x64", "2023.0.0.23189"),
+    @("inteldal.devel", "win-x64", "2023.0.0.23189"),
+    @("inteltbb.redist", "win", "2021.7.1.15305"),
+    @("inteltbb.devel", "win", "2021.7.1.15305")
+  )
+
+  for($i = 0; $i -le $packages.Count - 1; $i++) {
+    $package_spec=$packages[$i]
+    $dload_name= $package_spec[0] + "." + $package_spec[1] + "." + $package_spec[2] + ".nupkg"
+    $dload_uri=$ROOT_URL + "/" + $dload_name
+    $target_dload = $STAGE_DIR + "/" + $dload_name
+    Invoke-WebRequest $dload_uri -OutFile $target_dload
+  
+    if (Test-Path $target_dload) {
+      $dir_prefix=$STAGE_DIR + "/" + $package_spec[0] + "." + $package_spec[1]
+      $dir_name=$dir_prefix + "/" + $package_spec[2]
+      [System.IO.Directory]::CreateDirectory($dir_name)
+      [System.IO.Compression.ZipFile]::ExtractToDirectory($target_dload, $dir_name)
+      $final_path = (Join-Path $nuget_cache  (($package_spec[0]) + "." + ($package_spec[1])))
+      if (!(Test-Path $final_path)) {
+        New-Item -ItemType Directory -Path $final_path
+      }
+
+      Move-Item -Force -Path $dir_name -Destination $final_path
+
+    } else {
+      Write-Host "Couldn't download file: [" + $target_dload + "]"
+    }
+  }
+
+  Write-Host "********************* Check output in $STAGE_DIR, moved to $nuget_cache *********************"
+
 }
 
 try {
