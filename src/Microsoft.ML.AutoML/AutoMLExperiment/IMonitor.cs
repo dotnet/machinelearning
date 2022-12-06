@@ -60,7 +60,7 @@ namespace Microsoft.ML.AutoML
 
         public virtual void ReportRunningTrial(TrialSettings setting)
         {
-            _logger.Info($"Update Running Trial - Id: {setting.TrialId} - Pipeline: {_pipeline.ToString(setting.Parameter)}");
+            _logger.Info($"Update Running Trial - Id: {setting.TrialId}");
         }
 
         public void ReportTrialResourceUsage(TrialSettings setting)
