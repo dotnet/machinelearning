@@ -29,9 +29,5 @@ namespace Microsoft.ML.AutoML
         /// Current memory usage of the runner process in megabytes
         /// </summary>
         public double MemoryUsage { get; internal set; }
-        /// <summary>
-        /// The free space available on each drive in megabytes
-        /// </summary>
-        public float[] FreeSpaceOnDrives { get; internal set; }
     }
 }

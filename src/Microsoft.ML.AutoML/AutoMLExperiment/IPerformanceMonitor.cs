@@ -114,8 +114,7 @@ namespace Microsoft.ML.AutoML
                     CpuUsage = cpuUsageInTotal,
                     MemoryUsage = memoryUsage,
                     PeakCpuUsage = _peakCpuUsage,
-                    PeakMemoryUsage = _peakMemoryUsage,
-                    FreeSpaceOnDrives = DriveInfo.GetDrives().Select(d => (float)d.AvailableFreeSpace / (1024 * 1024)).ToArray()
+                    PeakMemoryUsage = _peakMemoryUsage
                 };
 
                 _logger?.Trace($"current CPU: {cpuUsageInTotal}, current Memory(mb): {memoryUsage}");
