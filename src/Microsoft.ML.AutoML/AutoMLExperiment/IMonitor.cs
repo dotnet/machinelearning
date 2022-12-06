@@ -34,7 +34,7 @@ namespace Microsoft.ML.AutoML
         private readonly SweepablePipeline _pipeline;
         public int ResourceUsageCheckInterval { get; private set; }
 
-        public MLContextMonitor(IChannel logger, SweepablePipeline pipeline, int resourceUsageCheckInterval = 6000)
+        public MLContextMonitor(IChannel logger, SweepablePipeline pipeline, int resourceUsageCheckInterval = 5000)
         {
             _logger = logger;
             _completedTrials = new List<TrialResult>();
