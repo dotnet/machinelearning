@@ -108,9 +108,7 @@
 
     <PropertyGroup>
       <BuildArgs>$(Configuration) $(TargetArchitecture) --mkllibpath $(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsVersion)\runtimes\$(PackageRid)\native</BuildArgs>
-      <BuildArgs>$(BuildArgs) --onedalredistpath $(NuGetPackageRoot)inteldal.redist.$(PackageRid)\$(OneDalPkgVersion)\build\native\daal\latest</BuildArgs>
       <BuildArgs>$(BuildArgs) --onedaldevelpath $(NuGetPackageRoot)inteldal.devel.win-x64\$(OneDalDevelPkgVersion)\build\native\daal\latest</BuildArgs>
-      <BuildArgs>$(BuildArgs) --onetbbredistpath $(NuGetPackageRoot)inteltbb.redist.$(TbbSystem)\$(OneTbbPkgVersion)\runtimes\$(PackageRid)\native</BuildArgs>
       <BuildArgs>$(BuildArgs) --onetbbdevelpath $(NuGetPackageRoot)inteltbb.devel.$(TbbSystem)\$(OneTbbPkgVersion)\lib\native\$(PackageRid)</BuildArgs>
     </PropertyGroup>
 
