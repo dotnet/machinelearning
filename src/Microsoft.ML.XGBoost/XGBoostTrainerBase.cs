@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using static Microsoft.ML.CommandLine.CmdParser.ArgInfo;
 
 namespace Microsoft.ML.Trainers.XGBoost
 {
@@ -364,22 +365,25 @@ if (NumberOfThreads.HasValue)
             var loadFlags = CursOpt.AllLabels | CursOpt.AllFeatures;
             var factory = new FloatLabelCursor.Factory(trainData, loadFlags);
 
-            Console.WriteLine($"******** The feature column is: {trainData.Schema.Feature}, of type {trainData.Schema.Feature.GetType()}.");
+            Console.WriteLine($"******** The feature column is: {trainData.Schema.Feature}");
+
+            int featureDimensionality = 0;
+            var typ = trainData.Schema.Feature;
+            if (typ.HasValue)
+            {
+                if (typ.Value.Type is VectorDataViewType vt)
+                {
+                    featureDimensionality = vt.Size;
+                }
+            }
+            ch.Assert(featureDimensionality > 0);
 
 #if false
             GetMetainfo(ch, factory, out int numRow, out float[] labels, out float[] weights, out int[] groups);
             catMetaData = GetCategoricalMetaData(ch, trainData, numRow);
 #endif
-            GetDefaultParameters(ch
-#if false
-, numRow, catMetaData.CategoricalBoudaries != null, catMetaData.TotalCats
-#endif
-        );
-            CheckAndUpdateParametersBeforeTraining(ch, trainData
-#if false
-	    , labels, groups
-#endif
-        );
+            GetDefaultParameters(ch);
+            CheckAndUpdateParametersBeforeTraining(ch, trainData);
 
             foreach (var k in GbmOptions.Keys)
             {
@@ -398,9 +402,11 @@ if (NumberOfThreads.HasValue)
 #if true
             //DMatrix dtrain = null;
 
-            LoadDMatrix(ch, factory, null /*dtrain*/
+            LoadDMatrix(ch, factory, null /*dtrain*/ // should pass the value of feature dimension here
 #if false
             , numRow, LightGbmTrainerOptions.BatchSize, catMetaData
+#else
+                , featureDimensionality
 #endif
             );
 
@@ -418,6 +424,8 @@ if (NumberOfThreads.HasValue)
         private void LoadDMatrix(IChannel ch, FloatLabelCursor.Factory factory, DMatrix dataset
 #if false
             , int numRow, int batchSize, CategoricalMetaData catMetaData
+#else
+            , int featureDimensionality
 #endif
             )
         {
@@ -452,7 +460,8 @@ if (NumberOfThreads.HasValue)
                 }
             }
             var flatArray = (acc.ToArray()).SelectMany(x => x).ToArray();
-            Console.WriteLine($"the total accumulated values are: [{flatArray.Length}] (the 'rows' dimension in the DMatrix should be {numRows})");
+
+            DMatrix dmat = new DMatrix(flatArray, (uint)numRows, (uint)featureDimensionality, accLabels.ToArray());
         }
 
         private protected XGBoostTrainerBase(IHostEnvironment env,
