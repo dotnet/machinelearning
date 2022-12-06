@@ -18,7 +18,7 @@ namespace Microsoft.ML.Samples.XGBoost
             var mlContext = new MLContext(seed: 0);
 
             // Create a list of training data points.
-            var dataPoints = GenerateRandomDataPoints(10/*00*/);
+            var dataPoints = GenerateRandomDataPoints(20/*00*/);
 
             foreach (var dataPoint in dataPoints)
             {
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Samples.XGBoost
                 {
                     Label = label,
                     // Create random features that are correlated with the label.
-                    Features = Enumerable.Repeat(label, 10).Select(
+                    Features = Enumerable.Repeat(label, 12).Select(
                     //Features = Enumerable.Repeat(label, 50).Select(
                         x => x + (float)random.NextDouble()).ToArray()
                 };
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Samples.XGBoost
         {
             public float Label { get; set; }
             //[VectorType(50)]
-            [VectorType(10)]
+            [VectorType(12)]
             public float[]? Features { get; set; }
         }
 
