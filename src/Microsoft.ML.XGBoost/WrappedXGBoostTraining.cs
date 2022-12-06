@@ -116,26 +116,26 @@ namespace Microsoft.ML.Trainers.XGBoost
             }
             return bst;
 #else
-#if false
-            DMatrix dmat = new DMatrix(arr, 10, 12, arrlabels);
-Console.WriteLine($"DMatrix has {dmat.GetNumRows()} rows and {dmat.GetNumCols()} columns.");
 
-Console.WriteLine("Instantiating a booster");
-Booster bst = new Booster(dmat);
-bst.SetParameter("objective", "reg:squarederror");
+            System.Console.WriteLine($"Training: DMatrix has {dtrain.GetNumRows()} rows and {dtrain.GetNumCols()} columns.");
+            System.Console.WriteLine("Instantiating a booster");
+            Booster bst = new Booster(dtrain);
 
-Console.WriteLine("Starting training loop");
-int numBoostRound = 1;
-for (int i = 0; i < numBoostRound; i++) {
-    bst.Update(dmat, i);
-}
+            // TODO: Pass all configuration parameters to the booster.
+            bst.SetParameter("objective", "reg:squarederror");
+            var bstConfig = bst.DumpConfig();
+            System.Console.WriteLine($"The starting configuration of the booster is {bstConfig}..");
 
+            System.Console.WriteLine("Starting training loop");
+            int numBoostRound = 5;
+            for (int i = 0; i < numBoostRound; i++)
+            {
+                bst.Update(dtrain, i);
+            }
+            System.Console.WriteLine($"------- Dumping the model into an internal regression tree ---------------");
+            bst.DumpModel();
 
-Console.WriteLine($"------- Dumping the model into an internal regression tree ---------------");
-
-bst.DumpModel();
-#endif
-            return null;
+            return bst;
 #endif
         }
     }

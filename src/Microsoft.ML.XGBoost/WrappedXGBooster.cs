@@ -121,31 +121,6 @@ namespace Microsoft.ML.Trainers.XGBoost
             return XGBoostInterfaceUtils.GetPredictionsArray(predsPtr, predsLen);
         }
 
-#if false
-	// Should enable XGBoosterSaveModelToBuffer
-        [BestFriend]
-        internal unsafe string GetModelString()
-        {
-            int bufLen = 2 << 15;
-            byte[] buffer = new byte[bufLen];
-            int size = 0;
-            fixed (byte* ptr = buffer)
-                LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterSaveModelToString(Handle, 0, BestIteration, bufLen, ref size, ptr));
-            // If buffer size is not enough, reallocate buffer and get again.
-            if (size > bufLen)
-            {
-                bufLen = size;
-                buffer = new byte[bufLen];
-                fixed (byte* ptr = buffer)
-                    LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterSaveModelToString(Handle, 0, BestIteration, bufLen, ref size, ptr));
-            }
-            byte[] content = new byte[size];
-            Array.Copy(buffer, content, size);
-            fixed (byte* ptr = content)
-                return LightGbmInterfaceUtils.GetString((IntPtr)ptr);
-        }
-#endif
-
         public void SetParameters(Dictionary<string, object> parameters)
         {
             // support internationalisation i.e. support floats with commas (e.g. 0,5F)
@@ -382,7 +357,72 @@ namespace Microsoft.ML.Trainers.XGBoost
             }
         }
 
+#if true
+        public unsafe void DumpModel()
+        {
+#pragma warning disable MSML_ParameterLocalVarName // Parameter or local variable name not standard
+            ulong boosters_len;
+            byte** booster_raw_arr;
+#pragma warning restore MSML_ParameterLocalVarName // Parameter or local variable name not standard
+            var errp = WrappedXGBoostInterface.XGBoosterDumpModelEx(_handle, "", 0, "json", out boosters_len, out booster_raw_arr);
+            if (errp == -1)
+            {
+                string reason = WrappedXGBoostInterface.XGBGetLastError();
+                throw new XGBoostDLLException(reason);
+            }
+
+            var result = new string[boosters_len];
 #if false
+            var boosterPattern = @"^booster\[\d+\]";
+#endif
+
+            for (ulong i = 0; i < boosters_len; ++i)
+            {
+                result[i] = Marshal.PtrToStringUTF8((nint)booster_raw_arr[i]) ?? "";
+                Console.WriteLine($"**** Trying to parse booster {i}, which is {result[i]}");
+#if false
+#if false
+ 		var doc = JsonDocument.Parse(result[i]);
+                TreeNode t = TreeNode.Create(doc.RootElement);
+                ensemble.Add(t);
+#else
+                Console.WriteLine($"**** Calling the TablePopulator on booster {i}..");
+                var table = new TablePopulator(result[i]);
+                var arrs = table.Sequentialize();
+                //Console.WriteLine($"**** Booster {i} has an element of type: {doc.RootElement.ValueKind}.");
+                Console.WriteLine($"**** I coud get {arrs.Item1.Length} arrays from Booster {i}.");
+#endif
+#endif
+            }
+
+            Console.WriteLine($"**** The length of the boosters are {result.Length}.");
+            //Console.WriteLine($"**** The first booster is {result[0]}.");
+
+        }
+
+        public string DumpConfig()
+        {
+#pragma warning disable MSML_ParameterLocalVarName // Parameter or local variable name not standard
+            ulong config_len;
+#pragma warning restore MSML_ParameterLocalVarName // Parameter or local variable name not standard
+            string result = default;
+            unsafe
+            {
+#pragma warning disable MSML_ParameterLocalVarName // Parameter or local variable name not standard
+                byte* config_result;
+#pragma warning restore MSML_ParameterLocalVarName // Parameter or local variable name not standard
+                var errp = WrappedXGBoostInterface.XGBoosterSaveJsonConfig(_handle, out config_len, &config_result);
+                if (errp == -1)
+                {
+                    string reason = WrappedXGBoostInterface.XGBGetLastError();
+                    throw new XGBoostDLLException(reason);
+                }
+                result = Marshal.PtrToStringUTF8((nint)config_result) ?? "";
+            }
+            return result;
+
+        }
+#else
 #if false
 #pragma warning disable MSML_ParameterLocalVarName
         public string[] DumpModelEx(string fmap, int with_stats, string format)
@@ -411,7 +451,7 @@ namespace Microsoft.ML.Trainers.XGBoost
             return trees;
         }
 #else
-        public unsafe void DumpModel()
+            public unsafe void DumpModel()
         {
             ulong boostersLen;
             byte** boosterRawArr;

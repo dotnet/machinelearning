@@ -437,6 +437,9 @@ if (NumberOfThreads.HasValue)
                 {
                     TrainedEnsemble = bst.GetModel(catMetaData.CategoricalBoudaries);
                 }
+#else
+
+                var bst = WrappedXGBoostTraining.Train(Host, ch, pch, GbmOptions, dtrain);
 #endif
             }
 
