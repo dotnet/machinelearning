@@ -5,17 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static Microsoft.ML.CommandLine.CmdParser.ArgInfo;
 
 namespace Microsoft.ML.Trainers.XGBoost
 {
@@ -28,7 +22,7 @@ namespace Microsoft.ML.Trainers.XGBoost
     /// <summary>
     /// Lock for XGBoost trainer.
     /// </summary>
-    internal static class LightGbmShared
+    internal static class XGBoostShared
     {
         // Lock for the operations that are multi-threading inside in XGBoost.
         public static readonly object LockForMultiThreadingInside = new object();
@@ -314,11 +308,7 @@ if (NumberOfThreads.HasValue)
                 {
                     using (var pch = Host.StartProgressChannel("Loading data for XGBoost"))
                     {
-                        dtrain = LoadTrainingData(ch, context.TrainingSet
-#if false
-			, out catMetaData
-#endif
-            );
+                        dtrain = LoadTrainingData(ch, context.TrainingSet);
 #if false
                         if (context.ValidationSet != null)
                             dvalid = LoadValidationData(ch, dtrain, context.ValidationSet, catMetaData);
@@ -330,11 +320,8 @@ if (NumberOfThreads.HasValue)
                 using (var ch = Host.Start("Training with XGBoost"))
                 {
                     using (var pch = Host.StartProgressChannel("Training with XGBoost"))
-#if false
-                        TrainCore(ch, pch, dtrain, catMetaData, dvalid);
-#else
-                        System.Console.WriteLine("**** Should be calling Traincore here **** ");
-#endif
+                        TrainCore(ch, pch, dtrain);
+                    System.Console.WriteLine("**** Should be calling Traincore here **** ");
                 }
             }
             finally
@@ -356,7 +343,6 @@ if (NumberOfThreads.HasValue)
 
         private DMatrix LoadTrainingData(IChannel ch, RoleMappedData trainData)
         {
-            // Verifications.
             Host.AssertValue(ch);
             ch.CheckValue(trainData, nameof(trainData));
 
@@ -364,8 +350,6 @@ if (NumberOfThreads.HasValue)
 
             var loadFlags = CursOpt.AllLabels | CursOpt.AllFeatures;
             var factory = new FloatLabelCursor.Factory(trainData, loadFlags);
-
-            Console.WriteLine($"******** The feature column is: {trainData.Schema.Feature}");
 
             int featureDimensionality = 0;
             var typ = trainData.Schema.Feature;
@@ -378,10 +362,6 @@ if (NumberOfThreads.HasValue)
             }
             ch.Assert(featureDimensionality > 0);
 
-#if false
-            GetMetainfo(ch, factory, out int numRow, out float[] labels, out float[] weights, out int[] groups);
-            catMetaData = GetCategoricalMetaData(ch, trainData, numRow);
-#endif
             GetDefaultParameters(ch);
             CheckAndUpdateParametersBeforeTraining(ch, trainData);
 
@@ -392,59 +372,22 @@ if (NumberOfThreads.HasValue)
 
 #if false
             string param = LightGbmInterfaceUtils.JoinParameters(GbmOptions);
-
-            Dataset dtrain;
-
-            LoadDataset(ch, factory, dtrain, numRow, LightGbmTrainerOptions.BatchSize, catMetaData);
-
+#else
+            DMatrix dtrain = LoadDMatrix(ch, factory, featureDimensionality);
+            Console.WriteLine($"DMatrix has {dtrain.GetNumRows()} rows and {dtrain.GetNumCols()} columns.");
             return dtrain;
-#else
-#if true
-            //DMatrix dtrain = null;
-
-            LoadDMatrix(ch, factory, null /*dtrain*/ // should pass the value of feature dimension here
-#if false
-            , numRow, LightGbmTrainerOptions.BatchSize, catMetaData
-#else
-                , featureDimensionality
-#endif
-            );
-
-            return null /* dtrain */;
-#else
-            return null;
-#endif
-
 #endif
         }
 
         /// <summary>
         /// Load dataset. Use row batch way to reduce peak memory cost.
         /// </summary>
-        private void LoadDMatrix(IChannel ch, FloatLabelCursor.Factory factory, DMatrix dataset
-#if false
-            , int numRow, int batchSize, CategoricalMetaData catMetaData
-#else
-            , int featureDimensionality
-#endif
-            )
+        private DMatrix LoadDMatrix(IChannel ch, FloatLabelCursor.Factory factory, int featureDimensionality)
         {
 
             Host.AssertValue(ch);
             ch.AssertValue(factory);
-#if false         
-            ch.AssertValue(dataset);
-#endif
-#if false
-            ch.Assert(dataset.GetNumRows() == numRow);
-            var rand = Host.Rand;
-            // To avoid array resize, batch size should bigger than size of one row.
-            batchSize = Math.Max(batchSize, catMetaData.NumCol);
-            double density = DetectDensity(factory);
-            int numElem = 0;
-            int totalRowCount = 0;
-            int curRowCount = 0;
-#endif
+
             List<float[]> acc = new List<float[]>();
             List<float> accLabels = new List<float>();
             ulong numRows = 0;
@@ -462,7 +405,43 @@ if (NumberOfThreads.HasValue)
             var flatArray = (acc.ToArray()).SelectMany(x => x).ToArray();
 
             DMatrix dmat = new DMatrix(flatArray, (uint)numRows, (uint)featureDimensionality, accLabels.ToArray());
+            return dmat;
         }
+
+        private void TrainCore(IChannel ch, IProgressChannel pch, DMatrix dtrain)
+        {
+
+            Host.AssertValue(ch);
+            Host.AssertValue(pch);
+#if false
+            Host.AssertValue(dtrain);
+            Host.AssertValueOrNull(dvalid);
+            Host.CheckAlive();
+#endif
+
+#if true
+            Console.WriteLine("**** Trying to get labels");
+            var labfrommat = dtrain.GetLabels();
+            Console.WriteLine($"Got labels of length {labfrommat.Length}.");
+#endif
+
+            // Only enable one trainer to run at one time.
+            lock (XGBoostShared.LockForMultiThreadingInside)
+            {
+                ch.Info("XGBoost objective={0}", GbmOptions["objective"]);
+                Console.WriteLine("XGBoost objective={0}", GbmOptions["objective"]);
+#if false
+               using (Booster bst = WrappedLightGbmTraining.Train(Host, ch, pch, GbmOptions, dtrain,
+                dvalid: dvalid, numIteration: LightGbmTrainerOptions.NumberOfIterations,
+                verboseEval: LightGbmTrainerOptions.Verbose, earlyStoppingRound: LightGbmTrainerOptions.EarlyStoppingRound))
+                {
+                    TrainedEnsemble = bst.GetModel(catMetaData.CategoricalBoudaries);
+                }
+#endif
+            }
+
+        }
+
 
         private protected XGBoostTrainerBase(IHostEnvironment env,
             string name,

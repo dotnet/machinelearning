@@ -80,6 +80,18 @@ namespace Microsoft.ML.Trainers.XGBoost
             }
         }
 
+        public Span<float> GetLabels()
+        {
+            int errp = WrappedXGBoostInterface.XGDMatrixGetFloatInfo(_handle, "label", out ulong labellen, out Span<float> result);
+            if (errp == -1)
+            {
+                string reason = WrappedXGBoostInterface.XGBGetLastError();
+                throw new XGBoostDLLException(reason);
+            }
+            return result;
+        }
+
+
         public void Dispose()
         {
             Dispose(true);
