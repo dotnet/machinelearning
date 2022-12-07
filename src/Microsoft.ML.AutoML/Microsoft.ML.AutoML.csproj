@@ -66,7 +66,6 @@
     <AdditionalFiles Include="CodeGen\*search_space.json" />
     <AdditionalFiles Include="CodeGen\code_gen_flag.json" />
     <AdditionalFiles Include="CodeGen\*-estimators.json" />
-    <AdditionalFiles Include="CodeGen\code_gen_flag.json" />
   </ItemGroup>
 
   <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">

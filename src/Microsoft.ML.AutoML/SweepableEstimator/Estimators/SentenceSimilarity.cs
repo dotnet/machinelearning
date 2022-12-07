@@ -10,16 +10,15 @@ using Microsoft.ML.TorchSharp;
 
 namespace Microsoft.ML.AutoML.CodeGen
 {
-    internal partial class TextClassificationMulti
+    internal partial class SentenceSimilarityRegression
     {
-        public override IEstimator<ITransformer> BuildFromOption(MLContext context, TextClassificationOption param)
+        public override IEstimator<ITransformer> BuildFromOption(MLContext context, SentenceSimilarityOption param)
         {
-            return context.MulticlassClassification.Trainers.TextClassification(
+            return context.Regression.Trainers.SentenceSimilarity(
                     labelColumnName: param.LabelColumnName,
                     sentence1ColumnName: param.Sentence1ColumnName,
                     scoreColumnName: param.ScoreColumnName,
                     sentence2ColumnName: param.Sentence2ColumnName,
-                    outputColumnName: param.OutputColumnName,
                     batchSize: param.BatchSize,
                     maxEpochs: param.MaxEpochs,
                     architecture: param.Architecture);
