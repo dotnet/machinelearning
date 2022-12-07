@@ -118,11 +118,22 @@ namespace Microsoft.ML.Trainers.XGBoost
 #else
 
             System.Console.WriteLine($"Training: DMatrix has {dtrain.GetNumRows()} rows and {dtrain.GetNumCols()} columns.");
-            System.Console.WriteLine("Instantiating a booster");
             Booster bst = new Booster(dtrain);
 
             // TODO: Pass all configuration parameters to the booster.
             bst.SetParameter("objective", "reg:squarederror");
+            bst.SetParameter("booster", "gbtree");
+            bst.SetParameter("max_depth", "3");
+            bst.SetParameter("seed", "0");
+            bst.SetParameter("nthread", "1");
+
+#if false
+            XGBoosterSetParam(booster, "booster", "gbtree");
+            XGBoosterSetParam(booster, "objective", "reg:squarederror");
+            XGBoosterSetParam(booster, "max_depth", "1");
+            XGBoosterSetParam(booster, "base_score", "0")
+#endif
+
             var bstConfig = bst.DumpConfig();
             System.Console.WriteLine($"The starting configuration of the booster is {bstConfig}..");
 

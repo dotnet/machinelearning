@@ -331,35 +331,26 @@ namespace Microsoft.ML.Trainers.XGBoost
                     leafValues[mapLeaves[l.Key] - 1] = l.Value.leaf;
                 }
 
-                Console.WriteLine($"----------------- running constraints -------------------");
-                Console.WriteLine($"Number of leaves: {Leaves.Count}.");
-                Console.WriteLine($"Size of lte: [{lte.Length}] ");
-                Console.WriteLine($"LTE: [{lte}] ");
-                Console.WriteLine($"Size of gt: [{gt.Length}]");
-
                 var tree = InternalRegressionTree.Create(Leaves.Count,
                 splitFeatures,
-                null, // double[] splitGain
+                new double[Leaves.Count - 1], // double[] splitGain
                 rawThresholds,
-                null, // float[] defaultValueForMissing
+                new float[Leaves.Count - 1], // float[] defaultValueForMissing // FIXME
                 lte,
                 gt,
-                null, // double[] leafValues
-                null, // int[][] categoricalSplitFeatures
-                null // bool[] categoricalSplit
+                leafValues,
+                new int[Leaves.Count - 1][], // int[][] categoricalSplitFeatures
+                new bool[Leaves.Count - 1] // bool[] categoricalSplit
                 );
 
-#if false
-                return (lte, gt);
-#else
                 return tree;
-#endif
             }
         }
 
 #if true
-        public unsafe void DumpModel()
+        public unsafe InternalTreeEnsemble DumpModel()
         {
+            InternalTreeEnsemble ensemble = new InternalTreeEnsemble();
 #pragma warning disable MSML_ParameterLocalVarName // Parameter or local variable name not standard
             ulong boosters_len;
             byte** booster_raw_arr;
@@ -372,31 +363,20 @@ namespace Microsoft.ML.Trainers.XGBoost
             }
 
             var result = new string[boosters_len];
-#if false
-            var boosterPattern = @"^booster\[\d+\]";
-#endif
 
             for (ulong i = 0; i < boosters_len; ++i)
             {
                 result[i] = Marshal.PtrToStringUTF8((nint)booster_raw_arr[i]) ?? "";
                 Console.WriteLine($"**** Trying to parse booster {i}, which is {result[i]}");
-#if false
-#if false
- 		var doc = JsonDocument.Parse(result[i]);
-                TreeNode t = TreeNode.Create(doc.RootElement);
-                ensemble.Add(t);
-#else
                 Console.WriteLine($"**** Calling the TablePopulator on booster {i}..");
                 var table = new TablePopulator(result[i]);
-                var arrs = table.Sequentialize();
-                //Console.WriteLine($"**** Booster {i} has an element of type: {doc.RootElement.ValueKind}.");
-                Console.WriteLine($"**** I coud get {arrs.Item1.Length} arrays from Booster {i}.");
-#endif
-#endif
+                var tree = table.Sequentialize();
+                ensemble.AddTree(tree);
             }
 
             Console.WriteLine($"**** The length of the boosters are {result.Length}.");
-            //Console.WriteLine($"**** The first booster is {result[0]}.");
+            Console.WriteLine($"**** The number of trees in the ensemble are {ensemble.NumTrees}.");
+            return ensemble;
 
         }
 

@@ -84,14 +84,6 @@ namespace Microsoft.ML.Trainers.XGBoost
         internal const string ShortName = "XGBoostR";
         internal new const string UserNameValue = "XGBoost Regressor";
 
-#if false
-        public XGBoostRegressionTrainer(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight = default, SchemaShape.Column groupId = default)
-            : base(host, feature, label, weight, groupId)
-        {
-            Console.WriteLine("In the constructor of the trainer 1");
-        }
-#endif
-
         public override TrainerInfo Info => throw new System.NotImplementedException();
 
         private protected override PredictionKind PredictionKind => PredictionKind.Regression;
@@ -105,13 +97,7 @@ namespace Microsoft.ML.Trainers.XGBoost
         }
 
         private protected override RegressionPredictionTransformer<XGBoostRegressionModelParameters> MakeTransformer(XGBoostRegressionModelParameters model, DataViewSchema trainSchema)
-#if false
-=> new RegressionPredictionTransformer<XGBoostRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
-#else
-        {
-            return null;
-        }
-#endif
+            => new RegressionPredictionTransformer<XGBoostRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
         /// Options for the <see cref="XGBoostRegressionTrainer"/> as used in
@@ -187,25 +173,25 @@ namespace Microsoft.ML.Trainers.XGBoost
 #endif
             })
         {
-
-            Console.WriteLine("In the constructor of the trainer 2");
         }
 
         internal XGBoostRegressionTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName))
         {
-            Console.WriteLine("In the constructor of the trainer 3");
         }
 
         private protected override XGBoostRegressionModelParameters CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null,
                 "The predictor cannot be created before training is complete");
-#if true
-            return null;
-#else
+
+#if false
             var innerArgs = LightGbmInterfaceUtils.JoinParameters(GbmOptions);
             return new LightGbmRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, innerArgs);
+#else
+            //var innerArgs = LightGbmInterfaceUtils.JoinParameters(GbmOptions);
+            // Check that boosters are trees
+            return new XGBoostRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, "");
 #endif
         }
 

@@ -321,7 +321,6 @@ if (NumberOfThreads.HasValue)
                 {
                     using (var pch = Host.StartProgressChannel("Training with XGBoost"))
                         TrainCore(ch, pch, dtrain);
-                    System.Console.WriteLine("**** Should be calling Traincore here **** ");
                 }
             }
             finally
@@ -332,11 +331,7 @@ if (NumberOfThreads.HasValue)
                 DisposeParallelTraining();
 #endif
             }
-#if false
             return CreatePredictor();
-#else
-            return null;
-#endif
         }
 
         private protected virtual void InitializeBeforeTraining() { }
@@ -361,6 +356,13 @@ if (NumberOfThreads.HasValue)
                 }
             }
             ch.Assert(featureDimensionality > 0);
+#if true
+            FeatureCount = featureDimensionality;
+#else
+            var colType = trainData.Schema.Feature.Value.Type;
+            int rawNumCol = colType.GetVectorSize();
+            FeatureCount = rawNumCol;
+#endif
 
             GetDefaultParameters(ch);
             CheckAndUpdateParametersBeforeTraining(ch, trainData);
@@ -398,8 +400,11 @@ if (NumberOfThreads.HasValue)
                     acc.Add(cursor.Features.GetValues().ToArray());
                     accLabels.Add(cursor.Label);
                     numRows++;
+#if false
+// FIXME: dump arrays to verify
                     string strVec = string.Join(",", (cursor.Features.GetValues().ToArray()).Select(x => x.ToString()).ToArray());
                     Console.WriteLine($"features: [{strVec}], label: {cursor.Label}");
+#endif
                 }
             }
             var flatArray = (acc.ToArray()).SelectMany(x => x).ToArray();
@@ -430,21 +435,18 @@ if (NumberOfThreads.HasValue)
             {
                 ch.Info("XGBoost objective={0}", GbmOptions["objective"]);
                 Console.WriteLine("XGBoost objective={0}", GbmOptions["objective"]);
+                using (Booster bst = WrappedXGBoostTraining.Train(Host, ch, pch, GbmOptions, dtrain
 #if false
-               using (Booster bst = WrappedLightGbmTraining.Train(Host, ch, pch, GbmOptions, dtrain,
-                dvalid: dvalid, numIteration: LightGbmTrainerOptions.NumberOfIterations,
-                verboseEval: LightGbmTrainerOptions.Verbose, earlyStoppingRound: LightGbmTrainerOptions.EarlyStoppingRound))
-                {
-                    TrainedEnsemble = bst.GetModel(catMetaData.CategoricalBoudaries);
-                }
-#else
-
-                var bst = WrappedXGBoostTraining.Train(Host, ch, pch, GbmOptions, dtrain);
+               ,dvalid: dvalid, numIteration: LightGbmTrainerOptions.NumberOfIterations,
+                verboseEval: LightGbmTrainerOptions.Verbose, earlyStoppingRound: LightGbmTrainerOptions.EarlyStoppingRound)
 #endif
+                 ))
+                {
+                    TrainedEnsemble = bst.DumpModel();
+                }
             }
 
         }
-
 
         private protected XGBoostTrainerBase(IHostEnvironment env,
             string name,
