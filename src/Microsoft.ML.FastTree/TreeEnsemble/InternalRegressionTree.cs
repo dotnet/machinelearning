@@ -189,10 +189,10 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        protected InternalRegressionTree(int[] splitFeatures, double[] splitGain, double[] gainPValue,
-            float[] rawThresholds, float[] defaultValueForMissing, int[] lteChild, int[] gtChild, double[] leafValues,
-            int[][] categoricalSplitFeatures, bool[] categoricalSplit)
-            : this()
+        internal InternalRegressionTree(int[] splitFeatures, double[] splitGain, double[] gainPValue,
+float[] rawThresholds, float[] defaultValueForMissing, int[] lteChild, int[] gtChild, double[] leafValues,
+int[][] categoricalSplitFeatures, bool[] categoricalSplit)
+: this()
         {
             Contracts.CheckParam(Utils.Size(splitFeatures) > 0, nameof(splitFeatures), "Number of split features must be positive");
 

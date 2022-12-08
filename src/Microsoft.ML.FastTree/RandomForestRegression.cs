@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -13,9 +13,9 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
+using Microsoft.ML.OneDal;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.OneDal;
 
 [assembly: LoadableClass(FastForestRegressionTrainer.Summary, typeof(FastForestRegressionTrainer), typeof(FastForestRegressionTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
