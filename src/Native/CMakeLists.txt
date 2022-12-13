@@ -262,7 +262,7 @@ if(NOT ${ARCHITECTURE} MATCHES "arm.*")
     add_subdirectory(SymSgdNative)
 endif()
 
-if(${ARCHITECTURE} STREQUAL "x64")
+if(${ARCHITECTURE} MATCHES "[xX].*64")
   add_subdirectory(OneDalNative)
 endif()
 
