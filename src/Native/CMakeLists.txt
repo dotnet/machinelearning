@@ -266,6 +266,5 @@ if(${ARCHITECTURE} MATCHES "[xX].*64")
   add_subdirectory(OneDalNative)
 endif()
 
-
 add_subdirectory(LdaNative)
 add_subdirectory(MatrixFactorizationNative)

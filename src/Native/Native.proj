@@ -135,17 +135,17 @@
           DestinationFolder="$(NativeAssetsBuiltPath)" />
 
     <!-- Copy oneDAL -->
-    <Copy Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
+    <Copy Condition="'$(TargetArchitecture)' == 'x64'"
           SourceFiles="$(NuGetPackageRoot)inteldal.redist.$(PackageRid)\$(OneDalPkgVersion)\build\native\daal\latest\$(OneDalLibDir)\$(NativeLibPrefix)onedal_core$(OneDalLibExtension)"
           DestinationFolder="$(NativeAssetsBuiltPath)" />
-    <Copy Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
+    <Copy Condition="'$(TargetArchitecture)' == 'x64'"
           SourceFiles="$(NuGetPackageRoot)inteldal.redist.$(PackageRid)\$(OneDalPkgVersion)\build\native\daal\latest\$(OneDalLibDir)\$(NativeLibPrefix)onedal_thread$(OneDalLibExtension)"
           DestinationFolder="$(NativeAssetsBuiltPath)" />
     <!-- Copy oneTBB (dependency of oneDAL) -->
-    <Copy Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
+    <Copy Condition="'$(TargetArchitecture)' == 'x64'"
           SourceFiles="$(NuGetPackageRoot)inteltbb.$(TbbPkgType).$(TbbSystem)\$(OneTbbPkgVersion)\runtimes\$(PackageRid)\native\$(TbbLibrary)"
           DestinationFolder="$(NativeAssetsBuiltPath)" />
-    <Copy Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
+    <Copy Condition="'$(TargetArchitecture)' == 'x64'"
           SourceFiles="$(NuGetPackageRoot)inteltbb.$(TbbPkgType).$(TbbSystem)\$(OneTbbPkgVersion)\runtimes\$(PackageRid)\native\$(TbbMallocLibrary)"
           DestinationFolder="$(NativeAssetsBuiltPath)" />
 
