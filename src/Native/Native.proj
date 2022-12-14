@@ -187,7 +187,7 @@
                           RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Condition="'$(NonArmOnWindows)' == 'true'" Include="$(NativeAssetsBuiltPath)\libiomp5md$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />
-      <NativePackageAsset Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
+      <NativePackageAsset Condition="'$(TargetArchitecture)' == 'x64'"
                           Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)OneDalNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.OneDal\runtimes\$(PackageRid)\native" />
 
