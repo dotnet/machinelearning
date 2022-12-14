@@ -85,7 +85,8 @@
       <BuildArgs>--configuration $(Configuration) --arch $(TargetArchitecture) $(StripArgs)</BuildArgs>
     </PropertyGroup>
 
-    <PropertyGroup Condition="!$(TargetArchitecture.StartsWith('arm'))">
+    <!-- <PropertyGroup Condition="!$(TargetArchitecture.StartsWith('arm'))"> -->
+    <PropertyGroup Condition="'$(TargetArchitecture)' == 'x64'">
       <BuildArgs>$(BuildArgs) --mkllibpath $(NuGetPackageRoot)mlnetmkldeps/$(MlNetMklDepsVersion)/runtimes/$(PackageRid)/native</BuildArgs>
       <!-- mkllibrpath is used as rpath on macOS by binaries such as SymSDGNative and MklProxyNative to locate mkl library.
            We are shipping 2 native assemblies in different nuget packages, and one has a reference on the other and MacOS needs to have
