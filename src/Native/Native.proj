@@ -109,8 +109,8 @@
 
     <PropertyGroup>
       <BuildArgs>$(Configuration) $(TargetArchitecture) --mkllibpath $(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsVersion)\runtimes\$(PackageRid)\native</BuildArgs>
-      <BuildArgs>$(BuildArgs) --onedaldevelpath $(NuGetPackageRoot)inteldal.devel.win-x64\$(OneDalDevelPkgVersion)\build\native\daal\latest</BuildArgs>
-      <BuildArgs>$(BuildArgs) --onetbbdevelpath $(NuGetPackageRoot)inteltbb.devel.$(TbbSystem)\$(OneTbbPkgVersion)\lib\native\$(PackageRid)</BuildArgs>
+      <BuildArgs Condition="'$(TargetArchitecture)' == 'x64'">$(BuildArgs) --onedaldevelpath $(NuGetPackageRoot)inteldal.devel.win-x64\$(OneDalDevelPkgVersion)\build\native\daal\latest</BuildArgs>
+      <BuildArgs Condition="'$(TargetArchitecture)' == 'x64'">$(BuildArgs) --onetbbdevelpath $(NuGetPackageRoot)inteltbb.devel.$(TbbSystem)\$(OneTbbPkgVersion)\lib\native\$(PackageRid)</BuildArgs>
     </PropertyGroup>
 
     <!-- Run script that invokes Cmake to create VS files, and then calls msbuild to compile them -->
