@@ -166,7 +166,6 @@ namespace Microsoft.ML.Samples.OneDal
             // data[0] - training subset
             // data[1] - testing subset
             IDataView[] data = LoadData(mlContext, args[0], args[1], args[2]);
-#if false
             string labelName = "target";
 
             var mainWatch = System.Diagnostics.Stopwatch.StartNew();
@@ -198,7 +197,7 @@ namespace Microsoft.ML.Samples.OneDal
                 Console.WriteLine("algorithm,all workflow time[ms],training RMSE,testing RMSE,training R2 score,testing R2 score");
                 Console.WriteLine($"OLS Regression,{mainWatch.Elapsed.TotalMilliseconds},{metrics[0]},{metrics[1]},{metrics[2]},{metrics[3]}");
             }
-#endif
+
             Console.WriteLine("**** Done!");
         }
     }

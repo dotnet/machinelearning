@@ -34,11 +34,11 @@
   <ItemGroup>
     <PackageDownload Include="inteldal.devel.win-x64" Version="[2023.0.0.23189]" />
 
-    <PackageDownload Condition="'$(OS)' != 'Windows_NT'" Include="inteldal.redist.linux-x64" Version="[2023.0.0.23046]" />
-    <PackageDownload Condition="'$(OS)' != 'Windows_NT'" Include="inteltbb.devel.linux" Version="[2021.7.1.15005]" />
+    <PackageDownload Condition="$([MSBuild]::IsOSPlatform('Linux'))" Include="inteldal.redist.linux-x64" Version="[2023.0.0.23046]" />
+    <PackageDownload Condition="$([MSBuild]::IsOSPlatform('Linux'))" Include="inteltbb.devel.linux" Version="[2021.7.1.15005]" />
 
-    <PackageDownload Condition="'$(OS)' != 'Windows_NT'" Include="inteldal.redist.osx-x64" Version="[2023.0.0.22995]" />
-    <PackageDownload Condition="'$(OS)' != 'Windows_NT'" Include="inteltbb.devel.osx" Version="[2021.7.1.14939]" />
+    <PackageDownload Condition="$([MSBuild]::IsOSPlatform('osx'))" Include="inteldal.redist.osx-x64" Version="[2023.0.0.22995]" />
+    <PackageDownload Condition="$([MSBuild]::IsOSPlatform('osx'))" Include="inteltbb.devel.osx" Version="[2021.7.1.14939]" />
 
     <PackageDownload Condition="'$(OS)' == 'Windows_NT'" Include="inteldal.redist.win-x64" Version="[2023.0.0.23189]" />
     <PackageDownload Condition="'$(OS)' == 'Windows_NT'" Include="inteltbb.redist.win" Version="[2021.7.1.15305]" />
