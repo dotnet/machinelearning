@@ -1,10 +1,10 @@
 # oneDAL supported algorithms
 
-oneAPI Data Analytics Library (oneDAL) is a library providing highly optimized machine learning and data analytics kernels. Part of these kernels is integrated into ML.NET via C++/C# interoperability.
+oneAPI Data Analytics Library (oneDAL) is a library providing highly optimized machine learning and data analytics kernels. Some of these kernels is integrated into ML.NET via C++/C# interoperability.
 
 [oneDAL Documentation](http://oneapi-src.github.io/oneDAL/) | [oneDAL Repository](https://github.com/oneapi-src/oneDAL)
 
-> Please note that OneDAL acceleration paths are only available in x64 architectures
+> Please note that oneDAL acceleration paths are only available in x64 architectures
 
 Integration consists of:
 
