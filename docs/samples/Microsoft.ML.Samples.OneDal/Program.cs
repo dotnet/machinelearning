@@ -197,8 +197,6 @@ namespace Microsoft.ML.Samples.OneDal
                 Console.WriteLine("algorithm,all workflow time[ms],training RMSE,testing RMSE,training R2 score,testing R2 score");
                 Console.WriteLine($"OLS Regression,{mainWatch.Elapsed.TotalMilliseconds},{metrics[0]},{metrics[1]},{metrics[2]},{metrics[3]}");
             }
-
-            Console.WriteLine("**** Done!");
         }
     }
 }
