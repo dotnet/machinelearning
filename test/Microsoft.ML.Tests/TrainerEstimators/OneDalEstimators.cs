@@ -39,16 +39,17 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var loader = ML.Data.CreateTextLoader(columns: new[] {
               new TextLoader.Column("f0", DataKind.Single, 0),
-            new TextLoader.Column("f1", DataKind.Single, 1),
-          new TextLoader.Column("f2", DataKind.Single, 2),
-          new TextLoader.Column("f3", DataKind.Single, 3),
-          new TextLoader.Column("f4", DataKind.Single, 4),
-          new TextLoader.Column("f5", DataKind.Single, 5),
-          new TextLoader.Column("f6", DataKind.Single, 6),
-          new TextLoader.Column("f7", DataKind.Single, 7),
-          new TextLoader.Column("target", DataKind.Boolean,8)},
-        separatorChar: ',',
-                hasHeader: true);
+              new TextLoader.Column("f1", DataKind.Single, 1),
+              new TextLoader.Column("f2", DataKind.Single, 2),
+              new TextLoader.Column("f3", DataKind.Single, 3),
+              new TextLoader.Column("f4", DataKind.Single, 4),
+              new TextLoader.Column("f5", DataKind.Single, 5),
+              new TextLoader.Column("f6", DataKind.Single, 6),
+              new TextLoader.Column("f7", DataKind.Single, 7),
+              new TextLoader.Column("target", DataKind.Boolean,8)},
+              separatorChar: ',',
+              hasHeader: true
+             );
 
             var trainingData = loader.Load(trainDataPath);
             var testingData = loader.Load(testDataPath);
