@@ -80,9 +80,17 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
 
-        [Fact]
+        //[Fact]
+        //[NativeDependencyFact("MatrixFactorizationNative")]
+        [NativeDependencyFact("OneDalNative")]
         public void TestDependency()
         {
+            var currentDir = AppContext.BaseDirectory;
+            Output.WriteLine($"**** Running from directory {currentDir}.");
+
+            var dllDir = AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES").ToString();
+            Output.WriteLine($"**** The search dir is {dllDir}.");
+
             DependencyContext defaultContext = DependencyContext.Default;
             var currentRid = RuntimeEnvironment.GetRuntimeIdentifier();
             Output.WriteLine($"**** the current RID is {currentRid}.");
