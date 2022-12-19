@@ -170,6 +170,22 @@
       <NativePackageAsset Condition="'$(TargetArchitecture)' != 'arm64' And '$(TargetArchitecture)' != 'arm'"
                           Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FastTreeNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.FastTree\runtimes\$(PackageRid)\native" />
+
+    <!-- Copy oneDAL -->
+    <NativePackageAsset Condition="'$(TargetArchitecture)' == 'x64'"
+          Include="$(NuGetPackageRoot)inteldal.redist.$(PackageRid)\$(OneDalPkgVersion)\build\native\daal\latest\$(OneDalLibDir)\$(NativeLibPrefix)onedal_core$(OneDalLibExtension)"
+          RelativePath="Microsoft.ML.OneDal\runtimes\$(PackageRid)\native" />
+    <NativePackageAsset Condition="'$(TargetArchitecture)' == 'x64'"
+	  Include="$(NuGetPackageRoot)inteldal.redist.$(PackageRid)\$(OneDalPkgVersion)\build\native\daal\latest\$(OneDalLibDir)\$(NativeLibPrefix)onedal_thread$(OneDalLibExtension)"
+          RelativePath="Microsoft.ML.OneDal\runtimes\$(PackageRid)\native" />
+    <!-- Copy oneTBB (dependency of oneDAL) -->
+    <NativePackageAsset Condition="'$(TargetArchitecture)' == 'x64'"
+          Include="$(NuGetPackageRoot)inteltbb.$(TbbPkgType).$(TbbSystem)\$(OneTbbPkgVersion)\runtimes\$(PackageRid)\native\$(TbbLibrary)"
+          RelativePath="Microsoft.ML.OneDal\runtimes\$(PackageRid)\native" />
+    <NativePackageAsset Condition="'$(TargetArchitecture)' == 'x64'"
+          Include="$(NuGetPackageRoot)inteltbb.$(TbbPkgType).$(TbbSystem)\$(OneTbbPkgVersion)\runtimes\$(PackageRid)\native\$(TbbMallocLibrary)"
+          RelativePath="Microsoft.ML.OneDal\runtimes\$(PackageRid)\native" />
+
     </ItemGroup>
 
     <ItemGroup>
