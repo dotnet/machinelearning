@@ -29,8 +29,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
     public partial class TrainerEstimators : TestDataPipeBase
     {
 
-        [Fact]
-        //[NativeDependencyFact("OneDalNative")]
+        // [Fact]
+        [NativeDependencyFact("OneDalNative")]
         public void OneDalFastTreeBinaryEstimator()
         {
             Environment.SetEnvironmentVariable("MLNET_BACKEND", "ONEDAL");
