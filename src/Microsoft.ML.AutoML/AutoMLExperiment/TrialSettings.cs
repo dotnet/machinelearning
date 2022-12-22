@@ -32,9 +32,5 @@ namespace Microsoft.ML.AutoML
         /// Performance metrics of the trial
         /// </summary>
         public TrialPerformanceMetrics PerformanceMetrics { get; internal set; }
-        /// <summary>
-        /// The time when the trial started (UTC)
-        /// </summary>
-        public DateTime StartedAtUtc { get; internal set; }
     }
 }

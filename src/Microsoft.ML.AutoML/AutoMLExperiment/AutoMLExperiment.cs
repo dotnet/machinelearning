@@ -257,7 +257,6 @@ namespace Microsoft.ML.AutoML
                 {
                     TrialId = trialNum++,
                     Parameter = Parameter.CreateNestedParameter(),
-                    StartedAtUtc = DateTime.UtcNow,
                     CancellationTokenSource = null,
                     PerformanceMetrics = new TrialPerformanceMetrics(),
                 };
