@@ -71,7 +71,8 @@
               "DnnFeaturizerImage",
               "Naive",
               "ForecastBySsa",
-              "TextClassification"
+              "TextClassifcation",
+              "SentenceSimilarity"
             ]
           },
           "nugetDependencies": {
@@ -109,6 +110,7 @@
                 "Microsoft.ML.Vision",
                 "Microsoft.ML.Transforms.Image",
                 "Microsoft.ML.Trainers.FastTree",
+                "Microsoft.ML.TorchSharp",
                 "Microsoft.ML.Trainers.LightGbm"
               ]
             }
