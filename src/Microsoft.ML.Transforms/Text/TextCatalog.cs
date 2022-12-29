@@ -363,6 +363,31 @@ namespace Microsoft.ML
                 outputColumnName, inputColumnName, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
 
         /// <summary>
+        /// Create a <see cref="WordBagEstimator"/>, which maps the column specified in <paramref name="inputColumnName"/>
+        /// to a vector of n-gram counts in a new column named <paramref name="outputColumnName"/>.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="WordBagEstimator"/> is different from <see cref="NgramExtractingEstimator"/> in that the former
+        /// tokenizes text internally and the latter takes tokenized text as input.
+        /// </remarks>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be known-size vector of <see cref="System.Single"/>.</param>
+        /// <param name="inputColumnName">Name of the column to take the data from.
+        /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
+        /// <param name="termSeparator">Separator used to separate terms/frequency pairs.</param>
+        /// <param name="freqSeparator">Separator used to separate terms from their frequency.</param>
+        /// This estimator operates over vector of text.</param>
+        public static WordBagEstimator ProduceWordBags(this TransformsCatalog.TextTransforms catalog,
+            string outputColumnName,
+            char termSeparator,
+            char freqSeparator,
+            string inputColumnName = null,
+            int maximumNgramsCount = NgramExtractingEstimator.Defaults.MaximumNgramsCount)
+            => new WordBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
+                outputColumnName, inputColumnName, 1, 0, true, maximumNgramsCount, NgramExtractingEstimator.WeightingCriteria.Tf, termSeparator: termSeparator, freqSeparator: freqSeparator);
+
+        /// <summary>
         /// Create a <see cref="WordBagEstimator"/>, which maps the multiple columns specified in <paramref name="inputColumnNames"/>
         /// to a vector of n-gram counts in a new column named <paramref name="outputColumnName"/>.
         /// </summary>

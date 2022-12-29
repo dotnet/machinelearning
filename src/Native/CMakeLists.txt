@@ -260,6 +260,14 @@ if(NOT ${ARCHITECTURE} MATCHES "arm.*")
     add_subdirectory(MklProxyNative)
     # TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in.
     add_subdirectory(SymSgdNative)
+  endif()
+
+if(${ARCHITECTURE} MATCHES "[xX].*64")
+  add_subdirectory(OneDalNative)
+else()
+  if (DEFINED ONEDAL_DEVEL_PATH)
+    message("Path to OneDal library defined [${ONEDAL_DEVEL_PATH}] but it is not being built on this arch.")
+  endif()
 endif()
 
 add_subdirectory(LdaNative)

@@ -3,13 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.OneDal;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
@@ -219,7 +223,24 @@ namespace Microsoft.ML.Trainers.FastTree
                 trainData.CheckOptFloatWeight();
                 FeatureCount = trainData.Schema.Feature.Value.Type.GetValueCount();
                 ConvertData(trainData);
-                TrainCore(ch);
+
+                if (!trainData.Schema.Weight.HasValue && IsDispatchingToOneDalEnabled())
+                {
+                    if (FastTreeTrainerOptions.FeatureFraction != 1.0)
+                    {
+                        ch.Warning($"oneDAL decision forest doesn't support 'FeatureFraction'[per tree] != 1.0, changing it from {FastTreeTrainerOptions.FeatureFraction} to 1.0");
+                        FastTreeTrainerOptions.FeatureFraction = 1.0;
+                    }
+                    CursOpt cursorOpt = CursOpt.Label | CursOpt.Features;
+                    var cursorFactory = new FloatLabelCursor.Factory(trainData, cursorOpt);
+                    TrainCoreOneDal(ch, cursorFactory, FeatureCount);
+                    if (FeatureMap != null)
+                        TrainedEnsemble.RemapFeatures(FeatureMap);
+                }
+                else
+                {
+                    TrainCore(ch);
+                }
             }
             // LogitBoost is naturally calibrated to
             // output probabilities when transformed using
@@ -228,6 +249,106 @@ namespace Microsoft.ML.Trainers.FastTree
 
             // REVIEW: Need a way to signal the outside world that we prefer simple sigmoid?
             return new FastForestBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
+        }
+
+        internal static class OneDal
+        {
+            private const string OneDalLibPath = "OneDalNative";
+
+            [DllImport(OneDalLibPath, EntryPoint = "decisionForestClassificationCompute")]
+            public static extern unsafe int DecisionForestClassificationCompute(
+                void* featuresPtr, void* labelsPtr, long nRows, int nColumns, int nClasses, int numberOfThreads,
+                float featureFractionPerSplit, int numberOfTrees, int numberOfLeaves, int minimumExampleCountPerLeaf, int maxBins,
+                void* lteChildPtr, void* gtChildPtr, void* splitFeaturePtr, void* featureThresholdPtr, void* leafValuesPtr, void* modelPtr);
+        }
+
+        [BestFriend]
+        private bool IsDispatchingToOneDalEnabled()
+        {
+            return OneDalUtils.IsDispatchingEnabled();
+        }
+
+        [BestFriend]
+        private void TrainCoreOneDal(IChannel ch, FloatLabelCursor.Factory cursorFactory, int featureCount)
+        {
+            CheckOptions(ch);
+            Initialize(ch);
+
+            List<float> featuresList = new List<float>();
+            List<float> labelsList = new List<float>();
+            int nClasses = 2;
+            int numberOfLeaves = FastTreeTrainerOptions.NumberOfLeaves;
+            int numberOfTrees = FastTreeTrainerOptions.NumberOfTrees;
+
+            int numberOfThreads = 0;
+            if (FastTreeTrainerOptions.NumberOfThreads.HasValue)
+                numberOfThreads = FastTreeTrainerOptions.NumberOfThreads.Value;
+
+            long n = OneDalUtils.GetTrainData(ch, cursorFactory, ref featuresList, ref labelsList, featureCount);
+
+            float[] featuresArray = featuresList.ToArray();
+            float[] labelsArray = labelsList.ToArray();
+
+            int[] lteChildArray = new int[(numberOfLeaves - 1) * numberOfTrees];
+            int[] gtChildArray = new int[(numberOfLeaves - 1) * numberOfTrees];
+            int[] splitFeatureArray = new int[(numberOfLeaves - 1) * numberOfTrees];
+            float[] featureThresholdArray = new float[(numberOfLeaves - 1) * numberOfTrees];
+            float[] leafValuesArray = new float[numberOfLeaves * numberOfTrees];
+
+            int oneDalModelSize = -1;
+            int projectedOneDalModelSize = 96 * nClasses * numberOfLeaves * numberOfTrees + 4096 * 16;
+            byte[] oneDalModel = new byte[projectedOneDalModelSize];
+
+            unsafe
+            {
+#pragma warning disable MSML_SingleVariableDeclaration // Have only a single variable present per declaration
+                fixed (void* featuresPtr = &featuresArray[0], labelsPtr = &labelsArray[0],
+                    lteChildPtr = &lteChildArray[0], gtChildPtr = &gtChildArray[0], splitFeaturePtr = &splitFeatureArray[0],
+                    featureThresholdPtr = &featureThresholdArray[0], leafValuesPtr = &leafValuesArray[0], oneDalModelPtr = &oneDalModel[0])
+#pragma warning restore MSML_SingleVariableDeclaration // Have only a single variable present per declaration
+                {
+                    oneDalModelSize = OneDal.DecisionForestClassificationCompute(featuresPtr, labelsPtr, n, featureCount, nClasses,
+                        numberOfThreads, (float)FastTreeTrainerOptions.FeatureFractionPerSplit, numberOfTrees,
+                        numberOfLeaves, FastTreeTrainerOptions.MinimumExampleCountPerLeaf, FastTreeTrainerOptions.MaximumBinCountPerFeature,
+                        lteChildPtr, gtChildPtr, splitFeaturePtr, featureThresholdPtr, leafValuesPtr, oneDalModelPtr
+                    );
+                }
+            }
+            TrainedEnsemble = new InternalTreeEnsemble();
+            for (int i = 0; i < numberOfTrees; ++i)
+            {
+                int[] lteChildArrayPerTree = new int[numberOfLeaves - 1];
+                int[] gtChildArrayPerTree = new int[numberOfLeaves - 1];
+                int[] splitFeatureArrayPerTree = new int[numberOfLeaves - 1];
+                float[] featureThresholdArrayPerTree = new float[numberOfLeaves - 1];
+                double[] leafValuesArrayPerTree = new double[numberOfLeaves];
+
+                int[][] categoricalSplitFeaturesPerTree = new int[numberOfLeaves - 1][];
+                bool[] categoricalSplitPerTree = new bool[numberOfLeaves - 1];
+                double[] splitGainPerTree = new double[numberOfLeaves - 1];
+                float[] defaultValueForMissingPerTree = new float[numberOfLeaves - 1];
+
+                for (int j = 0; j < numberOfLeaves - 1; ++j)
+                {
+                    lteChildArrayPerTree[j] = lteChildArray[(numberOfLeaves - 1) * i + j];
+                    gtChildArrayPerTree[j] = gtChildArray[(numberOfLeaves - 1) * i + j];
+                    splitFeatureArrayPerTree[j] = splitFeatureArray[(numberOfLeaves - 1) * i + j];
+                    featureThresholdArrayPerTree[j] = featureThresholdArray[(numberOfLeaves - 1) * i + j];
+                    leafValuesArrayPerTree[j] = leafValuesArray[numberOfLeaves * i + j];
+
+                    categoricalSplitFeaturesPerTree[j] = null;
+                    categoricalSplitPerTree[j] = false;
+                    splitGainPerTree[j] = 0.0;
+                    defaultValueForMissingPerTree[j] = 0.0f;
+                }
+                leafValuesArrayPerTree[numberOfLeaves - 1] = leafValuesArray[numberOfLeaves * i + numberOfLeaves - 1];
+
+                InternalQuantileRegressionTree newTree = new InternalQuantileRegressionTree(splitFeatureArrayPerTree, splitGainPerTree, null,
+                    featureThresholdArrayPerTree, defaultValueForMissingPerTree, lteChildArrayPerTree, gtChildArrayPerTree, leafValuesArrayPerTree,
+                    categoricalSplitFeaturesPerTree, categoricalSplitPerTree);
+                newTree.PopulateThresholds(TrainSet);
+                TrainedEnsemble.AddTree(newTree);
+            }
         }
 
         private protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
