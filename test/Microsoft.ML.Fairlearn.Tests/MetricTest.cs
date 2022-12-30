@@ -58,12 +58,12 @@ namespace Microsoft.ML.Fairlearn.Tests
         public void BinaryClassificationMetricTest()
         {
             //create dummy dataset
-            float[] vs = { 1, 1, 1, 1, 1, 1, 1, 0, 0, 0 };
-            PrimitiveDataFrameColumn<float> label = new PrimitiveDataFrameColumn<float>("label", vs);
+            bool[] vs = { true, true, true, true, true, true, true, false, false, false };
+            PrimitiveDataFrameColumn<bool> label = new PrimitiveDataFrameColumn<bool>("label", vs);
             string[] str = { "a", "b", "a", "a", "b", "a", "b", "b", "a", "b" };
             StringDataFrameColumn groupId = new StringDataFrameColumn("group_id", str);
-            float[] fl = { 1.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F };
-            PrimitiveDataFrameColumn<float> pred = new PrimitiveDataFrameColumn<float>("PredictedLabel", fl);
+            bool[] fl = { true, true, true, true, false, false, false, false, false, false };
+            PrimitiveDataFrameColumn<bool> pred = new PrimitiveDataFrameColumn<bool>("PredictedLabel", fl);
             float[] fl2 = { 1.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F };
             PrimitiveDataFrameColumn<float> score = new PrimitiveDataFrameColumn<float>("Score", fl2);
             float[] fl3 = { 1.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F };
