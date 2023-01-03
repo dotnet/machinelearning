@@ -381,7 +381,7 @@ namespace Microsoft.ML.AutoML
                 lbfgsLogisticRegressionOption.LabelColumnName = labelColumnName;
                 lbfgsLogisticRegressionOption.FeatureColumnName = featureColumnName;
                 lbfgsLogisticRegressionOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateLbfgsPoissonRegressionRegression(lbfgsLogisticRegressionOption, lbfgsLogisticRegressionSearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsLogisticRegressionOption)));
+                res.Add(SweepableEstimatorFactory.CreateLbfgsLogisticRegressionBinary(lbfgsLogisticRegressionOption, lbfgsLogisticRegressionSearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsLogisticRegressionOption)));
             }
 
             if (useSdcaLogisticRegression)
@@ -479,15 +479,6 @@ namespace Microsoft.ML.AutoML
                 res.Add(SweepableEstimatorFactory.CreateLightGbmMulti(lgbmOption, lgbmSearchSpace ?? new SearchSpace<LgbmOption>(lgbmOption)));
             }
 
-            if (useLbfgsMaximumEntrophy)
-            {
-                lbfgsMaximumEntrophyOption = lbfgsMaximumEntrophyOption ?? new LbfgsOption();
-                lbfgsMaximumEntrophyOption.LabelColumnName = labelColumnName;
-                lbfgsMaximumEntrophyOption.FeatureColumnName = featureColumnName;
-                lbfgsMaximumEntrophyOption.ExampleWeightColumnName = exampleWeightColumnName;
-                res.Add(SweepableEstimatorFactory.CreateLbfgsMaximumEntropyMulti(lbfgsMaximumEntrophyOption, lbfgsMaximumEntrophySearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsMaximumEntrophyOption)));
-            }
-
             if (useLbfgsLogisticRegression)
             {
                 lbfgsLogisticRegressionOption = lbfgsLogisticRegressionOption ?? new LbfgsOption();
@@ -495,6 +486,16 @@ namespace Microsoft.ML.AutoML
                 lbfgsLogisticRegressionOption.FeatureColumnName = featureColumnName;
                 lbfgsLogisticRegressionOption.ExampleWeightColumnName = exampleWeightColumnName;
                 res.Add(SweepableEstimatorFactory.CreateLbfgsLogisticRegressionOva(lbfgsLogisticRegressionOption, lbfgsLogisticRegressionSearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsLogisticRegressionOption)));
+            }
+
+
+            if (useLbfgsMaximumEntrophy)
+            {
+                lbfgsMaximumEntrophyOption = lbfgsMaximumEntrophyOption ?? new LbfgsOption();
+                lbfgsMaximumEntrophyOption.LabelColumnName = labelColumnName;
+                lbfgsMaximumEntrophyOption.FeatureColumnName = featureColumnName;
+                lbfgsMaximumEntrophyOption.ExampleWeightColumnName = exampleWeightColumnName;
+                res.Add(SweepableEstimatorFactory.CreateLbfgsMaximumEntropyMulti(lbfgsMaximumEntrophyOption, lbfgsMaximumEntrophySearchSpace ?? new SearchSpace<LbfgsOption>(lbfgsMaximumEntrophyOption)));
             }
 
             if (useSdcaMaximumEntrophy)
