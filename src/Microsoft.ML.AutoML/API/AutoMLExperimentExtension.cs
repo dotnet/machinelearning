@@ -176,7 +176,6 @@ namespace Microsoft.ML.AutoML
         /// <returns></returns>
         public static AutoMLExperiment SetPerformanceMonitor<TPerformanceMonitor>(this AutoMLExperiment experiment, Func<IServiceProvider, TPerformanceMonitor> factory)
             where TPerformanceMonitor : class, IPerformanceMonitor
-
         {
             experiment.ServiceCollection.AddTransient<IPerformanceMonitor>(factory);
 
@@ -191,7 +190,6 @@ namespace Microsoft.ML.AutoML
         /// <returns></returns>
         public static AutoMLExperiment SetPerformanceMonitor<TPerformanceMonitor>(this AutoMLExperiment experiment)
             where TPerformanceMonitor : class, IPerformanceMonitor
-
         {
             experiment.ServiceCollection.AddTransient<IPerformanceMonitor, TPerformanceMonitor>();
 
