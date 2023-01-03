@@ -81,8 +81,7 @@ namespace Microsoft.ML.AutoML.Test
                           return new DummyTrialRunner(settings, 5, channel);
                       })
                       .SetTuner<RandomSearchTuner>()
-                      .SetMaximumMemoryUsageInMegaByte(0.01)
-                      .SetPerformanceMonitor<DummyPeformanceMonitor>();
+                      .SetMaximumMemoryUsageInMegaByte(0.01);
 
             var runExperimentAction = async () => await experiment.RunAsync();
             await runExperimentAction.Should().ThrowExactlyAsync<TimeoutException>();
@@ -421,6 +420,10 @@ namespace Microsoft.ML.AutoML.Test
         public double? GetPeakMemoryUsageInMegaByte()
         {
             return 1000;
+        }
+
+        public void OnPerformanceMetricsUpdatedHandler(TrialSettings trialSettings, TrialPerformanceMetrics metrics, CancellationTokenSource trialCancellationTokenSource)
+        {
         }
 
         public void Start()

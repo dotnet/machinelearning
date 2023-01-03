@@ -23,14 +23,5 @@ namespace Microsoft.ML.AutoML
         /// Parameters for the pipeline used in this trial
         /// </summary>
         public Parameter Parameter { get; set; }
-        /// <summary>
-        /// Cancellation token source to have the ability to cancel the trial
-        /// </summary>
-        [JsonIgnore]
-        public CancellationTokenSource CancellationTokenSource { get; set; }
-        /// <summary>
-        /// Performance metrics of the trial
-        /// </summary>
-        public TrialPerformanceMetrics PerformanceMetrics { get; internal set; }
     }
 }

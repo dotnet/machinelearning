@@ -8,13 +8,15 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using Microsoft.ML.Runtime;
+using Timer = System.Timers.Timer;
 
 namespace Microsoft.ML.AutoML
 {
-    internal interface IPerformanceMonitor : IDisposable
+    public interface IPerformanceMonitor : IDisposable
     {
         void Start();
 
@@ -24,20 +26,28 @@ namespace Microsoft.ML.AutoML
 
         double? GetPeakCpuUsage();
 
+        /// <summary>
+        /// The handler function every time <see cref="PerformanceMetricsUpdated"/> get fired.
+        /// </summary>
+        void OnPerformanceMetricsUpdatedHandler(TrialSettings trialSettings, TrialPerformanceMetrics metrics, CancellationTokenSource trialCancellationTokenSource);
+
+
         public event EventHandler<TrialPerformanceMetrics> PerformanceMetricsUpdated;
     }
 
-    internal class DefaultPerformanceMonitor : IPerformanceMonitor
+    public class DefaultPerformanceMonitor : IPerformanceMonitor
     {
         private readonly IChannel _logger;
+        private readonly AutoMLExperiment.AutoMLExperimentSettings _settings;
         private Timer _timer;
         private double? _peakCpuUsage;
         private double? _peakMemoryUsage;
         private readonly int _checkIntervalInMilliseconds;
         private TimeSpan _totalCpuProcessorTime;
 
-        public DefaultPerformanceMonitor(IChannel logger, int checkIntervalInMilliseconds)
+        public DefaultPerformanceMonitor(AutoMLExperiment.AutoMLExperimentSettings settings, IChannel logger, int checkIntervalInMilliseconds)
         {
+            _settings = settings;
             _logger = logger;
             _checkIntervalInMilliseconds = checkIntervalInMilliseconds;
         }
@@ -120,6 +130,18 @@ namespace Microsoft.ML.AutoML
                 _logger?.Trace($"current CPU: {cpuUsageInTotal}, current Memory(mb): {memoryUsage}");
 
                 PerformanceMetricsUpdated?.Invoke(this, metrics);
+            }
+        }
+
+        public virtual void OnPerformanceMetricsUpdatedHandler(TrialSettings trialSettings, TrialPerformanceMetrics metrics, CancellationTokenSource trialCancellationTokenSource)
+        {
+            if (_settings.MaximumMemoryUsageInMegaByte is double d && metrics.PeakMemoryUsage > d && !trialCancellationTokenSource.IsCancellationRequested)
+            {
+                _logger.Trace($"cancel current trial {trialSettings.TrialId} because it uses {metrics.PeakMemoryUsage} mb memory and the maximum memory usage is {d}");
+                trialCancellationTokenSource.Cancel();
+
+                GC.AddMemoryPressure(Convert.ToInt64(metrics.PeakMemoryUsage) * 1024 * 1024);
+                GC.Collect();
             }
         }
     }

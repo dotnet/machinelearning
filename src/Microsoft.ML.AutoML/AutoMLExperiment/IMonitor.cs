@@ -13,15 +13,13 @@ namespace Microsoft.ML.AutoML
     /// </summary>
     public interface IMonitor
     {
-        /// <summary>
-        /// Interval in milliseconds to report resource usage.
-        /// </summary>
-        int ResourceUsageCheckInterval { get; }
         void ReportCompletedTrial(TrialResult result);
+
         void ReportBestTrial(TrialResult result);
+
         void ReportFailTrial(TrialSettings settings, Exception exception = null);
+
         void ReportRunningTrial(TrialSettings settings);
-        void ReportTrialResourceUsage(TrialSettings settings);
     }
 
     /// <summary>
@@ -32,14 +30,12 @@ namespace Microsoft.ML.AutoML
         private readonly IChannel _logger;
         private readonly List<TrialResult> _completedTrials;
         private readonly SweepablePipeline _pipeline;
-        public int ResourceUsageCheckInterval { get; private set; }
 
-        public MLContextMonitor(IChannel logger, SweepablePipeline pipeline, int resourceUsageCheckInterval = 5000)
+        public MLContextMonitor(IChannel logger, SweepablePipeline pipeline)
         {
             _logger = logger;
             _completedTrials = new List<TrialResult>();
             _pipeline = pipeline;
-            ResourceUsageCheckInterval = resourceUsageCheckInterval;
         }
 
         public virtual void ReportBestTrial(TrialResult result)
@@ -61,10 +57,6 @@ namespace Microsoft.ML.AutoML
         public virtual void ReportRunningTrial(TrialSettings setting)
         {
             _logger.Info($"Update Running Trial - Id: {setting.TrialId}");
-        }
-
-        public void ReportTrialResourceUsage(TrialSettings setting)
-        {
         }
     }
 
