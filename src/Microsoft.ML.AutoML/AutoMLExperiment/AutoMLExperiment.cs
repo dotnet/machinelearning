@@ -194,22 +194,6 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        internal AutoMLExperiment SetPerformanceMonitor<TPerformanceMonitor>()
-            where TPerformanceMonitor : class, IPerformanceMonitor
-        {
-            _serviceCollection.AddTransient<IPerformanceMonitor, TPerformanceMonitor>();
-
-            return this;
-        }
-
-        internal AutoMLExperiment SetPerformanceMonitor<TPerformanceMonitor>(Func<IServiceProvider, TPerformanceMonitor> factory)
-            where TPerformanceMonitor : class, IPerformanceMonitor
-        {
-            _serviceCollection.AddTransient<IPerformanceMonitor>(factory);
-
-            return this;
-        }
-
         /// <summary>
         /// Run experiment and return the best trial result synchronizely.
         /// </summary>
@@ -257,28 +241,13 @@ namespace Microsoft.ML.AutoML
                 {
                     TrialId = trialNum++,
                     Parameter = Parameter.CreateNestedParameter(),
-                    CancellationTokenSource = null,
-                    PerformanceMetrics = new TrialPerformanceMetrics(),
                 };
                 var parameter = tuner.Propose(trialSettings);
                 trialSettings.Parameter = parameter;
 
                 using (var trialCancellationTokenSource = new CancellationTokenSource())
                 {
-                    trialSettings.CancellationTokenSource = trialCancellationTokenSource;
                     monitor?.ReportRunningTrial(trialSettings);
-
-                    System.Timers.Timer resourceUsageTimer = null;
-                    if ((monitor != null) && (monitor?.ResourceUsageCheckInterval > 0))
-                    {
-                        resourceUsageTimer = new System.Timers.Timer(monitor.ResourceUsageCheckInterval);
-                        resourceUsageTimer.Elapsed += (o, e) =>
-                        {
-                            monitor?.ReportTrialResourceUsage(trialSettings);
-                        };
-                        resourceUsageTimer.AutoReset = true;
-                        resourceUsageTimer.Enabled = false;
-                    }
 
                     void handler(object o, EventArgs e)
                     {
@@ -296,21 +265,11 @@ namespace Microsoft.ML.AutoML
 
                             performanceMonitor.PerformanceMetricsUpdated += (o, metrics) =>
                             {
-                                trialSettings.PerformanceMetrics = metrics;
-
-                                if (_settings.MaximumMemoryUsageInMegaByte is double d && metrics.PeakMemoryUsage > d && !trialCancellationTokenSource.IsCancellationRequested)
-                                {
-                                    logger.Trace($"cancel current trial {trialSettings.TrialId} because it uses {metrics.PeakMemoryUsage} mb memory and the maximum memory usage is {d}");
-                                    trialCancellationTokenSource.Cancel();
-
-                                    GC.AddMemoryPressure(Convert.ToInt64(metrics.PeakMemoryUsage) * 1024 * 1024);
-                                    GC.Collect();
-                                }
+                                performanceMonitor.OnPerformanceMetricsUpdatedHandler(trialSettings, metrics, trialCancellationTokenSource);
                             };
 
                             var trialTask = runner.RunAsync(trialSettings, trialCancellationTokenSource.Token);
                             performanceMonitor.Start();
-                            resourceUsageTimer?.Start();
                             logger.Trace($"trial setting - {JsonSerializer.Serialize(trialSettings)}");
                             var trialResult = await trialTask;
 
@@ -365,7 +324,6 @@ namespace Microsoft.ML.AutoML
                     finally
                     {
                         aggregateTrainingStopManager.OnStopTraining -= handler;
-                        resourceUsageTimer?.Stop();
                     }
                 }
             }
