@@ -212,7 +212,7 @@ namespace Microsoft.ML.AutoML.Test
             var data = DatasetUtil.GetUciAdultDataView();
             var experiment = context.Auto().CreateExperiment();
             var pipeline = context.Auto().Featurizer(data, "_Features_", excludeColumns: new[] { DatasetUtil.UciAdultLabel })
-                                .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", useLgbm: false, useSdca: false, useLbfgs: false));
+                                .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", useLgbm: false, useSdcaLogisticRegression: false, useLbfgsLogisticRegression: false));
 
             experiment.SetDataset(context.Data.TrainTestSplit(data))
                     .SetBinaryClassificationMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
@@ -237,7 +237,7 @@ namespace Microsoft.ML.AutoML.Test
             var data = DatasetUtil.GetUciAdultDataView();
             var experiment = context.Auto().CreateExperiment();
             var pipeline = context.Auto().Featurizer(data, "_Features_", excludeColumns: new[] { DatasetUtil.UciAdultLabel })
-                                .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", useLgbm: false, useSdca: false, useLbfgs: false));
+                                .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", useLgbm: false, useSdcaLogisticRegression: false, useLbfgsLogisticRegression: false));
 
             experiment.SetDataset(data, 5)
                     .SetBinaryClassificationMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
@@ -264,7 +264,7 @@ namespace Microsoft.ML.AutoML.Test
             var label = "Label";
             var pipeline = context.Auto().Featurizer(data, excludeColumns: new[] { label })
                                 .Append(context.Transforms.Conversion.MapValueToKey(label, label))
-                                .Append(context.Auto().MultiClassification(label, useLgbm: false, useSdca: false, useLbfgs: false));
+                                .Append(context.Auto().MultiClassification(label, useLgbm: false, useSdcaMaximumEntrophy: false, useLbfgsMaximumEntrophy: false));
 
             experiment.SetDataset(data, 5)
                     .SetMulticlassClassificationMetric(MulticlassClassificationMetric.MacroAccuracy, label)
@@ -291,7 +291,7 @@ namespace Microsoft.ML.AutoML.Test
             var label = "Label";
             var pipeline = context.Auto().Featurizer(data, excludeColumns: new[] { label })
                                 .Append(context.Transforms.Conversion.MapValueToKey(label, label))
-                                .Append(context.Auto().MultiClassification(label, useLgbm: false, useSdca: false, useLbfgs: false));
+                                .Append(context.Auto().MultiClassification(label, useLgbm: false, useSdcaMaximumEntrophy: false, useLbfgsMaximumEntrophy: false));
 
             experiment.SetDataset(context.Data.TrainTestSplit(data))
                     .SetMulticlassClassificationMetric(MulticlassClassificationMetric.MacroAccuracy, label)
@@ -318,7 +318,7 @@ namespace Microsoft.ML.AutoML.Test
             var experiment = context.Auto().CreateExperiment();
             var label = DatasetUtil.TaxiFareLabel;
             var pipeline = context.Auto().Featurizer(train, excludeColumns: new[] { label })
-                                .Append(context.Auto().Regression(label, useLgbm: false, useSdca: false, useLbfgs: false));
+                                .Append(context.Auto().Regression(label, useLgbm: false, useSdca: false, useLbfgsPoissonRegression: false));
 
             experiment.SetDataset(train, test)
                     .SetRegressionMetric(RegressionMetric.RSquared, label)
@@ -337,7 +337,7 @@ namespace Microsoft.ML.AutoML.Test
             var experiment = context.Auto().CreateExperiment();
             var label = DatasetUtil.TaxiFareLabel;
             var pipeline = context.Auto().Featurizer(train, excludeColumns: new[] { label })
-                                .Append(context.Auto().Regression(label, useLgbm: false, useSdca: false, useLbfgs: false));
+                                .Append(context.Auto().Regression(label, useLgbm: false, useSdca: false, useLbfgsPoissonRegression: false));
 
             experiment.SetDataset(train, 5)
                     .SetRegressionMetric(RegressionMetric.RSquared, label)
