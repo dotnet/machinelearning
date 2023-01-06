@@ -278,6 +278,7 @@ namespace Microsoft.ML.AutoML
                             trialResult.PeakCpu = peakCpu;
                             trialResult.PeakMemoryInMegaByte = peakMemoryInMB;
 
+                            performanceMonitor.Pause();
                             monitor?.ReportCompletedTrial(trialResult);
                             tuner.Update(trialResult);
                             trialResultManager?.AddOrUpdateTrialResult(trialResult);

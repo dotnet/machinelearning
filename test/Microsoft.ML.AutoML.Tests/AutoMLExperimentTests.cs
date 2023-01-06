@@ -437,8 +437,13 @@ namespace Microsoft.ML.AutoML.Test
                 };
 
                 _timer.AutoReset = true;
-                _timer.Enabled = true;
             }
+            _timer.Enabled = true;
+        }
+
+        public void Pause()
+        {
+            _timer.Enabled = false;
         }
 
         public void Stop()

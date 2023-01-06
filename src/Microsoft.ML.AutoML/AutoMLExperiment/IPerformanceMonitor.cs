@@ -20,6 +20,8 @@ namespace Microsoft.ML.AutoML
     {
         void Start();
 
+        void Pause();
+
         void Stop();
 
         double? GetPeakMemoryUsageInMegaByte();
@@ -79,9 +81,18 @@ namespace Microsoft.ML.AutoML
                 _totalCpuProcessorTime = Process.GetCurrentProcess().TotalProcessorTime;
                 _timer.Elapsed += OnCheckCpuAndMemoryUsage;
                 _timer.AutoReset = true;
-                _timer.Enabled = true;
                 _logger?.Trace($"{typeof(DefaultPerformanceMonitor)} has been started");
             }
+
+            // trigger the PerformanceMetricsUpdated event and (re)start the timer
+            _timer.Enabled = false;
+            SampleCpuAndMemoryUsage();
+            _timer.Enabled = true;
+        }
+
+        public void Pause()
+        {
+            _timer.Enabled = false;
         }
 
         public void Stop()
