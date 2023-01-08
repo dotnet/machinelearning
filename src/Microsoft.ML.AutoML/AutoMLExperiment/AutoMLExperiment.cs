@@ -241,6 +241,7 @@ namespace Microsoft.ML.AutoML
                 {
                     TrialId = trialNum++,
                     Parameter = Parameter.CreateNestedParameter(),
+                    StartedAtUtc = DateTime.UtcNow,
                 };
                 var parameter = tuner.Propose(trialSettings);
                 trialSettings.Parameter = parameter;
@@ -277,6 +278,7 @@ namespace Microsoft.ML.AutoML
                             var peakMemoryInMB = performanceMonitor?.GetPeakMemoryUsageInMegaByte();
                             trialResult.PeakCpu = peakCpu;
                             trialResult.PeakMemoryInMegaByte = peakMemoryInMB;
+                            trialResult.TrialSettings.EndedAtUtc = DateTime.UtcNow;
 
                             performanceMonitor.Pause();
                             monitor?.ReportCompletedTrial(trialResult);
@@ -295,6 +297,7 @@ namespace Microsoft.ML.AutoML
                     }
                     catch (OperationCanceledException ex) when (aggregateTrainingStopManager.IsStopTrainingRequested() == false)
                     {
+                        trialSettings.EndedAtUtc = DateTime.UtcNow;
                         monitor?.ReportFailTrial(trialSettings, ex);
                         var result = new TrialResult
                         {
@@ -311,6 +314,7 @@ namespace Microsoft.ML.AutoML
                     }
                     catch (Exception ex)
                     {
+                        trialSettings.EndedAtUtc = DateTime.UtcNow;
                         monitor?.ReportFailTrial(trialSettings, ex);
 
                         if (!aggregateTrainingStopManager.IsStopTrainingRequested() && _bestTrialResult == null)

@@ -20,6 +20,14 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         public int TrialId { get; set; }
         /// <summary>
+        /// UTC time when the trial started
+        /// </summary>
+        public DateTime StartedAtUtc { get; set; }
+        /// <summary>
+        /// UTC time when the trial ended, null if it's still running
+        /// </summary>
+        public DateTime? EndedAtUtc { get; set; }
+        /// <summary>
         /// Parameters for the pipeline used in this trial
         /// </summary>
         public Parameter Parameter { get; set; }
