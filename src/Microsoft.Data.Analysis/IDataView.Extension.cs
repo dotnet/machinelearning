@@ -116,6 +116,10 @@ namespace Microsoft.ML
                 {
                     dataFrameColumns.Add(new StringDataFrameColumn(dataViewColumn.Name));
                 }
+                else if (type is VectorDataViewType vectorType)
+                {
+                    dataFrameColumns.Add(GetVectorDataFrame(vectorType, dataViewColumn.Name));
+                }
                 else
                 {
                     throw new NotSupportedException(String.Format(Microsoft.Data.Strings.NotSupportedColumnType, type.RawType.Name));
@@ -142,6 +146,66 @@ namespace Microsoft.ML
             }
 
             return new DataFrame(dataFrameColumns);
+        }
+
+        private static DataFrameColumn GetVectorDataFrame(VectorDataViewType vectorType, string name)
+        {
+            var itemType = vectorType.ItemType;
+
+            if (itemType.RawType == typeof(bool))
+            {
+                return new VBufferDataFrameColumn<bool>(name);
+            }
+            else if (itemType.RawType == typeof(byte))
+            {
+                return new VBufferDataFrameColumn<byte>(name);
+            }
+            else if (itemType.RawType == typeof(double))
+            {
+                return new VBufferDataFrameColumn<double>(name);
+            }
+            else if (itemType.RawType == typeof(float))
+            {
+                return new VBufferDataFrameColumn<Single>(name);
+            }
+            else if (itemType.RawType == typeof(int))
+            {
+                return new VBufferDataFrameColumn<Int32>(name);
+            }
+            else if (itemType.RawType == typeof(long))
+            {
+                return new VBufferDataFrameColumn<Int64>(name);
+            }
+            else if (itemType.RawType == typeof(sbyte))
+            {
+                return new VBufferDataFrameColumn<sbyte>(name);
+            }
+            else if (itemType.RawType == typeof(short))
+            {
+                return new VBufferDataFrameColumn<short>(name);
+            }
+            else if (itemType.RawType == typeof(uint))
+            {
+                return new VBufferDataFrameColumn<uint>(name);
+            }
+            else if (itemType.RawType == typeof(ulong))
+            {
+                return new VBufferDataFrameColumn<ulong>(name);
+            }
+            else if (itemType.RawType == typeof(ushort))
+            {
+                return new VBufferDataFrameColumn<ushort>(name);
+            }
+            else if (itemType.RawType == typeof(char))
+            {
+                return new VBufferDataFrameColumn<char>(name);
+            }
+            else if (itemType.RawType == typeof(decimal))
+            {
+                return new VBufferDataFrameColumn<decimal>(name);
+            }
+
+            throw new NotSupportedException(String.Format(Microsoft.Data.Strings.VectorSubTypeNotSupported, itemType.ToString()));
         }
     }
 
