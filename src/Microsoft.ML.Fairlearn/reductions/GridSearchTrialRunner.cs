@@ -30,15 +30,17 @@ namespace Microsoft.ML.Fairlearn.reductions
         private readonly IDataView _trainDataset;
         private readonly IDataView _testDataset;
         private readonly string _labelColumn;
+        private readonly string _sensitiveColumn;
         private readonly SweepablePipeline _pipeline;
         private readonly ClassificationMoment _moment;
 
-        public GridSearchTrailRunner(MLContext context, IDataView trainDataset, IDataView testDataset, string labelColumn, SweepablePipeline pipeline, ClassificationMoment moment)
+        public GridSearchTrailRunner(MLContext context, IDataView trainDataset, IDataView testDataset, string labelColumn, string sensitiveColumn, SweepablePipeline pipeline, ClassificationMoment moment)
         {
             _context = context;
             this._trainDataset = trainDataset;
             this._testDataset = testDataset;
             this._labelColumn = labelColumn;
+            this._sensitiveColumn = sensitiveColumn;
             _pipeline = pipeline;
             _moment = moment;
         }
@@ -70,7 +72,7 @@ namespace Microsoft.ML.Fairlearn.reductions
             df["sign"] = DataFrameColumn.Create("sign", lambdasValue.Select(x => x.sign));
             df["group_id"] = DataFrameColumn.Create("group_id", lambdasValue.Select(x => x.e));
             df["value"] = DataFrameColumn.Create("value", lambdasValue.Select(x => x.value));
-            _moment.LoadData(this._trainDataset, DataFrameColumn.Create("y", this._trainDataset.GetColumn<bool>(this._labelColumn)), DataFrameColumn.Create("group_id", this._trainDataset.GetColumn<string>("sensitiveFeature")));
+            _moment.LoadData(this._trainDataset, DataFrameColumn.Create("y", this._trainDataset.GetColumn<bool>(this._labelColumn)), DataFrameColumn.Create("group_id", this._trainDataset.GetColumn<string>(this._sensitiveColumn)));
             var signWeightColumn = _moment.SignedWeights(df);
             var trainDataset = ZipDataView.Create(_context, new IDataView[] { _trainDataset, new DataFrame(signWeightColumn) });
             var model = pipeline.Fit(trainDataset);
@@ -80,7 +82,7 @@ namespace Microsoft.ML.Fairlearn.reductions
             var predictedLabel = eval.GetColumn<bool>("PredictedLabel").Select(b => b ? 1f : 0f).ToArray();
             var column = DataFrameColumn.Create<float>("pred", predictedLabel);
             //Get the gamma based on the predicted label of the testDataset
-            _moment.LoadData(this._testDataset, DataFrameColumn.Create("y", eval.GetColumn<bool>(this._labelColumn)), DataFrameColumn.Create("group_id", eval.GetColumn<string>("sensitiveFeature")));
+            _moment.LoadData(this._testDataset, DataFrameColumn.Create("y", eval.GetColumn<bool>(this._labelColumn)), DataFrameColumn.Create("group_id", _testDataset.GetColumn<string>(this._sensitiveColumn)));
             var gamma = _moment.Gamma(column);
             double fairnessLost = Convert.ToSingle(gamma["value"].Max());
             var metrics = _context.BinaryClassification.EvaluateNonCalibrated(eval, this._labelColumn);

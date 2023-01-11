@@ -71,7 +71,7 @@ namespace Microsoft.ML.Fairlearn.AutoML
                 var moment = serviceProvider.GetRequiredService<ClassificationMoment>();
                 var datasetManager = serviceProvider.GetRequiredService<TrainTestDatasetManager>();
                 var pipeline = serviceProvider.GetRequiredService<SweepablePipeline>();
-                return new GridSearchTrailRunner(context, datasetManager.TrainDataset, datasetManager.TestDataset, labelColumn, pipeline, moment);
+                return new GridSearchTrailRunner(context, datasetManager.TrainDataset, datasetManager.TestDataset, labelColumn, sensitiveColumnName, pipeline, moment);
             });
 
             experiment.SetRandomSearchTuner();

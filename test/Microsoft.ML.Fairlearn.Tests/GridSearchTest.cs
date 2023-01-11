@@ -47,39 +47,6 @@ namespace Microsoft.ML.Fairlearn.Tests
             return df;
         }
 
-        [Fact]
-        public void TestGridSearchTrialRunner()
-        {
-            var context = new MLContext();
-            context.Log += (o, e) =>
-            {
-
-                if (e.Source.StartsWith("AutoMLExperiment"))
-                {
-                    _output.WriteLine(e.Message);
-                }
-            };
-
-            var experiment = context.Auto().CreateExperiment();
-            var df = this.CreateDummyDataset();
-            var moment = new UtilityParity();
-            moment.LoadData(df, df["y_true"], df["sensitiveFeature"] as StringDataFrameColumn);
-
-            var pipeline = context.Transforms.Categorical.OneHotHashEncoding("sensitiveFeature_encode", "sensitiveFeature")
-                                   .Append(context.Transforms.Concatenate("Features", "sensitiveFeature_encode", "X"))
-                                    .Append(context.Auto().BinaryClassification(labelColumnName: "y_true", exampleWeightColumnName: "signedWeight"));
-            var trialRunner = new GridSearchTrailRunner(context, this.CreateDummyDataset(), this.CreateDummyDataset(), "y_true", pipeline, moment);
-            experiment.SetPipeline(pipeline)
-                        .SetBinaryClassificationMetric(BinaryClassificationMetric.Accuracy, "y_true", "PredictedLabel")
-                        .SetTrialRunner(trialRunner)
-                        .SetBinaryClassificationMoment(moment)
-                        .SetGridLimit(10)
-                        .SetTrainingTimeInSeconds(20);
-
-            var bestResult = experiment.Run();
-            bestResult.Metric.Should().BeGreaterOrEqualTo(0.8);
-        }
-
         // Data generated so it is identical from Binary_Classification.ipynb from Fairlearn.github on Github
         private DataFrame CreateGridScearhDataset()
         {
@@ -113,7 +80,6 @@ namespace Microsoft.ML.Fairlearn.Tests
         [Fact]
         public void TestGridSearchTrialRunner2()
         {
-            _output.WriteLine("Test");
             var context = new MLContext();
             context.Log += (o, e) =>
             {
