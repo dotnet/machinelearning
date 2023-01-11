@@ -28,7 +28,9 @@ namespace Microsoft.ML.Fairlearn.reductions
         private readonly float _ratio;
 
         public float ProbEvent { get; protected set; }
+
         public DataFrameColumn ProbGroupEvent { get; protected set; }
+
         public UtilityParity(float differenceBound = Single.NaN, float ratioBond = Single.NaN, float ratioBoundSlack = 0.0f)
         {
             if (Single.NaN.Equals(differenceBound) && Single.NaN.Equals(ratioBond))
@@ -55,6 +57,7 @@ namespace Microsoft.ML.Fairlearn.reductions
                 throw new Exception("Only one of difference_bound and ratio_bound can be used");
             }
         }
+
         //TODO: what should be the object type of X be? How can I make x capitilized to fit the whole data strcuture
         /// <summary>
         /// 
@@ -62,7 +65,7 @@ namespace Microsoft.ML.Fairlearn.reductions
         /// <param name="x">The features</param>
         /// <param name="y">The label</param>
         /// <param name="sensitiveFeature">The sensitive groups</param>
-        public new void LoadData(IDataView x, DataFrameColumn y, StringDataFrameColumn sensitiveFeature)//, StringDataFrameColumn events = null, StringDataFrameColumn utilities = null)
+        public override void LoadData(IDataView x, DataFrameColumn y, StringDataFrameColumn sensitiveFeature)//, StringDataFrameColumn events = null, StringDataFrameColumn utilities = null)
         {
             base.LoadData(x, y, sensitiveFeature);
             //Tags["event"] = events;
@@ -156,7 +159,7 @@ namespace Microsoft.ML.Fairlearn.reductions
                 i++;
             }
 
-            DataFrameColumn signedWeights = new PrimitiveDataFrameColumn<float>("signedWeights", signedWeightsFloat);
+            DataFrameColumn signedWeights = new PrimitiveDataFrameColumn<float>("signedWeight", signedWeightsFloat);
 
             return signedWeights;
         }

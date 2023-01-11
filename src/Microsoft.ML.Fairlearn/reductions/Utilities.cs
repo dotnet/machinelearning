@@ -14,7 +14,7 @@ namespace Microsoft.ML.Fairlearn.reductions
 {
     public static class Utilities
     {
-        public static SearchSpace.SearchSpace GenerateBinaryClassificationLambdaSearchSpace(MLContext context, Moment moment, float gridLimit = 10, bool negativeAllowed = true)
+        public static SearchSpace.SearchSpace GenerateBinaryClassificationLambdaSearchSpace(Moment moment, float gridLimit = 10, bool negativeAllowed = true)
         {
             var searchSpace = new SearchSpace.SearchSpace();
             var sensitiveFeatureColumnValue = moment.SensitiveFeatureColumn.Cast<string>().Distinct();

@@ -32,7 +32,7 @@ namespace Microsoft.ML.Fairlearn.Tests
             var X = this.CreateDummyDataset();
             moment.LoadData(X, X["y_true"], X["sensitiveFeature"] as StringDataFrameColumn);
 
-            var searchSpace = Utilities.GenerateBinaryClassificationLambdaSearchSpace(context, moment, 5);
+            var searchSpace = Utilities.GenerateBinaryClassificationLambdaSearchSpace(moment, 5);
             searchSpace.Keys.Should().BeEquivalentTo("a_pos", "a_neg", "b_pos", "b_neg");
 
         }
@@ -127,24 +127,17 @@ namespace Microsoft.ML.Fairlearn.Tests
             var df = CreateGridScearhDataset();
             var shuffledDataset = context.Data.ShuffleRows(df);
             var trainTestSplit = context.Data.TrainTestSplit(shuffledDataset, 0.2);
-            var moment = new UtilityParity();
-            var dfTrainSet = trainTestSplit.TrainSet.ToDataFrame();
-            moment.LoadData(dfTrainSet, dfTrainSet["y"], dfTrainSet["sensitiveFeature"] as StringDataFrameColumn);
-
             var pipeline = context.Transforms.Categorical.OneHotHashEncoding("sensitiveFeature_encode", "sensitiveFeature")
                                    .Append(context.Transforms.Concatenate("Features", "sensitiveFeature_encode", "score_feature"))
                                     .Append(context.Auto().BinaryClassification(labelColumnName: "y", exampleWeightColumnName: "signedWeight"));
-            var trialRunner = new GridSearchTrailRunner(context, trainTestSplit.TrainSet, trainTestSplit.TestSet, "y", pipeline, moment);
+
             experiment.SetPipeline(pipeline)
-                        .SetBinaryClassificationMetric(BinaryClassificationMetric.Accuracy, "y", "PredictedLabel")
-                        .SetTrialRunner(trialRunner)
-                        .SetBinaryClassificationMoment(moment)
-                        .SetGridLimit(10F)
+                        .SetDataset(trainTestSplit)
+                        .SetBinaryClassificationMetricWithFairLearn("y", "PredictedLabel", "sensitiveFeature", "signedWeight")
                         .SetTrainingTimeInSeconds(10);//100
 
             var bestResult = experiment.Run();
             var model = bestResult.Model;
-            var df2 = CreateGridScearhDataset();
             bestResult.Metric.Should().BeGreaterOrEqualTo(0.70);
         }
     }

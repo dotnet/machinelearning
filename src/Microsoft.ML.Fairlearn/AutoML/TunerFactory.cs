@@ -30,7 +30,7 @@ namespace Microsoft.ML.Fairlearn.AutoML
             _context = provider.GetService<MLContext>();
             _gridLimit = provider.GetService<GridLimit>().Value;
             _pipeline = provider.GetRequiredService<SweepablePipeline>();
-            var lambdaSearchSpace = Utilities.GenerateBinaryClassificationLambdaSearchSpace(_context, _moment, gridLimit: _gridLimit);
+            var lambdaSearchSpace = Utilities.GenerateBinaryClassificationLambdaSearchSpace(_moment, gridLimit: _gridLimit);
             var settings = provider.GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
             _searchSpace = settings.SearchSpace;
             _searchSpace["_lambda_search_space"] = lambdaSearchSpace;

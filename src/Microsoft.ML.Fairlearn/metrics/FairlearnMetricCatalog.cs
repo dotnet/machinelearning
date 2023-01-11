@@ -112,13 +112,6 @@ namespace Microsoft.ML.Fairlearn
             return result;
         }
 
-
-
-        public Dictionary<string, double> DifferenceBetweenGroups()
-        {
-            throw new NotImplementedException();
-        }
-
         public Dictionary<string, double> Overall()
         {
             CalibratedBinaryClassificationMetrics metrics = _context.BinaryClassification.Evaluate(_eval, _labelColumn);

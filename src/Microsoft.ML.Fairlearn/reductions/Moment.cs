@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Data.Analysis;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Fairlearn.reductions
 {
@@ -22,31 +23,39 @@ namespace Microsoft.ML.Fairlearn.reductions
     {
         protected DataFrameColumn Y; //maybe lowercase this?
         public DataFrame Tags { get; private set; }
+
         public IDataView X { get; protected set; }
+
         public long TotalSamples { get; protected set; }
 
         public DataFrameColumn SensitiveFeatureColumn { get => Tags["group_id"]; }
 
+        public string[] GroudIds;
+
         public Moment()
         {
-
         }
         /// <summary>
         /// Load the data into the moment to generate parity constarint
         /// </summary>
-        /// <param name="x">The feature set</param>
-        /// <param name="y">The label</param>
+        /// <param name="features">The feature set</param>
+        /// <param name="label">The label</param>
         /// <param name="sensitiveFeature">The sentivite featue that contain the sensitive groups</param>
-        public void LoadData(IDataView x, DataFrameColumn y, StringDataFrameColumn sensitiveFeature)
+        public virtual void LoadData(IDataView features, DataFrameColumn label, StringDataFrameColumn sensitiveFeature)
         {
-
-            X = x;
-            TotalSamples = y.Length;
-            Y = y;
+            X = features;
+            TotalSamples = label.Length;
+            Y = label;
             Tags = new DataFrame();
-            Tags["label"] = y;
-
+            Tags["label"] = label;
             Tags["group_id"] = sensitiveFeature;
+        }
+
+        public virtual void LoadData(IDataView trainData, string label, string sensitiveColumnName)
+        {
+            var sensitiveFeature = DataFrameColumn.Create("group_id", trainData.GetColumn<string>(sensitiveColumnName));
+            var labelColumn = DataFrameColumn.Create("label", trainData.GetColumn<bool>(label));
+            this.LoadData(trainData, labelColumn, sensitiveFeature);
         }
 
         /// <summary>

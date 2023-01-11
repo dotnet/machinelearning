@@ -72,8 +72,7 @@ namespace Microsoft.ML.Fairlearn.reductions
             df["value"] = DataFrameColumn.Create("value", lambdasValue.Select(x => x.value));
             _moment.LoadData(this._trainDataset, DataFrameColumn.Create("y", this._trainDataset.GetColumn<bool>(this._labelColumn)), DataFrameColumn.Create("group_id", this._trainDataset.GetColumn<string>("sensitiveFeature")));
             var signWeightColumn = _moment.SignedWeights(df);
-            var trainDataset = this._trainDataset.ToDataFrame();
-            trainDataset["signedWeight"] = signWeightColumn;
+            var trainDataset = ZipDataView.Create(_context, new IDataView[] { _trainDataset, new DataFrame(signWeightColumn) });
             var model = pipeline.Fit(trainDataset);
             // returns an IDataview object that contains the predictions
             var eval = model.Transform(this._testDataset);

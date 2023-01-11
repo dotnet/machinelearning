@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Data.Analysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.AutoML;
+using Microsoft.ML.Data;
 using Microsoft.ML.Fairlearn.reductions;
 
 namespace Microsoft.ML.Fairlearn.AutoML
@@ -37,6 +39,43 @@ namespace Microsoft.ML.Fairlearn.AutoML
             gridLimitObject.Value = gridLimit;
             experiment.ServiceCollection.AddSingleton(gridLimitObject);
             experiment.SetTuner<CostFrugalWithLambdaTunerFactory>();
+
+            return experiment;
+        }
+
+        public static AutoMLExperiment SetBinaryClassificationMetricWithFairLearn(
+            this AutoMLExperiment experiment,
+            string labelColumn,
+            string predictedColumn,
+            string sensitiveColumnName,
+            string exampleWeightColumnName,
+            float gridLimit = 10f,
+            bool negativeAllowed = true)
+        {
+            experiment.ServiceCollection.AddSingleton<ClassificationMoment>((serviceProvider) =>
+            {
+                var datasetManager = serviceProvider.GetRequiredService<TrainTestDatasetManager>();
+                var moment = new UtilityParity();
+                var sensitiveFeature = DataFrameColumn.Create("group_id", datasetManager.TrainDataset.GetColumn<string>(sensitiveColumnName));
+                var label = DataFrameColumn.Create("label", datasetManager.TrainDataset.GetColumn<bool>(labelColumn));
+                moment.LoadData(datasetManager.TrainDataset, label, sensitiveFeature);
+                var lambdaSearchSpace = Utilities.GenerateBinaryClassificationLambdaSearchSpace(moment, gridLimit, negativeAllowed);
+                experiment.AddSearchSpace("_lambda_search_space", lambdaSearchSpace);
+
+                return moment;
+            });
+
+            experiment.SetTrialRunner((serviceProvider) =>
+            {
+                var context = serviceProvider.GetRequiredService<MLContext>();
+                var moment = serviceProvider.GetRequiredService<ClassificationMoment>();
+                var datasetManager = serviceProvider.GetRequiredService<TrainTestDatasetManager>();
+                var pipeline = serviceProvider.GetRequiredService<SweepablePipeline>();
+                return new GridSearchTrailRunner(context, datasetManager.TrainDataset, datasetManager.TestDataset, labelColumn, pipeline, moment);
+            });
+
+            experiment.SetRandomSearchTuner();
+
 
             return experiment;
         }
