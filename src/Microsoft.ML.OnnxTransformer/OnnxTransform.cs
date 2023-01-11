@@ -840,8 +840,9 @@ namespace Microsoft.ML.Transforms.Onnx
                 {
                     GetNamedOnnxValueCore();
 
-                    _tensorShape[_zeroIndex] = _vBufferDense.Length / _denominator;
-                    return OnnxUtils.CreateNamedOnnxValue(_colName, _vBufferDense.GetValues(), _tensorShape);
+                    var tensorShape = new OnnxShape(_tensorShape);
+                    tensorShape[_zeroIndex] = _vBufferDense.Length / _denominator;
+                    return OnnxUtils.CreateNamedOnnxValue(_colName, _vBufferDense.GetValues(), tensorShape);
                 }
             }
         }
