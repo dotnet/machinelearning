@@ -805,7 +805,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 public NamedOnnxValueGetterVec(DataViewRow input, int colIndex, OnnxShape tensorShape)
                 {
                     _srcGetter = input.GetGetter<VBuffer<T>>(input.Schema[colIndex]);
-                    _tensorShape = tensorShape;
+                    _tensorShape = new OnnxShape(tensorShape);
                     _colName = input.Schema[colIndex].Name;
                     _vBuffer = default;
                     _vBufferDense = default;
@@ -840,9 +840,8 @@ namespace Microsoft.ML.Transforms.Onnx
                 {
                     GetNamedOnnxValueCore();
 
-                    var tensorShape = new OnnxShape(_tensorShape);
-                    tensorShape[_zeroIndex] = _vBufferDense.Length / _denominator;
-                    return OnnxUtils.CreateNamedOnnxValue(_colName, _vBufferDense.GetValues(), tensorShape);
+                    _tensorShape[_zeroIndex] = _vBufferDense.Length / _denominator;
+                    return OnnxUtils.CreateNamedOnnxValue(_colName, _vBufferDense.GetValues(), _tensorShape);
                 }
             }
         }
