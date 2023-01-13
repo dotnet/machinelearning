@@ -20,32 +20,24 @@ namespace Microsoft.ML.OneDal
         [BestFriend]
         internal static bool IsDispatchingEnabled()
         {
-            try
+            if (Environment.GetEnvironmentVariable("MLNET_BACKEND") == "ONEDAL" &&
+                System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.X64)
             {
-                if (Environment.GetEnvironmentVariable("MLNET_BACKEND") == "ONEDAL" &&
-                    System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.X64)
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    {
 #if NETFRAMEWORK
                 // AppContext not available in the framework, user needs to set PATH manually
                 // this will probably result in a runtime error where the user needs to set the PATH
 #else
-                        var currentDir = AppContext.BaseDirectory;
-                        var nativeLibs = Path.Combine(currentDir, "runtimes", "win-x64", "native");
-                        var originalPath = Environment.GetEnvironmentVariable("PATH");
-                        Environment.SetEnvironmentVariable("PATH", nativeLibs + ";" + originalPath);
+                    var currentDir = AppContext.BaseDirectory;
+                    var nativeLibs = Path.Combine(currentDir, "runtimes", "win-x64", "native");
+                    var originalPath = Environment.GetEnvironmentVariable("PATH");
+                    Environment.SetEnvironmentVariable("PATH", nativeLibs + ";" + originalPath);
 #endif
-                    }
-                    return true;
                 }
-                return false;
+                return true;
             }
-            catch (Exception)
-            {
-                // fallback to default algorithm implementation if dispatch fails
-                return false;
-            }
+            return false;
         }
 
         [BestFriend]

@@ -14,9 +14,9 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.OneDal;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.OneDal;
 
 [assembly: LoadableClass(OlsTrainer.Summary, typeof(OlsTrainer), typeof(OlsTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -409,7 +409,15 @@ namespace Microsoft.ML.Trainers
         [BestFriend]
         private bool IsDispatchingToOneDalEnabled()
         {
-            return OneDalUtils.IsDispatchingEnabled();
+            try
+            {
+                return OneDalUtils.IsDispatchingEnabled();
+            }
+            catch (Exception)
+            {
+                // Bail to default implementation upon any situation that prevents dispatching
+                return false;
+            }
         }
 
         private OlsModelParameters TrainCore(IChannel ch, FloatLabelCursor.Factory cursorFactory, int featureCount)
