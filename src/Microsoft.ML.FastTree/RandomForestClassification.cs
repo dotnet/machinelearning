@@ -265,7 +265,15 @@ namespace Microsoft.ML.Trainers.FastTree
         [BestFriend]
         private bool IsDispatchingToOneDalEnabled()
         {
-            return OneDalUtils.IsDispatchingEnabled();
+            try
+            {
+                return OneDalUtils.IsDispatchingEnabled();
+            }
+            catch (Exception)
+            {
+                // Bail to default implementation upon encountering any situation where dispatch failed
+                return false;
+            }
         }
 
         [BestFriend]
