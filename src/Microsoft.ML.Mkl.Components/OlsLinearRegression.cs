@@ -406,20 +406,6 @@ namespace Microsoft.ML.Trainers
             xty = null;
         }
 
-        [BestFriend]
-        private bool IsDispatchingToOneDalEnabled()
-        {
-            try
-            {
-                return OneDalUtils.IsDispatchingEnabled();
-            }
-            catch (Exception)
-            {
-                // Bail to default implementation upon any situation that prevents dispatching
-                return false;
-            }
-        }
-
         private OlsModelParameters TrainCore(IChannel ch, FloatLabelCursor.Factory cursorFactory, int featureCount)
         {
             Host.AssertValue(ch);
@@ -440,7 +426,7 @@ namespace Microsoft.ML.Trainers
             var beta = new Double[m];
             Double yMean = 0;
 
-            if (IsDispatchingToOneDalEnabled())
+            if (MLContext.OneDalDispatchingEnabled)
             {
                 ComputeOneDalRegression(ch, cursorFactory, m, ref beta, xtx, ref n, ref yMean);
             }

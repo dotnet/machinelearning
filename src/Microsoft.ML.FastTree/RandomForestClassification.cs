@@ -224,7 +224,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 FeatureCount = trainData.Schema.Feature.Value.Type.GetValueCount();
                 ConvertData(trainData);
 
-                if (!trainData.Schema.Weight.HasValue && IsDispatchingToOneDalEnabled())
+                if (!trainData.Schema.Weight.HasValue && MLContext.OneDalDispatchingEnabled)
                 {
                     if (FastTreeTrainerOptions.FeatureFraction != 1.0)
                     {
@@ -260,20 +260,6 @@ namespace Microsoft.ML.Trainers.FastTree
                 void* featuresPtr, void* labelsPtr, long nRows, int nColumns, int nClasses, int numberOfThreads,
                 float featureFractionPerSplit, int numberOfTrees, int numberOfLeaves, int minimumExampleCountPerLeaf, int maxBins,
                 void* lteChildPtr, void* gtChildPtr, void* splitFeaturePtr, void* featureThresholdPtr, void* leafValuesPtr, void* modelPtr);
-        }
-
-        [BestFriend]
-        private bool IsDispatchingToOneDalEnabled()
-        {
-            try
-            {
-                return OneDalUtils.IsDispatchingEnabled();
-            }
-            catch (Exception)
-            {
-                // Bail to default implementation upon encountering any situation where dispatch failed
-                return false;
-            }
         }
 
         [BestFriend]
