@@ -249,7 +249,8 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 for (int i = 0; i < Option.MaxEpoch; i++)
                 {
                     ch.Trace($"Starting epoch {i}");
-                    trainer.Train(input);
+                    Host.CheckAlive();
+                    trainer.Train(Host, input);
                     ch.Trace($"Finished epoch {i}");
                     if (Option.ValidationSet != null)
                         trainer.Validate(pch, ch, i);
@@ -423,7 +424,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 return cursorValid;
             }
 
-            public void Train(IDataView input)
+            public void Train(IHost host, IDataView input)
             {
                 // Get the cursor and the correct columns based on the inputs
                 DataViewRowCursor cursor = default;
@@ -443,14 +444,15 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 var cursorValid = true;
                 while (cursorValid)
                 {
-                    cursorValid = TrainStep(cursor, sentence1Getter, sentence2Getter, labelGetter, ref inputTensors, ref targets);
+                    cursorValid = TrainStep(host, cursor, sentence1Getter, sentence2Getter, labelGetter, ref inputTensors, ref targets);
                 }
             }
 
-            private bool TrainStep(DataViewRowCursor cursor,
-            ValueGetter<ReadOnlyMemory<char>> sentence1Getter,
-            ValueGetter<ReadOnlyMemory<char>> sentence2Getter,
-            ValueGetter<TLabelCol> labelGetter,
+            private bool TrainStep(IHost host,
+                DataViewRowCursor cursor,
+                ValueGetter<ReadOnlyMemory<char>> sentence1Getter,
+                ValueGetter<ReadOnlyMemory<char>> sentence2Getter,
+                ValueGetter<TLabelCol> labelGetter,
             ref List<Tensor> inputTensors,
             ref List<TTargetsCol> targets)
             {
@@ -461,6 +463,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 var cursorValid = true;
                 for (int i = 0; i < Parent.Option.BatchSize && cursorValid; i++)
                 {
+                    host.CheckAlive();
                     cursorValid = cursor.MoveNext();
                     if (cursorValid)
                     {
@@ -479,7 +482,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 }
 
                 Updates++;
-
+                host.CheckAlive();
                 torch.random.manual_seed(1 + Updates);
                 torch.cuda.manual_seed(1 + Updates);
                 Model.train();
@@ -497,8 +500,10 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     loss = torch.nn.MSELoss(reduction: Parent.Option.Reduction).forward(logits, targetsTensor);
                     logits = logits.squeeze();
                 }
-
+                host.CheckAlive();
                 loss.backward();
+
+                host.CheckAlive();
                 OptimizeStep();
 
                 return cursorValid;
