@@ -805,7 +805,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 public NamedOnnxValueGetterVec(DataViewRow input, int colIndex, OnnxShape tensorShape)
                 {
                     _srcGetter = input.GetGetter<VBuffer<T>>(input.Schema[colIndex]);
-                    _tensorShape = new OnnxShape(tensorShape);
+                    _tensorShape = tensorShape;
                     _colName = input.Schema[colIndex].Name;
                     _vBuffer = default;
                     _vBufferDense = default;
