@@ -140,8 +140,19 @@ namespace Microsoft.ML.AutoML
             _managers.Add(manager);
             manager.OnStopTraining += (o, e) =>
             {
-                OnStopTraining?.Invoke(this, e);
+                if (_managers.Exists(manager.Equals))
+                {
+                    OnStopTraining?.Invoke(this, e);
+                }
             };
+        }
+
+        public void RemoveTrainingStopManagerIfExist(IStopTrainingManager manager)
+        {
+            if (_managers.Exists(manager.Equals))
+            {
+                _managers.RemoveAll(manager.Equals);
+            }
         }
 
         public void Update(TrialResult result)

@@ -252,10 +252,7 @@ namespace Microsoft.ML.AutoML
 
                     void handler(object o, EventArgs e)
                     {
-                        // only force-canceling running trials when there's completed trials.
-                        // otherwise, wait for the current running trial to be completed.
-                        if (_bestTrialResult != null)
-                            trialCancellationTokenSource.Cancel();
+                        trialCancellationTokenSource.Cancel();
                     }
                     try
                     {
