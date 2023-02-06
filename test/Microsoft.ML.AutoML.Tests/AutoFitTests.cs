@@ -131,7 +131,7 @@ namespace Microsoft.ML.AutoML.Test
             var label = "fare_amount";
             var settings = new RegressionExperimentSettings
             {
-                MaxExperimentTimeInSeconds = 1,
+                MaxModels = 1,
             };
             settings.Trainers.Remove(RegressionTrainer.LightGbm);
             settings.Trainers.Remove(RegressionTrainer.StochasticDualCoordinateAscent);
@@ -161,7 +161,7 @@ namespace Microsoft.ML.AutoML.Test
             var label = "fare_amount";
             var settings = new RegressionExperimentSettings
             {
-                MaxExperimentTimeInSeconds = 1,
+                MaxModels = 1,
             };
             settings.Trainers.Remove(RegressionTrainer.LightGbm);
             settings.Trainers.Remove(RegressionTrainer.StochasticDualCoordinateAscent);
@@ -191,7 +191,7 @@ namespace Microsoft.ML.AutoML.Test
             var label = "fare_amount";
             var settings = new RegressionExperimentSettings
             {
-                MaxExperimentTimeInSeconds = 1,
+                MaxModels = 1,
             };
             settings.Trainers.Remove(RegressionTrainer.LightGbm);
             settings.Trainers.Remove(RegressionTrainer.StochasticDualCoordinateAscent);
