@@ -4,7 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -60,7 +64,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                {nameof(UseZeroAsMissingValue),                "zero_as_missing" }
             };
 
-            private protected string GetOptionName(string name)
+            internal string GetOptionName(string name)
             {
                 if (NameMapping.ContainsKey(name))
                     return NameMapping[name];
@@ -237,6 +241,8 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             private BoosterParameterBase.OptionsBase _boosterParameter;
 
+            internal Stream LightGbmModel = null;
+
             /// <summary>
             /// Booster parameter to use
             /// </summary>
@@ -356,25 +362,81 @@ namespace Microsoft.ML.Trainers.LightGbm
             InitializeBeforeTraining();
 
             Host.CheckValue(context, nameof(context));
-
             Dataset dtrain = null;
             Dataset dvalid = null;
-            CategoricalMetaData catMetaData;
+
             try
             {
-                using (var ch = Host.Start("Loading data for LightGBM"))
+                if (LightGbmTrainerOptions.LightGbmModel != null)
                 {
-                    using (var pch = Host.StartProgressChannel("Loading data for LightGBM"))
+                    using (var ch = Host.Start("Loading LightGBM model file"))
                     {
-                        dtrain = LoadTrainingData(ch, context.TrainingSet, out catMetaData);
-                        if (context.ValidationSet != null)
-                            dvalid = LoadValidationData(ch, dtrain, context.ValidationSet, catMetaData);
+                        StreamReader reader = new StreamReader(LightGbmTrainerOptions.LightGbmModel);
+                        string modelText = reader.ReadToEnd();
+
+                        AdditionalLoadPreTrainedModel(modelText);
+
+                        var modelParameters = Booster.GetParameters(modelText);
+                        // Going to set the parameters via reflection so that we don't have manually set them on the options object
+                        Type optionsType = LightGbmTrainerOptions.GetType();
+                        var optionsFields = optionsType.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.FlattenHierarchy | System.Reflection.BindingFlags.Instance);
+
+                        foreach (var field in optionsFields)
+                        {
+                            var lightGbmName = LightGbmTrainerOptions.GetOptionName(field.Name);
+                            if (modelParameters.ContainsKey(lightGbmName))
+                            {
+                                if (field.FieldType.Name.StartsWith("Nullable"))
+                                {
+                                    if (field.FieldType.GenericTypeArguments[0] == typeof(double))
+                                    {
+                                        field.SetValue(LightGbmTrainerOptions, Double.Parse(modelParameters[lightGbmName]));
+                                    }
+                                    else if (field.FieldType.GenericTypeArguments[0] == typeof(int))
+                                    {
+                                        field.SetValue(LightGbmTrainerOptions, int.Parse(modelParameters[lightGbmName]));
+                                    }
+                                    else if (field.FieldType.GenericTypeArguments[0] == typeof(float))
+                                    {
+                                        field.SetValue(LightGbmTrainerOptions, float.Parse(modelParameters[lightGbmName]));
+                                    }
+                                    // TODO: throw for unknown type
+                                }
+                                else if (field.FieldType.Name.StartsWith("Boolean"))
+                                {
+                                    if (modelParameters[lightGbmName] == "1")
+                                        field.SetValue(LightGbmTrainerOptions, true);
+                                    else
+                                        field.SetValue(LightGbmTrainerOptions, false);
+                                }
+                                else
+                                    field.SetValue(LightGbmTrainerOptions, Convert.ChangeType(modelParameters[lightGbmName], field.FieldType));
+                            }
+                        }
+
+                        var catBoundaries = !String.IsNullOrEmpty(modelParameters["categorical_feature"]) ? modelParameters["categorical_feature"].Split(',').Select(x => int.Parse(x, CultureInfo.InvariantCulture)).ToArray() : null;
+                        TrainedEnsemble = Booster.GetModel(catBoundaries, modelText);
+                        FeatureCount = Booster.GetNumFeatures(modelText);
                     }
                 }
-                using (var ch = Host.Start("Training with LightGBM"))
+                else
                 {
-                    using (var pch = Host.StartProgressChannel("Training with LightGBM"))
-                        TrainCore(ch, pch, dtrain, catMetaData, dvalid);
+                    CategoricalMetaData catMetaData;
+
+                    using (var ch = Host.Start("Loading data for LightGBM"))
+                    {
+                        using (var pch = Host.StartProgressChannel("Loading data for LightGBM"))
+                        {
+                            dtrain = LoadTrainingData(ch, context.TrainingSet, out catMetaData);
+                            if (context.ValidationSet != null)
+                                dvalid = LoadValidationData(ch, dtrain, context.ValidationSet, catMetaData);
+                        }
+                    }
+                    using (var ch = Host.Start("Training with LightGBM"))
+                    {
+                        using (var pch = Host.StartProgressChannel("Training with LightGBM"))
+                            TrainCore(ch, pch, dtrain, catMetaData, dvalid);
+                    }
                 }
             }
             finally
@@ -387,6 +449,9 @@ namespace Microsoft.ML.Trainers.LightGbm
         }
 
         private protected virtual void InitializeBeforeTraining() { }
+
+        // For loading addtional info when we are loading a pre-trained model.
+        private protected virtual void AdditionalLoadPreTrainedModel(string modelText) { }
 
         private void InitParallelTraining()
         {
@@ -420,7 +485,9 @@ namespace Microsoft.ML.Trainers.LightGbm
         private protected virtual void CheckDataValid(IChannel ch, RoleMappedData data)
         {
             data.CheckFeatureFloatVector();
-            ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "Need a label column");
+            // If we are loading a pre-trained model we don't need a label column
+            if (LightGbmTrainerOptions.LightGbmModel == null)
+                ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "Need a label column");
         }
 
         private protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
@@ -620,6 +687,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             Host.AssertValue(dtrain);
             Host.AssertValueOrNull(dvalid);
             Host.CheckAlive();
+
             // For multi class, the number of labels is required.
             ch.Assert(((ITrainer)this).PredictionKind != PredictionKind.MulticlassClassification || GbmOptions.ContainsKey("num_class"),
                 "LightGBM requires the number of classes to be specified in the parameters.");
@@ -632,7 +700,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 dvalid: dvalid, numIteration: LightGbmTrainerOptions.NumberOfIterations,
                 verboseEval: LightGbmTrainerOptions.Verbose, earlyStoppingRound: LightGbmTrainerOptions.EarlyStoppingRound))
                 {
-                    TrainedEnsemble = bst.GetModel(catMetaData.CategoricalBoudaries);
+                    TrainedEnsemble = Booster.GetModel(catMetaData.CategoricalBoudaries, bst.GetModelString());
                 }
             }
         }

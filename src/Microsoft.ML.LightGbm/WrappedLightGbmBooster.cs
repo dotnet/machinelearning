@@ -186,10 +186,44 @@ namespace Microsoft.ML.Trainers.LightGbm
             return cats.ToArray();
         }
 
-        public InternalTreeEnsemble GetModel(int[] categoricalFeatureBoudaries)
+        public static int GetNumFeatures(string modelString)
+        {
+            string[] lines = modelString.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            // Jump to the "max_feature_idx" value in the file. It's at the beginning.
+            int i = 0;
+            while (!lines[i].StartsWith("max_feature_idx"))
+                i++;
+
+            // Stored 0 based in the file, need the actual count so adding 1.
+            return int.Parse(lines[i].Split('=')[1]) + 1;
+        }
+
+        public static Dictionary<string, string> GetParameters(string modelString)
+        {
+            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            string[] lines = modelString.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            // Jump to the parameters section in the file. It's at the very end.
+            int i = 0;
+            while (!lines[i].StartsWith("parameters"))
+                i++;
+
+            // Increment once more to get to the first parameter
+            i++;
+
+            while (i <= lines.Length && !lines[i].StartsWith("end of parameters"))
+            {
+                var param = lines[i].Substring(1, lines[i].Length - 2).Split(':');
+                parameters[param[0]] = param[1].Trim();
+                i++;
+            }
+
+            return parameters;
+        }
+
+        public static InternalTreeEnsemble GetModel(int[] categoricalFeatureBoundaries, string modelString)
         {
             InternalTreeEnsemble res = new InternalTreeEnsemble();
-            string modelString = GetModelString();
             string[] lines = modelString.Split('\n');
             int i = 0;
             for (; i < lines.Length;)
@@ -219,11 +253,11 @@ namespace Microsoft.ML.Trainers.LightGbm
                         var defaultValue = GetDefalutValue(threshold, decisionType);
                         var categoricalSplitFeatures = new int[numberOfLeaves - 1][];
                         var categoricalSplit = new bool[numberOfLeaves - 1];
-                        if (categoricalFeatureBoudaries != null)
+                        if (categoricalFeatureBoundaries != null)
                         {
                             // Add offsets to split features.
                             for (int node = 0; node < numberOfLeaves - 1; ++node)
-                                splitFeature[node] = categoricalFeatureBoudaries[splitFeature[node]];
+                                splitFeature[node] = categoricalFeatureBoundaries[splitFeature[node]];
                         }
 
                         if (numCat > 0)

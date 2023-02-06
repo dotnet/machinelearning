@@ -196,7 +196,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                         HasHeader = true,
                         Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.Boolean, 0),
+                            //new TextLoader.Column("Label", DataKind.Boolean, 0),
                             new TextLoader.Column("SentimentText", DataKind.String, 1),
                             new TextLoader.Column("LoggedIn", DataKind.Boolean, 2)
                         }
