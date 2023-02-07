@@ -73,7 +73,7 @@ namespace Microsoft.ML.AutoML.Test
             // the following experiment set memory usage limit to 0.01mb
             // so all trials should be canceled and there should be no successful trials.
             // therefore when experiment finishes, it should throw timeout exception with no model trained message.
-            experiment.SetTrainingTimeInSeconds(10)
+            experiment.SetMaxModelToExplore(10)
                       .SetTrialRunner((serviceProvider) =>
                       {
                           var channel = serviceProvider.GetService<IChannel>();
