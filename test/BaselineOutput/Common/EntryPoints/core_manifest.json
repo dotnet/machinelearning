@@ -15174,6 +15174,15 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": true
+        },
+        {
+          "Name": "BatchSize",
+          "Type": "Int",
+          "Desc": "Number of entries in a batch when loading data (0 = auto).",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0
         }
       ],
       "Outputs": [

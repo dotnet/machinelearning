@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -15,6 +16,15 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers
 {
+    internal static class OneDalLbfgs
+    {
+        private const string OneDalLibPath = "OneDalNative";
+
+        [DllImport(OneDalLibPath, EntryPoint = "logisticRegressionLBFGSCompute")]
+        public static extern unsafe void LogisticRegressionCompute(void* featuresPtr, void* labelsPtr, void* weightsPtr, bool useSampleWeights, void* betaPtr,
+            long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg, float accuracyThreshold, int nIterations, int m, int nThreads);
+    }
+
     /// <summary>
     /// Base class for <a href='https://en.wikipedia.org/wiki/Limited-memory_BFGS'>L-BFGS</a>-based trainers.
     /// </summary>
@@ -429,9 +439,112 @@ namespace Microsoft.ML.Trainers
 
             using (var ch = Host.Start("Training"))
             {
-                TrainCore(ch, data);
+                if (Environment.GetEnvironmentVariable("MLNET_BACKEND") == "ONEDAL" &&
+                    System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.X64)
+                {
+                    TrainCoreOneDal(ch, data);
+                }
+                else
+                {
+                    TrainCore(ch, data);
+                }
                 return CreatePredictor();
             }
+        }
+
+        private protected virtual void TrainCoreOneDal(IChannel ch, RoleMappedData data)
+        {
+            Host.AssertValue(ch);
+            ch.AssertValue(data);
+
+            int numThreads = !UseThreads ? 1 : (NumThreads ?? Environment.ProcessorCount);
+            ch.Assert(numThreads > 0);
+
+            NumGoodRows = 0;
+            WeightSum = 0;
+
+            _features = null;
+            _labels = null;
+            _weights = null;
+
+            CursOpt cursorOpt = CursOpt.Label | CursOpt.Features;
+            bool useSampleWeights = false;
+            if (data.Schema.Weight.HasValue)
+            {
+                useSampleWeights = true;
+                cursorOpt |= CursOpt.Weight;
+            }
+
+            var typeFeat = data.Schema.Feature.Value.Type as VectorDataViewType;
+            int nFeatures = typeFeat.Size;
+
+            var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
+
+            var labelsList = new List<int>();
+            var featuresList = new List<float>();
+            var weightsList = new List<float>();
+
+            using (var cursor = cursorFactory.Create())
+            {
+                while (cursor.MoveNext())
+                {
+                    if (useSampleWeights)
+                    {
+                        WeightSum += cursor.Weight;
+                        weightsList.Add(cursor.Weight);
+                    }
+                    labelsList.Add((int)cursor.Label);
+                    var values = cursor.Features.GetValues();
+                    if (cursor.Features.IsDense)
+                    {
+                        ch.Assert(values.Length == nFeatures);
+
+                        for (int j = 0; j < nFeatures; ++j)
+                        {
+                            featuresList.Add(values[j]);
+                        }
+                    }
+                    else
+                    {
+                        var indices = cursor.Features.GetIndices();
+                        int i = 0;
+                        for (int j = 0; j < indices.Length; ++j)
+                        {
+                            for (int k = i; k < indices[j]; ++k)
+                            {
+                                featuresList.Add(0);
+                            }
+                            featuresList.Add(values[indices[j]]);
+                            i = indices[j] + 1;
+                        }
+                    }
+                }
+                NumGoodRows = cursor.KeptRowCount;
+                if (cursor.SkippedRowCount > 0)
+                    ch.Warning("Skipped {0} instances with missing features/label/weight during training", cursor.SkippedRowCount);
+            }
+            ch.Check(NumGoodRows > 0, NoTrainingInstancesMessage);
+
+            int[] labelsArray = labelsList.ToArray();
+            float[] featuresArray = featuresList.ToArray();
+            if (!useSampleWeights)
+            {
+                weightsList.Add(1);
+            }
+            float[] weightsArray = weightsList.ToArray();
+            float[] betaArray = new float[WeightCount + BiasCount];
+
+            unsafe
+            {
+#pragma warning disable MSML_SingleVariableDeclaration // Have only a single variable present per declaration
+                fixed (void* featuresPtr = &featuresArray[0], labelsPtr = &labelsArray[0], weightsPtr = &weightsArray[0], betaPtr = &betaArray[0])
+#pragma warning restore MSML_SingleVariableDeclaration // Have only a single variable present per declaration
+                {
+                    OneDalLbfgs.LogisticRegressionCompute(featuresPtr, labelsPtr, weightsPtr, useSampleWeights, betaPtr, NumGoodRows, nFeatures, ClassCount, L1Weight, L2Weight, OptTol, MaxIterations, MemorySize, numThreads);
+                }
+            }
+
+            CurrentWeights = new VBuffer<float>(betaArray.Length, betaArray);
         }
 
         private protected virtual void TrainCore(IChannel ch, RoleMappedData data)

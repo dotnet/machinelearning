@@ -128,7 +128,7 @@ namespace Microsoft.ML.AutoML
         {
             var loss = result.Loss;
             var duration = result.DurationInMilliseconds / 1000;
-            var isSuccess = duration != 0;
+            var isSuccess = duration != 0 && !double.IsNaN(loss) && !double.IsInfinity(loss);
 
             // if k1 is null, it means this is the first completed trial.
             // in that case, initialize k1, k2, e1, e2 in the following way:

@@ -313,8 +313,9 @@ namespace Microsoft.ML.AutoML
 
         private SweepablePipeline CreateMulticlassClassificationPipeline(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null)
         {
-            var useSdca = Settings.Trainers.Contains(MulticlassClassificationTrainer.SdcaMaximumEntropy);
-            var uselbfgs = Settings.Trainers.Contains(MulticlassClassificationTrainer.LbfgsLogisticRegressionOva);
+            var useSdcaMaximumEntrophy = Settings.Trainers.Contains(MulticlassClassificationTrainer.SdcaMaximumEntropy);
+            var uselbfgsLR = Settings.Trainers.Contains(MulticlassClassificationTrainer.LbfgsLogisticRegressionOva);
+            var uselbfgsME = Settings.Trainers.Contains(MulticlassClassificationTrainer.LbfgsMaximumEntropy);
             var useLgbm = Settings.Trainers.Contains(MulticlassClassificationTrainer.LightGbm);
             var useFastForest = Settings.Trainers.Contains(MulticlassClassificationTrainer.FastForestOva);
             var useFastTree = Settings.Trainers.Contains(MulticlassClassificationTrainer.FastTreeOva);
@@ -329,7 +330,7 @@ namespace Microsoft.ML.AutoML
 
             pipeline = pipeline.Append(Context.Auto().Featurizer(trainData, columnInformation, Features));
             pipeline = pipeline.Append(Context.Transforms.Conversion.MapValueToKey(label, label));
-            pipeline = pipeline.Append(Context.Auto().MultiClassification(label, useSdca: useSdca, useFastTree: useFastTree, useLgbm: useLgbm, useLbfgs: uselbfgs, useFastForest: useFastForest, featureColumnName: Features));
+            pipeline = pipeline.Append(Context.Auto().MultiClassification(label, useSdcaMaximumEntrophy: useSdcaMaximumEntrophy, useFastTree: useFastTree, useLgbm: useLgbm, useLbfgsMaximumEntrophy: uselbfgsME, useLbfgsLogisticRegression: uselbfgsLR, useFastForest: useFastForest, featureColumnName: Features));
             pipeline = pipeline.Append(Context.Transforms.Conversion.MapKeyToValue(DefaultColumnNames.PredictedLabel, DefaultColumnNames.PredictedLabel));
 
             return pipeline;

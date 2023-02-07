@@ -9,6 +9,7 @@ using Microsoft.ML.Internal.CpuMath.Core;
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Internal.CpuMath" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Runtime.Internal.MklMath" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "LibSvmWrapper" + InternalPublicKey.Value)]
+[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.OneDal" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Runtime.NeuralNetworks" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.RServerScoring.NeuralNetworks" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.AutoML" + PublicKey.Value)]
