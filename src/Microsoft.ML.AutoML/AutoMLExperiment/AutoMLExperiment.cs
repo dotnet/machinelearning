@@ -296,13 +296,15 @@ namespace Microsoft.ML.AutoML
                     {
                         trialSettings.EndedAtUtc = DateTime.UtcNow;
                         monitor?.ReportFailTrial(trialSettings, ex);
-                        var result = new TrialResult
+                        var trialResult = new TrialResult
                         {
                             TrialSettings = trialSettings,
                             Loss = double.MaxValue,
                         };
 
-                        tuner.Update(result);
+                        tuner.Update(trialResult);
+                        trialResultManager?.AddOrUpdateTrialResult(trialResult);
+                        aggregateTrainingStopManager.Update(trialResult);
                         continue;
                     }
                     catch (OperationCanceledException) when (aggregateTrainingStopManager.IsStopTrainingRequested())
