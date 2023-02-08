@@ -365,13 +365,11 @@ namespace Microsoft.ML.AutoML.Test
     class DummyTrialRunner : ITrialRunner
     {
         private readonly int _finishAfterNSeconds;
-        private readonly CancellationToken _ct;
         private readonly IChannel _logger;
 
         public DummyTrialRunner(AutoMLExperiment.AutoMLExperimentSettings automlSettings, int finishAfterNSeconds, IChannel logger)
         {
             _finishAfterNSeconds = finishAfterNSeconds;
-            _ct = automlSettings.CancellationToken;
             _logger = logger;
         }
 
@@ -383,7 +381,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             _logger.Info("Update Running Trial");
             await Task.Delay(_finishAfterNSeconds * 1000, ct);
-            _ct.ThrowIfCancellationRequested();
+            ct.ThrowIfCancellationRequested();
             _logger.Info("Update Completed Trial");
             var metric = 1.000 + 0.01 * settings.TrialId;
             return new TrialResult
