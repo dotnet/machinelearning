@@ -293,6 +293,7 @@ namespace Microsoft.ML.AutoML
                     }
                     catch (OperationCanceledException ex) when (aggregateTrainingStopManager.IsStopTrainingRequested() == false)
                     {
+                        logger.Trace($"trial cancelled - {JsonSerializer.Serialize(trialSettings)}, continue training");
                         trialSettings.EndedAtUtc = DateTime.UtcNow;
                         monitor?.ReportFailTrial(trialSettings, ex);
                         var trialResult = new TrialResult
@@ -308,15 +309,21 @@ namespace Microsoft.ML.AutoML
                     }
                     catch (OperationCanceledException) when (aggregateTrainingStopManager.IsStopTrainingRequested())
                     {
+                        logger.Trace($"trial cancelled - {JsonSerializer.Serialize(trialSettings)}, stop training");
+
                         break;
                     }
                     catch (Exception ex)
                     {
+                        logger.Trace($"trial failed - {JsonSerializer.Serialize(trialSettings)}, stop training");
+
                         trialSettings.EndedAtUtc = DateTime.UtcNow;
                         monitor?.ReportFailTrial(trialSettings, ex);
 
                         if (!aggregateTrainingStopManager.IsStopTrainingRequested() && _bestTrialResult == null)
                         {
+                            logger.Trace($"trial fatal error - {JsonSerializer.Serialize(trialSettings)}, stop training");
+
                             // TODO
                             // it's questionable on whether to abort the entire training process
                             // for a single fail trial. We should make it an option and only exit
