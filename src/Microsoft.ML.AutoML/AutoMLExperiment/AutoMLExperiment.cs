@@ -265,10 +265,9 @@ namespace Microsoft.ML.AutoML
                                 performanceMonitor.OnPerformanceMetricsUpdatedHandler(trialSettings, metrics, trialCancellationTokenSource);
                             };
 
-                            var trialTask = runner.RunAsync(trialSettings, trialCancellationTokenSource.Token);
                             performanceMonitor.Start();
                             logger.Trace($"trial setting - {JsonSerializer.Serialize(trialSettings)}");
-                            var trialResult = await trialTask;
+                            var trialResult = await runner.RunAsync(trialSettings, trialCancellationTokenSource.Token);
 
                             var peakCpu = performanceMonitor?.GetPeakCpuUsage();
                             var peakMemoryInMB = performanceMonitor?.GetPeakMemoryUsageInMegaByte();
