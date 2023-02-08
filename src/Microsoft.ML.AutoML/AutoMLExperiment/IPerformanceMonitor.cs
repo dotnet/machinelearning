@@ -127,8 +127,8 @@ namespace Microsoft.ML.AutoML
                 _peakCpuUsage = Math.Max(cpuUsageInTotal, _peakCpuUsage ?? 0);
 
                 // calculate Memory Usage in MB
-                var memoryUsage = process.PrivateMemorySize64 * 1.0 / (1024 * 1024);
-                _peakMemoryUsage = Math.Max(memoryUsage, _peakMemoryUsage ?? 0);
+                var memoryUsage = process.WorkingSet64 * 1.0 / (1024 * 1024);
+                _peakMemoryUsage = process.PeakWorkingSet64 * 1.0 / (1024 * 1024);
 
                 var metrics = new TrialPerformanceMetrics()
                 {
