@@ -250,11 +250,16 @@ namespace Microsoft.ML.AutoML
                 {
                     monitor?.ReportRunningTrial(trialSettings);
 
+                    void handler(object o, EventArgs e)
+                    {
+                        trialCancellationTokenSource.Cancel();
+                    }
                     try
                     {
                         using (var performanceMonitor = serviceProvider.GetService<IPerformanceMonitor>())
                         using (var runner = serviceProvider.GetRequiredService<ITrialRunner>())
                         {
+                            aggregateTrainingStopManager.OnStopTraining += handler;
                             performanceMonitor.PerformanceMetricsUpdated += (o, metrics) =>
                             {
                                 performanceMonitor.OnPerformanceMetricsUpdatedHandler(trialSettings, metrics, trialCancellationTokenSource);
@@ -318,6 +323,10 @@ namespace Microsoft.ML.AutoML
                             // when error is fatal (like schema mismatch).
                             throw;
                         }
+                    }
+                    finally
+                    {
+                        aggregateTrainingStopManager.OnStopTraining -= handler;
                     }
                 }
             }
