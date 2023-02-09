@@ -14,9 +14,9 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.OneDal;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.OneDal;
 
 [assembly: LoadableClass(OlsTrainer.Summary, typeof(OlsTrainer), typeof(OlsTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -406,12 +406,6 @@ namespace Microsoft.ML.Trainers
             xty = null;
         }
 
-        [BestFriend]
-        private bool IsDispatchingToOneDalEnabled()
-        {
-            return OneDalUtils.IsDispatchingEnabled();
-        }
-
         private OlsModelParameters TrainCore(IChannel ch, FloatLabelCursor.Factory cursorFactory, int featureCount)
         {
             Host.AssertValue(ch);
@@ -432,7 +426,7 @@ namespace Microsoft.ML.Trainers
             var beta = new Double[m];
             Double yMean = 0;
 
-            if (IsDispatchingToOneDalEnabled())
+            if (MLContext.OneDalDispatchingEnabled)
             {
                 ComputeOneDalRegression(ch, cursorFactory, m, ref beta, xtx, ref n, ref yMean);
             }

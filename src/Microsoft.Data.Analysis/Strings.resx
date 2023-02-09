@@ -243,4 +243,8 @@
   <data name="StreamDoesntSupportReading" xml:space="preserve">
     <value>Stream doesn't support reading</value>
   </data>
+  <data name="VectorSubTypeNotSupported" xml:space="preserve">
+    <value>Specified vector subtype {0} is not supported.</value>
+    <comment>{0} vectory subtype</comment>
+  </data>
 </root>

@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Internal.Utilities;
@@ -17,14 +17,6 @@ namespace Microsoft.ML.OneDal
     internal static class OneDalUtils
     {
 
-#if false
-        [BestFriend]
-        internal static bool IsDispatchingEnabled()
-        {
-            return Environment.GetEnvironmentVariable("MLNET_BACKEND") == "ONEDAL" &&
-                System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.X64;
-        }
-#else
         [BestFriend]
         internal static bool IsDispatchingEnabled()
         {
@@ -47,7 +39,6 @@ namespace Microsoft.ML.OneDal
             }
             return false;
         }
-#endif
 
         [BestFriend]
         internal static long GetTrainData(IChannel channel, FloatLabelCursor.Factory cursorFactory, ref List<float> featuresList, ref List<float> labelsList, int numberOfFeatures)

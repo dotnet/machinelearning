@@ -19,7 +19,7 @@ namespace Microsoft.ML.AutoML
 
         void ReportFailTrial(TrialSettings settings, Exception exception = null);
 
-        void ReportRunningTrial(TrialSettings setting);
+        void ReportRunningTrial(TrialSettings settings);
     }
 
     /// <summary>
@@ -30,6 +30,7 @@ namespace Microsoft.ML.AutoML
         private readonly IChannel _logger;
         private readonly List<TrialResult> _completedTrials;
         private readonly SweepablePipeline _pipeline;
+
         public MLContextMonitor(IChannel logger, SweepablePipeline pipeline)
         {
             _logger = logger;
@@ -62,7 +63,7 @@ namespace Microsoft.ML.AutoML
 
         public virtual void ReportRunningTrial(TrialSettings setting)
         {
-            _logger.Info($"Update Running Trial - Id: {setting.TrialId} - Pipeline: {_pipeline.ToString(setting.Parameter)}");
+            _logger.Info($"Update Running Trial - Id: {setting.TrialId}");
         }
     }
 

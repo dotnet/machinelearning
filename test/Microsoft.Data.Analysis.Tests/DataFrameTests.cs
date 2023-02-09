@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using Apache.Arrow;
 using Microsoft.ML;
+using Microsoft.ML.Data;
 using Xunit;
 
 namespace Microsoft.Data.Analysis.Tests
@@ -74,11 +75,28 @@ namespace Microsoft.Data.Analysis.Tests
             return new ArrowStringDataFrameColumn("ArrowString", dataMemory, offsetMemory, nullMemory, length, nullCount);
         }
 
+        public static VBufferDataFrameColumn<int> CreateVBufferDataFrame(int length)
+        {
+            var buffers = Enumerable.Repeat(new VBuffer<int>(5, new[] { 0, 1, 2, 3, 4 }), length).ToArray();
+            return new VBufferDataFrameColumn<int>("VBuffer", buffers);
+        }
+
         public static DataFrame MakeDataFrameWithAllColumnTypes(int length, bool withNulls = true)
+        {
+            DataFrame df = MakeDataFrameWithAllMutableAndArrowColumnTypes(length, withNulls);
+
+            var vBufferColumn = CreateVBufferDataFrame(length);
+            df.Columns.Insert(df.Columns.Count, vBufferColumn);
+
+            return df;
+        }
+
+        public static DataFrame MakeDataFrameWithAllMutableAndArrowColumnTypes(int length, bool withNulls = true)
         {
             DataFrame df = MakeDataFrameWithAllMutableColumnTypes(length, withNulls);
             DataFrameColumn arrowStringColumn = CreateArrowStringColumn(length, withNulls);
             df.Columns.Insert(df.Columns.Count, arrowStringColumn);
+
             return df;
         }
 
@@ -211,6 +229,15 @@ namespace Microsoft.Data.Analysis.Tests
             return input[trainIndices];
         }
 
+        [Fact]
+        public void TestVBufferColumn()
+        {
+            var vBufferColumn = CreateVBufferDataFrame(10);
+
+            Assert.Equal(10, vBufferColumn.Length);
+            Assert.Equal(5, vBufferColumn[0].GetValues().Length);
+            Assert.Equal(0, vBufferColumn[0].GetValues()[0]);
+        }
 
         [Fact]
         public void TestIndexer()

@@ -177,7 +177,8 @@
         "Sentence2ColumnName",
         "BatchSize",
         "MaxEpochs",
-        "Architecture"
+        "Architecture",
+        "AddKeyValueAnnotationsAsText"
       ]
     },
     "option_type": {
