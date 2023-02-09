@@ -73,7 +73,7 @@ namespace Microsoft.ML.AutoML.Test
             // the following experiment set memory usage limit to 0.01mb
             // so all trials should be canceled and there should be no successful trials.
             // therefore when experiment finishes, it should throw timeout exception with no model trained message.
-            experiment.SetTrainingTimeInSeconds(10)
+            experiment.SetMaxModelToExplore(10)
                       .SetTrialRunner((serviceProvider) =>
                       {
                           var channel = serviceProvider.GetService<IChannel>();
@@ -81,8 +81,7 @@ namespace Microsoft.ML.AutoML.Test
                           return new DummyTrialRunner(settings, 5, channel);
                       })
                       .SetTuner<RandomSearchTuner>()
-                      .SetMaximumMemoryUsageInMegaByte(0.01)
-                      .SetPerformanceMonitor<DummyPeformanceMonitor>();
+                      .SetMaximumMemoryUsageInMegaByte(0.01);
 
             var runExperimentAction = async () => await experiment.RunAsync();
             await runExperimentAction.Should().ThrowExactlyAsync<TimeoutException>();
@@ -366,13 +365,11 @@ namespace Microsoft.ML.AutoML.Test
     class DummyTrialRunner : ITrialRunner
     {
         private readonly int _finishAfterNSeconds;
-        private readonly CancellationToken _ct;
         private readonly IChannel _logger;
 
         public DummyTrialRunner(AutoMLExperiment.AutoMLExperimentSettings automlSettings, int finishAfterNSeconds, IChannel logger)
         {
             _finishAfterNSeconds = finishAfterNSeconds;
-            _ct = automlSettings.CancellationToken;
             _logger = logger;
         }
 
@@ -384,7 +381,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             _logger.Info("Update Running Trial");
             await Task.Delay(_finishAfterNSeconds * 1000, ct);
-            _ct.ThrowIfCancellationRequested();
+            ct.ThrowIfCancellationRequested();
             _logger.Info("Update Completed Trial");
             var metric = 1.000 + 0.01 * settings.TrialId;
             return new TrialResult
@@ -407,9 +404,7 @@ namespace Microsoft.ML.AutoML.Test
             _checkIntervalInMilliseconds = 1000;
         }
 
-        public event EventHandler<double> CpuUsage;
-
-        public event EventHandler<double> MemoryUsageInMegaByte;
+        public event EventHandler<TrialPerformanceMetrics> PerformanceMetricsUpdated;
 
         public void Dispose()
         {
@@ -425,6 +420,10 @@ namespace Microsoft.ML.AutoML.Test
             return 1000;
         }
 
+        public void OnPerformanceMetricsUpdatedHandler(TrialSettings trialSettings, TrialPerformanceMetrics metrics, CancellationTokenSource trialCancellationTokenSource)
+        {
+        }
+
         public void Start()
         {
             if (_timer == null)
@@ -432,13 +431,17 @@ namespace Microsoft.ML.AutoML.Test
                 _timer = new System.Timers.Timer(_checkIntervalInMilliseconds);
                 _timer.Elapsed += (o, e) =>
                 {
-                    CpuUsage?.Invoke(this, 100);
-                    MemoryUsageInMegaByte?.Invoke(this, 1000);
+                    PerformanceMetricsUpdated?.Invoke(this, new TrialPerformanceMetrics() { PeakCpuUsage = 100, PeakMemoryUsage = 1000 });
                 };
 
                 _timer.AutoReset = true;
-                _timer.Enabled = true;
             }
+            _timer.Enabled = true;
+        }
+
+        public void Pause()
+        {
+            _timer.Enabled = false;
         }
 
         public void Stop()
