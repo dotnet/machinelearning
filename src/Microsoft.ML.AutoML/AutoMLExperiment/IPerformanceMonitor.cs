@@ -128,7 +128,7 @@ namespace Microsoft.ML.AutoML
 
                 // calculate Memory Usage in MB
                 var memoryUsage = process.WorkingSet64 * 1.0 / (1024 * 1024);
-                _peakMemoryUsage = process.PeakWorkingSet64 * 1.0 / (1024 * 1024);
+                _peakMemoryUsage = Math.Max(memoryUsage, _peakMemoryUsage ?? 0);
 
                 var metrics = new TrialPerformanceMetrics()
                 {
