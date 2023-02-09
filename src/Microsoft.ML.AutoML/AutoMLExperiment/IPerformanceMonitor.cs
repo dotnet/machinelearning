@@ -146,6 +146,7 @@ namespace Microsoft.ML.AutoML
 
         public virtual void OnPerformanceMetricsUpdatedHandler(TrialSettings trialSettings, TrialPerformanceMetrics metrics, CancellationTokenSource trialCancellationTokenSource)
         {
+            _logger.Trace($"maximum memory usage: {_settings.MaximumMemoryUsageInMegaByte}, PeakMemoryUsage: {metrics.PeakMemoryUsage} trialIsCancelled: {trialCancellationTokenSource.IsCancellationRequested}");
             if (_settings.MaximumMemoryUsageInMegaByte is double d && metrics.PeakMemoryUsage > d && !trialCancellationTokenSource.IsCancellationRequested)
             {
                 _logger.Trace($"cancel current trial {trialSettings.TrialId} because it uses {metrics.PeakMemoryUsage} mb memory and the maximum memory usage is {d}");
