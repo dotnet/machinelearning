@@ -237,7 +237,7 @@ namespace Microsoft.ML.AutoML.Test
             var data = DatasetUtil.GetUciAdultDataView();
             var experiment = context.Auto().CreateExperiment();
             var pipeline = context.Auto().Featurizer(data, "_Features_", excludeColumns: new[] { DatasetUtil.UciAdultLabel })
-                                .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", exampleWeightColumnName: "signedWeight", useLgbm: false, useSdca: false, useLbfgs: false));
+                                .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", exampleWeightColumnName: "signedWeight", useLgbm: false, useSdcaLogisticRegression: false, useLbfgsLogisticRegression: false));
 
             experiment.SetDataset(context.Data.TrainTestSplit(data))
                     .SetPipeline(pipeline)
