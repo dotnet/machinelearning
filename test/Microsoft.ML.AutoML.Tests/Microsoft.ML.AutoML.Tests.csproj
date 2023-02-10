@@ -9,7 +9,6 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.ML.TorchSharp\Microsoft.ML.TorchSharp.csproj" Condition="'$(TargetArchitecture)' == 'x64'" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
   </ItemGroup>
 
@@ -50,13 +49,6 @@
       <Link>DnnImageModels\ResNet18Onnx\ResNet18.onnx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
-    <PackageReference Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$(TargetArchitecture)' == 'x64'" />
-    <!-- <PackageReference Include="TorchSharp-cuda-windows" Version="0.96.8" Condition="$([MSBuild]::IsOSPlatform('Windows'))" /> -->
-    <PackageReference Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux')) AND '$(TargetArchitecture)' == 'x64'" />
-    <PackageReference Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX')) AND '$(TargetArchitecture)' == 'x64'" />
   </ItemGroup>
 
 </Project>

@@ -14,11 +14,9 @@ using FluentAssertions;
 using Microsoft.Data.Analysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.AutoML.CodeGen;
-using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
-using Microsoft.ML.TorchSharp;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -239,14 +237,13 @@ namespace Microsoft.ML.AutoML.Test
             var experiment = context.Auto().CreateExperiment();
             var pipeline = context.Auto().Featurizer(data, "_Features_", excludeColumns: new[] { DatasetUtil.UciAdultLabel })
                                 .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", useLgbm: false, useSdcaLogisticRegression: false, useLbfgsLogisticRegression: false));
-            var cts = new CancellationTokenSource();
-            cts.CancelAfter(50000);
+
             experiment.SetDataset(data, 5)
                     .SetBinaryClassificationMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(100);
+                    .SetTrainingTimeInSeconds(10);
 
-            var result = await experiment.RunAsync(cts.Token);
+            var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.8);
         }
 
@@ -363,88 +360,6 @@ namespace Microsoft.ML.AutoML.Test
             settings = experiment.ServiceCollection.BuildServiceProvider().GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
             settings.Seed.Should().Be(1);
         }
-
-        [Fact]
-        public async Task AutoMLExperiment_should_cancel_text_classification()
-        {
-            var context = new MLContext(1);
-            context.Log += (o, e) =>
-            {
-                if (e.Message.Contains("AutoMLExperiment") || e.Message.Contains("NasBertTrainer"))
-                {
-                    this.Output.WriteLine(e.RawMessage);
-                }
-            };
-            var dataView = context.Data.LoadFromEnumerable(
-                new List<TestSingleSentenceData>(new TestSingleSentenceData[] {
-                    new TestSingleSentenceData()
-                    {   // Testing longer than 512 words.
-                        Sentence1 = "ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community . ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community . ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community . ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .ultimately feels as flat as the scruffy sands of its titular community .",
-                        Sentiment = "Negative"
-                    },
-                     new TestSingleSentenceData()
-                     {
-                         Sentence1 = "with a sharp script and strong performances",
-                         Sentiment = "Positive"
-                     },
-                     new TestSingleSentenceData()
-                     {
-                         Sentence1 = "that director m. night shyamalan can weave an eerie spell and",
-                         Sentiment = "Positive"
-                     },
-                     new TestSingleSentenceData()
-                     {
-                         Sentence1 = "comfortable",
-                         Sentiment = "Positive"
-                     },
-                     new TestSingleSentenceData()
-                     {
-                         Sentence1 = "does have its charms .",
-                         Sentiment = "Positive"
-                     },
-                     new TestSingleSentenceData()
-                     {
-                         Sentence1 = "banal as the telling",
-                         Sentiment = "Negative"
-                     },
-                     new TestSingleSentenceData()
-                     {
-                         Sentence1 = "faithful without being forceful , sad without being shrill , `` a walk to remember '' succeeds through sincerity .",
-                         Sentiment = "Negative"
-                     },
-                     new TestSingleSentenceData()
-                     {
-                         Sentence1 = "leguizamo 's best movie work so far",
-                         Sentiment = "Negative"
-                     }
-                }));
-
-            var experiment = context.Auto().CreateExperiment();
-            var chain = new EstimatorChain<ITransformer>();
-            var pipeline = chain.Append(context.Transforms.Conversion.MapValueToKey("Label", "Sentiment"))
-                            .Append(SweepableEstimatorFactory.CreateTextClassificationMulti(new TextClassificationOption
-                            {
-                                MaxEpochs = 100,
-                                LabelColumnName = "Label",
-                            }))
-                            .Append(SweepableEstimatorFactory.CreateMapKeyToValue(new MapKeyToValueOption
-                            {
-                                InputColumnName = "PredictedLabel",
-                                OutputColumnName = "PredictedLabel",
-                            }));
-            experiment.SetPipeline(pipeline)
-                      .SetDataset(dataView, dataView)
-                      .SetMulticlassClassificationMetric(MulticlassClassificationMetric.MacroAccuracy, "Label")
-                      .SetMaxModelToExplore(1);
-            var cts = new CancellationTokenSource();
-            cts.CancelAfter(15_000);
-            await experiment.RunAsync(cts.Token);
-        }
-    }
-    class TestSingleSentenceData
-    {
-        public string Sentence1;
-        public string Sentiment;
     }
 
     class DummyTrialRunner : ITrialRunner
