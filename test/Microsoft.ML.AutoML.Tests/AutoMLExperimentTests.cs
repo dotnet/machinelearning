@@ -422,7 +422,11 @@ namespace Microsoft.ML.AutoML.Test
             var experiment = context.Auto().CreateExperiment();
             var chain = new EstimatorChain<ITransformer>();
             var pipeline = chain.Append(context.Transforms.Conversion.MapValueToKey("Label", "Sentiment"))
-                            .Append(context.MulticlassClassification.Trainers.TextClassification(outputColumnName: "PredictedLabel", maxEpochs: 100))
+                            .Append(SweepableEstimatorFactory.CreateTextClassificationMulti(new TextClassificationOption
+                            {
+                                MaxEpochs = 100,
+                                LabelColumnName = "Label",
+                            }))
                             .Append(SweepableEstimatorFactory.CreateMapKeyToValue(new MapKeyToValueOption
                             {
                                 InputColumnName = "PredictedLabel",
