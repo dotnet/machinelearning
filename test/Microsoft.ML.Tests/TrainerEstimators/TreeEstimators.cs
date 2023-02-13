@@ -20,7 +20,6 @@ using Microsoft.ML.Trainers.LightGbm;
 using Microsoft.ML.Transforms;
 using Xunit;
 using FluentAssertions;
-using System.IO;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
@@ -1024,30 +1023,22 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Attention: Do not set NumberOfThreads here, left this to use default value to avoid test crash.
             // Details can be found here: https://github.com/dotnet/machinelearning/pull/4918
-            //var trainer = pipeline.Append(ML.BinaryClassification.Trainers.LightGbm(
-            //    new LightGbmBinaryTrainer.Options
-            //    {
-            //        NumberOfIterations = 10,
-            //        NumberOfLeaves = 5,
-            //        UseCategoricalSplit = true
-            //    }));
+            var trainer = pipeline.Append(ML.BinaryClassification.Trainers.LightGbm(
+                new LightGbmBinaryTrainer.Options
+                {
+                    NumberOfIterations = 10,
+                    NumberOfLeaves = 5,
+                    UseCategoricalSplit = true
+                }));
 
-            //var trainer2 = pipeline.Append(ML.BinaryClassification.Trainers.LightGbm(File.OpenRead(@"D:\Temp\LightGbmSampleTree.txt")));
-            var trainer2 = pipeline.Append(ML.MulticlassClassification.Trainers.LightGbm(File.OpenRead(@"C:\Users\misharp\Downloads\iris-lgbm.txt")));
+            var transformer = trainer.Fit(dataView);
 
-            //var transformer = trainer.Fit(dataView);
-            var transformer2 = trainer2.Fit(dataView);
+            var trainedTreeEnsemble = transformer.LastTransformer.Model.SubModel.TrainedTreeEnsemble;
 
-            //var trainedTreeEnsemble = transformer.LastTransformer.Model.SubModel.TrainedTreeEnsemble;
-            //var trainedTreeEnsemble2 = transformer2.LastTransformer.Model.SubModel.TrainedTreeEnsemble;
+            var modelParameters = transformer.LastTransformer.Model.SubModel as ICanGetSummaryAsIDataView;
+            Assert.NotNull(modelParameters);
 
-            //var modelParameters = transformer.LastTransformer.Model.SubModel as ICanGetSummaryAsIDataView;
-            //var modelParameters2 = transformer2.LastTransformer.Model.SubModel as ICanGetSummaryAsIDataView;
-            //Assert.NotNull(modelParameters);
-            //Assert.NotNull(modelParameters2);
-
-            //CheckSummary(modelParameters, trainedTreeEnsemble.Bias, trainedTreeEnsemble.TreeWeights, trainedTreeEnsemble.Trees);
-            //CheckSummary(modelParameters2, trainedTreeEnsemble2.Bias, trainedTreeEnsemble2.TreeWeights, trainedTreeEnsemble2.Trees);
+            CheckSummary(modelParameters, trainedTreeEnsemble.Bias, trainedTreeEnsemble.TreeWeights, trainedTreeEnsemble.Trees);
             Done();
         }
 
