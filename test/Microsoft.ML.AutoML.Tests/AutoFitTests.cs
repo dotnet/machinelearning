@@ -197,9 +197,19 @@ namespace Microsoft.ML.AutoML.Test
             settings.Trainers.Remove(RegressionTrainer.StochasticDualCoordinateAscent);
             settings.Trainers.Remove(RegressionTrainer.LbfgsPoissonRegression);
 
+            // verify for dataset > 15000L
             var result = context.Auto()
                 .CreateRegressionExperiment(settings)
                 .Execute(dataset, label);
+
+            Assert.True(result.BestRun.ValidationMetrics.RSquared > 0.70);
+            Assert.NotNull(result.BestRun.Estimator);
+            Assert.NotNull(result.BestRun.TrainerName);
+
+            // verify for dataset < 15000L
+            result = context.Auto()
+                .CreateRegressionExperiment(settings)
+                .Execute(context.Data.TakeRows(dataset, 1000), label);
 
             Assert.True(result.BestRun.ValidationMetrics.RSquared > 0.70);
             Assert.NotNull(result.BestRun.Estimator);
