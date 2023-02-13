@@ -267,7 +267,7 @@ namespace Microsoft.ML.AutoML.Test
                 trainData = context.Data.TakeRows(trainData, crossValRowCountThreshold - 1);
                 var settings = new MulticlassExperimentSettings
                 {
-                    MaxExperimentTimeInSeconds = 1,
+                    MaxModels = 1,
                 };
 
                 settings.Trainers.Remove(MulticlassClassificationTrainer.LightGbm);
