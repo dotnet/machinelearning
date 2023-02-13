@@ -14,7 +14,6 @@ using FluentAssertions;
 using Microsoft.Data.Analysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.AutoML.CodeGen;
-using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
@@ -74,7 +73,7 @@ namespace Microsoft.ML.AutoML.Test
             // the following experiment set memory usage limit to 0.01mb
             // so all trials should be canceled and there should be no successful trials.
             // therefore when experiment finishes, it should throw timeout exception with no model trained message.
-            experiment.SetMaxModelToExplore(10)
+            experiment.SetTrainingTimeInSeconds(10)
                       .SetTrialRunner((serviceProvider) =>
                       {
                           var channel = serviceProvider.GetService<IChannel>();
@@ -82,7 +81,8 @@ namespace Microsoft.ML.AutoML.Test
                           return new DummyTrialRunner(settings, 5, channel);
                       })
                       .SetTuner<RandomSearchTuner>()
-                      .SetMaximumMemoryUsageInMegaByte(0.01);
+                      .SetMaximumMemoryUsageInMegaByte(0.01)
+                      .SetPerformanceMonitor<DummyPeformanceMonitor>();
 
             var runExperimentAction = async () => await experiment.RunAsync();
             await runExperimentAction.Should().ThrowExactlyAsync<TimeoutException>();
@@ -152,13 +152,7 @@ namespace Microsoft.ML.AutoML.Test
         public async Task AutoMLExperiment_finish_training_when_time_is_up_Async()
         {
             var context = new MLContext(1);
-            context.Log += (o, e) =>
-            {
-                if (e.Source.StartsWith("AutoMLExperiment"))
-                {
-                    this.Output.WriteLine(e.RawMessage);
-                }
-            };
+
             var experiment = context.Auto().CreateExperiment();
             experiment.SetTrainingTimeInSeconds(5)
                       .SetTrialRunner((serviceProvider) =>
@@ -244,14 +238,13 @@ namespace Microsoft.ML.AutoML.Test
             var experiment = context.Auto().CreateExperiment();
             var pipeline = context.Auto().Featurizer(data, "_Features_", excludeColumns: new[] { DatasetUtil.UciAdultLabel })
                                 .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", useLgbm: false, useSdcaLogisticRegression: false, useLbfgsLogisticRegression: false));
-            var cts = new CancellationTokenSource();
-            cts.CancelAfter(50000);
+
             experiment.SetDataset(data, 5)
                     .SetBinaryClassificationMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(100);
+                    .SetTrainingTimeInSeconds(10);
 
-            var result = await experiment.RunAsync(cts.Token);
+            var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.8);
         }
 
@@ -368,94 +361,91 @@ namespace Microsoft.ML.AutoML.Test
             settings = experiment.ServiceCollection.BuildServiceProvider().GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
             settings.Seed.Should().Be(1);
         }
+    }
 
-        class DummyTrialRunner : ITrialRunner
+    class DummyTrialRunner : ITrialRunner
+    {
+        private readonly int _finishAfterNSeconds;
+        private readonly CancellationToken _ct;
+        private readonly IChannel _logger;
+
+        public DummyTrialRunner(AutoMLExperiment.AutoMLExperimentSettings automlSettings, int finishAfterNSeconds, IChannel logger)
         {
-            private readonly int _finishAfterNSeconds;
-            private readonly IChannel _logger;
-
-            public DummyTrialRunner(AutoMLExperiment.AutoMLExperimentSettings automlSettings, int finishAfterNSeconds, IChannel logger)
-            {
-                _finishAfterNSeconds = finishAfterNSeconds;
-                _logger = logger;
-            }
-
-            public void Dispose()
-            {
-            }
-
-            public async Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
-            {
-                _logger.Info("Update Running Trial");
-                await Task.Delay(_finishAfterNSeconds * 1000, ct);
-                ct.ThrowIfCancellationRequested();
-                _logger.Info("Update Completed Trial");
-                var metric = 1.000 + 0.01 * settings.TrialId;
-                return new TrialResult
-                {
-                    TrialSettings = settings,
-                    DurationInMilliseconds = _finishAfterNSeconds * 1000,
-                    Metric = metric,
-                    Loss = - -metric,
-                };
-            }
+            _finishAfterNSeconds = finishAfterNSeconds;
+            _ct = automlSettings.CancellationToken;
+            _logger = logger;
         }
-        class DummyPeformanceMonitor : IPerformanceMonitor
+
+        public void Dispose()
         {
-            private readonly int _checkIntervalInMilliseconds;
-            private System.Timers.Timer _timer;
+        }
 
-            public DummyPeformanceMonitor()
+        public async Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
+        {
+            _logger.Info("Update Running Trial");
+            await Task.Delay(_finishAfterNSeconds * 1000, ct);
+            _ct.ThrowIfCancellationRequested();
+            _logger.Info("Update Completed Trial");
+            var metric = 1.000 + 0.01 * settings.TrialId;
+            return new TrialResult
             {
-                _checkIntervalInMilliseconds = 1000;
-            }
+                TrialSettings = settings,
+                DurationInMilliseconds = _finishAfterNSeconds * 1000,
+                Metric = metric,
+                Loss = - -metric,
+            };
+        }
+    }
 
-            public event EventHandler<TrialPerformanceMetrics> PerformanceMetricsUpdated;
+    class DummyPeformanceMonitor : IPerformanceMonitor
+    {
+        private readonly int _checkIntervalInMilliseconds;
+        private System.Timers.Timer _timer;
 
-            public void Dispose()
+        public DummyPeformanceMonitor()
+        {
+            _checkIntervalInMilliseconds = 1000;
+        }
+
+        public event EventHandler<double> CpuUsage;
+
+        public event EventHandler<double> MemoryUsageInMegaByte;
+
+        public void Dispose()
+        {
+        }
+
+        public double? GetPeakCpuUsage()
+        {
+            return 100;
+        }
+
+        public double? GetPeakMemoryUsageInMegaByte()
+        {
+            return 1000;
+        }
+
+        public void Start()
+        {
+            if (_timer == null)
             {
-            }
-
-            public double? GetPeakCpuUsage()
-            {
-                return 100;
-            }
-
-            public double? GetPeakMemoryUsageInMegaByte()
-            {
-                return 1000;
-            }
-
-            public void OnPerformanceMetricsUpdatedHandler(TrialSettings trialSettings, TrialPerformanceMetrics metrics, CancellationTokenSource trialCancellationTokenSource)
-            {
-            }
-
-            public void Start()
-            {
-                if (_timer == null)
+                _timer = new System.Timers.Timer(_checkIntervalInMilliseconds);
+                _timer.Elapsed += (o, e) =>
                 {
-                    _timer = new System.Timers.Timer(_checkIntervalInMilliseconds);
-                    _timer.Elapsed += (o, e) =>
-                    {
-                        PerformanceMetricsUpdated?.Invoke(this, new TrialPerformanceMetrics() { PeakCpuUsage = 100, PeakMemoryUsage = 1000 });
-                    };
+                    CpuUsage?.Invoke(this, 100);
+                    MemoryUsageInMegaByte?.Invoke(this, 1000);
+                };
 
-                    _timer.AutoReset = true;
-                }
+                _timer.AutoReset = true;
                 _timer.Enabled = true;
             }
+        }
 
-            public void Pause()
-            {
-                _timer.Enabled = false;
-            }
-
-            public void Stop()
-            {
-                _timer?.Stop();
-                _timer?.Dispose();
-                _timer = null;
-            }
+        public void Stop()
+        {
+            _timer?.Stop();
+            _timer?.Dispose();
+            _timer = null;
         }
     }
 }
