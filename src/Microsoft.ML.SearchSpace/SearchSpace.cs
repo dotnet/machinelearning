@@ -8,13 +8,15 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.ML.SearchSpace.Converter;
 using Microsoft.ML.SearchSpace.Option;
 
 namespace Microsoft.ML.SearchSpace
 {
     /// <summary>
-    /// This class is used to represent a set of <see cref="OptionBase"/>, which can be either one of <see cref="ChoiceOption"/>, <see cref="UniformNumericOption"/> or <see cref="NestOption"/>.
+    /// This class is used to represent a set of <see cref="OptionBase"/>, which can be either one of <see cref="ChoiceOption"/>, <see cref="UniformNumericOption"/> or another nested search space.
     /// </summary>
+    [JsonConverter(typeof(SearchSpaceConverter))]
     public class SearchSpace : OptionBase, IDictionary<string, OptionBase>
     {
         private readonly Dictionary<string, OptionBase> _options;
@@ -168,11 +170,11 @@ namespace Microsoft.ML.SearchSpace
         }
 
 
-        private NestOption GetNestOptionFromType(Type typeInfo)
+        private SearchSpace GetSearchSpaceOptionFromType(Type typeInfo)
         {
             var propertyOptions = GetOptionsFromProperty(typeInfo);
             var fieldOptions = GetOptionsFromField(typeInfo);
-            var nestOption = new NestOption();
+            var nestOption = new SearchSpace();
             foreach (var kv in propertyOptions.Concat(fieldOptions))
             {
                 nestOption[kv.Key] = kv.Value;
@@ -208,7 +210,7 @@ namespace Microsoft.ML.SearchSpace
                         ChoiceAttribute choice => choice.Option,
                         RangeAttribute range => range.Option,
                         BooleanChoiceAttribute booleanChoice => booleanChoice.Option,
-                        NestOptionAttribute nest => GetNestOptionFromType(field.FieldType),
+                        NestOptionAttribute nest => GetSearchSpaceOptionFromType(field.FieldType),
                         _ => throw new NotImplementedException(),
                     };
 
@@ -246,7 +248,7 @@ namespace Microsoft.ML.SearchSpace
                         ChoiceAttribute choice => choice.Option,
                         RangeAttribute range => range.Option,
                         BooleanChoiceAttribute booleanChoice => booleanChoice.Option,
-                        NestOptionAttribute nest => GetNestOptionFromType(property.PropertyType),
+                        NestOptionAttribute nest => GetSearchSpaceOptionFromType(property.PropertyType),
                         _ => throw new NotImplementedException(),
                     };
 

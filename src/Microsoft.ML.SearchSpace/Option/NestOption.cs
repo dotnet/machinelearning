@@ -11,9 +11,9 @@ using System.Text;
 namespace Microsoft.ML.SearchSpace.Option
 {
     /// <summary>
-    /// This class represent nest option, which is an option that contains other options, like <see cref="ChoiceOption"/>, <see cref="UniformNumericOption"/> or even <see cref="NestOption"/> itself.
+    /// This class represent nest option, which is an option that contains other options, like <see cref="ChoiceOption"/>, <see cref="UniformNumericOption"/> or even <see cref="SearchSpace"/> itself.
     /// </summary>
-    public sealed class NestOption : OptionBase, IDictionary<string, OptionBase>
+    public sealed class SearchSpace : OptionBase, IDictionary<string, OptionBase>
     {
         private readonly Dictionary<string, OptionBase> _options = new Dictionary<string, OptionBase>();
 

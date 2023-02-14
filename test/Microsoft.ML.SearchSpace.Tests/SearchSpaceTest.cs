@@ -4,9 +4,14 @@
 
 using System;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using ApprovalTests;
+using ApprovalTests.Namers;
+using ApprovalTests.Reporters;
 using FluentAssertions;
 using Microsoft.ML.SearchSpace.Option;
 using Microsoft.ML.SearchSpace.Tuner;
+using Microsoft.ML.Trainers;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -14,6 +19,13 @@ namespace Microsoft.ML.SearchSpace.Tests
 {
     public class SearchSpaceTest : TestBase
     {
+        private readonly JsonSerializerOptions _settings = new JsonSerializerOptions()
+        {
+            WriteIndented = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            NumberHandling = JsonNumberHandling.Strict,
+        };
+
         public SearchSpaceTest(ITestOutputHelper output)
             : base(output)
         {
@@ -195,6 +207,86 @@ namespace Microsoft.ML.SearchSpace.Tests
 
             ss.Remove("UniformInt");
             ss.GetHashCode().Should().Be(125205970);
+        }
+
+        [Fact]
+        public void SearchSpace_sampling_from_uniform_space_test()
+        {
+            var searchSpace = new Option.SearchSpace();
+            searchSpace.Add("choice", new ChoiceOption("a", "b", "c"));
+            searchSpace.Add("int", new UniformIntOption(0, 1));
+            var anotherNestOption = new Option.SearchSpace();
+            anotherNestOption["choice"] = new ChoiceOption("d", "e");
+            anotherNestOption["int"] = new UniformIntOption(2, 3);
+            searchSpace["nestOption"] = anotherNestOption;
+
+            searchSpace.FeatureSpaceDim.Should().Be(4);
+            var parameter = searchSpace.SampleFromFeatureSpace(new double[] { 0, 0, 0, 0 });
+            parameter["nestOption"]["choice"].AsType<string>().Should().Be("d");
+            parameter["nestOption"]["int"].AsType<int>().Should().Be(2);
+            parameter["choice"].AsType<string>().Should().Be("a");
+            parameter["int"].AsType<int>().Should().Be(0);
+
+            parameter = searchSpace.SampleFromFeatureSpace(new double[] { 1, 1, 1, 1 });
+            parameter["nestOption"]["choice"].AsType<string>().Should().Be("e");
+            parameter["nestOption"]["int"].AsType<int>().Should().Be(3);
+            parameter["choice"].AsType<string>().Should().Be("c");
+            parameter["int"].AsType<int>().Should().Be(1);
+        }
+
+        [Fact]
+        public void SearchSpace_mapping_to_uniform_space_test()
+        {
+            var searchSpace = new SearchSpace();
+            searchSpace.Add("choice", new ChoiceOption("a", "b", "c"));
+            searchSpace.Add("int", new UniformIntOption(0, 1));
+
+            var parameter = Parameter.CreateNestedParameter();
+            parameter["choice"] = Parameter.FromString("a");
+            parameter["int"] = Parameter.FromInt(0);
+            searchSpace.MappingToFeatureSpace(parameter).Should().Equal(0, 0);
+        }
+
+        [Fact]
+        public void SearchSpace_mapping_order_test()
+        {
+            // each dimension in uniform space should be mapping to the options under nest option in a certain (key ascending) order.
+            var searchSpace = new SearchSpace();
+            searchSpace["a"] = new UniformIntOption(0, 1);
+            searchSpace["b"] = new UniformIntOption(1, 2);
+            searchSpace["c"] = new UniformIntOption(2, 3);
+
+            // changing of the first dimension should be reflected in option "a"
+            var parameter = searchSpace.SampleFromFeatureSpace(new double[] { 0, 0.5, 0.5 });
+            parameter["a"].AsType<int>().Should().Be(0);
+            parameter = searchSpace.SampleFromFeatureSpace(new double[] { 1, 0.5, 0.5 });
+            parameter["a"].AsType<int>().Should().Be(1);
+
+            searchSpace.Remove("a");
+
+            // the first dimension should be option "b"
+            parameter = searchSpace.SampleFromFeatureSpace(new double[] { 0, 0.5 });
+            parameter["b"].AsType<int>().Should().Be(1);
+            parameter = searchSpace.SampleFromFeatureSpace(new double[] { 1, 0.5 });
+            parameter["b"].AsType<int>().Should().Be(2);
+        }
+
+        [Fact]
+        [UseApprovalSubdirectory("ApprovalTests")]
+        [UseReporter(typeof(DiffReporter))]
+        public void Trainer_default_search_space_test()
+        {
+            CreateAndVerifyDefaultSearchSpace<SgdNonCalibratedTrainer.Options>();
+            CreateAndVerifyDefaultSearchSpace<SgdCalibratedTrainer.Options>();
+        }
+
+        private void CreateAndVerifyDefaultSearchSpace<TOption>()
+            where TOption : class, new()
+        {
+            var ss = new SearchSpace<TOption>();
+            var json = JsonSerializer.Serialize(ss, _settings);
+            NamerFactory.AdditionalInformation = typeof(TOption).FullName;
+            Approvals.Verify(json);
         }
 
         private class DefaultSearchSpace

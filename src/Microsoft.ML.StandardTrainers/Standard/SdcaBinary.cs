@@ -19,6 +19,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.SearchSpace;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
@@ -1834,6 +1835,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization constant", ShortName = "l2, L2Weight", SortOrder = 50)]
             [TGUI(Label = "L2 Regularization Constant", SuggestedSweeps = "1e-7,5e-7,1e-6,5e-6,1e-5")]
             [TlcModule.SweepableDiscreteParam("L2Const", new object[] { 1e-7f, 5e-7f, 1e-6f, 5e-6f, 1e-5f })]
+            [Range((float)0.03125, (float)32768, init: (float)1F, logBase: true)]
             public float L2Regularization = Defaults.L2Regularization;
 
             /// <summary>
@@ -1853,6 +1855,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Exponential moving averaged improvement tolerance for convergence", ShortName = "tol")]
             [TGUI(SuggestedSweeps = "1e-2,1e-3,1e-4,1e-5")]
             [TlcModule.SweepableDiscreteParam("ConvergenceTolerance", new object[] { 1e-2f, 1e-3f, 1e-4f, 1e-5f })]
+            [Range(1e-6, 1e-1, init: 1e-1, logBase: true)]
             public double ConvergenceTolerance = 1e-4;
 
             /// <summary>
@@ -1864,6 +1867,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning.", ShortName = "iter, MaxIterations")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "1,5,10,20")]
             [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { 1, 5, 10, 20 })]
+            [Range((int)1, 20, init: 1, logBase: true)]
             public int NumberOfIterations = Defaults.NumberOfIterations;
 
             /// <summary>
@@ -1871,6 +1875,7 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate (only used by SGD)", Name = "InitialLearningRate", ShortName = "ilr,lr,InitLearningRate")]
             [TGUI(Label = "Initial Learning Rate (for SGD)")]
+            [Range(1e-3, 1, init: 1e-3, logBase: true)]
             public double LearningRate = Defaults.LearningRate;
 
             /// <summary>
