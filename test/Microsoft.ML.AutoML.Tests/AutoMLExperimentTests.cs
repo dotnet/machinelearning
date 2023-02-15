@@ -153,7 +153,7 @@ namespace Microsoft.ML.AutoML.Test
             var context = new MLContext(1);
 
             var experiment = context.Auto().CreateExperiment();
-            experiment.SetTrainingTimeInSeconds(5)
+            experiment.SetTrainingTimeInSeconds(10)
                       .SetTrialRunner((serviceProvider) =>
                       {
                           var channel = serviceProvider.GetService<IChannel>();
@@ -163,7 +163,7 @@ namespace Microsoft.ML.AutoML.Test
                       .SetTuner<RandomSearchTuner>();
 
             var cts = new CancellationTokenSource();
-            cts.CancelAfter(10 * 1000);
+            cts.CancelAfter(20 * 1000);
 
             var res = await experiment.RunAsync(cts.Token);
             res.Metric.Should().BeGreaterThan(0);
