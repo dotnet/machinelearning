@@ -160,17 +160,17 @@ namespace Microsoft.ML.AutoML.Test
             };
 
             var experiment = context.Auto().CreateExperiment();
-            experiment.SetTrainingTimeInSeconds(10)
+            experiment.SetTrainingTimeInSeconds(5)
                       .SetTrialRunner((serviceProvider) =>
                       {
                           var channel = serviceProvider.GetService<IChannel>();
                           var settings = serviceProvider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
-                          return new DummyTrialRunner(settings, 1, channel);
+                          return new DummyTrialRunner(settings, 0, channel);
                       })
                       .SetTuner<RandomSearchTuner>();
 
             var cts = new CancellationTokenSource();
-            cts.CancelAfter(20 * 1000);
+            cts.CancelAfter(10 * 1000);
 
             var res = await experiment.RunAsync(cts.Token);
             res.Metric.Should().BeGreaterThan(0);

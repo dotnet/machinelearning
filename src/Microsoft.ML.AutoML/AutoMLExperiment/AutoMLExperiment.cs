@@ -51,15 +51,7 @@ namespace Microsoft.ML.AutoML
             _serviceCollection.TryAddTransient((provider) =>
             {
                 var contextManager = provider.GetRequiredService<IMLContextManager>();
-                var trainingStopManager = provider.GetRequiredService<AggregateTrainingStopManager>();
                 var context = contextManager.CreateMLContext();
-                trainingStopManager.OnStopTraining += (s, e) =>
-                {
-                    // only force-canceling running trials when there's completed trials.
-                    // otherwise, wait for the current running trial to be completed.
-                    if (_bestTrialResult != null)
-                        context.CancelExecution();
-                };
 
                 return context;
             });
