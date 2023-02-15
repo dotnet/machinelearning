@@ -75,7 +75,7 @@ namespace Microsoft.ML.AutoML.Test
             var dataTrainTest = context.Data.TrainTestSplit(trainData);
             var settings = new BinaryExperimentSettings
             {
-                MaxExperimentTimeInSeconds = 1,
+                MaxModels = 1,
             };
 
             settings.Trainers.Remove(BinaryClassificationTrainer.LightGbm);
