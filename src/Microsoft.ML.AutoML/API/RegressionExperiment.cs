@@ -398,14 +398,7 @@ namespace Microsoft.ML.AutoML
                             // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
                             var res = metrics[_rnd.Next(fold)];
                             var model = res.Model;
-                            var metric = metricManager.Metric switch
-                            {
-                                RegressionMetric.RootMeanSquaredError => res.Metrics.RootMeanSquaredError,
-                                RegressionMetric.RSquared => res.Metrics.RSquared,
-                                RegressionMetric.MeanSquaredError => res.Metrics.MeanSquaredError,
-                                RegressionMetric.MeanAbsoluteError => res.Metrics.MeanAbsoluteError,
-                                _ => throw new NotImplementedException($"{metricManager.MetricName} is not supported!"),
-                            };
+                            var metric = GetMetric(metricManager.Metric, res.Metrics);
                             var loss = metricManager.IsMaximize ? -metric : metric;
 
                             stopWatch.Stop();
@@ -430,16 +423,8 @@ namespace Microsoft.ML.AutoML
                             stopWatch.Start();
                             var model = pipeline.Fit(trainTestDatasetManager.TrainDataset);
                             var eval = model.Transform(trainTestDatasetManager.TestDataset);
-                            var res = _context.Regression.Evaluate(eval, metricManager.LabelColumn, scoreColumnName: metricManager.ScoreColumn);
-
-                            var metric = metricManager.Metric switch
-                            {
-                                RegressionMetric.RootMeanSquaredError => res.RootMeanSquaredError,
-                                RegressionMetric.RSquared => res.RSquared,
-                                RegressionMetric.MeanSquaredError => res.MeanSquaredError,
-                                RegressionMetric.MeanAbsoluteError => res.MeanAbsoluteError,
-                                _ => throw new NotImplementedException($"{metricManager.Metric} is not supported!"),
-                            };
+                            var metrics = _context.Regression.Evaluate(eval, metricManager.LabelColumn, scoreColumnName: metricManager.ScoreColumn);
+                            var metric = GetMetric(metricManager.Metric, metrics);
                             var loss = metricManager.IsMaximize ? -metric : metric;
 
                             stopWatch.Stop();
@@ -452,7 +437,7 @@ namespace Microsoft.ML.AutoML
                                 Model = model,
                                 TrialSettings = settings,
                                 DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
-                                Metrics = res,
+                                Metrics = metrics,
                                 Pipeline = pipeline,
                             } as TrialResult);
                         }
@@ -475,6 +460,18 @@ namespace Microsoft.ML.AutoML
         {
             _context.CancelExecution();
             _context = null;
+        }
+
+        private double GetMetric(RegressionMetric metric, RegressionMetrics metrics)
+        {
+            return metric switch
+            {
+                RegressionMetric.RootMeanSquaredError => metrics.RootMeanSquaredError,
+                RegressionMetric.RSquared => metrics.RSquared,
+                RegressionMetric.MeanSquaredError => metrics.MeanSquaredError,
+                RegressionMetric.MeanAbsoluteError => metrics.MeanAbsoluteError,
+                _ => throw new NotImplementedException($"{metric} is not supported!"),
+            };
         }
     }
 }
