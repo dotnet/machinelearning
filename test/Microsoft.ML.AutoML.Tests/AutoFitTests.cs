@@ -113,6 +113,10 @@ namespace Microsoft.ML.AutoML.Test
             Assert.True(result.BestRun.Results.Select(x => x.ValidationMetrics.Accuracy).Min() > 0.70);
             Assert.NotNull(result.BestRun.Estimator);
             Assert.NotNull(result.BestRun.TrainerName);
+
+            // test refit
+            var model = result.BestRun.Estimator.Fit(trainData);
+            Assert.NotNull(model);
         }
 
         [Fact]
@@ -214,6 +218,10 @@ namespace Microsoft.ML.AutoML.Test
             Assert.True(result.BestRun.ValidationMetrics.RSquared > 0.70);
             Assert.NotNull(result.BestRun.Estimator);
             Assert.NotNull(result.BestRun.TrainerName);
+
+            // verify refit
+            var model = result.BestRun.Estimator.Fit(context.Data.TakeRows(dataset, 1000));
+            Assert.NotNull(model);
         }
 
         [Theory]
@@ -253,6 +261,10 @@ namespace Microsoft.ML.AutoML.Test
                 result.BestRun.Results.First().ValidationMetrics.MicroAccuracy.Should().BeGreaterThan(0.7);
                 var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
                 Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+
+                // test refit
+                var model = result.BestRun.Estimator.Fit(trainData);
+                Assert.NotNull(model);
             }
             else
             {
@@ -281,6 +293,9 @@ namespace Microsoft.ML.AutoML.Test
                 Assert.True(result.BestRun.ValidationMetrics.MicroAccuracy >= 0.7);
                 var scoredData = result.BestRun.Model.Transform(trainData);
                 Assert.Equal(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
+
+                var model = result.BestRun.Estimator.Fit(trainData);
+                Assert.NotNull(model);
             }
         }
 

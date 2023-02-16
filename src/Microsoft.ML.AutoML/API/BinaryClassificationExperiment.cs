@@ -341,12 +341,14 @@ namespace Microsoft.ML.AutoML
     {
         private MLContext _context;
         private readonly IDatasetManager _datasetManager;
+        private readonly IMLContextManager _contextManager;
         private readonly IMetricManager _metricManager;
         private readonly SweepablePipeline _pipeline;
         private readonly Random _rnd;
-        public BinaryClassificationRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, SweepablePipeline pipeline, AutoMLExperiment.AutoMLExperimentSettings settings)
+        public BinaryClassificationRunner(IMLContextManager contextManager, IDatasetManager datasetManager, IMetricManager metricManager, SweepablePipeline pipeline, AutoMLExperiment.AutoMLExperimentSettings settings)
         {
-            _context = context;
+            _context = contextManager.CreateMLContext();
+            _contextManager = contextManager;
             _datasetManager = datasetManager;
             _metricManager = metricManager;
             _pipeline = pipeline;
@@ -365,6 +367,10 @@ namespace Microsoft.ML.AutoML
             {
                 var parameter = settings.Parameter[AutoMLExperiment.PipelineSearchspaceName];
                 var pipeline = _pipeline.BuildFromOption(_context, parameter);
+                // _context will be cancelled after training. So returned pipeline need to be created on a 
+                // new MLContext.
+                var refitContext = _contextManager.CreateMLContext();
+                var refitPipeline = _pipeline.BuildFromOption(refitContext, parameter);
                 if (_datasetManager is ICrossValidateDatasetManager datasetManager)
                 {
                     var stopWatch = new Stopwatch();
@@ -396,7 +402,7 @@ namespace Microsoft.ML.AutoML
                         DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
                         Metrics = res.Metrics,
                         CrossValidationMetrics = metrics,
-                        Pipeline = pipeline,
+                        Pipeline = refitPipeline,
                     };
                 }
 
@@ -430,7 +436,7 @@ namespace Microsoft.ML.AutoML
                         TrialSettings = settings,
                         DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
                         Metrics = metrics,
-                        Pipeline = pipeline,
+                        Pipeline = refitPipeline,
                     };
                 }
             }
