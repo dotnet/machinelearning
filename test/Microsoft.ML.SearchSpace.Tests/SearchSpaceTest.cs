@@ -278,6 +278,18 @@ namespace Microsoft.ML.SearchSpace.Tests
         {
             CreateAndVerifyDefaultSearchSpace<SgdNonCalibratedTrainer.Options>();
             CreateAndVerifyDefaultSearchSpace<SgdCalibratedTrainer.Options>();
+            CreateAndVerifyDefaultSearchSpace<SdcaLogisticRegressionBinaryTrainer.Options>();
+            CreateAndVerifyDefaultSearchSpace<SdcaMaximumEntropyMulticlassTrainer.Options>();
+            CreateAndVerifyDefaultSearchSpace<SdcaNonCalibratedBinaryTrainer.Options>();
+            CreateAndVerifyDefaultSearchSpace<SdcaNonCalibratedMulticlassTrainer.Options>();
+            CreateAndVerifyDefaultSearchSpace<SdcaRegressionTrainer.Options>();
+            CreateAndVerifyDefaultSearchSpace<AveragedPerceptronTrainer.Options>();
+            CreateAndVerifyDefaultSearchSpace<OnlineGradientDescentTrainer.Options>();
+            CreateAndVerifyDefaultSearchSpace<LbfgsLogisticRegressionBinaryTrainer.Options>();
+            CreateAndVerifyDefaultSearchSpace<LbfgsMaximumEntropyMulticlassTrainer.Options>();
+            CreateAndVerifyDefaultSearchSpace<LbfgsPoissonRegressionTrainer.Options>();
+            CreateAndVerifyDefaultSearchSpace<LinearSvmTrainer.Options>();
+            CreateAndVerifyDefaultSearchSpace<LdSvmTrainer.Options>();
         }
 
         private void CreateAndVerifyDefaultSearchSpace<TOption>()

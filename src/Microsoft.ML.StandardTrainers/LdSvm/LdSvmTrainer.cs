@@ -13,6 +13,7 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.SearchSpace;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(LdSvmTrainer.Summary, typeof(LdSvmTrainer), typeof(LdSvmTrainer.Options),
@@ -77,6 +78,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Depth of Local Deep SVM tree", ShortName = "depth", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "1,3,5,7")]
             [TlcModule.SweepableDiscreteParam("TreeDepth", new object[] { 1, 3, 5, 7 })]
+            [Range(1, 128, 1, true)]
             public int TreeDepth = Defaults.TreeDepth;
 
             /// <summary>
@@ -85,6 +87,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularizer for classifier parameter W", ShortName = "lw", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "0.1,0.01,0.001")]
             [TlcModule.SweepableDiscreteParam("LambdaW", new object[] { 0.1f, 0.01f, 0.001f })]
+            [Range(1e-4f, 1f, 1e-4f, true)]
             public float LambdaW = Defaults.LambdaW;
 
             /// <summary>
@@ -93,6 +96,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularizer for kernel parameter Theta", ShortName = "lt", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "0.1,0.01,0.001")]
             [TlcModule.SweepableDiscreteParam("LambdaTheta", new object[] { 0.1f, 0.01f, 0.001f })]
+            [Range(1e-4f, 1f, 1e-4f, true)]
             public float LambdaTheta = Defaults.LambdaTheta;
 
             /// <summary>
@@ -101,6 +105,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularizer for kernel parameter Thetaprime", ShortName = "lp", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "0.1,0.01,0.001")]
             [TlcModule.SweepableDiscreteParam("LambdaThetaprime", new object[] { 0.1f, 0.01f, 0.001f })]
+            [Range(1e-4f, 1f, 1e-4f, true)]
             public float LambdaThetaprime = Defaults.LambdaThetaprime;
 
             /// <summary>
@@ -109,6 +114,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for sigmoid sharpness", ShortName = "s", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "1.0,0.1,0.01")]
             [TlcModule.SweepableDiscreteParam("Sigma", new object[] { 1.0f, 0.1f, 0.01f })]
+            [Range(1e-4f, 1f, 1e-4f, true)]
             public float Sigma = Defaults.Sigma;
 
             /// <summary>
@@ -116,6 +122,7 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "No bias", ShortName = "bias")]
             [TlcModule.SweepableDiscreteParam("NoBias", null, isBool: true)]
+            [BooleanChoice(true)]
             public bool UseBias = Defaults.UseBias;
 
             /// <summary>
@@ -125,6 +132,7 @@ namespace Microsoft.ML.Trainers
                 HelpText = "Number of iterations", ShortName = "iter,NumIterations", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "10000,15000")]
             [TlcModule.SweepableDiscreteParam("NumIterations", new object[] { 10000, 15000 })]
+            [Range(1, int.MaxValue, 1, true)]
             public int NumberOfIterations = Defaults.NumberOfIterations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]

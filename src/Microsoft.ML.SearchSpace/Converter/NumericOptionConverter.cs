@@ -22,13 +22,13 @@ namespace Microsoft.ML.SearchSpace.Converter
             public string Type { get; set; }
 
             [JsonPropertyName("default")]
-            public double Default { get; set; }
+            public object Default { get; set; }
 
             [JsonPropertyName("min")]
-            public double Min { get; set; }
+            public object Min { get; set; }
 
             [JsonPropertyName("max")]
-            public double Max { get; set; }
+            public object Max { get; set; }
 
             [JsonPropertyName("log_base")]
             public bool LogBase { get; set; }
@@ -42,7 +42,7 @@ namespace Microsoft.ML.SearchSpace.Converter
             {
                 "int" => new UniformIntOption(Convert.ToInt32(schema.Min), Convert.ToInt32(schema.Max), schema.LogBase, Convert.ToInt32(schema.Default)),
                 "float" => new UniformSingleOption(Convert.ToSingle(schema.Min), Convert.ToSingle(schema.Max), schema.LogBase, Convert.ToSingle(schema.Default)),
-                "double" => new UniformDoubleOption(schema.Min, schema.Max, schema.LogBase, schema.Default),
+                "double" => new UniformDoubleOption(Convert.ToDouble(schema.Min), Convert.ToDouble(schema.Max), schema.LogBase, Convert.ToDouble(schema.Default)),
                 _ => throw new ArgumentException($"unknown schema type: {schema.Type}"),
             };
         }
@@ -53,13 +53,15 @@ namespace Microsoft.ML.SearchSpace.Converter
             {
                 UniformIntOption intOption => new Schema
                 {
+                    Type = "int",
                     Default = intOption.SampleFromFeatureSpace(intOption.Default).AsType<double>(),
-                    Min = intOption.Min,
-                    Max = intOption.Max,
+                    Min = Convert.ToInt32(intOption.Min),
+                    Max = Convert.ToInt32(intOption.Max),
                     LogBase = intOption.LogBase,
                 },
                 UniformDoubleOption doubleOption => new Schema
                 {
+                    Type = "double",
                     Default = doubleOption.SampleFromFeatureSpace(doubleOption.Default).AsType<double>(),
                     Min = doubleOption.Min,
                     Max = doubleOption.Max,
@@ -67,9 +69,10 @@ namespace Microsoft.ML.SearchSpace.Converter
                 },
                 UniformSingleOption singleOption => new Schema
                 {
+                    Type = "float",
                     Default = singleOption.SampleFromFeatureSpace(singleOption.Default).AsType<double>(),
-                    Min = singleOption.Min,
-                    Max = singleOption.Max,
+                    Min = Convert.ToSingle(singleOption.Min),
+                    Max = Convert.ToSingle(singleOption.Max),
                     LogBase = singleOption.LogBase,
                 },
                 _ => throw new ArgumentException("unknown type"),
