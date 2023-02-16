@@ -96,7 +96,7 @@ namespace Microsoft.ML.AutoML
                     _mLContext?.CancelExecution();
                 }))
                 {
-                    return Task.Run(() => Run(settings));
+                    return Task.FromResult(Run(settings));
                 }
             }
             catch (Exception ex) when (ct.IsCancellationRequested)

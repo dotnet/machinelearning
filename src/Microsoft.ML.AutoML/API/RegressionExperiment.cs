@@ -159,7 +159,7 @@ namespace Microsoft.ML.AutoML
                 int numCrossValFolds = 10;
                 _experiment.SetDataset(trainData, numCrossValFolds);
                 _pipeline = CreateRegressionPipeline(trainData, columnInformation, preFeaturizer);
-
+                _experiment.SetPipeline(_pipeline);
                 TrialResultMonitor<RegressionMetrics> monitor = null;
                 _experiment.SetMonitor((provider) =>
                 {

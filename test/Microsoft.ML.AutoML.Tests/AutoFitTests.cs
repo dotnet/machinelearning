@@ -48,7 +48,7 @@ namespace Microsoft.ML.AutoML.Test
             var trainData = textLoader.Load(dataPath);
             var settings = new BinaryExperimentSettings
             {
-                MaxExperimentTimeInSeconds = 1,
+                MaxModels = 1,
             };
 
             settings.Trainers.Remove(BinaryClassificationTrainer.LightGbm);
@@ -75,7 +75,7 @@ namespace Microsoft.ML.AutoML.Test
             var dataTrainTest = context.Data.TrainTestSplit(trainData);
             var settings = new BinaryExperimentSettings
             {
-                MaxExperimentTimeInSeconds = 1,
+                MaxModels = 1,
             };
 
             settings.Trainers.Remove(BinaryClassificationTrainer.LightGbm);
@@ -101,7 +101,7 @@ namespace Microsoft.ML.AutoML.Test
             var trainData = textLoader.Load(dataPath);
             var settings = new BinaryExperimentSettings
             {
-                MaxExperimentTimeInSeconds = 1,
+                MaxModels = 1,
             };
 
             settings.Trainers.Remove(BinaryClassificationTrainer.LightGbm);
@@ -197,9 +197,19 @@ namespace Microsoft.ML.AutoML.Test
             settings.Trainers.Remove(RegressionTrainer.StochasticDualCoordinateAscent);
             settings.Trainers.Remove(RegressionTrainer.LbfgsPoissonRegression);
 
+            // verify for dataset > 15000L
             var result = context.Auto()
                 .CreateRegressionExperiment(settings)
                 .Execute(dataset, label);
+
+            Assert.True(result.BestRun.ValidationMetrics.RSquared > 0.70);
+            Assert.NotNull(result.BestRun.Estimator);
+            Assert.NotNull(result.BestRun.TrainerName);
+
+            // verify for dataset < 15000L
+            result = context.Auto()
+                .CreateRegressionExperiment(settings)
+                .Execute(context.Data.TakeRows(dataset, 1000), label);
 
             Assert.True(result.BestRun.ValidationMetrics.RSquared > 0.70);
             Assert.NotNull(result.BestRun.Estimator);
@@ -229,7 +239,7 @@ namespace Microsoft.ML.AutoML.Test
                 uint numberOfCVFolds = 5;
                 var settings = new MulticlassExperimentSettings
                 {
-                    MaxExperimentTimeInSeconds = 1,
+                    MaxModels = 1,
                 };
 
                 settings.Trainers.Remove(MulticlassClassificationTrainer.LightGbm);
@@ -257,7 +267,7 @@ namespace Microsoft.ML.AutoML.Test
                 trainData = context.Data.TakeRows(trainData, crossValRowCountThreshold - 1);
                 var settings = new MulticlassExperimentSettings
                 {
-                    MaxExperimentTimeInSeconds = 1,
+                    MaxModels = 1,
                 };
 
                 settings.Trainers.Remove(MulticlassClassificationTrainer.LightGbm);
@@ -286,8 +296,13 @@ namespace Microsoft.ML.AutoML.Test
             TrainTestData trainTestData = context.Data.TrainTestSplit(trainData, testFraction: 0.2, seed: 1);
             IDataView trainDataset = SplitUtil.DropAllColumnsExcept(context, trainTestData.TrainSet, originalColumnNames);
             IDataView testDataset = SplitUtil.DropAllColumnsExcept(context, trainTestData.TestSet, originalColumnNames);
+            var settings = new MulticlassExperimentSettings
+            {
+                MaxModels = 1,
+            };
+
             var result = context.Auto()
-                            .CreateMulticlassClassificationExperiment(20)
+                            .CreateMulticlassClassificationExperiment(settings)
                             .Execute(trainDataset, testDataset, columnInference.ColumnInformation);
 
             result.BestRun.ValidationMetrics.MicroAccuracy.Should().BeGreaterThan(0.1);
@@ -305,8 +320,12 @@ namespace Microsoft.ML.AutoML.Test
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = context.Data.ShuffleRows(textLoader.Load(datasetPath), seed: 1);
             var originalColumnNames = trainData.Schema.Select(c => c.Name);
+            var settings = new MulticlassExperimentSettings
+            {
+                MaxModels = 1,
+            };
             var result = context.Auto()
-                            .CreateMulticlassClassificationExperiment(100)
+                            .CreateMulticlassClassificationExperiment(settings)
                             .Execute(trainData, 5, columnInference.ColumnInformation);
 
             result.BestRun.Results.Select(x => x.ValidationMetrics.MicroAccuracy).Max().Should().BeGreaterThan(0.1);
@@ -330,8 +349,12 @@ namespace Microsoft.ML.AutoML.Test
             var columnInference = context.Auto().InferColumns(datasetPath, "Label");
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(datasetPath);
+            var settings = new MulticlassExperimentSettings
+            {
+                MaxModels = 1,
+            };
             var result = context.Auto()
-                            .CreateMulticlassClassificationExperiment(100)
+                            .CreateMulticlassClassificationExperiment(settings)
                             .Execute(trainData, columnInference.ColumnInformation);
 
             Assert.InRange(result.BestRun.ValidationMetrics.MicroAccuracy, 0.1, 0.9);
@@ -358,7 +381,7 @@ namespace Microsoft.ML.AutoML.Test
             // STEP 2: Run AutoML experiment
             var settings = new RankingExperimentSettings()
             {
-                MaxExperimentTimeInSeconds = 5,
+                MaxModels = 5,
                 OptimizationMetricTruncationLevel = 3
             };
             var experiment = mlContext.Auto()
