@@ -8,29 +8,29 @@
   },
   "LambdaW": {
     "type": "float",
-    "default": 0.0001,
-    "min": 0.0001,
+    "default": 0.00010,
+    "min": 0.00010,
     "max": 1,
     "log_base": true
   },
   "LambdaTheta": {
     "type": "float",
-    "default": 0.0001,
-    "min": 0.0001,
+    "default": 0.00010,
+    "min": 0.00010,
     "max": 1,
     "log_base": true
   },
   "LambdaThetaprime": {
     "type": "float",
-    "default": 0.0001,
-    "min": 0.0001,
+    "default": 0.00010,
+    "min": 0.00010,
     "max": 1,
     "log_base": true
   },
   "Sigma": {
     "type": "float",
-    "default": 0.0001,
-    "min": 0.0001,
+    "default": 0.00010,
+    "min": 0.00010,
     "max": 1,
     "log_base": true
   },

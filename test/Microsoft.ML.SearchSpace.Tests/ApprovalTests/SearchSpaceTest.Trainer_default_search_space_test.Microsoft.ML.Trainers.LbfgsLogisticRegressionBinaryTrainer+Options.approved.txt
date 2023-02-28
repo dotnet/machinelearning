@@ -15,8 +15,8 @@
   },
   "OptimizationTolerance": {
     "type": "float",
-    "default": 0.0001,
-    "min": 1E-07,
+    "default": 0.00010,
+    "min": 0.0000001,
     "max": 0.1,
     "log_base": true
   },

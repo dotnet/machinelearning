@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers.Text;
+using System.Buffers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ApprovalTests;
@@ -29,6 +31,8 @@ namespace Microsoft.ML.SearchSpace.Tests
         public SearchSpaceTest(ITestOutputHelper output)
             : base(output)
         {
+            _settings.Converters.Add(new DoubleConverter());
+            _settings.Converters.Add(new SingleConverter());
         }
 
         [Fact]
@@ -356,6 +360,28 @@ namespace Microsoft.ML.SearchSpace.Tests
 
             [Range(-1000.0f, 1000, init: 0)]
             public float UniformFloat { get; set; }
+        }
+
+        class DoubleConverter : JsonConverter<double>
+        {
+            public override double Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+                => Convert.ToDouble(reader.GetDecimal());
+
+            public override void Write(Utf8JsonWriter writer, double value, JsonSerializerOptions options)
+            {
+                writer.WriteNumberValue(Math.Round(Convert.ToDecimal(value), 6));
+            }
+        }
+
+        class SingleConverter : JsonConverter<float>
+        {
+            public override float Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+                => Convert.ToSingle(reader.GetDecimal());
+
+            public override void Write(Utf8JsonWriter writer, float value, JsonSerializerOptions options)
+            {
+                writer.WriteNumberValue(Convert.ToDecimal(value));
+            }
         }
     }
 }

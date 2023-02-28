@@ -54,7 +54,7 @@ namespace Microsoft.ML.SearchSpace.Converter
                 UniformIntOption intOption => new Schema
                 {
                     Type = "int",
-                    Default = intOption.SampleFromFeatureSpace(intOption.Default).AsType<double>(),
+                    Default = intOption.SampleFromFeatureSpace(intOption.Default).AsType<int>(),
                     Min = Convert.ToInt32(intOption.Min),
                     Max = Convert.ToInt32(intOption.Max),
                     LogBase = intOption.LogBase,
@@ -70,7 +70,7 @@ namespace Microsoft.ML.SearchSpace.Converter
                 UniformSingleOption singleOption => new Schema
                 {
                     Type = "float",
-                    Default = singleOption.SampleFromFeatureSpace(singleOption.Default).AsType<double>(),
+                    Default = singleOption.SampleFromFeatureSpace(singleOption.Default).AsType<Single>(),
                     Min = Convert.ToSingle(singleOption.Min),
                     Max = Convert.ToSingle(singleOption.Max),
                     LogBase = singleOption.LogBase,

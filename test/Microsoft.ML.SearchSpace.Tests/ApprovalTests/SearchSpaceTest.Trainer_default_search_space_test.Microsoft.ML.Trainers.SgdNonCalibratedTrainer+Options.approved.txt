@@ -9,7 +9,7 @@
   "ConvergenceTolerance": {
     "type": "double",
     "default": 0.1,
-    "min": 1E-06,
+    "min": 0.000001,
     "max": 0.1,
     "log_base": true
   },

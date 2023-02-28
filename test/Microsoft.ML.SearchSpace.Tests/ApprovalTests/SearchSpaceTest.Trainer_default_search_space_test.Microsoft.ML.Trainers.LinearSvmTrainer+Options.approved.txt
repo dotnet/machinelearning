@@ -1,8 +1,8 @@
 {
   "Lambda": {
     "type": "float",
-    "default": 0.0001,
-    "min": 1E-06,
+    "default": 0.00010,
+    "min": 0.0000010,
     "max": 1,
     "log_base": true
   },
