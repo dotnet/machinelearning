@@ -184,7 +184,7 @@ namespace Microsoft.ML.SearchSpace
             else
             {
                 var parameter = Parameter.CreateNestedParameter();
-                var properties = type.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+                var properties = type.GetProperties(value, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
                         .Where(p => p.CanRead && p.CanWrite);
                 foreach (var property in properties)
                 {

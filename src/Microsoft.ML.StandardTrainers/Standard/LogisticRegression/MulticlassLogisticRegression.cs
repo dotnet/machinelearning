@@ -18,6 +18,7 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
+using Microsoft.ML.SearchSpace;
 
 [assembly: LoadableClass(typeof(LbfgsMaximumEntropyMulticlassTrainer), typeof(LbfgsMaximumEntropyMulticlassTrainer.Options),
     new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
@@ -87,7 +88,7 @@ namespace Microsoft.ML.Trainers
     /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, LbfgsMaximumEntropyMulticlassTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed class LbfgsMaximumEntropyMulticlassTrainer : LbfgsTrainerBase<LbfgsMaximumEntropyMulticlassTrainer.Options,
-        MulticlassPredictionTransformer<MaximumEntropyModelParameters>, MaximumEntropyModelParameters>
+        MulticlassPredictionTransformer<MaximumEntropyModelParameters>, MaximumEntropyModelParameters>, ICanSummarize
     {
         internal const string Summary = "Maximum entropy classification is a method in statistics used to predict the probabilities of parallel events. The model predicts the probabilities of parallel events by fitting data to a softmax function.";
         internal const string LoadNameValue = "MultiClassLogisticRegression";
@@ -405,6 +406,15 @@ namespace Microsoft.ML.Trainers
                 () => new LbfgsMaximumEntropyMulticlassTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
+        }
+
+        Schema ICanSummarize.Summarize()
+        {
+            return new Schema
+            {
+                Name = nameof(LbfgsMaximumEntropyMulticlassTrainer),
+                Parameter = Parameter.FromObject(LbfgsTrainerOptions),
+            };
         }
     }
 
