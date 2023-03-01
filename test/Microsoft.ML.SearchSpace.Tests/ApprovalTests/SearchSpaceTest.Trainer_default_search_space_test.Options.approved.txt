@@ -1,0 +1,26 @@
+{
+  "L2Regularization": {
+    "default": 1,
+    "min": 0.03125,
+    "max": 32768,
+    "log_base": true
+  },
+  "ConvergenceTolerance": {
+    "default": 0.10000000000000001,
+    "min": 9.9999999999999995E-07,
+    "max": 0.10000000000000001,
+    "log_base": true
+  },
+  "NumberOfIterations": {
+    "default": 1,
+    "min": 1,
+    "max": 20,
+    "log_base": true
+  },
+  "LearningRate": {
+    "default": 0.001,
+    "min": 0.001,
+    "max": 1,
+    "log_base": true
+  }
+}
