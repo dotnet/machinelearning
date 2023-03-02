@@ -29,7 +29,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// Base class for <a href='https://en.wikipedia.org/wiki/Limited-memory_BFGS'>L-BFGS</a>-based trainers.
     /// </summary>
-    public abstract class LbfgsTrainerBase<TOptions, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
+    public abstract class LbfgsTrainerBase<TOptions, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>, ICanSummarize
       where TTransformer : ISingleFeaturePredictionTransformer<TModel>
       where TModel : class
       where TOptions : LbfgsTrainerBase<TOptions, TTransformer, TModel>.OptionsBase, new()
@@ -907,6 +907,15 @@ namespace Microsoft.ML.Trainers
             Contracts.Check(i == initWeights.Length, featError);
 
             return new VBuffer<float>(initWeights.Length, initWeights);
+        }
+
+        Schema ICanSummarize.Summarize()
+        {
+            return new Schema
+            {
+                Name = this.GetType().Name,
+                Parameter = Parameter.FromOption(LbfgsTrainerOptions),
+            };
         }
     }
 }

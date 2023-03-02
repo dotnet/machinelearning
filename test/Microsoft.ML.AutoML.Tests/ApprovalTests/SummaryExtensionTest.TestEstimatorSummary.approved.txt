@@ -1,0 +1,3 @@
+[0] = LbfgsMaximumEntropyMulticlassTrainer(L2Regularization=1,L1Regularization=1,OptimizationTolerance=1E-07,HistorySize=20,MaximumNumberOfIterations=2147483647,InitialWeightsDiameter=0,DenseOptimizer=False,EnforceNonNegativity=False)
+[1] = LbfgsLogisticRegressionBinaryTrainer(L2Regularization=1,L1Regularization=1,OptimizationTolerance=1E-07,HistorySize=20,MaximumNumberOfIterations=2147483647,InitialWeightsDiameter=0,DenseOptimizer=False,EnforceNonNegativity=False)
+[2] = LbfgsPoissonRegressionTrainer(L2Regularization=1,L1Regularization=1,OptimizationTolerance=1E-07,HistorySize=20,MaximumNumberOfIterations=2147483647,InitialWeightsDiameter=0,DenseOptimizer=False,EnforceNonNegativity=False)

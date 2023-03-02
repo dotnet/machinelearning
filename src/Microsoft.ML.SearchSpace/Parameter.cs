@@ -7,9 +7,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.ML.SearchSpace.Converter;
+using Microsoft.ML.SearchSpace.Option;
 
 namespace Microsoft.ML.SearchSpace
 {
@@ -162,6 +164,106 @@ namespace Microsoft.ML.SearchSpace
             return Parameter.FromObject(value, typeof(T));
         }
 
+
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from an <see cref="object"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.Object"/>.
+        /// When creating <see cref="Parameter"/>, it will only collect properties or fields that has <see cref="BooleanChoiceAttribute"/>, <see cref="ChoiceAttribute"/>,
+        /// <see cref="NestOptionAttribute"/> or <see cref="RangeAttribute"/>.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static Parameter FromOption<T>(T value)
+            where T : class, new()
+        {
+            var param = value switch
+            {
+                int i => Parameter.FromInt(i),
+                long l => Parameter.FromLong(l),
+                double d => Parameter.FromDouble(d),
+                float f => Parameter.FromFloat(f),
+                string s => Parameter.FromString(s),
+                bool b => Parameter.FromBool(b),
+                IEnumerable vs => Parameter.FromIEnumerable(vs),
+                Enum e => Parameter.FromEnum(e, e.GetType()),
+                _ => null,
+            };
+
+            if (param != null)
+            {
+                return param;
+            }
+            else
+            {
+                // properties info
+                var propertyInfo = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                var parameter = Parameter.CreateNestedParameter();
+
+                foreach (var property in propertyInfo)
+                {
+                    var choiceAttributes = property.GetCustomAttributes(typeof(ChoiceAttribute), false);
+                    var rangeAttributes = property.GetCustomAttributes(typeof(RangeAttribute), false);
+                    var booleanChoiceAttributes = property.GetCustomAttributes(typeof(BooleanChoiceAttribute), false);
+                    var nestOptionAttributes = property.GetCustomAttributes(typeof(NestOptionAttribute), false);
+
+                    var attributes = choiceAttributes.Concat(rangeAttributes).Concat(booleanChoiceAttributes).Concat(nestOptionAttributes);
+                    Contract.Assert(attributes.Count() <= 1, $"{property.Name} can only define one of the choice|range|option attribute");
+                    if (attributes.Count() == 0)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        var name = property.Name;
+                        var pValue = property.GetValue(value);
+                        if (pValue != null)
+                        {
+                            var p = Parameter.FromObject(pValue, property.PropertyType);
+
+                            if (p?.Count != 0)
+                            {
+                                parameter[name] = p;
+                            }
+                        }
+                    }
+                }
+
+                // fields info
+                var fieldInfos = typeof(T).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+                foreach (var field in fieldInfos)
+                {
+                    var choiceAttributes = field.GetCustomAttributes(typeof(ChoiceAttribute), false);
+                    var rangeAttributes = field.GetCustomAttributes(typeof(RangeAttribute), false);
+                    var booleanChoiceAttributes = field.GetCustomAttributes(typeof(BooleanChoiceAttribute), false);
+                    var nestOptionAttributes = field.GetCustomAttributes(typeof(NestOptionAttribute), false);
+
+                    var attributes = choiceAttributes.Concat(rangeAttributes).Concat(booleanChoiceAttributes).Concat(nestOptionAttributes);
+                    Contract.Assert(attributes.Count() <= 1, $"{field.Name} can only define one of the choice|range|option attribute");
+                    if (attributes.Count() == 0)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        var name = field.Name;
+                        var pValue = field.GetValue(value);
+                        if (pValue != null)
+                        {
+                            var p = Parameter.FromObject(pValue, field.FieldType);
+
+                            if (p?.Count != 0)
+                            {
+                                parameter[name] = p;
+                            }
+                        }
+                    }
+                }
+
+                return parameter;
+            }
+        }
+
         private static Parameter FromObject(object value, Type type)
         {
             var param = value switch
@@ -184,7 +286,7 @@ namespace Microsoft.ML.SearchSpace
             else
             {
                 var parameter = Parameter.CreateNestedParameter();
-                var properties = type.GetProperties(value, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+                var properties = type.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
                         .Where(p => p.CanRead && p.CanWrite);
                 foreach (var property in properties)
                 {

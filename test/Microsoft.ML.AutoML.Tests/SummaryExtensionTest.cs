@@ -13,6 +13,9 @@ using Xunit.Abstractions;
 using Xunit.Sdk;
 using Microsoft.ML.AutoML.Utils;
 using FluentAssertions;
+using ApprovalTests;
+using ApprovalTests.Namers;
+using ApprovalTests.Reporters;
 
 namespace Microsoft.ML.AutoML.Test
 {
@@ -24,12 +27,18 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
-        public void TestLbfgsMaximumEntropyMulticlassTrainerSummary()
+        [UseReporter(typeof(DiffReporter))]
+        [UseApprovalSubdirectory("ApprovalTests")]
+        public void TestEstimatorSummary()
         {
             var context = new MLContext();
-            var trainer = context.MulticlassClassification.Trainers.LbfgsMaximumEntropy();
-            var summary = trainer.Summary();
-            summary.Should().Be("shit");
+            var trainers = new List<IEstimator<ITransformer>>();
+            trainers.Add(context.MulticlassClassification.Trainers.LbfgsMaximumEntropy());
+            trainers.Add(context.BinaryClassification.Trainers.LbfgsLogisticRegression());
+            trainers.Add(context.Regression.Trainers.LbfgsPoissonRegression());
+            var summaries = trainers.Select(t => t.Summary());
+
+            Approvals.VerifyAll(summaries, label: "");
         }
     }
 }
