@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(RepoRoot)eng/pkg/Pack.props"/>
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -36,6 +36,10 @@
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="../Microsoft.ML.Transforms/Microsoft.ML.Transforms.csproj">
+      <IncludeInNuget>true</IncludeInNuget>
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj">
       <IncludeInNuget>true</IncludeInNuget>
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>

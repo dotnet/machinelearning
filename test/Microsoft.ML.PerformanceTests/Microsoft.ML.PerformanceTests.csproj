@@ -25,6 +25,7 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" />
     <ProjectReference Include="..\..\test\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
     <ProjectReference Include="..\..\test\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj" />
   </ItemGroup>
   <ItemGroup>
     <NativeAssemblyReference Include="CpuMathNative" />

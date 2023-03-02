@@ -27,6 +27,7 @@
     <ProjectReference Include="..\..\..\src\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.SamplesUtils\Microsoft.ML.SamplesUtils.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
 
     <NativeAssemblyReference Include="CpuMathNative" />

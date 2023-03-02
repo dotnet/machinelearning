@@ -21,7 +21,7 @@
     <SystemCodeDomVersion>4.5.0</SystemCodeDomVersion>
     <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
-    <SystemMemoryVersion>4.5.3</SystemMemoryVersion>
+    <SystemMemoryVersion>4.5.4</SystemMemoryVersion>
     <SystemReflectionEmitLightweightVersion>4.3.0</SystemReflectionEmitLightweightVersion>
     <SystemReflectionEmitVersion>4.3.0</SystemReflectionEmitVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>6.0.0</SystemRuntimeCompilerServicesUnsafeVersion>
