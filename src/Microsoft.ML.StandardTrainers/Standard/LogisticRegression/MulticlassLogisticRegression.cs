@@ -18,7 +18,6 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
-using Microsoft.ML.SearchSpace;
 
 [assembly: LoadableClass(typeof(LbfgsMaximumEntropyMulticlassTrainer), typeof(LbfgsMaximumEntropyMulticlassTrainer.Options),
     new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
@@ -407,15 +406,6 @@ namespace Microsoft.ML.Trainers
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
-
-        //Schema ICanSummarize.Summarize()
-        //{
-        //    return new Schema
-        //    {
-        //        Name = nameof(LbfgsMaximumEntropyMulticlassTrainer),
-        //        Parameter = Parameter.FromOption(LbfgsTrainerOptions),
-        //    };
-        //}
     }
 
     /// <summary>
