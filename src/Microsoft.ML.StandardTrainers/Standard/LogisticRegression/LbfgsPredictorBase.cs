@@ -913,7 +913,7 @@ namespace Microsoft.ML.Trainers
         {
             return new Schema
             {
-                Name = this.GetType().Name,
+                EstimatorType = this.GetType().Name,
                 Parameter = Parameter.FromOption(LbfgsTrainerOptions),
             };
         }

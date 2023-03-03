@@ -14,7 +14,7 @@ namespace Microsoft.ML.SearchSpace
 {
     internal class Schema
     {
-        public string Name { get; set; }
+        public string EstimatorType { get; set; }
 
         public Parameter Parameter { get; set; }
 
@@ -24,7 +24,7 @@ namespace Microsoft.ML.SearchSpace
             {
                 return p?.ParameterType switch
                 {
-                    ParameterType.String => p.AsType<string>(),
+                    ParameterType.String => $"\"{p.AsType<string>()}\"",
                     ParameterType.Integer => p.AsType<int>().ToString(CultureInfo.InvariantCulture),
                     ParameterType.Number => p.AsType<float>().ToString(CultureInfo.InvariantCulture),
                     ParameterType.Bool => p.AsType<bool>().ToString(CultureInfo.InvariantCulture),
@@ -33,7 +33,7 @@ namespace Microsoft.ML.SearchSpace
                 };
             }
 
-            return $"{Name}{parameterToString(Parameter)}";
+            return $"{EstimatorType}{parameterToString(Parameter)}";
         }
     }
 

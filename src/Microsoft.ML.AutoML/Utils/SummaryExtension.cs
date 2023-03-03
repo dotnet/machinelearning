@@ -18,7 +18,7 @@ namespace Microsoft.ML.AutoML.Utils
                 ICanSummarize summarizable => summarizable.Summarize(),
                 _ => new Schema
                 {
-                    Name = estimator.GetType().Name,
+                    EstimatorType = estimator.GetType().Name,
                 },
             };
 

@@ -63,7 +63,7 @@ namespace Microsoft.ML.Trainers
     /// </remarks>
     /// <seealso cref="StandardTrainersCatalog.LdSvm(BinaryClassificationCatalog.BinaryClassificationTrainers, LdSvmTrainer.Options)"/>
     /// <seealso cref="StandardTrainersCatalog.LdSvm(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, int, int, bool, bool)"/>
-    public sealed class LdSvmTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<LdSvmModelParameters>, LdSvmModelParameters>
+    public sealed class LdSvmTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<LdSvmModelParameters>, LdSvmModelParameters>, ICanSummarize
     {
         internal const string LoadNameValue = "LDSVM";
         internal const string UserNameValue = "Local Deep SVM (LDSVM)";
@@ -677,6 +677,15 @@ namespace Microsoft.ML.Trainers
                 () => new LdSvmTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
+        }
+
+        Schema ICanSummarize.Summarize()
+        {
+            return new Schema
+            {
+                EstimatorType = GetType().Name,
+                Parameter = Parameter.FromOption(_options),
+            };
         }
     }
 }

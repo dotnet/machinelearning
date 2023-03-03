@@ -36,6 +36,20 @@ namespace Microsoft.ML.AutoML.Test
             trainers.Add(context.MulticlassClassification.Trainers.LbfgsMaximumEntropy());
             trainers.Add(context.BinaryClassification.Trainers.LbfgsLogisticRegression());
             trainers.Add(context.Regression.Trainers.LbfgsPoissonRegression());
+            trainers.Add(context.BinaryClassification.Trainers.SdcaLogisticRegression());
+            trainers.Add(context.BinaryClassification.Trainers.SdcaNonCalibrated());
+            trainers.Add(context.MulticlassClassification.Trainers.SdcaNonCalibrated());
+            trainers.Add(context.MulticlassClassification.Trainers.SdcaMaximumEntropy(l1Regularization: 1, l2Regularization: 0.1f));
+            trainers.Add(context.Regression.Trainers.Sdca());
+            trainers.Add(context.BinaryClassification.Trainers.SgdCalibrated());
+            trainers.Add(context.BinaryClassification.Trainers.SgdNonCalibrated());
+            trainers.Add(context.BinaryClassification.Trainers.AveragedPerceptron());
+            trainers.Add(context.BinaryClassification.Trainers.LinearSvm());
+            trainers.Add(context.BinaryClassification.Trainers.LdSvm());
+            trainers.Add(context.MulticlassClassification.Trainers.OneVersusAll(context.BinaryClassification.Trainers.LdSvm()));
+            trainers.Add(context.MulticlassClassification.Trainers.PairwiseCoupling(context.BinaryClassification.Trainers.LdSvm()));
+            trainers.Add(context.Regression.Trainers.OnlineGradientDescent());
+            trainers.Add(context.MulticlassClassification.Trainers.NaiveBayes());
             var summaries = trainers.Select(t => t.Summary());
 
             Approvals.VerifyAll(summaries, label: "");

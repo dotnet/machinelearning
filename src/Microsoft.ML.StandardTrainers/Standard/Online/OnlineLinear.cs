@@ -71,7 +71,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// Base class for online linear trainers. Online trainers can be updated incrementally with additional data.
     /// </summary>
-    public abstract class OnlineLinearTrainer<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
+    public abstract class OnlineLinearTrainer<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>, ICanSummarize
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
     {
@@ -349,5 +349,14 @@ namespace Microsoft.ML.Trainers
         }
 
         private protected abstract TrainStateBase MakeState(IChannel ch, int numFeatures, LinearModelParameters predictor);
+
+        Schema ICanSummarize.Summarize()
+        {
+            return new Schema
+            {
+                EstimatorType = this.GetType().Name,
+                Parameter = Parameter.FromOption(OnlineLinearTrainerOptions),
+            };
+        }
     }
 }

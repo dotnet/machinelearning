@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Calibrators;
@@ -9,12 +10,13 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.SearchSpace;
 using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Trainers
 {
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
 
-    public abstract class MetaMulticlassTrainer<TTransformer, TModel> : ITrainerEstimator<TTransformer, TModel>, ITrainer<IPredictor>
+    public abstract class MetaMulticlassTrainer<TTransformer, TModel> : ITrainerEstimator<TTransformer, TModel>, ITrainer<IPredictor>, ICanSummarize
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
     {
@@ -189,5 +191,23 @@ namespace Microsoft.ML.Trainers
         /// <param name="input">The input data to fit to.</param>
         /// <returns>The transformer.</returns>
         public abstract TTransformer Fit(IDataView input);
+
+        Schema ICanSummarize.Summarize()
+        {
+            var binarySchema = Trainer switch
+            {
+                ICanSummarize canSummize => canSummize.Summarize(),
+                _ => new Schema
+                {
+                    EstimatorType = Trainer.GetType().Name,
+                },
+            };
+
+            return new Schema
+            {
+                EstimatorType = $"{GetType().Name}<{binarySchema.EstimatorType}>",
+                Parameter = binarySchema.Parameter,
+            };
+        }
     }
 }

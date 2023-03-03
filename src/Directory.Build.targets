@@ -4,7 +4,6 @@
 
   <Target Name="PreparePackageAssets" Condition="'$(CopyPackageAssets)' == 'true'"
           AfterTargets="Build">
-    <Message Text="shitshitshit" />
     <ItemGroup Condition="'$(IncludeInPackage)' != ''">
       <PackageAsset Include="$(TargetPath)"
                     RelativePath="$(IncludeInPackage)\lib\$(TargetFramework)" />

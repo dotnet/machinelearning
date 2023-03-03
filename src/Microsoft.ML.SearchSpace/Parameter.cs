@@ -174,7 +174,7 @@ namespace Microsoft.ML.SearchSpace
         /// <param name="value"></param>
         /// <returns></returns>
         internal static Parameter FromOption<T>(T value)
-            where T : class, new()
+            where T : class
         {
             var param = value switch
             {
@@ -201,29 +201,15 @@ namespace Microsoft.ML.SearchSpace
 
                 foreach (var property in propertyInfo)
                 {
-                    var choiceAttributes = property.GetCustomAttributes(typeof(ChoiceAttribute), false);
-                    var rangeAttributes = property.GetCustomAttributes(typeof(RangeAttribute), false);
-                    var booleanChoiceAttributes = property.GetCustomAttributes(typeof(BooleanChoiceAttribute), false);
-                    var nestOptionAttributes = property.GetCustomAttributes(typeof(NestOptionAttribute), false);
+                    var name = property.Name;
+                    var pValue = property.GetValue(value);
+                    if (pValue != null)
+                    {
+                        var p = Parameter.FromObject(pValue, property.PropertyType);
 
-                    var attributes = choiceAttributes.Concat(rangeAttributes).Concat(booleanChoiceAttributes).Concat(nestOptionAttributes);
-                    Contract.Assert(attributes.Count() <= 1, $"{property.Name} can only define one of the choice|range|option attribute");
-                    if (attributes.Count() == 0)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        var name = property.Name;
-                        var pValue = property.GetValue(value);
-                        if (pValue != null)
+                        if (p?.Count != 0)
                         {
-                            var p = Parameter.FromObject(pValue, property.PropertyType);
-
-                            if (p?.Count != 0)
-                            {
-                                parameter[name] = p;
-                            }
+                            parameter[name] = p;
                         }
                     }
                 }
@@ -233,29 +219,15 @@ namespace Microsoft.ML.SearchSpace
 
                 foreach (var field in fieldInfos)
                 {
-                    var choiceAttributes = field.GetCustomAttributes(typeof(ChoiceAttribute), false);
-                    var rangeAttributes = field.GetCustomAttributes(typeof(RangeAttribute), false);
-                    var booleanChoiceAttributes = field.GetCustomAttributes(typeof(BooleanChoiceAttribute), false);
-                    var nestOptionAttributes = field.GetCustomAttributes(typeof(NestOptionAttribute), false);
+                    var name = field.Name;
+                    var pValue = field.GetValue(value);
+                    if (pValue != null)
+                    {
+                        var p = Parameter.FromObject(pValue, field.FieldType);
 
-                    var attributes = choiceAttributes.Concat(rangeAttributes).Concat(booleanChoiceAttributes).Concat(nestOptionAttributes);
-                    Contract.Assert(attributes.Count() <= 1, $"{field.Name} can only define one of the choice|range|option attribute");
-                    if (attributes.Count() == 0)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        var name = field.Name;
-                        var pValue = field.GetValue(value);
-                        if (pValue != null)
+                        if (p?.Count != 0)
                         {
-                            var p = Parameter.FromObject(pValue, field.FieldType);
-
-                            if (p?.Count != 0)
-                            {
-                                parameter[name] = p;
-                            }
+                            parameter[name] = p;
                         }
                     }
                 }
