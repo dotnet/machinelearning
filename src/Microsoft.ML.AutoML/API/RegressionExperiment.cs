@@ -441,7 +441,6 @@ namespace Microsoft.ML.AutoML
                                 Model = model,
                                 TrialSettings = settings,
                                 DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
-                                Metrics = res,
                                 Pipeline = refitPipeline,
                             } as TrialResult);
                         }
