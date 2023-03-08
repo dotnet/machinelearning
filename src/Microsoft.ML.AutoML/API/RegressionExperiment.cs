@@ -438,6 +438,7 @@ namespace Microsoft.ML.AutoML
                             {
                                 Loss = loss,
                                 Metric = metric,
+                                Metrics = metrics,
                                 Model = model,
                                 TrialSettings = settings,
                                 DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
