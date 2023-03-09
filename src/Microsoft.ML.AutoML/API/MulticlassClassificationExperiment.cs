@@ -375,15 +375,7 @@ namespace Microsoft.ML.AutoML
                     // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
                     var res = metrics[_rnd.Next(fold)];
                     var model = res.Model;
-                    var metric = metricManager.Metric switch
-                    {
-                        MulticlassClassificationMetric.MacroAccuracy => res.Metrics.MacroAccuracy,
-                        MulticlassClassificationMetric.MicroAccuracy => res.Metrics.MicroAccuracy,
-                        MulticlassClassificationMetric.LogLoss => res.Metrics.LogLoss,
-                        MulticlassClassificationMetric.LogLossReduction => res.Metrics.LogLossReduction,
-                        MulticlassClassificationMetric.TopKAccuracy => res.Metrics.TopKAccuracy,
-                        _ => throw new NotImplementedException($"{metricManager.MetricName} is not supported!"),
-                    };
+                    var metric = GetMetric(metricManager.Metric, res.Metrics);
                     var loss = metricManager.IsMaximize ? -metric : metric;
 
                     stopWatch.Stop();
@@ -409,16 +401,7 @@ namespace Microsoft.ML.AutoML
                     var model = pipeline.Fit(trainTestDatasetManager.TrainDataset);
                     var eval = model.Transform(trainTestDatasetManager.TestDataset);
                     var metrics = _context.MulticlassClassification.Evaluate(eval, metricManager.LabelColumn, predictedLabelColumnName: metricManager.PredictedColumn);
-
-                    var metric = metricManager.Metric switch
-                    {
-                        MulticlassClassificationMetric.MacroAccuracy => metrics.MacroAccuracy,
-                        MulticlassClassificationMetric.MicroAccuracy => metrics.MicroAccuracy,
-                        MulticlassClassificationMetric.LogLoss => metrics.LogLoss,
-                        MulticlassClassificationMetric.LogLossReduction => metrics.LogLossReduction,
-                        MulticlassClassificationMetric.TopKAccuracy => metrics.TopKAccuracy,
-                        _ => throw new NotImplementedException($"{metricManager.Metric} is not supported!"),
-                    };
+                    var metric = GetMetric(metricManager.Metric, metrics);
                     var loss = metricManager.IsMaximize ? -metric : metric;
 
                     stopWatch.Stop();
@@ -460,6 +443,19 @@ namespace Microsoft.ML.AutoML
             {
                 throw;
             }
+        }
+
+        private double GetMetric(MulticlassClassificationMetric metric, MulticlassClassificationMetrics metrics)
+        {
+            return metric switch
+            {
+                MulticlassClassificationMetric.MacroAccuracy => metrics.MacroAccuracy,
+                MulticlassClassificationMetric.MicroAccuracy => metrics.MicroAccuracy,
+                MulticlassClassificationMetric.LogLoss => metrics.LogLoss,
+                MulticlassClassificationMetric.LogLossReduction => metrics.LogLossReduction,
+                MulticlassClassificationMetric.TopKAccuracy => metrics.TopKAccuracy,
+                _ => throw new NotImplementedException($"{metric} is not supported!"),
+            };
         }
 
         public void Dispose()
