@@ -33,7 +33,7 @@ using ColorBits = Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.Co
 using ResizingKind = Microsoft.ML.Transforms.Image.ImageResizingEstimator.ResizingKind;
 using Anchor = Microsoft.ML.Transforms.Image.ImageResizingEstimator.Anchor;
 using BertArchitecture = Microsoft.ML.TorchSharp.NasBert.BertArchitecture;
-
+using static Microsoft.ML.Vision.ImageClassificationTrainer.Architecture;
 #nullable enable
 
 namespace ");
