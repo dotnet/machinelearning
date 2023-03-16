@@ -27,10 +27,10 @@ namespace Microsoft.ML.AutoML
         /// <returns><see cref="AutoMLExperiment"/></returns>
         public static AutoMLExperiment SetDataset(this AutoMLExperiment experiment, IDataView train, IDataView validation)
         {
-            var datasetManager = new TrainTestDatasetManager()
+            var datasetManager = new TrainValidateDatasetManager()
             {
                 TrainDataset = train,
-                TestDataset = validation
+                ValidateDataset = validation
             };
 
             experiment.ServiceCollection.AddSingleton<IDatasetManager>(datasetManager);
