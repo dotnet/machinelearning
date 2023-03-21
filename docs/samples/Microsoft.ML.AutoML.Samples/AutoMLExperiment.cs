@@ -41,12 +41,13 @@ namespace Microsoft.ML.AutoML.Samples
             };
 
             // Config experiment to optimize "Accuracy" metric on given dataset.
-            // This experiment will explore 100 hyper-parameter configurations on given pipeline.
+            // This experiment will run hyper-parameter optimization on given pipeline
             experiment.SetPipeline(pipeline)
-                      .SetDataset(trainTestSplit.TrainSet, fold: 5)
+                      .SetDataset(trainTestSplit.TrainSet, fold: 5) // use 5-fold cross validation to evaluate each trial
                       .SetBinaryClassificationMetric(BinaryClassificationMetric.Accuracy, "Label")
-                      .SetMaxModelToExplore(100);
-
+                      .SetMaxModelToExplore(100); // explore 100 trials
+            
+            // start automl experiment
             var result = await experiment.RunAsync();
 
             // Expected output samples during training:
