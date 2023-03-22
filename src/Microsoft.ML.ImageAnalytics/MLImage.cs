@@ -126,6 +126,16 @@ namespace Microsoft.ML.Data
             }
         }
 
+        public ReadOnlySpan<byte> PixelsNoAlpha
+        {
+            get
+            {
+                ThrowInvalidOperationExceptionIfDisposed();
+                var i = _image.Copy(SKColorType.Rgb565);
+                return _image.Copy(SKColorType.Rgb565).GetPixelSpan();
+            }
+        }
+
         /// <summary>
         /// Gets the image pixel data.
         /// </summary>

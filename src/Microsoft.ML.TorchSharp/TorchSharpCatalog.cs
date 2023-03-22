@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.ML.Data;
+using Microsoft.ML.TorchSharp.AutoFormerV2;
 using Microsoft.ML.TorchSharp.NasBert;
 
 namespace Microsoft.ML.TorchSharp
@@ -73,5 +74,28 @@ namespace Microsoft.ML.TorchSharp
             BertArchitecture architecture = BertArchitecture.Roberta,
             IDataView validationSet = null)
             => new SentenceSimilarityTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, scoreColumnName, sentence1ColumnName, sentence2ColumnName, batchSize, maxEpochs, validationSet, architecture);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="catalog"></param>
+        /// <param name="labelColumnName"></param>
+        /// <param name="predictedLabelColumnName"></param>
+        /// <param name="scoreColumnName"></param>
+        /// <param name="boundingBoxColumnName"></param>
+        /// <param name="imageColumnName"></param>
+        /// <param name="batchSize"></param>
+        /// <param name="maxEpoch"></param>
+        /// <returns></returns>
+        public static ObjectDetectionTrainer ObjectDetection(
+            this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            string labelColumnName = DefaultColumnNames.Label,
+            string predictedLabelColumnName = DefaultColumnNames.PredictedLabel,
+            string scoreColumnName = DefaultColumnNames.Score,
+            string boundingBoxColumnName = "BoundingBoxes",
+            string imageColumnName = "Image",
+            int batchSize = 32,
+            int maxEpoch = 10)
+            => new ObjectDetectionTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, predictedLabelColumnName, scoreColumnName, boundingBoxColumnName, imageColumnName, batchSize, maxEpoch);
     }
 }

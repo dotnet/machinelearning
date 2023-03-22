@@ -5,37 +5,36 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Tokenizers;
-using Microsoft.ML.TorchSharp.NasBert.Models;
-using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using TorchSharp;
 
 using static TorchSharp.torch;
-using static TorchSharp.torch.nn;
 using static TorchSharp.TensorExtensionMethods;
 using static TorchSharp.torch.optim;
 using static TorchSharp.torch.optim.lr_scheduler;
 using Microsoft.ML.TorchSharp.Utils;
-using Microsoft.ML.TorchSharp.NasBert.Optimizers;
 using Microsoft.ML;
 using Microsoft.ML.TorchSharp.NasBert;
-using Microsoft.ML.TorchSharp.Extensions;
 using System.IO;
-using System.CodeDom;
-using System.Runtime.CompilerServices;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.TorchSharp.Loss;
 using Microsoft.ML.Transforms.Image;
 using static Microsoft.ML.TorchSharp.AutoFormerV2.ObjectDetectionTrainer;
-using static TorchSharp.torch.utils;
-using Google.Protobuf.WellKnownTypes;
-using static TorchSharp.torch.utils.data;
+using Microsoft.ML.TorchSharp.AutoFormerV2;
+using Microsoft.ML.Tokenizers;
+using Microsoft.ML.TorchSharp.Extensions;
+using Microsoft.ML.TorchSharp.NasBert.Models;
+using static Microsoft.ML.TorchSharp.NasBert.NasBertTrainer;
+using TorchSharp.Modules;
+
+[assembly: LoadableClass(typeof(ObjectDetectionTransformer), null, typeof(SignatureLoadModel),
+    ObjectDetectionTransformer.UserName, ObjectDetectionTransformer.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ObjectDetectionTransformer), null, typeof(SignatureLoadRowMapper),
+    ObjectDetectionTransformer.UserName, ObjectDetectionTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.TorchSharp.AutoFormerV2
 {
@@ -87,7 +86,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             /// <summary>
             /// Number of samples to use for mini-batch training.
             /// </summary>
-            public int BatchSize = 1;
+            public int BatchSize = 32;
 
             /// <summary>
             /// Stop training when reaching this number of epochs.
@@ -128,7 +127,30 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             Contracts.AssertValue(options.LabelColumnName);
             Contracts.AssertValue(options.ImageColumnName);
             Contracts.AssertValue(options.ScoreColumnName);
+            Contracts.AssertValue(options.PredictedLabelColumnName);
+
             Option = options;
+        }
+
+        internal ObjectDetectionTrainer(IHostEnvironment env,
+            string labelColumnName = DefaultColumnNames.Label,
+            string predictedLabelColumnName = DefaultColumnNames.PredictedLabel,
+            string scoreColumnName = DefaultColumnNames.Score,
+            string boundingBoxColumnName = "BoundingBoxes",
+            string imageColumnName = "Image",
+            int batchSize = 32,
+            int maxEpoch = 10) :
+            this(env, new Options
+            {
+                LabelColumnName = labelColumnName,
+                PredictedLabelColumnName = predictedLabelColumnName,
+                ScoreColumnName = scoreColumnName,
+                BoundingBoxColumnName = boundingBoxColumnName,
+                ImageColumnName = imageColumnName,
+                BatchSize = batchSize,
+                MaxEpoch = maxEpoch
+            })
+        {
         }
 
         public ObjectDetectionTransformer Fit(IDataView input)
@@ -149,8 +171,6 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                     Host.CheckAlive();
                     trainer.Train(Host, input);
                     ch.Trace($"Finished epoch {i}");
-                    //if (Option.ValidationSet != null)
-                    //trainer.Validate(pch, ch, i);
                 }
                 var labelCol = input.Schema.GetColumnOrNull(Option.LabelColumnName);
 
@@ -214,14 +234,15 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
             private protected int GetRowCountAndSetLabelCount(IDataView input)
             {
-                var labelCol = input.GetColumn<uint>(Parent.Option.LabelColumnName);
+                var labelCol = input.GetColumn<VBuffer<uint>>(Parent.Option.LabelColumnName);
                 var rowCount = 0;
                 var uniqueLabels = new HashSet<uint>();
 
                 foreach (var label in labelCol) // TODO: Fix count here.
                 {
                     rowCount++;
-                    uniqueLabels.Add(label);
+                    label.DenseValues().ToList().ForEach(x => uniqueLabels.Add(x));
+                    //uniqueLabels.Add(label.DenseValues());
                 }
 
                 Parent.Option.NumberOfClasses = uniqueLabels.Count;
@@ -253,82 +274,6 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 return relativeFilePath;
             }
-
-            //public void Validate(IProgressChannel pch, IChannel ch, int epoch)
-            //{
-            //    var validationSet = Parent.Option.ValidationSet;
-            //    Model.eval();
-
-            //    DataViewRowCursor cursor = validationSet.GetRowCursor(validationSet.Schema[Parent.Option.LabelColumnName], validationSet.Schema[Parent.Option.BoundingBoxColumnName], validationSet.Schema[Parent.Option.ImageColumnName], validationSet.Schema[Parent.Option.ConfidenceColumnName]);
-
-            //    var boundingBoxGetter = cursor.GetGetter<VBuffer<float>>(validationSet.Schema[Parent.Option.BoundingBoxColumnName]);
-            //    var imageGetter = cursor.GetGetter<MLImage>(validationSet.Schema[Parent.Option.ImageColumnName]);
-            //    var labelGetter = cursor.GetGetter<VBuffer<uint>>(validationSet.Schema[Parent.Option.LabelColumnName]);
-
-            //    // Pre-allocate the memory so it's only done once (though this step needs to be optimized)
-            //    List<Tensor> inputTensors = new List<Tensor>(Parent.Option.BatchSize);
-            //    int numCorrect = 0;
-            //    int numRows = 0;
-
-            //    var cursorValid = true;
-            //    while (cursorValid)
-            //    {
-            //        cursorValid = ValidateStep(cursor, boundingBoxGetter, imageGetter, labelGetter, ref inputTensors, ref numCorrect, ref numRows);
-            //    }
-            //    Accuracy = numCorrect / (float)numRows;
-            //    pch.Checkpoint(Accuracy);
-            //    ch.Info($"Accuracy for epoch {epoch}: {Accuracy}");
-
-            //    Model.train();
-            //}
-
-            //private bool ValidateStep(DataViewRowCursor cursor,
-            //    ValueGetter<VBuffer<float>> boundingBoxGetter,
-            //    ValueGetter<MLImage> imageGetter,
-            //    ValueGetter<VBuffer<uint>> labelGetter,
-            //    ref List<Tensor> inputTensors,
-            //    ref int numCorrect,
-            //    ref int numRows)
-            //{
-            //    // Make sure list is clear before use
-            //    inputTensors.Clear();
-            //    using var disposeScope = torch.NewDisposeScope();
-            //    var cursorValid = true;
-            //    Tensor imageTensor = default;
-            //    Tensor labelTensor = default;
-
-            //    for (int i = 0; i < Parent.Option.BatchSize && cursorValid; i++)
-            //    {
-            //        cursorValid = cursor.MoveNext();
-            //        if (cursorValid)
-            //        {
-            //            (imageTensor, labelTensor) = PrepareData(labelGetter, imageGetter, boundingBoxGetter);
-            //            inputTensors.Add();
-            //            TLabelCol target = default;
-            //            labelGetter(ref target);
-            //            targets.Add(AddToTargets(target));
-            //        }
-            //        else
-            //        {
-            //            inputTensors.TrimExcess();
-            //            targets.TrimExcess();
-            //            if (inputTensors.Count() == 0)
-            //                return cursorValid;
-            //        }
-            //    }
-
-            //    using (torch.no_grad())
-            //    {
-            //        var inputTensor = DataUtils.CollateTokens(inputTensors, Tokenizer.RobertaModel().PadIndex, device: Device);
-            //        var logits = Model.forward(inputTensor);
-            //        var predictions = GetPredictions(logits);
-            //        var targetss = GetTargets(targetsTensor);
-            //        numCorrect = GetNumCorrect(predictions, targetss);
-            //        numRows = inputTensors.Count;
-            //    }
-
-            //    return cursorValid;
-            //}
 
             public void Train(IHost host, IDataView input)
             {
@@ -394,8 +339,8 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 Optimizer.zero_grad();
 
-                imageTensor = torch.stack(inputTensors);
-                targetTensor = torch.stack(targets);
+                imageTensor = torch.cat(inputTensors);
+                targetTensor = torch.cat(targets);
 
                 var (classification, regression, anchors) = Model.forward(imageTensor);
                 var lossValue = Loss.forward(classification, regression, anchors, targetTensor);
@@ -417,6 +362,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                     imageGetter(ref image);
                     var midTensor0 = torch.tensor(image.Pixels.ToArray());
                     var midTensor1 = midTensor0.@float();
+                    midTensor1 = midTensor1.slice(0, 0, image.Height * image.Width * 3, 1); // TODO: FIX THIS
                     var midTensor2 = midTensor1.reshape(1, image.Height, image.Width, 3);
                     var midTensor3 = midTensor2.transpose(0, 3);
                     var midTensor4 = midTensor3.reshape(3, image.Height, image.Width);
@@ -515,19 +461,19 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             // Verify that all required input columns are present, and are of the same type.
             if (!inputSchema.TryFindColumn(Option.LabelColumnName, out var labelCol))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "label", Option.LabelColumnName);
-            if (labelCol.ItemType != new VectorDataViewType(new KeyDataViewType(typeof(uint), uint.MaxValue)))
+            if (labelCol.Kind != SchemaShape.Column.VectorKind.VariableVector || labelCol.ItemType.RawType != typeof(UInt32))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "label", Option.LabelColumnName,
                     new VectorDataViewType(new KeyDataViewType(typeof(uint), uint.MaxValue)).ToString(), labelCol.GetTypeString());
 
             if (!inputSchema.TryFindColumn(Option.BoundingBoxColumnName, out var boundingBoxCol))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "BoundingBox", Option.BoundingBoxColumnName);
-            if (boundingBoxCol.ItemType != new VectorDataViewType(NumberDataViewType.Single))
+            if (boundingBoxCol.Kind != SchemaShape.Column.VectorKind.VariableVector || boundingBoxCol.ItemType.RawType != typeof(Single))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "BoundingBox", Option.BoundingBoxColumnName,
                     new VectorDataViewType(NumberDataViewType.Single).ToString(), boundingBoxCol.GetTypeString());
 
             if (!inputSchema.TryFindColumn(Option.ImageColumnName, out var imageCol))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "Image", Option.ImageColumnName);
-            if (imageCol.ItemType != new ImageDataViewType())
+            if (imageCol.ItemType.RawType != typeof(MLImage))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "Image", Option.ImageColumnName,
                     new ImageDataViewType().ToString(), imageCol.GetTypeString());
         }
@@ -549,6 +495,9 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         internal const string ShortName = "OBJDETC";
         internal const string Summary = "Object Detection";
         internal const string LoaderSignature = "OBJDETC";
+
+        private static readonly FuncStaticMethodInfo1<object, Delegate> _decodeInitMethodInfo
+            = new FuncStaticMethodInfo1<object, Delegate>(DecodeInit<int>);
 
         internal ObjectDetectionTransformer(IHostEnvironment env, ObjectDetectionTrainer.Options options, AutoFormerV2 model, DataViewSchema.DetachedColumn labelColumn)
            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ObjectDetectionTransformer)))
@@ -619,9 +568,13 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
             // *** Binary format ***
             // int: id of label column name
+            // int: id of predicted label column name
             // int: id of the BoundingBoxColumnName name
             // int: id of ImageColumnName name
+            // int: id of Score column name
             // int: number of classes
+            // LabelValues
+            // BinaryStream: TS Model
 
             ctx.SaveNonEmptyString(Options.LabelColumnName);
             ctx.SaveNonEmptyString(Options.PredictedLabelColumnName);
@@ -631,13 +584,95 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
             ctx.Writer.Write(Options.NumberOfClasses);
 
+            var labelColType = LabelColumn.Annotations.Schema[AnnotationUtils.Kinds.KeyValues].Type as VectorDataViewType;
+            Microsoft.ML.Internal.Utilities.Utils.MarshalActionInvoke(SaveLabelValues<int>, labelColType.ItemType.RawType, ctx);
+
             ctx.SaveBinaryStream("TSModel", w =>
             {
                 Model.save(w);
             });
         }
 
+        private void SaveLabelValues<T>(ModelSaveContext ctx)
+        {
+            ValueGetter<VBuffer<T>> getter = LabelColumn.Annotations.GetGetter<VBuffer<T>>(LabelColumn.Annotations.Schema[AnnotationUtils.Kinds.KeyValues]);
+            var val = default(VBuffer<T>);
+            getter(ref val);
+
+            BinarySaver saver = new BinarySaver(Host, new BinarySaver.Arguments());
+            int bytesWritten;
+            var labelColType = LabelColumn.Annotations.Schema[AnnotationUtils.Kinds.KeyValues].Type as VectorDataViewType;
+            if (!saver.TryWriteTypeAndValue<VBuffer<T>>(ctx.Writer.BaseStream, labelColType, ref val, out bytesWritten))
+                throw Host.Except("We do not know how to serialize label names of type '{0}'", labelColType.ItemType);
+        }
+
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new ObjDetMapper(this, schema);
+
+        //Factory method for SignatureLoadRowMapper.
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
+
+        // Factory method for SignatureLoadModel.
+        private static ObjectDetectionTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+
+            // *** Binary format ***
+            // int: id of label column name
+            // int: id of predicted label column name
+            // int: id of the BoundingBoxColumnName name
+            // int: id of ImageColumnName name
+            // int: id of Score column name
+            // int: number of classes
+            // LabelValues
+            // BinaryStream: TS Model
+
+            var options = new Options()
+            {
+                LabelColumnName = ctx.LoadString(),
+                PredictedLabelColumnName = ctx.LoadString(),
+                BoundingBoxColumnName = ctx.LoadString(),
+                ImageColumnName = ctx.LoadString(),
+                ScoreColumnName = ctx.LoadString(),
+                NumberOfClasses = ctx.Reader.ReadInt32(),
+            };
+
+            var ch = env.Start("Load Model");
+
+            var model = new AutoFormerV2(options.NumberOfClasses,
+                embedChannels: new List<int>() { 64, 128, 256, 448 },
+                depths: new List<int>() { 2, 2, 6, 2 },
+                numHeads: new List<int>() { 2, 4, 8, 14 },
+                device: TorchUtils.InitializeDevice(env));
+
+            BinarySaver saver = new BinarySaver(env, new BinarySaver.Arguments());
+            DataViewType type;
+            object value;
+            env.CheckDecode(saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out type, out value));
+            var vecType = type as VectorDataViewType;
+            env.CheckDecode(vecType != null);
+            env.CheckDecode(value != null);
+            var labelGetter = Microsoft.ML.Internal.Utilities.Utils.MarshalInvoke(_decodeInitMethodInfo, vecType.ItemType.RawType, value);
+
+            var meta = new DataViewSchema.Annotations.Builder();
+            meta.Add(AnnotationUtils.Kinds.KeyValues, type, labelGetter);
+
+            var labelCol = new DataViewSchema.DetachedColumn(options.LabelColumnName, type, meta.ToAnnotations());
+
+            if (!ctx.TryLoadBinaryStream("TSModel", r => model.load(r)))
+                throw env.ExceptDecode();
+
+            return new ObjectDetectionTransformer(env, options, model, labelCol);
+        }
+
+        private static Delegate DecodeInit<T>(object value)
+        {
+            VBuffer<T> buffValue = (VBuffer<T>)value;
+            ValueGetter<VBuffer<T>> buffGetter = (ref VBuffer<T> dst) => buffValue.CopyTo(ref dst);
+            return buffGetter;
+        }
 
         private protected class ObjDetMapper : MapperBase
         {
@@ -666,7 +701,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
 
-                var info = new DataViewSchema.DetachedColumn[2];
+                var info = new DataViewSchema.DetachedColumn[3];
                 var keyType = Parent.LabelColumn.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
                 var getter = Microsoft.ML.Internal.Utilities.Utils.MarshalInvoke(_makeLabelAnnotationGetter, this, keyType.ItemType.RawType, Parent.LabelColumn);
 
@@ -728,8 +763,8 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 ValueGetter<VBuffer<float>> score = (ref VBuffer<float> dst) =>
                 {
                     using var disposeScope = torch.NewDisposeScope();
-                    var editor = VBufferEditor.Create(ref dst, Parent.Options.NumberOfClasses);
                     UpdateCacheIfNeeded(input.Position, outputCacher, ref image, ref getImage);
+                    var editor = VBufferEditor.Create(ref dst, outputCacher.ScoresBuffer.Length);
 
                     for (var i = 0; i < outputCacher.ScoresBuffer.Length; i++)
                     {
@@ -752,8 +787,8 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 ValueGetter<VBuffer<UInt32>> predictedLabel = (ref VBuffer<UInt32> dst) =>
                 {
                     using var disposeScope = torch.NewDisposeScope();
-                    var editor = VBufferEditor.Create(ref dst, Parent.Options.NumberOfClasses);
                     UpdateCacheIfNeeded(input.Position, outputCacher, ref image, ref getImage);
+                    var editor = VBufferEditor.Create(ref dst, outputCacher.PredictedLabelsBuffer.Length);
 
                     for (var i = 0; i < outputCacher.PredictedLabelsBuffer.Length; i++)
                     {
@@ -776,8 +811,8 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 ValueGetter<VBuffer<float>> score = (ref VBuffer<float> dst) =>
                 {
                     using var disposeScope = torch.NewDisposeScope();
-                    var editor = VBufferEditor.Create(ref dst, Parent.Options.NumberOfClasses * 4);
                     UpdateCacheIfNeeded(input.Position, outputCacher, ref image, ref getImage);
+                    var editor = VBufferEditor.Create(ref dst, outputCacher.BoxBuffer.Length);
 
                     for (var i = 0; i < outputCacher.BoxBuffer.Length; i++)
                     {
@@ -820,6 +855,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 {
                     var midTensor0 = torch.tensor(image.Pixels.ToArray());
                     var midTensor1 = midTensor0.@float();
+                    midTensor1 = midTensor1.slice(0, 0, image.Height * image.Width * 3, 1); // TODO: FIX THIS
                     var midTensor2 = midTensor1.reshape(1, image.Height, image.Width, 3);
                     var midTensor3 = midTensor2.transpose(0, 3);
                     var midTensor4 = midTensor3.reshape(3, image.Height, image.Width);
