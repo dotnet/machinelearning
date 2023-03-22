@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using TorchSharp;
 using static TorchSharp.torch;
@@ -14,7 +15,9 @@ namespace Microsoft.ML.TorchSharp.Loss
     /// </summary>
     public class FocalLoss : Module<Tensor, Tensor, Tensor, Tensor, Tensor>
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:private field names not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly double alpha;
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:private field names not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly double gamma;
 
         /// <summary>
@@ -30,46 +33,47 @@ namespace Microsoft.ML.TorchSharp.Loss
         }
 
         /// <inheritdoc/>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
         public override Tensor forward(Tensor classifications, Tensor regressions, Tensor anchors, Tensor annotations)
         {
-            var batch_size = classifications.shape[0];
-            var classification_losses = new List<Tensor>();
-            var regression_losses = new List<Tensor>();
+            var batchSize = classifications.shape[0];
+            var classificationLosses = new List<Tensor>();
+            var regressionLosses = new List<Tensor>();
 
             var anchor = anchors[0, .., ..];
 
-            var anchor_widths = anchor[.., 2] - anchor[.., 0];
-            var anchor_heights = anchor[.., 3] - anchor[.., 1];
-            var anchor_ctr_x = anchor[.., 0] + (0.5 * anchor_widths);
-            var anchor_ctr_y = anchor[.., 1] + (0.5 * anchor_heights);
+            var anchorWidths = anchor[.., 2] - anchor[.., 0];
+            var anchorHeights = anchor[.., 3] - anchor[.., 1];
+            var anchorCtrX = anchor[.., 0] + (0.5 * anchorWidths);
+            var anchorCtrY = anchor[.., 1] + (0.5 * anchorHeights);
 
-            for (int j = 0; j < batch_size; ++j)
+            for (int j = 0; j < batchSize; ++j)
             {
                 var classification = classifications[j, .., ..];
                 var regression = regressions[j, .., ..];
 
-                var bbox_annotation = annotations[j, .., ..];
-                bbox_annotation = bbox_annotation[bbox_annotation[.., 4] != -1];
+                var bboxAnnotation = annotations[j, .., ..];
+                bboxAnnotation = bboxAnnotation[bboxAnnotation[.., 4] != -1];
 
                 classification = torch.clamp(classification, 1e-4, 1.0 - 1e-4);
 
-                if (bbox_annotation.shape[0] == 0)
+                if (bboxAnnotation.shape[0] == 0)
                 {
-                    var alpha_factor = this.alpha * torch.ones(classification.shape, dtype: ScalarType.Float32, device: classifications.device);
-                    alpha_factor = 1.0f - alpha_factor;
+                    var alphaFactor = this.alpha * torch.ones(classification.shape, dtype: ScalarType.Float32, device: classifications.device);
+                    alphaFactor = 1.0f - alphaFactor;
 
-                    var focal_weight = classification;
-                    focal_weight = alpha_factor * torch.pow(focal_weight, this.gamma);
+                    var focalWeight = classification;
+                    focalWeight = alphaFactor * torch.pow(focalWeight, this.gamma);
 
                     var bce = -torch.log(1.0f - classification);
 
-                    var cls_loss = focal_weight * bce;
-                    classification_losses.Add(cls_loss.sum());
-                    regression_losses.Add(torch.tensor(0, dtype: ScalarType.Float32, device: classifications.device));
+                    var clsLoss = focalWeight * bce;
+                    classificationLosses.Add(clsLoss.sum());
+                    regressionLosses.Add(torch.tensor(0, dtype: ScalarType.Float32, device: classifications.device));
                 }
                 else
                 {
-                    var iou = CalcIOU(anchors[0, .., ..], bbox_annotation[.., ..4]); // num_anchors x num_annotations
+                    var iou = CalcIou(anchors[0, .., ..], bboxAnnotation[.., ..4]); // num_anchors x num_annotations
 
                     var (iou_max, iou_argmax) = torch.max(iou, dim: 1); // num_anchors x 1
 
@@ -77,66 +81,66 @@ namespace Microsoft.ML.TorchSharp.Loss
                     var targets = (-1) * torch.ones(classification.shape, dtype: ScalarType.Float32, device: classifications.device);
                     targets[torch.lt(iou_max, 0.4)] = 0;
 
-                    Tensor positive_indices = torch.ge(iou_max, 0.5);
+                    Tensor positiveIndices = torch.ge(iou_max, 0.5);
 
-                    var num_positive_anchors = positive_indices.sum();
+                    var numPositiveAnchors = positiveIndices.sum();
 
-                    var assigned_annotations = bbox_annotation[iou_argmax];
+                    var assignedAnnotations = bboxAnnotation[iou_argmax];
 
-                    targets[positive_indices] = 0;
+                    targets[positiveIndices] = 0;
 
-                    var assigned_positive_indeces = positive_indices.nonzero().squeeze(-1);
-                    for (int i = 0; i < assigned_positive_indeces.shape[0]; i++)
+                    var assignedPositiveIndeces = positiveIndices.nonzero().squeeze(-1);
+                    for (int i = 0; i < assignedPositiveIndeces.shape[0]; i++)
                     {
-                        var t = assigned_positive_indeces[i];
-                        targets[t, assigned_annotations[t, 4]] = 1;
+                        var t = assignedPositiveIndeces[i];
+                        targets[t, assignedAnnotations[t, 4]] = 1;
                     }
 
-                    var alpha_factor = torch.ones(targets.shape, dtype: ScalarType.Float32, device: classifications.device) * alpha;
-                    alpha_factor = torch.where(targets.eq(1.0), alpha_factor, 1.0 - alpha_factor);
+                    var alphaFactor = torch.ones(targets.shape, dtype: ScalarType.Float32, device: classifications.device) * alpha;
+                    alphaFactor = torch.where(targets.eq(1.0), alphaFactor, 1.0 - alphaFactor);
 
-                    var focal_weight = torch.where(targets.eq(1.0), 1.0 - classification, classification);
-                    focal_weight = alpha_factor * torch.pow(focal_weight, this.gamma);
+                    var focalWeight = torch.where(targets.eq(1.0), 1.0 - classification, classification);
+                    focalWeight = alphaFactor * torch.pow(focalWeight, this.gamma);
 
                     var bce = -((targets * torch.log(classification)) +
                                ((1.0 - targets) * torch.log(1.0 - classification)));
 
-                    var cls_loss = focal_weight * bce;
-                    cls_loss = torch.where(targets.ne(-1.0), cls_loss,
+                    var clsLoss = focalWeight * bce;
+                    clsLoss = torch.where(targets.ne(-1.0), clsLoss,
                         torch.zeros(
-                            cls_loss.shape,
+                            clsLoss.shape,
                             dtype: ScalarType.Float32,
                             device: classifications.device));
 
-                    var classification_loss = cls_loss.sum() / torch.clamp(num_positive_anchors.to_type(ScalarType.Float32), min: 1.0);
-                    classification_losses.Add(classification_loss);
+                    var classificationLoss = clsLoss.sum() / torch.clamp(numPositiveAnchors.to_type(ScalarType.Float32), min: 1.0);
+                    classificationLosses.Add(classificationLoss);
 
                     // compute the loss for regression
-                    if (positive_indices.sum().ToSingle() > 0)
+                    if (positiveIndices.sum().ToSingle() > 0)
                     {
-                        assigned_annotations = assigned_annotations[positive_indices];
+                        assignedAnnotations = assignedAnnotations[positiveIndices];
 
-                        var anchor_widths_pi = anchor_widths[positive_indices];
-                        var anchor_heights_pi = anchor_heights[positive_indices];
-                        var anchor_ctr_x_pi = anchor_ctr_x[positive_indices];
-                        var anchor_ctr_y_pi = anchor_ctr_y[positive_indices];
+                        var anchorWidthsPi = anchorWidths[positiveIndices];
+                        var anchorHeightsPi = anchorHeights[positiveIndices];
+                        var anchorCtrXPi = anchorCtrX[positiveIndices];
+                        var anchorCtrYPi = anchorCtrY[positiveIndices];
 
-                        var gt_widths = assigned_annotations[.., 2] - assigned_annotations[.., 0];
-                        var gt_heights = assigned_annotations[.., 3] - assigned_annotations[.., 1];
-                        var gt_ctr_x = assigned_annotations[.., 0] + (0.5 * gt_widths);
-                        var gt_ctr_y = assigned_annotations[.., 1] + (0.5 * gt_heights);
+                        var gtWidths = assignedAnnotations[.., 2] - assignedAnnotations[.., 0];
+                        var gtHeights = assignedAnnotations[.., 3] - assignedAnnotations[.., 1];
+                        var gtCtrX = assignedAnnotations[.., 0] + (0.5 * gtWidths);
+                        var gtCtrY = assignedAnnotations[.., 1] + (0.5 * gtHeights);
 
                         // clip widths to 1
-                        gt_widths = torch.clamp(gt_widths, min: 1);
-                        gt_heights = torch.clamp(gt_heights, min: 1);
+                        gtWidths = torch.clamp(gtWidths, min: 1);
+                        gtHeights = torch.clamp(gtHeights, min: 1);
 
-                        var targets_dx = (gt_ctr_x - anchor_ctr_x_pi) / anchor_widths_pi;
-                        var targets_dy = (gt_ctr_y - anchor_ctr_y_pi) / anchor_heights_pi;
+                        var targetsDx = (gtCtrX - anchorCtrXPi) / anchorWidthsPi;
+                        var targetsDy = (gtCtrY - anchorCtrYPi) / anchorHeightsPi;
 
-                        var targets_dw = torch.log(gt_widths / anchor_widths_pi);
-                        var targets_dh = torch.log(gt_heights / anchor_heights_pi);
+                        var targetsDw = torch.log(gtWidths / anchorWidthsPi);
+                        var targetsDh = torch.log(gtHeights / anchorHeightsPi);
 
-                        targets = torch.stack(new List<Tensor> { targets_dx, targets_dy, targets_dw, targets_dh });
+                        targets = torch.stack(new List<Tensor> { targetsDx, targetsDy, targetsDw, targetsDh });
                         targets = targets.t();
                         var factor = torch.from_array(new double[]
                         {
@@ -144,30 +148,35 @@ namespace Microsoft.ML.TorchSharp.Loss
                         }).unsqueeze(0).to(classifications.device);
                         targets = targets / factor;
 
-                        var negative_indices = 1 + (~positive_indices);
+                        var negativeIndices = 1 + (~positiveIndices);
 
-                        var regression_diff = torch.abs(targets - regression[positive_indices]);
+                        var regressionDiff = torch.abs(targets - regression[positiveIndices]);
 
-                        var regression_loss = torch.where(
-                            regression_diff.le(1.0 / 9.0),
-                            0.5 * 9.0 * torch.pow(regression_diff, 2),
-                            regression_diff - (0.5 / 9.0));
-                        regression_losses.Add(regression_loss.mean());
+                        var regressionLoss = torch.where(
+                            regressionDiff.le(1.0 / 9.0),
+                            0.5 * 9.0 * torch.pow(regressionDiff, 2),
+                            regressionDiff - (0.5 / 9.0));
+                        regressionLosses.Add(regressionLoss.mean());
                     }
                     else
                     {
-                        regression_losses.Add(torch.tensor(0, dtype: ScalarType.Float32, device: classifications.device));
+                        regressionLosses.Add(torch.tensor(0, dtype: ScalarType.Float32, device: classifications.device));
                     }
                 }
             }
 
-            var final_classification_loss = torch.stack(classification_losses).mean(dimensions: new long[] { 0 }, keepdim: true);
-            var final_regression_loss = torch.stack(regression_losses).mean(dimensions: new long[] { 0 }, keepdim: true);
-            var loss = final_classification_loss.mean() + final_regression_loss.mean();
+            var finalClassificationLoss = torch.stack(classificationLosses).mean(dimensions: new long[] { 0 }, keepdim: true);
+            var finalRegressionLoss = torch.stack(regressionLosses).mean(dimensions: new long[] { 0 }, keepdim: true);
+            var loss = finalClassificationLoss.mean() + finalRegressionLoss.mean();
             return loss;
         }
 
-        private static Tensor CalcIOU(Tensor a, Tensor b)
+        private object ToTensorIndex()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static Tensor CalcIou(Tensor a, Tensor b)
         {
             var area = (b[.., 2] - b[.., 0]) * (b[.., 3] - b[.., 1]);
 

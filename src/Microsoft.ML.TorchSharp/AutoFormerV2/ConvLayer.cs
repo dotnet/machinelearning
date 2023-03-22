@@ -14,8 +14,10 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
     /// </summary>
     public class ConvLayer : Module<Tensor, int, int, (Tensor, int, int, Tensor, int, int)>
     {
+#pragma warning disable MSML_PrivateFieldName // Need to match TorchSharp model names.
         private readonly ModuleList<MBConv> blocks;
         private readonly PatchMerging downsample;
+#pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ConvLayer"/> class.
@@ -37,7 +39,8 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         }
 
         /// <inheritdoc/>
-        public override (Tensor, int, int, Tensor, int, int) forward(Tensor x, int H, int W)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
+        public override (Tensor, int, int, Tensor, int, int) forward(Tensor x, int h, int w)
         {
             using (var scope = torch.NewDisposeScope())
             {
@@ -47,10 +50,10 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 }
 
                 var xOut = x;
-                var (xTmp, nH, nW) = this.downsample.forward(x, H, W);
+                var (xTmp, nH, nW) = this.downsample.forward(x, h, w);
                 x = xTmp;
 
-                return (xOut.MoveToOuterDisposeScope(), H, W, x.MoveToOuterDisposeScope(), nH, nW);
+                return (xOut.MoveToOuterDisposeScope(), h, w, x.MoveToOuterDisposeScope(), nH, nW);
             }
         }
     }

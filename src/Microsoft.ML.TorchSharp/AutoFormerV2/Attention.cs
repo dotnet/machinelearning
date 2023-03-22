@@ -16,6 +16,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
     /// </summary>
     public class Attention : Module<Tensor, Tensor, Tensor>
     {
+#pragma warning disable MSML_PrivateFieldName // Need to match TorchSharp model names.
         private readonly int numHeads;
         private readonly double scale;
         private readonly int keyChannels;
@@ -30,6 +31,8 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         private readonly Parameter attention_biases;
         private readonly TensorIndex attention_bias_idxs;
         private readonly Softmax softmax;
+#pragma warning restore MSML_PrivateFieldName
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Attention"/> class.
@@ -65,13 +68,13 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 }
             }
 
-            int N = points.Count;
+            int n = points.Count;
             var attentionOffsets = new Dictionary<Tuple<int, int>, int>();
             var idxs = new List<int>();
-            var idxsTensor = torch.zeros(new long[] { N, N }, dtype: torch.int64);
-            for (int i = 0; i < N; i++)
+            var idxsTensor = torch.zeros(new long[] { n, n }, dtype: torch.int64);
+            for (int i = 0; i < n; i++)
             {
-                for (int j = 0; j < N; j++)
+                for (int j = 0; j < n; j++)
                 {
                     var offset = new Tuple<int, int>(Math.Abs(points[i][0] - points[j][0]), Math.Abs(points[i][1] - points[j][1]));
                     if (!attentionOffsets.ContainsKey(offset))
@@ -90,16 +93,17 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         }
 
         /// <inheritdoc/>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
         public override Tensor forward(Tensor x, Tensor mask)
         {
             using (var scope = torch.NewDisposeScope())
             {
-                long B = x.shape[0];
-                long N = x.shape[1];
-                long C = x.shape[2];
+                long b = x.shape[0];
+                long n = x.shape[1];
+                long c = x.shape[2];
                 x = this.norm.forward(x);
                 var qkv = this.qkv.forward(x);
-                qkv = qkv.view(B, N, this.numHeads, -1);
+                qkv = qkv.view(b, n, this.numHeads, -1);
                 var tmp = qkv.split(new long[] { this.keyChannels, this.keyChannels, this.d }, dim: 3);
                 var q = tmp[0];
                 var k = tmp[1];
@@ -112,8 +116,8 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 if (!(mask is null))
                 {
                     long nW = mask.shape[0];
-                    attn = attn.view(-1, nW, this.numHeads, N, N) + mask.unsqueeze(1).unsqueeze(0);
-                    attn = attn.view(-1, this.numHeads, N, N);
+                    attn = attn.view(-1, nW, this.numHeads, n, n) + mask.unsqueeze(1).unsqueeze(0);
+                    attn = attn.view(-1, this.numHeads, n, n);
                     attn = this.softmax.forward(attn);
                 }
                 else
@@ -121,7 +125,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                     attn = this.softmax.forward(attn);
                 }
 
-                x = torch.matmul(attn, v).transpose(1, 2).reshape(B, N, this.dh);
+                x = torch.matmul(attn, v).transpose(1, 2).reshape(b, n, this.dh);
                 x = this.proj.forward(x);
 
                 return x.MoveToOuterDisposeScope();

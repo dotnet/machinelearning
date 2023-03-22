@@ -16,11 +16,13 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
     /// </summary>
     public class BasicLayer : Module<Tensor, int, int, (Tensor, int, int, Tensor, int, int)>
     {
+#pragma warning disable MSML_PrivateFieldName // Need to match TorchSharp model names.
         private readonly bool useShiftWindow;
         private readonly int windowSize;
         private readonly int shiftSize;
         private readonly ModuleList<AutoFormerV2Block> blocks;
         private readonly PatchMerging downsample;
+#pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BasicLayer"/> class.
@@ -52,18 +54,19 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         }
 
         /// <inheritdoc/>
-        public override (Tensor, int, int, Tensor, int, int) forward(Tensor x, int H, int W)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
+        public override (Tensor, int, int, Tensor, int, int) forward(Tensor x, int h, int w)
         {
             using (var scope = torch.NewDisposeScope())
             {
                 Tensor attnMask;
                 if (this.useShiftWindow)
                 {
-                    int Hp = (int)Math.Ceiling((double)H / this.windowSize) * this.windowSize;
-                    int Wp = (int)Math.Ceiling((double)W / this.windowSize) * this.windowSize;
-                    Tensor imgMask = torch.zeros(new long[] { 1, Hp, Wp, 1 }, device: x.device);
-                    List<int> hSlicesStartAndEnd = new List<int>() { 0, Hp - this.windowSize, Hp - this.windowSize, Hp - this.shiftSize, Hp - this.shiftSize, Hp };
-                    List<int> wSlicesStartAndEnd = new List<int>() { 0, Wp - this.windowSize, Wp - this.windowSize, Wp - this.shiftSize, Wp - this.shiftSize, Wp };
+                    int hp = (int)Math.Ceiling((double)h / this.windowSize) * this.windowSize;
+                    int wp = (int)Math.Ceiling((double)w / this.windowSize) * this.windowSize;
+                    Tensor imgMask = torch.zeros(new long[] { 1, hp, wp, 1 }, device: x.device);
+                    List<int> hSlicesStartAndEnd = new List<int>() { 0, hp - this.windowSize, hp - this.windowSize, hp - this.shiftSize, hp - this.shiftSize, hp };
+                    List<int> wSlicesStartAndEnd = new List<int>() { 0, wp - this.windowSize, wp - this.windowSize, wp - this.shiftSize, wp - this.shiftSize, wp };
                     int cnt = 0;
                     for (int i = 0; i < hSlicesStartAndEnd.Count; i += 2)
                     {
@@ -73,11 +76,11 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                             int hEnd = hSlicesStartAndEnd[i + 1];
                             int wStart = wSlicesStartAndEnd[j];
                             int wEnd = wSlicesStartAndEnd[j + 1];
-                            for (int h = hStart; h < hEnd; h++)
+                            for (int height = hStart; height < hEnd; height++)
                             {
-                                for (int w = wStart; w < wEnd; w++)
+                                for (int width = wStart; width < wEnd; width++)
                                 {
-                                    imgMask[0, h, w, 0] = cnt;
+                                    imgMask[0, height, width, 0] = cnt;
                                 }
                             }
 
@@ -98,15 +101,15 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 for (int i = 0; i < this.blocks.Count; i++)
                 {
-                    x = this.blocks[i].forward(x, H, W, attnMask);
+                    x = this.blocks[i].forward(x, h, w, attnMask);
                 }
 
                 var xOut = x;
-                int nH = H;
-                int nW = W;
-                (x, nH, nW) = this.downsample.forward(x, H, W);
+                int nH = h;
+                int nW = w;
+                (x, nH, nW) = this.downsample.forward(x, h, w);
 
-                return (xOut.MoveToOuterDisposeScope(), H, W, x.MoveToOuterDisposeScope(), nH, nW);
+                return (xOut.MoveToOuterDisposeScope(), h, w, x.MoveToOuterDisposeScope(), nH, nW);
             }
         }
 
@@ -114,18 +117,18 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         /// Partition input to window size.
         /// </summary>
         /// <param name="x">The input tensor.</param>
-        /// <param name="window_size">The window size.</param>
+        /// <param name="windowSize">The window size.</param>
         /// <returns>The output tensor.</returns>
-        private static Tensor WindowPartition(Tensor x, int window_size)
+        private static Tensor WindowPartition(Tensor x, int windowSize)
         {
             using (var scope = torch.NewDisposeScope())
             {
-                long B = x.shape[0];
-                long H = x.shape[1];
-                long W = x.shape[2];
-                long C = x.shape[3];
-                x = x.view(B, H / window_size, window_size, W / window_size, window_size, C);
-                var windows = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(-1, window_size, window_size, C);
+                long b = x.shape[0];
+                long h = x.shape[1];
+                long w = x.shape[2];
+                long c = x.shape[3];
+                x = x.view(b, h / windowSize, windowSize, w / windowSize, windowSize, c);
+                var windows = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(-1, windowSize, windowSize, c);
 
                 return windows.MoveToOuterDisposeScope();
             }

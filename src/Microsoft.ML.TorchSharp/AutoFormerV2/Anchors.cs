@@ -16,10 +16,19 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
     /// </summary>
     public class Anchors : Module<Tensor, Tensor>
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:private field names not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly int[] pyramidLevels;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:private field names not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly int[] strides;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:private field names not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly int[] sizes;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:private field names not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly double[] ratios;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:private field names not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly double[] scales;
 
         /// <summary>
@@ -45,11 +54,12 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         /// </summary>
         /// <param name="image">Image in Tensor format.</param>
         /// <returns>All anchors.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
         public override Tensor forward(Tensor image)
         {
             using (var scope = torch.NewDisposeScope())
             {
-                var imageShape = torch.tensor(image.shape[2..]);
+                var imageShape = torch.tensor(image.shape.AsSpan().Slice(2).ToArray());
 
                 // compute anchors over all pyramid levels
                 var allAnchors = torch.zeros(new long[] { 0, 4 }, dtype: torch.float32);
@@ -131,10 +141,10 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 List<Tensor> tensors = new List<Tensor> { shiftXExpand, shiftYExpand, shiftXExpand, shiftYExpand };
                 var shifts = torch.vstack(tensors).transpose(0, 1);
 
-                var A = anchors.shape[0];
-                var K = shifts.shape[0];
-                var allAnchors = anchors.reshape(new long[] { 1, A, 4 }) + shifts.reshape(new long[] { 1, K, 4 }).transpose(0, 1);
-                allAnchors = allAnchors.reshape(new long[] { K * A, 4 });
+                var a = anchors.shape[0];
+                var k = shifts.shape[0];
+                var allAnchors = anchors.reshape(new long[] { 1, a, 4 }) + shifts.reshape(new long[] { 1, k, 4 }).transpose(0, 1);
+                allAnchors = allAnchors.reshape(new long[] { k * a, 4 });
 
                 return allAnchors.MoveToOuterDisposeScope();
             }

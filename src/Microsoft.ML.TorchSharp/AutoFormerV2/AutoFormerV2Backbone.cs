@@ -16,6 +16,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
     /// </summary>
     public class AutoFormerV2Backbone : Module<Tensor, List<Tensor>>
     {
+#pragma warning disable MSML_PrivateFieldName // Need to match TorchSharp model names.
         private readonly List<int> outIndices;
         private readonly List<int> numFeatures;
         private readonly PatchEmbed patch_embed;
@@ -23,6 +24,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         private readonly LayerNorm norm1;
         private readonly LayerNorm norm2;
         private readonly LayerNorm norm3;
+#pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AutoFormerV2Backbone"/> class.
@@ -105,24 +107,26 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         }
 
         /// <inheritdoc/>
-        public override List<Tensor> forward(Tensor img_batch)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
+        public override List<Tensor> forward(Tensor imgBatch)
         {
             using (var scope = torch.NewDisposeScope())
             {
-                var x = this.patch_embed.forward(img_batch);
-                var B = (int)x.shape[0];
-                var C = (int)x.shape[1];
-                var Wh = (int)x.shape[2];
-                var Ww = (int)x.shape[3];
+                var x = this.patch_embed.forward(imgBatch);
+                var b = (int)x.shape[0];
+                var c = (int)x.shape[1];
+                var wh = (int)x.shape[2];
+                var ww = (int)x.shape[3];
                 var outs = new List<Tensor>();
                 Tensor xOut;
-                int H, W;
-                (xOut, H, W, x, Wh, Ww) = this.layers[0].forward(x, Wh, Ww);
+                int h;
+                int w;
+                (xOut, h, w, x, wh, ww) = this.layers[0].forward(x, wh, ww);
 
                 for (int iLayer = 1; iLayer < this.layers.Count; iLayer++)
                 {
 
-                    (xOut, H, W, x, Wh, Ww) = this.layers[iLayer].forward(x, Wh, Ww);
+                    (xOut, h, w, x, wh, ww) = this.layers[iLayer].forward(x, wh, ww);
 
                     if (this.outIndices.Contains(iLayer))
                     {
@@ -141,10 +145,10 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                                 break;
                         }
 
-                        long N = xOut.shape[0];
-                        var @out = xOut.view(N, H, W, this.numFeatures[iLayer]).permute(0, 3, 1, 2).contiguous();
-                        @out = @out.MoveToOuterDisposeScope();
-                        outs.Add(@out);
+                        long n = xOut.shape[0];
+                        var res = xOut.view(n, h, w, this.numFeatures[iLayer]).permute(0, 3, 1, 2).contiguous();
+                        res = res.MoveToOuterDisposeScope();
+                        outs.Add(res);
                     }
                 }
 

@@ -14,8 +14,10 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
     /// </summary>
     public class Conv2dBN : Module<Tensor, Tensor>
     {
+#pragma warning disable MSML_PrivateFieldName // Need to match TorchSharp model names.
         private readonly Conv2d c;
         private readonly BatchNorm2d bn;
+#pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Conv2dBN"/> class.
@@ -35,6 +37,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         }
 
         /// <inheritdoc/>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
         public override Tensor forward(Tensor x)
         {
             using (var scope = torch.NewDisposeScope())

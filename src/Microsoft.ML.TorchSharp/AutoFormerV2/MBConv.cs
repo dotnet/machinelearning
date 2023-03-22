@@ -14,12 +14,14 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
     /// </summary>
     public class MBConv : Module<Tensor, Tensor>
     {
+#pragma warning disable MSML_PrivateFieldName // Need to match TorchSharp model names.
         private readonly Conv2dBN conv1;
         private readonly GELU act1;
         private readonly Conv2dBN conv2;
         private readonly GELU act2;
         private readonly Conv2dBN conv3;
         private readonly GELU act3;
+#pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MBConv"/> class.
@@ -40,6 +42,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         }
 
         /// <inheritdoc/>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
         public override Tensor forward(Tensor x0)
         {
             using (var scope = torch.NewDisposeScope())

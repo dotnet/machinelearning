@@ -14,10 +14,12 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
     /// </summary>
     public class PatchMerging : Module<Tensor, int, int, (Tensor, int, int)>
     {
+#pragma warning disable MSML_PrivateFieldName // Need to match TorchSharp model names.
         private readonly GELU act;
         private readonly Conv2dBN conv1;
         private readonly Conv2dBN conv2;
         private readonly Conv2dBN conv3;
+#pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PatchMerging"/> class.
@@ -34,14 +36,15 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         }
 
         /// <inheritdoc/>
-        public override (Tensor, int, int) forward(Tensor x, int H, int W)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
+        public override (Tensor, int, int) forward(Tensor x, int h, int w)
         {
             using (var scope = torch.NewDisposeScope())
             {
                 if (x.shape.Length == 3)
                 {
-                    long B = x.shape[0];
-                    x = x.view(B, H, W, -1).permute(0, 3, 1, 2);
+                    long b = x.shape[0];
+                    x = x.view(b, h, w, -1).permute(0, 3, 1, 2);
                 }
 
                 x = this.conv1.forward(x);
@@ -51,10 +54,10 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 x = this.conv3.forward(x);
 
                 x = x.flatten(2).transpose(1, 2);
-                H = (H + 1) / 2;
-                W = (W + 1) / 2;
+                h = (h + 1) / 2;
+                w = (w + 1) / 2;
 
-                return (x.MoveToOuterDisposeScope(), H, W);
+                return (x.MoveToOuterDisposeScope(), h, w);
             }
         }
     }

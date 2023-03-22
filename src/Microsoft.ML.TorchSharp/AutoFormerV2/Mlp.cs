@@ -12,13 +12,16 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
     /// <summary>
     /// The MLP (Multilayer Perceptron) layer.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
     public class MLP : Module<Tensor, Tensor>
     {
+#pragma warning disable MSML_PrivateFieldName // Need to match TorchSharp model names.
         private readonly LayerNorm norm;
         private readonly Linear fc1;
         private readonly Linear fc2;
         private readonly GELU act;
         private readonly Dropout drop;
+#pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MLP"/> class.
@@ -40,6 +43,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         }
 
         /// <inheritdoc/>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
         public override Tensor forward(Tensor x)
         {
             using (var scope = torch.NewDisposeScope())

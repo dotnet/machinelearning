@@ -13,11 +13,14 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
     /// <summary>
     /// The FPN (Feature Pyramid Networks) layer.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
     public class FPN : Module<List<Tensor>, List<Tensor>>
     {
+#pragma warning disable MSML_PrivateFieldName // Need to match TorchSharp model names.
         private readonly ModuleList<Module<Tensor, Tensor>> lateral_convs;
         private readonly ModuleList<Module<Tensor, Tensor>> fpn_convs;
-        private int numOuts;
+        private readonly int numOuts;
+#pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FPN"/> class.
@@ -58,6 +61,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         }
 
         /// <inheritdoc/>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
         public override List<Tensor> forward(List<Tensor> inputs)
         {
             using (var scope = torch.NewDisposeScope())

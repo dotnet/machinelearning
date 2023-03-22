@@ -21,11 +21,13 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         /// </summary>
         public Dictionary<long, string> IndexTable;
 
+#pragma warning disable MSML_PrivateFieldName // Need to match TorchSharp model names.
         private readonly Device device;
         private readonly AutoFormerV2Backbone backbone;
         private readonly FPN neck;
         private readonly RetinaHead bbox_head;
         private readonly Anchors anchors;
+#pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AutoFormerV2"/> class.
@@ -74,6 +76,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         }
 
         /// <inheritdoc/>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
         public override (Tensor, Tensor, Tensor) forward(Tensor imgBatch)
         {
             using (var scope = torch.NewDisposeScope())
@@ -102,26 +105,26 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 if (layer.GetType() == typeof(Linear))
                 {
                     var module = layer as Linear;
-                    var weight_requires_grad = module.weight.requires_grad;
+                    var weightRequiresGrad = module.weight.requires_grad;
                     module.weight.requires_grad = false;
                     module.weight.normal_(0, 0.02);
-                    module.weight.requires_grad = weight_requires_grad;
-                    var bias_requires_grad = module.bias.requires_grad;
+                    module.weight.requires_grad = weightRequiresGrad;
+                    var biasRequiresGrad = module.bias.requires_grad;
                     module.bias.requires_grad = false;
                     module.bias.zero_();
-                    module.bias.requires_grad = bias_requires_grad;
+                    module.bias.requires_grad = biasRequiresGrad;
                 }
                 else if (layer.GetType() == typeof(LayerNorm))
                 {
                     var module = layer as LayerNorm;
-                    var weight_requires_grad = module.weight.requires_grad;
+                    var weightRequiresGrad = module.weight.requires_grad;
                     module.weight.requires_grad = false;
                     module.weight.fill_(1);
-                    module.weight.requires_grad = weight_requires_grad;
-                    var bias_requires_grad = module.bias.requires_grad;
+                    module.weight.requires_grad = weightRequiresGrad;
+                    var biasRequiresGrad = module.bias.requires_grad;
                     module.bias.requires_grad = false;
                     module.bias.zero_();
-                    module.bias.requires_grad = bias_requires_grad;
+                    module.bias.requires_grad = biasRequiresGrad;
                 }
                 else if (layer.GetType() == typeof(BatchNorm2d))
                 {
@@ -130,10 +133,10 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                     module.weight.requires_grad = false;
                     module.weight.fill_(1.0);
                     module.weight.requires_grad = weightRequiresGrad;
-                    var bias_requires_grad = module.bias.requires_grad;
+                    var biasRequiresGrad = module.bias.requires_grad;
                     module.bias.requires_grad = false;
                     module.bias.zero_();
-                    module.bias.requires_grad = bias_requires_grad;
+                    module.bias.requires_grad = biasRequiresGrad;
                 }
             }
         }

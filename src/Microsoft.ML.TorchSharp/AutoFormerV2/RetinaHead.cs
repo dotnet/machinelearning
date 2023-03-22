@@ -15,11 +15,22 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
     /// </summary>
     public class RetinaHead : Module<List<Tensor>, (List<Tensor>, List<Tensor>)>
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:private field names not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly ModuleList<Module<Tensor, Tensor>> cls_convs;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:private field names not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly ModuleList<Module<Tensor, Tensor>> reg_convs;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:private field names not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly Conv2d retina_cls;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:private field names not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly Conv2d retina_reg;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:private field names not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly Sigmoid output_act;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:private field names not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly int numClasses;
 
         /// <summary>
@@ -49,6 +60,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         }
 
         /// <inheritdoc/>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
         public override (List<Tensor>, List<Tensor>) forward(List<Tensor> inputs)
         {
             using (var scope = torch.NewDisposeScope())

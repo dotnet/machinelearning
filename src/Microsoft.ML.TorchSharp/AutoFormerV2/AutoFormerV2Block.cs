@@ -14,6 +14,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
     /// </summary>
     public class AutoFormerV2Block : Module<Tensor, int, int, Tensor, Tensor>
     {
+#pragma warning disable MSML_PrivateFieldName // Need to match TorchSharp model names.
         private readonly int windowSize;
         private readonly int shiftSize;
         private readonly bool useShiftWindow;
@@ -21,6 +22,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         private readonly Attention attn;
         private readonly MLP mlp;
         private readonly Conv2dBN local_conv;
+#pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AutoFormerV2Block"/> class.
@@ -51,8 +53,8 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             this.useInterpolate = useInterpolate;
 
             int headChannels = inChannels / numHeads;
-            List<int> window_resolution = new List<int>() { windowSize, windowSize };
-            this.attn = new Attention(inChannels, headChannels, numHeads, attnRatio: 1, windowResolution: window_resolution);
+            List<int> windowResolution = new List<int>() { windowSize, windowSize };
+            this.attn = new Attention(inChannels, headChannels, numHeads, attnRatio: 1, windowResolution: windowResolution);
 
             int mlpHiddenChannels = (int)(inChannels * mlpRatio);
             this.mlp = new MLP(inFeatures: inChannels, hiddenFeatures: mlpHiddenChannels, dropRatio: dropRatio);
@@ -62,35 +64,37 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         }
 
         /// <inheritdoc/>
-        public override Tensor forward(Tensor x, int H, int W, Tensor mask_matrix)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
+        public override Tensor forward(Tensor x, int h, int w, Tensor maskMatrix)
         {
             using (var scope = torch.NewDisposeScope())
             {
-                long B = x.shape[0];
-                long L = x.shape[1];
-                long C = x.shape[2];
+                long b = x.shape[0];
+                long l = x.shape[1];
+                long c = x.shape[2];
                 var resX = x;
-                x = x.view(B, H, W, C);
-                int padB = (this.windowSize - (H % this.windowSize)) % this.windowSize;
-                int padR = (this.windowSize - (W % this.windowSize)) % this.windowSize;
+                x = x.view(b, h, w, c);
+                int padB = (this.windowSize - (h % this.windowSize)) % this.windowSize;
+                int padR = (this.windowSize - (w % this.windowSize)) % this.windowSize;
                 bool padding = false;
                 if (padB > 0 || padR > 0)
                 {
                     padding = true;
                 }
 
-                int pH = H + padB;
-                int pW = W + padR;
+                int pH = h + padB;
+                int pW = w + padR;
                 if (padding)
                 {
                     x = nn.functional.pad(x, new long[] { 0, 0, 0, padR, 0, padB });
                 }
 
-                Tensor shiftedX, attnMask;
+                Tensor shiftedX;
+                Tensor attnMask;
                 if (this.useShiftWindow && this.shiftSize > 0)
                 {
                     shiftedX = torch.roll(x, shifts: new long[] { -this.shiftSize, -this.shiftSize }, dims: new long[] { 1, 2 });
-                    attnMask = mask_matrix;
+                    attnMask = maskMatrix;
                 }
                 else
                 {
@@ -99,10 +103,10 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 }
 
                 var xWindows = WindowPartition(shiftedX, this.windowSize);
-                xWindows = xWindows.view(-1, this.windowSize * this.windowSize, C);
+                xWindows = xWindows.view(-1, this.windowSize * this.windowSize, c);
                 var attnWindows = this.attn.forward(xWindows, mask: attnMask);
 
-                attnWindows = attnWindows.view(-1, this.windowSize, this.windowSize, C);
+                attnWindows = attnWindows.view(-1, this.windowSize, this.windowSize, c);
                 shiftedX = WindowsReverse(attnWindows, this.windowSize, pH, pW);
 
                 if (this.useShiftWindow && this.shiftSize > 0)
@@ -118,20 +122,20 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 {
                     if (this.useInterpolate)
                     {
-                        x = nn.functional.interpolate(x.permute(0, 3, 1, 2), size: new long[] { H, W }, mode: torch.InterpolationMode.Bilinear, align_corners: true).permute(0, 2, 3, 1);
+                        x = nn.functional.interpolate(x.permute(0, 3, 1, 2), size: new long[] { h, w }, mode: torch.InterpolationMode.Bilinear, align_corners: true).permute(0, 2, 3, 1);
                     }
                     else
                     {
-                        x = x[.., ..H, ..W].contiguous();
+                        x = x[.., ..h, ..w].contiguous();
                     }
                 }
 
-                x = x.view(B, L, C);
+                x = x.view(b, l, c);
 
                 x = resX + x;
-                x = x.transpose(1, 2).reshape(B, C, H, W);
+                x = x.transpose(1, 2).reshape(b, c, h, w);
                 x = this.local_conv.forward(x);
-                x = x.view(B, C, L).transpose(1, 2);
+                x = x.view(b, c, l).transpose(1, 2);
                 x = x + this.mlp.forward(x);
 
                 return x.MoveToOuterDisposeScope();
@@ -142,17 +146,17 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         /// Reverse input in window size to original shape.
         /// </summary>
         /// <param name="windows">The input window tensor.</param>
-        /// <param name="window_size">The size of window.</param>
-        /// <param name="H">The height.</param>
-        /// <param name="W">The width.</param>
+        /// <param name="windowSize">The size of window.</param>
+        /// <param name="h">The height.</param>
+        /// <param name="w">The width.</param>
         /// <returns>The reversed window tensor.</returns>
-        private static Tensor WindowsReverse(Tensor windows, int window_size, int H, int W)
+        private static Tensor WindowsReverse(Tensor windows, int windowSize, int h, int w)
         {
             using (var scope = torch.NewDisposeScope())
             {
-                int B = (int)windows.shape[0] / (H * W / window_size / window_size);
-                var x = windows.view(B, H / window_size, W / window_size, window_size, window_size, -1);
-                x = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(B, H, W, -1);
+                int b = (int)windows.shape[0] / (h * w / windowSize / windowSize);
+                var x = windows.view(b, h / windowSize, w / windowSize, windowSize, windowSize, -1);
+                x = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(b, h, w, -1);
 
                 return x.MoveToOuterDisposeScope();
             }
@@ -162,18 +166,18 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         /// Partition input to window size.
         /// </summary>
         /// <param name="x">The input tensor.</param>
-        /// <param name="window_size">The size of window.</param>
+        /// <param name="windowSize">The size of window.</param>
         /// <returns>The partition window.</returns>
-        private static Tensor WindowPartition(Tensor x, int window_size)
+        private static Tensor WindowPartition(Tensor x, int windowSize)
         {
             using (var scope = torch.NewDisposeScope())
             {
-                long B = x.shape[0];
-                long H = x.shape[1];
-                long W = x.shape[2];
-                long C = x.shape[3];
-                x = x.view(B, H / window_size, window_size, W / window_size, window_size, C);
-                var windows = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(-1, window_size, window_size, C);
+                long b = x.shape[0];
+                long h = x.shape[1];
+                long w = x.shape[2];
+                long c = x.shape[3];
+                x = x.view(b, h / windowSize, windowSize, w / windowSize, windowSize, c);
+                var windows = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(-1, windowSize, windowSize, c);
 
                 return windows.MoveToOuterDisposeScope();
             }
