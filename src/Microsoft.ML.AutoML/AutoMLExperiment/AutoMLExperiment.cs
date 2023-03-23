@@ -284,7 +284,14 @@ namespace Microsoft.ML.AutoML
                     }
                     catch (Exception ex) when (aggregateTrainingStopManager.IsStopTrainingRequested() == false)
                     {
-                        logger.Trace($"catch exception when training trial {trialSettings.TrialId} - {JsonSerializer.Serialize(trialSettings)}, continue training");
+                        var exceptionMessage = $@"
+Exception thrown during Trial {trialSettings.TrialId} with configuration {JsonSerializer.Serialize(trialSettings)}
+
+Exception Details: ex.Message
+
+Abandoning Trial {trialSettings.TrialId} and continue training.
+";
+                        logger.Trace(exceptionMessage);
                         trialSettings.EndedAtUtc = DateTime.UtcNow;
                         monitor?.ReportFailTrial(trialSettings, ex);
                         var trialResult = new TrialResult
