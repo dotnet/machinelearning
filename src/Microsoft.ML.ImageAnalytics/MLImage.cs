@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Transforms.Image;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using static Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator;
 
 namespace Microsoft.ML.Data
 {
@@ -131,8 +133,39 @@ namespace Microsoft.ML.Data
             get
             {
                 ThrowInvalidOperationExceptionIfDisposed();
-                var i = _image.Copy(SKColorType.Rgb565);
-                return _image.Copy(SKColorType.Rgb565).GetPixelSpan();
+
+                GetOrder(ColorsOrder.ARGB, ColorBits.Rgb, out int a, out int r, out int b, out int g);
+
+                // 3 is because we only want RGB not alpha channels
+                byte[] pixels = new byte[Height * Width * 3];
+
+                (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = PixelFormat switch
+                {
+                    MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                    MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                    _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                };
+
+                int cpix = Height * Width;
+                int ix = 0;
+                int pixelByteCount = alphaIndex > 0 ? 4 : 3;
+                int idstMin = 0;
+
+                for (int y = 0; y < Height; ++y)
+                {
+                    int idst = idstMin + y * Width;
+                    for (int x = 0; x < Width; x++, idst++)
+                    {
+                        if (a != -1) pixels[idst + cpix * a] = (byte)(alphaIndex > 0 ? Pixels[ix + alphaIndex] : 255);
+                        if (r != -1) pixels[idst + cpix * r] = Pixels[ix + redIndex];
+                        if (g != -1) pixels[idst + cpix * g] = Pixels[ix + greenIndex];
+                        if (b != -1) pixels[idst + cpix * b] = Pixels[ix + blueIndex];
+
+                        ix += pixelByteCount;
+                    }
+                }
+
+                return new ReadOnlySpan<byte>(pixels);
             }
         }
 

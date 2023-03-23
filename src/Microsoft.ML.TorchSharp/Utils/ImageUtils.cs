@@ -86,7 +86,7 @@ namespace Microsoft.ML.TorchSharp.Utils
                         var id = idxs[i, 0];
                         var bbox = finalAnchorBoxesCoordinates[id];
                         var index = finalAnchorBoxesIndexes[id].ToInt64();
-                        predictedLabels[i] = (uint)index;
+                        predictedLabels[i] = (uint)index + 1;
                         score[i] = finalScores[id].ToSingle();
                         boxes[boxIndex++] = bbox[0].ToSingle();
                         boxes[boxIndex++] = bbox[1].ToSingle();
