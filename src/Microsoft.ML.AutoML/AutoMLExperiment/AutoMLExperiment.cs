@@ -282,9 +282,16 @@ namespace Microsoft.ML.AutoML
                             }
                         }
                     }
-                    catch (OperationCanceledException ex) when (aggregateTrainingStopManager.IsStopTrainingRequested() == false)
+                    catch (Exception ex) when (aggregateTrainingStopManager.IsStopTrainingRequested() == false)
                     {
-                        logger.Trace($"trial cancelled - {JsonSerializer.Serialize(trialSettings)}, continue training");
+                        var exceptionMessage = $@"
+Exception thrown during Trial {trialSettings.TrialId} with configuration {JsonSerializer.Serialize(trialSettings)}
+
+Exception Details: ex.Message
+
+Abandoning Trial {trialSettings.TrialId} and continue training.
+";
+                        logger.Trace(exceptionMessage);
                         trialSettings.EndedAtUtc = DateTime.UtcNow;
                         monitor?.ReportFailTrial(trialSettings, ex);
                         var trialResult = new TrialResult
@@ -296,22 +303,8 @@ namespace Microsoft.ML.AutoML
                         tuner.Update(trialResult);
                         trialResultManager?.AddOrUpdateTrialResult(trialResult);
                         aggregateTrainingStopManager.Update(trialResult);
-                        continue;
-                    }
-                    catch (OperationCanceledException) when (aggregateTrainingStopManager.IsStopTrainingRequested())
-                    {
-                        logger.Trace($"trial cancelled - {JsonSerializer.Serialize(trialSettings)}, stop training");
 
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.Trace($"trial failed - {JsonSerializer.Serialize(trialSettings)}, stop training");
-
-                        trialSettings.EndedAtUtc = DateTime.UtcNow;
-                        monitor?.ReportFailTrial(trialSettings, ex);
-
-                        if (!aggregateTrainingStopManager.IsStopTrainingRequested() && _bestTrialResult == null)
+                        if (ex is not OperationCanceledException && _bestTrialResult == null)
                         {
                             logger.Trace($"trial fatal error - {JsonSerializer.Serialize(trialSettings)}, stop training");
 
@@ -321,6 +314,13 @@ namespace Microsoft.ML.AutoML
                             // when error is fatal (like schema mismatch).
                             throw;
                         }
+                        continue;
+                    }
+                    catch (Exception) when (aggregateTrainingStopManager.IsStopTrainingRequested())
+                    {
+                        logger.Trace($"trial cancelled - {JsonSerializer.Serialize(trialSettings)}, stop training");
+
+                        break;
                     }
                     finally
                     {
