@@ -102,6 +102,7 @@ namespace Microsoft.ML.AutoML.Test
             var settings = new BinaryExperimentSettings
             {
                 MaxModels = 1,
+                UseAutoZeroTuner = true,
             };
 
             settings.Trainers.Remove(BinaryClassificationTrainer.LightGbm);
