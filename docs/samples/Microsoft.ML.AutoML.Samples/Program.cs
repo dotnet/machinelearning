@@ -8,6 +8,7 @@ namespace Microsoft.ML.AutoML.Samples
         {
             try
             {
+                SearchSpaceExample.Run();
                 RecommendationExperiment.Run();
                 Console.Clear();
 

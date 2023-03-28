@@ -291,6 +291,13 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// Create a sweepable estimator with a custom factory and search space.
         /// </summary>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[AutoMLExperiment](~/../docs/samples/docs/samples/Microsoft.ML.AutoML.Samples/Sweepable/SweepableLightGBMBinaryExperiment.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public SweepableEstimator CreateSweepableEstimator<T>(Func<MLContext, T, IEstimator<ITransformer>> factory, SearchSpace<T> ss = null)
             where T : class, new()
         {
