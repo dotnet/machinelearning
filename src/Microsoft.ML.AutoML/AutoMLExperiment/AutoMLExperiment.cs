@@ -18,6 +18,16 @@ using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Microsoft.ML.AutoML
 {
+    /// <summary>
+    /// The class for AutoML experiment
+    /// </summary>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[AutoMLExperiment](~/../docs/samples/docs/samples/Microsoft.ML.AutoML.Samples/AutoMLExperiment.cs)]
+    /// ]]>
+    /// </format>
+    /// </example>
     public class AutoMLExperiment
     {
         internal const string PipelineSearchspaceName = "_pipeline_";

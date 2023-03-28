@@ -8,6 +8,8 @@ namespace Microsoft.ML.AutoML.Samples
         {
             try
             {
+                AutoMLExperiment.RunAsync().Wait();
+
                 RecommendationExperiment.Run();
                 Console.Clear();
 
