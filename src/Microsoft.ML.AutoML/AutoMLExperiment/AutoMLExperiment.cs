@@ -252,11 +252,16 @@ namespace Microsoft.ML.AutoML
                 monitor?.ReportRunningTrial(trialSettings);
                 var stopTrialManager = new CancellationTokenStopTrainingManager(trialCancellationTokenSource.Token, null);
                 aggregateTrainingStopManager.AddTrainingStopManager(stopTrialManager);
+                void handler(object o, EventArgs e)
+                {
+                    trialCancellationTokenSource.Cancel();
+                }
                 try
                 {
                     using (var performanceMonitor = serviceProvider.GetService<IPerformanceMonitor>())
                     using (var runner = serviceProvider.GetRequiredService<ITrialRunner>())
                     {
+                        aggregateTrainingStopManager.OnStopTraining += handler;
                         performanceMonitor.PerformanceMetricsUpdated += (o, metrics) =>
                         {
                             performanceMonitor.OnPerformanceMetricsUpdatedHandler(trialSettings, metrics, trialCancellationTokenSource);
@@ -329,7 +334,7 @@ Abandoning Trial {trialSettings.TrialId} and continue training.
                 }
                 finally
                 {
-                    aggregateTrainingStopManager.RemoveTrainingStopManagerIfExist(stopTrialManager);
+                    aggregateTrainingStopManager.OnStopTraining -= handler;
                 }
             }
 

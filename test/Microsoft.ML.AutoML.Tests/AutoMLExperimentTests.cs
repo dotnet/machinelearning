@@ -39,7 +39,7 @@ namespace Microsoft.ML.AutoML.Test
                       {
                           var channel = serviceProvider.GetService<IChannel>();
                           var settings = serviceProvider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
-                          return new DummyTrialRunner(settings, 5, channel);
+                          return new DummyTrialRunner(settings, 50, channel);
                       })
                       .SetTuner<RandomSearchTuner>();
 
@@ -47,8 +47,10 @@ namespace Microsoft.ML.AutoML.Test
 
             context.Log += (o, e) =>
             {
+                this.Output.WriteLine(e.RawMessage);
                 if (e.RawMessage.Contains("Update Running Trial"))
                 {
+                    this.Output.WriteLine(e.RawMessage);
                     cts.Cancel();
                 }
             };
