@@ -248,94 +248,88 @@ namespace Microsoft.ML.AutoML
                 var parameter = tuner.Propose(trialSettings);
                 trialSettings.Parameter = parameter;
 
-                using (var trialCancellationTokenSource = new CancellationTokenSource())
+                var trialCancellationTokenSource = new CancellationTokenSource();
+                monitor?.ReportRunningTrial(trialSettings);
+                var stopTrialManager = new CancellationTokenStopTrainingManager(trialCancellationTokenSource.Token, null);
+                aggregateTrainingStopManager.AddTrainingStopManager(stopTrialManager);
+                try
                 {
-                    monitor?.ReportRunningTrial(trialSettings);
-
-                    void handler(object o, EventArgs e)
+                    using (var performanceMonitor = serviceProvider.GetService<IPerformanceMonitor>())
+                    using (var runner = serviceProvider.GetRequiredService<ITrialRunner>())
                     {
-                        trialCancellationTokenSource.Cancel();
-                    }
-                    try
-                    {
-                        using (var performanceMonitor = serviceProvider.GetService<IPerformanceMonitor>())
-                        using (var runner = serviceProvider.GetRequiredService<ITrialRunner>())
+                        performanceMonitor.PerformanceMetricsUpdated += (o, metrics) =>
                         {
-                            aggregateTrainingStopManager.OnStopTraining += handler;
-                            performanceMonitor.PerformanceMetricsUpdated += (o, metrics) =>
-                            {
-                                performanceMonitor.OnPerformanceMetricsUpdatedHandler(trialSettings, metrics, trialCancellationTokenSource);
-                            };
-
-                            performanceMonitor.Start();
-                            logger.Trace($"trial setting - {JsonSerializer.Serialize(trialSettings)}");
-                            var trialResult = await runner.RunAsync(trialSettings, trialCancellationTokenSource.Token);
-
-                            var peakCpu = performanceMonitor?.GetPeakCpuUsage();
-                            var peakMemoryInMB = performanceMonitor?.GetPeakMemoryUsageInMegaByte();
-                            trialResult.PeakCpu = peakCpu;
-                            trialResult.PeakMemoryInMegaByte = peakMemoryInMB;
-                            trialResult.TrialSettings.EndedAtUtc = DateTime.UtcNow;
-
-                            performanceMonitor.Pause();
-                            monitor?.ReportCompletedTrial(trialResult);
-                            tuner.Update(trialResult);
-                            trialResultManager?.AddOrUpdateTrialResult(trialResult);
-                            aggregateTrainingStopManager.Update(trialResult);
-
-                            var loss = trialResult.Loss;
-                            if (loss < _bestLoss)
-                            {
-                                _bestTrialResult = trialResult;
-                                _bestLoss = loss;
-                                monitor?.ReportBestTrial(trialResult);
-                            }
-                        }
-                    }
-                    catch (Exception ex) when (aggregateTrainingStopManager.IsStopTrainingRequested() == false)
-                    {
-                        var exceptionMessage = $@"
-Exception thrown during Trial {trialSettings.TrialId} with configuration {JsonSerializer.Serialize(trialSettings)}
-
-Exception Details: ex.Message
-
-Abandoning Trial {trialSettings.TrialId} and continue training.
-";
-                        logger.Trace(exceptionMessage);
-                        trialSettings.EndedAtUtc = DateTime.UtcNow;
-                        monitor?.ReportFailTrial(trialSettings, ex);
-                        var trialResult = new TrialResult
-                        {
-                            TrialSettings = trialSettings,
-                            Loss = double.MaxValue,
+                            performanceMonitor.OnPerformanceMetricsUpdatedHandler(trialSettings, metrics, trialCancellationTokenSource);
                         };
 
+                        performanceMonitor.Start();
+                        logger.Trace($"trial setting - {JsonSerializer.Serialize(trialSettings)}");
+                        var trialResult = await runner.RunAsync(trialSettings, trialCancellationTokenSource.Token);
+
+                        var peakCpu = performanceMonitor?.GetPeakCpuUsage();
+                        var peakMemoryInMB = performanceMonitor?.GetPeakMemoryUsageInMegaByte();
+                        trialResult.PeakCpu = peakCpu;
+                        trialResult.PeakMemoryInMegaByte = peakMemoryInMB;
+                        trialResult.TrialSettings.EndedAtUtc = DateTime.UtcNow;
+
+                        performanceMonitor.Pause();
+                        monitor?.ReportCompletedTrial(trialResult);
                         tuner.Update(trialResult);
                         trialResultManager?.AddOrUpdateTrialResult(trialResult);
                         aggregateTrainingStopManager.Update(trialResult);
 
-                        if (ex is not OperationCanceledException && _bestTrialResult == null)
+                        var loss = trialResult.Loss;
+                        if (loss < _bestLoss)
                         {
-                            logger.Trace($"trial fatal error - {JsonSerializer.Serialize(trialSettings)}, stop training");
-
-                            // TODO
-                            // it's questionable on whether to abort the entire training process
-                            // for a single fail trial. We should make it an option and only exit
-                            // when error is fatal (like schema mismatch).
-                            throw;
+                            _bestTrialResult = trialResult;
+                            _bestLoss = loss;
+                            monitor?.ReportBestTrial(trialResult);
                         }
-                        continue;
                     }
-                    catch (Exception) when (aggregateTrainingStopManager.IsStopTrainingRequested())
-                    {
-                        logger.Trace($"trial cancelled - {JsonSerializer.Serialize(trialSettings)}, stop training");
+                }
+                catch (Exception ex) when (aggregateTrainingStopManager.IsStopTrainingRequested() == false)
+                {
+                    var exceptionMessage = $@"
+Exception thrown during Trial {trialSettings.TrialId} with configuration {JsonSerializer.Serialize(trialSettings)}
 
-                        break;
-                    }
-                    finally
+Exception Details: {ex.Message}
+
+Abandoning Trial {trialSettings.TrialId} and continue training.
+";
+                    logger.Trace(exceptionMessage);
+                    trialSettings.EndedAtUtc = DateTime.UtcNow;
+                    monitor?.ReportFailTrial(trialSettings, ex);
+                    var trialResult = new TrialResult
                     {
-                        aggregateTrainingStopManager.OnStopTraining -= handler;
+                        TrialSettings = trialSettings,
+                        Loss = double.MaxValue,
+                    };
+
+                    tuner.Update(trialResult);
+                    trialResultManager?.AddOrUpdateTrialResult(trialResult);
+                    aggregateTrainingStopManager.Update(trialResult);
+
+                    if (ex is not OperationCanceledException && _bestTrialResult == null)
+                    {
+                        logger.Trace($"trial fatal error - {JsonSerializer.Serialize(trialSettings)}, stop training");
+
+                        // TODO
+                        // it's questionable on whether to abort the entire training process
+                        // for a single fail trial. We should make it an option and only exit
+                        // when error is fatal (like schema mismatch).
+                        throw;
                     }
+                    continue;
+                }
+                catch (Exception) when (aggregateTrainingStopManager.IsStopTrainingRequested())
+                {
+                    logger.Trace($"trial cancelled - {JsonSerializer.Serialize(trialSettings)}, stop training");
+
+                    break;
+                }
+                finally
+                {
+                    aggregateTrainingStopManager.RemoveTrainingStopManagerIfExist(stopTrialManager);
                 }
             }
 

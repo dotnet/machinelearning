@@ -70,7 +70,7 @@ namespace Microsoft.ML.AutoML.Test
         public async Task AggregateTrainingStopManager_isStopTrainingRequested_test()
         {
             var cts = new CancellationTokenSource();
-            var timeoutManager = new TimeoutTrainingStopManager(TimeSpan.FromSeconds(1), null);
+            var timeoutManager = new TimeoutTrainingStopManager(TimeSpan.FromSeconds(0), null);
             var cancellationManager = new CancellationTokenStopTrainingManager(cts.Token, null);
             var aggregationManager = new AggregateTrainingStopManager(null, timeoutManager, cancellationManager);
 
