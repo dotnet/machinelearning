@@ -5,9 +5,6 @@
 using System.Runtime.CompilerServices;
 using static TorchSharp.torch;
 
-#if NETSTANDARD2_0 || NETFRAMEWORK
-#endif
-
 namespace System
 {
     /// <summary>Represent a range has start and end indexes.</summary>

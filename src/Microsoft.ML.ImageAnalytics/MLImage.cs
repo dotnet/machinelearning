@@ -128,7 +128,8 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public byte[] PixelsNoAlpha
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "<Pending>")]
+        public byte[] GetBGRPixels
         {
             get
             {

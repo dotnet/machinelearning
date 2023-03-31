@@ -345,7 +345,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 {
                     MLImage image = default;
                     imageGetter(ref image);
-                    var midTensor0 = torch.tensor(image.PixelsNoAlpha, device: Device);
+                    var midTensor0 = torch.tensor(image.GetBGRPixels, device: Device);
                     var midTensor1 = midTensor0.@float();
                     var midTensor2 = midTensor1.reshape(1, image.Height, image.Width, 3);
                     var midTensor3 = midTensor2.transpose(0, 3);
@@ -874,7 +874,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 imageGetter(ref image);
                 using (var preprocessScope = torch.NewDisposeScope())
                 {
-                    var midTensor0 = torch.tensor(image.PixelsNoAlpha, device: _parent.Device);
+                    var midTensor0 = torch.tensor(image.GetBGRPixels, device: _parent.Device);
                     var midTensor1 = midTensor0.@float();
                     var midTensor2 = midTensor1.reshape(1, image.Height, image.Width, 3);
                     var midTensor3 = midTensor2.transpose(0, 3);
