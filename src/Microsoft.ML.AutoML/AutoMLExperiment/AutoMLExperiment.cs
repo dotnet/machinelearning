@@ -342,7 +342,7 @@ Abandoning Trial {trialSettings.TrialId} and continue training.
             trialResultManager?.Save();
             if (_bestTrialResult == null)
             {
-                throw new TimeoutException("Training time finished without completing a successful trial, this could happen when no trial is completed or the metric for all completed trials are nan or inf");
+                throw new TimeoutException("Training time finished without completing a successful trial. Either no trial completed or the metric for all completed trials are NaN or Infinity");
             }
             else
             {
