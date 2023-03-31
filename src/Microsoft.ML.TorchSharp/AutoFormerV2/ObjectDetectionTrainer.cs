@@ -29,6 +29,8 @@ using Microsoft.ML.TorchSharp.Extensions;
 using Microsoft.ML.TorchSharp.NasBert.Models;
 using static Microsoft.ML.TorchSharp.NasBert.NasBertTrainer;
 using TorchSharp.Modules;
+using System.Text;
+using static Microsoft.ML.Data.AnnotationUtils;
 
 [assembly: LoadableClass(typeof(ObjectDetectionTransformer), null, typeof(SignatureLoadModel),
     ObjectDetectionTransformer.UserName, ObjectDetectionTransformer.LoaderSignature)]
@@ -40,7 +42,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 {
     public class ObjectDetectionTrainer : IEstimator<ObjectDetectionTransformer>
     {
-        internal sealed class Options : TransformInputBase
+        public sealed class Options : TransformInputBase
         {
             /// <summary>
             /// The label column name.
@@ -68,7 +70,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             public string ScoreColumnName = DefaultColumnNames.Score;
 
             /// <summary>
-            /// Gets or sets the IOU threshold for removing duplicate boundbing boxes.
+            /// Gets or sets the IOU threshold for removing duplicate bounding boxes.
             /// </summary>
             [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "<Pending>")]
             public double IOUThreshold = 0.5;
@@ -82,11 +84,6 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             /// Gets or sets the epoch steps in learning rate scheduler to reduce learning rate.
             /// </summary>
             public List<int> Steps = new List<int> { 6 };
-
-            /// <summary>
-            /// Number of samples to use for mini-batch training.
-            /// </summary>
-            public int BatchSize = 32;
 
             /// <summary>
             /// Stop training when reaching this number of epochs.
@@ -121,7 +118,6 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         internal ObjectDetectionTrainer(IHostEnvironment env, Options options)
         {
             Host = Contracts.CheckRef(env, nameof(env)).Register(nameof(NasBertTrainer));
-            Contracts.Assert(options.BatchSize > 0);
             Contracts.Assert(options.MaxEpoch > 0);
             Contracts.AssertValue(options.BoundingBoxColumnName);
             Contracts.AssertValue(options.LabelColumnName);
@@ -138,7 +134,6 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             string scoreColumnName = DefaultColumnNames.Score,
             string boundingBoxColumnName = "BoundingBoxes",
             string imageColumnName = "Image",
-            int batchSize = 32,
             int maxEpoch = 10) :
             this(env, new Options
             {
@@ -147,7 +142,6 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 ScoreColumnName = scoreColumnName,
                 BoundingBoxColumnName = boundingBoxColumnName,
                 ImageColumnName = imageColumnName,
-                BatchSize = batchSize,
                 MaxEpoch = maxEpoch
             })
         {
@@ -221,7 +215,6 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                     Model.cuda();
 
                 // Get the parameters that need optimization and set up the optimizer
-                var parameters = Model.parameters().Where(p => p.requires_grad);
                 Optimizer = SGD(
                     Model.parameters(),
                     learningRate: Parent.Option.InitLearningRate,
@@ -283,63 +276,57 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 var imageGetter = cursor.GetGetter<MLImage>(input.Schema[Parent.Option.ImageColumnName]);
                 var labelGetter = cursor.GetGetter<VBuffer<uint>>(input.Schema[Parent.Option.LabelColumnName]);
 
-                // Pre-allocate the memory so it's only done once (though this step needs to be optimized)
-                List<Tensor> inputTensors = new List<Tensor>(Parent.Option.BatchSize);
-                List<Tensor> targets = new List<Tensor>(Parent.Option.BatchSize);
-
                 var cursorValid = true;
+                Updates = 0;
+
+                Model.train();
+                Model.FreezeBN();
+
+                if (host is IHostEnvironmentInternal hostInternal)
+                {
+                    torch.random.manual_seed(hostInternal.Seed ?? 1);
+                    torch.cuda.manual_seed(hostInternal.Seed ?? 1);
+                }
+                else
+                {
+                    torch.random.manual_seed(1);
+                    torch.cuda.manual_seed(1);
+                }
+
                 while (cursorValid)
                 {
-                    cursorValid = TrainStep(host, cursor, boundingBoxGetter, imageGetter, labelGetter, ref inputTensors, ref targets);
+                    cursorValid = TrainStep(host, cursor, boundingBoxGetter, imageGetter, labelGetter);
                 }
+
+                LearningRateScheduler.step();
             }
 
             private bool TrainStep(IHost host,
                 DataViewRowCursor cursor,
                 ValueGetter<VBuffer<float>> boundingBoxGetter,
                 ValueGetter<MLImage> imageGetter,
-                ValueGetter<VBuffer<uint>> labelGetter,
-            ref List<Tensor> inputTensors,
-            ref List<Tensor> targets)
+                ValueGetter<VBuffer<uint>> labelGetter)
             {
-                // Make sure list is clear before use
-                inputTensors.Clear();
-                targets.Clear();
                 using var disposeScope = torch.NewDisposeScope();
                 var cursorValid = true;
                 Tensor imageTensor = default;
                 Tensor targetTensor = default;
 
-                for (int i = 0; i < Parent.Option.BatchSize && cursorValid; i++)
+                host.CheckAlive();
+                cursorValid = cursor.MoveNext();
+                if (cursorValid)
                 {
-                    host.CheckAlive();
-                    cursorValid = cursor.MoveNext();
-                    if (cursorValid)
-                    {
-                        (imageTensor, targetTensor) = PrepareData(labelGetter, imageGetter, boundingBoxGetter);
-                        inputTensors.Add(imageTensor);
-                        targets.Add(targetTensor);
-                    }
-                    else
-                    {
-                        inputTensors.TrimExcess();
-                        targets.TrimExcess();
-                        if (inputTensors.Count() == 0)
-                            return cursorValid;
-                    }
+                    (imageTensor, targetTensor) = PrepareData(labelGetter, imageGetter, boundingBoxGetter);
+                }
+                else
+                {
+                    return cursorValid;
                 }
 
                 Updates++;
                 host.CheckAlive();
-                torch.random.manual_seed(1 + Updates);
-                torch.cuda.manual_seed(1 + Updates);
-                Model.train();
-                Model.FreezeBN();
 
                 Optimizer.zero_grad();
-
-                imageTensor = torch.cat(inputTensors);
-                targetTensor = torch.cat(targets);
 
                 var (classification, regression, anchors) = Model.forward(imageTensor);
                 var lossValue = Loss.forward(classification, regression, anchors, targetTensor);
@@ -356,10 +343,9 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             {
                 using (var _ = torch.NewDisposeScope())
                 {
-                    //var image = new Image(this.imageList[idx]);
                     MLImage image = default;
                     imageGetter(ref image);
-                    var midTensor0 = torch.tensor(image.PixelsNoAlpha.ToArray(), device: Device);
+                    var midTensor0 = torch.tensor(image.PixelsNoAlpha, device: Device);
                     var midTensor1 = midTensor0.@float();
                     var midTensor2 = midTensor1.reshape(1, image.Height, image.Width, 3);
                     var midTensor3 = midTensor2.transpose(0, 3);
@@ -394,8 +380,9 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                     {
                         long x0 = (long)boxValues[b++];
                         long y0 = (long)boxValues[b++];
-                        long x1 = x0 + (long)boxValues[b++] - 1;
-                        long y1 = y0 + (long)boxValues[b++] - 1;
+                        long x1 = (long)boxValues[b++];
+                        long y1 = (long)boxValues[b++];
+                        // Our labels are 1 based, the TorchSharp model is 0 based so subtract 1 to they align correctly.
                         long cl = labelValues[i] - 1;
                         labelTensor[.., i, 0] = x0;
                         labelTensor[.., i, 1] = y0;
@@ -403,7 +390,6 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                         labelTensor[.., i, 3] = y1;
                         labelTensor[.., i, 4] = cl;
                     }
-
                     return (imageTensor.MoveToOuterDisposeScope(), labelTensor.MoveToOuterDisposeScope());
                 }
             }
@@ -435,20 +421,31 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             var outColumns = inputSchema.ToDictionary(x => x.Name);
 
             var metadata = new List<SchemaShape.Column>();
-            metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
+            metadata.Add(new SchemaShape.Column(Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
+                TextDataViewType.Instance, false));
+
+            var scoreMetadata = new List<SchemaShape.Column>();
+
+            scoreMetadata.Add(new SchemaShape.Column(Kinds.ScoreColumnKind, SchemaShape.Column.VectorKind.Scalar,
+                TextDataViewType.Instance, false));
+            scoreMetadata.Add(new SchemaShape.Column(Kinds.ScoreValueKind, SchemaShape.Column.VectorKind.Scalar,
+                TextDataViewType.Instance, false));
+            scoreMetadata.Add(new SchemaShape.Column(Kinds.ScoreColumnSetId, SchemaShape.Column.VectorKind.Scalar,
+                NumberDataViewType.UInt32, true));
+            scoreMetadata.Add(new SchemaShape.Column(Kinds.TrainingLabelValues, SchemaShape.Column.VectorKind.Vector,
                 TextDataViewType.Instance, false));
 
             // Get label column for score column annotations. Already verified it exists.
             inputSchema.TryFindColumn(Option.LabelColumnName, out var labelCol);
 
-            outColumns[Option.PredictedLabelColumnName] = new SchemaShape.Column(Option.PredictedLabelColumnName, SchemaShape.Column.VectorKind.Vector,
+            outColumns[Option.PredictedLabelColumnName] = new SchemaShape.Column(Option.PredictedLabelColumnName, SchemaShape.Column.VectorKind.VariableVector,
                     NumberDataViewType.UInt32, true, new SchemaShape(metadata.ToArray()));
 
-            outColumns[Option.BoundingBoxColumnName] = new SchemaShape.Column(Option.BoundingBoxColumnName, SchemaShape.Column.VectorKind.Vector,
-                NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.AnnotationsForMulticlassScoreColumn(labelCol)));
-
-            outColumns[Option.ScoreColumnName] = new SchemaShape.Column(Option.ScoreColumnName, SchemaShape.Column.VectorKind.Vector,
+            outColumns[Option.BoundingBoxColumnName] = new SchemaShape.Column(Option.BoundingBoxColumnName, SchemaShape.Column.VectorKind.VariableVector,
                 NumberDataViewType.Single, false);
+
+            outColumns[Option.ScoreColumnName] = new SchemaShape.Column(Option.ScoreColumnName, SchemaShape.Column.VectorKind.VariableVector,
+                NumberDataViewType.Single, false, new SchemaShape(scoreMetadata.ToArray()));
 
 
             return new SchemaShape(outColumns.Values);
@@ -527,14 +524,25 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             var predLabelMetadata = new SchemaShape(new SchemaShape.Column[] { labelAnnotationsColumn }
                 .Concat(AnnotationUtils.GetTrainerOutputAnnotation()));
 
-            outColumns[Options.PredictedLabelColumnName] = new SchemaShape.Column(Options.PredictedLabelColumnName, SchemaShape.Column.VectorKind.Vector,
+            var scoreMetadata = new List<SchemaShape.Column>();
+
+            scoreMetadata.Add(new SchemaShape.Column(Kinds.ScoreColumnKind, SchemaShape.Column.VectorKind.Scalar,
+                TextDataViewType.Instance, false));
+            scoreMetadata.Add(new SchemaShape.Column(Kinds.ScoreValueKind, SchemaShape.Column.VectorKind.Scalar,
+                TextDataViewType.Instance, false));
+            scoreMetadata.Add(new SchemaShape.Column(Kinds.ScoreColumnSetId, SchemaShape.Column.VectorKind.Scalar,
+                NumberDataViewType.UInt32, true));
+            scoreMetadata.Add(new SchemaShape.Column(Kinds.TrainingLabelValues, SchemaShape.Column.VectorKind.Vector,
+                TextDataViewType.Instance, false));
+
+            outColumns[Options.PredictedLabelColumnName] = new SchemaShape.Column(Options.PredictedLabelColumnName, SchemaShape.Column.VectorKind.VariableVector,
                 NumberDataViewType.UInt32, true, predLabelMetadata);
 
-            outColumns[Options.BoundingBoxColumnName] = new SchemaShape.Column(Options.BoundingBoxColumnName, SchemaShape.Column.VectorKind.Vector,
+            outColumns[Options.BoundingBoxColumnName] = new SchemaShape.Column(Options.BoundingBoxColumnName, SchemaShape.Column.VectorKind.VariableVector,
                 NumberDataViewType.Single, false);
 
-            outColumns[Options.ScoreColumnName] = new SchemaShape.Column(Options.ScoreColumnName, SchemaShape.Column.VectorKind.Vector,
-                NumberDataViewType.Single, false);
+            outColumns[Options.ScoreColumnName] = new SchemaShape.Column(Options.ScoreColumnName, SchemaShape.Column.VectorKind.VariableVector,
+                NumberDataViewType.Single, false, new SchemaShape(scoreMetadata.ToArray()));
 
             return new SchemaShape(outColumns.Values);
         }
@@ -700,8 +708,16 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 if (inputSchema.TryGetColumnIndex(parent.Options.ImageColumnName, out var col))
                     _inputColIndices.Add(col);
 
-                torch.random.manual_seed(1);
-                torch.cuda.manual_seed(1);
+                if (Host is IHostEnvironmentInternal hostInternal)
+                {
+                    torch.random.manual_seed(hostInternal.Seed ?? 1);
+                    torch.cuda.manual_seed(hostInternal.Seed ?? 1);
+                }
+                else
+                {
+                    torch.random.manual_seed(1);
+                    torch.cuda.manual_seed(1);
+                }
             }
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
@@ -713,17 +729,16 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 var meta = new DataViewSchema.Annotations.Builder();
                 meta.Add(AnnotationUtils.Kinds.ScoreColumnKind, TextDataViewType.Instance, (ref ReadOnlyMemory<char> value) => { value = AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification.AsMemory(); });
-                meta.Add(AnnotationUtils.Kinds.ScoreColumnSetId, new KeyDataViewType(typeof(uint), _parent.Options.NumberOfClasses), GetScoreColumnSetId(InputSchema));
+                meta.Add(AnnotationUtils.Kinds.ScoreColumnSetId, AnnotationUtils.ScoreColumnSetIdType, GetScoreColumnSetId(InputSchema));
                 meta.Add(AnnotationUtils.Kinds.ScoreValueKind, TextDataViewType.Instance, (ref ReadOnlyMemory<char> value) => { value = AnnotationUtils.Const.ScoreValueKind.Score.AsMemory(); });
                 meta.Add(AnnotationUtils.Kinds.TrainingLabelValues, keyType, getter);
-                meta.Add(AnnotationUtils.Kinds.SlotNames, keyType, getter);
 
                 var labelBuilder = new DataViewSchema.Annotations.Builder();
                 labelBuilder.Add(AnnotationUtils.Kinds.KeyValues, keyType, getter);
 
                 info[0] = new DataViewSchema.DetachedColumn(_parent.Options.PredictedLabelColumnName, new VectorDataViewType(new KeyDataViewType(typeof(uint), _parent.Options.NumberOfClasses)), labelBuilder.ToAnnotations());
 
-                info[1] = new DataViewSchema.DetachedColumn(_parent.Options.ScoreColumnName, new VectorDataViewType(NumberDataViewType.Single, _parent.Options.NumberOfClasses), meta.ToAnnotations());
+                info[1] = new DataViewSchema.DetachedColumn(_parent.Options.ScoreColumnName, new VectorDataViewType(NumberDataViewType.Single), meta.ToAnnotations());
 
                 info[2] = new DataViewSchema.DetachedColumn(_parent.Options.BoundingBoxColumnName, new VectorDataViewType(NumberDataViewType.Single));
                 return info;
@@ -859,7 +874,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 imageGetter(ref image);
                 using (var preprocessScope = torch.NewDisposeScope())
                 {
-                    var midTensor0 = torch.tensor(image.PixelsNoAlpha.ToArray(), device: _parent.Device);
+                    var midTensor0 = torch.tensor(image.PixelsNoAlpha, device: _parent.Device);
                     var midTensor1 = midTensor0.@float();
                     var midTensor2 = midTensor1.reshape(1, image.Height, image.Width, 3);
                     var midTensor3 = midTensor2.transpose(0, 3);
@@ -871,7 +886,6 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                     part.Add(chunks[1]);
                     part.Add(chunks[0]);
 
-
                     var midTensor = torch.cat(part, 0);
                     var reMidTensor = midTensor.reshape(1, 3, image.Height, image.Width);
                     var padW = 32 - (image.Width % 32);
@@ -879,17 +893,13 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                     var transMidTensor = torch.zeros(1, 3, image.Height + padH, image.Width + padW, device: _parent.Device);
                     transMidTensor[.., .., ..image.Height, ..image.Width] = reMidTensor / 255.0;
                     var imageTensor = ObjectDetectionTrainer.Trainer.Normalize(transMidTensor, _parent.Device);
-
                     return imageTensor.MoveToOuterDisposeScope();
                 }
             }
 
             private (Tensor, Tensor, Tensor) PrepAndRunModel(Tensor inputTensor)
             {
-                using (torch.no_grad())
-                {
-                    return _parent.Model.forward(inputTensor);
-                }
+                return _parent.Model.forward(inputTensor);
             }
 
             private protected class TensorCacher : IDisposable
@@ -928,8 +938,12 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 {
 
                     var imageTensor = PrepInputTensors(ref image, getImage);
+                    _parent.Model.eval();
+
                     (var pred, var score, var box) = PrepAndRunModel(imageTensor);
+
                     ImageUtils.Postprocess(imageTensor, pred, score, box, out outputCache.PredictedLabelsBuffer, out outputCache.ScoresBuffer, out outputCache.BoxBuffer, _parent.Options.ScoreThreshold, _parent.Options.IOUThreshold);
+
                     pred.Dispose();
                     score.Dispose();
                     box.Dispose();

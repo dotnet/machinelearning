@@ -128,44 +128,26 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public ReadOnlySpan<byte> PixelsNoAlpha
+        public byte[] PixelsNoAlpha
         {
             get
             {
                 ThrowInvalidOperationExceptionIfDisposed();
 
-                GetOrder(ColorsOrder.ARGB, ColorBits.Rgb, out int a, out int r, out int b, out int g);
-
                 // 3 is because we only want RGB not alpha channels
                 byte[] pixels = new byte[Height * Width * 3];
 
-                (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = PixelFormat switch
+                var pixelData = _image.Pixels;
+                int idx = 0;
+                for (int i = 0; i < Height * Width * 3;)
                 {
-                    MLPixelFormat.Bgra32 => (3, 2, 1, 0),
-                    MLPixelFormat.Rgba32 => (3, 0, 1, 2),
-                    _ => throw new InvalidOperationException($"Image pixel format is not supported")
-                };
 
-                int cpix = Height * Width;
-                int ix = 0;
-                int pixelByteCount = alphaIndex > 0 ? 4 : 3;
-                int idstMin = 0;
-
-                for (int y = 0; y < Height; ++y)
-                {
-                    int idst = idstMin + y * Width;
-                    for (int x = 0; x < Width; x++, idst++)
-                    {
-                        if (a != -1) pixels[idst + cpix * a] = (byte)(alphaIndex > 0 ? Pixels[ix + alphaIndex] : 255);
-                        if (r != -1) pixels[idst + cpix * r] = Pixels[ix + redIndex];
-                        if (g != -1) pixels[idst + cpix * g] = Pixels[ix + greenIndex];
-                        if (b != -1) pixels[idst + cpix * b] = Pixels[ix + blueIndex];
-
-                        ix += pixelByteCount;
-                    }
+                    pixels[i++] = pixelData[idx].Blue;
+                    pixels[i++] = pixelData[idx].Green;
+                    pixels[i++] = pixelData[idx++].Red;
                 }
 
-                return new ReadOnlySpan<byte>(pixels);
+                return pixels;
             }
         }
 

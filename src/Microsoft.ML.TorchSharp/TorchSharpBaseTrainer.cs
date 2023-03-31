@@ -25,7 +25,7 @@ namespace Microsoft.ML.TorchSharp
 
         public abstract SchemaShape GetOutputSchema(SchemaShape inputSchema);
 
-        internal class Options : TransformInputBase
+        public abstract class Options : TransformInputBase
         {
             /// <summary>
             /// The label column name.
@@ -55,7 +55,7 @@ namespace Microsoft.ML.TorchSharp
             /// <summary>
             /// The final learning rate for polynomial decay scheduler.
             /// </summary>
-            public double FinalLearningRateRatio = .1;
+            public double FinalLearningRateRatio = .9;
 
             /// <summary>
             /// Coefficiency of weight decay. Should be within [0, +Inf).
@@ -275,6 +275,17 @@ namespace Microsoft.ML.TorchSharp
                 List<Tensor> inputTensors = new List<Tensor>(Parent.Option.BatchSize);
                 List<TTargetsCol> targets = new List<TTargetsCol>(Parent.Option.BatchSize);
 
+                if (host is IHostEnvironmentInternal hostInternal)
+                {
+                    torch.random.manual_seed(hostInternal.Seed ?? 1);
+                    torch.cuda.manual_seed(hostInternal.Seed ?? 1);
+                }
+                else
+                {
+                    torch.random.manual_seed(1);
+                    torch.cuda.manual_seed(1);
+                }
+
                 var cursorValid = true;
                 while (cursorValid)
                 {
@@ -315,8 +326,6 @@ namespace Microsoft.ML.TorchSharp
 
                 Updates++;
                 host.CheckAlive();
-                torch.random.manual_seed(1 + Updates);
-                torch.cuda.manual_seed(1 + Updates);
                 Model.train();
                 Optimizer.zero_grad();
 
@@ -445,8 +454,16 @@ namespace Microsoft.ML.TorchSharp
                 InputColIndices = new HashSet<int>();
                 AddInputColumnIndices(inputSchema);
 
-                torch.random.manual_seed(1);
-                torch.cuda.manual_seed(1);
+                if (Host is IHostEnvironmentInternal hostInternal)
+                {
+                    torch.random.manual_seed(hostInternal.Seed ?? 1);
+                    torch.cuda.manual_seed(hostInternal.Seed ?? 1);
+                }
+                else
+                {
+                    torch.random.manual_seed(1);
+                    torch.cuda.manual_seed(1);
+                }
             }
 
             private protected abstract void AddInputColumnIndices(DataViewSchema inputSchema);

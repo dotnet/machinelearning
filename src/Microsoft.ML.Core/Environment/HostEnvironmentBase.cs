@@ -392,6 +392,9 @@ namespace Microsoft.ML.Runtime
 
             // This fork shares some stuff with the master.
             Master = source;
+            GpuDeviceId = Master?.GpuDeviceId;
+            FallbackToCpu = Master?.FallbackToCpu ?? true;
+            Seed = Master?.Seed;
             Root = source.Root;
             ListenerDict = source.ListenerDict;
             ProgressTracker = source.ProgressTracker;

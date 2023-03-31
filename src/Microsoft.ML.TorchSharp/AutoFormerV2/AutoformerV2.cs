@@ -16,10 +16,6 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
     /// </summary>
     public class AutoFormerV2 : Module<Tensor, (Tensor, Tensor, Tensor)>
     {
-        /// <summary>
-        /// The mapping table of index to category name for each object.
-        /// </summary>
-        public Dictionary<long, string> IndexTable;
 
 #pragma warning disable MSML_PrivateFieldName // Need to match TorchSharp model names.
         private readonly Device device;
@@ -40,8 +36,6 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         public AutoFormerV2(int numClasses, List<int> embedChannels, List<int> depths, List<int> numHeads, Device device = null)
             : base(nameof(AutoFormerV2))
         {
-            this.IndexTable = new Dictionary<long, string>();
-
             this.device = device;
 
             this.backbone = new AutoFormerV2Backbone(embedChannels: embedChannels, depths: depths, numHeads: numHeads);

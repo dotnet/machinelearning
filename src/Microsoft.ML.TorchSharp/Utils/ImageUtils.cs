@@ -90,9 +90,15 @@ namespace Microsoft.ML.TorchSharp.Utils
                         score[i] = finalScores[id].ToSingle();
                         boxes[boxIndex++] = bbox[0].ToSingle();
                         boxes[boxIndex++] = bbox[1].ToSingle();
-                        boxes[boxIndex++] = (bbox[2] - bbox[0] + 1).ToSingle();
-                        boxes[boxIndex++] = (bbox[3] - bbox[1] + 1).ToSingle();
+                        boxes[boxIndex++] = bbox[2].ToSingle();
+                        boxes[boxIndex++] = bbox[3].ToSingle();
                     }
+                }
+                else
+                {
+                    predictedLabels = new uint[0];
+                    score = new float[0];
+                    boxes = new float[0];
                 }
             }
         }

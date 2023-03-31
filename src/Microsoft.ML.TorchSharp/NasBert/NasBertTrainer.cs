@@ -28,7 +28,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
     public class NasBertTrainer
     {
-        internal sealed class NasBertOptions : TorchSharpBaseTrainer.Options
+        public sealed class NasBertOptions : TorchSharpBaseTrainer.Options
         {
             /// <summary>
             /// The first sentence column.
@@ -98,7 +98,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             /// <summary>
             /// The clipping threshold of gradients. Should be within [0, +Inf). 0 means not to clip norm.
             /// </summary>
-            public double ClipNorm = 25;
+            public double ClipNorm = 5.0;
 
             /// <summary>
             /// Proportion of warmup steps for polynomial decay scheduler.
@@ -109,17 +109,17 @@ namespace Microsoft.ML.TorchSharp.NasBert
             /// Learning rate for the first N epochs; all epochs >N using LR_N.
             /// Note: this may be interpreted differently depending on the scheduler.
             /// </summary>
-            internal List<double> LearningRate = new List<double> { 1e-4 };
+            public List<double> LearningRate = new List<double> { 1e-4 };
+
+            /// <summary>
+            /// Task type, which is related to the model head.
+            /// </summary>
+            public BertTaskType TaskType = BertTaskType.None;
 
             /// <summary>
             /// The index numbers of model architecture. Fixed by the TorchSharp model.
             /// </summary>
             internal IReadOnlyList<int> Arches = new int[] { 9, 11, 7, 0, 0, 0, 11, 11, 7, 0, 0, 0, 9, 7, 11, 0, 0, 0, 10, 7, 9, 0, 0, 0 };
-
-            /// <summary>
-            /// Task type, which is related to the model head.
-            /// </summary>
-            internal BertTaskType TaskType = BertTaskType.TextClassification;
 
             /// <summary>
             /// Maximum length of a sample. Set by the TorchSharp model.
@@ -168,6 +168,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
         {
             BertOptions = options as NasBertTrainer.NasBertOptions;
             Contracts.AssertValue(BertOptions.Sentence1ColumnName);
+            Contracts.Assert(BertOptions.TaskType != BertTaskType.None, "BertTaskType must be specified");
         }
 
         private protected abstract class NasBertTrainerBase : TrainerBase
@@ -192,7 +193,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                    pct_start: Parent.BertOptions.WarmupRatio,
                    anneal_strategy: torch.optim.lr_scheduler.impl.OneCycleLR.AnnealStrategy.Linear,
                    div_factor: 1.0 / Parent.Option.StartLearningRateRatio,
-                   final_div_factor: 1.0 / Parent.Option.FinalLearningRateRatio);
+                   final_div_factor: Parent.Option.StartLearningRateRatio / Parent.Option.FinalLearningRateRatio);
             }
 
             private protected override Module CreateModule(IChannel ch, IDataView input)
@@ -267,8 +268,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     loss = torch.nn.CrossEntropyLoss(reduction: Parent.BertOptions.Reduction).forward(logits, targetsTensor);
                 else
                 {
-                    loss = torch.nn.MSELoss(reduction: Parent.BertOptions.Reduction).forward(logits, targetsTensor);
-                    logits = logits.squeeze();
+                    loss = torch.nn.MSELoss(reduction: Parent.BertOptions.Reduction).forward(logits.squeeze(), targetsTensor);
                 }
 
                 loss.backward();
@@ -471,7 +471,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
                     var meta = new DataViewSchema.Annotations.Builder();
                     meta.Add(AnnotationUtils.Kinds.ScoreColumnKind, TextDataViewType.Instance, (ref ReadOnlyMemory<char> value) => { value = AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification.AsMemory(); });
-                    meta.Add(AnnotationUtils.Kinds.ScoreColumnSetId, new KeyDataViewType(typeof(uint), Parent.Options.NumberOfClasses), GetScoreColumnSetId(InputSchema));
+                    meta.Add(AnnotationUtils.Kinds.ScoreColumnSetId, AnnotationUtils.ScoreColumnSetIdType, GetScoreColumnSetId(InputSchema));
                     meta.Add(AnnotationUtils.Kinds.ScoreValueKind, TextDataViewType.Instance, (ref ReadOnlyMemory<char> value) => { value = AnnotationUtils.Const.ScoreValueKind.Score.AsMemory(); });
                     meta.Add(AnnotationUtils.Kinds.TrainingLabelValues, keyType, getter);
                     meta.Add(AnnotationUtils.Kinds.SlotNames, keyType, getter);

@@ -84,6 +84,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 BatchSize = batchSize,
                 MaxEpoch = maxEpochs,
                 ValidationSet = validationSet,
+                TaskType = BertTaskType.TextClassification
             })
         {
         }
