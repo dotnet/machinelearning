@@ -373,6 +373,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                     var labelValues = labels.GetValues();
                     var boxValues = boxes.GetValues();
+                    Contracts.Assert(boxValues.Length == labelValues.Length * 4, "Must have 4 coordinates for each label");
 
                     int b = 0;
                     var labelTensor = torch.zeros(1, labels.Length, 5, dtype: ScalarType.Int64, device: Device);

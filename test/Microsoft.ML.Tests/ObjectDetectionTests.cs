@@ -2,12 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Transforms.Image;
@@ -15,10 +11,7 @@ using Microsoft.VisualBasic;
 using Microsoft.ML.TorchSharp;
 using Xunit;
 using Xunit.Abstractions;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
 using Microsoft.ML.TorchSharp.AutoFormerV2;
-using static TorchSharp.torch.utils;
 
 namespace Microsoft.ML.Tests
 {
