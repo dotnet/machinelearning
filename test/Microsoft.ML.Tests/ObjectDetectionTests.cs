@@ -23,31 +23,6 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        private class SimpleInput
-        {
-            [ImageType(10, 10)]
-            public MLImage Image { get; set; }
-            public string Labels;
-            public string Box;
-
-            public SimpleInput(int width, int height, byte red, byte green, byte blue, string labels, string box)
-            {
-                byte[] imageData = new byte[width * height * 4]; // 4 for the red, green, blue and alpha colors
-                for (int i = 0; i < imageData.Length; i += 4)
-                {
-                    // Fill the buffer with the Bgra32 format
-                    imageData[i] = blue;
-                    imageData[i + 1] = green;
-                    imageData[i + 2] = red;
-                    imageData[i + 3] = 255;
-                }
-
-                Image = MLImage.CreateFromPixels(width, height, MLPixelFormat.Bgra32, imageData);
-                Labels = labels;
-                Box = box;
-            }
-        }
-
         [Fact]
         public void SimpleObjDetectionTest()
         {
@@ -81,7 +56,8 @@ namespace Microsoft.ML.Tests
             {
                 LabelColumnName = "Labels",
                 BoundingBoxColumnName = "Box",
-                ScoreThreshold = .5
+                ScoreThreshold = .5,
+                MaxEpoch = 1
             };
 
             var pipeline = ML.Transforms.Text.TokenizeIntoWords("Labels", separators: new char[] { ',' })
