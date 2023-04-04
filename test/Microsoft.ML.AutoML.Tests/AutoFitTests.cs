@@ -65,6 +65,33 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void AutoFit_UCI_Adult_AutoZero_Test()
+        {
+            var context = new MLContext(1);
+            var dataPath = DatasetUtil.GetUciAdultDataset();
+            var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(dataPath);
+            var settings = new BinaryExperimentSettings
+            {
+                MaxModels = 1,
+                UseAutoZeroTuner = true,
+            };
+
+            settings.Trainers.Remove(BinaryClassificationTrainer.LightGbm);
+            settings.Trainers.Remove(BinaryClassificationTrainer.SdcaLogisticRegression);
+            settings.Trainers.Remove(BinaryClassificationTrainer.LbfgsLogisticRegression);
+
+            var result = context.Auto()
+                .CreateBinaryClassificationExperiment(settings)
+                .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
+            result.BestRun.ValidationMetrics.Accuracy.Should().BeGreaterOrEqualTo(0.7);
+            Assert.NotNull(result.BestRun.Estimator);
+            Assert.NotNull(result.BestRun.Model);
+            Assert.NotNull(result.BestRun.TrainerName);
+        }
+
+        [Fact]
         public void AutoFit_UCI_Adult_Train_Test_Split_Test()
         {
             var context = new MLContext(1);
@@ -102,7 +129,6 @@ namespace Microsoft.ML.AutoML.Test
             var settings = new BinaryExperimentSettings
             {
                 MaxModels = 1,
-                UseAutoZeroTuner = true,
             };
 
             settings.Trainers.Remove(BinaryClassificationTrainer.LightGbm);
