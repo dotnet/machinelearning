@@ -69,10 +69,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Tuner\Portfolios.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="Tuner\Portfolios.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>

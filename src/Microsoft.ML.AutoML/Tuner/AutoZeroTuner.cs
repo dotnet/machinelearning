@@ -26,18 +26,22 @@ namespace Microsoft.ML.AutoML.Tuner
 
         public AutoZeroTuner(SweepablePipeline pipeline, AggregateTrainingStopManager aggregateTrainingStopManager, IEvaluateMetricManager evaluateMetricManager, AutoMLExperiment.AutoMLExperimentSettings settings)
         {
-            _configs = LoadConfigsFromCsv();
+            _configs = LoadConfigsFromJson();
             _sweepablePipeline = pipeline;
             _pipelineStrings = _sweepablePipeline.Schema.ToTerms().Select(t => new
             {
                 schema = t.ToString(),
                 pipelineString = string.Join("=>", t.ValueEntities().Select(e => _sweepablePipeline.Estimators[e.ToString()].EstimatorType)),
             }).ToDictionary(kv => kv.schema, kv => kv.pipelineString);
+
+            // todo
+            // filter configs on trainers
+            var trainerEstimators = _sweepablePipeline.Estimators.Where(e => e.Value.EstimatorType.IsTrainer()).Select(e => e.Value.EstimatorType.ToString()).ToList();
             _configs = evaluateMetricManager switch
             {
-                BinaryMetricManager => _configs.Where(c => c.Task == "binary-classification").ToList(),
-                MultiClassMetricManager => _configs.Where(c => c.Task == "multi-classification").ToList(),
-                RegressionMetricManager => _configs.Where(c => c.Task == "regression").ToList(),
+                BinaryMetricManager => _configs.Where(c => c.Task == "binary-classification" && trainerEstimators.Contains(c.Trainer)).ToList(),
+                MultiClassMetricManager => _configs.Where(c => c.Task == "multi-classification" && trainerEstimators.Contains(c.Trainer)).ToList(),
+                RegressionMetricManager => _configs.Where(c => c.Task == "regression" && trainerEstimators.Contains(c.Trainer)).ToList(),
                 _ => throw new Exception(),
             };
             _metricName = evaluateMetricManager switch
@@ -47,11 +51,17 @@ namespace Microsoft.ML.AutoML.Tuner
                 RegressionMetricManager rm => rm.Metric.ToString(),
                 _ => throw new Exception(),
             };
+
+            if (_configs.Count == 0)
+            {
+                throw new ArgumentException($"Fail to find available configs for given trainers: {string.Join(",", trainerEstimators)}");
+            }
+
             _configsEnumerator = _configs.GetEnumerator();
             aggregateTrainingStopManager.AddTrainingStopManager(new MaxModelStopManager(_configs.Count, null));
         }
 
-        private List<Config> LoadConfigsFromCsv()
+        private List<Config> LoadConfigsFromJson()
         {
             var assembly = Assembly.GetExecutingAssembly();
             var resourceName = "Microsoft.ML.AutoML.Tuner.Portfolios.json";
@@ -60,53 +70,7 @@ namespace Microsoft.ML.AutoML.Tuner
             using (StreamReader reader = new StreamReader(stream))
             {
                 var json = reader.ReadToEnd();
-                var res = new List<Config>();
-                var rows = JsonSerializer.Deserialize<List<Rows>>(json);
-                foreach (var row in rows)
-                {
-                    var config = new Config();
-                    config.Name = row.CustomDimensionsDataset;
-                    if (row.CustomDimensionsBestPipeline.Contains("OneHotEncoding"))
-                    {
-                        config.CatalogTransformer = "OneHotEncoding";
-                    }
-                    else
-                    {
-                        config.CatalogTransformer = "OneHotHashEncoding";
-                    }
-
-                    config.Task = row.CustomDimensionsOptionsTask;
-                    var i = 0;
-                    foreach (var estimator in row.CustomDimensionsBestPipeline.Split(new[] { "=>" }, StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        if (Enum.TryParse<EstimatorType>(estimator, out var estimatorType) && estimatorType.IsTrainer())
-                        {
-                            config.Trainer = estimator;
-                            break;
-                        }
-                        i++;
-                    }
-                    var parameter = row.CustomDimensionsParameter;
-                    var schema = parameter["_pipeline_"]["_SCHEMA_"].AsType<string>();
-                    var trainerName = schema.Split('*').ToArray()[i].Trim();
-                    parameter = parameter["_pipeline_"][trainerName];
-                    config.TrainerParameter = parameter;
-                    if (config.Task == "classification")
-                    {
-                        if (config.Trainer.Contains("Multi") || config.Trainer.Contains("Ova"))
-                        {
-                            config.Task = "multi-classification";
-                        }
-                        else
-                        {
-                            config.Task = "binary-classification";
-                        }
-                    }
-
-
-                    res.Add(config);
-
-                }
+                var res = JsonSerializer.Deserialize<List<Config>>(json);
 
                 return res;
             }
@@ -133,8 +97,10 @@ namespace Microsoft.ML.AutoML.Tuner
                 var parameter = pipeline.SearchSpace.SampleFromFeatureSpace(pipeline.SearchSpace.Default);
                 var trainerEstimatorName = pipeline.Estimators.Where(kv => kv.Value.EstimatorType.IsTrainer()).First().Key;
                 var label = parameter[trainerEstimatorName]["LabelColumnName"].AsType<string>();
+                var feature = parameter[trainerEstimatorName]["FeatureColumnName"].AsType<string>();
                 parameter[trainerEstimatorName] = config.TrainerParameter;
                 parameter[trainerEstimatorName]["LabelColumnName"] = Parameter.FromString(label);
+                parameter[trainerEstimatorName]["FeatureColumnName"] = Parameter.FromString(feature);
                 settings.Parameter[AutoMLExperiment.PipelineSearchspaceName] = parameter;
                 _configLookBook[settings.TrialId] = config;
                 return settings.Parameter;
@@ -162,16 +128,10 @@ namespace Microsoft.ML.AutoML.Tuner
             public Parameter TrainerParameter { get; set; }
 
             public string Task { get; set; }
-
-            public string Name { get; set; }
         }
 
         class Rows
         {
-            public string CustomDimensionsDataset { get; set; }
-
-            public string CustomDimensionsOptionsPrimaryMetric { get; set; }
-
             public string CustomDimensionsBestPipeline { get; set; }
 
             public string CustomDimensionsOptionsTask { get; set; }
