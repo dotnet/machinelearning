@@ -20,9 +20,9 @@ namespace Microsoft.ML.AutoML.Samples
             var myParameterSearchSpace2 = new SearchSpace.SearchSpace();
 
             // numeric options
-            myParameterSearchSpace2["IntOption"] = new UniformIntOption(-10, 10, false, 0);
-            myParameterSearchSpace2["SingleOption"] = new UniformSingleOption(1, 10, true, 1);
-            myParameterSearchSpace2["DoubleOption"] = new UniformDoubleOption(-10, 10, false, 0);
+            myParameterSearchSpace2["IntOption"] = new UniformIntOption(min: -10, max: 10, logBase: false, defaultValue: 0);
+            myParameterSearchSpace2["SingleOption"] = new UniformSingleOption(min: 1, max: 10, logBase: true, defaultValue: 1);
+            myParameterSearchSpace2["DoubleOption"] = new UniformDoubleOption(min: -10, max: 10, logBase: false, defaultValue: 0);
 
             // choice options
             myParameterSearchSpace2["BoolOption"] = new ChoiceOption(true, false);
@@ -30,7 +30,7 @@ namespace Microsoft.ML.AutoML.Samples
 
             // nest options
             var nestedSearchSpace = new SearchSpace.SearchSpace();
-            nestedSearchSpace["IntOption"] = new UniformIntOption(-10, 10, false, 0);
+            nestedSearchSpace["IntOption"] = new UniformIntOption(min: -10, max: 10, logBase: false, defaultValue: 0);
             myParameterSearchSpace2["Nest"] = nestedSearchSpace;
 
             // the two search space should be equal

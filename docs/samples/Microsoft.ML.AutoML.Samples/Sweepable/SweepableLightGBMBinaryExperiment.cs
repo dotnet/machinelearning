@@ -35,7 +35,8 @@ namespace Microsoft.ML.AutoML.Samples
             var data = GenerateRandomBinaryClassificationDataPoints(100, seed);
             var dataView = context.Data.LoadFromEnumerable(data);
 
-            var trainTestSplit = context.Data.TrainTestSplit(dataView);
+            // Split the dataset into train and test sets with 10% of the data used for testing.
+            var trainTestSplit = context.Data.TrainTestSplit(dataView, testFraction: 0.1);
 
             // Define a customized search space for LightGBM
             var lgbmSearchSpace = new SearchSpace<LightGBMOption>();
