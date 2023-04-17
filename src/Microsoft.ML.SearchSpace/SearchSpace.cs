@@ -16,6 +16,13 @@ namespace Microsoft.ML.SearchSpace
     /// <summary>
     /// This class is used to represent a set of <see cref="OptionBase"/>, which can be either one of <see cref="ChoiceOption"/>, <see cref="UniformNumericOption"/> or another nested search space.
     /// </summary>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[AutoMLExperiment](~/../docs/samples/docs/samples/Microsoft.ML.AutoML.Samples/Sweepable/SearchSpaceExample.cs)]
+    /// ]]>
+    /// </format>
+    /// </example>
     [JsonConverter(typeof(SearchSpaceConverter))]
     public class SearchSpace : OptionBase, IDictionary<string, OptionBase>
     {
@@ -373,6 +380,13 @@ namespace Microsoft.ML.SearchSpace
     }
 
     /// <inheritdoc/>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[AutoMLExperiment](~/../docs/samples/docs/samples/Microsoft.ML.AutoML.Samples/Sweepable/SearchSpaceExample.cs)]
+    /// ]]>
+    /// </format>
+    /// </example>
     public sealed class SearchSpace<T> : SearchSpace
         where T : class, new()
     {
