@@ -72,7 +72,8 @@
               "Naive",
               "ForecastBySsa",
               "TextClassifcation",
-              "SentenceSimilarity"
+              "SentenceSimilarity",
+              "ObjectDetection"
             ]
           },
           "nugetDependencies": {
@@ -187,7 +188,15 @@
                     "confidenceLevel",
                     "variableHorizon",
                     "modelFactory",
-                    "sentence1ColumnName"
+                    "sentence1ColumnName",
+                    "boundingBoxColumnName",
+                    "imageColumnName",
+                    "maxEpoch",
+                    "iOUThreshold",
+                    "scoreThreshold",
+                    "steps",
+                    "initLearningRate",
+                    "weightDecay"
                   ]
                 },
                 "argumentType": {

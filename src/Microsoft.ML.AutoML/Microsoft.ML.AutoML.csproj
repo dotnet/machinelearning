@@ -68,6 +68,10 @@
     <AdditionalFiles Include="CodeGen\*-estimators.json" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="CodeGen\object_detection_search_space.json" />
+  </ItemGroup>
+
   <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
     <ItemGroup>
       <!--Include DLLs of Project References-->
