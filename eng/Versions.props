@@ -37,7 +37,7 @@
     <MicrosoftCodeAnalysisCSharpVersion>3.9.0</MicrosoftCodeAnalysisCSharpVersion>
     <MicrosoftDotNetInteractiveFormattingVersion>1.0.0-beta.22504.6</MicrosoftDotNetInteractiveFormattingVersion>
     <MicrosoftDotNetInteractiveVersion>1.0.0-beta.22504.6</MicrosoftDotNetInteractiveVersion>
-    <MicrosoftMLOnnxRuntimeVersion>1.10.0</MicrosoftMLOnnxRuntimeVersion>
+    <MicrosoftMLOnnxRuntimeVersion>1.14.0</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
     <!--  
 @("inteltbb.devel", "win", "2021.7.1.15305")
