@@ -204,6 +204,10 @@ namespace Microsoft.ML
             {
                 return new VBufferDataFrameColumn<decimal>(name);
             }
+            else if (itemType.RawType == typeof(ReadOnlyMemory<char>))
+            {
+                return new VBufferDataFrameColumn<ReadOnlyMemory<char>>(name);
+            }
 
             throw new NotSupportedException(String.Format(Microsoft.Data.Strings.VectorSubTypeNotSupported, itemType.ToString()));
         }
