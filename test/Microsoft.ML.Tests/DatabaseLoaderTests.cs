@@ -224,7 +224,7 @@ namespace Microsoft.ML.Tests
             }).PredictedLabel);
         }
 
-        [Fact]
+        [X86X64FactAttribute("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
         public void TestLoadDatetimeColumnWithNullValue()
         {
             var connectionString = "DataSource=Dummy;Mode=Memory;Version=3;Timeout=120;Cache=Shared";
