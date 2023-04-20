@@ -38,9 +38,9 @@ As part of this plan, we will:
 
 1. Make it easier to consume ONNX models in ML.NET using the ONNX Runtime (RT)
 1. Continue to bring more scenario-based APIs backed by TorchSharp transformer-based architectures. The next few scenarios we're looking to enable are:
-  - Object detection
-  - Named Entity Recognition (NER)
-  - Question Answering
+    - Object detection
+    - Named Entity Recognition (NER)
+    - Question Answering
 1. Enable integrations with TorchSharp for scenarios and models not supported out of the box by ML.NET.
 1. Accelerate deep learning workflows by improving batch support and enabling easier use of accelerators such as ONNX Runtime Execution Providers.
 
@@ -48,7 +48,7 @@ Read more about the deep learning plan and leave your feedback in this [tracking
 
 Performance-related improvements are being tracked in this [issue](https://github.com/dotnet/machinelearning/issues/6422).
 
-### LightBGM
+### LightGBM
 
 LightGBM is a flexible framework for classical machine learning tasks such as classification and regression. To make the best of the features LightGBM provides, we plan to:
 
