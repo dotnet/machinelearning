@@ -289,26 +289,6 @@ namespace Microsoft.ML.Tests
             return $@"Data Source={databaseFile};Version=3;Read Only=True;Timeout=120;";
         }
 
-        private string CreateDummyDatabaseWithMissingDatetimeColumn()
-        {
-            var connectionString = "DataSource=:memory:;Version=3;Timeout=120;";
-            using (var connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-                using (var command = new SQLiteCommand(connection))
-                {
-                    command.CommandText = """
-                        CREATE TABLE Datetime (datetime Datetime NULL);
-                        INSERT INTO Datetime VALUES (NULL);
-                        INSERT INTO Datetime VALUES ('2018-01-01 00:00:00');
-                        """;
-                    var l = command.ExecuteNonQuery();
-                }
-            }
-
-            return connectionString;
-        }
-
         public class IrisData
         {
             public int Label;
