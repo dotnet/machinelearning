@@ -5,6 +5,8 @@
 using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Text.Json.Serialization;
+using Microsoft.ML.SearchSpace.Converter;
 
 #nullable enable
 
@@ -13,6 +15,7 @@ namespace Microsoft.ML.SearchSpace.Option
     /// <summary>
     /// This class represent option for discrete value, such as string, enum, etc..
     /// </summary>
+    [JsonConverter(typeof(ChoiceOptionConverter))]
     public sealed class ChoiceOption : OptionBase
     {
         private readonly UniformSingleOption _option;

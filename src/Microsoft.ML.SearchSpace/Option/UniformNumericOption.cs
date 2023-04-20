@@ -5,12 +5,15 @@
 using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Text.Json.Serialization;
+using Microsoft.ML.SearchSpace.Converter;
 
 namespace Microsoft.ML.SearchSpace.Option
 {
     /// <summary>
     /// abstract class for numeric option.
     /// </summary>
+    [JsonConverter(typeof(NumericOptionConverter))]
     public abstract class UniformNumericOption : OptionBase
     {
         /// <summary>

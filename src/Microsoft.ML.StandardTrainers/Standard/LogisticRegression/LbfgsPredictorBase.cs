@@ -13,6 +13,7 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.Trainers
 {
@@ -44,6 +45,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization weight", ShortName = "l2, L2Weight", SortOrder = 50)]
             [TGUI(Label = "L2 Weight", Description = "Weight of L2 regularizer term", SuggestedSweeps = "0,0.1,1")]
             [TlcModule.SweepableFloatParamAttribute(0.0f, 1.0f, numSteps: 4)]
+            [Range(0.03125f, 32768f, 1, true)]
             public float L2Regularization = Defaults.L2Regularization;
 
             /// <summary>
@@ -52,6 +54,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "L1 regularization weight", ShortName = "l1, L1Weight", SortOrder = 50)]
             [TGUI(Label = "L1 Weight", Description = "Weight of L1 regularizer term", SuggestedSweeps = "0,0.1,1")]
             [TlcModule.SweepableFloatParamAttribute(0.0f, 1.0f, numSteps: 4)]
+            [Range(0.03125f, 32768f, 1, true)]
             public float L1Regularization = Defaults.L1Regularization;
 
             /// <summary>
@@ -61,6 +64,7 @@ namespace Microsoft.ML.Trainers
                 ShortName = "ot, OptTol", SortOrder = 50)]
             [TGUI(Label = "Optimization Tolerance", Description = "Threshold for optimizer convergence", SuggestedSweeps = "1e-4,1e-7")]
             [TlcModule.SweepableDiscreteParamAttribute(new object[] { 1e-4f, 1e-7f })]
+            [Range(1e-7f, 1e-1f, 1e-4f, true)]
             public float OptimizationTolerance = Defaults.OptimizationTolerance;
 
             /// <summary>
@@ -69,6 +73,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Memory size for L-BFGS. Low=faster, less accurate", ShortName = "m, MemorySize", SortOrder = 50)]
             [TGUI(Description = "Memory size for L-BFGS", SuggestedSweeps = "5,20,50")]
             [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[] { 5, 20, 50 })]
+            [Range(2, 512, 2, true)]
             public int HistorySize = Defaults.HistorySize;
 
             /// <summary>
@@ -77,6 +82,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum iterations.", ShortName = "maxiter, MaxIterations, NumberOfIterations")]
             [TGUI(Label = "Max Number of Iterations")]
             [TlcModule.SweepableLongParamAttribute("MaxIterations", 1, int.MaxValue)]
+            [Range(1, int.MaxValue, 1, true)]
             public int MaximumNumberOfIterations = Defaults.MaximumNumberOfIterations;
 
             /// <summary>
@@ -106,6 +112,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Init weights diameter", ShortName = "initwts, InitWtsDiameter", SortOrder = 140)]
             [TGUI(Label = "Initial Weights Scale", SuggestedSweeps = "0,0.1,0.5,1")]
             [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0.0f, 1.0f, numSteps: 5)]
+            [Range(0f, 1f, 0f, false)]
             public float InitialWeightsDiameter = 0;
 
             // Deprecated
@@ -124,12 +131,14 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Force densification of the internal optimization vectors", ShortName = "do")]
             [TlcModule.SweepableDiscreteParamAttribute("DenseOptimizer", new object[] { false, true })]
+            [BooleanChoice]
             public bool DenseOptimizer = false;
 
             /// <summary>
             /// Enforce non-negative weights. Default is false.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Enforce non-negative weights", ShortName = "nn", SortOrder = 90)]
+            [BooleanChoice]
             public bool EnforceNonNegativity = Defaults.EnforceNonNegativity;
 
             [BestFriend]

@@ -19,6 +19,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.SearchSpace;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
@@ -162,6 +163,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l2, L2Const", SortOrder = 1)]
             [TGUI(Label = "L2 Regularizer Constant", SuggestedSweeps = "<Auto>,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2")]
             [TlcModule.SweepableDiscreteParam("L2Const", new object[] { "<Auto>", 1e-7f, 1e-6f, 1e-5f, 1e-4f, 1e-3f, 1e-2f })]
+            [Range(1e-7f, 32768f, 1e-7f, true)]
             public float? L2Regularization;
 
             // REVIEW: make the default positive when we know how to consume a sparse model
@@ -172,6 +174,7 @@ namespace Microsoft.ML.Trainers
                 NullName = "<Auto>", Name = "L1Threshold", ShortName = "l1", SortOrder = 2)]
             [TGUI(Label = "L1 Soft Threshold", SuggestedSweeps = "<Auto>,0,0.25,0.5,0.75,1")]
             [TlcModule.SweepableDiscreteParam("L1Threshold", new object[] { "<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f })]
+            [Range(1e-7f, 32768f, 1e-7f, true)]
             public float? L1Regularization;
 
             /// <summary>
@@ -190,6 +193,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "The tolerance for the ratio between duality gap and primal loss for convergence checking.", ShortName = "tol")]
             [TGUI(SuggestedSweeps = "0.001, 0.01, 0.1, 0.2")]
             [TlcModule.SweepableDiscreteParam("ConvergenceTolerance", new object[] { 0.001f, 0.01f, 0.1f, 0.2f })]
+            [Range(1e-7f, 1f, 1e-7f, true)]
             public float ConvergenceTolerance = 0.1f;
 
             /// <summary>
@@ -201,6 +205,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.", NullName = "<Auto>", ShortName = "iter, MaxIterations, NumberOfIterations")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "<Auto>,10,20,100")]
             [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { "<Auto>", 10, 20, 100 })]
+            [Range(10, 1000, 10, true)]
             public int? MaximumNumberOfIterations;
 
             /// <summary>
@@ -229,6 +234,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "The learning rate for adjusting bias from being regularized.", ShortName = "blr")]
             [TGUI(SuggestedSweeps = "0, 0.01, 0.1, 1")]
             [TlcModule.SweepableDiscreteParam("BiasLearningRate", new object[] { 0.0f, 0.01f, 0.1f, 1f })]
+            [Range(1e-7f, 1f, 1e-7f, true)]
             public float BiasLearningRate = 0;
 
             internal virtual void Check(IHostEnvironment env)
@@ -1834,6 +1840,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization constant", ShortName = "l2, L2Weight", SortOrder = 50)]
             [TGUI(Label = "L2 Regularization Constant", SuggestedSweeps = "1e-7,5e-7,1e-6,5e-6,1e-5")]
             [TlcModule.SweepableDiscreteParam("L2Const", new object[] { 1e-7f, 5e-7f, 1e-6f, 5e-6f, 1e-5f })]
+            [Range((float)0.03125, (float)32768, init: (float)1F, logBase: true)]
             public float L2Regularization = Defaults.L2Regularization;
 
             /// <summary>
@@ -1853,6 +1860,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Exponential moving averaged improvement tolerance for convergence", ShortName = "tol")]
             [TGUI(SuggestedSweeps = "1e-2,1e-3,1e-4,1e-5")]
             [TlcModule.SweepableDiscreteParam("ConvergenceTolerance", new object[] { 1e-2f, 1e-3f, 1e-4f, 1e-5f })]
+            [Range(1e-6, 1e-1, init: 1e-1, logBase: true)]
             public double ConvergenceTolerance = 1e-4;
 
             /// <summary>
@@ -1864,6 +1872,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning.", ShortName = "iter, MaxIterations")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "1,5,10,20")]
             [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { 1, 5, 10, 20 })]
+            [Range((int)1, 20, init: 1, logBase: true)]
             public int NumberOfIterations = Defaults.NumberOfIterations;
 
             /// <summary>
@@ -1871,6 +1880,7 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate (only used by SGD)", Name = "InitialLearningRate", ShortName = "ilr,lr,InitLearningRate")]
             [TGUI(Label = "Initial Learning Rate (for SGD)")]
+            [Range(1e-3, 1, init: 1e-3, logBase: true)]
             public double LearningRate = Defaults.LearningRate;
 
             /// <summary>

@@ -10,11 +10,26 @@
       "type": "array",
       "items": { "type": "integer" }
     },
+    "imageClassificationArchArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/imageClassificationArchType"
+      }
+    },
     "dnnModelFactoryArray": {
       "type": "array",
       "items": {
         "$ref": "#/definitions/dnnModelFactoryType"
       }
+    },
+    "imageClassificationArchType": {
+      "type": "string",
+      "enum": [
+        "InceptionV3",
+        "MobilenetV2",
+        "ResnetV2101",
+        "ResnetV250"
+      ]
     },
     "dnnModelFactoryType": {
       "type": "string",
@@ -53,6 +68,9 @@
         },
         {
           "$ref": "#/definitions/dnnModelFactoryArray"
+        },
+        {
+          "$ref":  "#/definitions/imageClassificationArchArray"
         },
         {
           "$ref": "#/definitions/boolArray"
@@ -177,8 +195,10 @@
         "Sentence2ColumnName",
         "BatchSize",
         "MaxEpochs",
+        "Epoch",
         "Architecture",
-        "AddKeyValueAnnotationsAsText"
+        "AddKeyValueAnnotationsAsText",
+        "Arch"
       ]
     },
     "option_type": {
@@ -195,7 +215,8 @@
         "colorsOrder",
         "anchor",
         "dnnModelFactory",
-        "bertArchitecture"
+        "bertArchitecture",
+        "imageClassificationArchType"
       ]
     }
   },

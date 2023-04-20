@@ -152,6 +152,13 @@ namespace Microsoft.ML.AutoML.Test
         public async Task AutoMLExperiment_finish_training_when_time_is_up_Async()
         {
             var context = new MLContext(1);
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.RawMessage);
+                }
+            };
 
             var experiment = context.Auto().CreateExperiment();
             experiment.SetTrainingTimeInSeconds(5)
@@ -159,7 +166,7 @@ namespace Microsoft.ML.AutoML.Test
                       {
                           var channel = serviceProvider.GetService<IChannel>();
                           var settings = serviceProvider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
-                          return new DummyTrialRunner(settings, 1, channel);
+                          return new DummyTrialRunner(settings, 0, channel);
                       })
                       .SetTuner<RandomSearchTuner>();
 
