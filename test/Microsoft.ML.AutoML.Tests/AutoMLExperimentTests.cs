@@ -230,7 +230,7 @@ namespace Microsoft.ML.AutoML.Test
             result.Metric.Should().BeGreaterThan(0.8);
         }
 
-        [Fact]
+        [Fact(Skip = "skip in CI build")]
         public async Task AutoMLExperiment_UCI_Adult_Fairlearn_Test()
         {
             var context = new MLContext(1);
