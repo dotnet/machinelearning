@@ -394,12 +394,12 @@ namespace Microsoft.ML.AutoML
                     };
                 }
 
-                if (_datasetManager is ITrainTestDatasetManager trainTestDatasetManager)
+                if (_datasetManager is ITrainValidateDatasetManager trainTestDatasetManager)
                 {
                     var stopWatch = new Stopwatch();
                     stopWatch.Start();
                     var model = pipeline.Fit(trainTestDatasetManager.TrainDataset);
-                    var eval = model.Transform(trainTestDatasetManager.TestDataset);
+                    var eval = model.Transform(trainTestDatasetManager.ValidateDataset);
                     var metrics = _context.MulticlassClassification.Evaluate(eval, metricManager.LabelColumn, predictedLabelColumnName: metricManager.PredictedColumn);
                     var metric = GetMetric(metricManager.Metric, metrics);
                     var loss = metricManager.IsMaximize ? -metric : metric;
@@ -420,7 +420,7 @@ namespace Microsoft.ML.AutoML
                 }
             }
 
-            throw new ArgumentException($"The runner metric manager is of type {_metricManager.GetType()} which expected to be of type {typeof(ITrainTestDatasetManager)} or {typeof(ICrossValidateDatasetManager)}");
+            throw new ArgumentException($"The runner metric manager is of type {_metricManager.GetType()} which expected to be of type {typeof(ITrainValidateDatasetManager)} or {typeof(ICrossValidateDatasetManager)}");
         }
 
         public Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
