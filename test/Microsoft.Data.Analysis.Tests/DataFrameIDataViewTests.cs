@@ -461,6 +461,7 @@ namespace Microsoft.Data.Analysis.Tests
                     ushortFeatures = new ushort[] {0, 0},
                     uintFeatures = new uint[] {0, 0},
                     ulongFeatures = new ulong[] {0, 0},
+                    stringFeatures = new string[]{ "A", "B"},
                 },
                 new {
                     boolFeature = new bool[] {false, false},
@@ -474,13 +475,14 @@ namespace Microsoft.Data.Analysis.Tests
                     ushortFeatures = new ushort[] {0, 0},
                     uintFeatures = new uint[] {0, 0},
                     ulongFeatures = new ulong[] {0, 0},
+                    stringFeatures = new string[]{ "A", "B"},
                 }
             };
 
             var data = mlContext.Data.LoadFromEnumerable(inputData);
             var df = data.ToDataFrame();
 
-            Assert.Equal(11, df.Columns.Count);
+            Assert.Equal(12, df.Columns.Count);
             Assert.Equal(2, df.Rows.Count);
         }
     }
