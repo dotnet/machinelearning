@@ -54,7 +54,7 @@ namespace Microsoft.ML.Fairlearn.AutoML
         {
             experiment.ServiceCollection.AddSingleton<ClassificationMoment>((serviceProvider) =>
             {
-                var datasetManager = serviceProvider.GetRequiredService<TrainTestDatasetManager>();
+                var datasetManager = serviceProvider.GetRequiredService<TrainValidateDatasetManager>();
                 var moment = new UtilityParity();
                 var sensitiveFeature = DataFrameColumn.Create("group_id", datasetManager.TrainDataset.GetColumn<string>(sensitiveColumnName));
                 var label = DataFrameColumn.Create("label", datasetManager.TrainDataset.GetColumn<bool>(labelColumn));
@@ -69,9 +69,9 @@ namespace Microsoft.ML.Fairlearn.AutoML
             {
                 var context = serviceProvider.GetRequiredService<MLContext>();
                 var moment = serviceProvider.GetRequiredService<ClassificationMoment>();
-                var datasetManager = serviceProvider.GetRequiredService<TrainTestDatasetManager>();
+                var datasetManager = serviceProvider.GetRequiredService<TrainValidateDatasetManager>();
                 var pipeline = serviceProvider.GetRequiredService<SweepablePipeline>();
-                return new GridSearchTrailRunner(context, datasetManager.TrainDataset, datasetManager.TestDataset, labelColumn, sensitiveColumnName, pipeline, moment);
+                return new GridSearchTrailRunner(context, datasetManager.TrainDataset, datasetManager.ValidateDataset, labelColumn, sensitiveColumnName, pipeline, moment);
             });
 
             experiment.SetRandomSearchTuner();
