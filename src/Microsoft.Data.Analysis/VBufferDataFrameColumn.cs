@@ -390,6 +390,10 @@ namespace Microsoft.Data.Analysis
             {
                 return new VectorDataViewType(NumberDataViewType.Double);
             }
+            else if (typeof(T) == typeof(ReadOnlyMemory<char>))
+            {
+                return new VectorDataViewType(TextDataViewType.Instance);
+            }
 
             throw new NotSupportedException();
         }

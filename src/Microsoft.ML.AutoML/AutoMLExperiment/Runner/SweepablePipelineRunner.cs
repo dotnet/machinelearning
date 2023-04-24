@@ -66,10 +66,10 @@ namespace Microsoft.ML.AutoML
                 };
             }
 
-            if (_datasetManager is ITrainTestDatasetManager trainTestDatasetManager)
+            if (_datasetManager is ITrainValidateDatasetManager trainTestDatasetManager)
             {
                 var model = mlnetPipeline.Fit(trainTestDatasetManager.TrainDataset);
-                var eval = model.Transform(trainTestDatasetManager.TestDataset);
+                var eval = model.Transform(trainTestDatasetManager.ValidateDataset);
                 var metric = _metricManager.Evaluate(_mLContext, eval);
                 stopWatch.Stop();
                 var loss = _metricManager.IsMaximize ? -metric : metric;
