@@ -60,6 +60,11 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             public string BoundingBoxColumnName = "BoundingBoxes";
 
             /// <summary>
+            /// The Predicted Bounding Box column name.
+            /// </summary>
+            public string PredictedBoundingBoxColumnName = "PredictedBoundingBoxes";
+
+            /// <summary>
             /// The Image column name.
             /// </summary>
             public string ImageColumnName = "Image";
@@ -133,6 +138,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             string predictedLabelColumnName = DefaultColumnNames.PredictedLabel,
             string scoreColumnName = DefaultColumnNames.Score,
             string boundingBoxColumnName = "BoundingBoxes",
+            string predictedBoundingBoxColumnName = "PredictedBoundingBoxes",
             string imageColumnName = "Image",
             int maxEpoch = 10) :
             this(env, new Options
@@ -141,6 +147,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 PredictedLabelColumnName = predictedLabelColumnName,
                 ScoreColumnName = scoreColumnName,
                 BoundingBoxColumnName = boundingBoxColumnName,
+                PredictedBoundingBoxColumnName = predictedBoundingBoxColumnName,
                 ImageColumnName = imageColumnName,
                 MaxEpoch = maxEpoch
             })
@@ -180,7 +187,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             public AutoFormerV2 Model;
             public torch.Device Device;
             public Optimizer Optimizer;
-            public optim.lr_scheduler.LRScheduler LearningRateScheduler;
+            public LRScheduler LearningRateScheduler;
             protected readonly ObjectDetectionTrainer Parent;
             public FocalLoss Loss;
             public int Updates;
@@ -442,7 +449,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             outColumns[Option.PredictedLabelColumnName] = new SchemaShape.Column(Option.PredictedLabelColumnName, SchemaShape.Column.VectorKind.VariableVector,
                     NumberDataViewType.UInt32, true, new SchemaShape(metadata.ToArray()));
 
-            outColumns[Option.BoundingBoxColumnName] = new SchemaShape.Column(Option.BoundingBoxColumnName, SchemaShape.Column.VectorKind.VariableVector,
+            outColumns[Option.PredictedBoundingBoxColumnName] = new SchemaShape.Column(Option.PredictedBoundingBoxColumnName, SchemaShape.Column.VectorKind.VariableVector,
                 NumberDataViewType.Single, false);
 
             outColumns[Option.ScoreColumnName] = new SchemaShape.Column(Option.ScoreColumnName, SchemaShape.Column.VectorKind.VariableVector,
@@ -482,7 +489,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         internal readonly ObjectDetectionTrainer.Options Options;
 
         public readonly SchemaShape.Column PredictedLabelColumnName;
-        public readonly SchemaShape.Column BoundingBoxColumn;
+        public readonly SchemaShape.Column PredictedBoundingBoxColumn;
         public readonly SchemaShape.Column ConfidenceColumn;
         public readonly DataViewSchema.DetachedColumn LabelColumn;
 
@@ -503,7 +510,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             Options = options;
             LabelColumn = labelColumn;
             PredictedLabelColumnName = new SchemaShape.Column(Options.PredictedLabelColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.UInt32, false);
-            BoundingBoxColumn = new SchemaShape.Column(Options.BoundingBoxColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
+            PredictedBoundingBoxColumn = new SchemaShape.Column(Options.PredictedBoundingBoxColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
             ConfidenceColumn = new SchemaShape.Column(Options.ScoreColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
             Model = model;
@@ -539,7 +546,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             outColumns[Options.PredictedLabelColumnName] = new SchemaShape.Column(Options.PredictedLabelColumnName, SchemaShape.Column.VectorKind.VariableVector,
                 NumberDataViewType.UInt32, true, predLabelMetadata);
 
-            outColumns[Options.BoundingBoxColumnName] = new SchemaShape.Column(Options.BoundingBoxColumnName, SchemaShape.Column.VectorKind.VariableVector,
+            outColumns[Options.PredictedBoundingBoxColumnName] = new SchemaShape.Column(Options.PredictedBoundingBoxColumnName, SchemaShape.Column.VectorKind.VariableVector,
                 NumberDataViewType.Single, false);
 
             outColumns[Options.ScoreColumnName] = new SchemaShape.Column(Options.ScoreColumnName, SchemaShape.Column.VectorKind.VariableVector,
@@ -578,6 +585,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             // int: id of label column name
             // int: id of predicted label column name
             // int: id of the BoundingBoxColumnName name
+            // int: id of the PredictedBoundingBoxColumnName name
             // int: id of ImageColumnName name
             // int: id of Score column name
             // int: number of classes
@@ -589,6 +597,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             ctx.SaveNonEmptyString(Options.LabelColumnName);
             ctx.SaveNonEmptyString(Options.PredictedLabelColumnName);
             ctx.SaveNonEmptyString(Options.BoundingBoxColumnName);
+            ctx.SaveNonEmptyString(Options.PredictedBoundingBoxColumnName);
             ctx.SaveNonEmptyString(Options.ImageColumnName);
             ctx.SaveNonEmptyString(Options.ScoreColumnName);
 
@@ -636,6 +645,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             // int: id of label column name
             // int: id of predicted label column name
             // int: id of the BoundingBoxColumnName name
+            // int: id of the PredictedBoundingBoxColumnName name
             // int: id of ImageColumnName name
             // int: id of Score column name
             // int: number of classes
@@ -649,6 +659,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 LabelColumnName = ctx.LoadString(),
                 PredictedLabelColumnName = ctx.LoadString(),
                 BoundingBoxColumnName = ctx.LoadString(),
+                PredictedBoundingBoxColumnName = ctx.LoadString(),
                 ImageColumnName = ctx.LoadString(),
                 ScoreColumnName = ctx.LoadString(),
                 NumberOfClasses = ctx.Reader.ReadInt32(),
@@ -741,7 +752,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 info[1] = new DataViewSchema.DetachedColumn(_parent.Options.ScoreColumnName, new VectorDataViewType(NumberDataViewType.Single), meta.ToAnnotations());
 
-                info[2] = new DataViewSchema.DetachedColumn(_parent.Options.BoundingBoxColumnName, new VectorDataViewType(NumberDataViewType.Single));
+                info[2] = new DataViewSchema.DetachedColumn(_parent.Options.PredictedBoundingBoxColumnName, new VectorDataViewType(NumberDataViewType.Single));
                 return info;
 
             }

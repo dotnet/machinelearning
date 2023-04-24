@@ -48,7 +48,7 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Transforms.Text.TokenizeIntoWords("Box", separators: new char[] { ',' }), TransformerScope.Training)
                 .Append(ML.Transforms.Conversion.ConvertType("Box"), TransformerScope.Training)
                 .Append(ML.Transforms.LoadImages("Image", imageFolder, "ImagePath"))
-                .Append(ML.MulticlassClassification.Trainers.ObjectDetection("Labels", boundingBoxColumnName: "Box"))
+                .Append(ML.MulticlassClassification.Trainers.ObjectDetection("Labels", boundingBoxColumnName: "Box", maxEpoch: 1))
                 .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
 
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Tests
             var idv = model.Transform(trainTest.TestSet);
 
             // Make sure the metrics work.
-            var metrics = ML.MulticlassClassification.EvaluateObjectDetection(idv, idv.Schema[2], idv.Schema[6], idv.Schema["PredictedLabel"], idv.Schema["Box"], idv.Schema["Score"]);
+            var metrics = ML.MulticlassClassification.EvaluateObjectDetection(idv, idv.Schema[2], idv.Schema["Box"], idv.Schema["PredictedLabel"], idv.Schema["PredictedBoundingBoxes"], idv.Schema["Score"]);
 
             Assert.True(metrics.MAP50 != float.NaN);
             Assert.True(metrics.MAP50_95 != float.NaN);

@@ -110,6 +110,7 @@ namespace Microsoft.ML.TorchSharp
         /// <param name="predictedLabelColumnName">The output predicted label column name. Is a vector of keytype</param>
         /// <param name="scoreColumnName">The output score column name. Is a vector of float.</param>
         /// <param name="boundingBoxColumnName">The bounding box column name. Is a vector of float. Values should be in the order x0 y0 x1 y1.</param>
+        /// <param name="predictedBoundingBoxColumnName">The output bounding box column name. Is a vector of float. Values should be in the order x0 y0 x1 y1.</param>
         /// <param name="imageColumnName">The column name holding the image Data. Is an MLImage</param>
         /// <param name="maxEpoch">How many epochs to run.</param>
         /// <returns></returns>
@@ -119,9 +120,10 @@ namespace Microsoft.ML.TorchSharp
             string predictedLabelColumnName = DefaultColumnNames.PredictedLabel,
             string scoreColumnName = DefaultColumnNames.Score,
             string boundingBoxColumnName = "BoundingBoxes",
+            string predictedBoundingBoxColumnName = "PredictedBoundingBoxes",
             string imageColumnName = "Image",
             int maxEpoch = 10)
-            => new ObjectDetectionTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, predictedLabelColumnName, scoreColumnName, boundingBoxColumnName, imageColumnName, maxEpoch);
+            => new ObjectDetectionTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, predictedLabelColumnName, scoreColumnName, boundingBoxColumnName, predictedBoundingBoxColumnName, imageColumnName, maxEpoch);
 
         /// <summary>
         /// Fine tune an object detection model.
