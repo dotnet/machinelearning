@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.ML.AutoML.Tuner;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
@@ -36,12 +37,18 @@ namespace Microsoft.ML.AutoML
         public ICollection<BinaryClassificationTrainer> Trainers { get; }
 
         /// <summary>
+        /// Set if use <see cref="AutoZeroTuner"/> for hyper-parameter optimization, default to false.
+        /// </summary>
+        public bool UseAutoZeroTuner { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of <see cref="BinaryExperimentSettings"/>.
         /// </summary>
         public BinaryExperimentSettings()
         {
             OptimizingMetric = BinaryClassificationMetric.Accuracy;
             Trainers = Enum.GetValues(typeof(BinaryClassificationTrainer)).OfType<BinaryClassificationTrainer>().ToList();
+            UseAutoZeroTuner = false;
         }
     }
 
@@ -133,7 +140,7 @@ namespace Microsoft.ML.AutoML
     /// </example>
     public sealed class BinaryClassificationExperiment : ExperimentBase<BinaryClassificationMetrics, BinaryExperimentSettings>
     {
-        private readonly AutoMLExperiment _experiment;
+        private AutoMLExperiment _experiment;
         private const string Features = "__Features__";
         private SweepablePipeline _pipeline;
 
@@ -151,13 +158,13 @@ namespace Microsoft.ML.AutoML
                 _experiment.SetMaximumMemoryUsageInMegaByte(d);
             }
             _experiment.SetMaxModelToExplore(settings.MaxModels);
+            _experiment.SetTrainingTimeInSeconds(settings.MaxExperimentTimeInSeconds);
         }
 
         public override ExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<BinaryClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
             _experiment.SetBinaryClassificationMetric(Settings.OptimizingMetric, label);
-            _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
 
             // Cross val threshold for # of dataset rows --
             // If dataset has < threshold # of rows, use cross val.
@@ -194,7 +201,7 @@ namespace Microsoft.ML.AutoML
 
                 return monitor;
             });
-            _experiment.SetTrialRunner<BinaryClassificationRunner>();
+            _experiment = PostConfigureAutoMLExperiment(_experiment);
             _experiment.Run();
 
             var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToRunDetail(Context, e, _pipeline));
@@ -208,7 +215,6 @@ namespace Microsoft.ML.AutoML
         {
             var label = columnInformation.LabelColumnName;
             _experiment.SetBinaryClassificationMetric(Settings.OptimizingMetric, label);
-            _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, validationData);
             _pipeline = CreateBinaryClassificationPipeline(trainData, columnInformation, preFeaturizer);
             _experiment.SetPipeline(_pipeline);
@@ -228,7 +234,7 @@ namespace Microsoft.ML.AutoML
 
                 return monitor;
             });
-            _experiment.SetTrialRunner<BinaryClassificationRunner>();
+            _experiment = PostConfigureAutoMLExperiment(_experiment);
             _experiment.Run();
 
             var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToRunDetail(Context, e, _pipeline));
@@ -263,7 +269,6 @@ namespace Microsoft.ML.AutoML
         {
             var label = columnInformation.LabelColumnName;
             _experiment.SetBinaryClassificationMetric(Settings.OptimizingMetric, label);
-            _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, (int)numberOfCVFolds);
             _pipeline = CreateBinaryClassificationPipeline(trainData, columnInformation, preFeaturizer);
             _experiment.SetPipeline(_pipeline);
@@ -284,7 +289,7 @@ namespace Microsoft.ML.AutoML
                 return monitor;
             });
 
-            _experiment.SetTrialRunner<BinaryClassificationRunner>();
+            _experiment = PostConfigureAutoMLExperiment(_experiment);
             _experiment.Run();
 
             var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToCrossValidationRunDetail(Context, e, _pipeline));
@@ -334,6 +339,17 @@ namespace Microsoft.ML.AutoML
                 return Context.Auto().Featurizer(trainData, columnInformation, Features)
                            .Append(Context.Auto().BinaryClassification(labelColumnName: columnInformation.LabelColumnName, useSdcaLogisticRegression: useSdca, useFastTree: useFastTree, useLgbm: useLgbm, useLbfgsLogisticRegression: uselbfgs, useFastForest: useFastForest, featureColumnName: Features));
             }
+        }
+
+        private AutoMLExperiment PostConfigureAutoMLExperiment(AutoMLExperiment experiment)
+        {
+            experiment.SetTrialRunner<BinaryClassificationRunner>();
+            if (Settings.UseAutoZeroTuner)
+            {
+                experiment.SetTuner<AutoZeroTuner>();
+            }
+
+            return experiment;
         }
     }
 
