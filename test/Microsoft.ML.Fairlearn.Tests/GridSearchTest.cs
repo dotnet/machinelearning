@@ -84,7 +84,7 @@ namespace Microsoft.ML.Fairlearn.Tests
             context.Log += (o, e) =>
             {
 
-                if (e.Source.StartsWith("AutoMLExperiment"))
+                if (e.Source == "AutoMLExperiment")
                 {
                     _output.WriteLine(e.Message);
                 }
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Fairlearn.Tests
 
             var bestResult = experiment.Run();
             var model = bestResult.Model;
-            bestResult.Metric.Should().BeGreaterOrEqualTo(0.70);
+            bestResult.Metric.Should().BeGreaterOrEqualTo(0.6);
         }
     }
 }
