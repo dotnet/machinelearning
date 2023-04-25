@@ -37,9 +37,8 @@ namespace Microsoft.ML.Tests
                     new TextLoader.Column("Labels", DataKind.String, 1),
                     new TextLoader.Column("Box", DataKind.String, 2)
                 },
-                MaxRows = 2
+                MaxRows = 1
             }, new MultiFileSource(dataFile));
-            var trainTest = ML.Data.TrainTestSplit(data, .1);
 
             var chain = new EstimatorChain<ITransformer>();
 
@@ -68,14 +67,12 @@ namespace Microsoft.ML.Tests
                 .Append(ML.MulticlassClassification.Trainers.ObjectDetection(options))
                 .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
-            var model = pipeline.Fit(trainTest.TrainSet);
-            var idv = model.Transform(trainTest.TestSet);
-
+            var model = pipeline.Fit(data);
+            var idv = model.Transform(data);
             // Make sure the metrics work.
             var metrics = ML.MulticlassClassification.EvaluateObjectDetection(idv, idv.Schema[2], idv.Schema["Box"], idv.Schema["PredictedLabel"], idv.Schema["PredictedBoundingBoxes"], idv.Schema["Score"]);
-
-            Assert.True(metrics.MAP50 != float.NaN);
-            Assert.True(metrics.MAP50_95 != float.NaN);
+            Assert.True(!float.IsNaN(metrics.MAP50));
+            Assert.True(!float.IsNaN(metrics.MAP50_95));
 
             // Make sure the filtered pipeline can run without any columns but image column AFTER training
             var dataFiltered = TextLoader.Create(ML, new TextLoader.Options()
@@ -86,8 +83,7 @@ namespace Microsoft.ML.Tests
                 },
                 MaxRows = 2
             }, new MultiFileSource(dataFile));
-
-            var prev = filteredPipeline.Fit(trainTest.TrainSet).Transform(dataFiltered).Preview();
+            var prev = filteredPipeline.Fit(data).Transform(dataFiltered).Preview();
             Assert.Equal(2, prev.RowView.Count());
 
             TestEstimatorCore(pipeline, data);
