@@ -84,9 +84,10 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             var labelColEnumerable = dataView.GetColumn<VBuffer<ReadOnlyMemory<char>>>(labelCol);
             var labelSet = new HashSet<string>();
 
-            foreach (var label in labelColEnumerable)
+            foreach (var labelRow in labelColEnumerable)
             {
-                labelSet.Add(label.ToString());
+                foreach (var label in labelRow.DenseValues())
+                    labelSet.Add(label.ToString());
             }
             var labels = labelSet.ToList();
 
