@@ -343,8 +343,8 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             var data = new List<List<ObjectLabel>>();
             var cursor = idv.GetRowCursor(labelCol, actualBoundingBoxColumn);
 
-            var predLabGet = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(idv.Schema[2]);
-            var boxGet = cursor.GetGetter<VBuffer<float>>(idv.Schema[6]);
+            var predLabGet = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(labelCol);
+            var boxGet = cursor.GetGetter<VBuffer<float>>(actualBoundingBoxColumn);
 
             VBuffer<ReadOnlyMemory<char>> predLab = default;
             VBuffer<float> box = default;
