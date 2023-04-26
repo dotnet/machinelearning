@@ -26,7 +26,6 @@ namespace Microsoft.ML.AutoML.CodeGen
                 WeightDecay = param.WeightDecay,
                 PredictedBoundingBoxColumnName = param.PredictedBoundingBoxColumnName,
                 ScoreThreshold = param.ScoreThreshold,
-                Steps = param.Steps,
                 IOUThreshold = param.IOUThreshold,
             };
 
