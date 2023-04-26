@@ -13,9 +13,14 @@
       "default": "PredictedLabel"
     },
     {
+      "name": "PredictedBoundingBoxColumnName",
+      "type": "string",
+      "default": "PredictedBoundingBoxes"
+    },
+    {
       "name": "BoundingBoxColumnName",
       "type": "string",
-      "default": "BoundingBox"
+      "default": "BoundingBoxes"
     },
     {
       "name": "ImageColumnName",
@@ -34,13 +39,23 @@
     },
     {
       "name": "InitLearningRate",
-      "type": "float",
+      "type": "double",
       "default": 1.0
     },
     {
       "name": "WeightDecay",
-      "type": "float",
+      "type": "double",
       "default": 0.0
+    },
+    {
+      "name": "IOUThreshold",
+      "type": "double",
+      "default": 0.5
+    },
+    {
+      "name": "ScoreThreshold",
+      "type": "double",
+      "default": 0.5
     }
   ]
 }

@@ -24,6 +24,10 @@ namespace Microsoft.ML.AutoML.CodeGen
                 MaxEpoch = param.MaxEpoch,
                 InitLearningRate = param.InitLearningRate,
                 WeightDecay = param.WeightDecay,
+                PredictedBoundingBoxColumnName = param.PredictedBoundingBoxColumnName,
+                ScoreThreshold = param.ScoreThreshold,
+                Steps = param.Steps,
+                IOUThreshold = param.IOUThreshold,
             };
 
             return context.MulticlassClassification.Trainers.ObjectDetection(option);

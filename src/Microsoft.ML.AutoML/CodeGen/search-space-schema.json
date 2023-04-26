@@ -201,6 +201,7 @@
         "AddKeyValueAnnotationsAsText",
         "Arch",
         "PredictedLabelColumnName",
+        "PredictedBoundingBoxColumnName",
         "BoundingBoxColumnName",
         "ImageColumnName",
         "IOUThreshold",
