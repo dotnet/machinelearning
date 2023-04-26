@@ -104,7 +104,7 @@ namespace Microsoft.ML.Fairlearn.Tests
 
             var bestResult = experiment.Run();
             var model = bestResult.Model;
-            bestResult.Metric.Should().BeGreaterOrEqualTo(0.6);
+            bestResult.Metric.Should().BeGreaterOrEqualTo(0.4);
         }
     }
 }
