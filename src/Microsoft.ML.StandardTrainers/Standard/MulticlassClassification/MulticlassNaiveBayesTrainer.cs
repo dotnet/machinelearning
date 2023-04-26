@@ -12,6 +12,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.SearchSpace;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(NaiveBayesMulticlassTrainer.Summary, typeof(NaiveBayesMulticlassTrainer), typeof(NaiveBayesMulticlassTrainer.Options),
@@ -63,7 +64,7 @@ namespace Microsoft.ML.Trainers
     /// </format>
     /// </remarks>
     /// <seealso cref="StandardTrainersCatalog.NaiveBayes(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String)"/>
-    public sealed class NaiveBayesMulticlassTrainer : TrainerEstimatorBase<MulticlassPredictionTransformer<NaiveBayesMulticlassModelParameters>, NaiveBayesMulticlassModelParameters>
+    public sealed class NaiveBayesMulticlassTrainer : TrainerEstimatorBase<MulticlassPredictionTransformer<NaiveBayesMulticlassModelParameters>, NaiveBayesMulticlassModelParameters>, ICanSummarize
     {
         internal const string LoadName = "MultiClassNaiveBayes";
         internal const string UserName = "Multiclass Naive Bayes";
@@ -78,7 +79,7 @@ namespace Microsoft.ML.Trainers
         private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
-
+        private readonly Options _option;
         /// <summary>
         /// Auxiliary information about the trainer in terms of its capabilities
         /// and requirements.
@@ -99,6 +100,11 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            _option = new Options
+            {
+                LabelColumnName = labelColumn,
+                FeatureColumnName = featureColumn,
+            };
         }
 
         /// <summary>
@@ -109,6 +115,7 @@ namespace Microsoft.ML.Trainers
                   TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
         {
             Host.CheckValue(options, nameof(options));
+            _option = options;
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
@@ -215,6 +222,15 @@ namespace Microsoft.ML.Trainers
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
                 () => new NaiveBayesMulticlassTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName));
+        }
+
+        Schema ICanSummarize.Summarize()
+        {
+            return new Schema
+            {
+                EstimatorType = GetType().Name,
+                Parameter = Parameter.FromOption(_option),
+            };
         }
     }
 

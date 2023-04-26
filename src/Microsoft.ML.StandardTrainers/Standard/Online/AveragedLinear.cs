@@ -122,7 +122,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// Base class for averaged linear trainers.
     /// </summary>
-    public abstract class AveragedLinearTrainer<TTransformer, TModel> : OnlineLinearTrainer<TTransformer, TModel>
+    public abstract class AveragedLinearTrainer<TTransformer, TModel> : OnlineLinearTrainer<TTransformer, TModel>, ICanSummarize
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
     {
@@ -317,6 +317,15 @@ namespace Microsoft.ML.Trainers
             Contracts.Check(!options.LazyUpdate || !options.RecencyGainMultiplicative && options.RecencyGain == 0, "Cannot have both recency gain and lazy updates.");
 
             AveragedLinearTrainerOptions = options;
+        }
+
+        Schema ICanSummarize.Summarize()
+        {
+            return new Schema
+            {
+                EstimatorType = this.GetType().Name,
+                Parameter = Parameter.FromOption(AveragedLinearTrainerOptions),
+            };
         }
     }
 }

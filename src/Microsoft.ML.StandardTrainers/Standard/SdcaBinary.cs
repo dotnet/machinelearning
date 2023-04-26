@@ -141,7 +141,7 @@ namespace Microsoft.ML.Trainers
             => Math.Min(8, Math.Max(1, Environment.ProcessorCount / 2));
     }
 
-    public abstract class SdcaTrainerBase<TOptions, TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
+    public abstract class SdcaTrainerBase<TOptions, TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>, ICanSummarize
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
         where TOptions : SdcaTrainerBase<TOptions, TTransformer, TModel>.OptionsBase, new()
@@ -1167,6 +1167,15 @@ namespace Microsoft.ML.Trainers
             }
         }
 
+        Schema ICanSummarize.Summarize()
+        {
+            return new Schema
+            {
+                EstimatorType = this.GetType().Name,
+                Parameter = Parameter.FromOption(SdcaTrainerOptions),
+            };
+        }
+
         // REVIEW: This data structure is an extension of HashArray. It may have general
         // purpose of usage to store Id. Should consider lifting this class in the future.
         // This class can also be made to accommodate generic type, as long as the type implements a
@@ -1829,7 +1838,7 @@ namespace Microsoft.ML.Trainers
     }
 
     public abstract class SgdBinaryTrainerBase<TModel> :
-        LinearTrainerBase<BinaryPredictionTransformer<TModel>, TModel>
+        LinearTrainerBase<BinaryPredictionTransformer<TModel>, TModel>, ICanSummarize
         where TModel : class
     {
         public class OptionsBase : TrainerInputBaseWithWeight
@@ -2229,6 +2238,15 @@ namespace Microsoft.ML.Trainers
         {
             examples.CheckBinaryLabel();
             weightSetCount = 1;
+        }
+
+        Schema ICanSummarize.Summarize()
+        {
+            return new Schema
+            {
+                EstimatorType = this.GetType().Name,
+                Parameter = Parameter.FromOption(this._options),
+            };
         }
     }
 

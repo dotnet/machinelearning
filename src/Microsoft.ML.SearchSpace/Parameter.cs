@@ -7,9 +7,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.ML.SearchSpace.Converter;
+using Microsoft.ML.SearchSpace.Option;
 
 namespace Microsoft.ML.SearchSpace
 {
@@ -167,6 +169,78 @@ namespace Microsoft.ML.SearchSpace
         public static Parameter FromObject<T>(T value) where T : class
         {
             return Parameter.FromObject(value, typeof(T));
+        }
+
+
+        /// <summary>
+        /// Create a <see cref="Parameter"/> from an <see cref="object"/> value. The <see cref="ParameterType"/> will be <see cref="ParameterType.Object"/>.
+        /// When creating <see cref="Parameter"/>, it will only collect properties or fields that has <see cref="BooleanChoiceAttribute"/>, <see cref="ChoiceAttribute"/>,
+        /// <see cref="NestOptionAttribute"/> or <see cref="RangeAttribute"/>.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static Parameter FromOption<T>(T value)
+            where T : class
+        {
+            var param = value switch
+            {
+                int i => Parameter.FromInt(i),
+                long l => Parameter.FromLong(l),
+                double d => Parameter.FromDouble(d),
+                float f => Parameter.FromFloat(f),
+                string s => Parameter.FromString(s),
+                bool b => Parameter.FromBool(b),
+                IEnumerable vs => Parameter.FromIEnumerable(vs),
+                Enum e => Parameter.FromEnum(e, e.GetType()),
+                _ => null,
+            };
+
+            if (param != null)
+            {
+                return param;
+            }
+            else
+            {
+                // properties info
+                var propertyInfo = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                var parameter = Parameter.CreateNestedParameter();
+
+                foreach (var property in propertyInfo)
+                {
+                    var name = property.Name;
+                    var pValue = property.GetValue(value);
+                    if (pValue != null)
+                    {
+                        var p = Parameter.FromObject(pValue, property.PropertyType);
+
+                        if (p?.Count != 0)
+                        {
+                            parameter[name] = p;
+                        }
+                    }
+                }
+
+                // fields info
+                var fieldInfos = typeof(T).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+                foreach (var field in fieldInfos)
+                {
+                    var name = field.Name;
+                    var pValue = field.GetValue(value);
+                    if (pValue != null)
+                    {
+                        var p = Parameter.FromObject(pValue, field.FieldType);
+
+                        if (p?.Count != 0)
+                        {
+                            parameter[name] = p;
+                        }
+                    }
+                }
+
+                return parameter;
+            }
         }
 
         private static Parameter FromObject(object value, Type type)
