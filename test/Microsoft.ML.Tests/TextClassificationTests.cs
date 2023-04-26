@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -15,8 +16,11 @@ using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TorchSharp;
+using Microsoft.ML.TorchSharp.NasBert;
+using TorchSharp;
 using Xunit;
 using Xunit.Abstractions;
+using static TorchSharp.torch.utils;
 
 namespace Microsoft.ML.Tests
 {
@@ -403,6 +407,52 @@ namespace Microsoft.ML.Tests
             var score = transformer.Transform(dataView).GetColumn<float>(transformerSchema[3].Name);
             // Not enough training is done to get good results so just make sure there is the correct number.
             Assert.NotNull(score);
+        }
+
+        [Fact(Skip = "Needs to be on a comp with GPU or will take a LONG time.")]
+        public void TestSentenceSimilarityLargeFileGpu()
+        {
+            ML.GpuDeviceId = 0;
+            ML.FallbackToCpu = false;
+
+            var trainFile = GetDataPath("home-depot-relevance-train.csv");
+
+            IDataView dataView = TextLoader.Create(ML, new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                new TextLoader.Column("search_term", DataKind.String,3),
+                new TextLoader.Column("relevance", DataKind.Single,4),
+                new TextLoader.Column("product_description", DataKind.String,5)
+                },
+                HasHeader = true,
+                Separators = new[] { ',' },
+                MaxRows = 1000 // Dataset has 75k rows. Only load 1k for quicker training,
+            }, new MultiFileSource(trainFile));
+
+            dataView = ML.Data.FilterRowsByMissingValues(dataView, "relevance");
+
+            var dataSplit = ML.Data.TrainTestSplit(dataView, testFraction: 0.2);
+
+            var options = new NasBertTrainer.NasBertOptions()
+            {
+                TaskType = BertTaskType.SentenceRegression,
+                Sentence1ColumnName = "search_term",
+                Sentence2ColumnName = "product_description",
+                LabelColumnName = "relevance",
+            };
+
+            var estimator = ML.Regression.Trainers.SentenceSimilarity(options);
+            var model = estimator.Fit(dataSplit.TrainSet);
+            var transformedData = model.Transform(dataSplit.TestSet);
+
+            var predictions = transformedData.GetColumn<float>("relevance").ToArray().Select(num => (double)num).ToArray();
+            var targets = transformedData.GetColumn<float>("Score").ToArray().Select(num => (double)num).ToArray();
+
+            // Need to the nuget MathNet.Numerics.Signed for these.
+            //var pearson = Correlation.Pearson(predictions, targets);
+
+            //var spearman = Correlation.Spearman(predictions, targets);
         }
     }
 

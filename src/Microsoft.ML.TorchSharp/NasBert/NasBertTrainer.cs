@@ -5,54 +5,31 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Tokenizers;
 using Microsoft.ML.TorchSharp.NasBert.Models;
-using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using TorchSharp;
 
 using static TorchSharp.torch;
 using static TorchSharp.torch.nn;
-using static TorchSharp.TensorExtensionMethods;
 using Microsoft.ML.TorchSharp.Utils;
 using Microsoft.ML.TorchSharp.NasBert.Optimizers;
-using Microsoft.ML;
-using Microsoft.ML.TorchSharp.NasBert;
 using Microsoft.ML.TorchSharp.Extensions;
 using System.IO;
 using System.CodeDom;
 using System.Runtime.CompilerServices;
-using Microsoft.ML.Data.IO;
+using TorchSharp.Modules;
 
 namespace Microsoft.ML.TorchSharp.NasBert
 {
-    public abstract class NasBertTrainer : IEstimator<NasBertTransformer>
+
+    public class NasBertTrainer
     {
-        public abstract NasBertTransformer Fit(IDataView input);
-        public abstract SchemaShape GetOutputSchema(SchemaShape inputSchema);
-
-        internal sealed class Options : TransformInputBase
+        public sealed class NasBertOptions : TorchSharpBaseTrainer.Options
         {
-            /// <summary>
-            /// The label column name.
-            /// </summary>
-            public string LabelColumnName = DefaultColumnNames.Label;
-
-            /// <summary>
-            /// The Score column name.
-            /// </summary>
-            public string ScoreColumnName = DefaultColumnNames.Score;
-
-            /// <summary>
-            /// The Prediction column name.
-            /// </summary>
-            public string PredictionColumnName = DefaultColumnNames.PredictedLabel;
-
             /// <summary>
             /// The first sentence column.
             /// </summary>
@@ -62,11 +39,6 @@ namespace Microsoft.ML.TorchSharp.NasBert
             /// The second sentence column.
             /// </summary>
             public string Sentence2ColumnName = default;
-
-            /// <summary>
-            /// Number of samples to use for mini-batch training.
-            /// </summary>
-            public int BatchSize = 32;
 
             /// <summary>
             /// Whether to freeze encoder parameters.
@@ -114,16 +86,6 @@ namespace Microsoft.ML.TorchSharp.NasBert
             public double PoolerDropout = 0;
 
             /// <summary>
-            /// The start learning rate for polynomial decay scheduler.
-            /// </summary>
-            public double StartLearningRateRatio = .1;
-
-            /// <summary>
-            /// The final learning rate for polynomial decay scheduler.
-            /// </summary>
-            public double FinalLearningRateRatio = .1;
-
-            /// <summary>
             /// Betas for Adam optimizer.
             /// </summary>
             public IReadOnlyList<double> AdamBetas = new List<double> { .9, .999 };
@@ -134,14 +96,9 @@ namespace Microsoft.ML.TorchSharp.NasBert
             public double AdamEps = 1e-8;
 
             /// <summary>
-            /// Coefficiency of weight decay. Should be within [0, +Inf).
-            /// </summary>
-            public double WeightDecay = 0;
-
-            /// <summary>
             /// The clipping threshold of gradients. Should be within [0, +Inf). 0 means not to clip norm.
             /// </summary>
-            public double ClipNorm = 25;
+            public double ClipNorm = 5.0;
 
             /// <summary>
             /// Proportion of warmup steps for polynomial decay scheduler.
@@ -149,35 +106,20 @@ namespace Microsoft.ML.TorchSharp.NasBert
             public double WarmupRatio = .06;
 
             /// <summary>
-            /// Stop training when reaching this number of epochs.
-            /// </summary>
-            public int MaxEpoch = 100;
-
-            /// <summary>
-            /// The validation set used while training to improve model quality.
-            /// </summary>
-            public IDataView ValidationSet = null;
-
-            /// <summary>
-            /// Number of classes for the data.
-            /// </summary>
-            internal int NumberOfClasses;
-
-            /// <summary>
             /// Learning rate for the first N epochs; all epochs >N using LR_N.
             /// Note: this may be interpreted differently depending on the scheduler.
             /// </summary>
-            internal List<double> LearningRate = new List<double> { 1e-4 };
+            public List<double> LearningRate = new List<double> { 1e-4 };
+
+            /// <summary>
+            /// Task type, which is related to the model head.
+            /// </summary>
+            public BertTaskType TaskType = BertTaskType.None;
 
             /// <summary>
             /// The index numbers of model architecture. Fixed by the TorchSharp model.
             /// </summary>
             internal IReadOnlyList<int> Arches = new int[] { 9, 11, 7, 0, 0, 0, 11, 11, 7, 0, 0, 0, 9, 7, 11, 0, 0, 0, 10, 7, 9, 0, 0, 0 };
-
-            /// <summary>
-            /// Task type, which is related to the model head.
-            /// </summary>
-            internal BertTaskType TaskType = BertTaskType.TextClassification;
 
             /// <summary>
             /// Maximum length of a sample. Set by the TorchSharp model.
@@ -216,323 +158,88 @@ namespace Microsoft.ML.TorchSharp.NasBert
         }
     }
 
-    public abstract class NasBertTrainer<TLabelCol, TTargetsCol> : NasBertTrainer
+    public abstract class NasBertTrainer<TLabelCol, TTargetsCol> : TorchSharpBaseTrainer<TLabelCol, TTargetsCol>
     {
-        private protected readonly IHost Host;
-        internal readonly Options Option;
+
         private const string ModelUrl = "models/NasBert2000000.tsm";
+        internal readonly NasBertTrainer.NasBertOptions BertOptions;
 
-        internal NasBertTrainer(IHostEnvironment env, Options options)
+        internal NasBertTrainer(IHostEnvironment env, Options options) : base(env, options)
         {
-            Host = Contracts.CheckRef(env, nameof(env)).Register(nameof(NasBertTrainer));
-            Contracts.Assert(options.BatchSize > 0);
-            Contracts.Assert(options.MaxEpoch > 0);
-            Contracts.AssertValue(options.Sentence1ColumnName);
-            Contracts.AssertValue(options.LabelColumnName);
-            Contracts.AssertValue(options.PredictionColumnName);
-            Contracts.AssertValue(options.ScoreColumnName);
-            Option = options;
+            BertOptions = options as NasBertTrainer.NasBertOptions;
+            Contracts.AssertValue(BertOptions.Sentence1ColumnName);
+            Contracts.Assert(BertOptions.TaskType != BertTaskType.None, "BertTaskType must be specified");
         }
 
-        public override NasBertTransformer Fit(IDataView input)
-        {
-            CheckInputSchema(SchemaShape.Create(input.Schema));
-
-            NasBertTransformer<TLabelCol, TTargetsCol> transformer = default;
-
-            using (var ch = Host.Start("TrainModel"))
-            using (var pch = Host.StartProgressChannel("Training model"))
-            {
-                var header = new ProgressHeader(new[] { "Accuracy" }, null);
-                var trainer = CreateTrainer(this, ch, input);
-                pch.SetHeader(header, e => e.SetMetric(0, trainer.Accuracy));
-                for (int i = 0; i < Option.MaxEpoch; i++)
-                {
-                    ch.Trace($"Starting epoch {i}");
-                    Host.CheckAlive();
-                    trainer.Train(Host, input);
-                    ch.Trace($"Finished epoch {i}");
-                    if (Option.ValidationSet != null)
-                        trainer.Validate(pch, ch, i);
-                }
-                var labelCol = input.Schema.GetColumnOrNull(Option.LabelColumnName);
-
-                transformer = CreateTransformer(Host, Option, trainer.Model, new DataViewSchema.DetachedColumn(labelCol.Value));
-
-                transformer.GetOutputSchema(input.Schema);
-            }
-            return transformer;
-        }
-
-        private protected abstract NasBertTransformer<TLabelCol, TTargetsCol> CreateTransformer(IHost host, NasBertTrainer<TLabelCol, TTargetsCol>.Options options, NasBertModel model, DataViewSchema.DetachedColumn labelColumn);
-
-        private protected abstract TrainerBase CreateTrainer(NasBertTrainer<TLabelCol, TTargetsCol> parent, IChannel ch, IDataView input);
-
-        private protected abstract class TrainerBase
+        private protected abstract class NasBertTrainerBase : TrainerBase
         {
             public Tokenizer Tokenizer;
-            public NasBertModel Model;
-            public torch.Device Device;
-            public BaseOptimizer Optimizer;
-            public optim.lr_scheduler.LRScheduler LearningRateScheduler;
-            protected readonly NasBertTrainer<TLabelCol, TTargetsCol> Parent;
-            public int Updates;
-            public float Accuracy;
+            public new BaseOptimizer Optimizer;
+            public new NasBertTrainer<TLabelCol, TTargetsCol> Parent => base.Parent as NasBertTrainer<TLabelCol, TTargetsCol>;
+            public new NasBertModel Model;
+            private protected ValueGetter<ReadOnlyMemory<char>> Sentence1Getter;
+            private protected ValueGetter<ReadOnlyMemory<char>> Sentence2Getter;
 
-            public TrainerBase(NasBertTrainer<TLabelCol, TTargetsCol> parent, IChannel ch, IDataView input)
+            public NasBertTrainerBase(TorchSharpBaseTrainer<TLabelCol, TTargetsCol> parent, IChannel ch, IDataView input) : base(parent, ch, input)
             {
-                Parent = parent;
-                Updates = 0;
-                Accuracy = 0;
+                // Get the parameters that need optimization and set up the optimizer
+                var parameters = Model.parameters().Where(p => p.requires_grad);
+                Optimizer = BaseOptimizer.GetOptimizer(Parent.BertOptions, parameters);
+                base.Optimizer = Optimizer.Optimizer;
+                LearningRateScheduler = torch.optim.lr_scheduler.OneCycleLR(
+                   Optimizer.Optimizer,
+                   max_lr: Parent.BertOptions.LearningRate[0],
+                   total_steps: ((TrainingRowCount / Parent.Option.BatchSize) + 1) * Parent.Option.MaxEpoch,
+                   pct_start: Parent.BertOptions.WarmupRatio,
+                   anneal_strategy: torch.optim.lr_scheduler.impl.OneCycleLR.AnnealStrategy.Linear,
+                   div_factor: 1.0 / Parent.Option.StartLearningRateRatio,
+                   final_div_factor: Parent.Option.StartLearningRateRatio / Parent.Option.FinalLearningRateRatio);
+            }
 
-                // Get the tokenizer
+            private protected override Module CreateModule(IChannel ch, IDataView input)
+            {
                 Tokenizer = TokenizerExtensions.GetInstance(ch);
                 EnglishRoberta tokenizerModel = Tokenizer.RobertaModel();
 
-                // Get row count and figure out num of unique labels
-                var rowCount = GetRowCountAndSetLabelCount(input);
-
-                // Initialize the model and load pre-trained weights
-                Model = new NasBertModel(Parent.Option, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, Parent.Option.NumberOfClasses);
-                Model.GetEncoder().load(GetModelPath());
-
-                // Figure out if we are running on GPU or CPU
-                Device = TorchUtils.InitializeDevice(Parent.Host);
-
-                // Move to GPU if we are running there
-                if (Device == CUDA)
-                    Model.cuda();
-
-                // Get the parameters that need optimization and set up the optimizer
-                var parameters = Model.parameters().Where(p => p.requires_grad);
-                Optimizer = BaseOptimizer.GetOptimizer(Parent.Option, parameters);
-                LearningRateScheduler = torch.optim.lr_scheduler.OneCycleLR(
-                   Optimizer.Optimizer,
-                   max_lr: Parent.Option.LearningRate[0],
-                   total_steps: ((rowCount / Parent.Option.BatchSize) + 1) * Parent.Option.MaxEpoch,
-                   pct_start: Parent.Option.WarmupRatio,
-                   anneal_strategy: torch.optim.lr_scheduler.impl.OneCycleLR.AnnealStrategy.Linear,
-                   div_factor: 1.0 / Parent.Option.StartLearningRateRatio,
-                   final_div_factor: 1.0 / Parent.Option.FinalLearningRateRatio);
+                var model = new NasBertModel(Parent.BertOptions, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, Parent.Option.NumberOfClasses);
+                model.GetEncoder().load(GetModelPath(ModelUrl));
+                Model = model;
+                return model;
             }
 
-            private protected abstract int GetRowCountAndSetLabelCount(IDataView input);
-
-            private string GetModelPath()
+            private protected override DataViewRowCursor GetRowCursor(IDataView input)
             {
-                var destDir = Path.Combine(((IHostEnvironmentInternal)Parent.Host).TempFilePath, "mlnet");
-                var destFileName = ModelUrl.Split('/').Last();
-
-                Directory.CreateDirectory(destDir);
-
-                string relativeFilePath = Path.Combine(destDir, destFileName);
-
-                int timeout = 10 * 60 * 1000;
-                using (var ch = (Parent.Host as IHostEnvironment).Start("Ensuring model file is present."))
-                {
-                    var ensureModel = ResourceManagerUtils.Instance.EnsureResourceAsync(Parent.Host, ch, ModelUrl, destFileName, destDir, timeout);
-                    ensureModel.Wait();
-                    var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
-                    if (errorResult != null)
-                    {
-                        var directory = Path.GetDirectoryName(errorResult.FileName);
-                        var name = Path.GetFileName(errorResult.FileName);
-                        throw ch.Except($"{errorMessage}\nmodel file could not be downloaded!");
-                    }
-                }
-
-                return relativeFilePath;
-            }
-
-            public void Validate(IProgressChannel pch, IChannel ch, int epoch)
-            {
-                var validationSet = Parent.Option.ValidationSet;
-                Model.eval();
-
-                DataViewRowCursor cursor = default;
-                if (Parent.Option.Sentence2ColumnName != default)
-                    cursor = validationSet.GetRowCursor(validationSet.Schema[Parent.Option.Sentence1ColumnName], validationSet.Schema[Parent.Option.Sentence2ColumnName], validationSet.Schema[Parent.Option.LabelColumnName]);
+                if (Parent.BertOptions.Sentence2ColumnName != default)
+                    return input.GetRowCursor(input.Schema[Parent.BertOptions.Sentence1ColumnName], input.Schema[Parent.BertOptions.Sentence2ColumnName], input.Schema[Parent.Option.LabelColumnName]);
                 else
-                    cursor = validationSet.GetRowCursor(validationSet.Schema[Parent.Option.Sentence1ColumnName], validationSet.Schema[Parent.Option.LabelColumnName]);
-
-                var sentence1Getter = cursor.GetGetter<ReadOnlyMemory<char>>(validationSet.Schema[Parent.Option.Sentence1ColumnName]);
-                var sentence2Getter = Parent.Option.Sentence2ColumnName != default ? cursor.GetGetter<ReadOnlyMemory<char>>(validationSet.Schema[Parent.Option.Sentence2ColumnName]) : default;
-                var labelGetter = cursor.GetGetter<TLabelCol>(validationSet.Schema[Parent.Option.LabelColumnName]);
-
-                // Pre-allocate the memory so it's only done once (though this step needs to be optimized)
-                List<Tensor> inputTensors = new List<Tensor>(Parent.Option.BatchSize);
-                List<TTargetsCol> targets = new List<TTargetsCol>(Parent.Option.BatchSize);
-                int numCorrect = 0;
-                int numRows = 0;
-
-                var cursorValid = true;
-                while (cursorValid)
-                {
-                    cursorValid = ValidateStep(cursor, sentence1Getter, sentence2Getter, labelGetter, ref inputTensors, ref targets, ref numCorrect, ref numRows);
-                }
-                Accuracy = numCorrect / (float)numRows;
-                pch.Checkpoint(Accuracy);
-                ch.Info($"Accuracy for epoch {epoch}: {Accuracy}");
-
-                Model.train();
+                    return input.GetRowCursor(input.Schema[Parent.BertOptions.Sentence1ColumnName], input.Schema[Parent.Option.LabelColumnName]);
             }
 
-            private bool ValidateStep(DataViewRowCursor cursor,
-                ValueGetter<ReadOnlyMemory<char>> sentence1Getter,
-                ValueGetter<ReadOnlyMemory<char>> sentence2Getter,
-                ValueGetter<TLabelCol> labelGetter,
-                ref List<Tensor> inputTensors,
-                ref List<TTargetsCol> targets,
-                ref int numCorrect,
-                ref int numRows)
+            private protected override void InitializeDataGetters(IDataView input, DataViewRowCursor cursor)
             {
-                // Make sure list is clear before use
-                inputTensors.Clear();
-                targets.Clear();
-                using var disposeScope = torch.NewDisposeScope();
-                var cursorValid = true;
-                for (int i = 0; i < Parent.Option.BatchSize && cursorValid; i++)
-                {
-                    cursorValid = cursor.MoveNext();
-                    if (cursorValid)
-                    {
-                        inputTensors.Add(PrepareData(sentence1Getter, sentence2Getter));
-                        TLabelCol target = default;
-                        labelGetter(ref target);
-                        targets.Add(AddToTargets(target));
-                    }
-                    else
-                    {
-                        inputTensors.TrimExcess();
-                        targets.TrimExcess();
-                        if (inputTensors.Count() == 0)
-                            return cursorValid;
-                    }
-                }
-
-                using (torch.no_grad())
-                {
-                    var inputTensor = DataUtils.CollateTokens(inputTensors, Tokenizer.RobertaModel().PadIndex, device: Device);
-                    var targetsTensor = CreateTargetsTensor(ref targets, device: Device);
-                    var logits = Model.forward(inputTensor);
-                    var predictions = GetPredictions(logits);
-                    var targetss = GetTargets(targetsTensor);
-                    numCorrect = GetNumCorrect(predictions, targetss);
-                    numRows = inputTensors.Count;
-                }
-
-                return cursorValid;
+                Sentence1Getter = cursor.GetGetter<ReadOnlyMemory<char>>(input.Schema[Parent.BertOptions.Sentence1ColumnName]);
+                Sentence2Getter = Parent.BertOptions.Sentence2ColumnName != default ? cursor.GetGetter<ReadOnlyMemory<char>>(input.Schema[Parent.BertOptions.Sentence2ColumnName]) : default;
             }
 
-            public void Train(IHost host, IDataView input)
+            private protected override void RunModelAndUpdateValidationStats(ref Tensor inputTensor, ref Tensor targetsTensor, ref int numCorrect)
             {
-                // Get the cursor and the correct columns based on the inputs
-                DataViewRowCursor cursor = default;
-                if (Parent.Option.Sentence2ColumnName != default)
-                    cursor = input.GetRowCursor(input.Schema[Parent.Option.Sentence1ColumnName], input.Schema[Parent.Option.Sentence2ColumnName], input.Schema[Parent.Option.LabelColumnName]);
-                else
-                    cursor = input.GetRowCursor(input.Schema[Parent.Option.Sentence1ColumnName], input.Schema[Parent.Option.LabelColumnName]);
-
-                var sentence1Getter = cursor.GetGetter<ReadOnlyMemory<char>>(input.Schema[Parent.Option.Sentence1ColumnName]);
-                var sentence2Getter = Parent.Option.Sentence2ColumnName != default ? cursor.GetGetter<ReadOnlyMemory<char>>(input.Schema[Parent.Option.Sentence2ColumnName]) : default;
-                var labelGetter = cursor.GetGetter<TLabelCol>(input.Schema[Parent.Option.LabelColumnName]);
-
-                // Pre-allocate the memory so it's only done once (though this step needs to be optimized)
-                List<Tensor> inputTensors = new List<Tensor>(Parent.Option.BatchSize);
-                List<TTargetsCol> targets = new List<TTargetsCol>(Parent.Option.BatchSize);
-
-                var cursorValid = true;
-                while (cursorValid)
-                {
-                    cursorValid = TrainStep(host, cursor, sentence1Getter, sentence2Getter, labelGetter, ref inputTensors, ref targets);
-                }
-            }
-
-            private bool TrainStep(IHost host,
-                DataViewRowCursor cursor,
-                ValueGetter<ReadOnlyMemory<char>> sentence1Getter,
-                ValueGetter<ReadOnlyMemory<char>> sentence2Getter,
-                ValueGetter<TLabelCol> labelGetter,
-            ref List<Tensor> inputTensors,
-            ref List<TTargetsCol> targets)
-            {
-                // Make sure list is clear before use
-                inputTensors.Clear();
-                targets.Clear();
-                using var disposeScope = torch.NewDisposeScope();
-                var cursorValid = true;
-                for (int i = 0; i < Parent.Option.BatchSize && cursorValid; i++)
-                {
-                    host.CheckAlive();
-                    cursorValid = cursor.MoveNext();
-                    if (cursorValid)
-                    {
-                        inputTensors.Add(PrepareData(sentence1Getter, sentence2Getter));
-                        TLabelCol target = default;
-                        labelGetter(ref target);
-                        targets.Add(AddToTargets(target));
-                    }
-                    else
-                    {
-                        inputTensors.TrimExcess();
-                        targets.TrimExcess();
-                        if (inputTensors.Count() == 0)
-                            return cursorValid;
-                    }
-                }
-
-                Updates++;
-                host.CheckAlive();
-                torch.random.manual_seed(1 + Updates);
-                torch.cuda.manual_seed(1 + Updates);
-                Model.train();
-                Optimizer.zero_grad();
-
-                var inputTensor = DataUtils.CollateTokens(inputTensors, Tokenizer.RobertaModel().PadIndex, device: Device);
-                var targetsTensor = CreateTargetsTensor(ref targets, device: Device);
                 var logits = Model.forward(inputTensor);
-
-                torch.Tensor loss;
-                if (Parent.Option.TaskType == BertTaskType.TextClassification)
-                    loss = torch.nn.CrossEntropyLoss(reduction: Parent.Option.Reduction).forward(logits, targetsTensor);
-                else
-                {
-                    loss = torch.nn.MSELoss(reduction: Parent.Option.Reduction).forward(logits, targetsTensor);
-                    logits = logits.squeeze();
-                }
-                host.CheckAlive();
-                loss.backward();
-
-                host.CheckAlive();
-                OptimizeStep();
-
-                return cursorValid;
+                var predictions = GetPredictions(logits);
+                var targetss = GetTargets(targetsTensor);
+                numCorrect = GetNumCorrect(predictions, targetss);
             }
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private protected abstract TTargetsCol AddToTargets(TLabelCol target);
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private protected abstract Tensor CreateTargetsTensor(ref List<TTargetsCol> targets, Device device);
-
-            private protected abstract torch.Tensor GetPredictions(torch.Tensor logits);
-
-            private protected abstract torch.Tensor GetTargets(torch.Tensor labels);
-
-            private protected abstract int GetNumCorrect(torch.Tensor predictions, torch.Tensor targets);
-
-            private void OptimizeStep()
+            private protected override torch.Tensor PrepareBatchTensor(ref List<Tensor> inputTensors, Device device)
             {
-                Optimizer.Step();
-                LearningRateScheduler.step();
+                return DataUtils.CollateTokens(inputTensors, Tokenizer.RobertaModel().PadIndex, device: Device);
             }
 
-            protected torch.Tensor PrepareData(ValueGetter<ReadOnlyMemory<char>> sentence1Getter, ValueGetter<ReadOnlyMemory<char>> sentence2Getter)
+            private protected override torch.Tensor PrepareRowTensor()
             {
                 ReadOnlyMemory<char> sentence1 = default;
-                sentence1Getter(ref sentence1);
+                Sentence1Getter(ref sentence1);
                 Tensor t;
-                if (sentence2Getter == default)
+                if (Sentence2Getter == default)
                 {
                     t = torch.tensor((new[] { 0 /* InitToken */ }).Concat(Tokenizer.EncodeToConverted(sentence1.ToString())).ToList(), device: Device);
                 }
@@ -540,7 +247,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 {
 
                     ReadOnlyMemory<char> sentence2 = default;
-                    sentence2Getter(ref sentence2);
+                    Sentence2Getter(ref sentence2);
 
                     t = torch.tensor((new[] { 0 /* InitToken */ }).Concat(Tokenizer.EncodeToConverted(sentence1.ToString()))
                         .Concat(new[] { 2 /* SeparatorToken */ }).Concat(Tokenizer.EncodeToConverted(sentence2.ToString())).ToList(), device: Device);
@@ -550,6 +257,27 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     t = t.slice(0, 0, 512, 1);
 
                 return t;
+            }
+
+            private protected override void RunModelAndBackPropagate(ref Tensor inputTensor, ref Tensor targetsTensor)
+            {
+                var logits = Model.forward(inputTensor);
+
+                torch.Tensor loss;
+                if (Parent.BertOptions.TaskType == BertTaskType.TextClassification)
+                    loss = torch.nn.CrossEntropyLoss(reduction: Parent.BertOptions.Reduction).forward(logits, targetsTensor);
+                else
+                {
+                    loss = torch.nn.MSELoss(reduction: Parent.BertOptions.Reduction).forward(logits.squeeze(), targetsTensor);
+                }
+
+                loss.backward();
+            }
+
+            private protected override void OptimizeStep()
+            {
+                Optimizer.Step();
+                LearningRateScheduler.step();
             }
         }
 
@@ -561,7 +289,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
             var outColumns = inputSchema.ToDictionary(x => x.Name);
 
-            if (Option.TaskType == BertTaskType.TextClassification)
+            if (BertOptions.TaskType == BertTaskType.TextClassification)
             {
 
                 var metadata = new List<SchemaShape.Column>();
@@ -586,31 +314,31 @@ namespace Microsoft.ML.TorchSharp.NasBert
             return new SchemaShape(outColumns.Values);
         }
 
-        private void CheckInputSchema(SchemaShape inputSchema)
+        private protected override void CheckInputSchema(SchemaShape inputSchema)
         {
             // Verify that all required input columns are present, and are of the same type.
-            if (!inputSchema.TryFindColumn(Option.Sentence1ColumnName, out var sentenceCol))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "sentence", Option.Sentence1ColumnName);
+            if (!inputSchema.TryFindColumn(BertOptions.Sentence1ColumnName, out var sentenceCol))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "sentence", BertOptions.Sentence1ColumnName);
             if (sentenceCol.ItemType != TextDataViewType.Instance)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "sentence", Option.Sentence1ColumnName,
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "sentence", BertOptions.Sentence1ColumnName,
                     TextDataViewType.Instance.ToString(), sentenceCol.GetTypeString());
 
             if (!inputSchema.TryFindColumn(Option.LabelColumnName, out var labelCol))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "label", Option.LabelColumnName);
 
-            if (Option.TaskType == BertTaskType.TextClassification)
+            if (BertOptions.TaskType == BertTaskType.TextClassification)
             {
                 if (labelCol.ItemType != NumberDataViewType.UInt32)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "label", Option.LabelColumnName,
                         NumberDataViewType.UInt32.ToString(), labelCol.GetTypeString());
 
 
-                if (Option.Sentence2ColumnName != default)
+                if (BertOptions.Sentence2ColumnName != default)
                 {
-                    if (!inputSchema.TryFindColumn(Option.Sentence2ColumnName, out var sentenceCol2))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "sentence2", Option.Sentence2ColumnName);
+                    if (!inputSchema.TryFindColumn(BertOptions.Sentence2ColumnName, out var sentenceCol2))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "sentence2", BertOptions.Sentence2ColumnName);
                     if (sentenceCol2.ItemType != TextDataViewType.Instance)
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "sentence2", Option.Sentence2ColumnName,
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "sentence2", BertOptions.Sentence2ColumnName,
                             TextDataViewType.Instance.ToString(), sentenceCol2.GetTypeString());
                 }
             }
@@ -620,59 +348,39 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "label", Option.LabelColumnName,
                         NumberDataViewType.Single.ToString(), labelCol.GetTypeString());
 
-                if (!inputSchema.TryFindColumn(Option.Sentence2ColumnName, out var sentenceCol2))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "sentence2", Option.Sentence2ColumnName);
+                if (!inputSchema.TryFindColumn(BertOptions.Sentence2ColumnName, out var sentenceCol2))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "sentence2", BertOptions.Sentence2ColumnName);
                 if (sentenceCol2.ItemType != TextDataViewType.Instance)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "sentence2", Option.Sentence2ColumnName,
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "sentence2", BertOptions.Sentence2ColumnName,
                         TextDataViewType.Instance.ToString(), sentenceCol2.GetTypeString());
             }
         }
     }
 
-    public abstract class NasBertTransformer : RowToRowTransformerBase
+    public abstract class NasBertTransformer<TLabelCol, TTargetsCol> : TorchSharpBaseTransformer<TLabelCol, TTargetsCol>
     {
-        private protected NasBertTransformer(IHost host) : base(host)
-        {
-        }
-    }
+        internal readonly NasBertTrainer.NasBertOptions BertOptions;
 
-    public abstract class NasBertTransformer<TLabelCol, TTargetsCol> : NasBertTransformer
-    {
-        private protected readonly Device Device;
-        private protected readonly NasBertModel Model;
-        internal readonly NasBertTrainer.Options Options;
-
-        private protected readonly string ScoreColumnName;
 
         public readonly SchemaShape.Column SentenceColumn;
         public readonly SchemaShape.Column SentenceColumn2;
-        public readonly DataViewSchema.DetachedColumn LabelColumn;
 
-        internal NasBertTransformer(IHostEnvironment env, NasBertTrainer.Options options, NasBertModel model, DataViewSchema.DetachedColumn labelColumn)
-           : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NasBertTransformer)))
+        internal NasBertTransformer(IHostEnvironment env, NasBertTrainer.NasBertOptions options, NasBertModel model, DataViewSchema.DetachedColumn labelColumn)
+           : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NasBertTransformer<TLabelCol, TTargetsCol>)), options, model, labelColumn)
         {
-            Device = TorchUtils.InitializeDevice(env);
-
-            Options = options;
-            LabelColumn = labelColumn;
-            SentenceColumn = new SchemaShape.Column(Options.Sentence1ColumnName, SchemaShape.Column.VectorKind.Scalar, TextDataViewType.Instance, false);
-            SentenceColumn2 = Options.Sentence2ColumnName == default ? default : new SchemaShape.Column(Options.Sentence2ColumnName, SchemaShape.Column.VectorKind.Scalar, TextDataViewType.Instance, false);
-            ScoreColumnName = Options.ScoreColumnName;
-
-            Model = model;
-
-            if (Device == CUDA)
-                Model.cuda();
+            BertOptions = options;
+            SentenceColumn = new SchemaShape.Column(options.Sentence1ColumnName, SchemaShape.Column.VectorKind.Scalar, TextDataViewType.Instance, false);
+            SentenceColumn2 = options.Sentence2ColumnName == default ? default : new SchemaShape.Column(options.Sentence2ColumnName, SchemaShape.Column.VectorKind.Scalar, TextDataViewType.Instance, false);
         }
 
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        private protected override SchemaShape GetOutputSchemaCore(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
             CheckInputSchema(inputSchema);
 
             var outColumns = inputSchema.ToDictionary(x => x.Name);
-            if (Options.TaskType == BertTaskType.TextClassification)
+            if (BertOptions.TaskType == BertTaskType.TextClassification)
             {
                 var labelAnnotationsColumn = new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, LabelColumn.Annotations.Schema[AnnotationUtils.Kinds.SlotNames].Type, false);
                 var predLabelMetadata = new SchemaShape(new SchemaShape.Column[] { labelAnnotationsColumn }
@@ -693,7 +401,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             return new SchemaShape(outColumns.Values);
         }
 
-        private void CheckInputSchema(SchemaShape inputSchema)
+        private protected override void CheckInputSchema(SchemaShape inputSchema)
         {
             // Verify that all required input columns are present, and are of the same type.
             if (!inputSchema.TryFindColumn(SentenceColumn.Name, out var sentenceCol))
@@ -702,7 +410,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "sentence", SentenceColumn.Name,
                     SentenceColumn.GetTypeString(), sentenceCol.GetTypeString());
 
-            if (Options.Sentence2ColumnName != default || Options.TaskType == BertTaskType.SentenceRegression)
+            if (BertOptions.Sentence2ColumnName != default || BertOptions.TaskType == BertTaskType.SentenceRegression)
             {
                 if (!inputSchema.TryFindColumn(SentenceColumn2.Name, out var sentenceCol2))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "sentence2", SentenceColumn2.Name);
@@ -712,69 +420,49 @@ namespace Microsoft.ML.TorchSharp.NasBert
             }
         }
 
-
         private protected abstract override void SaveModel(ModelSaveContext ctx);
 
 
-        private protected void SaveBaseModel(ModelSaveContext ctx, VersionInfo versionInfo)
+        private protected new void SaveBaseModel(ModelSaveContext ctx, VersionInfo versionInfo)
         {
-            Host.AssertValue(ctx);
-            ctx.CheckAtModel();
-            ctx.SetVersionInfo(versionInfo);
+            base.SaveBaseModel(ctx, versionInfo);
 
             // *** Binary format ***
-            // int: id of label column name
-            // int: id of the score column name
-            // int: id of output column name
             // int: id of sentence 1 column name
             // int: id of sentence 2 column name
-            // int: number of classes
 
-            ctx.SaveNonEmptyString(Options.LabelColumnName);
-            ctx.SaveNonEmptyString(Options.ScoreColumnName);
-            ctx.SaveNonEmptyString(Options.PredictionColumnName);
-            ctx.SaveNonEmptyString(Options.Sentence1ColumnName);
-            ctx.SaveStringOrNull(Options.Sentence2ColumnName);
-            ctx.Writer.Write(Options.NumberOfClasses);
-
-            ctx.SaveBinaryStream("TSModel", w =>
-            {
-                Model.save(w);
-            });
+            ctx.SaveNonEmptyString(BertOptions.Sentence1ColumnName);
+            ctx.SaveStringOrNull(BertOptions.Sentence2ColumnName);
         }
-
-        private protected abstract IRowMapper GetRowMapper(NasBertTransformer<TLabelCol, TTargetsCol> parent, DataViewSchema schema);
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => GetRowMapper(this, schema);
 
-        private protected abstract class NasBertMapper : MapperBase
+        private protected abstract class NasBertMapper : TorchSharpBaseMapper
         {
-            private protected readonly NasBertTransformer<TLabelCol, TTargetsCol> Parent;
-            private protected readonly HashSet<int> InputColIndices;
+            private protected new NasBertTransformer<TLabelCol, TTargetsCol> Parent => base.Parent as NasBertTransformer<TLabelCol, TTargetsCol>;
 
             private static readonly FuncInstanceMethodInfo1<NasBertMapper, DataViewSchema.DetachedColumn, Delegate> _makeLabelAnnotationGetter
                 = FuncInstanceMethodInfo1<NasBertMapper, DataViewSchema.DetachedColumn, Delegate>.Create(target => target.GetLabelAnnotations<int>);
 
 
-            public NasBertMapper(NasBertTransformer<TLabelCol, TTargetsCol> parent, DataViewSchema inputSchema) :
-                base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(NasBertMapper)), inputSchema, parent)
+            public NasBertMapper(TorchSharpBaseTransformer<TLabelCol, TTargetsCol> parent, DataViewSchema inputSchema) :
+                base(parent, inputSchema)
             {
-                Parent = parent;
-                InputColIndices = new HashSet<int>();
-                if (inputSchema.TryGetColumnIndex(parent.Options.Sentence1ColumnName, out var col))
+            }
+
+            private protected override void AddInputColumnIndices(DataViewSchema inputSchema)
+            {
+                if (inputSchema.TryGetColumnIndex(Parent.BertOptions.Sentence1ColumnName, out var col))
                     InputColIndices.Add(col);
 
-                if (parent.Options.Sentence2ColumnName != default || Parent.Options.TaskType == BertTaskType.SentenceRegression)
-                    if (inputSchema.TryGetColumnIndex(parent.Options.Sentence2ColumnName, out col))
+                if (Parent.BertOptions.Sentence2ColumnName != default || Parent.BertOptions.TaskType == BertTaskType.SentenceRegression)
+                    if (inputSchema.TryGetColumnIndex(Parent.BertOptions.Sentence2ColumnName, out col))
                         InputColIndices.Add(col);
-
-                torch.random.manual_seed(1);
-                torch.cuda.manual_seed(1);
             }
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                if (Parent.Options.TaskType == BertTaskType.TextClassification)
+                if (Parent.BertOptions.TaskType == BertTaskType.TextClassification)
                 {
                     var info = new DataViewSchema.DetachedColumn[2];
                     var keyType = Parent.LabelColumn.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
@@ -783,7 +471,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
                     var meta = new DataViewSchema.Annotations.Builder();
                     meta.Add(AnnotationUtils.Kinds.ScoreColumnKind, TextDataViewType.Instance, (ref ReadOnlyMemory<char> value) => { value = AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification.AsMemory(); });
-                    meta.Add(AnnotationUtils.Kinds.ScoreColumnSetId, new KeyDataViewType(typeof(uint), Parent.Options.NumberOfClasses), GetScoreColumnSetId(InputSchema));
+                    meta.Add(AnnotationUtils.Kinds.ScoreColumnSetId, AnnotationUtils.ScoreColumnSetIdType, GetScoreColumnSetId(InputSchema));
                     meta.Add(AnnotationUtils.Kinds.ScoreValueKind, TextDataViewType.Instance, (ref ReadOnlyMemory<char> value) => { value = AnnotationUtils.Const.ScoreValueKind.Score.AsMemory(); });
                     meta.Add(AnnotationUtils.Kinds.TrainingLabelValues, keyType, getter);
                     meta.Add(AnnotationUtils.Kinds.SlotNames, keyType, getter);
@@ -810,42 +498,20 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 return labelCol.Annotations.GetGetter<VBuffer<T>>(labelCol.Annotations.Schema[AnnotationUtils.Kinds.KeyValues]);
             }
 
-            private ValueGetter<uint> GetScoreColumnSetId(DataViewSchema schema)
-            {
-                int c;
-                var max = schema.GetMaxAnnotationKind(out c, AnnotationUtils.Kinds.ScoreColumnSetId);
-                uint id = checked(max + 1);
-                return
-                    (ref uint dst) => dst = id;
-            }
-
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
                 => throw new NotImplementedException("This should never be called!");
 
-            private protected abstract Delegate CreateGetter(DataViewRow input, int iinfo, TensorCacher outputCacher);
-
-            public override Delegate[] CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
+            private protected class BertTensorCacher : TorchSharpBaseMapper.TensorCacher<Tensor>
             {
-                Host.AssertValue(input);
-                Contracts.Assert(input.Schema == base.InputSchema);
-
-                TensorCacher outputCacher = new TensorCacher();
-                var ch = Host.Start("Make Getters");
-                Parent.Model.eval();
-
-                int n = OutputColumns.Value.Length;
-                var result = new Delegate[n];
-                for (int i = 0; i < n; i++)
+                public override void DisposeCore()
                 {
-                    if (!activeOutput(i))
-                        continue;
-                    result[i] = CreateGetter(input, i, outputCacher);
+                    Result?.Dispose();
                 }
-                disposer = () =>
-                {
-                    outputCacher.Dispose();
-                };
-                return result;
+            }
+
+            private protected override TensorCacher GetTensorCacher()
+            {
+                return new BertTensorCacher();
             }
 
             private IList<int> PrepInputTokens(ref ReadOnlyMemory<char> sentence1, ref ReadOnlyMemory<char> sentence2, ref ValueGetter<ReadOnlyMemory<char>> getSentence1, ref ValueGetter<ReadOnlyMemory<char>> getSentence2, Tokenizer tokenizer)
@@ -871,41 +537,19 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     if (inputTensor.NumberOfElements > 512)
                         inputTensor = inputTensor.slice(0, 0, 512, 1);
                     inputTensor = inputTensor.reshape(1, inputTensor.NumberOfElements);
-                    return Parent.Model.forward(inputTensor);
-                }
-            }
-
-            private protected class TensorCacher : IDisposable
-            {
-                public long Position;
-                public Tensor Result;
-
-                public TensorCacher()
-                {
-                    Position = -1;
-                    Result = default;
-                }
-
-                private bool _isDisposed;
-
-                public void Dispose()
-                {
-                    if (_isDisposed)
-                        return;
-
-                    Result?.Dispose();
-                    _isDisposed = true;
+                    return (Parent.Model as NasBertModel).forward(inputTensor);
                 }
             }
 
             private protected void UpdateCacheIfNeeded(long position, TensorCacher outputCache, ref ReadOnlyMemory<char> sentence1, ref ReadOnlyMemory<char> sentence2, ref ValueGetter<ReadOnlyMemory<char>> getSentence1, ref ValueGetter<ReadOnlyMemory<char>> getSentence2, Tokenizer tokenizer)
             {
+                var cache = outputCache as BertTensorCacher;
                 if (outputCache.Position != position)
                 {
-                    outputCache.Result?.Dispose();
-                    outputCache.Result = PrepAndRunModel(PrepInputTokens(ref sentence1, ref sentence2, ref getSentence1, ref getSentence2, tokenizer));
-                    outputCache.Result.MoveToOuterDisposeScope();
-                    outputCache.Position = position;
+                    cache.Result?.Dispose();
+                    cache.Result = PrepAndRunModel(PrepInputTokens(ref sentence1, ref sentence2, ref getSentence1, ref getSentence2, tokenizer));
+                    cache.Result.MoveToOuterDisposeScope();
+                    cache.Position = position;
                 }
             }
 

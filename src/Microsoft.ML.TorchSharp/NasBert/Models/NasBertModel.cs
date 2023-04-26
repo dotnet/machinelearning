@@ -20,7 +20,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
 
         protected readonly TransformerEncoder Encoder;
 
-        public NasBertModel(TextClassificationTrainer.Options options, int padIndex, int symbolsCount, int numClasses)
+        public NasBertModel(NasBertTrainer.NasBertOptions options, int padIndex, int symbolsCount, int numClasses)
             : base(options)
         {
             _predictionHead = new PredictionHead(
