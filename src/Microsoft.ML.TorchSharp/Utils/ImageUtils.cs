@@ -50,7 +50,7 @@ namespace Microsoft.ML.TorchSharp.Utils
 
                 for (int i = 0; i < classification.shape[2]; ++i)
                 {
-                    var scores1 = torch.squeeze(classification[.., .., i]);
+                    var scores1 = torch.squeeze(classification[.., .., i], null);
                     var scoresOverThresh = scores1 > 0.05;
                     if (scoresOverThresh.sum().ToSingle() == 0)
                     {
@@ -59,7 +59,7 @@ namespace Microsoft.ML.TorchSharp.Utils
                     }
 
                     var scores = scores1[scoresOverThresh];
-                    var anchorBoxes1 = torch.squeeze(transformedAnchors);
+                    var anchorBoxes1 = torch.squeeze(transformedAnchors, null);
                     var anchorBoxes = anchorBoxes1[scoresOverThresh];
                     var anchorsNmsIdx = Nms(anchorBoxes, scores, overlapThreshold);
                     var finalAnchorBoxesIndexesValue = torch.ones(anchorsNmsIdx.shape[0], dtype: ScalarType.Int64, device: imgBatch.device).multiply(i);
