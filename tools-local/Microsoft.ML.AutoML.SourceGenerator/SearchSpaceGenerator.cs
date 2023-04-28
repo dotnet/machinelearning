@@ -128,7 +128,7 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                     Properties = options,
                 }.TransformText();
 
-                context.AddSource($"{className}.cs", code);
+                context.AddSource($"{className}.generated.cs", code);
             }
         }
 
