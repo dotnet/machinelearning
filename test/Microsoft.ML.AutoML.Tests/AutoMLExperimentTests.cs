@@ -223,7 +223,7 @@ namespace Microsoft.ML.AutoML.Test
             experiment.SetDataset(context.Data.TrainTestSplit(data))
                     .SetBinaryClassificationMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(1);
+                    .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.8);
@@ -248,7 +248,7 @@ namespace Microsoft.ML.AutoML.Test
             experiment.SetDataset(data, 5)
                     .SetBinaryClassificationMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(10);
+                    .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.8);
@@ -275,7 +275,7 @@ namespace Microsoft.ML.AutoML.Test
             experiment.SetDataset(data, 5)
                     .SetMulticlassClassificationMetric(MulticlassClassificationMetric.MacroAccuracy, label)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(10);
+                    .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.8);
@@ -302,7 +302,7 @@ namespace Microsoft.ML.AutoML.Test
             experiment.SetDataset(context.Data.TrainTestSplit(data))
                     .SetMulticlassClassificationMetric(MulticlassClassificationMetric.MacroAccuracy, label)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(10);
+                    .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.8);
