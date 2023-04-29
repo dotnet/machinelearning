@@ -74,7 +74,7 @@
 
   <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
     <PackageReference Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$(TargetArchitecture)' == 'x64'" />
-     <!--<PackageReference Include="TorchSharp-cuda-windows" Version="0.96.8" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />--> 
+     <!--<PackageReference Include="TorchSharp-cuda-windows" Version="0.99.5" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />--> 
     <PackageReference Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux')) AND '$(TargetArchitecture)' == 'x64'" />
     <PackageReference Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX')) AND '$(TargetArchitecture)' == 'x64'" />
   </ItemGroup>

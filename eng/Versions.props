@@ -21,7 +21,7 @@
     <SystemCodeDomVersion>4.5.0</SystemCodeDomVersion>
     <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
-    <SystemMemoryVersion>4.5.3</SystemMemoryVersion>
+    <SystemMemoryVersion>4.5.5</SystemMemoryVersion>
     <SystemReflectionEmitLightweightVersion>4.3.0</SystemReflectionEmitLightweightVersion>
     <SystemReflectionEmitVersion>4.3.0</SystemReflectionEmitVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>6.0.0</SystemRuntimeCompilerServicesUnsafeVersion>
@@ -56,12 +56,12 @@
     <NewtonsoftJsonVersion>13.0.1</NewtonsoftJsonVersion>
     <ParquetDotNetVersion>2.1.3</ParquetDotNetVersion>
     <PlotlyNETCSharpVersion>0.0.1</PlotlyNETCSharpVersion>
-    <SharpZipLibVersion>1.3.3</SharpZipLibVersion>
+    <SharpZipLibVersion>1.4.0</SharpZipLibVersion>
     <TensorflowDotNETVersion>0.20.1</TensorflowDotNETVersion>
     <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
     <TensorFlowVersion>2.3.1</TensorFlowVersion>
-    <TorchSharpVersion>0.98.3</TorchSharpVersion>
-    <LibTorchVersion>1.11.0.1</LibTorchVersion>
+    <TorchSharpVersion>0.99.5</TorchSharpVersion>
+    <LibTorchVersion>1.13.0.1</LibTorchVersion>
     <!-- Build/infrastructure Dependencies -->
     <CodecovVersion>1.12.4</CodecovVersion>
     <CoverletCollectorVersion>3.1.2</CoverletCollectorVersion>

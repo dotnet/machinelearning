@@ -15,7 +15,6 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
     {
         private readonly PredictionHead _predictionHead;
 
-        public override BaseHead GetHead() => _predictionHead;
         public override TransformerEncoder GetEncoder() => Encoder;
 
         protected readonly TransformerEncoder Encoder;

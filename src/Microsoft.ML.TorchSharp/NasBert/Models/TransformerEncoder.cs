@@ -16,7 +16,7 @@ using TorchSharp.Modules;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Models
 {
-    internal sealed class TransformerEncoder : torch.nn.Module, torch.nn.IModule<torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor>
+    internal sealed class TransformerEncoder : torch.nn.Module<torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor>
     {
 #pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format Have to match TorchSharp model
 
@@ -159,7 +159,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
-        public torch.Tensor forward(
+        public override torch.Tensor forward(
             torch.Tensor tokens,
             torch.Tensor segmentLabels = null,
             torch.Tensor positions = null)
