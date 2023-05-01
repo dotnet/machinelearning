@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -245,7 +246,7 @@ namespace Microsoft.ML.Internal.Utilities
             return filePath;
         }
 
-        private Exception DownloadResource(IHostEnvironment env, IChannel ch, HttpClient httpClient, Uri uri, string path, string fileName, CancellationToken ct)
+        private async Task<Exception> DownloadResource(IHostEnvironment env, IChannel ch, HttpClient httpClient, Uri uri, string path, string fileName, CancellationToken ct)
         {
             if (File.Exists(path))
                 return null;
@@ -264,24 +265,21 @@ namespace Microsoft.ML.Internal.Utilities
             {
                 int blockSize = 4096;
 
-                using (var s = httpClient.GetAsync(uri, ct))
+                var response = await httpClient.GetAsync(uri, ct).ConfigureAwait(false);
                 using (var fh = env.CreateOutputFile(tempPath))
                 using (var ws = fh.CreateWriteStream())
                 {
-                    s.Wait();
-                    var headers = s.Result.Headers.GetValues("Content-Length");
+                    response.EnsureSuccessStatusCode();
+                    IEnumerable<string> headers;
+                    var hasHeader = response.Headers.TryGetValues("content-length", out headers);
                     if (uri.Host == "aka.ms" && IsRedirectToDefaultPage(uri.AbsoluteUri))
                         throw new NotSupportedException($"The provided url ({uri}) redirects to the default url ({DefaultUrl})");
-                    if (headers.Count() == 0 || !long.TryParse(headers.First(), out var size))
+                    if (!hasHeader || !long.TryParse(headers.First(), out var size))
                         size = 10000000;
 
-                    var task = s.Result.Content.ReadAsStreamAsync();
-                    task.Wait();
+                    var stream = await response.EnsureSuccessStatusCode().Content.ReadAsStreamAsync().ConfigureAwait(false);
 
-                    using (var fs = new FileStream(fileName, FileMode.CreateNew))
-                    {
-                        task.Result.CopyToAsync(fs, blockSize, ct).Wait();
-                    }
+                    await stream.CopyToAsync(ws, blockSize, ct);
 
                     if (ct.IsCancellationRequested)
                     {

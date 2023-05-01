@@ -1,6 +1,6 @@
 {
   "tools": {
-    "dotnet": "8.0.100-preview.3.23178.7",
+    "dotnet": "7.0.102",
     "runtimes": {
       "dotnet/x64": [
         "$(DotNetRuntime60Version)"

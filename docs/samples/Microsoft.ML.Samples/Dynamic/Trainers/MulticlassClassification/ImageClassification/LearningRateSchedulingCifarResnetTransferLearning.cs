@@ -276,7 +276,7 @@ namespace Samples.Dynamic
             // https://github.com/YoongiKim/CIFAR-10-images
             string url = $"https://github.com/YoongiKim/CIFAR-10-images/archive/refs/heads/master.zip";
 
-            Download(url, imagesDownloadFolder, fileName);
+            Download(url, imagesDownloadFolder, fileName).Wait();
             UnZip(Path.Combine(imagesDownloadFolder, fileName),
                 imagesDownloadFolder);
 
@@ -284,7 +284,7 @@ namespace Samples.Dynamic
         }
 
         // Download file to destination directory from input URL.
-        public static bool Download(string url, string destDir, string destFileName)
+        public static async Task<bool> Download(string url, string destDir, string destFileName)
         {
             if (destFileName == null)
                 destFileName = url.Split(Path.DirectorySeparatorChar).Last();
@@ -303,20 +303,11 @@ namespace Samples.Dynamic
 
             using (HttpClient client = new HttpClient())
             {
-                var response = client.GetStreamAsync(new Uri($"{url}"));
-                while (!response.IsCompleted)
-                {
-                    Thread.Sleep(1000);
-                    Console.Write(".");
-                }
+                var response = await client.GetStreamAsync(new Uri($"{url}")).ConfigureAwait(false);
+
                 using (var fs = new FileStream(relativeFilePath, FileMode.CreateNew))
                 {
-                    response.Result.CopyToAsync(fs);
-                    while (!response.IsCompleted)
-                    {
-                        Thread.Sleep(1000);
-                        Console.Write(".");
-                    }
+                    await response.CopyToAsync(fs);
                 }
             }
 

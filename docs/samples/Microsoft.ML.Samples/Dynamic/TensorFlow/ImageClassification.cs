@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;
 using Microsoft.ML;
@@ -24,7 +25,9 @@ namespace Samples.Dynamic
             string modelLocation = "resnet_v2_101_299_frozen.pb";
             if (!File.Exists(modelLocation))
             {
-                modelLocation = Download(@"https://storage.googleapis.com/download.tensorflow.org/models/tflite_11_05_08/resnet_v2_101.tgz", @"resnet_v2_101_299_frozen.tgz");
+                var downloadTask = Download(@"https://storage.googleapis.com/download.tensorflow.org/models/tflite_11_05_08/resnet_v2_101.tgz", @"resnet_v2_101_299_frozen.tgz");
+                downloadTask.Wait();
+                modelLocation = downloadTask.Result;
                 Unzip(Path.Join(Directory.GetCurrentDirectory(), modelLocation),
                     Directory.GetCurrentDirectory());
 
@@ -112,18 +115,17 @@ namespace Samples.Dynamic
             public float[] output { get; set; }
         }
 
-        private static string Download(string baseGitPath, string dataFile)
+        private static async Task<string> Download(string baseGitPath, string dataFile)
         {
             if (File.Exists(dataFile))
                 return dataFile;
 
             using (HttpClient client = new HttpClient())
             {
-                var response = client.GetStreamAsync(new Uri($"{baseGitPath}"));
-                response.Wait();
+                var response = await client.GetStreamAsync(new Uri($"{baseGitPath}")).ConfigureAwait(false);
                 using (var fs = new FileStream(dataFile, FileMode.CreateNew))
                 {
-                    response.Result.CopyToAsync(fs).Wait();
+                    await response.CopyToAsync(fs).ConfigureAwait(false);
                 }
             }
 
