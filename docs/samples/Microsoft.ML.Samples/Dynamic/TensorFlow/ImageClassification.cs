@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;
@@ -113,9 +114,17 @@ namespace Samples.Dynamic
 
         private static string Download(string baseGitPath, string dataFile)
         {
-            using (WebClient client = new WebClient())
+            if (File.Exists(dataFile))
+                return dataFile;
+
+            using (HttpClient client = new HttpClient())
             {
-                client.DownloadFile(new Uri($"{baseGitPath}"), dataFile);
+                var response = client.GetStreamAsync(new Uri($"{baseGitPath}"));
+                response.Wait();
+                using (var fs = new FileStream(dataFile, FileMode.CreateNew))
+                {
+                    response.Result.CopyToAsync(fs).Wait();
+                }
             }
 
             return dataFile;

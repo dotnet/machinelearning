@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -152,19 +153,10 @@ namespace Microsoft.ML.Internal.Utilities
         /// <returns>Returns the error message if an error occurred, null if download was successful.</returns>
         private async Task<string> DownloadFromUrlAsync(IHostEnvironment env, IChannel ch, string url, string fileName, int timeout, string filePath)
         {
-            using (var webClient = new WebClient())
+            using (var client = new HttpClient())
             using (var downloadCancel = new CancellationTokenSource())
             {
-                bool deleteNeeded = false;
-                EventHandler disposed =
-                    (object sender, EventArgs e) =>
-                    {
-                        if (File.Exists(filePath) && deleteNeeded)
-                            TryDelete(ch, filePath);
-                    };
-
-                webClient.Disposed += disposed;
-                var t = Task.Run(() => DownloadResource(env, ch, webClient, new Uri(url), filePath, fileName, downloadCancel.Token));
+                var t = Task.Run(() => DownloadResource(env, ch, client, new Uri(url), filePath, fileName, downloadCancel.Token));
 
                 UpdateTimeout(ref timeout);
                 var timeoutTask = Task.Delay(timeout).ContinueWith(task => default(Exception), TaskScheduler.Default);
@@ -173,7 +165,8 @@ namespace Microsoft.ML.Internal.Utilities
                 if (completedTask != t || completedTask.CompletedResult() != null)
                 {
                     downloadCancel.Cancel();
-                    deleteNeeded = true;
+                    if (File.Exists(filePath))
+                        TryDelete(ch, filePath);
                     return (await t).Message;
                 }
                 return null;
@@ -252,7 +245,7 @@ namespace Microsoft.ML.Internal.Utilities
             return filePath;
         }
 
-        private Exception DownloadResource(IHostEnvironment env, IChannel ch, WebClient webClient, Uri uri, string path, string fileName, CancellationToken ct)
+        private Exception DownloadResource(IHostEnvironment env, IChannel ch, HttpClient httpClient, Uri uri, string path, string fileName, CancellationToken ct)
         {
             if (File.Exists(path))
                 return null;
@@ -271,41 +264,29 @@ namespace Microsoft.ML.Internal.Utilities
             {
                 int blockSize = 4096;
 
-                using (var s = webClient.OpenRead(uri))
+                using (var s = httpClient.GetAsync(uri, ct))
                 using (var fh = env.CreateOutputFile(tempPath))
                 using (var ws = fh.CreateWriteStream())
                 {
-                    var headers = webClient.ResponseHeaders.GetValues("Content-Length");
+                    s.Wait();
+                    var headers = s.Result.Headers.GetValues("Content-Length");
                     if (uri.Host == "aka.ms" && IsRedirectToDefaultPage(uri.AbsoluteUri))
                         throw new NotSupportedException($"The provided url ({uri}) redirects to the default url ({DefaultUrl})");
-                    if (Utils.Size(headers) == 0 || !long.TryParse(headers[0], out var size))
+                    if (headers.Count() == 0 || !long.TryParse(headers.First(), out var size))
                         size = 10000000;
 
-                    long printFreq = (long)(size / 10.0);
-                    var buffer = new byte[blockSize];
-                    long total = 0;
+                    var task = s.Result.Content.ReadAsStreamAsync();
+                    task.Wait();
 
-                    // REVIEW: use a progress channel instead.
-                    while (true)
+                    using (var fs = new FileStream(fileName, FileMode.CreateNew))
                     {
-                        var task = s.ReadAsync(buffer, 0, blockSize, ct);
-                        task.Wait();
-                        int count = task.Result;
+                        task.Result.CopyToAsync(fs, blockSize, ct).Wait();
+                    }
 
-                        if (count <= 0)
-                        {
-                            break;
-                        }
-
-                        ws.Write(buffer, 0, count);
-                        total += count;
-                        if ((total - (total / printFreq) * printFreq) <= blockSize)
-                            ch.Info($"{fileName}: Downloaded {total} bytes out of {size}");
-                        if (ct.IsCancellationRequested)
-                        {
-                            ch.Error($"{fileName}: Download timed out");
-                            return ch.Except("Download timed out");
-                        }
+                    if (ct.IsCancellationRequested)
+                    {
+                        ch.Error($"{fileName}: Download timed out");
+                        return ch.Except("Download timed out");
                     }
                 }
                 File.Move(tempPath, path);
@@ -314,7 +295,7 @@ namespace Microsoft.ML.Internal.Utilities
             }
             catch (WebException e)
             {
-                ch.Error($"{fileName}: Could not download. WebClient returned the following error: {e.Message}");
+                ch.Error($"{fileName}: Could not download. HttpClient returned the following error: {e.Message}");
                 return e;
             }
             finally

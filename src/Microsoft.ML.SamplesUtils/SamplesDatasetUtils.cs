@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Runtime.InteropServices.ComTypes;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.SamplesUtils
@@ -190,9 +192,14 @@ namespace Microsoft.ML.SamplesUtils
             if (File.Exists(dataFile))
                 return dataFile;
 
-            using (WebClient client = new WebClient())
+            using (HttpClient client = new HttpClient())
             {
-                client.DownloadFile(new Uri($"{baseGitPath}"), dataFile);
+                var response = client.GetStreamAsync(new Uri($"{baseGitPath}"));
+                response.Wait();
+                using (var fs = new FileStream(dataFile, FileMode.CreateNew))
+                {
+                    response.Result.CopyToAsync(fs).Wait();
+                }
             }
 
             return dataFile;

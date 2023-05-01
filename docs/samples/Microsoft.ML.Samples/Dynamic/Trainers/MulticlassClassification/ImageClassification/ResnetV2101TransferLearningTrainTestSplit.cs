@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML;
@@ -275,14 +276,27 @@ namespace Samples.Dynamic
                 return false;
             }
 
-            var wc = new WebClient();
             Console.WriteLine($"Downloading {relativeFilePath}");
-            var download = Task.Run(() => wc.DownloadFile(url, relativeFilePath));
-            while (!download.IsCompleted)
+
+            using (HttpClient client = new HttpClient())
             {
-                Thread.Sleep(1000);
-                Console.Write(".");
+                var response = client.GetStreamAsync(new Uri($"{url}"));
+                while (!response.IsCompleted)
+                {
+                    Thread.Sleep(1000);
+                    Console.Write(".");
+                }
+                using (var fs = new FileStream(relativeFilePath, FileMode.CreateNew))
+                {
+                    response.Result.CopyToAsync(fs);
+                    while (!response.IsCompleted)
+                    {
+                        Thread.Sleep(1000);
+                        Console.Write(".");
+                    }
+                }
             }
+
             Console.WriteLine("");
             Console.WriteLine($"Downloaded {relativeFilePath}");
 
