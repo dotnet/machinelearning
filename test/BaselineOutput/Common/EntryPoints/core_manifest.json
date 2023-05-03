@@ -30099,6 +30099,24 @@
               "SortOrder": 150.0,
               "IsNullable": false,
               "Default": "Tf"
+            },
+            {
+              "Name": "TermSeparator",
+              "Type": "Char",
+              "Desc": "Separator used to separate terms/frequency pairs.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": "\u0000"
+            },
+            {
+              "Name": "FreqSeparator",
+              "Type": "Char",
+              "Desc": "Separator used to separate terms from their frequency.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": "\u0000"
             }
           ]
         },

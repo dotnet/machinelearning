@@ -22,7 +22,7 @@ variables:
   DOTNET_MULTILEVEL_LOOKUP: 0
   Codeql.Enabled: true
   Codeql.SkipTaskAutoInjection: True  #default to not inject CodeQL tasks, we'll enable it in a single job.
-  
+
 stages:
 - stage: build
   displayName: Build
@@ -100,7 +100,7 @@ stages:
     pool:
       vmImage: macOS-12
     steps:
-    - script: brew update && brew unlink python@3.8 && brew unlink libomp && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
+    - script: brew update &&  rm '/usr/local/bin/2to3-3.11' && brew unlink libomp && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
       displayName: Install build dependencies
     # Only build native assets to avoid conflicts.
     - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
@@ -126,7 +126,7 @@ stages:
         rm -rf /usr/local/bin/2to3
       displayName: MacOS Homebrew bug Workaround
       continueOnError: true
-    - script: brew update && brew unlink python@3.8 && brew install libomp && brew link libomp --force
+    - script: brew update && brew install libomp && brew link libomp --force
       displayName: Install build dependencies
     # Only build native assets to avoid conflicts.
     - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
@@ -149,6 +149,7 @@ stages:
     pool:
       name: NetCore1ESPool-Svc-Internal
       demands: ImageOverride -equals Build.Server.Amd64.VS2019
+
     steps:
     # Only build native assets to avoid conflicts.
     - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:CopyPackageAssets=true
@@ -176,6 +177,7 @@ stages:
     pool:
       name: NetCore1ESPool-Svc-Internal
       demands: ImageOverride -equals Build.Server.Amd64.VS2019
+
     steps:
 
     # Build both native and managed assets.
@@ -227,7 +229,7 @@ stages:
         - NUGET_PACKAGES: $(Build.SourcesDirectory)/.packages
         - _SignType: real
         - _TeamName: DotNetCore
-        - _InternalBuildArgs: /p:DotNetSignType=$(_SignType) 
+        - _InternalBuildArgs: /p:DotNetSignType=$(_SignType)
                               /p:TeamName=$(_TeamName)
                               /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
                               /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
@@ -236,6 +238,7 @@ stages:
       pool:
         name: NetCore1ESPool-Svc-Internal
         demands: ImageOverride -equals Build.Server.Amd64.VS2019
+
       steps:
 
       # Download all agent packages from all previous phases
