@@ -114,6 +114,11 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             /// Gets or sets the weight decay in optimizer.
             /// </summary>
             public double WeightDecay = 0.0;
+
+            /// <summary>
+            /// How often to log the loss.
+            /// </summary>
+            public int LogEveryNStep = 50;
         }
 
         private protected readonly IHost Host;
@@ -122,7 +127,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
         internal ObjectDetectionTrainer(IHostEnvironment env, Options options)
         {
-            Host = Contracts.CheckRef(env, nameof(env)).Register(nameof(NasBertTrainer));
+            Host = Contracts.CheckRef(env, nameof(env)).Register(nameof(ObjectDetectionTrainer));
             Contracts.Assert(options.MaxEpoch > 0);
             Contracts.AssertValue(options.BoundingBoxColumnName);
             Contracts.AssertValue(options.LabelColumnName);
@@ -163,14 +168,21 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             using (var ch = Host.Start("TrainModel"))
             using (var pch = Host.StartProgressChannel("Training model"))
             {
-                var header = new ProgressHeader(new[] { "Accuracy" }, null);
+                var header = new ProgressHeader(new[] { "Loss" }, new[] { "total images" });
+
                 var trainer = new Trainer(this, ch, input);
-                pch.SetHeader(header, e => e.SetMetric(0, trainer.Accuracy));
+                pch.SetHeader(header,
+                    e =>
+                    {
+                        e.SetProgress(0, trainer.Updates, trainer.RowCount);
+                        e.SetMetric(0, trainer.LossValue);
+                    });
+
                 for (int i = 0; i < Option.MaxEpoch; i++)
                 {
                     ch.Trace($"Starting epoch {i}");
                     Host.CheckAlive();
-                    trainer.Train(Host, input);
+                    trainer.Train(Host, input, pch);
                     ch.Trace($"Finished epoch {i}");
                 }
                 var labelCol = input.Schema.GetColumnOrNull(Option.LabelColumnName);
@@ -191,17 +203,19 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             protected readonly ObjectDetectionTrainer Parent;
             public FocalLoss Loss;
             public int Updates;
-            public float Accuracy;
+            public float LossValue;
+            public readonly int RowCount;
+            private readonly IChannel _channel;
 
             public Trainer(ObjectDetectionTrainer parent, IChannel ch, IDataView input)
             {
                 Parent = parent;
                 Updates = 0;
-                Accuracy = 0;
-
+                LossValue = 0;
+                _channel = ch;
 
                 // Get row count and figure out num of unique labels
-                var rowCount = GetRowCountAndSetLabelCount(input);
+                RowCount = GetRowCountAndSetLabelCount(input);
                 Device = TorchUtils.InitializeDevice(Parent.Host);
 
                 // Initialize the model and load pre-trained weights
@@ -274,7 +288,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 return relativeFilePath;
             }
 
-            public void Train(IHost host, IDataView input)
+            public void Train(IHost host, IDataView input, IProgressChannel pch)
             {
                 // Get the cursor and the correct columns based on the inputs
                 DataViewRowCursor cursor = input.GetRowCursor(input.Schema[Parent.Option.LabelColumnName], input.Schema[Parent.Option.BoundingBoxColumnName], input.Schema[Parent.Option.ImageColumnName]);
@@ -302,7 +316,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 while (cursorValid)
                 {
-                    cursorValid = TrainStep(host, cursor, boundingBoxGetter, imageGetter, labelGetter);
+                    cursorValid = TrainStep(host, cursor, boundingBoxGetter, imageGetter, labelGetter, pch);
                 }
 
                 LearningRateScheduler.step();
@@ -312,7 +326,8 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 DataViewRowCursor cursor,
                 ValueGetter<VBuffer<float>> boundingBoxGetter,
                 ValueGetter<MLImage> imageGetter,
-                ValueGetter<VBuffer<uint>> labelGetter)
+                ValueGetter<VBuffer<uint>> labelGetter,
+                IProgressChannel pch)
             {
                 using var disposeScope = torch.NewDisposeScope();
                 var cursorValid = true;
@@ -342,6 +357,12 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 Optimizer.step();
                 host.CheckAlive();
+
+                if (Updates % Parent.Option.LogEveryNStep == 0)
+                {
+                    pch.Checkpoint(lossValue.ToDouble(), Updates);
+                    _channel.Info($"Row: {Updates}, Loss: {lossValue.ToDouble()}");
+                }
 
                 return cursorValid;
             }
