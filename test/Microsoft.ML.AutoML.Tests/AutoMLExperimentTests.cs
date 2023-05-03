@@ -355,6 +355,26 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public async Task AutoMLExperiment_Taxi_Fare_CV_5_SamplingKey_Test()
+        {
+            var context = new MLContext(1);
+            var train = DatasetUtil.GetTaxiFareTrainDataView();
+            var experiment = context.Auto().CreateExperiment();
+            var label = DatasetUtil.TaxiFareLabel;
+            var pipeline = context.Auto().Featurizer(train, excludeColumns: new[] { label })
+                                .Append(context.Auto().Regression(label, useLgbm: false, useSdca: false, useLbfgsPoissonRegression: false));
+
+            experiment.SetDataset(train, 5, "vendor_id")
+                    .SetRegressionMetric(RegressionMetric.RSquared, label)
+                    .SetPipeline(pipeline)
+                    .SetMaxModelToExplore(1);
+
+            var result = await experiment.RunAsync();
+            result.Metric.Should().BeGreaterThan(0.2);
+            result.Metric.Should().BeLessThan(0.5);
+        }
+
+        [Fact]
         public void AutoMLExperiment_should_use_seed_from_context_if_provided()
         {
             var context = new MLContext();
