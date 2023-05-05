@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(RepoRoot)eng/pkg/Pack.props"/>
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
     <IncludeInPackage>Microsoft.ML.CpuMath</IncludeInPackage>
     <PackageDescription>Microsoft.ML.CpuMath contains optimized math routines for ML.NET.</PackageDescription>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -15,7 +15,7 @@
     <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
     <None Include="**/*.cs" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
     <Compile Remove="CpuMathUtils.netstandard.cs" />
     <Compile Remove="FactorizationMachine/FactorizationMachineInterface.netstandard.cs" />
   </ItemGroup>
@@ -31,7 +31,7 @@
     <Content Include="build\**\*" Pack="true" PackagePath="build" />
   </ItemGroup>
   <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
-    <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
+    <ItemGroup Condition="'$(TargetFramework)' != 'net6.0'">
       <!--Include native PDBs-->
       <!--The path needed to be hardcoded for this to work on our publishing CI-->
       <BuildOutputInPackage Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\nativeassets\netstandard2.0\CpuMathNative.pdb')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\nativeassets\netstandard2.0\CpuMathNative.pdb" TargetPath="..\..\runtimes\win-x86\nativeassets\netstandard2.0" />
