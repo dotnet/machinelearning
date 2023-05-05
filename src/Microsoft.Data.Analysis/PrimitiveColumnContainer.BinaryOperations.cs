@@ -8,7 +8,7 @@
 namespace Microsoft.Data.Analysis
 {
     internal partial class PrimitiveColumnContainer<T>
-        where T : struct
+        where T : unmanaged
     {
         public PrimitiveColumnContainer<T> Add(PrimitiveColumnContainer<T> right)
         {
