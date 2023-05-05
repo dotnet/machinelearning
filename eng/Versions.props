@@ -79,7 +79,7 @@
     <DotNetRuntime80Version>8.0.0-preview.3.23174.8</DotNetRuntime80Version>
     <FluentAssertionVersion>5.10.2</FluentAssertionVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.22512.1</MicrosoftCodeAnalysisTestingVersion>
-    <MicrosoftDotNetXUnitExtensionsVersion>7.0.0-beta.23073.6</MicrosoftDotNetXUnitExtensionsVersion>
+    <MicrosoftDotNetXUnitExtensionsVersion>7.0.0-beta.23228.7</MicrosoftDotNetXUnitExtensionsVersion>
     <MicrosoftExtensionsDependencyModelVersion>2.1.0</MicrosoftExtensionsDependencyModelVersion>
     <MicrosoftExtensionsTestVersion>3.0.1</MicrosoftExtensionsTestVersion>
     <MicrosoftMLOnnxTestModelsVersion>0.0.6-test</MicrosoftMLOnnxTestModelsVersion>
