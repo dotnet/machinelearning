@@ -1,0 +1,14 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "normalize_min_max_option",
+  "search_space": [
+    {
+      "name": "OutputColumnNames",
+      "type": "strings"
+    },
+    {
+      "name": "InputColumnNames",
+      "type": "strings"
+    }
+  ]
+}

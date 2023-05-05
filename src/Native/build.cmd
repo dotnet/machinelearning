@@ -16,15 +16,13 @@ set __BuildArch=x64
 set __VCBuildArch=x86_amd64
 set CMAKE_BUILD_TYPE=Debug
 set MKL_LIB_PATH=""
+set ONEDAL_DEVEL_PATH=""
+set ONETBB_DEVEL_PATH=""
 
 :Arg_Loop
 if [%1] == [] goto :ToolsVersion
 if /i [%1] == [Release]     ( set CMAKE_BUILD_TYPE=Release&&shift&goto Arg_Loop)
-if /i [%1] == [Release-netcoreapp3_1]     ( set CMAKE_BUILD_TYPE=Release-netcoreapp3_1&&shift&goto Arg_Loop)
-if /i [%1] == [Release-netfx]     ( set CMAKE_BUILD_TYPE=Release-netfx&&shift&goto Arg_Loop)
 if /i [%1] == [Debug]       ( set CMAKE_BUILD_TYPE=Debug&&shift&goto Arg_Loop)
-if /i [%1] == [Debug-netcoreapp3_1]       ( set CMAKE_BUILD_TYPE=Debug-netcoreapp3_1&&shift&goto Arg_Loop)
-if /i [%1] == [Debug-netfx]       ( set CMAKE_BUILD_TYPE=Debug-netfx&&shift&goto Arg_Loop)
 
 if /i [%1] == [x86]         ( set __BuildArch=x86&&set __VCBuildArch=x86&&shift&goto Arg_Loop)
 if /i [%1] == [x64]         ( set __BuildArch=x64&&set __VCBuildArch=x86_amd64&&shift&goto Arg_Loop)
@@ -33,6 +31,8 @@ if /i [%1] == [arm]         ( set __BuildArch=arm&&set __VCBuildArch=x86_arm&&sh
 if /i [%1] == [arm64]       ( set __BuildArch=arm64&&set __VCBuildArch=x86_arm64&&shift&goto Arg_Loop)
 
 if /i [%1] == [--mkllibpath] ( set MKL_LIB_PATH=%2&&shift&goto Arg_Loop)
+if /i [%1] == [--onedaldevelpath] ( set ONEDAL_DEVEL_PATH=%2&&shift&goto Arg_Loop)
+if /i [%1] == [--onetbbdevelpath] ( set ONETBB_DEVEL_PATH=%2&&shift&goto Arg_Loop)
 shift
 goto :Arg_Loop
 
@@ -113,16 +113,6 @@ if %__IntermediatesDir% == "" (
 )
 set "__CMakeBinDir=%__CMakeBinDir:\=/%"
 set "__IntermediatesDir=%__IntermediatesDir:\=/%"
-
-:: Strip the "-netcoreapp3_1" suffix from the build type
-if [%CMAKE_BUILD_TYPE:~-14%] == [-netcoreapp3_1] (
-	set CMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE:~0,-14%
-)
-
-:: Strip the "-netfx" suffix from the build type
-if [%CMAKE_BUILD_TYPE:~-6%] == [-netfx] (
-	set CMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE:~0,-6%
-)
 
 :: Check that the intermediate directory exists so we can place our cmake build tree there
 if not exist "%__IntermediatesDir%" md "%__IntermediatesDir%"

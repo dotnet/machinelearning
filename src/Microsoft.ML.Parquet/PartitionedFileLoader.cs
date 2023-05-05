@@ -345,7 +345,7 @@ namespace Microsoft.ML.Data
 
             using (var stream = new MemoryStream())
             {
-                LoaderUtils.SaveLoader(loader, stream);
+                LoaderUtils.SaveLoader(loader, stream, _host);
                 return stream.GetBuffer();
             }
         }
@@ -370,20 +370,20 @@ namespace Microsoft.ML.Data
             private static readonly FuncInstanceMethodInfo1<Cursor, int, DataViewType, Delegate> _createGetterDelegateCoreMethodInfo
                 = FuncInstanceMethodInfo1<Cursor, int, DataViewType, Delegate>.Create(target => target.CreateGetterDelegateCore<int>);
 
-            private PartitionedFileLoader _parent;
+            private readonly PartitionedFileLoader _parent;
 
             private readonly bool[] _active;
             private readonly bool[] _subActive; // Active columns of the sub-cursor.
-            private Delegate[] _getters;
-            private Delegate[] _subGetters; // Cached getters of the sub-cursor.
+            private readonly Delegate[] _getters;
+            private readonly Delegate[] _subGetters; // Cached getters of the sub-cursor.
 
             private readonly IEnumerable<DataViewSchema.Column> _columnsNeeded;
             private readonly IEnumerable<DataViewSchema.Column> _subActivecolumnsNeeded;
 
-            private ReadOnlyMemory<char>[] _colValues; // Column values cached from the file path.
+            private readonly ReadOnlyMemory<char>[] _colValues; // Column values cached from the file path.
             private DataViewRowCursor _subCursor; // Sub cursor of the current file.
 
-            private IEnumerator<int> _fileOrder;
+            private readonly IEnumerator<int> _fileOrder;
 
             public Cursor(IChannelProvider provider, PartitionedFileLoader parent, IMultiStreamSource files, IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand)
                 : base(provider)
@@ -744,7 +744,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="basepath">A base path.</param>
         /// <param name="files">A list of files under the base path.</param>
-        /// <returns>A realtive file path.</returns>
+        /// <returns>A relative file path.</returns>
         private string GetRelativePath(string basepath, IMultiStreamSource files)
         {
             Contracts.CheckNonEmpty(basepath, nameof(basepath));

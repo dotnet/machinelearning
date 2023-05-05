@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public readonly double Bias;
 
         // Multithread task to find best threshold.
-        private IThreadTask _calculateLeafSplitCandidates;
+        private readonly IThreadTask _calculateLeafSplitCandidates;
 
         protected SplitInfo[] BestSplitInfoPerLeaf;
         protected HashSet<int> CategoricalThresholds;
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Trainers.FastTree
         // size of reserved memory
         private readonly long _sizeOfReservedMemory;
 
-        private IParallelTraining _parallelTraining;
+        private readonly IParallelTraining _parallelTraining;
 
         public int MaxCategoricalGroupsPerNode { get; }
 
@@ -828,7 +828,7 @@ namespace Microsoft.ML.Trainers.FastTree
             private double _sumWeights;
             private double _sumSquaredTargets;
             private int[] _docIndices;
-            private int[] _docIndicesCopy;
+            private readonly int[] _docIndicesCopy;
             public readonly FloatType[] Targets;
             public readonly double[] Weights;
             public readonly SplitInfo[] FeatureSplitInfo;

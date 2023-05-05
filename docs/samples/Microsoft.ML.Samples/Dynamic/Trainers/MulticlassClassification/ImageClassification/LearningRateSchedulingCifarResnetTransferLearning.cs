@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML;
@@ -78,10 +79,10 @@ namespace Samples.Dynamic
             {
                 FeatureColumnName = "Image",
                 LabelColumnName = "Label",
-                // Just by changing/selecting InceptionV3/MobilenetV2 
-                // here instead of 
+                // Just by changing/selecting InceptionV3/MobilenetV2
+                // here instead of
                 // ResnetV2101 you can try a different architecture/
-                // pre-trained model. 
+                // pre-trained model.
                 Arch = ImageClassificationTrainer.Architecture.ResnetV2101,
                 Epoch = 182,
                 BatchSize = 128,
@@ -92,8 +93,8 @@ namespace Samples.Dynamic
                 ReuseTrainSetBottleneckCachedValues = false,
                 // Use linear scaling rule and Learning rate decay as an option
                 // This is known to do well for Cifar dataset and Resnet models
-                // You can also try other types of Learning rate scheduling 
-                // methods available in LearningRateScheduler.cs  
+                // You can also try other types of Learning rate scheduling
+                // methods available in LearningRateScheduler.cs
                 LearningRateScheduler = new LsrDecay()
             };
 
@@ -111,7 +112,7 @@ namespace Samples.Dynamic
 
             // Train the model.
             // This involves calculating the bottleneck values, and then
-            // training the final layer. Sample output is: 
+            // training the final layer. Sample output is:
             // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   1
             // Phase: Bottleneck Computation, Dataset used: Train, Image Index:   2
             // ...
@@ -271,10 +272,11 @@ namespace Samples.Dynamic
             // get a set of images to teach the network about the new classes
             // CIFAR dataset ( 50000 train images and 10000 test images )
             string fileName = "cifar10.zip";
-            string url = $"https://aka.ms/mlnet-resources/" +
-                "datasets/cifar10.zip";
 
-            Download(url, imagesDownloadFolder, fileName);
+            // https://github.com/YoongiKim/CIFAR-10-images
+            string url = $"https://github.com/YoongiKim/CIFAR-10-images/archive/refs/heads/master.zip";
+
+            Download(url, imagesDownloadFolder, fileName).Wait();
             UnZip(Path.Combine(imagesDownloadFolder, fileName),
                 imagesDownloadFolder);
 
@@ -282,7 +284,7 @@ namespace Samples.Dynamic
         }
 
         // Download file to destination directory from input URL.
-        public static bool Download(string url, string destDir, string destFileName)
+        public static async Task<bool> Download(string url, string destDir, string destFileName)
         {
             if (destFileName == null)
                 destFileName = url.Split(Path.DirectorySeparatorChar).Last();
@@ -297,14 +299,18 @@ namespace Samples.Dynamic
                 return false;
             }
 
-            var wc = new WebClient();
             Console.WriteLine($"Downloading {relativeFilePath}");
-            var download = Task.Run(() => wc.DownloadFile(url, relativeFilePath));
-            while (!download.IsCompleted)
+
+            using (HttpClient client = new HttpClient())
             {
-                Thread.Sleep(1000);
-                Console.Write(".");
+                var response = await client.GetStreamAsync(new Uri($"{url}")).ConfigureAwait(false);
+
+                using (var fs = new FileStream(relativeFilePath, FileMode.CreateNew))
+                {
+                    await response.CopyToAsync(fs);
+                }
             }
+
             Console.WriteLine("");
             Console.WriteLine($"Downloaded {relativeFilePath}");
 

@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
+
     public class UserInputValidationTests : BaseTestClass
     {
         private static readonly IDataView _data = DatasetUtil.GetUciAdultDataView();
@@ -393,5 +393,35 @@ namespace Microsoft.ML.AutoML.Test
             }
             Assert.Equal(labelTypeShouldBeValid, !validationExceptionThrown);
         }
+        [Fact]
+        public void ValidateTrainDataColumnTestMultipleMismatchLessThan5()
+        {
+            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression, TaskKind.Ranking })
+            {
+                var originalColumnName = _data.Schema.First().Name;
+                var mistypedColumnName = "a" + originalColumnName + "b";
+                var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(_data,
+                    new ColumnInformation() { LabelColumnName = mistypedColumnName }, null, task));
+
+                Assert.Equal($"Provided label column '{mistypedColumnName}' not found in training data. Did you mean '{originalColumnName}'.",
+                    ex.Message);
+            }
+        }
+
+        [Fact]
+        public void ValidateTrainDataColumnTestMultipleMismatchMoreThan5()
+        {
+            foreach (var task in new[] { TaskKind.Recommendation, TaskKind.Regression, TaskKind.Ranking })
+            {
+                var originalColumnName = _data.Schema.First().Name;
+                var mistypedColumnName = "a" + originalColumnName + "bcdvfnfmsm";
+                var ex = Assert.Throws<ArgumentException>(() => UserInputValidationUtil.ValidateExperimentExecuteArgs(_data,
+                    new ColumnInformation() { LabelColumnName = mistypedColumnName }, null, task));
+
+                Assert.Equal($"Provided label column '{mistypedColumnName}' not found in training data.",
+                    ex.Message);
+            }
+        }
+
     }
 }

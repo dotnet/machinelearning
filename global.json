@@ -1,21 +1,19 @@
 {
   "tools": {
-    "dotnet": "6.0.100-preview.3.21202.5",
+    "dotnet": "7.0.105",
     "runtimes": {
       "dotnet/x64": [
-        "$(MicrosoftNETCorePlatformsVersion)",
-        "$(MicrosoftNETCore3PlatformsVersion)"
+        "$(DotNetRuntime60Version)"
       ],
       "dotnet/x86": [
-        "$(MicrosoftNETCorePlatformsVersion)",
-        "$(MicrosoftNETCore3PlatformsVersion)"
+        "$(DotNetRuntime60Version)"
       ]
     }
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "6.0.0-beta.21253.2",
-    "Microsoft.DotNet.Helix.Sdk": "6.0.0-beta.21253.2",
-    "Microsoft.Build.Traversal": "2.1.1",
+    "Microsoft.DotNet.Arcade.Sdk": "7.0.0-beta.23228.7",
+    "Microsoft.DotNet.Helix.Sdk": "7.0.0-beta.23228.7",
+    "Microsoft.Build.Traversal": "3.2.0",
     "Microsoft.SourceLink.GitHub": "1.1.0-beta-20206-02",
     "Microsoft.SourceLink.Common": "1.1.0-beta-20206-02"
   }

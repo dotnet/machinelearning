@@ -1,15 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <NoWarn>$(NoWarn)</NoWarn>
+
+    <!-- Remove once we have resolved the TorchSharp issue. -->
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+  </PropertyGroup>
+
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.Data.Analysis\Microsoft.Data.Analysis.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ApprovalTests" Version="5.2.4" />
-    <PackageReference Include="FluentAssertions" Version="5.10.3" />
+    <PackageReference Include="ApprovalTests" Version="$(ApprovalTestsVersion)" />
+    <PackageReference Include="FluentAssertions" Version="$(FluentAssertionVersion)" />
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +40,18 @@
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
     <NativeAssemblyReference Include="MklImports" />
     <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+  </ItemGroup>
+
+
+  <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
+    <Content Include="$(ArtifactsObjDir)DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx">
+      <Link>DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(ArtifactsObjDir)DnnImageModels\ResNet18Onnx\ResNet18.onnx">
+      <Link>DnnImageModels\ResNet18Onnx\ResNet18.onnx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

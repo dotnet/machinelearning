@@ -8,20 +8,16 @@
   <Import Project="eng/TensorflowMetaFiles.props" />
 
   <PropertyGroup>
-	  <CreateSymbolicLinksForPublishFilesIfPossible>true</CreateSymbolicLinksForPublishFilesIfPossible>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <Copyright>$(CopyrightNetFoundation)</Copyright>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <LangVersion>latest</LangVersion>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
-    <Configurations>Debug;Release;Debug-netcoreapp3_1;Release-netcoreapp3_1;Debug-netfx;Release-netfx</Configurations>
     <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
     <TargetArchitecture Condition="'$(TargetArchitecture)' == ''">$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)</TargetArchitecture>
     <TargetArchitecture>$(TargetArchitecture.ToLower())</TargetArchitecture>
@@ -29,12 +25,18 @@
     <StrongNameKeyId>Open</StrongNameKeyId>
   </PropertyGroup>
 
+    <PropertyGroup>
+      <!-- Need to save space when running CI builds. -->
+      <CreateHardLinksForPublishFilesIfPossible Condition="$(CreateHardLinksForPublishFilesIfPossible) == ''">True</CreateHardLinksForPublishFilesIfPossible>
+      <CreateHardLinksForCopyFilesToOutputDirectoryIfPossible Condition="'$(BuildingInsideVisualStudio)' == 'true' or '$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)' == ''">false</CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>
+    </PropertyGroup>
+
   <PropertyGroup>
     <PackageAssetsPath>$(ArtifactsDir)pkgassets/</PackageAssetsPath>
     <PkgDir>$(RepoRoot)pkg/</PkgDir>
   </PropertyGroup>
 
-  <!-- Need to explicitly set these properties for the -netcoreapp3_1 or -netfx configurations becuase they are typically based off 'Debug' or 'Release' configs -->
+  <!-- Need to explicitly set these properties for the -net6_0 or -netfx configurations becuase they are typically based off 'Debug' or 'Release' configs -->
   <!-- Taken from https://github.com/dotnet/sdk/blob/073c98b92c81066c6c2e17c3674adbb6e833409a/src/Tasks/Microsoft.NET.Build.Tasks/targets/Microsoft.NET.Sdk.props#L41-L47 -->
   <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))">
     <DebugSymbols>true</DebugSymbols>
@@ -55,24 +57,5 @@
     <!-- Optional: Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
-    <!--
-      When building using source-build the process is:
-      - Newtonsoft.Json versions 9.0.1 and 12.0.2 are built by source-build
-      - Version 12.0.2 is written to Version.props
-      - Arcade needs to use 9.0.1 so we need to override Version.props value here
-    -->
-    <NewtonsoftJsonVersion>9.0.1</NewtonsoftJsonVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(DotNetBuildOffline)' == 'true'">
-    <!--
-      Arcade has a special version prop for CodeAnalysis.CSharp in GenFacades
-      to try to match the version loaded by msbuild.  In the offline build, this
-      is simply the source-built version.
-    -->
-    <MsbuildTaskMicrosoftCodeAnalysisCSharpVersion>$(MicrosoftCodeAnalysisCSharpVersion)</MsbuildTaskMicrosoftCodeAnalysisCSharpVersion>
   </PropertyGroup>
 </Project>

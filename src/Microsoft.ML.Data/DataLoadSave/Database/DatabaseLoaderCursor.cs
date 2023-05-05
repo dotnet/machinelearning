@@ -307,7 +307,7 @@ namespace Microsoft.ML.Data
             private ValueGetter<DateTime> CreateDateTimeGetterDelegate(ColInfo colInfo)
             {
                 int columnIndex = GetColumnIndex(colInfo);
-                return (ref DateTime value) => value = DataReader.GetDateTime(columnIndex);
+                return (ref DateTime value) => value = DataReader.IsDBNull(columnIndex) ? default : DataReader.GetDateTime(columnIndex);
             }
 
             private ValueGetter<double> CreateDoubleGetterDelegate(ColInfo colInfo)

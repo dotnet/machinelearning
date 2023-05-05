@@ -207,7 +207,7 @@ namespace Microsoft.Data.Analysis
         /// Groups the rows of this column by their value.
         /// </summary>
         /// <typeparam name="TKey">The type of data held by this column</typeparam>
-        /// <returns>A mapping of value(<typeparamref name="TKey"/>) to the indices containing this value</returns>
+        /// <returns>A mapping of value(<typeparamref name="TKey"/>) to the indices containing this value. Should be sorted collection.</returns>
         public virtual Dictionary<TKey, ICollection<long>> GroupColumnValues<TKey>(out HashSet<long> nullIndices) => throw new NotImplementedException();
 
         /// <summary>
@@ -244,7 +244,7 @@ namespace Microsoft.Data.Analysis
                     ret.Add(i, otherRowIndices);
                 }
             }
-            
+
             return ret;
         }
 
@@ -359,7 +359,7 @@ namespace Microsoft.Data.Analysis
         public virtual bool HasDescription() => false;
 
         /// <summary>
-        /// Returns a <seealso cref="StringDataFrameColumn"/> containing the DataType and Length of this column
+        /// Returns a <see cref="StringDataFrameColumn"/> containing the DataType and Length of this column
         /// </summary>
         public virtual StringDataFrameColumn Info()
         {

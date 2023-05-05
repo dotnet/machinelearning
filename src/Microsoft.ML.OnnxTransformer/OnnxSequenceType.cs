@@ -55,7 +55,7 @@ namespace Microsoft.ML.Transforms.Onnx
     /// </summary>
     public sealed class OnnxSequenceTypeAttribute : DataViewTypeAttribute
     {
-        private Type _elemType;
+        private readonly Type _elemType;
 
         // Make default constructor obsolete.
         // Use default constructor will left the _elemType field empty and cause exception in methods using _elemType.

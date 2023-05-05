@@ -28,7 +28,7 @@ namespace Microsoft.ML.Internal.Utilities
         private string _line;
         private int _lineCur;
 
-        private byte[] _buff;
+        private readonly byte[] _buff;
         private int _buffCur;
         private int _buffLim;
         private bool _eof;

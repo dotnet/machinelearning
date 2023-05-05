@@ -34,10 +34,10 @@ namespace Microsoft.Extensions.ML
                .FromFile(modelName: "model1", filePath: Path.Combine("TestModels", "SentimentModel.zip"), watchForChanges: false);
 
             var sp = services.BuildServiceProvider();
-             
+
             var pool = sp.GetRequiredService<PredictionEnginePool<SentimentData, SentimentPrediction>>();
             var model = pool.GetModel("model1");
-             
+
             Assert.NotNull(model);
         }
 

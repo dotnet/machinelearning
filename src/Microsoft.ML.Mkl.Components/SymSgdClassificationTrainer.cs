@@ -810,7 +810,6 @@ namespace Microsoft.ML.Trainers
                     stateGCHandle.Free();
             }
 
-            ch.Info($"Bias: {bias}, Weights: [{String.Join(",", weights.DenseValues())}]");
             return CreatePredictor(weights, bias);
         }
 

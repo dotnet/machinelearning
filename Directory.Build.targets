@@ -3,7 +3,7 @@
   <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
 
   <ItemGroup Condition="'$(IsUnitTestProject)' == 'true'">
-    <PackageReference Include="coverlet.msbuild" Version="2.9.0" PrivateAssets="all" />
+    <PackageReference Include="coverlet.msbuild" Version="$(CoverletMsbuildVersion)" PrivateAssets="all" />
   </ItemGroup>
 
   <Target Name="SetCopyProperties">
@@ -71,7 +71,10 @@
 
     <CollectCoverage>true</CollectCoverage>
     <SingleHit>true</SingleHit>
+    <!-- don't copy nuget files from packages into the output directory -->
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <!-- ensure the runtime has the information it needs to locate the files not copied from nuget package cache -->
+    <GenerateRuntimeConfigDevFile>true</GenerateRuntimeConfigDevFile>
     <CoverletOutputFormat>opencover</CoverletOutputFormat>
     <CoverletOutput>$(BaseOutputPath)$(PlatformConfig)\coverage\coverage.opencover.xml</CoverletOutput>
     <Include></Include>

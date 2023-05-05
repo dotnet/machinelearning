@@ -54,9 +54,9 @@ namespace Microsoft.ML.Scenarios
                 PetalWidth = 0.2f,
             });
 
-            Assert.Equal(1, prediction.PredictedScores[0], 2);
-            Assert.Equal(0, prediction.PredictedScores[1], 2);
-            Assert.Equal(0, prediction.PredictedScores[2], 2);
+            Assert.Equal(1d, prediction.PredictedScores[0], 2);
+            Assert.Equal(0d, prediction.PredictedScores[1], 2);
+            Assert.Equal(0d, prediction.PredictedScores[2], 2);
             Assert.True(prediction.PredictedPlant == "Iris-setosa");
 
             prediction = predictFunction.Predict(new IrisDataWithStringLabel()
@@ -67,9 +67,9 @@ namespace Microsoft.ML.Scenarios
                 PetalWidth = 2.2f,
             });
 
-            Assert.Equal(0, prediction.PredictedScores[0], 2);
-            Assert.Equal(0, prediction.PredictedScores[1], 2);
-            Assert.Equal(1, prediction.PredictedScores[2], 2);
+            Assert.Equal(0d, prediction.PredictedScores[0], 2);
+            Assert.Equal(0d, prediction.PredictedScores[1], 2);
+            Assert.Equal(1d, prediction.PredictedScores[2], 2);
             Assert.True(prediction.PredictedPlant == "Iris-virginica");
 
             prediction = predictFunction.Predict(new IrisDataWithStringLabel()
@@ -82,11 +82,11 @@ namespace Microsoft.ML.Scenarios
 
             Assert.Equal(.2, prediction.PredictedScores[0], 1);
             Assert.Equal(.8, prediction.PredictedScores[1], 1);
-            Assert.Equal(0, prediction.PredictedScores[2], 2);
+            Assert.Equal(0d, prediction.PredictedScores[2], 2);
             Assert.True(prediction.PredictedPlant == "Iris-versicolor");
 
             // Evaluate the trained pipeline
-            var predicted = trainedModel.Transform(testData);
+            var predicted = trainedModel.Transform(testData, TransformerScope.Everything);
             var metrics = mlContext.MulticlassClassification.Evaluate(predicted, topKPredictionCount: 3);
 
             Assert.Equal(.98, metrics.MacroAccuracy);
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(1, metrics.TopKAccuracy);
 
             Assert.Equal(3, metrics.PerClassLogLoss.Count);
-            Assert.Equal(0, metrics.PerClassLogLoss[0], 1);
+            Assert.Equal(0d, metrics.PerClassLogLoss[0], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[1], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[2], 1);
         }

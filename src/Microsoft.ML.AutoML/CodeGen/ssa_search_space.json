@@ -1,0 +1,52 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "ssa_option",
+  "search_space": [
+    {
+      "name": "WindowSize",
+      "type": "integer",
+      "default": 2,
+      "search_space": {
+        "min": 2,
+        "max": 32768,
+        "log_base": false
+      }
+    },
+    {
+      "name": "SeriesLength",
+      "type": "integer",
+      "default": 10,
+      "search_space": {
+        "min": 2,
+        "max": 32768,
+        "log_base": false
+      }
+    },
+    {
+      "name": "TrainSize",
+      "type": "integer",
+      "default": 100
+    },
+    {
+      "name": "Horizon",
+      "type": "integer",
+      "default": 10
+    },
+    {
+      "name": "OutputColumnName",
+      "type": "string"
+    },
+    {
+      "name": "InputColumnName",
+      "type": "string"
+    },
+    {
+      "name": "ConfidenceLowerBoundColumn",
+      "type": "string"
+    },
+    {
+      "name": "ConfidenceUpperBoundColumn",
+      "type": "string"
+    }
+  ]
+}

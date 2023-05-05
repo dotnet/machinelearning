@@ -26,8 +26,8 @@ namespace Microsoft.ML.Transforms
         }
 
         private readonly NormStr.Pool _pool;
-        private Dictionary<NormStr, KeyWordKind> _mpnstrtidWord;
-        private Dictionary<NormStr, TokKind> _mpnstrtidPunc;
+        private readonly Dictionary<NormStr, KeyWordKind> _mpnstrtidWord;
+        private readonly Dictionary<NormStr, TokKind> _mpnstrtidPunc;
 
         public KeyWordTable(NormStr.Pool pool)
         {

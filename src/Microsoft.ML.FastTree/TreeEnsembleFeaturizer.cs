@@ -84,14 +84,14 @@ namespace Microsoft.ML.Data
             /// and the i-th vector element is the prediction value predicted by the i-th tree.
             /// If <see cref="_treesColumnName"/> is <see langword="null"/>, this output column may not be generated.
             /// </summary>
-            private string _treesColumnName;
+            private readonly string _treesColumnName;
 
             /// <summary>
             /// The 0-1 encoding of all leaf nodes' IDs. Its type is a vector of <see cref="System.Single"/>. If the given feature
             /// vector falls into the first leaf of the first tree, the first element in the 0-1 encoding would be 1.
             /// If <see cref="_leavesColumnName"/> is <see langword="null"/>, this output column may not be generated.
             /// </summary>
-            private string _leavesColumnName;
+            private readonly string _leavesColumnName;
 
             /// <summary>
             /// The 0-1 encoding of the paths to the leaves. If the path to the first tree's leaf is node 1 (2nd node in the first tree),
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Data
             /// would be 1.
             /// If <see cref="_pathsColumnName"/> is <see langword="null"/>, this output column may not be generated.
             /// </summary>
-            private string _pathsColumnName;
+            private readonly string _pathsColumnName;
 
             public BoundMapper(IExceptionContext ectx, TreeEnsembleFeaturizerBindableMapper owner, RoleMappedSchema schema,
                 string treesColumnName, string leavesColumnName, string pathsColumnName)
@@ -230,7 +230,7 @@ namespace Microsoft.ML.Data
                 private readonly int _numLeaves;
 
                 private VBuffer<float> _src;
-                private ValueGetter<VBuffer<float>> _featureGetter;
+                private readonly ValueGetter<VBuffer<float>> _featureGetter;
                 private long _cachedPosition;
                 private readonly int[] _leafIds;
                 private readonly List<int>[] _pathIds;

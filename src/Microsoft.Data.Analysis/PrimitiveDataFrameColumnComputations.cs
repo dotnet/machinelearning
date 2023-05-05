@@ -103,6 +103,10 @@ namespace Microsoft.Data.Analysis
             {
                 return (IPrimitiveColumnComputation<T>)new DateTimeComputation();
             }
+            else if (typeof(T) == typeof(DateTime))
+            {
+                return (IPrimitiveColumnComputation<T>)new DateTimeComputation();
+            }
 
             throw new NotSupportedException();
         }
@@ -284,7 +288,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMax(PrimitiveColumnContainer<byte> column, IEnumerable<long> rows)
         {
-            var ret = default(byte);
+            var ret = byte.MinValue;
             var mutableBuffer = DataFrameBuffer<byte>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -343,7 +347,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMin(PrimitiveColumnContainer<byte> column, IEnumerable<long> rows)
         {
-            var ret = default(byte);
+            var ret = byte.MaxValue;
             var mutableBuffer = DataFrameBuffer<byte>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -516,7 +520,7 @@ namespace Microsoft.Data.Analysis
 
         public void Max(PrimitiveColumnContainer<byte> column, IEnumerable<long> rows, out byte ret)
         {
-            ret = default;
+            ret = byte.MinValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<byte>.MaxCapacity;
@@ -553,7 +557,7 @@ namespace Microsoft.Data.Analysis
 
         public void Min(PrimitiveColumnContainer<byte> column, IEnumerable<long> rows, out byte ret)
         {
-            ret = default;
+            ret = byte.MaxValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<byte>.MaxCapacity;
@@ -711,7 +715,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMax(PrimitiveColumnContainer<char> column, IEnumerable<long> rows)
         {
-            var ret = default(char);
+            var ret = char.MinValue;
             var mutableBuffer = DataFrameBuffer<char>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -770,7 +774,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMin(PrimitiveColumnContainer<char> column, IEnumerable<long> rows)
         {
-            var ret = default(char);
+            var ret = char.MaxValue;
             var mutableBuffer = DataFrameBuffer<char>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -943,7 +947,7 @@ namespace Microsoft.Data.Analysis
 
         public void Max(PrimitiveColumnContainer<char> column, IEnumerable<long> rows, out char ret)
         {
-            ret = default;
+            ret = char.MinValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<char>.MaxCapacity;
@@ -980,7 +984,7 @@ namespace Microsoft.Data.Analysis
 
         public void Min(PrimitiveColumnContainer<char> column, IEnumerable<long> rows, out char ret)
         {
-            ret = default;
+            ret = char.MaxValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<char>.MaxCapacity;
@@ -1138,7 +1142,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMax(PrimitiveColumnContainer<decimal> column, IEnumerable<long> rows)
         {
-            var ret = default(decimal);
+            var ret = decimal.MinValue;
             var mutableBuffer = DataFrameBuffer<decimal>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -1197,7 +1201,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMin(PrimitiveColumnContainer<decimal> column, IEnumerable<long> rows)
         {
-            var ret = default(decimal);
+            var ret = decimal.MaxValue;
             var mutableBuffer = DataFrameBuffer<decimal>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -1370,7 +1374,7 @@ namespace Microsoft.Data.Analysis
 
         public void Max(PrimitiveColumnContainer<decimal> column, IEnumerable<long> rows, out decimal ret)
         {
-            ret = default;
+            ret = decimal.MinValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<decimal>.MaxCapacity;
@@ -1407,7 +1411,7 @@ namespace Microsoft.Data.Analysis
 
         public void Min(PrimitiveColumnContainer<decimal> column, IEnumerable<long> rows, out decimal ret)
         {
-            ret = default;
+            ret = decimal.MaxValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<decimal>.MaxCapacity;
@@ -1565,7 +1569,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMax(PrimitiveColumnContainer<double> column, IEnumerable<long> rows)
         {
-            var ret = default(double);
+            var ret = double.MinValue;
             var mutableBuffer = DataFrameBuffer<double>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -1624,7 +1628,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMin(PrimitiveColumnContainer<double> column, IEnumerable<long> rows)
         {
-            var ret = default(double);
+            var ret = double.MaxValue;
             var mutableBuffer = DataFrameBuffer<double>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -1797,7 +1801,7 @@ namespace Microsoft.Data.Analysis
 
         public void Max(PrimitiveColumnContainer<double> column, IEnumerable<long> rows, out double ret)
         {
-            ret = default;
+            ret = double.MinValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<double>.MaxCapacity;
@@ -1834,7 +1838,7 @@ namespace Microsoft.Data.Analysis
 
         public void Min(PrimitiveColumnContainer<double> column, IEnumerable<long> rows, out double ret)
         {
-            ret = default;
+            ret = double.MaxValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<double>.MaxCapacity;
@@ -1992,7 +1996,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMax(PrimitiveColumnContainer<float> column, IEnumerable<long> rows)
         {
-            var ret = default(float);
+            var ret = float.MinValue;
             var mutableBuffer = DataFrameBuffer<float>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -2051,7 +2055,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMin(PrimitiveColumnContainer<float> column, IEnumerable<long> rows)
         {
-            var ret = default(float);
+            var ret = float.MaxValue;
             var mutableBuffer = DataFrameBuffer<float>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -2224,7 +2228,7 @@ namespace Microsoft.Data.Analysis
 
         public void Max(PrimitiveColumnContainer<float> column, IEnumerable<long> rows, out float ret)
         {
-            ret = default;
+            ret = float.MinValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<float>.MaxCapacity;
@@ -2261,7 +2265,7 @@ namespace Microsoft.Data.Analysis
 
         public void Min(PrimitiveColumnContainer<float> column, IEnumerable<long> rows, out float ret)
         {
-            ret = default;
+            ret = float.MaxValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<float>.MaxCapacity;
@@ -2419,7 +2423,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMax(PrimitiveColumnContainer<int> column, IEnumerable<long> rows)
         {
-            var ret = default(int);
+            var ret = int.MinValue;
             var mutableBuffer = DataFrameBuffer<int>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -2478,7 +2482,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMin(PrimitiveColumnContainer<int> column, IEnumerable<long> rows)
         {
-            var ret = default(int);
+            var ret = int.MaxValue;
             var mutableBuffer = DataFrameBuffer<int>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -2651,7 +2655,7 @@ namespace Microsoft.Data.Analysis
 
         public void Max(PrimitiveColumnContainer<int> column, IEnumerable<long> rows, out int ret)
         {
-            ret = default;
+            ret = int.MinValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<int>.MaxCapacity;
@@ -2688,7 +2692,7 @@ namespace Microsoft.Data.Analysis
 
         public void Min(PrimitiveColumnContainer<int> column, IEnumerable<long> rows, out int ret)
         {
-            ret = default;
+            ret = int.MaxValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<int>.MaxCapacity;
@@ -2846,7 +2850,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMax(PrimitiveColumnContainer<long> column, IEnumerable<long> rows)
         {
-            var ret = default(long);
+            var ret = long.MinValue;
             var mutableBuffer = DataFrameBuffer<long>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -2905,7 +2909,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMin(PrimitiveColumnContainer<long> column, IEnumerable<long> rows)
         {
-            var ret = default(long);
+            var ret = long.MaxValue;
             var mutableBuffer = DataFrameBuffer<long>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -3078,7 +3082,7 @@ namespace Microsoft.Data.Analysis
 
         public void Max(PrimitiveColumnContainer<long> column, IEnumerable<long> rows, out long ret)
         {
-            ret = default;
+            ret = long.MinValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<long>.MaxCapacity;
@@ -3115,7 +3119,7 @@ namespace Microsoft.Data.Analysis
 
         public void Min(PrimitiveColumnContainer<long> column, IEnumerable<long> rows, out long ret)
         {
-            ret = default;
+            ret = long.MaxValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<long>.MaxCapacity;
@@ -3273,7 +3277,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMax(PrimitiveColumnContainer<sbyte> column, IEnumerable<long> rows)
         {
-            var ret = default(sbyte);
+            var ret = sbyte.MinValue;
             var mutableBuffer = DataFrameBuffer<sbyte>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -3332,7 +3336,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMin(PrimitiveColumnContainer<sbyte> column, IEnumerable<long> rows)
         {
-            var ret = default(sbyte);
+            var ret = sbyte.MaxValue;
             var mutableBuffer = DataFrameBuffer<sbyte>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -3505,7 +3509,7 @@ namespace Microsoft.Data.Analysis
 
         public void Max(PrimitiveColumnContainer<sbyte> column, IEnumerable<long> rows, out sbyte ret)
         {
-            ret = default;
+            ret = sbyte.MinValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<sbyte>.MaxCapacity;
@@ -3542,7 +3546,7 @@ namespace Microsoft.Data.Analysis
 
         public void Min(PrimitiveColumnContainer<sbyte> column, IEnumerable<long> rows, out sbyte ret)
         {
-            ret = default;
+            ret = sbyte.MaxValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<sbyte>.MaxCapacity;
@@ -3700,7 +3704,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMax(PrimitiveColumnContainer<short> column, IEnumerable<long> rows)
         {
-            var ret = default(short);
+            var ret = short.MinValue;
             var mutableBuffer = DataFrameBuffer<short>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -3759,7 +3763,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMin(PrimitiveColumnContainer<short> column, IEnumerable<long> rows)
         {
-            var ret = default(short);
+            var ret = short.MaxValue;
             var mutableBuffer = DataFrameBuffer<short>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -3932,7 +3936,7 @@ namespace Microsoft.Data.Analysis
 
         public void Max(PrimitiveColumnContainer<short> column, IEnumerable<long> rows, out short ret)
         {
-            ret = default;
+            ret = short.MinValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<short>.MaxCapacity;
@@ -3969,7 +3973,7 @@ namespace Microsoft.Data.Analysis
 
         public void Min(PrimitiveColumnContainer<short> column, IEnumerable<long> rows, out short ret)
         {
-            ret = default;
+            ret = short.MaxValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<short>.MaxCapacity;
@@ -4127,7 +4131,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMax(PrimitiveColumnContainer<uint> column, IEnumerable<long> rows)
         {
-            var ret = default(uint);
+            var ret = uint.MinValue;
             var mutableBuffer = DataFrameBuffer<uint>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -4186,7 +4190,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMin(PrimitiveColumnContainer<uint> column, IEnumerable<long> rows)
         {
-            var ret = default(uint);
+            var ret = uint.MaxValue;
             var mutableBuffer = DataFrameBuffer<uint>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -4359,7 +4363,7 @@ namespace Microsoft.Data.Analysis
 
         public void Max(PrimitiveColumnContainer<uint> column, IEnumerable<long> rows, out uint ret)
         {
-            ret = default;
+            ret = uint.MinValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<uint>.MaxCapacity;
@@ -4396,7 +4400,7 @@ namespace Microsoft.Data.Analysis
 
         public void Min(PrimitiveColumnContainer<uint> column, IEnumerable<long> rows, out uint ret)
         {
-            ret = default;
+            ret = uint.MaxValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<uint>.MaxCapacity;
@@ -4554,7 +4558,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMax(PrimitiveColumnContainer<ulong> column, IEnumerable<long> rows)
         {
-            var ret = default(ulong);
+            var ret = ulong.MinValue;
             var mutableBuffer = DataFrameBuffer<ulong>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -4613,7 +4617,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMin(PrimitiveColumnContainer<ulong> column, IEnumerable<long> rows)
         {
-            var ret = default(ulong);
+            var ret = ulong.MaxValue;
             var mutableBuffer = DataFrameBuffer<ulong>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -4786,7 +4790,7 @@ namespace Microsoft.Data.Analysis
 
         public void Max(PrimitiveColumnContainer<ulong> column, IEnumerable<long> rows, out ulong ret)
         {
-            ret = default;
+            ret = ulong.MinValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<ulong>.MaxCapacity;
@@ -4823,7 +4827,7 @@ namespace Microsoft.Data.Analysis
 
         public void Min(PrimitiveColumnContainer<ulong> column, IEnumerable<long> rows, out ulong ret)
         {
-            ret = default;
+            ret = ulong.MaxValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<ulong>.MaxCapacity;
@@ -4981,7 +4985,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMax(PrimitiveColumnContainer<ushort> column, IEnumerable<long> rows)
         {
-            var ret = default(ushort);
+            var ret = ushort.MinValue;
             var mutableBuffer = DataFrameBuffer<ushort>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -5040,7 +5044,7 @@ namespace Microsoft.Data.Analysis
 
         public void CumulativeMin(PrimitiveColumnContainer<ushort> column, IEnumerable<long> rows)
         {
-            var ret = default(ushort);
+            var ret = ushort.MaxValue;
             var mutableBuffer = DataFrameBuffer<ushort>.GetMutableBuffer(column.Buffers[0]);
             var span = mutableBuffer.Span;
             long minRange = 0;
@@ -5213,7 +5217,7 @@ namespace Microsoft.Data.Analysis
 
         public void Max(PrimitiveColumnContainer<ushort> column, IEnumerable<long> rows, out ushort ret)
         {
-            ret = default;
+            ret = ushort.MinValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<ushort>.MaxCapacity;
@@ -5250,7 +5254,7 @@ namespace Microsoft.Data.Analysis
 
         public void Min(PrimitiveColumnContainer<ushort> column, IEnumerable<long> rows, out ushort ret)
         {
-            ret = default;
+            ret = ushort.MaxValue;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = ReadOnlyDataFrameBuffer<ushort>.MaxCapacity;

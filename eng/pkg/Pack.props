@@ -3,12 +3,10 @@
   <PropertyGroup>
     <PackageAssetsPath>$(ArtifactsDir)pkgassets/</PackageAssetsPath>
     <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <IsSymbolsPackage Condition="$(MSBuildProjectName.Contains('.snupkg'))">true</IsSymbolsPackage>
     <PackageIdFolderName>$(MSBuildProjectName.Replace('.symbols', ''))</PackageIdFolderName>
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <IsPackable>true</IsPackable>
-
   </PropertyGroup>
 
   <!-- nuspec properties -->

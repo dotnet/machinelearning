@@ -1,0 +1,40 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "lbfgs_option",
+  "search_space": [
+    {
+      "name": "L1Regularization",
+      "type": "float",
+      "default": 1,
+      "search_space": {
+        "min": 0.03125,
+        "max": 32768,
+        "log_base": true
+      }
+    },
+    {
+      "name": "L2Regularization",
+      "type": "float",
+      "default": 1,
+      "search_space": {
+        "min": 0.03125,
+        "max": 32768,
+        "log_base": true
+      }
+    },
+    {
+      "name": "LabelColumnName",
+      "type": "string",
+      "default": "Label"
+    },
+    {
+      "name": "FeatureColumnName",
+      "type": "string",
+      "default": "Feature"
+    },
+    {
+      "name": "ExampleWeightColumnName",
+      "type": "string"
+    }
+  ]
+}

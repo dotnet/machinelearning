@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.ML;
 using Microsoft.ML.Transforms.TimeSeries;
-using System.IO;
 
 namespace Samples.Dynamic
 {

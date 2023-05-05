@@ -1,12 +1,15 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.Analysis.Tests;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Xunit;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.Data.Analysis.Tests
 {
@@ -19,7 +22,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             DataDebuggerPreview preview = dataView.Preview();
             Assert.Equal(10, preview.RowView.Length);
-            Assert.Equal(15, preview.ColumnView.Length);
+            Assert.Equal(17, preview.ColumnView.Length);
 
             Assert.Equal("Byte", preview.ColumnView[0].Column.Name);
             Assert.Equal((byte)0, preview.ColumnView[0].Values[0]);
@@ -73,13 +76,21 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal((ushort)65, preview.ColumnView[12].Values[0]);
             Assert.Equal((ushort)66, preview.ColumnView[12].Values[1]);
 
-            Assert.Equal("Bool", preview.ColumnView[13].Column.Name);
-            Assert.Equal(true, preview.ColumnView[13].Values[0]);
-            Assert.Equal(false, preview.ColumnView[13].Values[1]);
+            Assert.Equal("DateTime", preview.ColumnView[13].Column.Name);
+            Assert.Equal(new DateTime(2021, 06, 04), preview.ColumnView[13].Values[0]);
+            Assert.Equal(new DateTime(2021, 06, 05), preview.ColumnView[13].Values[1]);
 
-            Assert.Equal("ArrowString", preview.ColumnView[14].Column.Name);
-            Assert.Equal("foo".ToString(), preview.ColumnView[14].Values[0].ToString());
-            Assert.Equal("foo".ToString(), preview.ColumnView[14].Values[1].ToString());
+            Assert.Equal("Bool", preview.ColumnView[14].Column.Name);
+            Assert.Equal(true, preview.ColumnView[14].Values[0]);
+            Assert.Equal(false, preview.ColumnView[14].Values[1]);
+
+            Assert.Equal("ArrowString", preview.ColumnView[15].Column.Name);
+            Assert.Equal("foo".ToString(), preview.ColumnView[15].Values[0].ToString());
+            Assert.Equal("foo".ToString(), preview.ColumnView[15].Values[1].ToString());
+
+            Assert.Equal("VBuffer", preview.ColumnView[16].Column.Name);
+            Assert.Equal("Dense vector of size 5", preview.ColumnView[16].Values[0].ToString());
+            Assert.Equal("Dense vector of size 5", preview.ColumnView[16].Values[1].ToString());
         }
 
         [Fact]
@@ -90,16 +101,16 @@ namespace Microsoft.Data.Analysis.Tests
             IDataView dataView = df;
 
             DataViewSchema schema = dataView.Schema;
-            Assert.Equal(14, schema.Count);
+            Assert.Equal(15, schema.Count);
 
             df.Columns.Remove("Bool");
             schema = dataView.Schema;
-            Assert.Equal(13, schema.Count);
+            Assert.Equal(14, schema.Count);
 
             DataFrameColumn boolColumn = new PrimitiveDataFrameColumn<bool>("Bool", Enumerable.Range(0, (int)df.Rows.Count).Select(x => x % 2 == 1));
             df.Columns.Insert(0, boolColumn);
             schema = dataView.Schema;
-            Assert.Equal(14, schema.Count);
+            Assert.Equal(15, schema.Count);
             Assert.Equal("Bool", schema[0].Name);
 
             DataFrameColumn boolClone = boolColumn.Clone();
@@ -117,7 +128,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             DataDebuggerPreview preview = dataView.Preview();
             Assert.Equal(length, preview.RowView.Length);
-            Assert.Equal(15, preview.ColumnView.Length);
+            Assert.Equal(17, preview.ColumnView.Length);
 
             Assert.Equal("Byte", preview.ColumnView[0].Column.Name);
             Assert.Equal((byte)0, preview.ColumnView[0].Values[0]);
@@ -210,25 +221,36 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal((ushort)0, preview.ColumnView[12].Values[5]); // null row
             Assert.Equal((ushort)71, preview.ColumnView[12].Values[6]);
 
-            Assert.Equal("Bool", preview.ColumnView[13].Column.Name);
-            Assert.Equal(true, preview.ColumnView[13].Values[0]);
-            Assert.Equal(false, preview.ColumnView[13].Values[1]);
-            Assert.Equal(true, preview.ColumnView[13].Values[4]);
-            Assert.Equal(false, preview.ColumnView[13].Values[5]); // null row
-            Assert.Equal(true, preview.ColumnView[13].Values[6]);
+            Assert.Equal("DateTime", preview.ColumnView[13].Column.Name);
+            Assert.Equal(new DateTime(2021, 06, 04), preview.ColumnView[13].Values[0]);
+            Assert.Equal(new DateTime(2021, 06, 05), preview.ColumnView[13].Values[1]);
+            Assert.Equal(new DateTime(2021, 06, 08), preview.ColumnView[13].Values[4]);
+            Assert.Equal(new DateTime(), preview.ColumnView[13].Values[5]); // null row
+            Assert.Equal(new DateTime(2021, 06, 10), preview.ColumnView[13].Values[6]);
 
-            Assert.Equal("ArrowString", preview.ColumnView[14].Column.Name);
-            Assert.Equal("foo", preview.ColumnView[14].Values[0].ToString());
-            Assert.Equal("foo", preview.ColumnView[14].Values[1].ToString());
-            Assert.Equal("foo", preview.ColumnView[14].Values[4].ToString());
-            Assert.Equal("", preview.ColumnView[14].Values[5].ToString()); // null row
-            Assert.Equal("foo", preview.ColumnView[14].Values[6].ToString());
+            Assert.Equal("Bool", preview.ColumnView[14].Column.Name);
+            Assert.Equal(true, preview.ColumnView[14].Values[0]);
+            Assert.Equal(false, preview.ColumnView[14].Values[1]);
+            Assert.Equal(true, preview.ColumnView[14].Values[4]);
+            Assert.Equal(false, preview.ColumnView[14].Values[5]); // null row
+            Assert.Equal(true, preview.ColumnView[14].Values[6]);
+
+            Assert.Equal("ArrowString", preview.ColumnView[15].Column.Name);
+            Assert.Equal("foo", preview.ColumnView[15].Values[0].ToString());
+            Assert.Equal("foo", preview.ColumnView[15].Values[1].ToString());
+            Assert.Equal("foo", preview.ColumnView[15].Values[4].ToString());
+            Assert.Equal("", preview.ColumnView[15].Values[5].ToString()); // null row
+            Assert.Equal("foo", preview.ColumnView[15].Values[6].ToString());
+
+            Assert.Equal("VBuffer", preview.ColumnView[16].Column.Name);
+            Assert.True(preview.ColumnView[16].Values[0] is VBuffer<int>);
+            Assert.True(preview.ColumnView[16].Values[6] is VBuffer<int>);
         }
 
         [Fact]
         public void TestDataFrameFromIDataView()
         {
-            DataFrame df = DataFrameTests.MakeDataFrameWithAllColumnTypes(10, withNulls: false);
+            DataFrame df = DataFrameTests.MakeDataFrameWithAllMutableAndArrowColumnTypes(10, withNulls: false);
             df.Columns.Remove("Char"); // Because chars are returned as uint16 by IDataView, so end up comparing CharDataFrameColumn to UInt16DataFrameColumn and fail asserts
             IDataView dfAsIDataView = df;
             DataFrame newDf = dfAsIDataView.ToDataFrame();
@@ -419,5 +441,50 @@ namespace Microsoft.Data.Analysis.Tests
             VerifyDataFrameColumnAndDataViewColumnValues<string>("Name", data, df, 3);
             VerifyDataFrameColumnAndDataViewColumnValues<float>("Value", data, df, 3);
         }
+
+        [Fact]
+        public void TestDataFrameFromIDataView_VBufferType()
+        {
+            var mlContext = new MLContext();
+
+            var inputData = new[]
+            {
+                new {
+                    boolFeature = new bool[] {false, false},
+                    byteFeatures = new byte[] {0, 0},
+                    doubleFeatures = new double[] {0, 0},
+                    floatFeatures = new float[] {0, 0},
+                    intFeatures = new int[] {0, 0},
+                    longFeatures = new long[] {0, 0},
+                    sbyteFeatures = new sbyte[] {0, 0},
+                    shortFeatures = new short[] {0, 0},
+                    ushortFeatures = new ushort[] {0, 0},
+                    uintFeatures = new uint[] {0, 0},
+                    ulongFeatures = new ulong[] {0, 0},
+                    stringFeatures = new string[]{ "A", "B"},
+                },
+                new {
+                    boolFeature = new bool[] {false, false},
+                    byteFeatures = new byte[] {0, 0},
+                    doubleFeatures = new double[] {0, 0},
+                    floatFeatures = new float[] {1, 1},
+                    intFeatures = new int[] {0, 0},
+                    longFeatures = new long[] {0, 0},
+                    sbyteFeatures = new sbyte[] {0, 0},
+                    shortFeatures = new short[] {0, 0},
+                    ushortFeatures = new ushort[] {0, 0},
+                    uintFeatures = new uint[] {0, 0},
+                    ulongFeatures = new ulong[] {0, 0},
+                    stringFeatures = new string[]{ "A", "B"},
+                }
+            };
+
+            var data = mlContext.Data.LoadFromEnumerable(inputData);
+            var df = data.ToDataFrame();
+
+            Assert.Equal(12, df.Columns.Count);
+            Assert.Equal(2, df.Rows.Count);
+        }
     }
 }
+

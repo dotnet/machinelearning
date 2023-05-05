@@ -2,12 +2,10 @@ maml.exe CV tr=SymSGD{nt=1} threads=- norm=No dout=%Output% data=%Data% seed=1
 Not adding a normalizer.
 Data fully loaded into memory.
 Initial learning rate is tuned to 100.000000
-Bias: -468.2858, Weights: [4.26271,76.13496,22.57535,-10.57533,-28.53748,45.25502,23.55419,12.63859,2.51619]
 Not training a calibrator because it is not needed.
 Not adding a normalizer.
 Data fully loaded into memory.
 Initial learning rate is tuned to 100.000000
-Bias: -484.2863, Weights: [-12.78731,140.429,121.938,37.52739,-129.8144,70.90551,-89.37083,81.64296,-32.32784]
 Not training a calibrator because it is not needed.
 Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
 TEST POSITIVE RATIO:	0.3785 (134.0/(134.0+220.0))

@@ -686,7 +686,7 @@ namespace Microsoft.ML.Data
         internal sealed class StreamingDataView<TRow> : DataViewBase<TRow>
             where TRow : class
         {
-            private IEnumerable<TRow> _data;
+            private readonly IEnumerable<TRow> _data;
 
             public StreamingDataView(IHostEnvironment env, IEnumerable<TRow> data, InternalSchemaDefinition schemaDefn)
                 : base(env, "StreamingDataView", schemaDefn)
@@ -936,7 +936,7 @@ namespace Microsoft.ML.Data
             if (AnnotationType is VectorDataViewType annotationVectorType)
             {
                 // VBuffer<T> -> VBuffer<T>
-                // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<ReadOnlyMemory<char>>?
+                // REVIEW: Do we care about accommodating VBuffer<string> -> VBuffer<ReadOnlyMemory<char>>?
 
                 Contracts.Assert(typeT.IsGenericType);
                 Contracts.Check(typeof(TDst).IsGenericType);

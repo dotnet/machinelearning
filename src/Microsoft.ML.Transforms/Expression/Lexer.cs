@@ -47,9 +47,9 @@ namespace Microsoft.ML.Transforms
             private readonly Lexer _lex;
             private readonly CharCursor _cursor;
 
-            private StringBuilder _sb; // Used while building a token.
+            private readonly StringBuilder _sb; // Used while building a token.
             private int _ichMinTok; // The start of the current token.
-            private Queue<Token> _queue; // For multiple returns.
+            private readonly Queue<Token> _queue; // For multiple returns.
 #pragma warning disable 414
             // This will be used by any pre-processor, so keep it around.
             private bool _fLineStart;

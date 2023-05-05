@@ -249,7 +249,7 @@ namespace Microsoft.ML.Data
             private readonly TryParseMapper<TResult> _conv;
 
             // Has length Rows.Count, so indexed by irow.
-            private TResult[] _values;
+            private readonly TResult[] _values;
 
             public override bool HasNA { get; }
 
@@ -436,7 +436,7 @@ namespace Microsoft.ML.Data
             }
 
             // Has length Rows.Count, so indexed by irow.
-            private VectorValue[] _values;
+            private readonly VectorValue[] _values;
 
             public VectorPipe(RowSet rows, PrimitiveDataViewType type, TryParseMapper<TItem> conv)
                 : base(rows)

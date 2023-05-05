@@ -538,7 +538,7 @@ namespace Microsoft.ML.CodeGenerator.CSharp
 
         internal class OneVersusAll : TrainerGeneratorBase
         {
-            private PipelineNode _node;
+            private readonly PipelineNode _node;
             private string[] _binaryTrainerUsings;
 
             //ClassName of the trainer

@@ -209,7 +209,7 @@ namespace Microsoft.ML.Data
             protected void SaveLoader(ILegacyDataLoader loader, string path)
             {
                 using (var file = Host.CreateOutputFile(path))
-                    LoaderUtils.SaveLoader(loader, file);
+                    LoaderUtils.SaveLoader(loader, file, Host);
             }
 
             protected ILegacyDataLoader CreateAndSaveLoader(Func<IHostEnvironment, IMultiStreamSource, ILegacyDataLoader> defaultLoaderFactory = null)
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Data
                 if (!string.IsNullOrWhiteSpace(ImplOptions.OutputModelFile))
                 {
                     using (var file = Host.CreateOutputFile(ImplOptions.OutputModelFile))
-                        LoaderUtils.SaveLoader(loader, file);
+                        LoaderUtils.SaveLoader(loader, file, Host);
                 }
                 return loader;
             }
@@ -398,7 +398,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Saves <paramref name="loader"/> to the specified <paramref name="file"/>.
         /// </summary>
-        public static void SaveLoader(ILegacyDataLoader loader, IFileHandle file)
+        public static void SaveLoader(ILegacyDataLoader loader, IFileHandle file, IHostEnvironment host)
         {
             Contracts.CheckValue(loader, nameof(loader));
             Contracts.CheckValue(file, nameof(file));
@@ -406,20 +406,20 @@ namespace Microsoft.ML.Data
 
             using (var stream = file.CreateWriteStream())
             {
-                SaveLoader(loader, stream);
+                SaveLoader(loader, stream, host);
             }
         }
 
         /// <summary>
         /// Saves <paramref name="loader"/> to the specified <paramref name="stream"/>.
         /// </summary>
-        public static void SaveLoader(ILegacyDataLoader loader, Stream stream)
+        public static void SaveLoader(ILegacyDataLoader loader, Stream stream, IHostEnvironment host)
         {
             Contracts.CheckValue(loader, nameof(loader));
             Contracts.CheckValue(stream, nameof(stream));
             Contracts.CheckParam(stream.CanWrite, nameof(stream), "Must be writable");
 
-            using (var rep = RepositoryWriter.CreateNew(stream))
+            using (var rep = RepositoryWriter.CreateNew(stream, host))
             {
                 ModelSaveContext.SaveModel(rep, loader, ModelFileUtils.DirDataLoaderModel);
                 rep.Commit();

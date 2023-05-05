@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.IO;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -8,7 +7,7 @@ namespace Samples.Dynamic
 {
     public static class LoadImages
     {
-        // Loads the images of the imagesFolder into an IDataView. 
+        // Loads the images of the imagesFolder into an IDataView.
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for
@@ -19,7 +18,7 @@ namespace Samples.Dynamic
             // list of the files from the dotnet/machinelearning/test/data/images/.
             // If you inspect the fileSystem, after running this line, an "images"
             // folder will be created, containing 4 images, and a .tsv file
-            // enumerating the images. 
+            // enumerating the images.
             var imagesDataFile = Microsoft.ML.SamplesUtils.DatasetUtils
                 .GetSampleImages();
 
@@ -41,15 +40,15 @@ namespace Samples.Dynamic
             }).Load(imagesDataFile);
 
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
-            // Image loading pipeline. 
+            // Image loading pipeline.
             var pipeline = mlContext.Transforms.LoadImages("ImageObject",
                 imagesFolder, "ImagePath");
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
             PrintColumns(transformedData);
-            // Preview the transformedData. 
-            // ImagePath    Name         ImageObject           
+            // Preview the transformedData.
+            // ImagePath    Name         ImageObject
             // tomato.bmp   tomato       {Width=800, Height=534}
             // banana.jpg   banana       {Width=800, Height=288}
             // hotdog.jpg   hotdog       {Width=800, Height=391}
@@ -70,7 +69,7 @@ namespace Samples.Dynamic
                 // and column-type validation once, rather than many times.
                 ReadOnlyMemory<char> imagePath = default;
                 ReadOnlyMemory<char> name = default;
-                Bitmap imageObject = null;
+                MLImage imageObject = null;
 
                 var imagePathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor
                     .Schema["ImagePath"]);
@@ -78,18 +77,18 @@ namespace Samples.Dynamic
                 var nameGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor
                     .Schema["Name"]);
 
-                var imageObjectGetter = cursor.GetGetter<Bitmap>(cursor.Schema[
+                var imageObjectGetter = cursor.GetGetter<MLImage>(cursor.Schema[
                     "ImageObject"]);
 
                 while (cursor.MoveNext())
                 {
-
                     imagePathGetter(ref imagePath);
                     nameGetter(ref name);
                     imageObjectGetter(ref imageObject);
 
-                    Console.WriteLine("{0, -25} {1, -25} {2, -25}", imagePath, name,
-                        imageObject.PhysicalDimension);
+                    Console.WriteLine("{0, -25} {1, -25} {2, -25}",
+                        imagePath, name,
+                        $"Width={imageObject.Width}, Height={imageObject.Height}");
                 }
 
                 // Dispose the image.

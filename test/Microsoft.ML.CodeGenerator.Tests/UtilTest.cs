@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -124,7 +128,7 @@ namespace Microsoft.ML.CodeGenerator.Tests
                 await file.FlushAsync();
                 file.Close();
                 var context = new MLContext();
-                var dataView = context.Data.LoadFromTextFile<TestClass>(filePath,separatorChar:',', hasHeader: true);
+                var dataView = context.Data.LoadFromTextFile<TestClass>(filePath, separatorChar: ',', hasHeader: true);
                 var columnInference = new ColumnInferenceResults()
                 {
                     ColumnInformation = new ColumnInformation()
@@ -189,7 +193,7 @@ namespace Microsoft.ML.CodeGenerator.Tests
         [Fact]
         public void NormalizeTest()
         {
-            var testStrArray = new string[] { "Abc Abc", "abc ABC", "12", "12.3", "1AB .C"};
+            var testStrArray = new string[] { "Abc Abc", "abc ABC", "12", "12.3", "1AB .C" };
             var expectedStrArray = new string[] { "Abc_Abc", "Abc_ABC", "_12", "_12_3", "_1AB__C" };
             for (int i = 0; i != expectedStrArray.Count(); ++i)
             {

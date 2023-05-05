@@ -1,0 +1,7 @@
+{
+  "EstimatorFactoryGenerator": false,
+  "SweepableEstimatorFactory": true,
+  "EstimatorTypeGenerator": true,
+  "SearchSpaceGenerator": true,
+  "SweepableEstimatorGenerator": true
+}

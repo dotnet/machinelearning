@@ -344,8 +344,8 @@ namespace Microsoft.ML.AutoML
         // Todo: Remove the reflection below for TreeTreeEnsembleModelParameters methods GetLeaf and GetLeafValue.
         // Long-term, replace with tree featurizer once it becomes available
         // Tracking issue -- https://github.com/dotnet/machinelearning-automl/issues/342
-        private static MethodInfo _getLeafMethod = typeof(TreeEnsembleModelParameters).GetMethod("GetLeaf", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static MethodInfo _getLeafValueMethod = typeof(TreeEnsembleModelParameters).GetMethod("GetLeafValue", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static readonly MethodInfo _getLeafMethod = typeof(TreeEnsembleModelParameters).GetMethod("GetLeaf", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static readonly MethodInfo _getLeafValueMethod = typeof(TreeEnsembleModelParameters).GetMethod("GetLeafValue", BindingFlags.NonPublic | BindingFlags.Instance);
 
         private static int GetLeaf(TreeEnsembleModelParameters model, int treeId, VBuffer<Float> features)
         {

@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeInPackage>Microsoft.ML.Core</IncludeInPackage>
+    <DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
+    <NoWarn>MSML_ContractsCheckMessageNotLiteralOrIdentifier</NoWarn>
+    <LangVersion>9.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
+  </ItemGroup>
+</Project>

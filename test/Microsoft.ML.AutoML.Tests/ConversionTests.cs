@@ -10,14 +10,14 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
+
     public class ConversionTests : BaseTestClass
     {
         private readonly ITestOutputHelper _output;
 
         public ConversionTests(ITestOutputHelper output) : base(output)
         {
-            this._output = output;
+            _output = output;
         }
 
         [Fact]
@@ -31,7 +31,7 @@ namespace Microsoft.ML.AutoML.Test
                 "NA", "N/A", "NaN", "NAN"
             };
 
-            foreach(var missingValue in missingValues)
+            foreach (var missingValue in missingValues)
             {
                 float value;
                 var success = Conversions.DefaultInstance.TryParse(missingValue.AsMemory(), out value);
@@ -46,7 +46,7 @@ namespace Microsoft.ML.AutoML.Test
         {
             var values = new string[]
             {
-                "a", "aa", "nb", "aaa", "naa", "nba", "n/b" 
+                "a", "aa", "nb", "aaa", "naa", "nba", "n/b"
             };
 
             foreach (var value in values)

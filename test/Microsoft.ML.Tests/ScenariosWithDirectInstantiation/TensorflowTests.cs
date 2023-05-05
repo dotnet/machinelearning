@@ -9,20 +9,20 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
-using Microsoft.ML.Vision;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.TensorFlow;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Image;
-using Microsoft.ML.TensorFlow;
-using InMemoryImage = Microsoft.ML.Tests.ImageTests.InMemoryImage;
+using Microsoft.ML.Vision;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Runtime;
+using InMemoryImage = Microsoft.ML.Tests.ImageTests.InMemoryImage;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -169,17 +169,17 @@ namespace Microsoft.ML.Scenarios
             {
                 ImagePath = GetDataPath("images/banana.jpg")
             });
-            Assert.Equal(0, prediction.PredictedScores[0], 2);
-            Assert.Equal(1, prediction.PredictedScores[1], 2);
-            Assert.Equal(0, prediction.PredictedScores[2], 2);
+            Assert.Equal(0d, prediction.PredictedScores[0], 2);
+            Assert.Equal(1d, prediction.PredictedScores[1], 2);
+            Assert.Equal(0d, prediction.PredictedScores[2], 2);
 
             prediction = predictFunction.Predict(new CifarData()
             {
                 ImagePath = GetDataPath("images/hotdog.jpg")
             });
-            Assert.Equal(0, prediction.PredictedScores[0], 2);
-            Assert.Equal(0, prediction.PredictedScores[1], 2);
-            Assert.Equal(1, prediction.PredictedScores[2], 2);
+            Assert.Equal(0d, prediction.PredictedScores[0], 2);
+            Assert.Equal(0d, prediction.PredictedScores[1], 2);
+            Assert.Equal(1d, prediction.PredictedScores[2], 2);
         }
 
         [TensorFlowFact]
@@ -1043,34 +1043,6 @@ namespace Microsoft.ML.Scenarios
 
                 Assert.Equal(7, numRows);
             }
-
-            Assert.Contains(
-                @"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image " +
-                GetDataPath("images/tomato_indexedpixelformat.gif") +
-                " of unsupported pixel format Format8bppIndexed but converting it to Format32bppArgb.",
-                logMessages);
-
-            // taco_invalidpixelformat.jpg has '8207' pixel format on Windows but this format translates to Format32bppRgb
-            // on macOS and Linux, hence on Windows this image's pixel format is converted in resize transformer to Format32bppArgb
-            // and on linux and macOS it is not converted in resize transform since pixel format 'Format32bppRgb' can be resized but
-            // in ImagePixelExtractingTransformer it is converted to Format32bppArgb since there we just support two 
-            // pixel formats, i.e Format32bppArgb and Format16bppArgb.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                Assert.Contains(
-                    @"[Source=Mapper; ImagePixelExtractingTransformer, Kind=Warning] Encountered image " +
-                    GetDataPath("images/taco_invalidpixelformat.jpg") +
-                    " of unsupported pixel format Format32bppRgb but converting it to Format32bppArgb.",
-                    logMessages);
-            }
-            else
-            {
-                Assert.Contains(
-                    @"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image " +
-                    GetDataPath("images/taco_invalidpixelformat.jpg") +
-                    " of unsupported pixel format 8207 but converting it to Format32bppArgb.",
-                    logMessages);
-            }
         }
 
         [TensorFlowFact]
@@ -1219,9 +1191,10 @@ namespace Microsoft.ML.Scenarios
             };
 
             // Check the predictions consistency
-            for (var i = 0; i < predictions.Length; i++) {
+            for (var i = 0; i < predictions.Length; i++)
+            {
                 for (var j = 0; j < predictions[i].PredictedScores.Length; j++)
-                    Assert.Equal(predictions[i].PredictedScores[j], testPredictions[i].PredictedScores[j], 2);
+                    Assert.Equal((double)predictions[i].PredictedScores[j], (double)testPredictions[i].PredictedScores[j], 2);
             }
         }
 

@@ -60,7 +60,7 @@ namespace Microsoft.ML.PerformanceTests.Harness
 </Project>");
 
         // This overrides the .exe path to also involve the runtimeIdentifier for .NET Framework
-        protected override string GetBinariesDirectoryPath(string buildArtifactsDirectoryPath, string configuration) 
+        protected override string GetBinariesDirectoryPath(string buildArtifactsDirectoryPath, string configuration)
             => Path.Combine(buildArtifactsDirectoryPath, "bin", configuration, TargetFrameworkMoniker, _runtimeIdentifier);
 
         private string GenerateNativeReferences(BuildPartition buildPartition, ILogger logger)

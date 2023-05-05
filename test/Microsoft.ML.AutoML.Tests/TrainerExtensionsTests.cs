@@ -12,7 +12,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
+
     public class TrainerExtensionsTests : BaseTestClass
     {
         public TrainerExtensionsTests(ITestOutputHelper output) : base(output)
@@ -177,7 +177,7 @@ namespace Microsoft.ML.AutoML.Test
         public void BuildLightGbmPipelineNodeDefaultParams()
         {
             var pipelineNode = new LightGbmBinaryExtension().CreatePipelineNode(
-                new List<SweepableParam>(), 
+                new List<SweepableParam>(),
                 new ColumnInformation());
             var expectedJson = @"{
   ""Name"": ""LightGbmBinary"",

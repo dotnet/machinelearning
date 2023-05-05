@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -258,9 +257,22 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        /// <summary>
+        /// return <paramref name="columnIndex"/> of <paramref name="columnNames"/> if not null or empty, otherwise return "Column{i}" where i is <paramref name="columnIndex"/>.
+        /// </summary>
+        /// <param name="columnNames">column names.</param>
+        /// <param name="columnIndex">column index.</param>
+        /// <returns></returns>
+
         private static string GetColumnName(string[] columnNames, int columnIndex)
         {
-            return columnNames == null ? "Column" + columnIndex.ToString() : columnNames[columnIndex];
+            var defaultColumnName = "Column" + columnIndex.ToString();
+            if (columnNames is string[])
+            {
+                return string.IsNullOrEmpty(columnNames[columnIndex]) ? defaultColumnName : columnNames[columnIndex];
+            }
+
+            return defaultColumnName;
         }
 
         private static DataFrameColumn CreateColumn(Type kind, string columnName)
@@ -446,10 +458,10 @@ namespace Microsoft.Data.Analysis
 
         private class WrappedStreamReaderOrStringReader
         {
-            private Stream _stream;
-            private long _initialPosition;
-            private Encoding _encoding;
-            private string _csvString;
+            private readonly Stream _stream;
+            private readonly long _initialPosition;
+            private readonly Encoding _encoding;
+            private readonly string _csvString;
 
             public WrappedStreamReaderOrStringReader(Stream stream, Encoding encoding)
             {
@@ -547,13 +559,30 @@ namespace Microsoft.Data.Analysis
         /// <param name="header">has a header or not</param>
         /// <param name="encoding">The character encoding. Defaults to UTF8 if not specified</param>
         /// <param name="cultureInfo">culture info for formatting values</param>
+        [Obsolete("WriteCsv is obsolete and will be removed in a future version. Use SaveCsv instead.")]
         public static void WriteCsv(DataFrame dataFrame, string path,
+                                   char separator = ',', bool header = true,
+                                   Encoding encoding = null, CultureInfo cultureInfo = null)
+        {
+            SaveCsv(dataFrame, path, separator, header, encoding, cultureInfo);
+        }
+
+        /// <summary>
+        /// Saves a DataFrame into a CSV.
+        /// </summary>
+        /// <param name="dataFrame"><see cref="DataFrame"/></param>
+        /// <param name="path">CSV file path</param>
+        /// <param name="separator">column separator</param>
+        /// <param name="header">has a header or not</param>
+        /// <param name="encoding">The character encoding. Defaults to UTF8 if not specified</param>
+        /// <param name="cultureInfo">culture info for formatting values</param>
+        public static void SaveCsv(DataFrame dataFrame, string path,
                                    char separator = ',', bool header = true,
                                    Encoding encoding = null, CultureInfo cultureInfo = null)
         {
             using (FileStream csvStream = new FileStream(path, FileMode.Create))
             {
-                WriteCsv(dataFrame: dataFrame, csvStream: csvStream,
+                SaveCsv(dataFrame: dataFrame, csvStream: csvStream,
                            separator: separator, header: header,
                            encoding: encoding, cultureInfo: cultureInfo);
             }
@@ -568,9 +597,26 @@ namespace Microsoft.Data.Analysis
         /// <param name="header">has a header or not</param>
         /// <param name="encoding">the character encoding. Defaults to UTF8 if not specified</param>
         /// <param name="cultureInfo">culture info for formatting values</param>
+        [Obsolete("WriteCsv is obsolete and will be removed in a future version. Use SaveCsv instead.")]
         public static void WriteCsv(DataFrame dataFrame, Stream csvStream,
                            char separator = ',', bool header = true,
                            Encoding encoding = null, CultureInfo cultureInfo = null)
+        {
+            SaveCsv(dataFrame, csvStream, separator, header, encoding, cultureInfo);
+        }
+
+        /// <summary>
+        /// Saves a DataFrame into a CSV.
+        /// </summary>
+        /// <param name="dataFrame"><see cref="DataFrame"/></param>
+        /// <param name="csvStream">stream of CSV data to be write out</param>
+        /// <param name="separator">column separator</param>
+        /// <param name="header">has a header or not</param>
+        /// <param name="encoding">the character encoding. Defaults to UTF8 if not specified</param>
+        /// <param name="cultureInfo">culture info for formatting values</param>
+        public static void SaveCsv(DataFrame dataFrame, Stream csvStream,
+                        char separator = ',', bool header = true,
+                        Encoding encoding = null, CultureInfo cultureInfo = null)
         {
             if (cultureInfo is null)
             {
@@ -591,28 +637,25 @@ namespace Microsoft.Data.Analysis
             {
                 if (dataFrame != null)
                 {
-                    var columnNames = dataFrame.Columns.GetColumnNames();
-
                     if (header)
                     {
-                        var headerColumns = string.Join(separator.ToString(), columnNames);
-                        csvFile.WriteLine(headerColumns);
+                        SaveHeader(csvFile, dataFrame.Columns.GetColumnNames(), separator);
                     }
 
                     var record = new StringBuilder();
 
                     foreach (var row in dataFrame.Rows)
                     {
-                        bool firstRow = true;
+                        bool firstCell = true;
                         foreach (var cell in row)
                         {
-                            if (!firstRow)
+                            if (!firstCell)
                             {
                                 record.Append(separator);
                             }
                             else
                             {
-                                firstRow = false;
+                                firstCell = false;
                             }
 
                             Type t = cell?.GetType();
@@ -641,6 +684,18 @@ namespace Microsoft.Data.Analysis
                                 continue;
                             }
 
+                            if (t == typeof(string))
+                            {
+                                string stringCell = (string)cell;
+                                if (NeedsQuotes(stringCell, separator))
+                                {
+                                    record.Append('\"');
+                                    record.Append(stringCell.Replace("\"", "\"\"")); // Quotations in CSV data must be escaped with another quotation
+                                    record.Append('\"');
+                                    continue;
+                                }
+                            }
+
                             record.Append(cell);
                         }
 
@@ -650,6 +705,39 @@ namespace Microsoft.Data.Analysis
                     }
                 }
             }
+        }
+
+        private static void SaveHeader(StreamWriter csvFile, IReadOnlyList<string> columnNames, char separator)
+        {
+            bool firstColumn = true;
+            foreach (string name in columnNames)
+            {
+                if (!firstColumn)
+                {
+                    csvFile.Write(separator);
+                }
+                else
+                {
+                    firstColumn = false;
+                }
+
+                if (NeedsQuotes(name, separator))
+                {
+                    csvFile.Write('\"');
+                    csvFile.Write(name.Replace("\"", "\"\"")); // Quotations in CSV data must be escaped with another quotation
+                    csvFile.Write('\"');
+                }
+                else
+                {
+                    csvFile.Write(name);
+                }
+            }
+            csvFile.WriteLine();
+        }
+
+        private static bool NeedsQuotes(string csvCell, char separator)
+        {
+            return csvCell.AsSpan().IndexOfAny(separator, '\n', '\"') != -1;
         }
     }
 }

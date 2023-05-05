@@ -1069,8 +1069,8 @@ namespace Microsoft.ML.Calibrators
     {
         private readonly IHost _host;
 
-        private List<float> _cMargins;
-        private List<float> _ncMargins;
+        private readonly List<float> _cMargins;
+        private readonly List<float> _ncMargins;
 
         public int NumBins;
         public float BinSize;
@@ -1846,7 +1846,7 @@ namespace Microsoft.ML.Calibrators
     [BestFriend]
     internal sealed class PavCalibratorTrainer : CalibratorTrainerBase
     {
-        // a piece of the piecwise function
+        // a piece of the piecewise function
         private readonly struct Piece
         {
             public readonly float MinX; // end of interval.

@@ -5,25 +5,88 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.AutoML</IncludeInPackage>
     <PackageDescription>ML.NET AutoML: Optimizes an ML pipeline for your dataset, by automatically locating the best feature engineering, model, and hyperparameters</PackageDescription>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+
+    <!--
+      1591: Documentation warnings
+      NU5100: Warning that gets triggered because a .dll is not placed under lib folder on package. This is by design as we want AutoML Interactive to be under interactive-extensions folder.
+       -->
+    <NoWarn>$(NoWarn);1591;NU5100</NoWarn>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddAutoMLInteractiveToInteractiveExtensionsFolder</TargetsForTfmSpecificContentInPackage>
+
+    <!-- Remove once we have resolved the TorchSharp issue. -->
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
 
+  <!-- The following properties are set to package AutoML Interactive with the AutoML nuget package. If AutoML Interactive undergoes TFM or dependency changes, we need to update the TargetFramework passed in below-->
+  <Target Name="AddAutoMLInteractiveToInteractiveExtensionsFolder">
+    <MSBuild Projects="./../Microsoft.ML.AutoML.Interactive/Microsoft.ML.AutoML.Interactive.csproj" Targets="_GetBuildOutputFilesWithTfm" Properties="TargetFramework=net6.0">
+      <!-- Manually hardcoding the TargetFramework to net6.0 as that is the one that AutoML Interactive targets -->
+      <Output TaskParameter="TargetOutputs" ItemName="_ItemsToIncludeForInteractive" />
+    </MSBuild>
+
+    <ItemGroup>
+      <_ItemsToIncludeForInteractive Update="@(_ItemsToIncludeForInteractive)" PackagePath="interactive-extensions/dotnet" />
+      <TfmSpecificPackageFile Include="@(_ItemsToIncludeForInteractive)" />
+    </ItemGroup>
+  </Target>
+
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" >
+    <ProjectReference Include="..\..\tools-local\Microsoft.ML.AutoML.SourceGenerator\Microsoft.ML.AutoML.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj">
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.DnnImageFeaturizer.AlexNet\Microsoft.ML.DnnImageFeaturizer.AlexNet.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.DnnImageFeaturizer.ResNet101\Microsoft.ML.DnnImageFeaturizer.ResNet101.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.DnnImageFeaturizer.ResNet18\Microsoft.ML.DnnImageFeaturizer.ResNet18.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.DnnImageFeaturizer.ResNet50\Microsoft.ML.DnnImageFeaturizer.ResNet50.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeInNuget>true</IncludeInNuget>
+    </ProjectReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsDependencyInjectionVersion)" />
+    <ProjectReference Include="..\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.TorchSharp\Microsoft.ML.TorchSharp.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Vision\Microsoft.ML.Vision.csproj" />
     <ProjectReference Include="..\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
     <ProjectReference Include="..\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" >
+    <ProjectReference Include="..\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj">
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
-    <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" >
+    <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj">
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="CodeGen\*search_space.json" />
+    <AdditionalFiles Include="CodeGen\code_gen_flag.json" />
+    <AdditionalFiles Include="CodeGen\*-estimators.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Tuner\Portfolios.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
+    <ItemGroup>
+      <!--Include DLLs of Project References-->
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference')-&gt;WithMetadataValue('IncludeInNuget','true'))" />
+      <!--Include PDBs of Project References-->
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference')-&gt;WithMetadataValue('IncludeInNuget','true')-&gt;Replace('.dll', '.pdb'))" />
+      <!--Include PDBs for Native binaries-->
+      <!--The path needed to be hardcoded for this to work on our publishing CI-->
+      <BuildOutputInPackage Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\LdaNative.pdb')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\LdaNative.pdb" TargetPath="..\..\runtimes\win-x86\native" />
+      <BuildOutputInPackage Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\LdaNative.pdb')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\LdaNative.pdb" TargetPath="..\..\runtimes\win-x64\native" />
+    </ItemGroup>
+  </Target>
 
 </Project>

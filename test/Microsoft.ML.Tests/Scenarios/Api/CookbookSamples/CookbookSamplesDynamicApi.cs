@@ -396,7 +396,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             var linearModel = model.LastTransformer.Model;
 
-            var weights = linearModel.Weights; 
+            var weights = linearModel.Weights;
         }
 
         [Fact]
@@ -527,12 +527,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 .Append(mlContext.Transforms.Text.ProduceWordBags("BagOfWords", "NormalizedMessage"))
 
                 // NLP pipeline 2: bag of bigrams, using hashes instead of dictionary indices.
-                .Append(mlContext.Transforms.Text.ProduceHashedWordBags("BagOfBigrams","NormalizedMessage", 
+                .Append(mlContext.Transforms.Text.ProduceHashedWordBags("BagOfBigrams", "NormalizedMessage",
                             ngramLength: 2, useAllLengths: false))
 
                 // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
                 .Append(mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("MessageChars", "Message"))
-                .Append(mlContext.Transforms.Text.ProduceNgrams("BagOfTrichar", "MessageChars", 
+                .Append(mlContext.Transforms.Text.ProduceNgrams("BagOfTrichar", "MessageChars",
                             ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf))
 
                 // NLP pipeline 4: word embeddings.
@@ -657,7 +657,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Train the model.
             var model = pipeline.Fit(split.TrainSet);
             // Compute quality metrics on the test set.
-            var metrics = mlContext.MulticlassClassification.Evaluate(model.Transform(split.TestSet));
+            var metrics = mlContext.MulticlassClassification.Evaluate(model.Transform(split.TestSet, TransformerScope.Everything));
             Console.WriteLine(metrics.MicroAccuracy);
 
             // Now run the 5-fold cross-validation experiment, using the same pipeline.

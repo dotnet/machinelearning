@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tests
             var data = GetDenseDataset();
 
             var model = ML.BinaryClassification.Trainers.Gam(
-                new GamBinaryTrainer.Options { NumberOfThreads = 1}).Fit(data);
+                new GamBinaryTrainer.Options { NumberOfThreads = 1 }).Fit(data);
 
             var modelAndSchemaPath = GetOutputPath("TestValueMapperCalibratedModelParametersLoading.zip");
             ML.Model.Save(model, data.Schema, modelAndSchemaPath);
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Tests
             var data = GetDenseDataset();
 
             var model = ML.BinaryClassification.Trainers.FastTree(
-                new FastTreeBinaryTrainer.Options { NumberOfThreads = 1}).Fit(data);
+                new FastTreeBinaryTrainer.Options { NumberOfThreads = 1 }).Fit(data);
 
             var modelAndSchemaPath = GetOutputPath("TestFeatureWeightsCalibratedModelParametersLoading.zip");
             ML.Model.Save(model, data.Schema, modelAndSchemaPath);
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Tests
                 yArray[i] = (float)(10 * x1 + 20 * x2Important + 5.5 * x3 + noise);
             }
 
-           GetBinaryClassificationLabels(yArray);
+            GetBinaryClassificationLabels(yArray);
 
             // Create data view.
             var bldr = new ArrayDataViewBuilder(Env);

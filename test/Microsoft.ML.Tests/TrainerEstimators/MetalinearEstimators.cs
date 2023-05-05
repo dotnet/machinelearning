@@ -95,7 +95,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 });
 
             var pipeline = new ColumnConcatenatingEstimator(Env, "Vars", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                .Append(new ValueToKeyMappingEstimator(Env, "Label"), TransformerScope.TrainTest)
+                .Append(new ValueToKeyMappingEstimator(Env, "Label"))
                 .Append(ML.MulticlassClassification.Trainers.OneVersusAll(sdcaTrainer))
                 .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
 

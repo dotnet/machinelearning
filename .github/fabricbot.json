@@ -1,0 +1,2504 @@
+[
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "IssuesOnlyResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "Add untriaged label to new/reopened issues without a milestone",
+      "actions": [
+        {
+          "name": "addLabel",
+          "parameters": {
+            "label": "untriaged"
+          }
+        }
+      ],
+      "eventType": "issue",
+      "eventNames": [
+        "issues"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "operator": "or",
+            "operands": [
+              {
+                "name": "isAction",
+                "parameters": {
+                  "action": "opened"
+                }
+              },
+              {
+                "name": "isAction",
+                "parameters": {
+                  "action": "reopened"
+                }
+              },
+              {
+                "name": "removedFromMilestone",
+                "parameters": {}
+              }
+            ]
+          },
+          {
+            "name": "isOpen",
+            "parameters": {}
+          },
+          {
+            "operator": "not",
+            "operands": [
+              {
+                "name": "isInMilestone",
+                "parameters": {}
+              }
+            ]
+          },
+          {
+            "operator": "not",
+            "operands": [
+              {
+                "name": "hasLabel",
+                "parameters": {
+                  "label": "untriaged"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "IssuesOnlyResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "Remove untriaged label from issues when closed or added to a milestone",
+      "actions": [
+        {
+          "name": "removeLabel",
+          "parameters": {
+            "label": "untriaged"
+          }
+        }
+      ],
+      "eventType": "issue",
+      "eventNames": [
+        "issues"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "operator": "or",
+            "operands": [
+              {
+                "name": "isAction",
+                "parameters": {
+                  "action": "closed"
+                }
+              },
+              {
+                "name": "addedToMilestone",
+                "parameters": {}
+              }
+            ]
+          },
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "untriaged"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "InPrLabel",
+    "subCapability": "InPrLabel",
+    "version": "1.0",
+    "config": {
+      "taskName": "Add `in-pr` label on issue when an open pull request is targeting it",
+      "inPrLabelText": "There is an active PR which will close this issue when it is merged",
+      "fixedLabelEnabled": false,
+      "label_inPr": "in-pr"
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "PullRequestResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "Assign Team PRs to author",
+      "actions": [
+        {
+          "name": "assignToUser",
+          "parameters": {
+            "user": {
+              "type": "prAuthor"
+            }
+          }
+        }
+      ],
+      "eventType": "pull_request",
+      "eventNames": [
+        "pull_request"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isAction",
+            "parameters": {
+              "action": "opened"
+            }
+          },
+          {
+            "operator": "not",
+            "operands": [
+              {
+                "name": "activitySenderHasPermissions",
+                "parameters": {
+                  "permissions": "read"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "PullRequestResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "Label community PRs",
+      "actions": [
+        {
+          "name": "addLabel",
+          "parameters": {
+            "label": "community-contribution"
+          }
+        }
+      ],
+      "eventType": "pull_request",
+      "eventNames": [
+        "pull_request"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isAction",
+            "parameters": {
+              "action": "opened"
+            }
+          },
+          {
+            "operator": "and",
+            "operands": [
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "activitySenderHasPermissions",
+                    "parameters": {
+                      "permissions": "admin"
+                    }
+                  }
+                ]
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "activitySenderHasPermissions",
+                    "parameters": {
+                      "permissions": "maintain"
+                    }
+                  }
+                ]
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "activitySenderHasPermissions",
+                    "parameters": {
+                      "permissions": "write"
+                    }
+                  }
+                ]
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isActivitySender",
+                    "parameters": {
+                      "user": "github-actions[bot]"
+                    }
+                  }
+                ]
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isActivitySender",
+                    "parameters": {
+                      "user": "dotnet-maestro[bot]"
+                    }
+                  }
+                ]
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isActivitySender",
+                    "parameters": {
+                      "user": "dotnet-maestro-bot[bot]"
+                    }
+                  }
+                ]
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isActivitySender",
+                    "parameters": {
+                      "user": "dotnet-maestro-bot"
+                    }
+                  }
+                ]
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isActivitySender",
+                    "parameters": {
+                      "user": "dotnet-maestro"
+                    }
+                  }
+                ]
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isActivitySender",
+                    "parameters": {
+                      "user": "github-actions"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "IssuesOnlyResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "Needs-author-action notification",
+      "actions": [
+        {
+          "name": "addReply",
+          "parameters": {
+            "comment": "This issue has been marked `needs-author-action` and may be missing some important information."
+          }
+        }
+      ],
+      "eventType": "issue",
+      "eventNames": [
+        "issues"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "labelAdded",
+            "parameters": {
+              "label": "needs-author-action"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "PullRequestReviewResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "PR reviews with \"changes requested\" applies the needs-author-action label",
+      "actions": [
+        {
+          "name": "addLabel",
+          "parameters": {
+            "label": "needs-author-action"
+          }
+        }
+      ],
+      "eventType": "pull_request",
+      "eventNames": [
+        "pull_request_review"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "operator": "not",
+            "operands": [
+              {
+                "name": "activitySenderHasPermissions",
+                "parameters": {
+                  "state": "changes_requested",
+                  "permissions": "read"
+                }
+              }
+            ]
+          },
+          {
+            "name": "isAction",
+            "parameters": {
+              "action": "submitted"
+            }
+          },
+          {
+            "name": "isReviewState",
+            "parameters": {
+              "state": "changes_requested"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "IssueCommentResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "Replace `needs-author-action` label with `needs-further-triage` label when the author comments on an issue",
+      "actions": [
+        {
+          "name": "addLabel",
+          "parameters": {
+            "label": "needs-further-triage"
+          }
+        },
+        {
+          "name": "removeLabel",
+          "parameters": {
+            "label": "needs-author-action"
+          }
+        }
+      ],
+      "eventType": "issue",
+      "eventNames": [
+        "issue_comment"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isAction",
+            "parameters": {
+              "action": "created"
+            }
+          },
+          {
+            "name": "isActivitySender",
+            "parameters": {
+              "user": {
+                "type": "author"
+              }
+            }
+          },
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "needs-author-action"
+            }
+          },
+          {
+            "name": "isOpen",
+            "parameters": {}
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "PullRequestResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "Pushing changes to PR branch removes the needs-author-action label",
+      "actions": [
+        {
+          "name": "removeLabel",
+          "parameters": {
+            "label": "needs-author-action"
+          }
+        }
+      ],
+      "eventType": "pull_request",
+      "eventNames": [
+        "pull_request"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isAction",
+            "parameters": {
+              "action": "synchronize"
+            }
+          },
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "needs-author-action"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "PullRequestCommentResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "Author commenting in PR removes the needs-author-action label",
+      "actions": [
+        {
+          "name": "removeLabel",
+          "parameters": {
+            "label": "needs-author-action"
+          }
+        }
+      ],
+      "eventType": "pull_request",
+      "eventNames": [
+        "issue_comment"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isActivitySender",
+            "parameters": {
+              "user": {
+                "type": "author"
+              }
+            }
+          },
+          {
+            "name": "isAction",
+            "parameters": {
+              "action": "created"
+            }
+          },
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "needs-author-action"
+            }
+          },
+          {
+            "name": "isOpen",
+            "parameters": {}
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "PullRequestReviewResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "Author responding to a pull request review comment removes the needs-author-action label",
+      "actions": [
+        {
+          "name": "removeLabel",
+          "parameters": {
+            "label": "needs-author-action"
+          }
+        }
+      ],
+      "eventType": "pull_request",
+      "eventNames": [
+        "pull_request_review"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isActivitySender",
+            "parameters": {
+              "user": {
+                "type": "author"
+              }
+            }
+          },
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "needs-author-action"
+            }
+          },
+          {
+            "name": "isAction",
+            "parameters": {
+              "action": "submitted"
+            }
+          },
+          {
+            "name": "isOpen",
+            "parameters": {}
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "scheduled",
+    "capabilityId": "ScheduledSearch",
+    "subCapability": "ScheduledSearch",
+    "version": "1.1",
+    "config": {
+      "taskName": "Add no-recent-activity label to issues",
+      "actions": [
+        {
+          "name": "addLabel",
+          "parameters": {
+            "label": "no-recent-activity"
+          }
+        },
+        {
+          "name": "addReply",
+          "parameters": {
+            "comment": "This issue has been automatically marked `no-recent-activity` because it has not had any activity for 14 days. It will be closed if no further activity occurs within 14 more days. Any new comment (by anyone, not necessarily the author) will remove `no-recent-activity`."
+          }
+        }
+      ],
+      "frequency": [
+        {
+          "weekDay": 0,
+          "hours": [
+            4,
+            10,
+            16,
+            22
+          ],
+          "timezoneOffset": 1
+        },
+        {
+          "weekDay": 1,
+          "hours": [
+            4,
+            10,
+            16,
+            22
+          ],
+          "timezoneOffset": 1
+        },
+        {
+          "weekDay": 2,
+          "hours": [
+            4,
+            10,
+            16,
+            22
+          ],
+          "timezoneOffset": 1
+        },
+        {
+          "weekDay": 3,
+          "hours": [
+            4,
+            10,
+            16,
+            22
+          ],
+          "timezoneOffset": 1
+        },
+        {
+          "weekDay": 4,
+          "hours": [
+            4,
+            10,
+            16,
+            22
+          ],
+          "timezoneOffset": 1
+        },
+        {
+          "weekDay": 5,
+          "hours": [
+            4,
+            10,
+            16,
+            22
+          ],
+          "timezoneOffset": 1
+        },
+        {
+          "weekDay": 6,
+          "hours": [
+            4,
+            10,
+            16,
+            22
+          ],
+          "timezoneOffset": 1
+        }
+      ],
+      "searchTerms": [
+        {
+          "name": "isIssue",
+          "parameters": {}
+        },
+        {
+          "name": "isOpen",
+          "parameters": {}
+        },
+        {
+          "name": "hasLabel",
+          "parameters": {
+            "label": "needs-author-action"
+          }
+        },
+        {
+          "name": "noActivitySince",
+          "parameters": {
+            "days": 14
+          }
+        },
+        {
+          "name": "noLabel",
+          "parameters": {
+            "label": "no-recent-activity"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "scheduled",
+    "capabilityId": "ScheduledSearch",
+    "subCapability": "ScheduledSearch",
+    "version": "1.1",
+    "config": {
+      "taskName": "Add no-recent-activity label to PRs",
+      "actions": [
+        {
+          "name": "addLabel",
+          "parameters": {
+            "label": "no-recent-activity"
+          }
+        },
+        {
+          "name": "addReply",
+          "parameters": {
+            "comment": "This pull request has been automatically marked `no-recent-activity` because it has not had any activity for 14 days. It will be closed if no further activity occurs within 14 more days. Any new comment (by anyone, not necessarily the author) will remove `no-recent-activity`."
+          }
+        }
+      ],
+      "frequency": [
+        {
+          "weekDay": 0,
+          "hours": [
+            4,
+            10,
+            16,
+            22
+          ],
+          "timezoneOffset": 1
+        },
+        {
+          "weekDay": 1,
+          "hours": [
+            4,
+            10,
+            16,
+            22
+          ],
+          "timezoneOffset": 1
+        },
+        {
+          "weekDay": 2,
+          "hours": [
+            4,
+            10,
+            16,
+            22
+          ],
+          "timezoneOffset": 1
+        },
+        {
+          "weekDay": 3,
+          "hours": [
+            4,
+            10,
+            16,
+            22
+          ],
+          "timezoneOffset": 1
+        },
+        {
+          "weekDay": 4,
+          "hours": [
+            4,
+            10,
+            16,
+            22
+          ],
+          "timezoneOffset": 1
+        },
+        {
+          "weekDay": 5,
+          "hours": [
+            4,
+            10,
+            16,
+            22
+          ],
+          "timezoneOffset": 1
+        },
+        {
+          "weekDay": 6,
+          "hours": [
+            4,
+            10,
+            16,
+            22
+          ],
+          "timezoneOffset": 1
+        }
+      ],
+      "searchTerms": [
+        {
+          "name": "isPr",
+          "parameters": {}
+        },
+        {
+          "name": "isOpen",
+          "parameters": {}
+        },
+        {
+          "name": "hasLabel",
+          "parameters": {
+            "label": "needs-author-action"
+          }
+        },
+        {
+          "name": "noActivitySince",
+          "parameters": {
+            "days": 14
+          }
+        },
+        {
+          "name": "noLabel",
+          "parameters": {
+            "label": "no-recent-activity"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "IssuesOnlyResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "Remove `no-recent-activity` label from issues when issue is modified",
+      "actions": [
+        {
+          "name": "removeLabel",
+          "parameters": {
+            "label": "no-recent-activity"
+          }
+        }
+      ],
+      "eventType": "issue",
+      "eventNames": [
+        "issues"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "operator": "not",
+            "operands": [
+              {
+                "name": "isAction",
+                "parameters": {
+                  "action": "closed"
+                }
+              }
+            ]
+          },
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "no-recent-activity"
+            }
+          },
+          {
+            "operator": "not",
+            "operands": [
+              {
+                "name": "labelAdded",
+                "parameters": {
+                  "label": "no-recent-activity"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "IssueCommentResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "Remove `no-recent-activity` label when an issue is commented on",
+      "actions": [
+        {
+          "name": "removeLabel",
+          "parameters": {
+            "label": "no-recent-activity"
+          }
+        }
+      ],
+      "eventType": "issue",
+      "eventNames": [
+        "issue_comment"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "no-recent-activity"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "PullRequestResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "Remove `no-recent-activity` label from PRs when modified",
+      "actions": [
+        {
+          "name": "removeLabel",
+          "parameters": {
+            "label": "no-recent-activity"
+          }
+        }
+      ],
+      "eventType": "pull_request",
+      "eventNames": [
+        "pull_request"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isOpen",
+            "parameters": {}
+          },
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "no-recent-activity"
+            }
+          },
+          {
+            "operator": "not",
+            "operands": [
+              {
+                "name": "labelAdded",
+                "parameters": {
+                  "label": "no-recent-activity"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "PullRequestCommentResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "Remove `no-recent-activity` label from PRs when commented on",
+      "actions": [
+        {
+          "name": "removeLabel",
+          "parameters": {
+            "label": "no-recent-activity"
+          }
+        }
+      ],
+      "eventType": "pull_request",
+      "eventNames": [
+        "issue_comment"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "no-recent-activity"
+            }
+          },
+          {
+            "name": "isOpen",
+            "parameters": {}
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "PullRequestReviewResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "Remove `no-recent-activity` label from PRs when new review is added",
+      "actions": [
+        {
+          "name": "removeLabel",
+          "parameters": {
+            "label": "no-recent-activity"
+          }
+        }
+      ],
+      "eventType": "pull_request",
+      "eventNames": [
+        "pull_request_review"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "no-recent-activity"
+            }
+          },
+          {
+            "name": "isOpen",
+            "parameters": {}
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "scheduled",
+    "capabilityId": "ScheduledSearch",
+    "subCapability": "ScheduledSearch",
+    "version": "1.1",
+    "config": {
+      "taskName": "Close issues with no recent activity",
+      "actions": [
+        {
+          "name": "addReply",
+          "parameters": {
+            "comment": "This issue will now be closed since it had been marked `no-recent-activity` but received no further activity in the past 14 days. It is still possible to reopen or comment on the issue, but please note that the issue will be locked if it remains inactive for another 30 days."
+          }
+        },
+        {
+          "name": "closeIssue",
+          "parameters": {}
+        }
+      ],
+      "frequency": [
+        {
+          "weekDay": 0,
+          "hours": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 1,
+          "hours": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 2,
+          "hours": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 3,
+          "hours": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 4,
+          "hours": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 5,
+          "hours": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 6,
+          "hours": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "timezoneOffset": 0
+        }
+      ],
+      "searchTerms": [
+        {
+          "name": "isIssue",
+          "parameters": {}
+        },
+        {
+          "name": "isOpen",
+          "parameters": {}
+        },
+        {
+          "name": "hasLabel",
+          "parameters": {
+            "label": "no-recent-activity"
+          }
+        },
+        {
+          "name": "noActivitySince",
+          "parameters": {
+            "days": 14
+          }
+        }
+      ]
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "scheduled",
+    "capabilityId": "ScheduledSearch",
+    "subCapability": "ScheduledSearch",
+    "version": "1.1",
+    "config": {
+      "taskName": "Close PRs with no-recent-activity",
+      "actions": [
+        {
+          "name": "addReply",
+          "parameters": {
+            "comment": "This pull request will now be closed since it had been marked `no-recent-activity` but received no further activity in the past 14 days. It is still possible to reopen or comment on the pull request, but please note that it will be locked if it remains inactive for another 30 days."
+          }
+        },
+        {
+          "name": "closeIssue",
+          "parameters": {}
+        }
+      ],
+      "frequency": [
+        {
+          "weekDay": 0,
+          "hours": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 1,
+          "hours": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 2,
+          "hours": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 3,
+          "hours": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 4,
+          "hours": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 5,
+          "hours": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 6,
+          "hours": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "timezoneOffset": 0
+        }
+      ],
+      "searchTerms": [
+        {
+          "name": "isPr",
+          "parameters": {}
+        },
+        {
+          "name": "isOpen",
+          "parameters": {}
+        },
+        {
+          "name": "hasLabel",
+          "parameters": {
+            "label": "no-recent-activity"
+          }
+        },
+        {
+          "name": "noActivitySince",
+          "parameters": {
+            "days": 14
+          }
+        }
+      ]
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "scheduled",
+    "capabilityId": "ScheduledSearch",
+    "subCapability": "ScheduledSearch",
+    "version": "1.1",
+    "config": {
+      "taskName": "Close inactive Draft PRs",
+      "actions": [
+        {
+          "name": "closeIssue",
+          "parameters": {}
+        },
+        {
+          "name": "addReply",
+          "parameters": {
+            "comment": "Draft Pull Request was automatically closed for 30 days of inactivity. Please [let us know](https://github.com/dotnet/runtime/blob/main/docs/area-owners.md) if you'd like to reopen it."
+          }
+        }
+      ],
+      "frequency": [
+        {
+          "weekDay": 0,
+          "hours": [
+            5,
+            11,
+            17,
+            23
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 1,
+          "hours": [
+            5,
+            11,
+            17,
+            23
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 2,
+          "hours": [
+            5,
+            11,
+            17,
+            23
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 3,
+          "hours": [
+            5,
+            11,
+            17,
+            23
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 4,
+          "hours": [
+            5,
+            11,
+            17,
+            23
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 5,
+          "hours": [
+            5,
+            11,
+            17,
+            23
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 6,
+          "hours": [
+            5,
+            11,
+            17,
+            23
+          ],
+          "timezoneOffset": 0
+        }
+      ],
+      "searchTerms": [
+        {
+          "name": "isDraftPr",
+          "parameters": {
+            "value": "true"
+          }
+        },
+        {
+          "name": "isOpen",
+          "parameters": {}
+        },
+        {
+          "name": "noActivitySince",
+          "parameters": {
+            "days": 30
+          }
+        }
+      ]
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "scheduled",
+    "capabilityId": "ScheduledSearch",
+    "subCapability": "ScheduledSearch",
+    "version": "1.1",
+    "config": {
+      "taskName": "Lock stale issues and PRs",
+      "actions": [
+        {
+          "name": "lockIssue",
+          "parameters": {
+            "reason": "resolved",
+            "label": "will_lock_this"
+          }
+        }
+      ],
+      "frequency": [
+        {
+          "weekDay": 0,
+          "hours": [
+            1,
+            7,
+            13,
+            19
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 1,
+          "hours": [
+            1,
+            7,
+            13,
+            19
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 2,
+          "hours": [
+            1,
+            7,
+            13,
+            19
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 3,
+          "hours": [
+            1,
+            7,
+            13,
+            19
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 4,
+          "hours": [
+            1,
+            7,
+            13,
+            19
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 5,
+          "hours": [
+            1,
+            7,
+            13,
+            19
+          ],
+          "timezoneOffset": 0
+        },
+        {
+          "weekDay": 6,
+          "hours": [
+            1,
+            7,
+            13,
+            19
+          ],
+          "timezoneOffset": 0
+        }
+      ],
+      "searchTerms": [
+        {
+          "name": "isClosed",
+          "parameters": {}
+        },
+        {
+          "name": "noActivitySince",
+          "parameters": {
+            "days": 30
+          }
+        },
+        {
+          "name": "isUnlocked",
+          "parameters": {}
+        }
+      ]
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "IssuesOnlyResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "[Area Pod: Michael / Tanner - Issue Triage] Needs Triage",
+      "actions": [
+        {
+          "name": "removeFromProject",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+            "isOrgProject": true
+          }
+        },
+        {
+          "name": "addToProject",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+            "columnName": "Needs Triage",
+            "isOrgProject": true
+          }
+        }
+      ],
+      "eventType": "issue",
+      "eventNames": [
+        "issues"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "operator": "or",
+            "operands": [
+              {
+                "operator": "and",
+                "operands": [
+                  {
+                    "operator": "or",
+                    "operands": [
+                      {
+                        "name": "isAction",
+                        "parameters": {
+                          "action": "reopened"
+                        }
+                      },
+                      {
+                        "operator": "not",
+                        "operands": [
+                          {
+                            "name": "isInMilestone",
+                            "parameters": {}
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "isOpen",
+            "parameters": {}
+          },
+          {
+            "operator": "or",
+            "operands": [
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isInProject",
+                    "parameters": {
+                      "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+                      "isOrgProject": true
+                    }
+                  }
+                ]
+              },
+              {
+                "name": "isInProjectColumn",
+                "parameters": {
+                  "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+                  "isOrgProject": true,
+                  "columnName": "Triaged"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "IssueCommentResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "[Area Pod: Michael / Tanner - Issue Triage] Needs Further Triage",
+      "actions": [
+        {
+          "name": "removeFromProject",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+            "isOrgProject": true
+          }
+        },
+        {
+          "name": "addToProject",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+            "columnName": "Needs Triage",
+            "isOrgProject": true
+          }
+        }
+      ],
+      "eventType": "issue",
+      "eventNames": [
+        "issue_comment"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "operator": "not",
+            "operands": [
+              {
+                "name": "isCloseAndComment",
+                "parameters": {}
+              }
+            ]
+          },
+          {
+            "name": "activitySenderHasPermissions",
+            "parameters": {
+              "permissions": "read"
+            }
+          },
+          {
+            "operator": "or",
+            "operands": [
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isInProject",
+                    "parameters": {
+                      "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+                      "isOrgProject": true
+                    }
+                  }
+                ]
+              },
+              {
+                "name": "isInProjectColumn",
+                "parameters": {
+                  "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+                  "columnName": "Triaged",
+                  "isOrgProject": true
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "IssuesOnlyResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "[Area Pod: Michael / Tanner - Issue Triage] Triaged",
+      "actions": [
+        {
+          "name": "addToProject",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+            "columnName": "Triaged",
+            "isOrgProject": true
+          }
+        },
+        {
+          "name": "removeLabel",
+          "parameters": {
+            "label": "untriaged"
+          }
+        }
+      ],
+      "eventType": "issue",
+      "eventNames": [
+        "issues"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isInProject",
+            "parameters": {
+              "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+              "isOrgProject": true
+            }
+          },
+          {
+            "operator": "or",
+            "operands": [
+              {
+                "name": "addedToMilestone",
+                "parameters": {}
+              },
+              {
+                "name": "labelAdded",
+                "parameters": {
+                  "label": "needs-author-action"
+                }
+              },
+              {
+                "name": "isAction",
+                "parameters": {
+                  "action": "closed"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "IssuesOnlyResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "[Area Pod: Michael / Tanner - Issue Triage] Michael Updated Issue",
+      "actions": [
+        {
+          "name": "moveToProjectColumn",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+            "columnName": "Triage: Michael",
+            "isOrgProject": true
+          }
+        }
+      ],
+      "eventType": "issue",
+      "eventNames": [
+        "issues"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isInProjectColumn",
+            "parameters": {
+              "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+              "isOrgProject": true,
+              "columnName": "Needs Triage"
+            }
+          },
+          {
+            "name": "isActivitySender",
+            "parameters": {
+              "user": "michaelgsharp"
+            }
+          },
+          {
+            "operator": "and",
+            "operands": [
+              {
+                "name": "isOpen",
+                "parameters": {}
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isInMilestone",
+                    "parameters": {}
+                  }
+                ]
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "hasLabel",
+                    "parameters": {
+                      "label": "needs-author-action"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "IssueCommentResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "[Area Pod: Michael / Tanner - Issue Triage] Michael Commented",
+      "actions": [
+        {
+          "name": "moveToProjectColumn",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+            "columnName": "Triage: Michael",
+            "isOrgProject": true
+          }
+        }
+      ],
+      "eventType": "issue",
+      "eventNames": [
+        "issue_comment"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isInProjectColumn",
+            "parameters": {
+              "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+              "isOrgProject": true,
+              "columnName": "Needs Triage"
+            }
+          },
+          {
+            "name": "isActivitySender",
+            "parameters": {
+              "user": "michaelgsharp"
+            }
+          },
+          {
+            "operator": "and",
+            "operands": [
+              {
+                "name": "isOpen",
+                "parameters": {}
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isInMilestone",
+                    "parameters": {}
+                  }
+                ]
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "hasLabel",
+                    "parameters": {
+                      "label": "needs-author-action"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "IssuesOnlyResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "[Area Pod: Michael / Tanner - Issue Triage] Tanner Updated Issue",
+      "actions": [
+        {
+          "name": "moveToProjectColumn",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+            "columnName": "Triage: Tanner",
+            "isOrgProject": true
+          }
+        }
+      ],
+      "eventType": "issue",
+      "eventNames": [
+        "issues"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isInProjectColumn",
+            "parameters": {
+              "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+              "isOrgProject": true,
+              "columnName": "Needs Triage"
+            }
+          },
+          {
+            "name": "isActivitySender",
+            "parameters": {
+              "user": "tannergooding"
+            }
+          },
+          {
+            "operator": "and",
+            "operands": [
+              {
+                "name": "isOpen",
+                "parameters": {}
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isInMilestone",
+                    "parameters": {}
+                  }
+                ]
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "hasLabel",
+                    "parameters": {
+                      "label": "needs-author-action"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "IssueCommentResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "[Area Pod: Michael / Tanner - Issue Triage] Tanner Commented",
+      "actions": [
+        {
+          "name": "moveToProjectColumn",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+            "columnName": "Triage: Tanner",
+            "isOrgProject": true
+          }
+        }
+      ],
+      "eventType": "issue",
+      "eventNames": [
+        "issue_comment"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isInProjectColumn",
+            "parameters": {
+              "projectName": "Area Pod: Michael / Tanner - Issue Triage",
+              "isOrgProject": true,
+              "columnName": "Needs Triage"
+            }
+          },
+          {
+            "name": "isActivitySender",
+            "parameters": {
+              "user": "tannergooding"
+            }
+          },
+          {
+            "operator": "and",
+            "operands": [
+              {
+                "name": "isOpen",
+                "parameters": {}
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isInMilestone",
+                    "parameters": {}
+                  }
+                ]
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "hasLabel",
+                    "parameters": {
+                      "label": "needs-author-action"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "PullRequestResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "[Area Pod: Michael / Tanner - PRs] Closed, Merged, or Moved",
+      "actions": [
+        {
+          "name": "moveToProjectColumn",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - PRs",
+            "columnName": "Done",
+            "isOrgProject": true
+          }
+        }
+      ],
+      "eventType": "pull_request",
+      "eventNames": [
+        "pull_request"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isInProject",
+            "parameters": {
+              "projectName": "Area Pod: Michael / Tanner - PRs",
+              "isOrgProject": true
+            }
+          },
+          {
+            "operator": "not",
+            "operands": [
+              {
+                "name": "isInProjectColumn",
+                "parameters": {
+                  "projectName": "Area Pod: Michael / Tanner - PRs",
+                  "columnName": "Done",
+                  "isOrgProject": true
+                }
+              }
+            ]
+          },
+          {
+            "operator": "or",
+            "operands": [
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isOpen",
+                    "parameters": {}
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "PullRequestResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "[Area Pod: Michael / Tanner - PRs] New PR Needs Champion",
+      "actions": [
+        {
+          "name": "addToProject",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - PRs",
+            "columnName": "Needs Champion",
+            "isOrgProject": true
+          }
+        }
+      ],
+      "eventType": "pull_request",
+      "eventNames": [
+        "pull_request"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isAction",
+            "parameters": {
+              "action": "opened"
+            }
+          },
+          [
+            [
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isAssignedToUser",
+                    "parameters": {
+                      "user": "michaelgsharp"
+                    }
+                  }
+                ]
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isActivitySender",
+                    "parameters": {
+                      "user": "michaelgsharp"
+                    }
+                  }
+                ]
+              }
+            ],
+            [
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isAssignedToUser",
+                    "parameters": {
+                      "user": "tannergooding"
+                    }
+                  }
+                ]
+              },
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isActivitySender",
+                    "parameters": {
+                      "user": "tannergooding"
+                    }
+                  }
+                ]
+              }
+            ]
+          ],
+          {
+            "operator": "or",
+            "operands": [
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isInProject",
+                    "parameters": {
+                      "projectName": "Area Pod: Michael / Tanner - PRs",
+                      "isOrgProject": true
+                    }
+                  }
+                ]
+              },
+              {
+                "name": "isInProjectColumn",
+                "parameters": {
+                  "projectName": "Area Pod: Michael / Tanner - PRs",
+                  "columnName": "Done",
+                  "isOrgProject": true
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "PullRequestResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "[Area Pod: Michael / Tanner - PRs] Updated PR Needs Champion",
+      "actions": [
+        {
+          "name": "removeFromProject",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - PRs",
+            "isOrgProject": true
+          }
+        },
+        {
+          "name": "addToProject",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - PRs",
+            "columnName": "Needs Champion",
+            "isOrgProject": true
+          }
+        }
+      ],
+      "eventType": "pull_request",
+      "eventNames": [
+        "pull_request"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isOpen",
+            "parameters": {}
+          },
+          {
+            "operator": "not",
+            "operands": [
+              {
+                "name": "isAction",
+                "parameters": {
+                  "action": "opened"
+                }
+              }
+            ]
+          },
+          {
+            "operator": "not",
+            "operands": [
+              {
+                "name": "isAssignedToUser",
+                "parameters": {
+                  "user": "michaelgsharp"
+                }
+              }
+            ]
+          },
+          {
+            "operator": "not",
+            "operands": [
+              {
+                "name": "isAssignedToUser",
+                "parameters": {
+                  "user": "tannergooding"
+                }
+              }
+            ]
+          },
+          {
+            "operator": "or",
+            "operands": [
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isInProject",
+                    "parameters": {
+                      "projectName": "Area Pod: Michael / Tanner - PRs",
+                      "isOrgProject": true
+                    }
+                  }
+                ]
+              },
+              {
+                "name": "isInProjectColumn",
+                "parameters": {
+                  "projectName": "Area Pod: Michael / Tanner - PRs",
+                  "columnName": "Done",
+                  "isOrgProject": true
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "PullRequestResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "[Area Pod: Michael / Tanner - PRs] Michael Assigned as Champion",
+      "actions": [
+        {
+          "name": "removeFromProject",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - PRs",
+            "isOrgProject": true
+          }
+        },
+        {
+          "name": "addToProject",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - PRs",
+            "columnName": "Champion: Michael",
+            "isOrgProject": true
+          }
+        }
+      ],
+      "eventType": "pull_request",
+      "eventNames": [
+        "pull_request"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isOpen",
+            "parameters": {}
+          },
+          {
+            "operator": "or",
+            "operands": [
+              {
+                "name": "isAssignedToUser",
+                "parameters": {
+                  "user": "michaelgsharp"
+                }
+              },
+              {
+                "operator": "and",
+                "operands": [
+                  {
+                    "name": "isAction",
+                    "parameters": {
+                      "action": "opened"
+                    }
+                  },
+                  {
+                    "name": "isActivitySender",
+                    "parameters": {
+                      "user": "michaelgsharp"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "operator": "or",
+            "operands": [
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isInProject",
+                    "parameters": {
+                      "projectName": "Area Pod: Michael / Tanner - PRs",
+                      "isOrgProject": true
+                    }
+                  }
+                ]
+              },
+              {
+                "name": "isInProjectColumn",
+                "parameters": {
+                  "projectName": "Area Pod: Michael / Tanner - PRs",
+                  "columnName": "Needs Champion",
+                  "isOrgProject": true
+                }
+              },
+              {
+                "name": "isInProjectColumn",
+                "parameters": {
+                  "projectName": "Area Pod: Michael / Tanner - PRs",
+                  "columnName": "Done",
+                  "isOrgProject": true
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "taskSource": "fabricbot-config",
+    "taskType": "trigger",
+    "capabilityId": "IssueResponder",
+    "subCapability": "PullRequestResponder",
+    "version": "1.0",
+    "config": {
+      "taskName": "[Area Pod: Michael / Tanner - PRs] Tanner Assigned as Champion",
+      "actions": [
+        {
+          "name": "removeFromProject",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - PRs",
+            "isOrgProject": true
+          }
+        },
+        {
+          "name": "addToProject",
+          "parameters": {
+            "projectName": "Area Pod: Michael / Tanner - PRs",
+            "columnName": "Champion: Tanner",
+            "isOrgProject": true
+          }
+        }
+      ],
+      "eventType": "pull_request",
+      "eventNames": [
+        "pull_request"
+      ],
+      "conditions": {
+        "operator": "and",
+        "operands": [
+          {
+            "name": "isOpen",
+            "parameters": {}
+          },
+          {
+            "operator": "or",
+            "operands": [
+              {
+                "name": "isAssignedToUser",
+                "parameters": {
+                  "user": "tannergooding"
+                }
+              },
+              {
+                "operator": "and",
+                "operands": [
+                  {
+                    "name": "isAction",
+                    "parameters": {
+                      "action": "opened"
+                    }
+                  },
+                  {
+                    "name": "isActivitySender",
+                    "parameters": {
+                      "user": "tannergooding"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "operator": "or",
+            "operands": [
+              {
+                "operator": "not",
+                "operands": [
+                  {
+                    "name": "isInProject",
+                    "parameters": {
+                      "projectName": "Area Pod: Michael / Tanner - PRs",
+                      "isOrgProject": true
+                    }
+                  }
+                ]
+              },
+              {
+                "name": "isInProjectColumn",
+                "parameters": {
+                  "projectName": "Area Pod: Michael / Tanner - PRs",
+                  "columnName": "Needs Champion",
+                  "isOrgProject": true
+                }
+              },
+              {
+                "name": "isInProjectColumn",
+                "parameters": {
+                  "projectName": "Area Pod: Michael / Tanner - PRs",
+                  "columnName": "Done",
+                  "isOrgProject": true
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+]

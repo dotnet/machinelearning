@@ -79,7 +79,7 @@ namespace Microsoft.ML
         }
 
         // These are the open entries that may contain streams into our DirTemp.
-        private List<Entry> _open;
+        private readonly List<Entry> _open;
 
         private bool _disposed;
 
@@ -113,14 +113,18 @@ namespace Microsoft.ML
             PathMap = new ConcurrentDictionary<string, string>();
             _open = new List<Entry>();
             if (needDir)
-                DirTemp = GetShortTempDir();
+                DirTemp = GetShortTempDir(ectx);
             else
                 GC.SuppressFinalize(this);
         }
 
-        private static string GetShortTempDir()
+        private static string GetShortTempDir(IExceptionContext ectx)
         {
-            var path = Path.Combine(Path.GetFullPath(Path.GetTempPath()), "ml_dotnet", Path.GetRandomFileName());
+            string tempPath = ectx is IHostEnvironmentInternal iHostInternal ?
+                iHostInternal.TempFilePath :
+                Path.GetTempPath();
+
+            string path = Path.Combine(Path.GetFullPath(tempPath), "ml_dotnet", Path.GetRandomFileName());
             Directory.CreateDirectory(path);
             return path;
         }
@@ -435,11 +439,11 @@ namespace Microsoft.ML
     [BestFriend]
     internal sealed class RepositoryReader : Repository
     {
-        private ZipArchive _archive;
+        private readonly ZipArchive _archive;
 
         // Maps from a normalized path to the entry in the _archive. This is needed since
         // a zip might use / or \ for directory separation.
-        private Dictionary<string, ZipArchiveEntry> _entries;
+        private readonly Dictionary<string, ZipArchiveEntry> _entries;
 
         public static RepositoryReader Open(Stream stream, IExceptionContext ectx = null, bool useFileSystem = true)
         {

@@ -5,6 +5,10 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.CodeGenerator</IncludeInPackage>
     <PackageDescription>ML.NET Code Generator</PackageDescription>
+    <NoWarn>$(NoWarn)</NoWarn>
+
+    <!-- Remove once we have resolved the TorchSharp issue. -->
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,9 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomPackageVersion)" />
+    <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
-    <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>

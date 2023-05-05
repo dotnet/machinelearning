@@ -27,8 +27,8 @@ namespace Microsoft.ML.Tests.Transformers
             public string[] B;
         }
 
-// Visual Studio complains because the following class members are not never assigned. That is wrong because that class 
-// will be implicitly created in runtime and therefore we disable warning 169.
+        // Visual Studio complains because the following class members are not never assigned. That is wrong because that class 
+        // will be implicitly created in runtime and therefore we disable warning 169.
 #pragma warning disable 169
         // This is a C# native data structure used to capture the output of ML.NET tokenizer in the test below.
         public class NativeResult
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = "This is a good sentence.", B = new string[2] { "Much words", "Wow So Cool" } } };
             var dataView = ML.Data.LoadFromEnumerable(data);
-            var invalidData = new[] { new TestWrong() { A =1, B = new float[2] { 2,3 } } };
+            var invalidData = new[] { new TestWrong() { A = 1, B = new float[2] { 2, 3 } } };
             var invalidDataView = ML.Data.LoadFromEnumerable(invalidData);
             var pipe = new WordTokenizingEstimator(Env, new[]{
                     new WordTokenizingEstimator.ColumnOptions("TokenizeA", "A"),
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestCommandLine()
         {
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:TX:0} xf=WordToken{col=B:A} in=f:\2.txt" }), (int)0);
+            Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:TX:0} xf=WordToken{col=B:A} in=f:\2.txt" }));
         }
 
         [Fact]

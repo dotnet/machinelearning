@@ -402,7 +402,7 @@ namespace Microsoft.ML.Numeric
     internal sealed class BacktrackingLineSearch : IDiffLineSearch
     {
         private float _step;
-        private float _c1;
+        private readonly float _c1;
 
         /// <summary>
         /// Makes a backtracking line search
@@ -439,9 +439,9 @@ namespace Microsoft.ML.Numeric
     // possibly something we should put into our unit tests?
     internal static class Test
     {
-        private static VBuffer<float> _c1;
-        private static VBuffer<float> _c2;
-        private static VBuffer<float> _c3;
+        private static readonly VBuffer<float> _c1;
+        private static readonly VBuffer<float> _c2;
+        private static readonly VBuffer<float> _c3;
 
         private static float QuadTest(float x, out float deriv)
         {

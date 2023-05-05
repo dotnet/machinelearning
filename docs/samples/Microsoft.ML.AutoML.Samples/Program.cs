@@ -8,6 +8,8 @@ namespace Microsoft.ML.AutoML.Samples
         {
             try
             {
+                AutoMLExperiment.RunAsync().Wait();
+
                 RecommendationExperiment.Run();
                 Console.Clear();
 
@@ -21,6 +23,9 @@ namespace Microsoft.ML.AutoML.Samples
                 Console.Clear();
 
                 RankingExperiment.Run();
+                Console.Clear();
+
+                Cifar10.Run();
                 Console.Clear();
 
                 Console.WriteLine("Done");

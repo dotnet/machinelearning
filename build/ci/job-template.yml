@@ -20,9 +20,9 @@ jobs:
     ${{ if eq(parameters.nightlyBuild, 'true') }}:
       timeoutInMinutes: 30
     ${{ if and(eq(parameters.nightlyBuild, 'false'), eq(parameters.codeCoverage, 'false')) }}:
-      timeoutInMinutes: 90
-    ${{ if eq(parameters.codeCoverage, 'true') }}:
       timeoutInMinutes: 120
+    ${{ if eq(parameters.codeCoverage, 'true') }}:
+      timeoutInMinutes: 150
     cancelTimeoutInMinutes: 10
     variables:
       dotnetPath: $(Build.SourcesDirectory)/.dotnet/dotnet
@@ -37,12 +37,13 @@ jobs:
         spaceValue: ' '
       ${{ if eq(parameters.buildScript, './build.sh') }}:
         spaceValue: '%20'
-      ${{ if and(eq(parameters.pool.vmImage, 'ubuntu-18.04'), contains(parameters.name, 'cross')) }}:
+      ${{ if and(contains(parameters.pool.demands, 'ubuntu'), contains(parameters.name, 'cross')) }}:
         ROOTFS_DIR: '/crossrootfs/${{ parameters.architecture }}'
-      ${{ if eq(parameters.testTargetFramework, '') }}:
-        testTargetFramework: ''
-      ${{ if ne(parameters.testTargetFramework, '') }}:
-        testTargetFramework: '/p:TestTargetFramework=${{ parameters.testTargetFramework }}'
+      ${{ if eq(parameters.codeCoverage, 'true') }}:
+        hardLink: ''
+      ${{ if eq(parameters.codeCoverage, 'false') }}:
+        hardLink: '/p:CreateHardLinksForCopyLocalIfPossible=True'
+      testTargetFramework: '/p:TestTargetFramework=$(_targetFramework)'
       CODECOV_TOKEN: 03031e35-fe75-4e4c-87ee-e919ae601748
     strategy:
       matrix:
@@ -51,12 +52,12 @@ jobs:
             _configuration: Debug
             _config_short: D
             _includeBenchmarkData: false
-            _targetFramework: netcoreapp2.1
+            _targetFramework: net6.0
           Release_Build:
             _configuration: Release
             _config_short: R
             _includeBenchmarkData: true
-            _targetFramework: netcoreapp2.1
+            _targetFramework: net6.0
         ${{ if ne(parameters.customMatrixes, '') }}:
           ${{ insert }}: ${{ parameters.customMatrixes }}
 
@@ -65,24 +66,18 @@ jobs:
       container: ${{ parameters.container }}
 
     steps:
-    # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
-    - ${{ if eq(parameters.pool.vmImage, 'macOS-10.15') }}:
-      - script: |
-          rm -rf /usr/local/bin/2to3
-        displayName: MacOS Homebrew bug Workaround
-        continueOnError: true
     # Extra MacOS step required to install OS-specific dependencies
-    - ${{ if and(eq(parameters.pool.vmImage, 'macOS-10.15'), not(contains(parameters.name, 'cross')))  }}:
-      - script: brew update && brew install mono-libgdiplus && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula && brew link libomp --force
+    - ${{ if and(contains(parameters.pool.vmImage, 'macOS'), not(contains(parameters.name, 'cross')))  }}:
+      - script: export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=TRUE && brew update && brew unlink libomp && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
         displayName: Install MacOS build dependencies
     # Extra Apple MacOS step required to install OS-specific dependencies
     - ${{ if and(contains(parameters.pool.vmImage, 'macOS'), contains(parameters.name, 'cross'))  }}:
-      - script: brew update && brew install mono-libgdiplus && brew install libomp && brew link libomp --force
+      - script: brew update && brew install libomp && brew link libomp --force
         displayName: Install MacOS ARM build dependencies
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.vmImage, 'ubuntu-18.04')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path
-    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
+    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework) /p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=True $(hardLink)
       displayName: Build
     - ${{ if eq(parameters.pool.vmImage, 'macOS-10.15') }}:
       - task: Bash@3
@@ -99,12 +94,11 @@ jobs:
     - ${{ if eq(parameters.buildScript, 'build.cmd') }}:
       - script: dir /s "$(Build.SourcesDirectory)"
         displayName: show bin folder disk usage
-      # - ${{ if eq(parameters.codeCoverage, 'true') }}:
-      #   - task: PowerShell@2
-      #     inputs:
-      #       targetType: inline
-      #       script: Get-ChildItem -Path  '$(Build.SourcesDirectory)\.packages\*\runtimes\*' -Recurse | Select -ExpandProperty FullName | Where {$_ -notlike '*\win-*'} | sort length -Descending | Remove-Item -Recurse -Confirm:$false -Force
-      #     displayName: Clean up non-Windows runtime folders of NuGet Packages to save disk space
+      - task: PowerShell@2
+        inputs:
+          targetType: inline
+          script:  Get-ChildItem -Recurse -Directory | where {$_.FullName -like '*\runtimes\*'} | where {$_.FullName -notlike '*\artifacts\pkgassets*'} | where {$_.FullName -notlike '*\win*'} | sort length -Descending | Remove-Item -Recurse -Confirm:$false -Force -ErrorAction SilentlyContinue
+        displayName: Clean up non-Windows runtime folders of NuGet Packages to save disk space
     - ${{ if eq(parameters.nightlyBuild, 'true') }}:
       - script: $(dotnetPath) restore $(nightlyBuildProjPath)
         displayName: Restore nightly build project
@@ -121,17 +115,17 @@ jobs:
                     Remove-Item -force
                     Write-Output "Done cleaning up usless project..."
           displayName: Clean up useless project
-      - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }}
+      - script: $(dotnetPath) msbuild -restore $(nightlyBuildProjPath) /p:ReferenceTypeForTestFramework="Nuget" /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} $(testTargetFramework)
         displayName: Build Nightly-Build Project with latest package versions
-      - script: $(dotnetPath) msbuild $(runNightlyBuildProj) /t:RunNightlyBuildTests /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }}
+      - script: $(dotnetPath) msbuild $(runNightlyBuildProj) /t:RunNightlyBuildTests /p:Configuration=$(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} $(testTargetFramework)
         displayName: Run Nightly Build Tests
     - ${{ if eq(parameters.nightlyBuild, 'false') }}:
       - ${{ if eq(parameters.innerLoop, 'false') }}:
         - ${{ if and(eq(parameters.runSpecific, 'false'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:Coverage=${{ parameters.codeCoverage }}
+          - script: set PATH=%PATH%;%USERPROFILE%\.nuget\packages\libtorch-cpu-win-x64\1.13.0.1\runtimes\win-x64\native;%USERPROFILE%\.nuget\packages\torchsharp\0.99.5\runtimes\win-x64\native & ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
             displayName: Run All Tests.
         - ${{ if and(eq(parameters.runSpecific, 'true'), eq(parameters.useVSTestTask, 'false')) }}:
-          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest' /p:Coverage=${{ parameters.codeCoverage }}
+          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest /p:TestRunnerAdditionalArguments='-trait$(spaceValue)Category=RunSpecificTest' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
             displayName: Run Specific Tests.
         - ${{ if and(eq(parameters.buildScript, 'build.cmd'), eq(parameters.useVSTestTask, 'true')) }}:
           - task: VSTest@2
@@ -156,7 +150,7 @@ jobs:
               publishRunAttachments: true
       - ${{ if eq(parameters.innerLoop, 'true') }}:
         - ${{ if eq(parameters.codeCoverage, True) }}:
-          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest -ci /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
+          - script: ${{ parameters.buildScript }} /p:Build=false -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} -test -integrationTest /p:TestRunnerAdditionalArguments='-notrait$(spaceValue)Category=SkipInCI' /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework)
             displayName: Run CI Tests.
         - ${{ if eq(parameters.codeCoverage, False) }}:
           - template: /build/ci/send-to-helix.yml

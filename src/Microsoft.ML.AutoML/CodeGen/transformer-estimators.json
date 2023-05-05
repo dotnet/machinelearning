@@ -1,0 +1,347 @@
+{
+  "$schema": "estimator-schema.json#",
+  "estimators": [
+    {
+      "functionName": "Concatenate",
+      "estimatorTypes": [ "Transforms" ],
+      "arguments": [
+        {
+          "argumentName": "inputColumnNames",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data" ],
+      "searchOption": "concat_option"
+    },
+    {
+      "functionName": "Naive",
+      "estimatorTypes": [ "Calibrators" ],
+      "arguments": [
+        {
+          "argumentName": "labelColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "scoreColumnName",
+          "argumentType": "string"
+        }
+      ],
+      "nugetDependencies": [
+        "Microsoft.ML"
+      ],
+      "usingStatements": [ "Microsoft.ML" ],
+      "searchOption": "naive_option"
+    },
+    {
+      "functionName": "OneHotEncoding",
+      "estimatorTypes": [ "Categorical" ],
+      "arguments": [
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "inputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "outputKind",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "maximumNumberOfKeys",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "keyOrdinality",
+          "argumentType": "string"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data", "Microsoft.ML.Transforms" ],
+      "searchOption": "one_hot_option"
+    },
+    {
+      "functionName": "OneHotHashEncoding",
+      "estimatorTypes": [ "Categorical" ],
+      "arguments": [
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "inputColumnName",
+          "argumentType": "string"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data", "Microsoft.ML.Transforms" ],
+      "searchOption": "one_hot_option"
+    },
+    {
+      "functionName": "LoadRawImageBytes",
+      "estimatorTypes": [ "Transforms" ],
+      "arguments": [
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "imageFolder",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "inputColumnName",
+          "argumentType": "string"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML", "Microsoft.ML.ImageAnalytics" ],
+      "usingStatements": [ "Microsoft.ML" ],
+      "searchOption": "load_image_option"
+    },
+    {
+      "functionName": "MapKeyToValue",
+      "estimatorTypes": [ "Conversion" ],
+      "arguments": [
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "inputColumnName",
+          "argumentType": "string"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data" ],
+      "searchOption": "map_key_to_value_option"
+    },
+    {
+      "functionName": "ReplaceMissingValues",
+      "estimatorTypes": [ "Transforms" ],
+      "arguments": [
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "inputColumnName",
+          "argumentType": "string"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data" ],
+      "searchOption": "replace_missing_value_option"
+    },
+    {
+      "functionName": "NormalizeMinMax",
+      "estimatorTypes": [ "Transforms" ],
+      "arguments": [
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "inputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "maximumExampleCount",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "fixZero",
+          "argumentType": "boolean"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data" ],
+      "searchOption": "normalize_min_max_option"
+    },
+    {
+      "functionName": "FeaturizeText",
+      "estimatorTypes": [ "Text" ],
+      "arguments": [
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "inputColumnName",
+          "argumentType": "string"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data" ],
+      "searchOption": "featurize_text_option"
+    },
+    {
+      "functionName": "ConvertType",
+      "estimatorTypes": [ "Conversion" ],
+      "arguments": [
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "inputColumnName",
+          "argumentType": "string"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data" ],
+      "searchOption": "convert_type_option"
+    },
+    {
+      "functionName": "MapValueToKey",
+      "estimatorTypes": [ "Conversion" ],
+      "arguments": [
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "inputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "maximumNumberOfKeys",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "keyOrdinality",
+          "argumentType": "string"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data" ],
+      "searchOption": "map_value_to_key_option"
+    },
+    {
+      "functionName": "ApplyOnnxModel",
+      "estimatorTypes": [ "Transforms" ],
+      "arguments": [
+        {
+          "argumentName": "modelFile",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "gpuDeviceId",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "fallbackToCpu",
+          "argumentType": "boolean"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML", "Microsoft.ML.OnnxRuntime", "Microsoft.ML.OnnxTransformer" ],
+      "usingStatements": [ "Microsoft.ML" ],
+      "searchOption": "apply_onnx_model_option"
+    },
+    {
+      "functionName": "ResizeImages",
+      "estimatorTypes": [ "Transforms" ],
+      "arguments": [
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "inputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "imageWidth",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "imageHeight",
+          "argumentType": "integer"
+        },
+        {
+          "argumentName": "cropAnchor",
+          "argumentType": "anchor"
+        },
+        {
+          "argumentName": "resizing",
+          "argumentType": "resizingKind"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML", "Microsoft.ML.ImageAnalytics" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Transforms.Image" ],
+      "searchOption": "resize_image_option"
+    },
+    {
+      "functionName": "ExtractPixels",
+      "estimatorTypes": [ "Transforms" ],
+      "arguments": [
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "inputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "colorsToExtract",
+          "argumentType": "colorBits"
+        },
+        {
+          "argumentName": "orderOfExtraction",
+          "argumentType": "colorsOrder"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML", "Microsoft.ML.ImageAnalytics" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Transforms.Image" ],
+      "searchOption": "extract_pixels_option"
+    },
+    {
+      "functionName": "LoadImages",
+      "estimatorTypes": [ "Transforms" ],
+      "arguments": [
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "imageFolder",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "inputColumnName",
+          "argumentType": "string"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML", "Microsoft.ML.ImageAnalytics" ],
+      "usingStatements": [ "Microsoft.ML" ],
+      "searchOption": "load_image_option"
+    },
+    {
+      "functionName": "DnnFeaturizerImage",
+      "estimatorTypes": [ "Transforms" ],
+      "arguments": [
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "inputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "modelFactory",
+          "argumentType": "dnnModelFactory"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML.OnnxTransformer", "Microsoft.ML.OnnxRuntime" ],
+      "usingStatements": [ "Microsoft.ML" ],
+      "searchOption": "dnn_featurizer_image_option"
+    }
+  ]
+}

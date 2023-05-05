@@ -19,6 +19,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.SearchSpace;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
@@ -162,6 +163,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l2, L2Const", SortOrder = 1)]
             [TGUI(Label = "L2 Regularizer Constant", SuggestedSweeps = "<Auto>,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2")]
             [TlcModule.SweepableDiscreteParam("L2Const", new object[] { "<Auto>", 1e-7f, 1e-6f, 1e-5f, 1e-4f, 1e-3f, 1e-2f })]
+            [Range(1e-7f, 32768f, 1e-7f, true)]
             public float? L2Regularization;
 
             // REVIEW: make the default positive when we know how to consume a sparse model
@@ -172,6 +174,7 @@ namespace Microsoft.ML.Trainers
                 NullName = "<Auto>", Name = "L1Threshold", ShortName = "l1", SortOrder = 2)]
             [TGUI(Label = "L1 Soft Threshold", SuggestedSweeps = "<Auto>,0,0.25,0.5,0.75,1")]
             [TlcModule.SweepableDiscreteParam("L1Threshold", new object[] { "<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f })]
+            [Range(1e-7f, 32768f, 1e-7f, true)]
             public float? L1Regularization;
 
             /// <summary>
@@ -190,6 +193,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "The tolerance for the ratio between duality gap and primal loss for convergence checking.", ShortName = "tol")]
             [TGUI(SuggestedSweeps = "0.001, 0.01, 0.1, 0.2")]
             [TlcModule.SweepableDiscreteParam("ConvergenceTolerance", new object[] { 0.001f, 0.01f, 0.1f, 0.2f })]
+            [Range(1e-7f, 1f, 1e-7f, true)]
             public float ConvergenceTolerance = 0.1f;
 
             /// <summary>
@@ -201,6 +205,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.", NullName = "<Auto>", ShortName = "iter, MaxIterations, NumberOfIterations")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "<Auto>,10,20,100")]
             [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { "<Auto>", 10, 20, 100 })]
+            [Range(10, 1000, 10, true)]
             public int? MaximumNumberOfIterations;
 
             /// <summary>
@@ -229,6 +234,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "The learning rate for adjusting bias from being regularized.", ShortName = "blr")]
             [TGUI(SuggestedSweeps = "0, 0.01, 0.1, 1")]
             [TlcModule.SweepableDiscreteParam("BiasLearningRate", new object[] { 0.0f, 0.01f, 0.1f, 1f })]
+            [Range(1e-7f, 1f, 1e-7f, true)]
             public float BiasLearningRate = 0;
 
             internal virtual void Check(IHostEnvironment env)
@@ -416,7 +422,7 @@ namespace Microsoft.ML.Trainers
             {
                 // Note: At this point, 'count' may be less than the actual count of training examples.
                 // We initialize the hash table with this partial size to avoid unnecessary rehashing.
-                // However, it does not mean there are exactly 'count' many trainining examples.
+                // However, it does not mean there are exactly 'count' many training examples.
                 // Necessary rehashing will still occur as the hash table grows.
                 idToIdx = new IdToIdxLookup(count);
                 // Resetting 'count' to zero.
@@ -500,7 +506,7 @@ namespace Microsoft.ML.Trainers
                 if (dualsLength <= Utils.ArrayMaxSize)
                 {
                     // The dual variables fit into a standard float[].
-                    // Also storing invariants in a starndard float[].
+                    // Also storing invariants in a standard float[].
                     duals = new StandardArrayDualsTable((int)dualsLength);
                     int invariantsLength = (int)idLoMax + 1;
                     Contracts.Assert(invariantsLength <= Utils.ArrayMaxSize);
@@ -581,7 +587,7 @@ namespace Microsoft.ML.Trainers
                         if (featureNormSquared != null)
                             featureNormSquared[idx] = normSquared;
 
-                        // REVIEW: For log-loss, the default loss function for binary classifiation, a large number
+                        // REVIEW: For log-loss, the default loss function for binary classification, a large number
                         // of the invariants are 1. Maybe worth to consider a more efficient way to store the invariants
                         // for log-loss.
                         invariants[idx] = Loss.ComputeDualUpdateInvariant(invariantCoeff * normSquared * lambdaNInv * GetInstanceWeight(cursor));
@@ -600,7 +606,7 @@ namespace Microsoft.ML.Trainers
                 // Note that P.Invoke does not ensure that the actions executes in order even if maximum number of threads is set to 1.
                 if (numThreads == 1)
                 {
-                    // The synchorized SDCA procedure.
+                    // The synchronized SDCA procedure.
                     for (iter = 0; iter < maxIterations; iter++)
                     {
                         if (converged)
@@ -833,7 +839,7 @@ namespace Microsoft.ML.Trainers
                         var output = WDot(in features, in weights[0], biasReg[0] + biasUnreg[0]);
                         var dualUpdate = Loss.DualUpdate(output, label, dual, invariant, numThreads);
 
-                        // The successive over-relaxation apporach to adjust the sum of dual variables (biasReg) to zero.
+                        // The successive over-relaxation approach to adjust the sum of dual variables (biasReg) to zero.
                         // Reference to details: http://stat.rutgers.edu/home/tzhang/papers/ml02_dual.pdf pp. 16-17.
                         var adjustment = l1ThresholdZero ? lr * biasReg[0] : lr * l1IntermediateBias[0];
                         dualUpdate -= adjustment;
@@ -1047,7 +1053,7 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         private sealed class StandardArrayDualsTable : DualsTableBase
         {
-            private float[] _duals;
+            private readonly float[] _duals;
 
             public override long Length => _duals.Length;
 
@@ -1074,7 +1080,7 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         private sealed class BigArrayDualsTable : DualsTableBase
         {
-            private BigArray<float> _duals;
+            private readonly BigArray<float> _duals;
 
             public override long Length => _duals.Length;
 
@@ -1196,7 +1202,7 @@ namespace Microsoft.ML.Trainers
             private long _count;
 
             // The entries.
-            private BigArray<Entry> _entries;
+            private readonly BigArray<Entry> _entries;
 
             /// <summary>
             /// Gets the count of id entries.
@@ -1834,6 +1840,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization constant", ShortName = "l2, L2Weight", SortOrder = 50)]
             [TGUI(Label = "L2 Regularization Constant", SuggestedSweeps = "1e-7,5e-7,1e-6,5e-6,1e-5")]
             [TlcModule.SweepableDiscreteParam("L2Const", new object[] { 1e-7f, 5e-7f, 1e-6f, 5e-6f, 1e-5f })]
+            [Range((float)0.03125, (float)32768, init: (float)1F, logBase: true)]
             public float L2Regularization = Defaults.L2Regularization;
 
             /// <summary>
@@ -1853,6 +1860,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Exponential moving averaged improvement tolerance for convergence", ShortName = "tol")]
             [TGUI(SuggestedSweeps = "1e-2,1e-3,1e-4,1e-5")]
             [TlcModule.SweepableDiscreteParam("ConvergenceTolerance", new object[] { 1e-2f, 1e-3f, 1e-4f, 1e-5f })]
+            [Range(1e-6, 1e-1, init: 1e-1, logBase: true)]
             public double ConvergenceTolerance = 1e-4;
 
             /// <summary>
@@ -1864,6 +1872,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning.", ShortName = "iter, MaxIterations")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "1,5,10,20")]
             [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { 1, 5, 10, 20 })]
+            [Range((int)1, 20, init: 1, logBase: true)]
             public int NumberOfIterations = Defaults.NumberOfIterations;
 
             /// <summary>
@@ -1871,6 +1880,7 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate (only used by SGD)", Name = "InitialLearningRate", ShortName = "ilr,lr,InitLearningRate")]
             [TGUI(Label = "Initial Learning Rate (for SGD)")]
+            [Range(1e-3, 1, init: 1e-3, logBase: true)]
             public double LearningRate = Defaults.LearningRate;
 
             /// <summary>
@@ -2161,7 +2171,7 @@ namespace Microsoft.ML.Trainers
                     int iter = 0;
                     pch.SetHeader(new ProgressHeader(new[] { "Loss", "Improvement" }, new[] { "iterations" }),
                         entry => entry.SetProgress(0, iter, _options.NumberOfIterations));
-                    // Synchorized SGD.
+                    // Synchronized SGD.
                     for (int i = 0; i < _options.NumberOfIterations; i++)
                     {
                         iter = i;
@@ -2423,7 +2433,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// <see cref="LogLoss"/> leads to logistic regression which naturally supports probablity output. For other loss functions,
+        /// <see cref="LogLoss"/> leads to logistic regression which naturally supports probability output. For other loss functions,
         /// a calibrator would be added after <see cref="SgdBinaryTrainerBase{TModelParameters}.TrainCore(IChannel, RoleMappedData, LinearModelParameters, int)"/>
         /// finishing its job. Therefore, we always have three output columns in the legacy world.
         /// </summary>

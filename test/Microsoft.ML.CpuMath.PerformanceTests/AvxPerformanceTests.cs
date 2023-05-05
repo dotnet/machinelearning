@@ -70,9 +70,9 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         public float SumSqDiffU()
             => AvxIntrinsics.SumSqDiffU(DefaultScale, new Span<float>(src, 0, Length));
 
-       [Benchmark]
+        [Benchmark]
         public float SumAbsU()
-            => AvxIntrinsics.SumAbsU(new Span<float>(src, 0, Length));
+             => AvxIntrinsics.SumAbsU(new Span<float>(src, 0, Length));
 
         [Benchmark]
         public float SumAbsDiffU()
@@ -115,7 +115,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         [BenchmarkCategory("Fma")]
         public void MatMul()
             => AvxIntrinsics.MatMul(testMatrixAligned, testSrcVectorAligned, testDstVectorAligned, matrixLength, matrixLength);
-        
+
         [Benchmark]
         public void MatMulTran()
             => AvxIntrinsics.MatMulTran(testMatrixAligned, testSrcVectorAligned, testDstVectorAligned, matrixLength, matrixLength);

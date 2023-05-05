@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(RepoRoot)eng/pkg/Pack.props"/>
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -9,6 +9,7 @@
     <!-- <IncludeBuildOutput>false</IncludeBuildOutput> -->
     <NoWarn>$(NoWarn);NU5127;NU5128</NoWarn>
     <PackageDescription>ML.NET is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers.</PackageDescription>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <ItemGroup>
@@ -39,16 +40,17 @@
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
     <NativeAssemblyReference Include="LdaNative" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonPackageVersion)" />
-    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="$(SystemReflectionEmitLightweightPackageVersion)" />
-    <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomPackageVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="$(SystemReflectionEmitLightweightVersion)" />
+    <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomVersion)" />
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
-    <PackageReference Include="System.Threading.Channels" Version="$(SystemThreadingChannelsPackageVersion)" />
+    <PackageReference Include="System.Threading.Channels" Version="$(SystemThreadingChannelsVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(RepoRoot)eng\pkg\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
     <Content Include="build\**\*" Pack="true" PackagePath="build" />
+    <None Include="README.md" Pack="true" PackagePath="\"/> <!--NuGet PackageReadmeFile-->
   </ItemGroup>
 <PropertyGroup>
   <!--Include Project References output-->

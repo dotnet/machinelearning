@@ -95,7 +95,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // MF produce different matrices on different platforms, so check their content on Windows.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                if(RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+                if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
                     Assert.Equal(0.3041052520275116, leftMatrix[0], 4);
                 else
                     Assert.Equal(0.309137582778931, leftMatrix[0], 4);
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Windows and Mac tolerances are set at 1e-7, and Linux tolerance is set at 1e-5.
             // Here, each build OS has a different MSE baseline metric. While these metrics differ between builds, each build is expected to
             // produce the same metric. This is because of minor build differences and varying implementations of sub-functions, such as random
-            // variables that are first obtained with the default random numger generator in libMF C++ libraries.
+            // variables that are first obtained with the default random number generator in libMF C++ libraries.
             double windowsAndMacTolerance = Math.Pow(10, -7);
             double linuxTolerance = Math.Pow(10, -5);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -688,7 +688,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.Equal(1u, firstElement.MatrixColumnIndex);
             Assert.Equal(1u, firstElement.MatrixRowIndex);
             Assert.Equal(0.987113833, firstElement.Score, 3);
-            Assert.Equal(1, firstElement.Value, 3);
+            Assert.Equal(1d, firstElement.Value, 3);
 
             Assert.Equal(60u, lastElement.MatrixColumnIndex);
             Assert.Equal(100u, lastElement.MatrixRowIndex);
@@ -706,12 +706,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.Equal(1u, firstElement.MatrixColumnIndex);
             Assert.Equal(1u, firstElement.MatrixRowIndex);
             Assert.Equal(0.987113833, firstElement.Score, 3);
-            Assert.Equal(1, firstElement.Value, 3);
+            Assert.Equal(1d, firstElement.Value, 3);
 
             Assert.Equal(11u, lastElement.MatrixColumnIndex);
             Assert.Equal(1u, lastElement.MatrixRowIndex);
             Assert.Equal(0.987113833, lastElement.Score, 3);
-            Assert.Equal(1, lastElement.Value, 3);
+            Assert.Equal(1d, lastElement.Value, 3);
         }
 
         // A data structure used to encode a single value in matrix
@@ -842,7 +842,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Check if results computed by SSE code and MF predictor are the same.
             for (int i = 0; i < predictions.Count(); ++i)
-                Assert.Equal(predictions[i].Score, valuesAtSecondColumn[i], 3);
+                Assert.Equal((double)predictions[i].Score, (double)valuesAtSecondColumn[i], 3);
         }
     }
 }

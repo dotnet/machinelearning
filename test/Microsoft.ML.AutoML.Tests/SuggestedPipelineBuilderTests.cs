@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.AutoML.Test
 {
-    
+
     public class SuggestedPipelineBuilderTests : BaseTestClass
     {
         private static MLContext _context = new MLContext(1);

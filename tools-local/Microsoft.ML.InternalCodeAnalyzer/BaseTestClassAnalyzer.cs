@@ -21,7 +21,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         private const string Description =
             "Test classes should be derived from BaseTestClass or FunctionalTestBaseClass.";
 
-        private static DiagnosticDescriptor Rule =
+        private static readonly DiagnosticDescriptor Rule =
             new DiagnosticDescriptor(DiagnosticId, Title, Format, Category,
                 DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 
@@ -71,25 +71,19 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 if (ExtendsBaseTestClass(namedType))
                     return;
 
-                var hasTestMethod = false;
                 foreach (var member in namedType.GetMembers())
                 {
                     if (member is IMethodSymbol method && method.IsTestMethod(_knownTestAttributes, _factAttribute))
                     {
-                        hasTestMethod = true;
+                        context.ReportDiagnostic(Diagnostic.Create(Rule, namedType.Locations[0], namedType));
                         break;
                     }
                 }
-
-                if (!hasTestMethod)
-                    return;
-
-                context.ReportDiagnostic(Diagnostic.Create(Rule, namedType.Locations[0], namedType));
             }
 
             private bool ExtendsBaseTestClass(INamedTypeSymbol namedType)
             {
-                if (_baseTestClass is null && 
+                if (_baseTestClass is null &&
                     _ITbaseTestClass is null)
                     return false;
 

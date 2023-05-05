@@ -1,0 +1,25 @@
+{
+  "A": {
+    "Int": 0,
+    "Float": 1,
+    "Double": 2,
+    "Bool": false,
+    "String": "String",
+    "Strings": [
+      "A",
+      "B",
+      "C"
+    ],
+    "JTokenType": "Null"
+  },
+  "Int": 0,
+  "Float": 1,
+  "Double": 2,
+  "Bool": false,
+  "Strings": [
+    "A",
+    "B",
+    "C"
+  ],
+  "JTokenType": "Null"
+}

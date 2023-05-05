@@ -17,7 +17,7 @@ namespace Microsoft.Data.Analysis
     /// <remarks> Is NOT Arrow compatible </remarks>
     public partial class StringDataFrameColumn : DataFrameColumn, IEnumerable<string>
     {
-        private List<List<string>> _stringBuffers = new List<List<string>>(); // To store more than intMax number of strings
+        private readonly List<List<string>> _stringBuffers = new List<List<string>>(); // To store more than intMax number of strings
 
         public StringDataFrameColumn(string name, long length = 0) : base(name, length, typeof(string))
         {

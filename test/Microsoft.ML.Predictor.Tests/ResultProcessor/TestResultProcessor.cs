@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -52,7 +52,7 @@ namespace Microsoft.ML.RunTests
         }
 
         /// <summary>
-        /// A test for Processing the Result of a single Classfier
+        /// A test for Processing the Result of a single Classifier
         ///</summary>
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         [TestCategory("Results Processor")]
@@ -69,7 +69,7 @@ namespace Microsoft.ML.RunTests
         }
 
         /// <summary>
-        /// A test for Processing the Result of a single Classfier
+        /// A test for Processing the Result of a single Classifier
         ///</summary>
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         [TestCategory("Results Processor")]
@@ -103,7 +103,7 @@ namespace Microsoft.ML.RunTests
         }
 
         /// <summary>
-        /// A test for Processing the Result of a Multiple Classfiers
+        /// A test for Processing the Result of a Multiple Classifiers
         ///</summary>
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         [TestCategory("Results Processor")]
@@ -120,7 +120,7 @@ namespace Microsoft.ML.RunTests
         }
 
         /// <summary>
-        /// A test for Processing the Result of a Multiple Classfiers
+        /// A test for Processing the Result of a Multiple Classifiers
         ///</summary>
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         [TestCategory("Results Processor")]

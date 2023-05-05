@@ -92,10 +92,10 @@ namespace Microsoft.ML.CodeGenerator.CodeGenerator.CSharp.AzureCodeGenerator
                     IncludeRecommenderPackage = false,
                     StablePackageVersion = _settings.StablePackageVersion,
                     UnstablePackageVersion = _settings.UnstablePackageVersion,
-                    OnnxRuntimePackageVersion = _settings.OnnxRuntimePacakgeVersion,
+                    OnnxRuntimePackageVersion = _settings.OnnxRuntimePackageVersion,
                     Target = _settings.Target,
                 }.TransformText(),
-                Name = $"{ _settings.OutputName }.Model.csproj",
+                Name = $"{_settings.OutputName}.Model.csproj",
             };
 
             ConsumeModel = new CSharpCodeFile()

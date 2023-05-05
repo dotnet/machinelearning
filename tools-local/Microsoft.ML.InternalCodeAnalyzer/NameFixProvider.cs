@@ -34,9 +34,8 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         private static ImmutableArray<string> _fixable = ImmutableArray.Create(
             NameAnalyzer.PrivateFieldName.Id, NameAnalyzer.GeneralName.Id,
             ParameterVariableNameAnalyzer.Id, TypeParamNameAnalyzer.Id);
-        private static ImmutableHashSet<string> _fixableSet = ImmutableHashSet<string>.Empty.Union(_fixable);
 
-        private static Regex _sections = new Regex(
+        private static readonly Regex _sections = new Regex(
             @"(?:\p{Nd}\p{Ll}*)|" + // Numbers we consider a separate token.
             @"(?:\p{Lu}+(?!\p{Ll}))|" + // Completely upper case sections.
             @"(?:\p{Lu}\p{Ll}+)|" + // Title cased word.
@@ -49,9 +48,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var diagnostic = context.Diagnostics.FirstOrDefault(d => _fixableSet.Contains(d.Id));
-            if (diagnostic == null)
-                return;
+            var diagnostic = context.Diagnostics[0];
 
             string originalName = diagnostic.Properties[NameAnalyzer.NameProperty];
             string desiredNameStr = diagnostic.Properties[NameAnalyzer.DesiredNameProperty];

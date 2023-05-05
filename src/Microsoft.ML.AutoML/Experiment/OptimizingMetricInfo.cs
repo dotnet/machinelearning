@@ -10,18 +10,18 @@ namespace Microsoft.ML.AutoML
     {
         public bool IsMaximizing { get; }
 
-        private static RegressionMetric[] _minimizingRegressionMetrics = new RegressionMetric[]
+        private static readonly RegressionMetric[] _minimizingRegressionMetrics = new RegressionMetric[]
         {
             RegressionMetric.MeanAbsoluteError,
             RegressionMetric.MeanSquaredError,
             RegressionMetric.RootMeanSquaredError
         };
 
-        private static BinaryClassificationMetric[] _minimizingBinaryMetrics = new BinaryClassificationMetric[]
+        private static readonly BinaryClassificationMetric[] _minimizingBinaryMetrics = new BinaryClassificationMetric[]
         {
         };
 
-        private static MulticlassClassificationMetric[] _minimizingMulticlassMetrics = new MulticlassClassificationMetric[]
+        private static readonly MulticlassClassificationMetric[] _minimizingMulticlassMetrics = new MulticlassClassificationMetric[]
         {
             MulticlassClassificationMetric.LogLoss,
         };

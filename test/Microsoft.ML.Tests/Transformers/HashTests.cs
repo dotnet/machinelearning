@@ -84,17 +84,17 @@ namespace Microsoft.ML.Tests.Transformers
         {
             VBuffer<ReadOnlyMemory<char>> keys = default;
             var column = result.Schema["HashA"];
-            Assert.Equal(column.Annotations.Schema.Single().Name, AnnotationUtils.Kinds.KeyValues);
+            Assert.Equal(AnnotationUtils.Kinds.KeyValues, column.Annotations.Schema.Single().Name);
             column.GetKeyValues(ref keys);
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "2.5", "3.5" });
 
             column = result.Schema["HashAUnlim"];
-            Assert.Equal(column.Annotations.Schema.Single().Name, AnnotationUtils.Kinds.KeyValues);
+            Assert.Equal(AnnotationUtils.Kinds.KeyValues, column.Annotations.Schema.Single().Name);
             column.GetKeyValues(ref keys);
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "2.5", "3.5" });
 
             column = result.Schema["HashAUnlimOrdered"];
-            Assert.Equal(column.Annotations.Schema.Single().Name, AnnotationUtils.Kinds.KeyValues);
+            Assert.Equal(AnnotationUtils.Kinds.KeyValues, column.Annotations.Schema.Single().Name);
             column.GetKeyValues(ref keys);
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "0:3.5", "1:2.5" });
         }
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestCommandLine()
         {
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Hash{col=B:A} in=f:\2.txt" }), (int)0);
+            Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Hash{col=B:A} in=f:\2.txt" }));
         }
 
         [Fact]
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Tests.Transformers
             if (value <= ushort.MaxValue)
             {
                 HashTestCore((ushort)value, NumberDataViewType.UInt16, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
-                HashTestCore((ushort)value, new KeyDataViewType(typeof(ushort),ushort.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
+                HashTestCore((ushort)value, new KeyDataViewType(typeof(ushort), ushort.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
             }
             if (value <= uint.MaxValue)
             {
@@ -263,7 +263,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Next let's check signed numbers.
             if (value <= long.MaxValue)
-            HashTestCore((long)value, NumberDataViewType.Int64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
+                HashTestCore((long)value, NumberDataViewType.Int64, expected, expectedOrdered, expectedOrdered3, expectedCombined, expectedCombinedSparse);
 
             // ulong keys
             HashTestCore(value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key, ecKey, 0);
@@ -372,8 +372,8 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestCombineLengthOneVector()
         {
-            var data = new[] 
-            { 
+            var data = new[]
+            {
                 new TestClass() { A = 1, B = 2, C = 3 },
                 new TestClass() { A = 4, B = 5, C = 6 },
                 new TestClass() { A = float.NaN, B = 3, C = 12 }

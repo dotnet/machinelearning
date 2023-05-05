@@ -1,14 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFrameworks>net6.0</TargetFrameworks>
     <NoWarn>$(NoWarn);MSML_ExtendBaseTestClass</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.Data.Analysis.Interactive\Microsoft.Data.Analysis.Interactive.csproj" />
 
-    <!-- work around https://github.com/dotnet/runtime/issues/45560 until System.Text.Json is fixed and Microsoft.DotNet.Interactive updates to the new version -->
-    <PackageReference Include=" System.Text.Encodings.Web" Version="5.0.1" />
+    <PackageReference Include=" System.Text.Encodings.Web" Version="$(SystemTextEncodingsWebVersion)" />
   </ItemGroup>
 
   <!-- register for test discovery in Visual Studio -->

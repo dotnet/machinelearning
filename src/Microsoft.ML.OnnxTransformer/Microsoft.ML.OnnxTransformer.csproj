@@ -17,8 +17,8 @@
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" >
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
-    <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="$(MicrosoftMLOnnxRuntimePackageVersion)" />
-    <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufPackageVersion)" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="$(MicrosoftMLOnnxRuntimeVersion)" />
+    <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufVersion)" />
   </ItemGroup>
 
   <ItemGroup>

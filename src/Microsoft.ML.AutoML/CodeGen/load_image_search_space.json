@@ -1,0 +1,19 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "load_image_option",
+  "search_space": [
+    {
+      "name": "OutputColumnName",
+      "type": "string",
+      "default": "Output"
+    },
+    {
+      "name": "ImageFolder",
+      "type": "string"
+    },
+    {
+      "name": "InputColumnName",
+      "type": "string"
+    }
+  ]
+}

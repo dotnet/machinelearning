@@ -22,6 +22,7 @@
     <NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="MklProxyNative" />
     <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' == 'x64'" Include="OneDalNative" />
     <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
 
@@ -30,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimePackageVersion)" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimeVersion)" />
   </ItemGroup>
 
 </Project>

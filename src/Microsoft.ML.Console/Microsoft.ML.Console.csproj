@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <AssemblyName>MML</AssemblyName>
     <StartupObject>Microsoft.ML.Tools.Console.Console</StartupObject>
@@ -27,6 +27,7 @@
     <ProjectReference Include="..\Microsoft.ML.Sweeper\Microsoft.ML.Sweeper.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
 
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="CpuMathNative" />

@@ -442,7 +442,7 @@ namespace Microsoft.ML.Data
                 private int _fileIdx;
                 private TextReader _currReader;
                 private ReadOnlyMemory<char> _text;
-                private ValueGetter<ReadOnlyMemory<char>> _getter;
+                private readonly ValueGetter<ReadOnlyMemory<char>> _getter;
 
                 public override long Batch => 0;
 

@@ -330,6 +330,10 @@ namespace Microsoft.ML.Runtime
         public string TempFilePath { get; set; } = System.IO.Path.GetTempPath();
 #pragma warning restore MSML_NoInstanceInitializers
 
+        public int? GpuDeviceId { get; set; }
+
+        public bool FallbackToCpu { get; set; }
+
         protected readonly TEnv Root;
         // This is non-null iff this environment was a fork of another. Disposing a fork
         // doesn't free temp files. That is handled when the master is disposed.
@@ -388,6 +392,9 @@ namespace Microsoft.ML.Runtime
 
             // This fork shares some stuff with the master.
             Master = source;
+            GpuDeviceId = Master?.GpuDeviceId;
+            FallbackToCpu = Master?.FallbackToCpu ?? true;
+            Seed = Master?.Seed;
             Root = source.Root;
             ListenerDict = source.ListenerDict;
             ProgressTracker = source.ProgressTracker;
@@ -409,6 +416,13 @@ namespace Microsoft.ML.Runtime
                 _children.RemoveAll(r => r.TryGetTarget(out IHost _) == false);
                 Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
                 host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
+
+                // Need to manually copy over the parameters
+                //((IHostEnvironmentInternal)host).Seed = this.Seed;
+                ((IHostEnvironmentInternal)host).TempFilePath = TempFilePath;
+                ((IHostEnvironmentInternal)host).GpuDeviceId = GpuDeviceId;
+                ((IHostEnvironmentInternal)host).FallbackToCpu = FallbackToCpu;
+
                 _children.Add(new WeakReference<IHost>(host));
             }
             return host;

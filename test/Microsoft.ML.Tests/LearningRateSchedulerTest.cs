@@ -48,7 +48,7 @@ namespace Microsoft.ML.Tests
                 trainState.CurrentBatchIndex = i % trainState.BatchesPerEpoch;
                 trainState.CurrentEpoch = i / trainState.BatchesPerEpoch;
                 float decayedLR = learningRateScheduler.GetLearningRate(trainState);
-                Assert.Equal(expectedValues[i], decayedLR, 4);
+                Assert.Equal((double)expectedValues[i], (double)decayedLR, 4);
             }
         }
     }

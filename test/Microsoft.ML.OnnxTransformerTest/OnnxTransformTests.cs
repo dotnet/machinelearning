@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
@@ -12,12 +11,12 @@ using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms.Image;
+using Microsoft.ML.Transforms.Onnx;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.Transforms.Onnx;
-using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.Tests
 {
@@ -66,7 +65,7 @@ namespace Microsoft.ML.Tests
             public float[] A;
         }
 
-        private class TestDataDifferntType
+        private class TestDataDifferentType
         {
             [VectorType(InputSize)]
             public string[] data_0;
@@ -117,6 +116,8 @@ namespace Microsoft.ML.Tests
 
         public OnnxTransformTests(ITestOutputHelper output) : base(output)
         {
+            ML.GpuDeviceId = _gpuDeviceId;
+            ML.FallbackToCpu = _fallbackToCpu;
         }
 
         [OnnxTheory]
@@ -139,12 +140,12 @@ namespace Microsoft.ML.Tests
                 });
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[InputSize] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[InputSize] } };
+            var stringData = new List<TestDataDifferentType> { new TestDataDifferentType() { data_0 = new string[InputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
             var options = new OnnxOptions()
             {
                 OutputColumns = new[] { "softmaxout_1" },
-                InputColumns = new[] {"data_0" },
+                InputColumns = new[] { "data_0" },
                 ModelFile = modelFile,
                 GpuDeviceId = _gpuDeviceId,
                 FallbackToCpu = _fallbackToCpu,
@@ -499,7 +500,7 @@ namespace Microsoft.ML.Tests
             /// Image will be consumed by ONNX image multiclass classification model.
             /// </summary>
             [ImageType(Height, Width)]
-            public Bitmap Image { get; set; }
+            public MLImage Image { get; set; }
 
             /// <summary>
             /// Output of ONNX model. It contains probabilities of all classes.
@@ -512,12 +513,19 @@ namespace Microsoft.ML.Tests
                 Image = null;
             }
 
-            public ImageDataPoint(Color color)
+            public ImageDataPoint(byte red, byte green, byte blue)
             {
-                Image = new Bitmap(Width, Height);
-                for (int i = 0; i < Width; ++i)
-                    for (int j = 0; j < Height; ++j)
-                        Image.SetPixel(i, j, color);
+                byte[] imageData = new byte[Width * Height * 4]; // 4 for the red, green, blue and alpha colors
+                for (int i = 0; i < imageData.Length; i += 4)
+                {
+                    // Fill the buffer with the Bgra32 format
+                    imageData[i] = blue;
+                    imageData[i + 1] = green;
+                    imageData[i + 2] = red;
+                    imageData[i + 3] = 255;
+                }
+
+                Image = MLImage.CreateFromPixels(Width, Height, MLPixelFormat.Bgra32, imageData);
             }
         }
 
@@ -533,14 +541,14 @@ namespace Microsoft.ML.Tests
             // Create in-memory data points. Its Image/Scores field is the input/output of the used ONNX model.
             var dataPoints = new ImageDataPoint[]
             {
-                new ImageDataPoint(Color.Red),
-                new ImageDataPoint(Color.Green)
+                new ImageDataPoint(red: 255, green: 0, blue: 0),
+                new ImageDataPoint(red: 0, green: 128, blue: 0),
             };
 
             // Convert training data to IDataView, the general data type used in ML.NET.
             var dataView = ML.Data.LoadFromEnumerable(dataPoints);
 
-            // Create a ML.NET pipeline which contains two steps. First, ExtractPixle is used to convert the 224x224 image to a 3x224x224 float tensor.
+            // Create a ML.NET pipeline which contains two steps. First, ExtractPixel is used to convert the 224x224 image to a 3x224x224 float tensor.
             // Then the float tensor is fed into a ONNX model with an input called "data_0" and an output called "softmaxout_1". Note that "data_0" and
             // "softmaxout_1" are model input and output names stored in the used ONNX model file. Users may need to inspect their own models to
             // get the right input and output column names.

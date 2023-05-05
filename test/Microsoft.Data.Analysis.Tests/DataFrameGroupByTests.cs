@@ -17,9 +17,9 @@ namespace Microsoft.Data.Analysis.Tests
         {
             const int length = 11;
 
-            //Create test dataframe (numbers starting from 0 up to lenght)
+            //Create test dataframe (numbers starting from 0 up to length)
             DataFrame df = MakeTestDataFrameWithParityAndTensColumns(length);
-            
+
             var grouping = df.GroupBy<string>("Parity").Groupings;
 
             //Check groups count
@@ -28,13 +28,13 @@ namespace Microsoft.Data.Analysis.Tests
             //Check number of elements in each group
             var oddGroup = grouping.Where(gr => gr.Key == "odd").FirstOrDefault();
             Assert.NotNull(oddGroup);
-            Assert.Equal(length/2, oddGroup.Count());
+            Assert.Equal(length / 2, oddGroup.Count());
 
             var evenGroup = grouping.Where(gr => gr.Key == "even").FirstOrDefault();
             Assert.NotNull(evenGroup);
             Assert.Equal(length / 2 + length % 2, evenGroup.Count());
 
-            
+
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace Microsoft.Data.Analysis.Tests
             var grouping = df.GroupBy<string>("Parity").Groupings;
             Assert.Empty(grouping);
 
-           
+
             df = MakeTestDataFrameWithParityAndTensColumns(1);
             grouping = df.GroupBy<string>("Parity").Groupings;
             Assert.Single(grouping);
@@ -58,7 +58,7 @@ namespace Microsoft.Data.Analysis.Tests
         {
             const int length = 55;
 
-            //Create test dataframe (numbers starting from 0 up to lenght)
+            //Create test dataframe (numbers starting from 0 up to length)
             DataFrame df = MakeTestDataFrameWithParityAndTensColumns(length);
 
             //Group elements by int column, that contain the amount of full tens in each int
@@ -66,7 +66,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             //Get the amount of all number based columns
             int numberColumnsCount = df.Columns.Count - 2; //except "Parity" and "Tens" columns
-            
+
             //Check each group
             for (int i = 0; i < length / 10; i++)
             {
@@ -90,10 +90,10 @@ namespace Microsoft.Data.Analysis.Tests
 
         [Fact]
         public void TestGroupingWithTKeyOfWrongType()
-        {           
+        {
             var message = string.Empty;
 
-            //Create test dataframe (numbers starting from 0 up to lenght)
+            //Create test dataframe (numbers starting from 0 up to length)
             DataFrame df = MakeTestDataFrameWithParityAndTensColumns(1);
 
             //Use wrong type for grouping

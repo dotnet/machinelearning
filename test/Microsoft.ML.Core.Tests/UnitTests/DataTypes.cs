@@ -18,14 +18,14 @@ namespace Microsoft.ML.RunTests
         {
         }
 
-        private readonly static Conversions _conv = Conversions.DefaultInstance;
+        private static readonly Conversions _conv = Conversions.DefaultInstance;
 
         [Fact]
         public void R4ToSBtoR4()
         {
             var r4ToSB = Conversions.DefaultInstance.GetStringConversion<float>(NumberDataViewType.Single);
 
-            var txToR4 = Conversions.DefaultInstance.GetStandardConversion< ReadOnlyMemory<char>, float>(
+            var txToR4 = Conversions.DefaultInstance.GetStandardConversion<ReadOnlyMemory<char>, float>(
                 TextDataViewType.Instance, NumberDataViewType.Single, out bool identity2);
 
             Assert.NotNull(r4ToSB);
@@ -41,7 +41,7 @@ namespace Microsoft.ML.RunTests
             var fValTX = textFVal.ToString().AsMemory();
             txToR4(in fValTX, ref fVal);
 
-            Assert.Equal(fVal, float.NaN);
+            Assert.Equal(float.NaN, fVal);
         }
 
         [Fact]
@@ -65,7 +65,7 @@ namespace Microsoft.ML.RunTests
             var dValTX = textDVal.ToString().AsMemory();
             txToR8(in dValTX, ref dVal);
 
-            Assert.Equal(dVal, double.NaN);
+            Assert.Equal(double.NaN, dVal);
         }
 
         [Fact]

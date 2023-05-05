@@ -23,12 +23,12 @@ namespace Microsoft.ML.Trainers.FastTree
     internal class InternalRegressionTree
     {
         private double _maxOutput;
-        private double[] _splitGain;
-        private double[] _gainPValue;
+        private readonly double[] _splitGain;
+        private readonly double[] _gainPValue;
         /// <summary>
         /// The value of this non-leaf node, prior to split when it was a leaf.
         /// </summary>
-        private double[] _previousLeafValue;
+        private readonly double[] _previousLeafValue;
 
         // for each non-leaf, we keep the following data
         public float[] DefaultValueForMissing;
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         public int[][] CategoricalSplitFeatureRanges;
         // These are the thresholds based on the binned values of the raw features.
-        public uint[] Thresholds { get; }
+        public uint[] Thresholds { get; private set; }
         // These are the thresholds based on the raw feature values. Populated after training.
         public float[] RawThresholds { get; private set; }
         public double[] SplitGains { get { return _splitGain; } }
@@ -190,9 +190,9 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         internal InternalRegressionTree(int[] splitFeatures, double[] splitGain, double[] gainPValue,
-            float[] rawThresholds, float[] defaultValueForMissing, int[] lteChild, int[] gtChild, double[] leafValues,
-            int[][] categoricalSplitFeatures, bool[] categoricalSplit)
-            : this()
+float[] rawThresholds, float[] defaultValueForMissing, int[] lteChild, int[] gtChild, double[] leafValues,
+int[][] categoricalSplitFeatures, bool[] categoricalSplit)
+: this()
         {
             Contracts.CheckParam(Utils.Size(splitFeatures) > 0, nameof(splitFeatures), "Number of split features must be positive");
 
@@ -201,6 +201,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _splitGain = splitGain;
             _gainPValue = gainPValue;
             RawThresholds = rawThresholds;
+            Thresholds = new uint[NumLeaves - 1];
             DefaultValueForMissing = defaultValueForMissing;
             LteChild = lteChild;
             GtChild = gtChild;
@@ -820,7 +821,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private float GetFeatureValue(float x, int node)
         {
-            // Not need to convert missing vaules.
+            // Not need to convert missing values.
             if (DefaultValueForMissing == null)
                 return x;
 
@@ -1096,6 +1097,32 @@ namespace Microsoft.ML.Trainers.FastTree
                     RawThresholds[n] = (float)dataset.Flocks[flock].BinUpperBounds(subfeature)[Thresholds[n]];
                 else
                     RawThresholds[n] = 0.5f;
+            }
+        }
+
+        public void PopulateThresholds(Dataset dataset)
+        {
+            var features = dataset.Flocks;
+
+            int numNodes = NumLeaves - 1;
+            for (int n = 0; n < numNodes; n++)
+            {
+                int flock;
+                int subfeature;
+                dataset.MapFeatureToFlockAndSubFeature(SplitFeatures[n], out flock, out subfeature);
+                if (CategoricalSplit[n] == false)
+                {
+                    uint numBins = (uint)dataset.Flocks[flock].BinUpperBounds(subfeature).Length;
+                    for (uint i = 1; i < numBins; ++i)
+                    {
+                        double rawThreshold = dataset.Flocks[flock].BinUpperBounds(subfeature)[i];
+                        if (RawThresholds[n] < rawThreshold)
+                        {
+                            Thresholds[n] = i;
+                            break;
+                        }
+                    }
+                }
             }
         }
 

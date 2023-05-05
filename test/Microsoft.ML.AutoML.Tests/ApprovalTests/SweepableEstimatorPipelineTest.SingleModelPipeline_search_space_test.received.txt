@@ -1,0 +1,61 @@
+﻿{
+  "0": {
+    "FeatureSpaceDim": 0,
+    "Default": [],
+    "Step": []
+  },
+  "1": {
+    "FeatureSpaceDim": 0,
+    "Default": [],
+    "Step": []
+  },
+  "2": {
+    "FeatureSpaceDim": 0,
+    "Default": [],
+    "Step": []
+  },
+  "3": {
+    "FeatureSpaceDim": 9,
+    "Default": [
+      1,
+      0,
+      1,
+      1,
+      0.71428571428571408,
+      0,
+      0,
+      0,
+      1
+    ],
+    "Step": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "4": {
+    "FeatureSpaceDim": 6,
+    "Default": [
+      1,
+      0.89689626841273451,
+      0.71428571428571408,
+      0.55365468248122718,
+      0,
+      0
+    ],
+    "Step": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  }
+}

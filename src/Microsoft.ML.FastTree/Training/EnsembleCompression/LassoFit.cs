@@ -33,7 +33,7 @@ namespace Microsoft.ML.Trainers.FastTree
         // Total number of passes over data
         public int NumberOfPasses;
 
-        private int _numFeatures;
+        private readonly int _numFeatures;
 
         public LassoFit(int numberOfLambdas, int maxAllowedFeaturesAlongPath, int numFeatures)
         {

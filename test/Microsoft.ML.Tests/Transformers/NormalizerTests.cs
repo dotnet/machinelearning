@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Experimental;
@@ -13,13 +14,12 @@ using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TestFrameworkCommon;
+using Microsoft.ML.TestFrameworkCommon.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.Transforms.NormalizingTransformer;
-using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -396,7 +396,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             floatAffineModel = ((NormalizingTransformer)robustScalerTransformer).Columns[0].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<float>;
             Assert.Equal(1 / 1.8, floatAffineModel.Scale, 2);
-            Assert.Equal(5.8f, floatAffineModel.Offset, 2);
+            Assert.Equal(5.8d, floatAffineModel.Offset, 2);
 
             floatAffineModelVec = ((NormalizingTransformer)robustScalerTransformer).Columns[1].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<float>>;
             Assert.Equal(4, floatAffineModelVec.Scale.Length);
@@ -406,7 +406,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(.8333333, floatAffineModelVec.Scale[3], 2);
 
             Assert.Equal(5.8, floatAffineModelVec.Offset[0], 2);
-            Assert.Equal(3, floatAffineModelVec.Offset[1], 2);
+            Assert.Equal(3d, floatAffineModelVec.Offset[1], 2);
             Assert.Equal(4.4, floatAffineModelVec.Offset[2], 2);
             Assert.Equal(1.3, floatAffineModelVec.Offset[3], 2);
 
@@ -430,13 +430,13 @@ namespace Microsoft.ML.Tests.Transformers
             robustScalerEstimator = context.Transforms.NormalizeRobustScaling(
                                 new[] {new InputOutputColumnPair("float1rbs", "float1"), new InputOutputColumnPair("float4rbs", "float4"),
                                     new InputOutputColumnPair("double1rbs", "double1"), new InputOutputColumnPair("double4rbs", "double4")}
-                                ,centerData: false);
+                                , centerData: false);
 
             robustScalerTransformer = robustScalerEstimator.Fit(data);
 
             floatAffineModel = ((NormalizingTransformer)robustScalerTransformer).Columns[0].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<float>;
             Assert.Equal(1 / 1.8, floatAffineModel.Scale, 2);
-            Assert.Equal(0, floatAffineModel.Offset, 2);
+            Assert.Equal(0d, floatAffineModel.Offset, 2);
 
             floatAffineModelVec = ((NormalizingTransformer)robustScalerTransformer).Columns[1].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<float>>;
             Assert.Equal(4, floatAffineModelVec.Scale.Length);
@@ -722,7 +722,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             // typeof helps to load the VectorWhiteningTransformer type.
             Type type = typeof(VectorWhiteningTransformer);
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=whitening{col=B:A} in=f:\2.txt" }), (int)0);
+            Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=whitening{col=B:A} in=f:\2.txt" }));
         }
 
         [NativeDependencyFact("MklImports")]
@@ -783,7 +783,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestLpNormCommandLine()
         {
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=LpNormNormalizer{col=B:A} in=f:\2.txt" }), (int)0);
+            Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=LpNormNormalizer{col=B:A} in=f:\2.txt" }));
         }
 
         [Fact]
@@ -843,7 +843,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestGcnNormCommandLine()
         {
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=GcnTransform{col=B:A} in=f:\2.txt" }), (int)0);
+            Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=GcnTransform{col=B:A} in=f:\2.txt" }));
         }
 
         [Fact]

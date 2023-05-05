@@ -1,0 +1,37 @@
+{
+  "L2Regularization": {
+    "type": "float",
+    "default": 0.0000001,
+    "min": 0.0000001,
+    "max": 32768,
+    "log_base": true
+  },
+  "L1Regularization": {
+    "type": "float",
+    "default": 0.0000001,
+    "min": 0.0000001,
+    "max": 32768,
+    "log_base": true
+  },
+  "ConvergenceTolerance": {
+    "type": "float",
+    "default": 0.0000001,
+    "min": 0.0000001,
+    "max": 1,
+    "log_base": true
+  },
+  "MaximumNumberOfIterations": {
+    "type": "int",
+    "default": 10,
+    "min": 10,
+    "max": 1000,
+    "log_base": true
+  },
+  "BiasLearningRate": {
+    "type": "float",
+    "default": 0.0000001,
+    "min": 0.0000001,
+    "max": 1,
+    "log_base": true
+  }
+}

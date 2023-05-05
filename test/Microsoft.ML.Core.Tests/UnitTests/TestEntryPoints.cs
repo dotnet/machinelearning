@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -12,7 +12,6 @@ using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Featurizers;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
@@ -332,7 +331,6 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(DateTimeTransformer).Assembly);
 
             var catalog = Env.ComponentCatalog;
 
@@ -1805,7 +1803,8 @@ namespace Microsoft.ML.RunTests
                 if (i % 2 == 0)
                 {
                     data = new TextFeaturizingEstimator(Env, "Features", new List<string> { "Text" },
-                        new TextFeaturizingEstimator.Options {
+                        new TextFeaturizingEstimator.Options
+                        {
                             StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options(),
                         }).Fit(data).Transform(data);
                 }
@@ -6877,7 +6876,7 @@ namespace Microsoft.ML.RunTests
             runner.RunAll();
 
             var data = runner.GetOutput<IDataView>("overall_metrics");
-            using(var cursor = data.GetRowCursorForAllColumns())
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var ndcgGetter = cursor.GetGetter<VBuffer<Double>>(data.Schema["NDCG"]);
                 VBuffer<Double> ndcgBuffer = default;
