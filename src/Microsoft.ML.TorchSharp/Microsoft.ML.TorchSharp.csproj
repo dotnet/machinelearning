@@ -3,10 +3,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <NoWarn>$(NoWarn);CS8002;MSB3270</NoWarn>
+    <NoWarn>$(NoWarn);CS8002</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageDescription>Microsoft.ML.TorchSharp contains ML.NET integration of TorchSharp.</PackageDescription>
     <PlatformTarget>AnyCPU</PlatformTarget>
+
+    <!-- Remove once we have resolved the TorchSharp issue. -->
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+
   </PropertyGroup>
 
   <ItemGroup>
