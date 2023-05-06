@@ -1,0 +1,73 @@
+<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#@ include file="..\..\src\Microsoft.Data.Analysis\ColumnArithmeticTemplate.ttinclude"#>
+<#@ include file="..\..\src\Microsoft.Data.Analysis\PrimitiveDataFrameColumn.BinaryOperations.Combinations.ttinclude" #>
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// Generated from PrimitiveDataFrameColumnComputationsTests.tt. Do not modify directly
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Xunit;
+
+namespace Microsoft.Data.Analysis.Tests
+{
+    public partial class DataFrameColumnTests
+    {
+        IEnumerable<byte?> ByteValues = new byte?[] { 1, null, 2, 3, 4, null, 6, 7 };
+        IEnumerable<char?> CharValues = new char?[] { (char)1, null, (char)2, (char)3, (char)4, null, (char)6, (char)7 };
+        IEnumerable<decimal?> DecimalValues = new decimal?[] { 1, null, 2, 3, 4, null, 6, 7 };
+        IEnumerable<double?> DoubleValues = new double?[] { 1, null, 2, 3, 4, null, 6, 7 };
+        IEnumerable<float?> SingleValues = new float?[] { 1, null, 2, 3, 4, null, 6, 7 };
+        IEnumerable<int?> Int32Values = new int?[] { 1, null, 2, 3, 4, null, 6, 7 };
+        IEnumerable<long?> Int64Values = new long?[] { 1, null, 2, 3, 4, null, 6, 7 };
+        IEnumerable<sbyte?> SByteValues = new sbyte?[] { 1, null, 2, 3, 4, null, 6, 7 };
+        IEnumerable<short?> Int16Values = new short?[] { 1, null, 2, 3, 4, null, 6, 7 };
+        IEnumerable<uint?> UInt32Values = new uint?[] { 1, null, 2, 3, 4, null, 6, 7 };
+        IEnumerable<ulong?> UInt64Values = new ulong?[] { 1, null, 2, 3, 4, null, 6, 7 };
+        IEnumerable<ushort?> UInt16Values = new ushort?[] { 1, null, 2, 3, 4, null, 6, 7 };
+
+
+<#
+    foreach (TypeConfiguration type in typeConfiguration)
+    {
+        if (type.TypeName == "bool" || type.TypeName == "DateTime") continue;
+#>
+        [Fact]
+        public void <#=GetCapitalizedPrimitiveTypes(type.TypeName)#>ColumnComputationsTests()
+        {
+
+            var column = new <#=GetCapitalizedPrimitiveTypes(type.TypeName)#>DataFrameColumn("<#=type.TypeName#>Values", <#=GetCapitalizedPrimitiveTypes(type.TypeName)#>Values);
+
+<#
+        foreach (MethodConfiguration method in computationMethodConfiguration)
+        {
+#>
+<#          if (method.MethodType == MethodType.Reduction && method.MethodName != "Product" &&  method.IsNumeric && type.SupportsNumeric && !type.UnsupportedMethods.Contains(method.MethodName) ) { 
+            
+                if(method.SupportsRowSubsets){
+#>
+<#
+                }
+                else
+                {
+#>
+            Assert.Equal(Enumerable.<#=method.MethodName#>(Int32Values), Convert.ToInt32(column.<#=method.MethodName#>()));
+<#              } #>
+<#          } #>
+<#      } #>
+        }
+<# } #>
+    }
+}
+
+
+
