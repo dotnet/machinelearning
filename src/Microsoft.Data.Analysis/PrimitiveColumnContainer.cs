@@ -180,7 +180,6 @@ namespace Microsoft.Data.Analysis
                     NullBitMapBuffers.Add(new DataFrameBuffer<byte>());
                 }
 
-
                 DataFrameBuffer<T> mutableLastBuffer = Buffers.GetOrCreateMutable(Buffers.Count - 1);
                 int allocatable = (int)Math.Min(remaining, ReadOnlyDataFrameBuffer<T>.MaxCapacity);
                 mutableLastBuffer.EnsureCapacity(allocatable);
@@ -213,9 +212,10 @@ namespace Microsoft.Data.Analysis
 
         public void ApplyElementwise(Func<T?, long, T?> func)
         {
+            var bufferMaxCapacity = ReadOnlyDataFrameBuffer<T>.MaxCapacity;
             for (int b = 0; b < Buffers.Count; b++)
             {
-                long prevLength = checked(Buffers[0].Length * b);
+                long prevLength = checked(bufferMaxCapacity * b);
 
                 Span<T> mutableBuffer = Buffers.GetOrCreateMutable(b).Span;
                 Span<byte> mutableNullBitMapBuffer = NullBitMapBuffers.GetOrCreateMutable(b).Span;
@@ -234,9 +234,10 @@ namespace Microsoft.Data.Analysis
         public void Apply<TResult>(Func<T?, TResult?> func, PrimitiveColumnContainer<TResult> resultContainer)
             where TResult : unmanaged
         {
+            var bufferMaxCapacity = ReadOnlyDataFrameBuffer<T>.MaxCapacity;
             for (int b = 0; b < Buffers.Count; b++)
             {
-                long prevLength = checked(Buffers[0].Length * b);
+                long prevLength = checked(bufferMaxCapacity * b);
                 var sourceBuffer = Buffers[b];
                 var sourceNullBitMap = NullBitMapBuffers[b].ReadOnlySpan;
 
@@ -245,7 +246,6 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < sourceBuffer.Length; i++)
                 {
-                    long curIndex = i + prevLength;
                     bool isValid = IsValid(sourceNullBitMap, i);
                     TResult? value = func(isValid ? sourceBuffer[i] : null);
                     mutableResultBuffer[i] = value.GetValueOrDefault();
