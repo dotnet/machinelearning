@@ -18,15 +18,15 @@ namespace Microsoft.Data.Analysis
     {
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.Comparison || method.MethodType == MethodType.ComparisonScalar) { #>
-       public <#= method.GetSingleArgumentMethodSignature("PrimitiveColumnContainer", "T") #>
-       {
+        public <#= method.GetSingleArgumentMethodSignature("PrimitiveColumnContainer", "T") #>
+        {
 <# if (method.MethodType == MethodType.ComparisonScalar ) { #>
             PrimitiveDataFrameColumnArithmetic<T>.Instance.<#=method.MethodName#>(this, scalar, ret);
 <# } else { #>
             PrimitiveDataFrameColumnArithmetic<T>.Instance.<#=method.MethodName#>(this, right, ret);
 <# } #>
             return this;
-       }
+        }
 
 <# } else { #>
         public <#= method.GetSingleArgumentMethodSignature("PrimitiveColumnContainer", "T")#>
@@ -45,11 +45,11 @@ namespace Microsoft.Data.Analysis
 <# } #>
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.BinaryScalar) { #>
-       public PrimitiveColumnContainer<T> Reverse<#=method.MethodName#>(T scalar)
-       {
+        public PrimitiveColumnContainer<T> Reverse<#=method.MethodName#>(T scalar)
+        {
             PrimitiveDataFrameColumnArithmetic<T>.Instance.<#=method.MethodName#>(scalar, this);
             return this;
-       }
+        }
 <# } #>
 <# } #>
     }
