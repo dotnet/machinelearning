@@ -8,7 +8,7 @@ namespace Microsoft.Data.Analysis
 {
     internal static class PrimitiveColumnContainerHelpers
     {
-        internal static DataFrameBuffer<T> GetMutable<T>(this IList<ReadOnlyDataFrameBuffer<T>> bufferList, int index)
+        internal static DataFrameBuffer<T> GetOrCreateMutable<T>(this IList<ReadOnlyDataFrameBuffer<T>> bufferList, int index)
             where T : unmanaged
         {
             ReadOnlyDataFrameBuffer<T> sourceBuffer = bufferList[index];
@@ -22,12 +22,6 @@ namespace Microsoft.Data.Analysis
 
 
             return mutableBuffer;
-        }
-
-        internal static void EnsureMutable<T>(this IList<ReadOnlyDataFrameBuffer<T>> bufferList, int index)
-            where T : unmanaged
-        {
-            bufferList.GetMutable(index);
         }
     }
 }

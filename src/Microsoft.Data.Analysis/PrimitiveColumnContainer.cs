@@ -152,7 +152,7 @@ namespace Microsoft.Data.Analysis
                 NullBitMapBuffers.Add(new DataFrameBuffer<byte>());
             }
 
-            DataFrameBuffer<T> mutableLastBuffer = Buffers.GetMutable(Buffers.Count - 1);
+            DataFrameBuffer<T> mutableLastBuffer = Buffers.GetOrCreateMutable(Buffers.Count - 1);
             mutableLastBuffer.Append(value ?? default);
             SetValidityBit(Length, value.HasValue);
             Length++;
@@ -181,11 +181,11 @@ namespace Microsoft.Data.Analysis
                 }
 
 
-                DataFrameBuffer<T> mutableLastBuffer = Buffers.GetMutable(Buffers.Count - 1);
+                DataFrameBuffer<T> mutableLastBuffer = Buffers.GetOrCreateMutable(Buffers.Count - 1);
                 int allocatable = (int)Math.Min(remaining, ReadOnlyDataFrameBuffer<T>.MaxCapacity);
                 mutableLastBuffer.EnsureCapacity(allocatable);
 
-                DataFrameBuffer<byte> lastNullBitMapBuffer = NullBitMapBuffers.GetMutable(NullBitMapBuffers.Count - 1);
+                DataFrameBuffer<byte> lastNullBitMapBuffer = NullBitMapBuffers.GetOrCreateMutable(NullBitMapBuffers.Count - 1);
                 int nullBufferAllocatable = (allocatable + 7) / 8;
                 lastNullBitMapBuffer.EnsureCapacity(nullBufferAllocatable);
 
@@ -217,8 +217,8 @@ namespace Microsoft.Data.Analysis
             {
                 long prevLength = checked(Buffers[0].Length * b);
 
-                Span<T> mutableBuffer = Buffers.GetMutable(b).Span;
-                Span<byte> mutableNullBitMapBuffer = NullBitMapBuffers.GetMutable(b).Span;
+                Span<T> mutableBuffer = Buffers.GetOrCreateMutable(b).Span;
+                Span<byte> mutableNullBitMapBuffer = NullBitMapBuffers.GetOrCreateMutable(b).Span;
 
                 for (int i = 0; i < mutableBuffer.Length; i++)
                 {
@@ -240,8 +240,8 @@ namespace Microsoft.Data.Analysis
                 var sourceBuffer = Buffers[b];
                 var sourceNullBitMap = NullBitMapBuffers[b].ReadOnlySpan;
 
-                Span<TResult> mutableResultBuffer = resultContainer.Buffers.GetMutable(b).Span;
-                Span<byte> mutableResultNullBitMapBuffers = resultContainer.NullBitMapBuffers.GetMutable(b).Span;
+                Span<TResult> mutableResultBuffer = resultContainer.Buffers.GetOrCreateMutable(b).Span;
+                Span<byte> mutableResultNullBitMapBuffers = resultContainer.NullBitMapBuffers.GetOrCreateMutable(b).Span;
 
                 for (int i = 0; i < sourceBuffer.Length; i++)
                 {
@@ -417,8 +417,8 @@ namespace Microsoft.Data.Analysis
                 int arrayIndex = GetArrayContainingRowIndex(rowIndex);
                 rowIndex = rowIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity;
 
-                Buffers.EnsureMutable(arrayIndex);
-                NullBitMapBuffers.EnsureMutable(arrayIndex);
+                Buffers.GetOrCreateMutable(arrayIndex);
+                NullBitMapBuffers.GetOrCreateMutable(arrayIndex);
 
                 if (value.HasValue)
                 {
