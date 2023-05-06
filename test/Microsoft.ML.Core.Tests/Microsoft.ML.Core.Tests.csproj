@@ -4,7 +4,10 @@
     <StrongNameKeyId>Test</StrongNameKeyId>
     <!-- Temporary workaround for https://github.com/dotnet/roslyn/issues/64365 -->
     <LangVersion>10.0</LangVersion>
-    <NoWarn>$(NoWarn);MSB3270</NoWarn>
+    <NoWarn>$(NoWarn)</NoWarn>
+
+    <!-- Remove once we have resolved the TorchSharp issue. -->
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
 
     <!-- Import the test signing certificate -->
