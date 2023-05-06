@@ -128,39 +128,6 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer(long length = 0)
         {
-            /*
-            var remaining = length;
-            while (remaining > 0)
-            {
-                if (Buffers.Count == 0)
-                {
-                    Buffers.Add(new DataFrameBuffer<T>());
-                    NullBitMapBuffers.Add(new DataFrameBuffer<byte>());
-                }
-
-                if (Buffers[Buffers.Count - 1].Length == ReadOnlyDataFrameBuffer<T>.MaxCapacity)
-                {
-                    Buffers.Add(new DataFrameBuffer<T>());
-                    NullBitMapBuffers.Add(new DataFrameBuffer<byte>());
-                }
-
-                DataFrameBuffer<T> mutableLastBuffer = Buffers.GetMutable(Buffers.Count - 1);
-
-                int allocatable = (int)Math.Min(remaining, ReadOnlyDataFrameBuffer<T>.MaxCapacity);
-
-                mutableLastBuffer.EnsureCapacity(allocatable);
-                mutableLastBuffer.Length = allocatable;
-
-                DataFrameBuffer<byte> lastNullBitMapBuffer = NullBitMapBuffers.GetMutable(NullBitMapBuffers.Count - 1);
-                int nullBufferAllocatable = (allocatable + 7) / 8;
-                lastNullBitMapBuffer.EnsureCapacity(nullBufferAllocatable);
-                lastNullBitMapBuffer.Length = nullBufferAllocatable;
-
-                remaining -= allocatable;
-                Length += mutableLastBuffer.Length;
-                NullCount += mutableLastBuffer.Length;
-            }*/
-
             AppendMany(null, length);
         }
 
