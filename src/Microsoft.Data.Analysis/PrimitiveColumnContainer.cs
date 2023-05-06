@@ -196,7 +196,7 @@ namespace Microsoft.Data.Analysis
 
                 if (value.HasValue)
                 {
-                    mutableLastBuffer.RawSpan.Slice(mutableLastBuffer.Length - allocatable - 1, allocatable).Fill(value ?? default);
+                    mutableLastBuffer.RawSpan.Slice(mutableLastBuffer.Length - allocatable, allocatable).Fill(value ?? default);
 
                     _modifyNullCountWhileIndexing = false;
                     for (long i = Length - allocatable; i < Length; i++)
