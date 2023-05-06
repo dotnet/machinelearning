@@ -224,7 +224,7 @@ namespace Microsoft.Data.Analysis
                 {
                     long curIndex = i + prevLength;
                     bool isValid = IsValid(mutableNullBitMapBuffer, i);
-                    T? value = func(isValid ? mutableBuffer[i] : default(T?), curIndex);
+                    T? value = func(isValid ? mutableBuffer[i] : null, curIndex);
                     mutableBuffer[i] = value.GetValueOrDefault();
                     SetValidityBit(mutableNullBitMapBuffer, i, value != null);
                 }
@@ -247,7 +247,7 @@ namespace Microsoft.Data.Analysis
                 {
                     long curIndex = i + prevLength;
                     bool isValid = IsValid(sourceNullBitMap, i);
-                    TResult? value = func(isValid ? sourceBuffer[i] : default(T?));
+                    TResult? value = func(isValid ? sourceBuffer[i] : null);
                     mutableResultBuffer[i] = value.GetValueOrDefault();
                     resultContainer.SetValidityBit(mutableResultNullBitMapBuffers, i, value != null);
                 }
