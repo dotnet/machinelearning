@@ -17,7 +17,9 @@ namespace Microsoft.Data.Analysis
             if (mutableBuffer == null)
             {
                 mutableBuffer = DataFrameBuffer<T>.GetMutableBuffer(sourceBuffer);
+                bufferList[index] = mutableBuffer;
             }
+
 
             return mutableBuffer;
         }
