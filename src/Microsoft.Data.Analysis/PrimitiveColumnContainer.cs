@@ -182,33 +182,32 @@ namespace Microsoft.Data.Analysis
 
 
                 DataFrameBuffer<T> mutableLastBuffer = Buffers.GetMutable(Buffers.Count - 1);
-
                 int allocatable = (int)Math.Min(remaining, ReadOnlyDataFrameBuffer<T>.MaxCapacity);
-
                 mutableLastBuffer.EnsureCapacity(allocatable);
-                mutableLastBuffer.Length = allocatable;
 
                 DataFrameBuffer<byte> lastNullBitMapBuffer = NullBitMapBuffers.GetMutable(NullBitMapBuffers.Count - 1);
                 int nullBufferAllocatable = (allocatable + 7) / 8;
                 lastNullBitMapBuffer.EnsureCapacity(nullBufferAllocatable);
-                lastNullBitMapBuffer.Length = nullBufferAllocatable;
 
-                remaining -= allocatable;
-                Length += mutableLastBuffer.Length;
 
-                // PR Question: Does this need to be called if it's value is null/doesn't have value?
+                mutableLastBuffer.Length += allocatable;
+                lastNullBitMapBuffer.Length += nullBufferAllocatable;
+                Length += allocatable;
+
                 if (value.HasValue)
                 {
-                    mutableLastBuffer.RawSpan.Slice(mutableLastBuffer.Length, allocatable).Fill(value ?? default);
+                    mutableLastBuffer.RawSpan.Slice(mutableLastBuffer.Length - allocatable - 1, allocatable).Fill(value ?? default);
 
                     _modifyNullCountWhileIndexing = false;
-                    for (long i = Length - remaining; i < Length; i++)
+                    for (long i = Length - allocatable; i < Length; i++)
                     {
                         SetValidityBit(i, value.HasValue);
                     }
                     _modifyNullCountWhileIndexing = true;
                 }
 
+
+                remaining -= allocatable;
             }
         }
 
