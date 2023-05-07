@@ -12,7 +12,7 @@ using System.Collections.Generic;
 namespace Microsoft.Data.Analysis
 {
     internal interface IPrimitiveColumnComputation<T>
-        where T : struct
+        where T : unmanaged
     {
         void Abs(PrimitiveColumnContainer<T> column);
         void All(PrimitiveColumnContainer<T> column, out bool ret);
@@ -37,7 +37,7 @@ namespace Microsoft.Data.Analysis
     }
 
     internal static class PrimitiveColumnComputation<T>
-        where T : struct
+        where T : unmanaged
     {
         public static IPrimitiveColumnComputation<T> Instance { get; } = PrimitiveColumnComputation.GetComputation<T>();
     }
@@ -45,7 +45,7 @@ namespace Microsoft.Data.Analysis
     internal static class PrimitiveColumnComputation
     {
         public static IPrimitiveColumnComputation<T> GetComputation<T>()
-            where T : struct
+            where T : unmanaged
         {
             if (typeof(T) == typeof(bool))
             {
@@ -284,8 +284,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (byte)(Math.Max(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -348,8 +348,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (byte)(Math.Min(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -412,8 +412,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (byte)(readOnlySpan[i] * ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -476,8 +476,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (byte)(readOnlySpan[i] + ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -751,8 +751,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (char)(Math.Max(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -815,8 +815,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (char)(Math.Min(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -879,8 +879,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (char)(readOnlySpan[i] * ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -943,8 +943,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (char)(readOnlySpan[i] + ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -1218,8 +1218,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (decimal)(Math.Max(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -1282,8 +1282,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (decimal)(Math.Min(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -1346,8 +1346,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (decimal)(readOnlySpan[i] * ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -1410,8 +1410,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (decimal)(readOnlySpan[i] + ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -1685,8 +1685,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (double)(Math.Max(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -1749,8 +1749,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (double)(Math.Min(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -1813,8 +1813,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (double)(readOnlySpan[i] * ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -1877,8 +1877,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (double)(readOnlySpan[i] + ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -2152,8 +2152,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (float)(Math.Max(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -2216,8 +2216,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (float)(Math.Min(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -2280,8 +2280,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (float)(readOnlySpan[i] * ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -2344,8 +2344,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (float)(readOnlySpan[i] + ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -2619,8 +2619,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (int)(Math.Max(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -2683,8 +2683,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (int)(Math.Min(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -2747,8 +2747,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (int)(readOnlySpan[i] * ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -2811,8 +2811,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (int)(readOnlySpan[i] + ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -3086,8 +3086,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (long)(Math.Max(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -3150,8 +3150,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (long)(Math.Min(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -3214,8 +3214,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (long)(readOnlySpan[i] * ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -3278,8 +3278,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (long)(readOnlySpan[i] + ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -3553,8 +3553,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (sbyte)(Math.Max(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -3617,8 +3617,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (sbyte)(Math.Min(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -3681,8 +3681,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (sbyte)(readOnlySpan[i] * ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -3745,8 +3745,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (sbyte)(readOnlySpan[i] + ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -4020,8 +4020,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (short)(Math.Max(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -4084,8 +4084,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (short)(Math.Min(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -4148,8 +4148,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (short)(readOnlySpan[i] * ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -4212,8 +4212,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (short)(readOnlySpan[i] + ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -4487,8 +4487,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (uint)(Math.Max(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -4551,8 +4551,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (uint)(Math.Min(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -4615,8 +4615,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (uint)(readOnlySpan[i] * ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -4679,8 +4679,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (uint)(readOnlySpan[i] + ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -4954,8 +4954,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ulong)(Math.Max(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -5018,8 +5018,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ulong)(Math.Min(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -5082,8 +5082,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ulong)(readOnlySpan[i] * ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -5146,8 +5146,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ulong)(readOnlySpan[i] + ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -5421,8 +5421,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ushort)(Math.Max(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -5485,8 +5485,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ushort)(Math.Min(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -5549,8 +5549,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ushort)(readOnlySpan[i] * ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
@@ -5613,8 +5613,8 @@ namespace Microsoft.Data.Analysis
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ushort)(readOnlySpan[i] + ret);
+                        mutableSpan[i] = ret;
                     }
-                    mutableSpan[i] = ret;
                 }
                 column.Buffers[b] = mutableBuffer;
             }
