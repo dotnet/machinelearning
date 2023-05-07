@@ -3323,5 +3323,15 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetSingleColumn("Ushort"));
 
         }
+
+        [Fact]
+        public void TestMeanMedian()
+        {
+            DataFrame df = MakeDataFrameWithNumericColumns(10, true, 0);
+
+            Assert.Equal(40.0 / 9.0, df["Decimal"].Mean());
+            Assert.Equal(4, df["Decimal"].Median());
+
+        }
     }
 }
