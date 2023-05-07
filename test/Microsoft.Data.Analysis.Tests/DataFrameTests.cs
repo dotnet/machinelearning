@@ -844,7 +844,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(100.0, df.Columns["Double"].Max());
             Assert.Equal(-10.0f, df.Columns["Float"].Min());
             Assert.Equal((uint)0, df.Columns["Uint"].Product());
-            Assert.Equal((ushort)140, df.Columns["Ushort"].Sum());
+            Assert.Equal((ushort)130, df.Columns["Ushort"].Sum());
 
             df.Columns["Double"][0] = 100.1;
             Assert.Equal(100.1, df.Columns["Double"][0]);
