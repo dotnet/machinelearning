@@ -59,7 +59,7 @@ namespace Microsoft.ML.AutoML
 
         public double? MaximumMemoryUsageInMegaByte { get; set; }
 
-        internal int MaxModels;
+        public int MaxModels;
 
         /// <summary>
         /// Initializes a new instance of <see cref="ExperimentSettings"/>.
