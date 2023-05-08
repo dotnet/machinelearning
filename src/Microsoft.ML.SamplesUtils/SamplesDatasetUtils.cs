@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Runtime.InteropServices.ComTypes;
+using System.Threading.Tasks;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.SamplesUtils
@@ -177,22 +180,26 @@ namespace Microsoft.ML.SamplesUtils
             if (!Directory.Exists(varPath))
                 Directory.CreateDirectory(varPath);
 
-            Download(Path.Combine(remotePath, "saved_model.pb"), Path.Combine(path, "saved_model.pb"));
-            Download(Path.Combine(remotePath, "imdb_word_index.csv"), Path.Combine(path, "imdb_word_index.csv"));
-            Download(Path.Combine(remotePath, "variables", "variables.data-00000-of-00001"), Path.Combine(varPath, "variables.data-00000-of-00001"));
-            Download(Path.Combine(remotePath, "variables", "variables.index"), Path.Combine(varPath, "variables.index"));
+            Download(Path.Combine(remotePath, "saved_model.pb"), Path.Combine(path, "saved_model.pb")).Wait();
+            Download(Path.Combine(remotePath, "imdb_word_index.csv"), Path.Combine(path, "imdb_word_index.csv")).Wait();
+            Download(Path.Combine(remotePath, "variables", "variables.data-00000-of-00001"), Path.Combine(varPath, "variables.data-00000-of-00001")).Wait();
+            Download(Path.Combine(remotePath, "variables", "variables.index"), Path.Combine(varPath, "variables.index")).Wait();
 
             return path;
         }
 
-        private static string Download(string baseGitPath, string dataFile)
+        private static async Task<string> Download(string baseGitPath, string dataFile)
         {
             if (File.Exists(dataFile))
                 return dataFile;
 
-            using (WebClient client = new WebClient())
+            using (HttpClient client = new HttpClient())
             {
-                client.DownloadFile(new Uri($"{baseGitPath}"), dataFile);
+                var response = await client.GetStreamAsync(new Uri($"{baseGitPath}")).ConfigureAwait(false);
+                using (var fs = new FileStream(dataFile, FileMode.CreateNew))
+                {
+                    await response.CopyToAsync(fs).ConfigureAwait(false);
+                }
             }
 
             return dataFile;

@@ -57,14 +57,16 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
         /// <param name="dataset">dataset for cross-validation split.</param>
-        /// <param name="fold"></param>
+        /// <param name="fold">number of cross-validation folds</param>
+        /// <param name="samplingKeyColumnName">column name for sampling key</param>
         /// <returns><see cref="AutoMLExperiment"/></returns>
-        public static AutoMLExperiment SetDataset(this AutoMLExperiment experiment, IDataView dataset, int fold = 10)
+        public static AutoMLExperiment SetDataset(this AutoMLExperiment experiment, IDataView dataset, int fold = 10, string samplingKeyColumnName = null)
         {
             var datasetManager = new CrossValidateDatasetManager()
             {
                 Dataset = dataset,
                 Fold = fold,
+                SamplingKeyColumnName = samplingKeyColumnName,
             };
 
             experiment.ServiceCollection.AddSingleton<IDatasetManager>(datasetManager);

@@ -1,0 +1,61 @@
+{
+  "$schema": "./search-space-schema.json#",
+  "name": "object_detection_option",
+  "search_space": [
+    {
+      "name": "LabelColumnName",
+      "type": "string",
+      "default": "Label"
+    },
+    {
+      "name": "PredictedLabelColumnName",
+      "type": "string",
+      "default": "PredictedLabel"
+    },
+    {
+      "name": "PredictedBoundingBoxColumnName",
+      "type": "string",
+      "default": "PredictedBoundingBoxes"
+    },
+    {
+      "name": "BoundingBoxColumnName",
+      "type": "string",
+      "default": "BoundingBoxes"
+    },
+    {
+      "name": "ImageColumnName",
+      "type": "string",
+      "default": "Image"
+    },
+    {
+      "name": "ScoreColumnName",
+      "type": "string",
+      "default": "Score"
+    },
+    {
+      "name": "MaxEpoch",
+      "type": "integer",
+      "default": 10
+    },
+    {
+      "name": "InitLearningRate",
+      "type": "double",
+      "default": 1.0
+    },
+    {
+      "name": "WeightDecay",
+      "type": "double",
+      "default": 0.0
+    },
+    {
+      "name": "IOUThreshold",
+      "type": "double",
+      "default": 0.5
+    },
+    {
+      "name": "ScoreThreshold",
+      "type": "double",
+      "default": 0.5
+    }
+  ]
+}

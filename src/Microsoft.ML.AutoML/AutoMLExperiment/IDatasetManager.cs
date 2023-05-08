@@ -17,6 +17,8 @@ namespace Microsoft.ML.AutoML
         int? Fold { get; set; }
 
         IDataView Dataset { get; set; }
+
+        string SamplingKeyColumnName { get; set; }
     }
 
     internal interface ITrainValidateDatasetManager
@@ -38,5 +40,6 @@ namespace Microsoft.ML.AutoML
         public IDataView Dataset { get; set; }
 
         public int? Fold { get; set; }
+        public string SamplingKeyColumnName { get; set; }
     }
 }

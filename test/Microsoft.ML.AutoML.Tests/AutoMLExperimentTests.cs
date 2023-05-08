@@ -224,7 +224,7 @@ namespace Microsoft.ML.AutoML.Test
             experiment.SetDataset(context.Data.TrainTestSplit(data))
                     .SetBinaryClassificationMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(1);
+                    .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.8);
@@ -274,7 +274,7 @@ namespace Microsoft.ML.AutoML.Test
             experiment.SetDataset(data, 5)
                     .SetBinaryClassificationMetric(BinaryClassificationMetric.AreaUnderRocCurve, DatasetUtil.UciAdultLabel)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(10);
+                    .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.8);
@@ -301,7 +301,7 @@ namespace Microsoft.ML.AutoML.Test
             experiment.SetDataset(data, 5)
                     .SetMulticlassClassificationMetric(MulticlassClassificationMetric.MacroAccuracy, label)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(10);
+                    .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.8);
@@ -328,7 +328,7 @@ namespace Microsoft.ML.AutoML.Test
             experiment.SetDataset(context.Data.TrainTestSplit(data))
                     .SetMulticlassClassificationMetric(MulticlassClassificationMetric.MacroAccuracy, label)
                     .SetPipeline(pipeline)
-                    .SetTrainingTimeInSeconds(10);
+                    .SetMaxModelToExplore(1);
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.8);
@@ -378,6 +378,26 @@ namespace Microsoft.ML.AutoML.Test
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.5);
+        }
+
+        [Fact]
+        public async Task AutoMLExperiment_Taxi_Fare_CV_5_SamplingKey_Test()
+        {
+            var context = new MLContext(1);
+            var train = DatasetUtil.GetTaxiFareTrainDataView();
+            var experiment = context.Auto().CreateExperiment();
+            var label = DatasetUtil.TaxiFareLabel;
+            var pipeline = context.Auto().Featurizer(train, excludeColumns: new[] { label })
+                                .Append(context.Auto().Regression(label, useLgbm: false, useSdca: false, useLbfgsPoissonRegression: false));
+
+            experiment.SetDataset(train, 5, "vendor_id")
+                    .SetRegressionMetric(RegressionMetric.RSquared, label)
+                    .SetPipeline(pipeline)
+                    .SetMaxModelToExplore(1);
+
+            var result = await experiment.RunAsync();
+            result.Metric.Should().BeGreaterThan(0.2);
+            result.Metric.Should().BeLessThan(0.5);
         }
 
         [Fact]

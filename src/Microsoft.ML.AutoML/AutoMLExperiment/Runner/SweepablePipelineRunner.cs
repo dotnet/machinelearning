@@ -40,7 +40,7 @@ namespace Microsoft.ML.AutoML
             var mlnetPipeline = _pipeline.BuildFromOption(_mLContext, parameter);
             if (_datasetManager is ICrossValidateDatasetManager crossValidateDatasetManager)
             {
-                var datasetSplit = _mLContext!.Data.CrossValidationSplit(crossValidateDatasetManager.Dataset, crossValidateDatasetManager.Fold ?? 5);
+                var datasetSplit = _mLContext!.Data.CrossValidationSplit(crossValidateDatasetManager.Dataset, crossValidateDatasetManager.Fold ?? 5, crossValidateDatasetManager.SamplingKeyColumnName);
                 var metrics = new List<double>();
                 var models = new List<ITransformer>();
                 foreach (var split in datasetSplit)

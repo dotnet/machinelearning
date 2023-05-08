@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Transforms.Image;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using static Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator;
 
 namespace Microsoft.ML.Data
 {
@@ -123,6 +125,30 @@ namespace Microsoft.ML.Data
             {
                 Debug.Assert(_image is not null);
                 _pixelFormat = value;
+            }
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "<Pending>")]
+        public byte[] GetBGRPixels
+        {
+            get
+            {
+                ThrowInvalidOperationExceptionIfDisposed();
+
+                // 3 is because we only want RGB not alpha channels
+                byte[] pixels = new byte[Height * Width * 3];
+
+                var pixelData = _image.Pixels;
+                int idx = 0;
+                for (int i = 0; i < Height * Width * 3;)
+                {
+
+                    pixels[i++] = pixelData[idx].Blue;
+                    pixels[i++] = pixelData[idx].Green;
+                    pixels[i++] = pixelData[idx++].Red;
+                }
+
+                return pixels;
             }
         }
 

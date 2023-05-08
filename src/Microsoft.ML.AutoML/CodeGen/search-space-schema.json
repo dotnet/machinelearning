@@ -145,7 +145,8 @@
         "matrix_factorization_option",
         "dnn_featurizer_image_option",
         "text_classification_option",
-        "sentence_similarity_option"
+        "sentence_similarity_option",
+        "object_detection_option"
       ]
     },
     "option_name": {
@@ -198,7 +199,17 @@
         "Epoch",
         "Architecture",
         "AddKeyValueAnnotationsAsText",
-        "Arch"
+        "Arch",
+        "PredictedLabelColumnName",
+        "PredictedBoundingBoxColumnName",
+        "BoundingBoxColumnName",
+        "ImageColumnName",
+        "IOUThreshold",
+        "ScoreThreshold",
+        "Steps",
+        "MaxEpoch",
+        "InitLearningRate",
+        "WeightDecay"
       ]
     },
     "option_type": {
