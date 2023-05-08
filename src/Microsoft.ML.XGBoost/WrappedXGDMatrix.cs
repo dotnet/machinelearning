@@ -80,8 +80,10 @@ namespace Microsoft.ML.Trainers.XGBoost
             }
         }
 
+#if false
         public Span<float> GetLabels()
         {
+            // FIXME -- some issue with the span serializer
             int errp = WrappedXGBoostInterface.XGDMatrixGetFloatInfo(_handle, "label", out ulong labellen, out Span<float> result);
             if (errp == -1)
             {
@@ -90,6 +92,22 @@ namespace Microsoft.ML.Trainers.XGBoost
             }
             return result;
         }
+#else
+        public float[] GetLabels()
+        {
+            unsafe
+            {
+                float* arrayPtr;
+                ulong length;
+                WrappedXGBoostInterface.XGDMatrixGetFloatInfo(_handle, "label", out length, out arrayPtr);
+
+                // Marshal the native array into a managed array
+                float[] managedArray = new float[length];
+                Marshal.Copy((IntPtr)arrayPtr, managedArray, 0, (int)length);
+                return managedArray;
+            }
+        }
+#endif
 
 
         public void Dispose()

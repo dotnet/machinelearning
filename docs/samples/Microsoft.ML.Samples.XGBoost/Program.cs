@@ -4,6 +4,9 @@ using Microsoft.ML.Data;
 
 using Microsoft.ML.Trainers.XGBoost;
 using Newtonsoft.Json.Linq;
+using Microsoft.Data.Analysis;
+using Microsoft.ML.SamplesUtils;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Microsoft.ML.Samples.XGBoost
 {
@@ -11,15 +14,25 @@ namespace Microsoft.ML.Samples.XGBoost
     {
         public static void Main(string[] args)
         {
+            var vm = XGBoostUtils.XgbMajorVersion();
+            Console.WriteLine($"The output of checking the version is [{vm.Major}.{vm.Minor}]");
+
+
+            var housingDSet = DatasetUtils.GetFilePathFromDataDirectory("boston_housing.csv");
+            Console.WriteLine($"I'm reading a dataset from {housingDSet}");
+            Console.WriteLine($"The build information on the XGBoost library is {XGBoostUtils.BuildInfo()}");
+
             // Create a new context for ML.NET operations. It can be used for
             // exception tracking and logging, as a catalog of available operations
             // and as the source of randomness. Setting the seed to a fixed number
             // in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
+#if false
             // Create a list of training data points.
-            var dataPoints = GenerateRandomDataPoints(20/*00*/);
+            var dataPoints = GenerateRandomDataPoints(250);
 
+#if false
             foreach (var dataPoint in dataPoints)
             {
                 var feats = dataPoint.Features;
@@ -29,17 +42,38 @@ namespace Microsoft.ML.Samples.XGBoost
                     Console.WriteLine($"features: [{strVec}], label: {dataPoint.Label}");
                 }
             }
+#endif
+
 
             // Convert the list of data points to an IDataView object, which is
             // consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
+#else
+            var df = DataFrame.LoadCsv(housingDSet);
+            var trainingData = (df as IDataView);
+            foreach (var c in trainingData.Schema)
+            {
+                Console.WriteLine($"Column {c.Name} is of type {c.Type}");
+            }
+
+            string[] featureColNames = { "CRIM", "ZN", "INDUS", "CHAS", "NOX", "RM", "AGE", "DIS", "RAD", "TAX", "PTRATIO", "B", "LSTAT" };
+            Console.WriteLine($"Feature columns is of length: {featureColNames.Length}.");
+
+            Console.WriteLine($"The schema of this is {trainingData.Schema}");
+
+            var prepPipeline = mlContext.Transforms.Concatenate("Features", featureColNames);
+            var trainingDataClean = prepPipeline.Fit(trainingData).Transform(trainingData);
+            Console.WriteLine($"After preprocessing, the schema is: {trainingDataClean.Schema}.");
+#endif
 
 #if true
             // Define the trainer.
             var pipeline = mlContext.Regression.Trainers.
                 XGBoost(
-                labelColumnName: nameof(DataPoint.Label),
-                featureColumnName: nameof(DataPoint.Features),
+                //labelColumnName: nameof(DataPoint.Label),
+                labelColumnName: "MEDV",
+        //featureColumnName: nameof(DataPoint.Features),
+        featureColumnName: "Features",
         numberOfLeaves: 8
         );
 #else
@@ -57,8 +91,19 @@ namespace Microsoft.ML.Samples.XGBoost
              });
 #endif
 
+#if false
+            try
+            {
+#endif
             // Train the model.
-            var model = pipeline.Fit(trainingData);
+            var model = pipeline.Fit(/* trainingData */ trainingDataClean);
+#if false
+        }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"In top level: Exception: {ex.Message}");
+            }
+#endif
 
 #if false
             // Create testing data. Use different random seed to make it different
@@ -77,7 +122,9 @@ namespace Microsoft.ML.Samples.XGBoost
             // Label for comparison.
             foreach (var p in predictions)
                 Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
+#endif
 
+#if false
             // Expected output:
             //   Label: 0.985, Prediction: 0.864
             //   Label: 0.155, Prediction: 0.164
@@ -94,14 +141,7 @@ namespace Microsoft.ML.Samples.XGBoost
             //   Mean Squared Error: 0.01
             //   Root Mean Squared Error: 0.11
             //   RSquared: 0.89 (closer to 1 is better. The worst case is 0)
-#else
-            //            var v =
-            //	    XGBoost.XGBoostVersion v;
-            var vm = XGBoostUtils.XgbMajorVersion();
-            Console.WriteLine($"The output of checking the version is [{vm.Major}.{vm.Minor}]");
 #endif
-
-            Console.WriteLine($"The build information on the XGBoost library is {XGBoostUtils.BuildInfo()}");
             Console.WriteLine("*** Done!!!");
         }
 

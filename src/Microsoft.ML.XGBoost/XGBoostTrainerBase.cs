@@ -325,8 +325,8 @@ if (NumberOfThreads.HasValue)
             }
             finally
             {
+                //dtrain?.Dispose();
 #if false
-                dtrain?.Dispose();
                 dvalid?.Dispose();
                 DisposeParallelTraining();
 #endif
@@ -408,8 +408,13 @@ if (NumberOfThreads.HasValue)
                 }
             }
             var flatArray = (acc.ToArray()).SelectMany(x => x).ToArray();
+            Console.WriteLine($"I should be loading a matrix of length {flatArray.Length}, which means a colDim: {featureDimensionality} and rowDim: {numRows}...");
 
             DMatrix dmat = new DMatrix(flatArray, (uint)numRows, (uint)featureDimensionality, accLabels.ToArray());
+            Console.WriteLine($"Created a matrix with {dmat.GetNumRows()} rows and {dmat.GetNumCols()} columns.");
+#if false
+            Console.WriteLine($"The labels are of length {dmat.GetLabels().Length} elements.");
+#endif
             return dmat;
         }
 
@@ -424,7 +429,7 @@ if (NumberOfThreads.HasValue)
             Host.CheckAlive();
 #endif
 
-#if true
+#if false
             Console.WriteLine("**** Trying to get labels");
             var labfrommat = dtrain.GetLabels();
             Console.WriteLine($"Got labels of length {labfrommat.Length}.");
@@ -435,15 +440,26 @@ if (NumberOfThreads.HasValue)
             {
                 ch.Info("XGBoost objective={0}", GbmOptions["objective"]);
                 Console.WriteLine("XGBoost objective={0}", GbmOptions["objective"]);
+#if false
+                try
+                {
+#endif
                 using (Booster bst = WrappedXGBoostTraining.Train(Host, ch, pch, GbmOptions, dtrain
 #if false
                ,dvalid: dvalid, numIteration: LightGbmTrainerOptions.NumberOfIterations,
                 verboseEval: LightGbmTrainerOptions.Verbose, earlyStoppingRound: LightGbmTrainerOptions.EarlyStoppingRound)
 #endif
-                 ))
+                     ))
                 {
                     TrainedEnsemble = bst.DumpModel();
                 }
+#if false
+            }
+                catch (Exception e)
+                {
+                    Console.WriteLine("In TrainCore --- Something went wrong: {0}", e.Message);
+                }
+#endif
             }
 
         }

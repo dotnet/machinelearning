@@ -98,6 +98,7 @@ namespace Microsoft.ML.Trainers.XGBoost
 
         }
 
+#if false
         public float[] Predict(DMatrix test)
         {
             ulong predsLen;
@@ -120,6 +121,7 @@ namespace Microsoft.ML.Trainers.XGBoost
             }
             return XGBoostInterfaceUtils.GetPredictionsArray(predsPtr, predsLen);
         }
+#endif
 
         public void SetParameters(Dictionary<string, object> parameters)
         {

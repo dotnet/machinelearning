@@ -14,18 +14,13 @@
   -->
   </PropertyGroup>
 
-
-  <!--
-  <ItemGroup>
-    <Compile Remove="Dynamic\Transforms\CountTargetEncoding.cs" />
-  </ItemGroup>
-  -->
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Microsoft.ML.XGBoost\Microsoft.ML.XGBoost.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.Data.Analysis\Microsoft.Data.Analysis.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.SamplesUtils\Microsoft.ML.SamplesUtils.csproj" />
   </ItemGroup>
 
 </Project>

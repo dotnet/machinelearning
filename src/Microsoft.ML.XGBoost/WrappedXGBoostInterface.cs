@@ -51,8 +51,12 @@ namespace Microsoft.ML.Trainers.XGBoost
         public static partial int XGDMatrixNumCol(IntPtr handle, out ulong ncols);
 
         [LibraryImport(DllName, EntryPoint = "XGDMatrixGetFloatInfo", StringMarshalling = StringMarshalling.Utf8)]
+#if false
         public static partial int XGDMatrixGetFloatInfo(IntPtr handle, string field,
                                                                out ulong len, [MarshalUsing(CountElementName = "len")] out Span<float> result);
+#else
+        public static unsafe partial int XGDMatrixGetFloatInfo(IntPtr handle, string field, out ulong length, out float* arrayPtr);
+#endif
 
         [LibraryImport(DllName, EntryPoint = "XGDMatrixSetFloatInfo", StringMarshalling = StringMarshalling.Utf8)]
         public static partial int XGDMatrixSetFloatInfo(IntPtr handle, string field,
@@ -130,6 +134,7 @@ namespace Microsoft.ML.Trainers.XGBoost
             }
         }
 
+#if false
         public static float[] GetPredictionsArray(IntPtr predsPtr, ulong predsLen)
         {
             var length = unchecked((int)predsLen);
@@ -145,6 +150,7 @@ namespace Microsoft.ML.Trainers.XGBoost
             }
             return preds;
         }
+#endif
 
         /// <summary>
         /// Helper function used for generating the LightGbm argument name.

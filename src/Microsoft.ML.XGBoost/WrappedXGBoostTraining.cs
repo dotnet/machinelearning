@@ -122,10 +122,17 @@ namespace Microsoft.ML.Trainers.XGBoost
 
             // TODO: Pass all configuration parameters to the booster.
             bst.SetParameter("objective", "reg:squarederror");
-            bst.SetParameter("booster", "gbtree");
-            bst.SetParameter("max_depth", "3");
-            bst.SetParameter("seed", "0");
-            bst.SetParameter("nthread", "1");
+            //bst.SetParameter("tree_method", "exact");
+            bst.SetParameter("tree_method", "hist");
+            bst.SetParameter("max_depth", "2");
+            //bst.SetParameter("nthread", "1");
+            /*
+bst.SetParameter("booster", "gbtree");
+bst.SetParameter("max_depth", "3");
+bst.SetParameter("min_child_weight", "1000");
+bst.SetParameter("seed", "0");
+*/
+            // bst.SetParameter("nthread", "1");
 
 #if false
             XGBoosterSetParam(booster, "booster", "gbtree");
