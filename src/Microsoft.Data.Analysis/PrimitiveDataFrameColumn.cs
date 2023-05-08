@@ -228,7 +228,7 @@ namespace Microsoft.Data.Analysis
             PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices(out Int64DataFrameColumn _);
             long middle = sortIndices.Length / 2;
             double middleValue = (double)Convert.ChangeType(this[sortIndices[middle].Value].Value, typeof(double));
-            if (Length % 2 == 0)
+            if (sortIndices.Length % 2 == 0)
             {
                 double otherMiddleValue = (double)Convert.ChangeType(this[sortIndices[middle - 1].Value].Value, typeof(double));
                 return (middleValue + otherMiddleValue) / 2;
@@ -243,7 +243,7 @@ namespace Microsoft.Data.Analysis
         {
             if (Length == 0)
                 return 0;
-            return (double)Convert.ChangeType((T)Sum(), typeof(double)) / Length;
+            return (double)Convert.ChangeType((T)Sum(), typeof(double)) / (Length - NullCount);
         }
 
         protected internal override void Resize(long length)

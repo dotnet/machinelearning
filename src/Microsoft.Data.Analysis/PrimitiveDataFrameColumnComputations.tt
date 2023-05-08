@@ -19,7 +19,7 @@ using System.Collections.Generic;
 namespace Microsoft.Data.Analysis
 {
     internal interface IPrimitiveColumnComputation<T>
-        where T : struct
+        where T : unmanaged
     {
 <# foreach (MethodConfiguration compMethod in computationMethodConfiguration) { #>
 <# if (compMethod.MethodType == MethodType.ElementwiseComputation && compMethod.HasReturnValue == false && compMethod.SupportsRowSubsets == true) {#>
@@ -39,7 +39,7 @@ namespace Microsoft.Data.Analysis
     }
 
     internal static class PrimitiveColumnComputation<T>
-        where T : struct
+        where T : unmanaged
     {
         public static IPrimitiveColumnComputation<T> Instance { get; } = PrimitiveColumnComputation.GetComputation<T>();
     }
@@ -47,7 +47,7 @@ namespace Microsoft.Data.Analysis
     internal static class PrimitiveColumnComputation
     {
         public static IPrimitiveColumnComputation<T> GetComputation<T>()
-            where T : struct
+            where T : unmanaged
         {
 <# foreach (TypeConfiguration type in typeConfiguration) { #>
             <#=GenerateIfStatementHeader(type)#>
@@ -202,36 +202,41 @@ namespace Microsoft.Data.Analysis
                 var mutableSpan = mutableBuffer.Span;
 <# } #>
                 var readOnlySpan = buffer.ReadOnlySpan;
+                var readOnlyBitMapSpan = column.NullBitMapBuffers[b].ReadOnlySpan;
+
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
+                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    {
 <# if (method.MethodName == "CumulativeMax") { #>
-                    ret = (<#=type.TypeName#>)(Math.Max(readOnlySpan[i], ret));
-                    mutableSpan[i] = ret;
+                        ret = (<#=type.TypeName#>)(Math.Max(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
 <# } #>
 <# if (method.MethodName == "CumulativeMin") { #>
-                    ret = (<#=type.TypeName#>)(Math.Min(readOnlySpan[i], ret));
-                    mutableSpan[i] = ret;
+                        ret = (<#=type.TypeName#>)(Math.Min(readOnlySpan[i], ret));
+                        mutableSpan[i] = ret;
 <# } #>
 <# if (method.MethodName == "CumulativeProduct") { #>
-                    ret = (<#=type.TypeName#>)(readOnlySpan[i] * ret);
-                    mutableSpan[i] = ret;
+                        ret = (<#=type.TypeName#>)(readOnlySpan[i] * ret);
+                        mutableSpan[i] = ret;
 <# } #>
 <# if (method.MethodName == "CumulativeSum") { #>
-                    ret = (<#=type.TypeName#>)(readOnlySpan[i] + ret);
-                    mutableSpan[i] = ret;
+                        ret = (<#=type.TypeName#>)(readOnlySpan[i] + ret);
+                        mutableSpan[i] = ret;
 <# } #>
 <# if (method.MethodName == "Max") { #>
-                    ret = (<#=type.TypeName#>)(Math.Max(readOnlySpan[i], ret));
+                        ret = (<#=type.TypeName#>)(Math.Max(readOnlySpan[i], ret));
 <# } #>
 <# if (method.MethodName == "Min") { #>
-                    ret = (<#=type.TypeName#>)(Math.Min(readOnlySpan[i], ret));
+                        ret = (<#=type.TypeName#>)(Math.Min(readOnlySpan[i], ret));
 <# } #>
 <# if (method.MethodName == "Product") { #>
-                    ret = (<#=type.TypeName#>)(readOnlySpan[i] * ret);
+                        ret = (<#=type.TypeName#>)(readOnlySpan[i] * ret);
 <# } #>
 <# if (method.MethodName == "Sum") { #>
-                    ret = (<#=type.TypeName#>)(readOnlySpan[i] + ret);
+                        ret = (<#=type.TypeName#>)(readOnlySpan[i] + ret);
 <# } #>
+                    }
                 }
 <# if (method.MethodName == "CumulativeMax" || method.MethodName == "CumulativeMin" || method.MethodName == "CumulativeProduct" || method.MethodName == "CumulativeSum") { #>
                 column.Buffers[b] = mutableBuffer;

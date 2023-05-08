@@ -18,6 +18,10 @@
             <Generator>TextTemplatingFileGenerator</Generator>
             <LastGenOutput>DataFrameColumn.BinaryOperationTests.cs</LastGenOutput>
         </None>
+        <None Update="PrimitiveDataFrameColumnComputationsTests.tt">
+          <Generator>TextTemplatingFileGenerator</Generator>
+          <LastGenOutput>PrimitiveDataFrameColumnComputationsTests.cs</LastGenOutput>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -30,6 +34,11 @@
             <AutoGen>True</AutoGen>
             <DependentUpon>DataFrameColumn.BinaryOperationTests.tt</DependentUpon>
         </Compile>
+        <Compile Update="PrimitiveDataFrameColumnComputationsTests.cs">
+          <DesignTime>True</DesignTime>
+          <AutoGen>True</AutoGen>
+          <DependentUpon>PrimitiveDataFrameColumnComputationsTests.tt</DependentUpon>
+        </Compile>
     </ItemGroup>
 
     <ItemGroup>
@@ -40,7 +49,6 @@
     <ItemGroup>
       <PackageReference Include="System.Data.SQLite" Version="$(SystemDataSQLiteCoreVersion)" />
       <PackageReference Include="System.Data.SQLite.Core" Version="$(SystemDataSQLiteCoreVersion)" PrivateAssets="none" />
-
     </ItemGroup>
 
 </Project>
