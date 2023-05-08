@@ -2,13 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using FluentAssertions;
 using Microsoft.Data.Analysis;
 using Microsoft.ML.AutoML;
-using Microsoft.ML.Data;
 using Microsoft.ML.Fairlearn.AutoML;
 using Microsoft.ML.Fairlearn.reductions;
 using Xunit;
@@ -29,13 +25,14 @@ namespace Microsoft.ML.Fairlearn.Tests
         {
             var context = new MLContext();
             var moment = new UtilityParity();
-            var X = this.CreateDummyDataset();
+            var X = CreateDummyDataset();
             moment.LoadData(X, X["y_true"], X["sensitiveFeature"] as StringDataFrameColumn);
 
             var searchSpace = Utilities.GenerateBinaryClassificationLambdaSearchSpace(moment, 5);
             searchSpace.Keys.Should().BeEquivalentTo("a_pos", "a_neg", "b_pos", "b_neg");
 
         }
+
         private DataFrame CreateDummyDataset()
         {
             var df = new DataFrame();
@@ -64,16 +61,18 @@ namespace Microsoft.ML.Fairlearn.Tests
             }
             var df = new DataFrame();
             df["score_feature"] = DataFrameColumn.Create("score_feature", score_feature);
-            df["y"] = DataFrameColumn.Create("y", new[] { false, false, false, false, false, false, false,  true,  true,
-        true,  true,  true,  true,  true,  true,  true,  true,  true,
-        true,  true,  true,  true,  true,  true,  true,  true,  true,
-        true,  true,  true,  true, false, false, false, false, false,
-       false, false, false, false, false, false, false, false, false,
-        true,  true,  true,  true,  true,  true,  true });
+            df["y"] = DataFrameColumn.Create("y", new[] {
+                false, false, false, false, false, false, false,  true,  true,
+                true,  true,  true,  true,  true,  true,  true,  true,  true,
+                true,  true,  true,  true,  true,  true,  true,  true,  true,
+                true,  true,  true,  true, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false,
+                true,  true,  true,  true,  true,  true,  true });
             df["sensitiveFeature"] = DataFrameColumn.Create("sensitiveFeature", new[] { "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "3", "3", "3", "3", "3", "3", "3", "3", "3", "3", "3", "3", "3", "3", "3", "3", "3", "3", "3", "3", "3" });
 
             return df;
         }
+
         /// <summary>
         /// This trial runner run the tests from Grid searh for Binary Classification.ipynb
         /// </summary>

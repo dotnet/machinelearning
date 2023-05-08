@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using Microsoft.Data.Analysis;
 
-
 namespace Microsoft.ML.Fairlearn.reductions
 {
     /// <summary>
@@ -84,6 +83,7 @@ namespace Microsoft.ML.Fairlearn.reductions
             //Here the "label" column is just a dummy column for the end goal of getting the number of data rows
             ProbGroupEvent = Tags.GroupBy("group_id").Count()["label"] / (TotalSamples * 1.0);
         }
+
         /// <summary>
         /// Calculate the degree to which constraints are currently violated by the predictor.
         /// </summary>

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using Microsoft.Data.Analysis;
 using Microsoft.ML.Data;
@@ -145,6 +144,7 @@ namespace Microsoft.ML.Fairlearn
             public float Score { get; set; }
         }
     }
+
     public class RegressionGroupMetric : IGroupMetric
     {
         private readonly IDataView _eval;
@@ -240,7 +240,6 @@ namespace Microsoft.ML.Fairlearn
             return result;
         }
 
-
         public Dictionary<string, double> DifferenceBetweenGroups()
         {
             Dictionary<string, double> diffDict = new Dictionary<string, double>();
@@ -249,6 +248,7 @@ namespace Microsoft.ML.Fairlearn
             diffDict.Add("RMS", Math.Abs((double)groupMetrics["RMS"].Max() - (double)groupMetrics["RMS"].Min()));
             diffDict.Add("MSE", Math.Abs((double)groupMetrics["MSE"].Max() - (double)groupMetrics["MSE"].Min()));
             diffDict.Add("MAE", Math.Abs((double)groupMetrics["MAE"].Max() - (double)groupMetrics["MAE"].Min()));
+
             return diffDict;
         }
 
@@ -257,13 +257,15 @@ namespace Microsoft.ML.Fairlearn
             RegressionMetrics metrics = _context.Regression.Evaluate(_eval, _labelColumn);
 
             // create the dictionary to hold the results
-            Dictionary<string, double> metricsDict = new Dictionary<string, double>();
-            metricsDict.Add("RSquared", metrics.RSquared);
-            metricsDict.Add("RMS", metrics.RootMeanSquaredError);
-            metricsDict.Add("MSE", metrics.MeanSquaredError);
-            metricsDict.Add("MAE", metrics.MeanAbsoluteError);
+            Dictionary<string, double> metricsDict = new Dictionary<string, double>
+            {
+                { "RSquared", metrics.RSquared },
+                { "RMS", metrics.RootMeanSquaredError },
+                { "MSE", metrics.MeanSquaredError },
+                { "MAE", metrics.MeanAbsoluteError }
+            };
+
             return metricsDict;
         }
-
     }
 }

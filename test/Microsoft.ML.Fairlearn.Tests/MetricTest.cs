@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
 using System;
 using System.Collections.Generic;
 using Microsoft.Data.Analysis;
-using Microsoft.ML.Data;
 using Xunit;
-
 
 namespace Microsoft.ML.Fairlearn.Tests
 {
@@ -21,6 +18,7 @@ namespace Microsoft.ML.Fairlearn.Tests
             mlContext = new MLContext();
             data = mlContext.Data.LoadFromEnumerable(houseData);
         }
+
         public class HouseData
         {
             public float Size { get; set; }
