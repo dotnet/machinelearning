@@ -21,7 +21,7 @@
     <SystemCodeDomVersion>4.5.0</SystemCodeDomVersion>
     <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
-    <SystemMemoryVersion>4.5.3</SystemMemoryVersion>
+    <SystemMemoryVersion>4.5.5</SystemMemoryVersion>
     <SystemReflectionEmitLightweightVersion>4.3.0</SystemReflectionEmitLightweightVersion>
     <SystemReflectionEmitVersion>4.3.0</SystemReflectionEmitVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>6.0.0</SystemRuntimeCompilerServicesUnsafeVersion>
@@ -37,19 +37,31 @@
     <MicrosoftCodeAnalysisCSharpVersion>3.9.0</MicrosoftCodeAnalysisCSharpVersion>
     <MicrosoftDotNetInteractiveFormattingVersion>1.0.0-beta.22504.6</MicrosoftDotNetInteractiveFormattingVersion>
     <MicrosoftDotNetInteractiveVersion>1.0.0-beta.22504.6</MicrosoftDotNetInteractiveVersion>
-    <MicrosoftMLOnnxRuntimeVersion>1.10.0</MicrosoftMLOnnxRuntimeVersion>
+    <MicrosoftMLOnnxRuntimeVersion>1.14.0</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
+    <!--  
+@("inteltbb.devel", "win", "2021.7.1.15305")
+    -->
+    <OneDalPkgVersion Condition="'$(OS)' == 'Windows_NT'">2023.0.0.23189</OneDalPkgVersion>
+    <OneDalPkgVersion Condition="'$(OS)' != 'Windows_NT'">2023.0.0.23046</OneDalPkgVersion>
+    <OneDalPkgVersion Condition="$([MSBuild]::IsOSPlatform('osx'))">2023.0.0.22995</OneDalPkgVersion>
+    <OneDalDevelPkgVersion>2023.0.0.23189</OneDalDevelPkgVersion>
+    <OneTbbPkgVersion Condition="'$(OS)' == 'Windows_NT'">2021.7.1.15305</OneTbbPkgVersion>
+    <OneTbbPkgVersion Condition="'$(OS)' != 'Windows_NT'">2021.7.1.15005</OneTbbPkgVersion>
+    <OneTbbPkgVersion Condition="$([MSBuild]::IsOSPlatform('osx'))">2021.7.1.14939</OneTbbPkgVersion>
+    <OneDalMajorBinaryVersion>1</OneDalMajorBinaryVersion>
+    <OneDalMinorBinaryVersion>1</OneDalMinorBinaryVersion>
     <MSTestTestAdapterVersion>2.1.0</MSTestTestAdapterVersion>
     <MSTestTestFrameworkVersion>2.1.0</MSTestTestFrameworkVersion>
     <NewtonsoftJsonVersion>13.0.1</NewtonsoftJsonVersion>
     <ParquetDotNetVersion>2.1.3</ParquetDotNetVersion>
     <PlotlyNETCSharpVersion>0.0.1</PlotlyNETCSharpVersion>
-    <SharpZipLibVersion>1.3.3</SharpZipLibVersion>
+    <SharpZipLibVersion>1.4.0</SharpZipLibVersion>
     <TensorflowDotNETVersion>0.20.1</TensorflowDotNETVersion>
     <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
     <TensorFlowVersion>2.3.1</TensorFlowVersion>
-    <TorchSharpVersion>0.98.3</TorchSharpVersion>
-    <LibTorchVersion>1.11.0.1</LibTorchVersion>
+    <TorchSharpVersion>0.99.5</TorchSharpVersion>
+    <LibTorchVersion>1.13.0.1</LibTorchVersion>
     <!-- Build/infrastructure Dependencies -->
     <CodecovVersion>1.12.4</CodecovVersion>
     <CoverletCollectorVersion>3.1.2</CoverletCollectorVersion>
@@ -64,9 +76,10 @@
     <ApprovalTestsVersion>5.4.7</ApprovalTestsVersion>
     <BenchmarkDotNetVersion>0.12.0</BenchmarkDotNetVersion>
     <DotNetRuntime60Version>6.0.9</DotNetRuntime60Version>
+    <DotNetRuntime80Version>8.0.0-preview.3.23174.8</DotNetRuntime80Version>
     <FluentAssertionVersion>5.10.2</FluentAssertionVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.22512.1</MicrosoftCodeAnalysisTestingVersion>
-    <MicrosoftDotNetXUnitExtensionsVersion>7.0.0-beta.22572.6</MicrosoftDotNetXUnitExtensionsVersion>
+    <MicrosoftDotNetXUnitExtensionsVersion>7.0.0-beta.23228.7</MicrosoftDotNetXUnitExtensionsVersion>
     <MicrosoftExtensionsDependencyModelVersion>2.1.0</MicrosoftExtensionsDependencyModelVersion>
     <MicrosoftExtensionsTestVersion>3.0.1</MicrosoftExtensionsTestVersion>
     <MicrosoftMLOnnxTestModelsVersion>0.0.6-test</MicrosoftMLOnnxTestModelsVersion>

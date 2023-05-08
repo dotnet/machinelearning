@@ -250,8 +250,12 @@ namespace Microsoft.ML.Data
         {
             Host.AssertValue(predicate, "predicate");
 
+#if false
             // Prefer parallel cursors iff some of our columns are active, otherwise, don't care.
             return _bindings.AnyNewColumnsActive(predicate);
+#else
+            return false;
+#endif
         }
 
         private protected override IDataTransform ApplyToDataCore(IHostEnvironment env, IDataView newSource)

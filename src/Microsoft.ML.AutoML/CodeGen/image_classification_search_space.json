@@ -16,6 +16,21 @@
       "name": "FeatureColumnName",
       "type": "string",
       "default": "Feature"
+    },
+    {
+      "name": "Arch",
+      "type": "imageClassificationArchType",
+      "default": "ResnetV250"
+    },
+    {
+      "name": "BatchSize",
+      "type": "integer",
+      "default": 10
+    },
+    {
+      "name": "Epoch",
+      "type": "integer",
+      "default": 200
     }
   ]
 }

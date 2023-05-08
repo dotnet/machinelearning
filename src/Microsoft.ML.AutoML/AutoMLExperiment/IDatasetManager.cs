@@ -17,20 +17,22 @@ namespace Microsoft.ML.AutoML
         int? Fold { get; set; }
 
         IDataView Dataset { get; set; }
+
+        string SamplingKeyColumnName { get; set; }
     }
 
-    internal interface ITrainTestDatasetManager
+    internal interface ITrainValidateDatasetManager
     {
         IDataView TrainDataset { get; set; }
 
-        IDataView TestDataset { get; set; }
+        IDataView ValidateDataset { get; set; }
     }
 
-    internal class TrainTestDatasetManager : IDatasetManager, ITrainTestDatasetManager
+    internal class TrainValidateDatasetManager : IDatasetManager, ITrainValidateDatasetManager
     {
         public IDataView TrainDataset { get; set; }
 
-        public IDataView TestDataset { get; set; }
+        public IDataView ValidateDataset { get; set; }
     }
 
     internal class CrossValidateDatasetManager : IDatasetManager, ICrossValidateDatasetManager
@@ -38,5 +40,6 @@ namespace Microsoft.ML.AutoML
         public IDataView Dataset { get; set; }
 
         public int? Fold { get; set; }
+        public string SamplingKeyColumnName { get; set; }
     }
 }

@@ -342,3 +342,6 @@ dotnet_style_readonly_field = false
 # IDE0073: Dont want license file header in code we are using from elsewhere
 dotnet_diagnostic.IDE0073.severity = none
 file_header_template = unset
+
+[**/*.generated.cs]
+generated_code = true

@@ -27,10 +27,10 @@ namespace Microsoft.ML.AutoML
         /// <returns><see cref="AutoMLExperiment"/></returns>
         public static AutoMLExperiment SetDataset(this AutoMLExperiment experiment, IDataView train, IDataView validation)
         {
-            var datasetManager = new TrainTestDatasetManager()
+            var datasetManager = new TrainValidateDatasetManager()
             {
                 TrainDataset = train,
-                TestDataset = validation
+                ValidateDataset = validation
             };
 
             experiment.ServiceCollection.AddSingleton<IDatasetManager>(datasetManager);
@@ -57,14 +57,16 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
         /// <param name="dataset">dataset for cross-validation split.</param>
-        /// <param name="fold"></param>
+        /// <param name="fold">number of cross-validation folds</param>
+        /// <param name="samplingKeyColumnName">column name for sampling key</param>
         /// <returns><see cref="AutoMLExperiment"/></returns>
-        public static AutoMLExperiment SetDataset(this AutoMLExperiment experiment, IDataView dataset, int fold = 10)
+        public static AutoMLExperiment SetDataset(this AutoMLExperiment experiment, IDataView dataset, int fold = 10, string samplingKeyColumnName = null)
         {
             var datasetManager = new CrossValidateDatasetManager()
             {
                 Dataset = dataset,
                 Fold = fold,
+                SamplingKeyColumnName = samplingKeyColumnName,
             };
 
             experiment.ServiceCollection.AddSingleton<IDatasetManager>(datasetManager);
@@ -149,14 +151,49 @@ namespace Microsoft.ML.AutoML
             return experiment;
         }
 
+        /// <summary>
+        /// Set <see cref="DefaultPerformanceMonitor"/> as <see cref="IPerformanceMonitor"/> for <see cref="AutoMLExperiment"/>.
+        /// </summary>
+        /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
+        /// <param name="checkIntervalInMilliseconds">the interval in milliseconds for <see cref="DefaultPerformanceMonitor"/> to sample <see cref="TrialPerformanceMetrics"/></param>
+        /// <returns></returns>
         public static AutoMLExperiment SetPerformanceMonitor(this AutoMLExperiment experiment, int checkIntervalInMilliseconds = 1000)
         {
             experiment.SetPerformanceMonitor((service) =>
             {
                 var channel = service.GetService<IChannel>();
-
-                return new DefaultPerformanceMonitor(channel, checkIntervalInMilliseconds);
+                var settings = service.GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+                return new DefaultPerformanceMonitor(settings, channel, checkIntervalInMilliseconds);
             });
+
+            return experiment;
+        }
+
+        /// <summary>
+        /// Set a custom performance monitor as <see cref="IPerformanceMonitor"/> for <see cref="AutoMLExperiment"/>.
+        /// </summary>
+        /// <typeparam name="TPerformanceMonitor"></typeparam>
+        /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
+        /// <param name="factory"></param>
+        /// <returns></returns>
+        public static AutoMLExperiment SetPerformanceMonitor<TPerformanceMonitor>(this AutoMLExperiment experiment, Func<IServiceProvider, TPerformanceMonitor> factory)
+            where TPerformanceMonitor : class, IPerformanceMonitor
+        {
+            experiment.ServiceCollection.AddTransient<IPerformanceMonitor>(factory);
+
+            return experiment;
+        }
+
+        /// <summary>
+        /// Set a custom performance monitor as <see cref="IPerformanceMonitor"/> for <see cref="AutoMLExperiment"/>.
+        /// </summary>
+        /// <typeparam name="TPerformanceMonitor"></typeparam>
+        /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
+        /// <returns></returns>
+        public static AutoMLExperiment SetPerformanceMonitor<TPerformanceMonitor>(this AutoMLExperiment experiment)
+            where TPerformanceMonitor : class, IPerformanceMonitor
+        {
+            experiment.ServiceCollection.AddTransient<IPerformanceMonitor, TPerformanceMonitor>();
 
             return experiment;
         }

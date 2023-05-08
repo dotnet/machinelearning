@@ -9,6 +9,11 @@
     {
       "name": "InputColumnName",
       "type": "string"
+    },
+    {
+      "name": "AddKeyValueAnnotationsAsText",
+      "type": "boolean",
+      "default": false
     }
   ]
 }

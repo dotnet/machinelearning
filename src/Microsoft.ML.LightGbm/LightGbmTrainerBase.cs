@@ -577,6 +577,13 @@ namespace Microsoft.ML.Trainers.LightGbm
             CheckAndUpdateParametersBeforeTraining(ch, trainData, labels, groups);
             string param = LightGbmInterfaceUtils.JoinParameters(GbmOptions);
 
+            Console.WriteLine("**************** LightGBM parameters: " /*+ param*/);
+            foreach (var k in GbmOptions.Keys)
+            {
+                Console.WriteLine(k + " " + GbmOptions[k]);
+            }
+            Console.WriteLine("****************");
+
             Dataset dtrain;
             // To reduce peak memory usage, only enable one sampling task at any given time.
             lock (LightGbmShared.SampleLock)

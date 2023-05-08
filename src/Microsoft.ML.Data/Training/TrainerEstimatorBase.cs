@@ -155,6 +155,7 @@ namespace Microsoft.ML.Trainers
             }
 
             var pred = TrainModelCore(new TrainContext(trainRoleMapped, validRoleMapped, null, initPredictor));
+            System.Console.WriteLine("pred is null: " + (pred == null));
             return MakeTransformer(pred, trainSet.Schema);
         }
 

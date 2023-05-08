@@ -526,6 +526,13 @@
       "searchOption": "sentence_similarity_option"
     },
     {
+      "functionName": "ObjectDetection",
+      "estimatorTypes": [ "MultiClassification" ],
+      "nugetDependencies": [ "Microsoft.ML", "Microsoft.ML.TorchSharp" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers", "Microsoft.ML.TorchSharp" ],
+      "searchOption": "object_detection_option"
+    },
+    {
       "functionName": "ForecastBySsa",
       "estimatorTypes": [ "Forecasting" ],
       "arguments": [
