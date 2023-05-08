@@ -10,11 +10,26 @@
       "type": "array",
       "items": { "type": "integer" }
     },
+    "imageClassificationArchArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/imageClassificationArchType"
+      }
+    },
     "dnnModelFactoryArray": {
       "type": "array",
       "items": {
         "$ref": "#/definitions/dnnModelFactoryType"
       }
+    },
+    "imageClassificationArchType": {
+      "type": "string",
+      "enum": [
+        "InceptionV3",
+        "MobilenetV2",
+        "ResnetV2101",
+        "ResnetV250"
+      ]
     },
     "dnnModelFactoryType": {
       "type": "string",
@@ -53,6 +68,9 @@
         },
         {
           "$ref": "#/definitions/dnnModelFactoryArray"
+        },
+        {
+          "$ref":  "#/definitions/imageClassificationArchArray"
         },
         {
           "$ref": "#/definitions/boolArray"
@@ -126,7 +144,9 @@
         "image_classification_option",
         "matrix_factorization_option",
         "dnn_featurizer_image_option",
-        "text_classification_option"
+        "text_classification_option",
+        "sentence_similarity_option",
+        "object_detection_option"
       ]
     },
     "option_name": {
@@ -176,7 +196,20 @@
         "Sentence2ColumnName",
         "BatchSize",
         "MaxEpochs",
-        "Architecture"
+        "Epoch",
+        "Architecture",
+        "AddKeyValueAnnotationsAsText",
+        "Arch",
+        "PredictedLabelColumnName",
+        "PredictedBoundingBoxColumnName",
+        "BoundingBoxColumnName",
+        "ImageColumnName",
+        "IOUThreshold",
+        "ScoreThreshold",
+        "Steps",
+        "MaxEpoch",
+        "InitLearningRate",
+        "WeightDecay"
       ]
     },
     "option_type": {
@@ -193,7 +226,8 @@
         "colorsOrder",
         "anchor",
         "dnnModelFactory",
-        "bertArchitecture"
+        "bertArchitecture",
+        "imageClassificationArchType"
       ]
     }
   },

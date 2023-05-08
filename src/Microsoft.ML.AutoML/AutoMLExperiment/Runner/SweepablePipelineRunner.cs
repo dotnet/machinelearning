@@ -40,7 +40,7 @@ namespace Microsoft.ML.AutoML
             var mlnetPipeline = _pipeline.BuildFromOption(_mLContext, parameter);
             if (_datasetManager is ICrossValidateDatasetManager crossValidateDatasetManager)
             {
-                var datasetSplit = _mLContext!.Data.CrossValidationSplit(crossValidateDatasetManager.Dataset, crossValidateDatasetManager.Fold ?? 5);
+                var datasetSplit = _mLContext!.Data.CrossValidationSplit(crossValidateDatasetManager.Dataset, crossValidateDatasetManager.Fold ?? 5, crossValidateDatasetManager.SamplingKeyColumnName);
                 var metrics = new List<double>();
                 var models = new List<ITransformer>();
                 foreach (var split in datasetSplit)
@@ -66,10 +66,10 @@ namespace Microsoft.ML.AutoML
                 };
             }
 
-            if (_datasetManager is ITrainTestDatasetManager trainTestDatasetManager)
+            if (_datasetManager is ITrainValidateDatasetManager trainTestDatasetManager)
             {
                 var model = mlnetPipeline.Fit(trainTestDatasetManager.TrainDataset);
-                var eval = model.Transform(trainTestDatasetManager.TestDataset);
+                var eval = model.Transform(trainTestDatasetManager.ValidateDataset);
                 var metric = _metricManager.Evaluate(_mLContext, eval);
                 stopWatch.Stop();
                 var loss = _metricManager.IsMaximize ? -metric : metric;
@@ -96,7 +96,7 @@ namespace Microsoft.ML.AutoML
                     _mLContext?.CancelExecution();
                 }))
                 {
-                    return Task.Run(() => Run(settings));
+                    return Task.FromResult(Run(settings));
                 }
             }
             catch (Exception ex) when (ct.IsCancellationRequested)

@@ -12,6 +12,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.Trainers
 {
@@ -26,6 +27,7 @@ namespace Microsoft.ML.Trainers
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter,numIterations", SortOrder = 50)]
         [TGUI(Label = "Number of Iterations", Description = "Number of training iterations through data", SuggestedSweeps = "1,10,100")]
         [TlcModule.SweepableLongParamAttribute("NumIterations", 1, 100, stepSize: 10, isLogScale: true)]
+        [Range(1, 512, 1, true)]
         public int NumberOfIterations = OnlineDefault.NumberOfIterations;
 
         /// <summary>
@@ -45,6 +47,7 @@ namespace Microsoft.ML.Trainers
         [Argument(ArgumentType.AtMostOnce, HelpText = "Init weights diameter", ShortName = "initwts,initWtsDiameter", SortOrder = 140)]
         [TGUI(Label = "Initial Weights Scale", SuggestedSweeps = "0,0.1,0.5,1")]
         [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0.0f, 1.0f, numSteps: 5)]
+        [Range(0f, 1f, 0f, false)]
         public float InitialWeightsDiameter = 0;
 
         /// <summary>

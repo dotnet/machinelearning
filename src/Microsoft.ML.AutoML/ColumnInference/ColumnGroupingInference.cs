@@ -8,6 +8,8 @@ using System.Linq;
 using Microsoft.ML.Data;
 using static Microsoft.ML.Data.TextLoader;
 
+using Range = Microsoft.ML.Data.TextLoader.Range;
+
 namespace Microsoft.ML.AutoML
 {
     /// <summary>

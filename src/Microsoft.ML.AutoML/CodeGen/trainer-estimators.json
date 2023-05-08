@@ -306,7 +306,7 @@
           "argumentType": "boolean"
         }
       ],
-      "nugetDependencies": ["Microsoft.ML"],
+      "nugetDependencies": [ "Microsoft.ML" ],
       "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers" ],
       "searchOption": "lbfgs_option"
     },
@@ -514,19 +514,23 @@
     {
       "functionName": "TextClassification",
       "estimatorTypes": [ "MultiClassification" ],
-      "arguments": [
-        {
-          "argumentName": "labelColumnName",
-          "argumentType": "string"
-        },
-        {
-          "argumentName": "sentence1ColumnName",
-          "argumentType": "string"
-        }
-      ],
       "nugetDependencies": [ "Microsoft.ML", "Microsoft.ML.TorchSharp" ],
       "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers", "Microsoft.ML.TorchSharp" ],
       "searchOption": "text_classification_option"
+    },
+    {
+      "functionName": "SentenceSimilarity",
+      "estimatorTypes": [ "Regression" ],
+      "nugetDependencies": [ "Microsoft.ML", "Microsoft.ML.TorchSharp" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers", "Microsoft.ML.TorchSharp" ],
+      "searchOption": "sentence_similarity_option"
+    },
+    {
+      "functionName": "ObjectDetection",
+      "estimatorTypes": [ "MultiClassification" ],
+      "nugetDependencies": [ "Microsoft.ML", "Microsoft.ML.TorchSharp" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers", "Microsoft.ML.TorchSharp" ],
+      "searchOption": "object_detection_option"
     },
     {
       "functionName": "ForecastBySsa",

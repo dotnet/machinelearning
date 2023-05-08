@@ -1,0 +1,44 @@
+{
+  "Lambda": {
+    "type": "float",
+    "default": 0.00010,
+    "min": 0.0000010,
+    "max": 1,
+    "log_base": true
+  },
+  "BatchSize": {
+    "type": "int",
+    "default": 1,
+    "min": 1,
+    "max": 128,
+    "log_base": true
+  },
+  "PerformProjection": {
+    "default": false,
+    "choices": [
+      true,
+      false
+    ]
+  },
+  "NoBias": {
+    "default": false,
+    "choices": [
+      true,
+      false
+    ]
+  },
+  "NumberOfIterations": {
+    "type": "int",
+    "default": 1,
+    "min": 1,
+    "max": 512,
+    "log_base": true
+  },
+  "InitialWeightsDiameter": {
+    "type": "float",
+    "default": 0,
+    "min": 0,
+    "max": 1,
+    "log_base": false
+  }
+}

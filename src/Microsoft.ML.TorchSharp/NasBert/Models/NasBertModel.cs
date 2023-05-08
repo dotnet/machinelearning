@@ -15,12 +15,11 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
     {
         private readonly PredictionHead _predictionHead;
 
-        public override BaseHead GetHead() => _predictionHead;
         public override TransformerEncoder GetEncoder() => Encoder;
 
         protected readonly TransformerEncoder Encoder;
 
-        public NasBertModel(TextClassificationTrainer.Options options, int padIndex, int symbolsCount, int numClasses)
+        public NasBertModel(NasBertTrainer.NasBertOptions options, int padIndex, int symbolsCount, int numClasses)
             : base(options)
         {
             _predictionHead = new PredictionHead(

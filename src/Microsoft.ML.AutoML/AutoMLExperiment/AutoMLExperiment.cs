@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -17,6 +18,16 @@ using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Microsoft.ML.AutoML
 {
+    /// <summary>
+    /// The class for AutoML experiment
+    /// </summary>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[AutoMLExperiment](~/../docs/samples/docs/samples/Microsoft.ML.AutoML.Samples/AutoMLExperiment.cs)]
+    /// ]]>
+    /// </format>
+    /// </example>
     public class AutoMLExperiment
     {
         internal const string PipelineSearchspaceName = "_pipeline_";
@@ -50,15 +61,7 @@ namespace Microsoft.ML.AutoML
             _serviceCollection.TryAddTransient((provider) =>
             {
                 var contextManager = provider.GetRequiredService<IMLContextManager>();
-                var trainingStopManager = provider.GetRequiredService<AggregateTrainingStopManager>();
                 var context = contextManager.CreateMLContext();
-                trainingStopManager.OnStopTraining += (s, e) =>
-                {
-                    // only force-canceling running trials when there's completed trials.
-                    // otherwise, wait for the current running trial to be completed.
-                    if (_bestTrialResult != null)
-                        context.CancelExecution();
-                };
 
                 return context;
             });
@@ -193,22 +196,6 @@ namespace Microsoft.ML.AutoML
             return this;
         }
 
-        internal AutoMLExperiment SetPerformanceMonitor<TPerformanceMonitor>()
-            where TPerformanceMonitor : class, IPerformanceMonitor
-        {
-            _serviceCollection.AddTransient<IPerformanceMonitor, TPerformanceMonitor>();
-
-            return this;
-        }
-
-        internal AutoMLExperiment SetPerformanceMonitor<TPerformanceMonitor>(Func<IServiceProvider, TPerformanceMonitor> factory)
-            where TPerformanceMonitor : class, IPerformanceMonitor
-        {
-            _serviceCollection.AddTransient<IPerformanceMonitor>(factory);
-
-            return this;
-        }
-
         /// <summary>
         /// Run experiment and return the best trial result synchronizely.
         /// </summary>
@@ -249,109 +236,112 @@ namespace Microsoft.ML.AutoML
             var trialNum = trialResultManager?.GetAllTrialResults().Max(t => t.TrialSettings?.TrialId) + 1 ?? 0;
             var tuner = serviceProvider.GetService<ITuner>();
             Contracts.Assert(tuner != null, "tuner can't be null");
+
             while (!aggregateTrainingStopManager.IsStopTrainingRequested())
             {
-                var setting = new TrialSettings()
+                var trialSettings = new TrialSettings()
                 {
                     TrialId = trialNum++,
                     Parameter = Parameter.CreateNestedParameter(),
+                    StartedAtUtc = DateTime.UtcNow,
                 };
-                var parameter = tuner.Propose(setting);
-                setting.Parameter = parameter;
+                var parameter = tuner.Propose(trialSettings);
+                trialSettings.Parameter = parameter;
 
-                monitor?.ReportRunningTrial(setting);
-                using (var trialCancellationTokenSource = new CancellationTokenSource())
+                var trialCancellationTokenSource = new CancellationTokenSource();
+                monitor?.ReportRunningTrial(trialSettings);
+                var stopTrialManager = new CancellationTokenStopTrainingManager(trialCancellationTokenSource.Token, null);
+                aggregateTrainingStopManager.AddTrainingStopManager(stopTrialManager);
+                void handler(object o, EventArgs e)
                 {
-                    void handler(object o, EventArgs e)
+                    trialCancellationTokenSource.Cancel();
+                }
+                try
+                {
+                    using (var performanceMonitor = serviceProvider.GetService<IPerformanceMonitor>())
+                    using (var runner = serviceProvider.GetRequiredService<ITrialRunner>())
                     {
-                        // only force-canceling running trials when there's completed trials.
-                        // otherwise, wait for the current running trial to be completed.
-                        if (_bestTrialResult != null)
-                            trialCancellationTokenSource.Cancel();
-                    }
-                    try
-                    {
-                        using (var performanceMonitor = serviceProvider.GetService<IPerformanceMonitor>())
-                        using (var runner = serviceProvider.GetRequiredService<ITrialRunner>())
+                        aggregateTrainingStopManager.OnStopTraining += handler;
+                        performanceMonitor.PerformanceMetricsUpdated += (o, metrics) =>
                         {
-                            aggregateTrainingStopManager.OnStopTraining += handler;
-
-                            performanceMonitor.MemoryUsageInMegaByte += (o, m) =>
-                            {
-                                if (_settings.MaximumMemoryUsageInMegaByte is double d && m > d && !trialCancellationTokenSource.IsCancellationRequested)
-                                {
-                                    logger.Trace($"cancel current trial {setting.TrialId} because it uses {m} mb memory and the maximum memory usage is {d}");
-                                    trialCancellationTokenSource.Cancel();
-
-                                    GC.AddMemoryPressure(Convert.ToInt64(m) * 1024 * 1024);
-                                    GC.Collect();
-                                }
-                            };
-
-                            performanceMonitor.Start();
-                            logger.Trace($"trial setting - {JsonSerializer.Serialize(setting)}");
-                            var trialResult = await runner.RunAsync(setting, trialCancellationTokenSource.Token);
-
-                            var peakCpu = performanceMonitor?.GetPeakCpuUsage();
-                            var peakMemoryInMB = performanceMonitor?.GetPeakMemoryUsageInMegaByte();
-                            trialResult.PeakCpu = peakCpu;
-                            trialResult.PeakMemoryInMegaByte = peakMemoryInMB;
-
-                            monitor?.ReportCompletedTrial(trialResult);
-                            tuner.Update(trialResult);
-                            trialResultManager?.AddOrUpdateTrialResult(trialResult);
-                            aggregateTrainingStopManager.Update(trialResult);
-
-                            var loss = trialResult.Loss;
-                            if (loss < _bestLoss)
-                            {
-                                _bestTrialResult = trialResult;
-                                _bestLoss = loss;
-                                monitor?.ReportBestTrial(trialResult);
-                            }
-                        }
-                    }
-                    catch (OperationCanceledException ex) when (aggregateTrainingStopManager.IsStopTrainingRequested() == false)
-                    {
-                        monitor?.ReportFailTrial(setting, ex);
-                        var result = new TrialResult
-                        {
-                            TrialSettings = setting,
-                            Loss = double.MaxValue,
+                            performanceMonitor.OnPerformanceMetricsUpdatedHandler(trialSettings, metrics, trialCancellationTokenSource);
                         };
 
-                        tuner.Update(result);
-                        continue;
-                    }
-                    catch (OperationCanceledException) when (aggregateTrainingStopManager.IsStopTrainingRequested())
-                    {
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        monitor?.ReportFailTrial(setting, ex);
+                        performanceMonitor.Start();
+                        logger.Trace($"trial setting - {JsonSerializer.Serialize(trialSettings)}");
+                        var trialResult = await runner.RunAsync(trialSettings, trialCancellationTokenSource.Token);
 
-                        if (!aggregateTrainingStopManager.IsStopTrainingRequested() && _bestTrialResult == null)
+                        var peakCpu = performanceMonitor?.GetPeakCpuUsage();
+                        var peakMemoryInMB = performanceMonitor?.GetPeakMemoryUsageInMegaByte();
+                        trialResult.PeakCpu = peakCpu;
+                        trialResult.PeakMemoryInMegaByte = peakMemoryInMB;
+                        trialResult.TrialSettings.EndedAtUtc = DateTime.UtcNow;
+
+                        performanceMonitor.Pause();
+                        monitor?.ReportCompletedTrial(trialResult);
+                        tuner.Update(trialResult);
+                        trialResultManager?.AddOrUpdateTrialResult(trialResult);
+                        aggregateTrainingStopManager.Update(trialResult);
+
+                        var loss = trialResult.Loss;
+                        if (loss < _bestLoss)
                         {
-                            // TODO
-                            // it's questionable on whether to abort the entire training process
-                            // for a single fail trial. We should make it an option and only exit
-                            // when error is fatal (like schema mismatch).
-                            throw;
+                            _bestTrialResult = trialResult;
+                            _bestLoss = loss;
+                            monitor?.ReportBestTrial(trialResult);
                         }
                     }
-                    finally
-                    {
-                        aggregateTrainingStopManager.OnStopTraining -= handler;
+                }
+                catch (Exception ex) when (aggregateTrainingStopManager.IsStopTrainingRequested() == false)
+                {
+                    var exceptionMessage = $@"
+Exception thrown during Trial {trialSettings.TrialId} with configuration {JsonSerializer.Serialize(trialSettings)}
 
+Exception Details: {ex.Message}
+
+Abandoning Trial {trialSettings.TrialId} and continue training.
+";
+                    logger.Trace(exceptionMessage);
+                    trialSettings.EndedAtUtc = DateTime.UtcNow;
+                    monitor?.ReportFailTrial(trialSettings, ex);
+                    var trialResult = new TrialResult
+                    {
+                        TrialSettings = trialSettings,
+                        Loss = double.MaxValue,
+                    };
+
+                    tuner.Update(trialResult);
+                    trialResultManager?.AddOrUpdateTrialResult(trialResult);
+                    aggregateTrainingStopManager.Update(trialResult);
+
+                    if (ex is not OperationCanceledException && _bestTrialResult == null)
+                    {
+                        logger.Trace($"trial fatal error - {JsonSerializer.Serialize(trialSettings)}, stop training");
+
+                        // TODO
+                        // it's questionable on whether to abort the entire training process
+                        // for a single fail trial. We should make it an option and only exit
+                        // when error is fatal (like schema mismatch).
+                        throw;
                     }
+                    continue;
+                }
+                catch (Exception) when (aggregateTrainingStopManager.IsStopTrainingRequested())
+                {
+                    logger.Trace($"trial cancelled - {JsonSerializer.Serialize(trialSettings)}, stop training");
+
+                    break;
+                }
+                finally
+                {
+                    aggregateTrainingStopManager.OnStopTraining -= handler;
                 }
             }
 
             trialResultManager?.Save();
             if (_bestTrialResult == null)
             {
-                throw new TimeoutException("Training time finished without completing a trial run");
+                throw new TimeoutException("Training time finished without completing a successful trial. Either no trial completed or the metric for all completed trials are NaN or Infinity");
             }
             else
             {

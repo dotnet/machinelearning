@@ -1,0 +1,1813 @@
+[
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 87,
+      "MinimumExampleCountPerLeaf": 127,
+      "NumberOfTrees": 3650,
+      "MaximumBinCountPerFeature": 42,
+      "FeatureFraction": 0.80060378946837,
+      "LearningRate": 0.0035449318926440276
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 23,
+      "MinimumExampleCountPerLeaf": 71,
+      "NumberOfTrees": 207,
+      "MaximumBinCountPerFeature": 170,
+      "FeatureFraction": 0.99999999,
+      "LearningRate": 0.26904495597775546
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 2866,
+      "MinimumExampleCountPerLeaf": 75,
+      "NumberOfTrees": 20,
+      "MaximumBinCountPerFeature": 133,
+      "FeatureFraction": 0.99999999,
+      "LearningRate": 0.0034217757770038746
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 24,
+      "MinimumExampleCountPerLeaf": 54,
+      "LearningRate": 0.8552033613780062,
+      "NumberOfTrees": 45,
+      "SubsampleFraction": 8.039913011326977E-05,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 0.00020810911669089135,
+      "L2Regularization": 0.007597609681395737
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastForestBinary",
+    "TrainerParameter": {
+      "NumberOfTrees": 26,
+      "NumberOfLeaves": 3463,
+      "FeatureFraction": 1
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastTreeOva",
+    "TrainerParameter": {
+      "NumberOfLeaves": 476,
+      "MinimumExampleCountPerLeaf": 33,
+      "NumberOfTrees": 37,
+      "MaximumBinCountPerFeature": 24,
+      "FeatureFraction": 0.7841884722574419,
+      "LearningRate": 0.12930004437797252
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 27926,
+      "MinimumExampleCountPerLeaf": 127,
+      "NumberOfTrees": 11,
+      "MaximumBinCountPerFeature": 54,
+      "FeatureFraction": 0.99999999,
+      "LearningRate": 0.16078907661831227
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "SdcaMaximumEntropyMulti",
+    "TrainerParameter": {
+      "L1Regularization": 0.03125,
+      "L2Regularization": 0.03125
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LbfgsLogisticRegressionBinary",
+    "TrainerParameter": {
+      "L1Regularization": 1.544239,
+      "L2Regularization": 0.03125
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 18564,
+      "MinimumExampleCountPerLeaf": 4,
+      "NumberOfTrees": 739,
+      "MaximumBinCountPerFeature": 35,
+      "FeatureFraction": 0.7191111861806592,
+      "LearningRate": 0.027880192420138245
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4095,
+      "MinimumExampleCountPerLeaf": 28,
+      "LearningRate": 0.9999997766729865,
+      "NumberOfTrees": 4095,
+      "SubsampleFraction": 2E-10,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 2E-10,
+      "L2Regularization": 0.1846310442449399
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 131,
+      "MinimumExampleCountPerLeaf": 21,
+      "NumberOfTrees": 125,
+      "MaximumBinCountPerFeature": 116,
+      "FeatureFraction": 0.7921180259906164,
+      "LearningRate": 0.9999997766729865
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastForestOva",
+    "TrainerParameter": {
+      "NumberOfTrees": 228,
+      "NumberOfLeaves": 91,
+      "FeatureFraction": 0.8420064
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 19,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 189,
+      "FeatureFraction": 0.9459816795478228,
+      "LearningRate": 0.10898711358107055
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 16,
+      "MinimumExampleCountPerLeaf": 70,
+      "LearningRate": 0.2138828822356055,
+      "NumberOfTrees": 25,
+      "SubsampleFraction": 0.05380197471709659,
+      "MaximumBinCountPerFeature": 426,
+      "FeatureFraction": 0.6981585251308082,
+      "L1Regularization": 1.8832743738626092E-08,
+      "L2Regularization": 1.1634842271570635E-08
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 7,
+      "MinimumExampleCountPerLeaf": 20,
+      "LearningRate": 0.1607069068239919,
+      "NumberOfTrees": 16,
+      "SubsampleFraction": 0.04856069948639365,
+      "MaximumBinCountPerFeature": 296,
+      "FeatureFraction": 0.9470492408617684,
+      "L1Regularization": 6.929644224890629E-08,
+      "L2Regularization": 0.0011264388186604647
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastForestRegression",
+    "TrainerParameter": {
+      "NumberOfTrees": 32767,
+      "NumberOfLeaves": 4,
+      "FeatureFraction": 1
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastTreeRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 5,
+      "MinimumExampleCountPerLeaf": 8,
+      "NumberOfTrees": 826,
+      "MaximumBinCountPerFeature": 312,
+      "FeatureFraction": 0.99999999,
+      "LearningRate": 0.24415311049241878
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastForestRegression",
+    "TrainerParameter": {
+      "NumberOfTrees": 4,
+      "NumberOfLeaves": 4,
+      "FeatureFraction": 0.39762402
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeOva",
+    "TrainerParameter": {
+      "NumberOfLeaves": 30,
+      "MinimumExampleCountPerLeaf": 2,
+      "NumberOfTrees": 7,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.43132548851524677,
+      "LearningRate": 1.7715889795284222E-05
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "LightGbmMulti",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 24,
+      "LearningRate": 0.9999997766729865,
+      "NumberOfTrees": 5,
+      "SubsampleFraction": 0.8888612589023396,
+      "MaximumBinCountPerFeature": 174,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 2.853856087345465E-10,
+      "L2Regularization": 0.9999997766729865
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 36,
+      "MinimumExampleCountPerLeaf": 20,
+      "LearningRate": 0.6488080623332225,
+      "NumberOfTrees": 5,
+      "SubsampleFraction": 0.05377902547670367,
+      "MaximumBinCountPerFeature": 988,
+      "FeatureFraction": 0.8318215522085479,
+      "L1Regularization": 1.0693136058923942E-07,
+      "L2Regularization": 0.9999997766729865
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 340,
+      "MinimumExampleCountPerLeaf": 67,
+      "LearningRate": 0.01760375575034171,
+      "NumberOfTrees": 1408,
+      "SubsampleFraction": 0.9999997766729865,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 5.602593285766215E-10,
+      "L2Regularization": 0.0003496680724914571
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 29,
+      "MinimumExampleCountPerLeaf": 2,
+      "NumberOfTrees": 18,
+      "MaximumBinCountPerFeature": 281,
+      "FeatureFraction": 0.9844369303190436,
+      "LearningRate": 0.2689422276981913
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 20,
+      "LearningRate": 1,
+      "NumberOfTrees": 4,
+      "SubsampleFraction": 1,
+      "MaximumBinCountPerFeature": 254,
+      "FeatureFraction": 1,
+      "L1Regularization": 2E-10,
+      "L2Regularization": 1
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 43,
+      "MinimumExampleCountPerLeaf": 22,
+      "NumberOfTrees": 35,
+      "MaximumBinCountPerFeature": 239,
+      "FeatureFraction": 0.99999999,
+      "LearningRate": 0.027071590576339927
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastTreeRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 10,
+      "MinimumExampleCountPerLeaf": 12,
+      "NumberOfTrees": 5,
+      "MaximumBinCountPerFeature": 424,
+      "FeatureFraction": 0.99999999,
+      "LearningRate": 0.4533750801262437
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastTreeRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 5,
+      "MinimumExampleCountPerLeaf": 38,
+      "NumberOfTrees": 241,
+      "MaximumBinCountPerFeature": 520,
+      "FeatureFraction": 0.898327302972124,
+      "LearningRate": 0.1348356340063525
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmMulti",
+    "TrainerParameter": {
+      "NumberOfLeaves": 33,
+      "MinimumExampleCountPerLeaf": 20,
+      "LearningRate": 0.7977660917637557,
+      "NumberOfTrees": 131,
+      "SubsampleFraction": 0.9151039831504174,
+      "MaximumBinCountPerFeature": 69,
+      "FeatureFraction": 0.9409080285811853,
+      "L1Regularization": 3.1400695396628333E-07,
+      "L2Regularization": 0.4734149986346901
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeOva",
+    "TrainerParameter": {
+      "NumberOfLeaves": 308,
+      "MinimumExampleCountPerLeaf": 2,
+      "NumberOfTrees": 35,
+      "MaximumBinCountPerFeature": 428,
+      "FeatureFraction": 0.6533323657647356,
+      "LearningRate": 3.514880612661438E-06
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 5045,
+      "MinimumExampleCountPerLeaf": 76,
+      "NumberOfTrees": 7470,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.99999999,
+      "LearningRate": 0.005777249800844191
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 1216,
+      "MinimumExampleCountPerLeaf": 5,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 154,
+      "FeatureFraction": 0.7307294653075181,
+      "LearningRate": 0.0021580240771114654
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastForestBinary",
+    "TrainerParameter": {
+      "NumberOfTrees": 19,
+      "NumberOfLeaves": 450,
+      "FeatureFraction": 1
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 55,
+      "MinimumExampleCountPerLeaf": 53,
+      "LearningRate": 0.010175513636238035,
+      "NumberOfTrees": 938,
+      "SubsampleFraction": 0.9999997766729865,
+      "MaximumBinCountPerFeature": 774,
+      "FeatureFraction": 0.6708934267697179,
+      "L1Regularization": 0.020668403746115033,
+      "L2Regularization": 6.280685939563107E-05
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4095,
+      "MinimumExampleCountPerLeaf": 39,
+      "LearningRate": 0.1609298166363187,
+      "NumberOfTrees": 4095,
+      "SubsampleFraction": 2.0128704530267477E-05,
+      "MaximumBinCountPerFeature": 662,
+      "FeatureFraction": 0.7231434042052313,
+      "L1Regularization": 2E-10,
+      "L2Regularization": 0.6157363701731406
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "LightGbmRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 50,
+      "MinimumExampleCountPerLeaf": 40,
+      "LearningRate": 0.042508276403038864,
+      "NumberOfTrees": 310,
+      "SubsampleFraction": 1.7357794917570536E-05,
+      "MaximumBinCountPerFeature": 533,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 4.383333916866736E-09,
+      "L2Regularization": 0.9999997766729865
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 30,
+      "MinimumExampleCountPerLeaf": 17,
+      "NumberOfTrees": 5,
+      "MaximumBinCountPerFeature": 74,
+      "FeatureFraction": 0.99999999,
+      "LearningRate": 0.06467367001651869
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 5,
+      "MinimumExampleCountPerLeaf": 20,
+      "LearningRate": 0.2064267413802997,
+      "NumberOfTrees": 4,
+      "SubsampleFraction": 0.12000229582539053,
+      "MaximumBinCountPerFeature": 403,
+      "FeatureFraction": 0.9492463845809583,
+      "L1Regularization": 2E-10,
+      "L2Regularization": 0.025226098020360813
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LbfgsMaximumEntropyMulti",
+    "TrainerParameter": {
+      "L1Regularization": 27.095572,
+      "L2Regularization": 52.326847
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 458,
+      "MinimumExampleCountPerLeaf": 64,
+      "LearningRate": 0.9999997766729865,
+      "NumberOfTrees": 1699,
+      "SubsampleFraction": 0.9999997766729865,
+      "MaximumBinCountPerFeature": 760,
+      "FeatureFraction": 0.9135681598986697,
+      "L1Regularization": 1.0596377616756006E-08,
+      "L2Regularization": 0.00019321038657956884
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 127,
+      "NumberOfTrees": 4831,
+      "MaximumBinCountPerFeature": 128,
+      "FeatureFraction": 0.7501639824805302,
+      "LearningRate": 0.9999997766729865
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmMulti",
+    "TrainerParameter": {
+      "NumberOfLeaves": 23,
+      "MinimumExampleCountPerLeaf": 94,
+      "LearningRate": 0.7540379201541587,
+      "NumberOfTrees": 380,
+      "SubsampleFraction": 0.04302859272138893,
+      "MaximumBinCountPerFeature": 952,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 2E-10,
+      "L2Regularization": 0.6273362209972279
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 5,
+      "MinimumExampleCountPerLeaf": 13,
+      "NumberOfTrees": 10,
+      "MaximumBinCountPerFeature": 665,
+      "FeatureFraction": 0.9592379556018786,
+      "LearningRate": 0.0005364346218611147
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 42,
+      "LearningRate": 0.9999997766729865,
+      "NumberOfTrees": 6,
+      "SubsampleFraction": 0.19764945728930977,
+      "MaximumBinCountPerFeature": 822,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 1.9309089659582934E-09,
+      "L2Regularization": 0.9999997766729865
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 873,
+      "MinimumExampleCountPerLeaf": 28,
+      "LearningRate": 0.002677592476613682,
+      "NumberOfTrees": 4095,
+      "SubsampleFraction": 0.9999997766729865,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.7773927911851057,
+      "L1Regularization": 0.9999997766729865,
+      "L2Regularization": 0.9999997766729865
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 1077,
+      "MinimumExampleCountPerLeaf": 8,
+      "NumberOfTrees": 82,
+      "MaximumBinCountPerFeature": 96,
+      "FeatureFraction": 0.9397924499604204,
+      "LearningRate": 0.5048038973443215
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "LightGbmRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 22,
+      "LearningRate": 0.014535555300654746,
+      "NumberOfTrees": 4095,
+      "SubsampleFraction": 0.0026133099012740865,
+      "MaximumBinCountPerFeature": 8,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 2E-10,
+      "L2Regularization": 0.5746178276527408
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 20,
+      "MinimumExampleCountPerLeaf": 56,
+      "LearningRate": 0.031002833901693286,
+      "NumberOfTrees": 122,
+      "SubsampleFraction": 0.0177878235765325,
+      "MaximumBinCountPerFeature": 18,
+      "FeatureFraction": 0.7166882312740435,
+      "L1Regularization": 8.406276278405754E-06,
+      "L2Regularization": 0.9605427965053129
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastForestRegression",
+    "TrainerParameter": {
+      "NumberOfTrees": 61,
+      "NumberOfLeaves": 4,
+      "FeatureFraction": 0.8260069
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeOva",
+    "TrainerParameter": {
+      "NumberOfLeaves": 36,
+      "MinimumExampleCountPerLeaf": 48,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 95,
+      "FeatureFraction": 0.99999999,
+      "LearningRate": 0.4198472012231081
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 218,
+      "MinimumExampleCountPerLeaf": 41,
+      "NumberOfTrees": 10,
+      "MaximumBinCountPerFeature": 291,
+      "FeatureFraction": 0.9657180775253634,
+      "LearningRate": 0.46510044550263674
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeOva",
+    "TrainerParameter": {
+      "NumberOfLeaves": 387,
+      "MinimumExampleCountPerLeaf": 4,
+      "NumberOfTrees": 47,
+      "MaximumBinCountPerFeature": 349,
+      "FeatureFraction": 0.3469633042126186,
+      "LearningRate": 0.02810102564661168
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 131,
+      "MinimumExampleCountPerLeaf": 6,
+      "NumberOfTrees": 1671,
+      "MaximumBinCountPerFeature": 126,
+      "FeatureFraction": 0.4554971500601669,
+      "LearningRate": 0.01642767303115543
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "LightGbmRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 7,
+      "MinimumExampleCountPerLeaf": 26,
+      "LearningRate": 0.9999997766729865,
+      "NumberOfTrees": 4,
+      "SubsampleFraction": 0.046368763450735075,
+      "MaximumBinCountPerFeature": 236,
+      "FeatureFraction": 0.9997821238763959,
+      "L1Regularization": 8.702725153774787E-09,
+      "L2Regularization": 0.9082544287969905
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmMulti",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 28,
+      "LearningRate": 0.6545189219684858,
+      "NumberOfTrees": 25,
+      "SubsampleFraction": 0.9999997766729865,
+      "MaximumBinCountPerFeature": 364,
+      "FeatureFraction": 0.7448176714826046,
+      "L1Regularization": 1.2344624350669486E-06,
+      "L2Regularization": 0.13957996259479463
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmMulti",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 43,
+      "LearningRate": 0.8164648957299602,
+      "NumberOfTrees": 16,
+      "SubsampleFraction": 0.9999997766729865,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 2E-10,
+      "L2Regularization": 0.9999997766729865
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LbfgsPoissonRegressionRegression",
+    "TrainerParameter": {
+      "L1Regularization": 2.568412,
+      "L2Regularization": 0.7046674
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 84,
+      "MinimumExampleCountPerLeaf": 75,
+      "LearningRate": 0.1556224741768498,
+      "NumberOfTrees": 301,
+      "SubsampleFraction": 0.20684593151088038,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 2E-10,
+      "L2Regularization": 0.012166921416926199
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastForestBinary",
+    "TrainerParameter": {
+      "NumberOfTrees": 5,
+      "NumberOfLeaves": 19,
+      "FeatureFraction": 0.86853236
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 19,
+      "MinimumExampleCountPerLeaf": 13,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 40,
+      "FeatureFraction": 0.9742554161601645,
+      "LearningRate": 2.6412180193809835E-05
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 574,
+      "MinimumExampleCountPerLeaf": 20,
+      "LearningRate": 0.9999997766729865,
+      "NumberOfTrees": 80,
+      "SubsampleFraction": 0.9999997766729865,
+      "MaximumBinCountPerFeature": 387,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 0.9999997766729865,
+      "L2Regularization": 0.002827899752167108
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 25,
+      "MinimumExampleCountPerLeaf": 29,
+      "LearningRate": 0.9797647605786263,
+      "NumberOfTrees": 4,
+      "SubsampleFraction": 0.08531561133872057,
+      "MaximumBinCountPerFeature": 308,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 2E-10,
+      "L2Regularization": 0.9999997766729865
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeOva",
+    "TrainerParameter": {
+      "NumberOfLeaves": 1154,
+      "MinimumExampleCountPerLeaf": 41,
+      "NumberOfTrees": 148,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.8850375370183471,
+      "LearningRate": 0.26839318987943295
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastTreeOva",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 20,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 254,
+      "FeatureFraction": 1,
+      "LearningRate": 0.09999999999999998
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 6,
+      "MinimumExampleCountPerLeaf": 35,
+      "LearningRate": 0.6225066318847601,
+      "NumberOfTrees": 4,
+      "SubsampleFraction": 0.9999997766729865,
+      "MaximumBinCountPerFeature": 491,
+      "FeatureFraction": 0.9926422107076923,
+      "L1Regularization": 7.977543420928789E-10,
+      "L2Regularization": 0.8785889785517109
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LbfgsPoissonRegressionRegression",
+    "TrainerParameter": {
+      "L1Regularization": 0.046509832,
+      "L2Regularization": 2.1919274
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "LbfgsLogisticRegressionBinary",
+    "TrainerParameter": {
+      "L1Regularization": 0.06107197,
+      "L2Regularization": 0.46383783
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 15,
+      "MinimumExampleCountPerLeaf": 20,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 346,
+      "FeatureFraction": 0.8777534708332781,
+      "LearningRate": 0.3707156287378302
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmMulti",
+    "TrainerParameter": {
+      "NumberOfLeaves": 65,
+      "MinimumExampleCountPerLeaf": 20,
+      "LearningRate": 0.9999997766729865,
+      "NumberOfTrees": 10,
+      "SubsampleFraction": 0.4475319104685073,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.7065048882466722,
+      "L1Regularization": 2E-10,
+      "L2Regularization": 0.0001848650265484988
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 37,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 248,
+      "FeatureFraction": 0.99999999,
+      "LearningRate": 0.9999997766729865
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmMulti",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 74,
+      "LearningRate": 0.9999997766729865,
+      "NumberOfTrees": 638,
+      "SubsampleFraction": 0.9999997766729865,
+      "MaximumBinCountPerFeature": 8,
+      "FeatureFraction": 0.9141725542503555,
+      "L1Regularization": 1.654030584712007E-05,
+      "L2Regularization": 1.4310122642197601E-08
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 53,
+      "MinimumExampleCountPerLeaf": 13,
+      "NumberOfTrees": 18,
+      "MaximumBinCountPerFeature": 398,
+      "FeatureFraction": 0.99999999,
+      "LearningRate": 0.9999997766729865
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 20,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 254,
+      "FeatureFraction": 1,
+      "LearningRate": 0.09999999999999998
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 21,
+      "MinimumExampleCountPerLeaf": 10,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 260,
+      "FeatureFraction": 0.8618229630150351,
+      "LearningRate": 0.8286187833297257
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 16,
+      "MinimumExampleCountPerLeaf": 25,
+      "LearningRate": 0.024309951696254765,
+      "NumberOfTrees": 1626,
+      "SubsampleFraction": 0.05717830298385893,
+      "MaximumBinCountPerFeature": 63,
+      "FeatureFraction": 0.3445837105939972,
+      "L1Regularization": 6.172893634070921E-10,
+      "L2Regularization": 0.9999997766729865
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeOva",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 4,
+      "NumberOfTrees": 66,
+      "MaximumBinCountPerFeature": 52,
+      "FeatureFraction": 0.5305488725514618,
+      "LearningRate": 0.9999997766729865
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LbfgsMaximumEntropyMulti",
+    "TrainerParameter": {
+      "L1Regularization": 0.042985212,
+      "L2Regularization": 0.03125
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "SdcaRegression",
+    "TrainerParameter": {
+      "L1Regularization": 0.03125,
+      "L2Regularization": 0.03125
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "LightGbmMulti",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 257,
+      "LearningRate": 0.9999997766729865,
+      "NumberOfTrees": 1427,
+      "SubsampleFraction": 3.105791251325442E-05,
+      "MaximumBinCountPerFeature": 39,
+      "FeatureFraction": 0.8752756480266736,
+      "L1Regularization": 1.1826348401622547E-09,
+      "L2Regularization": 0.00025544319795926335
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastForestBinary",
+    "TrainerParameter": {
+      "NumberOfTrees": 288,
+      "NumberOfLeaves": 86,
+      "FeatureFraction": 0.96065336
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeOva",
+    "TrainerParameter": {
+      "NumberOfLeaves": 48,
+      "MinimumExampleCountPerLeaf": 21,
+      "NumberOfTrees": 65,
+      "MaximumBinCountPerFeature": 310,
+      "FeatureFraction": 0.99999999,
+      "LearningRate": 0.1235737872865588
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 22,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 253,
+      "FeatureFraction": 0.99999999,
+      "LearningRate": 0.06033267458523351
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 5957,
+      "MinimumExampleCountPerLeaf": 9,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.48039801985216035,
+      "LearningRate": 0.9999997766729865
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 5,
+      "MinimumExampleCountPerLeaf": 23,
+      "LearningRate": 0.3589771843727137,
+      "NumberOfTrees": 28,
+      "SubsampleFraction": 0.00020376984896845667,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 7.628194205579231E-10,
+      "L2Regularization": 0.9999997766729865
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastTreeRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 3,
+      "NumberOfTrees": 140,
+      "MaximumBinCountPerFeature": 482,
+      "FeatureFraction": 0.99999999,
+      "LearningRate": 0.06195522011262124
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastForestRegression",
+    "TrainerParameter": {
+      "NumberOfTrees": 15,
+      "NumberOfLeaves": 10,
+      "FeatureFraction": 0.87529165
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeOva",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 20,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 254,
+      "FeatureFraction": 1,
+      "LearningRate": 0.09999999999999998
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 25,
+      "LearningRate": 0.2946617046427907,
+      "NumberOfTrees": 134,
+      "SubsampleFraction": 0.0013837596822020258,
+      "MaximumBinCountPerFeature": 8,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 2E-10,
+      "L2Regularization": 0.9999997766729865
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastForestBinary",
+    "TrainerParameter": {
+      "NumberOfTrees": 24,
+      "NumberOfLeaves": 129,
+      "FeatureFraction": 1
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 20,
+      "LearningRate": 0.9999997766729865,
+      "NumberOfTrees": 4095,
+      "SubsampleFraction": 7.157358089822813E-05,
+      "MaximumBinCountPerFeature": 851,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 0.9999997766729865,
+      "L2Regularization": 2E-10
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LbfgsLogisticRegressionBinary",
+    "TrainerParameter": {
+      "L1Regularization": 0.67462516,
+      "L2Regularization": 45.032707
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 13,
+      "MinimumExampleCountPerLeaf": 29,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 253,
+      "FeatureFraction": 0.8885670584473564,
+      "LearningRate": 0.7407276161384259
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastForestOva",
+    "TrainerParameter": {
+      "NumberOfTrees": 28,
+      "NumberOfLeaves": 4,
+      "FeatureFraction": 0.95436877
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 12,
+      "MinimumExampleCountPerLeaf": 20,
+      "LearningRate": 0.9999997766729865,
+      "NumberOfTrees": 4,
+      "SubsampleFraction": 0.9919758651099816,
+      "MaximumBinCountPerFeature": 314,
+      "FeatureFraction": 0.8744235226749597,
+      "L1Regularization": 7.144305824276878E-10,
+      "L2Regularization": 0.9999997766729865
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastForestBinary",
+    "TrainerParameter": {
+      "NumberOfTrees": 4,
+      "NumberOfLeaves": 20,
+      "FeatureFraction": 1
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmMulti",
+    "TrainerParameter": {
+      "NumberOfLeaves": 14,
+      "MinimumExampleCountPerLeaf": 20,
+      "LearningRate": 0.015736119195590082,
+      "NumberOfTrees": 268,
+      "SubsampleFraction": 0.9999997766729865,
+      "MaximumBinCountPerFeature": 238,
+      "FeatureFraction": 0.7549282403965342,
+      "L1Regularization": 3.985420694184181E-10,
+      "L2Regularization": 0.049886471931384915
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 92,
+      "MinimumExampleCountPerLeaf": 159,
+      "LearningRate": 0.18792169233546632,
+      "NumberOfTrees": 4095,
+      "SubsampleFraction": 0.0008672137319528135,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.9838197151701678,
+      "L1Regularization": 4.995549262995053E-10,
+      "L2Regularization": 3.3257594062003576E-07
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastForestOva",
+    "TrainerParameter": {
+      "NumberOfTrees": 4,
+      "NumberOfLeaves": 10,
+      "FeatureFraction": 0.9179285
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 6,
+      "MinimumExampleCountPerLeaf": 216,
+      "LearningRate": 0.4574367802827828,
+      "NumberOfTrees": 3068,
+      "SubsampleFraction": 0.0018753320593756912,
+      "MaximumBinCountPerFeature": 12,
+      "FeatureFraction": 0.6161102879529117,
+      "L1Regularization": 1.2039087596828993E-07,
+      "L2Regularization": 0.05645661408705994
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 20,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 254,
+      "FeatureFraction": 1,
+      "LearningRate": 0.09999999999999998
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastForestBinary",
+    "TrainerParameter": {
+      "NumberOfTrees": 11030,
+      "NumberOfLeaves": 36,
+      "FeatureFraction": 1
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 63,
+      "MinimumExampleCountPerLeaf": 20,
+      "NumberOfTrees": 17,
+      "MaximumBinCountPerFeature": 121,
+      "FeatureFraction": 0.99999999,
+      "LearningRate": 0.9999997766729865
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LbfgsLogisticRegressionBinary",
+    "TrainerParameter": {
+      "L1Regularization": 0.03125,
+      "L2Regularization": 0.06263834
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastForestOva",
+    "TrainerParameter": {
+      "NumberOfTrees": 4,
+      "NumberOfLeaves": 4,
+      "FeatureFraction": 1
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastForestBinary",
+    "TrainerParameter": {
+      "NumberOfTrees": 32767,
+      "NumberOfLeaves": 154,
+      "FeatureFraction": 1
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 20,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 254,
+      "FeatureFraction": 1,
+      "LearningRate": 0.09999999999999998
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 7,
+      "MinimumExampleCountPerLeaf": 13,
+      "NumberOfTrees": 32767,
+      "MaximumBinCountPerFeature": 32,
+      "FeatureFraction": 0.7022629028011045,
+      "LearningRate": 0.02665500111882839
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 6,
+      "MinimumExampleCountPerLeaf": 20,
+      "LearningRate": 0.9999997766729865,
+      "NumberOfTrees": 24,
+      "SubsampleFraction": 0.02398658692944612,
+      "MaximumBinCountPerFeature": 402,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 2E-10,
+      "L2Regularization": 0.004701333090073423
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 58,
+      "MinimumExampleCountPerLeaf": 335,
+      "LearningRate": 0.07854028080287102,
+      "NumberOfTrees": 2035,
+      "SubsampleFraction": 0.0006497953957992051,
+      "MaximumBinCountPerFeature": 927,
+      "FeatureFraction": 0.18362996185211386,
+      "L1Regularization": 0.001030219250827897,
+      "L2Regularization": 0.026552293085077904
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "LbfgsMaximumEntropyMulti",
+    "TrainerParameter": {
+      "L1Regularization": 0.33348912,
+      "L2Regularization": 0.03125
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "LbfgsLogisticRegressionBinary",
+    "TrainerParameter": {
+      "L1Regularization": 0.15070061,
+      "L2Regularization": 0.03125
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "LbfgsLogisticRegressionOva",
+    "TrainerParameter": {
+      "L1Regularization": 0.03125,
+      "L2Regularization": 0.14498326
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 119,
+      "MinimumExampleCountPerLeaf": 58,
+      "LearningRate": 0.06825226637267366,
+      "NumberOfTrees": 4095,
+      "SubsampleFraction": 0.9999997766729865,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.6267797966465569,
+      "L1Regularization": 1.1227489355801138E-07,
+      "L2Regularization": 0.06600775121703452
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastForestRegression",
+    "TrainerParameter": {
+      "NumberOfTrees": 4,
+      "NumberOfLeaves": 4,
+      "FeatureFraction": 1
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastForestBinary",
+    "TrainerParameter": {
+      "NumberOfTrees": 32767,
+      "NumberOfLeaves": 305,
+      "FeatureFraction": 1
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastTreeOva",
+    "TrainerParameter": {
+      "NumberOfLeaves": 10,
+      "MinimumExampleCountPerLeaf": 8,
+      "NumberOfTrees": 14,
+      "MaximumBinCountPerFeature": 245,
+      "FeatureFraction": 0.986750888433752,
+      "LearningRate": 0.9999997766729865
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmMulti",
+    "TrainerParameter": {
+      "NumberOfLeaves": 355,
+      "MinimumExampleCountPerLeaf": 34,
+      "LearningRate": 0.1955402076262078,
+      "NumberOfTrees": 492,
+      "SubsampleFraction": 0.00012808557363770638,
+      "MaximumBinCountPerFeature": 180,
+      "FeatureFraction": 0.6228631994597027,
+      "L1Regularization": 2.3467870634880694E-10,
+      "L2Regularization": 0.9999997766729865
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 28755,
+      "MinimumExampleCountPerLeaf": 2,
+      "NumberOfTrees": 23,
+      "MaximumBinCountPerFeature": 8,
+      "FeatureFraction": 0.7896620118098,
+      "LearningRate": 0.9999997766729865
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 256,
+      "MinimumExampleCountPerLeaf": 20,
+      "LearningRate": 0.2692333105179609,
+      "NumberOfTrees": 4,
+      "SubsampleFraction": 4.578140637986982E-06,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 1.8616775493439103E-06,
+      "L2Regularization": 0.6528449193068331
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "FastTreeRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 11,
+      "NumberOfTrees": 660,
+      "MaximumBinCountPerFeature": 775,
+      "FeatureFraction": 0.9623903441243219,
+      "LearningRate": 0.9999997766729865
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastForestBinary",
+    "TrainerParameter": {
+      "NumberOfTrees": 971,
+      "NumberOfLeaves": 1039,
+      "FeatureFraction": 1
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeOva",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 20,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 254,
+      "FeatureFraction": 1,
+      "LearningRate": 0.09999999999999998
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LbfgsLogisticRegressionBinary",
+    "TrainerParameter": {
+      "L1Regularization": 0.046156637,
+      "L2Regularization": 0.29246366
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastTreeOva",
+    "TrainerParameter": {
+      "NumberOfLeaves": 2139,
+      "MinimumExampleCountPerLeaf": 33,
+      "NumberOfTrees": 4,
+      "MaximumBinCountPerFeature": 140,
+      "FeatureFraction": 0.7044397255286275,
+      "LearningRate": 0.00015715008951282033
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "FastForestOva",
+    "TrainerParameter": {
+      "NumberOfTrees": 4,
+      "NumberOfLeaves": 4,
+      "FeatureFraction": 0.5793991
+
+    },
+    "Task": "multi-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmRegression",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4095,
+      "MinimumExampleCountPerLeaf": 20,
+      "LearningRate": 0.9999997766729865,
+      "NumberOfTrees": 7,
+      "SubsampleFraction": 0.9999997766729865,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 0.012472823102106186,
+      "L2Regularization": 0.01755275260937544
+
+    },
+    "Task": "regression"
+  },
+  {
+    "CatalogTransformer": "OneHotEncoding",
+    "Trainer": "LightGbmBinary",
+    "TrainerParameter": {
+      "NumberOfLeaves": 4,
+      "MinimumExampleCountPerLeaf": 32,
+      "LearningRate": 0.9999997766729865,
+      "NumberOfTrees": 44,
+      "SubsampleFraction": 0.9999997766729865,
+      "MaximumBinCountPerFeature": 1023,
+      "FeatureFraction": 0.99999999,
+      "L1Regularization": 8.713858660867841E-07,
+      "L2Regularization": 0.9999997766729865
+
+    },
+    "Task": "binary-classification"
+  },
+  {
+    "CatalogTransformer": "OneHotHashEncoding",
+    "Trainer": "LightGbmMulti",
+    "TrainerParameter": {
+      "NumberOfLeaves": 75,
+      "MinimumExampleCountPerLeaf": 277,
+      "LearningRate": 0.36344733837824383,
+      "NumberOfTrees": 75,
+      "SubsampleFraction": 0.9999997766729865,
+      "MaximumBinCountPerFeature": 178,
+      "FeatureFraction": 0.8402457426124342,
+      "L1Regularization": 5.328274305679465E-08,
+      "L2Regularization": 0.9999997766729865
+
+    },
+    "Task": "multi-classification"
+  }
+]

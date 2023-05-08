@@ -16,6 +16,7 @@ using Microsoft.ML.TorchSharp.Extensions;
 using Microsoft.ML.TorchSharp.NasBert;
 using Microsoft.ML.TorchSharp.NasBert.Models;
 using TorchSharp;
+using static Microsoft.ML.TorchSharp.NasBert.NasBertTrainer;
 
 [assembly: LoadableClass(typeof(SentenceSimilarityTransformer), null, typeof(SignatureLoadModel),
     SentenceSimilarityTransformer.UserName, SentenceSimilarityTransformer.LoaderSignature)]
@@ -70,7 +71,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             int maxEpochs = 10,
             IDataView validationSet = null,
             BertArchitecture architecture = BertArchitecture.Roberta) :
-            this(env, new Options
+            this(env, new NasBertOptions
             {
                 ScoreColumnName = scoreColumnName,
                 Sentence1ColumnName = sentence1ColumnName,
@@ -84,19 +85,19 @@ namespace Microsoft.ML.TorchSharp.NasBert
         {
         }
 
-        private protected override TrainerBase CreateTrainer(NasBertTrainer<float, float> parent, IChannel ch, IDataView input)
+        private protected override TrainerBase CreateTrainer(TorchSharpBaseTrainer<float, float> parent, IChannel ch, IDataView input)
         {
             return new Trainer(parent, ch, input);
         }
 
-        private protected override NasBertTransformer<float, float> CreateTransformer(IHost host, Options options, NasBertModel model, DataViewSchema.DetachedColumn labelColumn)
+        private protected override TorchSharpBaseTransformer<float, float> CreateTransformer(IHost host, Options options, torch.nn.Module model, DataViewSchema.DetachedColumn labelColumn)
         {
-            return new SentenceSimilarityTransformer(host, options, model, labelColumn);
+            return new SentenceSimilarityTransformer(host, options as NasBertOptions, model as NasBertModel, labelColumn);
         }
 
-        private protected class Trainer : TrainerBase
+        private protected class Trainer : NasBertTrainerBase
         {
-            public Trainer(NasBertTrainer<float, float> parent, IChannel ch, IDataView input) : base(parent, ch, input)
+            public Trainer(TorchSharpBaseTrainer<float, float> parent, IChannel ch, IDataView input) : base(parent, ch, input)
             {
             }
 
@@ -161,29 +162,38 @@ namespace Microsoft.ML.TorchSharp.NasBert
         {
             return new VersionInfo(
                 modelSignature: "SNT-SIMI",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // New refactor format
+                verReadableCur: 0x00010002,
+                verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(SentenceSimilarityTransformer).Assembly.FullName);
         }
 
-        internal SentenceSimilarityTransformer(IHostEnvironment env, NasBertTrainer.Options options, NasBertModel model, DataViewSchema.DetachedColumn labelColumn) : base(env, options, model, labelColumn)
+        internal SentenceSimilarityTransformer(IHostEnvironment env, NasBertOptions options, NasBertModel model, DataViewSchema.DetachedColumn labelColumn) : base(env, options, model, labelColumn)
         {
         }
 
-        private protected override IRowMapper GetRowMapper(NasBertTransformer<float, float> parent, DataViewSchema schema)
+        private protected override IRowMapper GetRowMapper(TorchSharpBaseTransformer<float, float> parent, DataViewSchema schema)
         {
             return new Mapper(parent, schema);
-
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
         {
+            // *** Binary format ***
+            // BaseModel
+            //  int: id of label column name
+            //  int: id of the score column name
+            //  int: id of output column name
+            //  int: number of classes
+            //  BinaryStream: TS Model
+            //  int: id of sentence 1 column name
+            //  int: id of sentence 2 column name
             SaveBaseModel(ctx, GetVersionInfo());
         }
 
-        //Factory method for SignatureLoadRowMapper.
+        // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
@@ -195,21 +205,20 @@ namespace Microsoft.ML.TorchSharp.NasBert
             ctx.CheckAtModel(GetVersionInfo());
 
             // *** Binary format ***
-            // int: id of label column name
-            // int: id of score column name
-            // int: id of output column name
-            // int: id of sentence 1 column name
-            // int: id of sentence 2 column name
-            // int: number of classes
-            var options = new SentenceSimilarityTrainer.Options()
+            // BaseModel
+            //  int: id of label column name
+            //  int: id of the score column name
+            //  int: id of output column name
+            //  int: number of classes
+            //  BinaryStream: TS Model
+            //  int: id of sentence 1 column name
+            //  int: id of sentence 2 column name
+            var options = new NasBertOptions()
             {
                 LabelColumnName = ctx.LoadString(),
                 ScoreColumnName = ctx.LoadString(),
                 PredictionColumnName = ctx.LoadString(),
-                Sentence1ColumnName = ctx.LoadString(),
-                Sentence2ColumnName = ctx.LoadStringOrNull(),
                 NumberOfClasses = ctx.Reader.ReadInt32(),
-                TaskType = BertTaskType.SentenceRegression
             };
 
             var ch = env.Start("Load Model");
@@ -220,6 +229,10 @@ namespace Microsoft.ML.TorchSharp.NasBert
             if (!ctx.TryLoadBinaryStream("TSModel", r => model.load(r)))
                 throw env.ExceptDecode();
 
+            options.Sentence1ColumnName = ctx.LoadString();
+            options.Sentence2ColumnName = ctx.LoadStringOrNull();
+            options.TaskType = BertTaskType.SentenceRegression;
+
             var labelCol = new DataViewSchema.DetachedColumn(options.LabelColumnName, NumberDataViewType.Single);
 
             return new SentenceSimilarityTransformer(env, options, model, labelCol);
@@ -227,7 +240,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         private sealed class Mapper : NasBertMapper
         {
-            public Mapper(NasBertTransformer<float, float> parent, DataViewSchema inputSchema) : base(parent, inputSchema)
+            public Mapper(TorchSharpBaseTransformer<float, float> parent, DataViewSchema inputSchema) : base(parent, inputSchema)
             {
             }
 
@@ -249,14 +262,13 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
                 ReadOnlyMemory<char> sentence1 = default;
                 ReadOnlyMemory<char> sentence2 = default;
+                var cacher = outputCacher as BertTensorCacher;
 
                 ValueGetter<float> score = (ref float dst) =>
                 {
                     using var disposeScope = torch.NewDisposeScope();
                     UpdateCacheIfNeeded(input.Position, outputCacher, ref sentence1, ref sentence2, ref getSentence1, ref getSentence2, tokenizer);
-                    //var values = outputCacher.Result.squeeze().cpu().item<float>();
-                    dst = outputCacher.Result.squeeze().cpu().item<float>();
-                    //dst = values[0];
+                    dst = cacher.Result.squeeze().cpu().item<float>();
                 };
 
                 return score;

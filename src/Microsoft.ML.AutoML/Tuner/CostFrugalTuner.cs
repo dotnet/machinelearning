@@ -24,7 +24,7 @@ namespace Microsoft.ML.AutoML
         private double _bestLoss;
 
         public CostFrugalTuner(AutoMLExperiment.AutoMLExperimentSettings settings, ITrialResultManager trialResultManager = null)
-            : this(settings.SearchSpace, settings.SearchSpace.SampleFromFeatureSpace(settings.SearchSpace.Default), trialResultManager.GetAllTrialResults(), settings.Seed)
+            : this(settings.SearchSpace, settings.SearchSpace.SampleFromFeatureSpace(settings.SearchSpace.Default), trialResultManager?.GetAllTrialResults(), settings.Seed)
         {
         }
 

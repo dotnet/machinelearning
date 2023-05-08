@@ -8,7 +8,7 @@ namespace Microsoft.ML.AutoML.CodeGen
     {
         public override IEstimator<ITransformer> BuildFromOption(MLContext context, MapValueToKeyOption param)
         {
-            return context.Transforms.Conversion.MapValueToKey(param.OutputColumnName, param.InputColumnName);
+            return context.Transforms.Conversion.MapValueToKey(param.OutputColumnName, param.InputColumnName, addKeyValueAnnotationsAsText: param.AddKeyValueAnnotationsAsText);
         }
     }
 

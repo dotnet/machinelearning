@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -12,9 +13,19 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.Trainers
 {
+    internal static class OneDalLbfgs
+    {
+        private const string OneDalLibPath = "OneDalNative";
+
+        [DllImport(OneDalLibPath, EntryPoint = "logisticRegressionLBFGSCompute")]
+        public static extern unsafe void LogisticRegressionCompute(void* featuresPtr, void* labelsPtr, void* weightsPtr, bool useSampleWeights, void* betaPtr,
+            long nRows, int nColumns, int nClasses, float l1Reg, float l2Reg, float accuracyThreshold, int nIterations, int m, int nThreads);
+    }
+
     /// <summary>
     /// Base class for <a href='https://en.wikipedia.org/wiki/Limited-memory_BFGS'>L-BFGS</a>-based trainers.
     /// </summary>
@@ -34,6 +45,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization weight", ShortName = "l2, L2Weight", SortOrder = 50)]
             [TGUI(Label = "L2 Weight", Description = "Weight of L2 regularizer term", SuggestedSweeps = "0,0.1,1")]
             [TlcModule.SweepableFloatParamAttribute(0.0f, 1.0f, numSteps: 4)]
+            [Range(0.03125f, 32768f, 1, true)]
             public float L2Regularization = Defaults.L2Regularization;
 
             /// <summary>
@@ -42,6 +54,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "L1 regularization weight", ShortName = "l1, L1Weight", SortOrder = 50)]
             [TGUI(Label = "L1 Weight", Description = "Weight of L1 regularizer term", SuggestedSweeps = "0,0.1,1")]
             [TlcModule.SweepableFloatParamAttribute(0.0f, 1.0f, numSteps: 4)]
+            [Range(0.03125f, 32768f, 1, true)]
             public float L1Regularization = Defaults.L1Regularization;
 
             /// <summary>
@@ -51,6 +64,7 @@ namespace Microsoft.ML.Trainers
                 ShortName = "ot, OptTol", SortOrder = 50)]
             [TGUI(Label = "Optimization Tolerance", Description = "Threshold for optimizer convergence", SuggestedSweeps = "1e-4,1e-7")]
             [TlcModule.SweepableDiscreteParamAttribute(new object[] { 1e-4f, 1e-7f })]
+            [Range(1e-7f, 1e-1f, 1e-4f, true)]
             public float OptimizationTolerance = Defaults.OptimizationTolerance;
 
             /// <summary>
@@ -59,6 +73,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Memory size for L-BFGS. Low=faster, less accurate", ShortName = "m, MemorySize", SortOrder = 50)]
             [TGUI(Description = "Memory size for L-BFGS", SuggestedSweeps = "5,20,50")]
             [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[] { 5, 20, 50 })]
+            [Range(2, 512, 2, true)]
             public int HistorySize = Defaults.HistorySize;
 
             /// <summary>
@@ -67,6 +82,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum iterations.", ShortName = "maxiter, MaxIterations, NumberOfIterations")]
             [TGUI(Label = "Max Number of Iterations")]
             [TlcModule.SweepableLongParamAttribute("MaxIterations", 1, int.MaxValue)]
+            [Range(1, int.MaxValue, 1, true)]
             public int MaximumNumberOfIterations = Defaults.MaximumNumberOfIterations;
 
             /// <summary>
@@ -96,6 +112,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.LastOccurrenceWins, HelpText = "Init weights diameter", ShortName = "initwts, InitWtsDiameter", SortOrder = 140)]
             [TGUI(Label = "Initial Weights Scale", SuggestedSweeps = "0,0.1,0.5,1")]
             [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0.0f, 1.0f, numSteps: 5)]
+            [Range(0f, 1f, 0f, false)]
             public float InitialWeightsDiameter = 0;
 
             // Deprecated
@@ -114,12 +131,14 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Force densification of the internal optimization vectors", ShortName = "do")]
             [TlcModule.SweepableDiscreteParamAttribute("DenseOptimizer", new object[] { false, true })]
+            [BooleanChoice]
             public bool DenseOptimizer = false;
 
             /// <summary>
             /// Enforce non-negative weights. Default is false.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Enforce non-negative weights", ShortName = "nn", SortOrder = 90)]
+            [BooleanChoice]
             public bool EnforceNonNegativity = Defaults.EnforceNonNegativity;
 
             [BestFriend]
@@ -429,9 +448,112 @@ namespace Microsoft.ML.Trainers
 
             using (var ch = Host.Start("Training"))
             {
-                TrainCore(ch, data);
+                if (Environment.GetEnvironmentVariable("MLNET_BACKEND") == "ONEDAL" &&
+                    System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.X64)
+                {
+                    TrainCoreOneDal(ch, data);
+                }
+                else
+                {
+                    TrainCore(ch, data);
+                }
                 return CreatePredictor();
             }
+        }
+
+        private protected virtual void TrainCoreOneDal(IChannel ch, RoleMappedData data)
+        {
+            Host.AssertValue(ch);
+            ch.AssertValue(data);
+
+            int numThreads = !UseThreads ? 1 : (NumThreads ?? Environment.ProcessorCount);
+            ch.Assert(numThreads > 0);
+
+            NumGoodRows = 0;
+            WeightSum = 0;
+
+            _features = null;
+            _labels = null;
+            _weights = null;
+
+            CursOpt cursorOpt = CursOpt.Label | CursOpt.Features;
+            bool useSampleWeights = false;
+            if (data.Schema.Weight.HasValue)
+            {
+                useSampleWeights = true;
+                cursorOpt |= CursOpt.Weight;
+            }
+
+            var typeFeat = data.Schema.Feature.Value.Type as VectorDataViewType;
+            int nFeatures = typeFeat.Size;
+
+            var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
+
+            var labelsList = new List<int>();
+            var featuresList = new List<float>();
+            var weightsList = new List<float>();
+
+            using (var cursor = cursorFactory.Create())
+            {
+                while (cursor.MoveNext())
+                {
+                    if (useSampleWeights)
+                    {
+                        WeightSum += cursor.Weight;
+                        weightsList.Add(cursor.Weight);
+                    }
+                    labelsList.Add((int)cursor.Label);
+                    var values = cursor.Features.GetValues();
+                    if (cursor.Features.IsDense)
+                    {
+                        ch.Assert(values.Length == nFeatures);
+
+                        for (int j = 0; j < nFeatures; ++j)
+                        {
+                            featuresList.Add(values[j]);
+                        }
+                    }
+                    else
+                    {
+                        var indices = cursor.Features.GetIndices();
+                        int i = 0;
+                        for (int j = 0; j < indices.Length; ++j)
+                        {
+                            for (int k = i; k < indices[j]; ++k)
+                            {
+                                featuresList.Add(0);
+                            }
+                            featuresList.Add(values[indices[j]]);
+                            i = indices[j] + 1;
+                        }
+                    }
+                }
+                NumGoodRows = cursor.KeptRowCount;
+                if (cursor.SkippedRowCount > 0)
+                    ch.Warning("Skipped {0} instances with missing features/label/weight during training", cursor.SkippedRowCount);
+            }
+            ch.Check(NumGoodRows > 0, NoTrainingInstancesMessage);
+
+            int[] labelsArray = labelsList.ToArray();
+            float[] featuresArray = featuresList.ToArray();
+            if (!useSampleWeights)
+            {
+                weightsList.Add(1);
+            }
+            float[] weightsArray = weightsList.ToArray();
+            float[] betaArray = new float[WeightCount + BiasCount];
+
+            unsafe
+            {
+#pragma warning disable MSML_SingleVariableDeclaration // Have only a single variable present per declaration
+                fixed (void* featuresPtr = &featuresArray[0], labelsPtr = &labelsArray[0], weightsPtr = &weightsArray[0], betaPtr = &betaArray[0])
+#pragma warning restore MSML_SingleVariableDeclaration // Have only a single variable present per declaration
+                {
+                    OneDalLbfgs.LogisticRegressionCompute(featuresPtr, labelsPtr, weightsPtr, useSampleWeights, betaPtr, NumGoodRows, nFeatures, ClassCount, L1Weight, L2Weight, OptTol, MaxIterations, MemorySize, numThreads);
+                }
+            }
+
+            CurrentWeights = new VBuffer<float>(betaArray.Length, betaArray);
         }
 
         private protected virtual void TrainCore(IChannel ch, RoleMappedData data)

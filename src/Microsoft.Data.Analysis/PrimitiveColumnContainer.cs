@@ -257,17 +257,10 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < Buffers.Count; b++)
             {
-                ReadOnlyDataFrameBuffer<T> buffer = Buffers[b];
-                long prevLength = checked(Buffers[0].Length * b);
-                DataFrameBuffer<T> mutableBuffer = DataFrameBuffer<T>.GetMutableBuffer(buffer);
-                Buffers[b] = mutableBuffer;
-                Span<T> span = mutableBuffer.Span;
-                DataFrameBuffer<byte> mutableNullBitMapBuffer = DataFrameBuffer<byte>.GetMutableBuffer(NullBitMapBuffers[b]);
-                NullBitMapBuffers[b] = mutableNullBitMapBuffer;
-                Span<byte> nullBitMapSpan = mutableNullBitMapBuffer.Span;
+                ReadOnlyDataFrameBuffer<T> sourceBuffer = Buffers[b];
+                ReadOnlySpan<byte> sourceNullBitMap = NullBitMapBuffers[b].ReadOnlySpan;
 
                 ReadOnlyDataFrameBuffer<TResult> resultBuffer = resultContainer.Buffers[b];
-                long resultPrevLength = checked(resultContainer.Buffers[0].Length * b);
                 DataFrameBuffer<TResult> resultMutableBuffer = DataFrameBuffer<TResult>.GetMutableBuffer(resultBuffer);
                 resultContainer.Buffers[b] = resultMutableBuffer;
                 Span<TResult> resultSpan = resultMutableBuffer.Span;
@@ -275,13 +268,12 @@ namespace Microsoft.Data.Analysis
                 resultContainer.NullBitMapBuffers[b] = resultMutableNullBitMapBuffer;
                 Span<byte> resultNullBitMapSpan = resultMutableNullBitMapBuffer.Span;
 
-                for (int i = 0; i < span.Length; i++)
+                for (int i = 0; i < Buffers[b].Length; i++)
                 {
-                    long curIndex = i + prevLength;
-                    bool isValid = IsValid(nullBitMapSpan, i);
-                    TResult? value = func(isValid ? span[i] : default(T?));
+                    bool isValid = IsValid(sourceNullBitMap, i);
+                    TResult? value = func(isValid ? sourceBuffer[i] : default(T?));
                     resultSpan[i] = value.GetValueOrDefault();
-                    SetValidityBit(resultNullBitMapSpan, i, value != null);
+                    resultContainer.SetValidityBit(resultNullBitMapSpan, i, value != null);
                 }
             }
         }
