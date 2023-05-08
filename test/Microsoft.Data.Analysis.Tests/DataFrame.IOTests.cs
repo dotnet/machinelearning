@@ -1131,7 +1131,7 @@ CMT,";
         }
 
         static readonly string BasePath =
-            Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\";
+            Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "/";
 
         const string DbName = "TestDb";
         const string TableName = "TestTable";
