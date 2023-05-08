@@ -1136,7 +1136,7 @@ CMT,";
         const string DbName = "TestDb";
         const string TableName = "TestTable";
 
-        static readonly string SQLitePath = $@"{BasePath}\{DbName}.sqlite";
+        static readonly string SQLitePath = $@"{BasePath}/{DbName}.sqlite";
 
         public readonly struct LoadCsvVerifyingHelper
         {

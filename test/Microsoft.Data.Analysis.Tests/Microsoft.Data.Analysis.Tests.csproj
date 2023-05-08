@@ -36,7 +36,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="System.Data.SQLite" Version="1.0.113" />
+      <PackageReference Include="System.Data.SQLite" Version="$(SystemDataSQLiteCoreVersion)" />
+      <PackageReference Include="System.Data.SQLite.Core" Version="$(SystemDataSQLiteCoreVersion)" PrivateAssets="none"/>
+
     </ItemGroup>
 
 </Project>
