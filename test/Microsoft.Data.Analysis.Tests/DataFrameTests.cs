@@ -844,7 +844,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(100.0, df.Columns["Double"].Max());
             Assert.Equal(-10.0f, df.Columns["Float"].Min());
             Assert.Equal((uint)0, df.Columns["Uint"].Product());
-            Assert.Equal((ushort)140, df.Columns["Ushort"].Sum());
+            Assert.Equal((ushort)130, df.Columns["Ushort"].Sum());
 
             df.Columns["Double"][0] = 100.1;
             Assert.Equal(100.1, df.Columns["Double"][0]);
@@ -1013,7 +1013,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(100.0, df.Columns["Double"].Max());
             Assert.Equal(-10.0f, df.Columns["Float"].Min());
             Assert.Equal((uint)0, df.Columns["Uint"].Product());
-            Assert.Equal((ushort)140, df.Columns["Ushort"].Sum());
+            Assert.Equal((ushort)130, df.Columns["Ushort"].Sum());
 
             df.Columns["Double"][0] = 100.1;
             Assert.Equal(100.1, df.Columns["Double"][0]);
@@ -3321,6 +3321,16 @@ namespace Microsoft.Data.Analysis.Tests
             UInt16DataFrameColumn ushorts = dataFrame.Columns.GetUInt16Column("Ushort");
             Assert.NotNull(ushorts);
             Assert.Throws<ArgumentException>(() => dataFrame.Columns.GetSingleColumn("Ushort"));
+
+        }
+
+        [Fact]
+        public void TestMeanMedian()
+        {
+            DataFrame df = MakeDataFrameWithNumericColumns(10, true, 0);
+
+            Assert.Equal(40.0 / 9.0, df["Decimal"].Mean());
+            Assert.Equal(4, df["Decimal"].Median());
 
         }
     }

@@ -18,7 +18,7 @@ namespace Microsoft.Data.Analysis
 {
     public abstract partial class DataFrameColumn
     {
-        #pragma warning disable 1591
+#pragma warning disable 1591
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.BinaryScalar) { #>
 <# if (method.IsBitwise == true) { #>
