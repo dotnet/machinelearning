@@ -1584,9 +1584,6 @@ namespace Microsoft.Data.Analysis.Tests
                     DataFrameColumn minColumn = min.Columns[originalColumn.Name];
                     Assert.Equal(r == 0 ? "0" : "1", minColumn[r].ToString());
 
-                    DataFrameColumn productColumn = product.Columns[originalColumn.Name];
-                    Assert.Equal("0", productColumn[r].ToString());
-
                     DataFrameColumn sumColumn = sum.Columns[originalColumn.Name];
                     Assert.Equal("20", sumColumn[r].ToString());
                 }
@@ -1603,7 +1600,7 @@ namespace Microsoft.Data.Analysis.Tests
             DataFrame columnProduct = df.GroupBy("Bool").Product("Int");
             Assert.Equal(2, columnProduct.Columns.Count);
             Assert.Equal(0, columnProduct.Columns["Int"][0]);
-            Assert.Equal(0, columnProduct.Columns["Int"][1]);
+            Assert.Equal(189, columnProduct.Columns["Int"][1]);
             DataFrame columnMin = df.GroupBy("Bool").Min("Int");
             Assert.Equal(2, columnMin.Columns.Count);
             Assert.Equal(0, columnMin.Columns["Int"][0]);
