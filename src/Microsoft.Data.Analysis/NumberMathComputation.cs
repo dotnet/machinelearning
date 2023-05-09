@@ -169,59 +169,6 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        protected void CumulativeApply(PrimitiveColumnContainer<T> column, Func<T, T, T> func, IEnumerable<long> rows)
-        {
-            T ret = T.Zero;
-            var buffer = column.Buffers.GetOrCreateMutable(0).Span;
-            var bitmap = column.NullBitMapBuffers[0].ReadOnlySpan;
-            long minRange = 0;
-            long maxRange = ReadOnlyDataFrameBuffer<T>.MaxCapacity;
-            long maxCapacity = maxRange;
-            IEnumerator<long> enumerator = rows.GetEnumerator();
-
-            bool isValid = false;
-            while (!isValid && enumerator.MoveNext())
-            {
-                long row = enumerator.Current;
-                if (row < minRange || row >= maxRange)
-                {
-                    int bufferIndex = (int)(row / maxCapacity);
-                    buffer = column.Buffers.GetOrCreateMutable(bufferIndex).Span;
-                    bitmap = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
-                    minRange = checked(bufferIndex * maxCapacity);
-                    maxRange = checked((bufferIndex + 1) * maxCapacity);
-                }
-
-                row -= minRange;
-                if (column.IsValid(bitmap, (int)row))
-                {
-                    isValid = true;
-                    ret = buffer[(int)row];
-                }
-            }
-
-            while (enumerator.MoveNext())
-            {
-                long row = enumerator.Current;
-                if (row < minRange || row >= maxRange)
-                {
-                    int bufferIndex = (int)(row / maxCapacity);
-                    buffer = column.Buffers.GetOrCreateMutable(bufferIndex).Span;
-                    bitmap = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
-                    minRange = checked(bufferIndex * maxCapacity);
-                    maxRange = checked((bufferIndex + 1) * maxCapacity);
-                }
-
-                row -= minRange;
-                if (column.IsValid(bitmap, (int)row))
-                {
-                    ret = func(ret, buffer[(int)row]);
-                    buffer[(int)row] = ret;
-                }
-            }
-        }
-
-
         protected T CalculateReduction(PrimitiveColumnContainer<T> column, Func<T, T, T> func, T startValue)
         {
             var ret = startValue;
@@ -241,6 +188,46 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
+        protected void CumulativeApply(PrimitiveColumnContainer<T> column, Func<T, T, T> func, IEnumerable<long> rows)
+        {
+            T ret = T.Zero;
+            var buffer = column.Buffers.GetOrCreateMutable(0).Span;
+            var bitmap = column.NullBitMapBuffers[0].ReadOnlySpan;
+            long minRange = 0;
+            long maxRange = ReadOnlyDataFrameBuffer<T>.MaxCapacity;
+            long maxCapacity = maxRange;
+            IEnumerator<long> enumerator = rows.GetEnumerator();
+
+            bool isInitialized = false;
+            while (enumerator.MoveNext())
+            {
+                long row = enumerator.Current;
+                if (row < minRange || row >= maxRange)
+                {
+                    int bufferIndex = (int)(row / maxCapacity);
+                    buffer = column.Buffers.GetOrCreateMutable(bufferIndex).Span;
+                    bitmap = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
+                    minRange = checked(bufferIndex * maxCapacity);
+                    maxRange = checked((bufferIndex + 1) * maxCapacity);
+                }
+
+                row -= minRange;
+                if (column.IsValid(bitmap, (int)row))
+                {
+                    if (!isInitialized)
+                    {
+                        isInitialized = true;
+                        ret = buffer[(int)row];
+                    }
+                    else
+                    {
+                        ret = func(ret, buffer[(int)row]);
+                        buffer[(int)row] = ret;
+                    }
+                }
+            }
+        }
+
         protected T CalculateReduction(PrimitiveColumnContainer<T> column, Func<T, T, T> func, IEnumerable<long> rows)
         {
             var ret = T.Zero;
@@ -251,27 +238,7 @@ namespace Microsoft.Data.Analysis
             long maxCapacity = maxRange;
             IEnumerator<long> enumerator = rows.GetEnumerator();
 
-            bool isValid = false;
-            while (!isValid && enumerator.MoveNext())
-            {
-                long row = enumerator.Current;
-                if (row < minRange || row >= maxRange)
-                {
-                    int bufferIndex = (int)(row / maxCapacity);
-                    buffer = column.Buffers[bufferIndex].ReadOnlySpan;
-                    bitMap = column.NullBitMapBuffers[bufferIndex].ReadOnlySpan;
-                    minRange = checked(bufferIndex * maxCapacity);
-                    maxRange = checked((bufferIndex + 1) * maxCapacity);
-                }
-                row -= minRange;
-
-                if (column.IsValid(bitMap, (int)row))
-                {
-                    isValid = true;
-                    ret = buffer[(int)row];
-                }
-            }
-
+            bool isInitialized = false;
             while (enumerator.MoveNext())
             {
                 long row = enumerator.Current;
@@ -287,9 +254,16 @@ namespace Microsoft.Data.Analysis
 
                 if (column.IsValid(bitMap, (int)row))
                 {
-                    ret = checked(func(ret, buffer[(int)row]));
+                    if (!isInitialized)
+                    {
+                        isInitialized = true;
+                        ret = buffer[(int)row];
+                    }
+                    else
+                    {
+                        ret = checked(func(ret, buffer[(int)row]));
+                    }
                 }
-
             }
 
             return ret;
