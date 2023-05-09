@@ -1584,6 +1584,13 @@ namespace Microsoft.Data.Analysis.Tests
                     DataFrameColumn minColumn = min.Columns[originalColumn.Name];
                     Assert.Equal(r == 0 ? "0" : "1", minColumn[r].ToString());
 
+                    DataFrameColumn productColumn = product.Columns[originalColumn.Name];
+
+                    if (originalColumn.Name == "Sbyte")
+                        Assert.Equal(r == 0 ? "0" : "-67", productColumn[r].ToString());
+                    else
+                        Assert.Equal(r == 0 ? "0" : "189", productColumn[r].ToString());
+
                     DataFrameColumn sumColumn = sum.Columns[originalColumn.Name];
                     Assert.Equal("20", sumColumn[r].ToString());
                 }
