@@ -92,6 +92,31 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void AutoFit_bug_test()
+        {
+            var context = new MLContext(1);
+            var trainPath = @"D:\bug_train_2.csv";
+            var testPath = @"D:\bug_test_2.csv";
+            var label = "sales";
+            var columnInference = context.Auto().InferColumns(trainPath, label);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(trainPath);
+            var testData = textLoader.Load(testPath);
+            var settings = new RegressionExperimentSettings
+            {
+                MaxModels = 30,
+                OptimizingMetric = RegressionMetric.MeanAbsoluteError,
+                CacheBeforeTrainer = CacheBeforeTrainer.Off,
+            };
+
+            var result = context.Auto()
+                .CreateRegressionExperiment(settings)
+                .Execute(trainData, testData, label);
+
+            Assert.True(result.BestRun.ValidationMetrics.MeanAbsoluteError > 0);
+        }
+
+        [Fact]
         public void AutoFit_UCI_Adult_Train_Test_Split_Test()
         {
             var context = new MLContext(1);

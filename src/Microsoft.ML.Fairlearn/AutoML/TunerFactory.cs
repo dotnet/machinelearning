@@ -8,7 +8,6 @@ using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
-using Microsoft.ML.Fairlearn.reductions;
 using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.Fairlearn.AutoML

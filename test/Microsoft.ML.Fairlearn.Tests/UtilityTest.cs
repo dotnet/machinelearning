@@ -6,20 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xunit;
-using Microsoft.ML.Fairlearn.reductions;
 using Microsoft.Data.Analysis;
 
 namespace Microsoft.ML.Fairlearn.Tests
 {
     public class UtilityTest
     {
-        MLContext mlContext;
-
-        public UtilityTest()
-        {
-            mlContext = new MLContext();
-
-        }
         [Fact]
         public void DemographyParityTest()
         {
@@ -43,7 +35,6 @@ namespace Microsoft.ML.Fairlearn.Tests
             Assert.Equal(-0.1, Convert.ToSingle(gSinged["value"][1]), 1);
             Assert.Equal(-0.1, Convert.ToSingle(gSinged["value"][2]), 1);
             Assert.Equal(0.1, Convert.ToSingle(gSinged["value"][3]), 1);
-
         }
     }
 }

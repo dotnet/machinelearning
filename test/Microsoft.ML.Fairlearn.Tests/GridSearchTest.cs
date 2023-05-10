@@ -6,7 +6,6 @@ using FluentAssertions;
 using Microsoft.Data.Analysis;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.Fairlearn.AutoML;
-using Microsoft.ML.Fairlearn.reductions;
 using Xunit;
 using Xunit.Abstractions;
 

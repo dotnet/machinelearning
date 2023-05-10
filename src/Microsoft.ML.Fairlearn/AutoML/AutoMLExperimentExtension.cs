@@ -9,7 +9,6 @@ using Microsoft.Data.Analysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Fairlearn.reductions;
 
 namespace Microsoft.ML.Fairlearn.AutoML
 {
