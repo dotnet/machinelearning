@@ -70,7 +70,7 @@ namespace Microsoft.ML
                 }
                 else if (type == DateTimeDataViewType.Instance)
                 {
-                    dataFrameColumns.Add(new DateTimeDataFrameColumn(dataViewColumn.Name));
+                    dataFrameColumns.Add(new PrimitiveDataFrameColumn<DateTime>(dataViewColumn.Name));
                 }
                 else if (type == NumberDataViewType.Byte)
                 {

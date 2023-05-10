@@ -148,7 +148,7 @@ namespace Microsoft.Data.Analysis.Tests
         {
             DataFrame df = MakeDataFrameWithNumericAndStringColumns(length, withNulls);
 
-            DataFrameColumn dateTimeColumn = new DateTimeDataFrameColumn("DateTime", Enumerable.Range(0, length).Select(x => SampleDateTime.AddDays(x)));
+            DataFrameColumn dateTimeColumn = new PrimitiveDataFrameColumn<DateTime>("DateTime", Enumerable.Range(0, length).Select(x => SampleDateTime.AddDays(x)));
             df.Columns.Insert(df.Columns.Count, dateTimeColumn);
             if (withNulls)
             {
@@ -497,9 +497,9 @@ namespace Microsoft.Data.Analysis.Tests
         public void TestBinaryOperationsOnDateTimeColumn()
         {
             var df = new DataFrame();
-            var dataFrameColumn1 = new DateTimeDataFrameColumn("DateTime1", Enumerable.Range(0, 5).Select(x => SampleDateTime.AddDays(x)));
+            var dataFrameColumn1 = new PrimitiveDataFrameColumn<DateTime>("DateTime1", Enumerable.Range(0, 5).Select(x => SampleDateTime.AddDays(x)));
             // Make the second data frame column have one value that is different
-            var dataFrameColumn2 = new DateTimeDataFrameColumn("DateTime2", Enumerable.Range(0, 4).Select(x => SampleDateTime.AddDays(x)));
+            var dataFrameColumn2 = new PrimitiveDataFrameColumn<DateTime>("DateTime2", Enumerable.Range(0, 4).Select(x => SampleDateTime.AddDays(x)));
             dataFrameColumn2.Append(SampleDateTime.AddDays(6));
             df.Columns.Insert(0, dataFrameColumn1);
             df.Columns.Insert(1, dataFrameColumn2);
