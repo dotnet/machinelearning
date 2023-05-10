@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Data.Analysis
 {
-    internal class NumericDataFrameColumnArithmetic<T> : IPrimitiveDataFrameColumnArithmetic<T>
-        where T : unmanaged, INumber<T>, IShiftOperators<T, T>, IBitwiseOperators<T, T, T>
+    internal class FloatingPointDataFrameColumnArithmetic<T> : IPrimitiveDataFrameColumnArithmetic<T>
+        where T : unmanaged, INumber<T>
     {
-        public NumericDataFrameColumnArithmetic() : base()
+        public FloatingPointDataFrameColumnArithmetic() : base()
         {
         }
         public void Add(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right)
@@ -231,162 +231,49 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public void And(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right)
+        public virtual void And(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right)
         {
-            for (int b = 0; b < left.Buffers.Count; b++)
-            {
-                var buffer = left.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<T>.GetMutableBuffer(buffer);
-                left.Buffers[b] = mutableBuffer;
-                var span = mutableBuffer.Span;
-                var otherSpan = right.Buffers[b].ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (T)(span[i] & otherSpan[i]);
-                }
-            }
+            throw new NotSupportedException();
         }
-        public void And(PrimitiveColumnContainer<T> column, T scalar)
+        public virtual void And(PrimitiveColumnContainer<T> column, T scalar)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<T>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (T)(span[i] & scalar);
-                }
-            }
+            throw new NotSupportedException();
         }
-        public void And(T scalar, PrimitiveColumnContainer<T> column)
+        public virtual void And(T scalar, PrimitiveColumnContainer<T> column)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<T>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (T)(scalar & span[i]);
-                }
-            }
+            throw new NotSupportedException();
         }
-        public void Or(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right)
+        public virtual void Or(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right)
         {
-            for (int b = 0; b < left.Buffers.Count; b++)
-            {
-                var buffer = left.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<T>.GetMutableBuffer(buffer);
-                left.Buffers[b] = mutableBuffer;
-                var span = mutableBuffer.Span;
-                var otherSpan = right.Buffers[b].ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (T)(span[i] | otherSpan[i]);
-                }
-            }
+            throw new NotSupportedException();
         }
-        public void Or(PrimitiveColumnContainer<T> column, T scalar)
+        public virtual void Or(PrimitiveColumnContainer<T> column, T scalar)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<T>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (T)(span[i] | scalar);
-                }
-            }
+            throw new NotSupportedException();
         }
-        public void Or(T scalar, PrimitiveColumnContainer<T> column)
+        public virtual void Or(T scalar, PrimitiveColumnContainer<T> column)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<T>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (T)(scalar | span[i]);
-                }
-            }
+            throw new NotSupportedException();
         }
-        public void Xor(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right)
+        public virtual void Xor(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right)
         {
-            for (int b = 0; b < left.Buffers.Count; b++)
-            {
-                var buffer = left.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<T>.GetMutableBuffer(buffer);
-                left.Buffers[b] = mutableBuffer;
-                var span = mutableBuffer.Span;
-                var otherSpan = right.Buffers[b].ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (T)(span[i] ^ otherSpan[i]);
-                }
-            }
+            throw new NotSupportedException();
         }
-        public void Xor(PrimitiveColumnContainer<T> column, T scalar)
+        public virtual void Xor(PrimitiveColumnContainer<T> column, T scalar)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<T>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (T)(span[i] ^ scalar);
-                }
-            }
+            throw new NotSupportedException();
         }
-        public void Xor(T scalar, PrimitiveColumnContainer<T> column)
+        public virtual void Xor(T scalar, PrimitiveColumnContainer<T> column)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<T>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (T)(scalar ^ span[i]);
-                }
-            }
+            throw new NotSupportedException();
         }
-        public void LeftShift(PrimitiveColumnContainer<T> column, int value)
+        public virtual void LeftShift(PrimitiveColumnContainer<T> column, int value)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<T>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (T)(span[i] << value);
-                }
-            }
+            throw new NotSupportedException();
         }
-        public void RightShift(PrimitiveColumnContainer<T> column, int value)
+        public virtual void RightShift(PrimitiveColumnContainer<T> column, int value)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<T>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (T)(span[i] >> value);
-                }
-            }
+            throw new NotSupportedException();
         }
         public void ElementwiseEquals(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right, PrimitiveColumnContainer<bool> ret)
         {
