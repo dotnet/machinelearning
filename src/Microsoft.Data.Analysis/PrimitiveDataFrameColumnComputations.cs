@@ -35,6 +35,7 @@ namespace Microsoft.Data.Analysis
         void Sum(PrimitiveColumnContainer<T> column, out T ret);
         void Sum(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T ret);
         void Round(PrimitiveColumnContainer<T> column);
+        PrimitiveColumnContainer<U> CreateTruncating<U>(PrimitiveColumnContainer<T> column) where U : unmanaged, INumber<U>;
     }
 
     internal static class PrimitiveColumnComputation<T>
@@ -238,5 +239,9 @@ namespace Microsoft.Data.Analysis
             throw new NotSupportedException();
         }
 
+        public PrimitiveColumnContainer<U> CreateTruncating<U>(PrimitiveColumnContainer<bool> column) where U : unmanaged, INumber<U>
+        {
+            throw new NotImplementedException();
+        }
     }
 }

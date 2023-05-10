@@ -34,7 +34,7 @@ namespace Microsoft.Data.Analysis.Tests
         public void ByteColumnComputationsTests()
         {
 
-            var column = new ByteDataFrameColumn("byteValues", ByteValues);
+            var column = new PrimitiveDataFrameColumn<byte>("byteValues", ByteValues);
 
             Assert.Equal(Enumerable.Max(Int32Values), Convert.ToInt32(column.Max()));
             Assert.Equal(Enumerable.Min(Int32Values), Convert.ToInt32(column.Min()));
@@ -44,7 +44,7 @@ namespace Microsoft.Data.Analysis.Tests
         public void CharColumnComputationsTests()
         {
 
-            var column = new CharDataFrameColumn("charValues", CharValues);
+            var column = new PrimitiveDataFrameColumn<char>("charValues", CharValues);
 
             Assert.Equal(Enumerable.Max(Int32Values), Convert.ToInt32(column.Max()));
             Assert.Equal(Enumerable.Min(Int32Values), Convert.ToInt32(column.Min()));
@@ -54,7 +54,7 @@ namespace Microsoft.Data.Analysis.Tests
         public void DecimalColumnComputationsTests()
         {
 
-            var column = new DecimalDataFrameColumn("decimalValues", DecimalValues);
+            var column = new PrimitiveDataFrameColumn<decimal>("decimalValues", DecimalValues);
 
             Assert.Equal(Enumerable.Max(Int32Values), Convert.ToInt32(column.Max()));
             Assert.Equal(Enumerable.Min(Int32Values), Convert.ToInt32(column.Min()));
@@ -64,7 +64,7 @@ namespace Microsoft.Data.Analysis.Tests
         public void DoubleColumnComputationsTests()
         {
 
-            var column = new DoubleDataFrameColumn("doubleValues", DoubleValues);
+            var column = new PrimitiveDataFrameColumn<double>("doubleValues", DoubleValues);
 
             Assert.Equal(Enumerable.Max(Int32Values), Convert.ToInt32(column.Max()));
             Assert.Equal(Enumerable.Min(Int32Values), Convert.ToInt32(column.Min()));
@@ -74,7 +74,7 @@ namespace Microsoft.Data.Analysis.Tests
         public void SingleColumnComputationsTests()
         {
 
-            var column = new SingleDataFrameColumn("floatValues", SingleValues);
+            var column = new PrimitiveDataFrameColumn<float>("floatValues", SingleValues);
 
             Assert.Equal(Enumerable.Max(Int32Values), Convert.ToInt32(column.Max()));
             Assert.Equal(Enumerable.Min(Int32Values), Convert.ToInt32(column.Min()));
@@ -84,7 +84,7 @@ namespace Microsoft.Data.Analysis.Tests
         public void Int32ColumnComputationsTests()
         {
 
-            var column = new Int32DataFrameColumn("intValues", Int32Values);
+            var column = new PrimitiveDataFrameColumn<int>("intValues", Int32Values);
 
             Assert.Equal(Enumerable.Max(Int32Values), Convert.ToInt32(column.Max()));
             Assert.Equal(Enumerable.Min(Int32Values), Convert.ToInt32(column.Min()));
@@ -94,7 +94,7 @@ namespace Microsoft.Data.Analysis.Tests
         public void Int64ColumnComputationsTests()
         {
 
-            var column = new Int64DataFrameColumn("longValues", Int64Values);
+            var column = new PrimitiveDataFrameColumn<long>("longValues", Int64Values);
 
             Assert.Equal(Enumerable.Max(Int32Values), Convert.ToInt32(column.Max()));
             Assert.Equal(Enumerable.Min(Int32Values), Convert.ToInt32(column.Min()));
@@ -104,7 +104,7 @@ namespace Microsoft.Data.Analysis.Tests
         public void SByteColumnComputationsTests()
         {
 
-            var column = new SByteDataFrameColumn("sbyteValues", SByteValues);
+            var column = new PrimitiveDataFrameColumn<sbyte>("sbyteValues", SByteValues);
 
             Assert.Equal(Enumerable.Max(Int32Values), Convert.ToInt32(column.Max()));
             Assert.Equal(Enumerable.Min(Int32Values), Convert.ToInt32(column.Min()));
@@ -114,7 +114,7 @@ namespace Microsoft.Data.Analysis.Tests
         public void Int16ColumnComputationsTests()
         {
 
-            var column = new Int16DataFrameColumn("shortValues", Int16Values);
+            var column = new PrimitiveDataFrameColumn<short>("shortValues", Int16Values);
 
             Assert.Equal(Enumerable.Max(Int32Values), Convert.ToInt32(column.Max()));
             Assert.Equal(Enumerable.Min(Int32Values), Convert.ToInt32(column.Min()));
@@ -124,7 +124,7 @@ namespace Microsoft.Data.Analysis.Tests
         public void UInt32ColumnComputationsTests()
         {
 
-            var column = new UInt32DataFrameColumn("uintValues", UInt32Values);
+            var column = new PrimitiveDataFrameColumn<uint>("uintValues", UInt32Values);
 
             Assert.Equal(Enumerable.Max(Int32Values), Convert.ToInt32(column.Max()));
             Assert.Equal(Enumerable.Min(Int32Values), Convert.ToInt32(column.Min()));
@@ -134,7 +134,7 @@ namespace Microsoft.Data.Analysis.Tests
         public void UInt64ColumnComputationsTests()
         {
 
-            var column = new UInt64DataFrameColumn("ulongValues", UInt64Values);
+            var column = new PrimitiveDataFrameColumn<ulong>("ulongValues", UInt64Values);
 
             Assert.Equal(Enumerable.Max(Int32Values), Convert.ToInt32(column.Max()));
             Assert.Equal(Enumerable.Min(Int32Values), Convert.ToInt32(column.Min()));
@@ -144,7 +144,7 @@ namespace Microsoft.Data.Analysis.Tests
         public void UInt16ColumnComputationsTests()
         {
 
-            var column = new UInt16DataFrameColumn("ushortValues", UInt16Values);
+            var column = new PrimitiveDataFrameColumn<ushort>("ushortValues", UInt16Values);
 
             Assert.Equal(Enumerable.Max(Int32Values), Convert.ToInt32(column.Max()));
             Assert.Equal(Enumerable.Min(Int32Values), Convert.ToInt32(column.Min()));

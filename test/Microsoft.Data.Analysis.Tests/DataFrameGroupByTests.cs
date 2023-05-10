@@ -105,7 +105,7 @@ namespace Microsoft.Data.Analysis.Tests
         {
             DataFrame df = DataFrameTests.MakeDataFrameWithNumericColumns(length, false);
             DataFrameColumn parityColumn = new StringDataFrameColumn("Parity", Enumerable.Range(0, length).Select(x => x % 2 == 0 ? "even" : "odd"));
-            DataFrameColumn tensColumn = new Int32DataFrameColumn("Tens", Enumerable.Range(0, length).Select(x => x / 10));
+            DataFrameColumn tensColumn = new PrimitiveDataFrameColumn<int>("Tens", Enumerable.Range(0, length).Select(x => x / 10));
             df.Columns.Insert(df.Columns.Count, parityColumn);
             df.Columns.Insert(df.Columns.Count, tensColumn);
 

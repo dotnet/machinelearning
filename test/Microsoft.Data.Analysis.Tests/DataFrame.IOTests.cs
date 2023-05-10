@@ -21,67 +21,67 @@ namespace Microsoft.Data.Analysis.Tests
                 Type dataType = column.DataType;
                 if (dataType == typeof(bool))
                 {
-                    Assert.IsType<BooleanDataFrameColumn>(column);
+                    Assert.IsType<PrimitiveDataFrameColumn<bool>>(column);
 
                 }
                 else if (dataType == typeof(decimal))
                 {
-                    Assert.IsType<DecimalDataFrameColumn>(column);
+                    Assert.IsType<PrimitiveDataFrameColumn<decimal>>(column);
 
                 }
                 else if (dataType == typeof(byte))
                 {
-                    Assert.IsType<ByteDataFrameColumn>(column);
+                    Assert.IsType<PrimitiveDataFrameColumn<byte>>(column);
 
                 }
                 else if (dataType == typeof(char))
                 {
-                    Assert.IsType<CharDataFrameColumn>(column);
+                    Assert.IsType<PrimitiveDataFrameColumn<char>>(column);
 
                 }
                 else if (dataType == typeof(double))
                 {
-                    Assert.IsType<DoubleDataFrameColumn>(column);
+                    Assert.IsType<PrimitiveDataFrameColumn<double>>(column);
 
                 }
                 else if (dataType == typeof(float))
                 {
-                    Assert.IsType<SingleDataFrameColumn>(column);
+                    Assert.IsType<PrimitiveDataFrameColumn<float>>(column);
 
                 }
                 else if (dataType == typeof(int))
                 {
-                    Assert.IsType<Int32DataFrameColumn>(column);
+                    Assert.IsType<PrimitiveDataFrameColumn<int>>(column);
 
                 }
                 else if (dataType == typeof(long))
                 {
 
-                    Assert.IsType<Int64DataFrameColumn>(column);
+                    Assert.IsType<PrimitiveDataFrameColumn<long>>(column);
                 }
                 else if (dataType == typeof(sbyte))
                 {
-                    Assert.IsType<SByteDataFrameColumn>(column);
+                    Assert.IsType<PrimitiveDataFrameColumn<sbyte>>(column);
 
                 }
                 else if (dataType == typeof(short))
                 {
-                    Assert.IsType<Int16DataFrameColumn>(column);
+                    Assert.IsType<PrimitiveDataFrameColumn<short>>(column);
 
                 }
                 else if (dataType == typeof(uint))
                 {
-                    Assert.IsType<UInt32DataFrameColumn>(column);
+                    Assert.IsType<PrimitiveDataFrameColumn<uint>>(column);
 
                 }
                 else if (dataType == typeof(ulong))
                 {
 
-                    Assert.IsType<UInt64DataFrameColumn>(column);
+                    Assert.IsType<PrimitiveDataFrameColumn<ulong>>(column);
                 }
                 else if (dataType == typeof(ushort))
                 {
-                    Assert.IsType<UInt16DataFrameColumn>(column);
+                    Assert.IsType<PrimitiveDataFrameColumn<ushort>>(column);
 
                 }
                 else if (dataType == typeof(string))

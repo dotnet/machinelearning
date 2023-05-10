@@ -310,5 +310,9 @@ namespace Microsoft.Data.Analysis
             throw new NotSupportedException();
         }
 
+        public PrimitiveColumnContainer<U> CreateTruncating<U>(PrimitiveColumnContainer<DateTime> column) where U : unmanaged, INumber<U>
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -9,6 +9,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.Versioning;
+using Microsoft.ML.Data;
 
 namespace Microsoft.Data.Analysis
 {
@@ -266,6 +267,27 @@ namespace Microsoft.Data.Analysis
                 }
             }
 
+            return ret;
+        }
+
+        public PrimitiveColumnContainer<U> CreateTruncating<U>(PrimitiveColumnContainer<T> column)
+            where U : unmanaged, INumber<U>
+        {
+            var ret = new PrimitiveColumnContainer<U>();
+            foreach (ReadOnlyDataFrameBuffer<T> buffer in column.Buffers)
+            {
+                ret.Length += buffer.Length;
+                DataFrameBuffer<U> newBuffer = new DataFrameBuffer<U>();
+                ret.Buffers.Add(newBuffer);
+                newBuffer.EnsureCapacity(buffer.Length);
+                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
+                for (int i = 0; i < span.Length; i++)
+                {
+                    newBuffer.Append(U.CreateTruncating<T>(span[i]));
+                }
+            }
+            ret.NullBitMapBuffers = column.CloneNullBitMapBuffers();
+            ret.NullCount = column.NullCount;
             return ret;
         }
     }

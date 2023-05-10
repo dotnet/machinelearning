@@ -199,7 +199,7 @@ namespace Microsoft.Data.Analysis
         /// <param name="ascending"></param>
         public virtual DataFrameColumn Sort(bool ascending = true)
         {
-            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices(out Int64DataFrameColumn _);
+            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices(out PrimitiveDataFrameColumn<long> _);
             return Clone(sortIndices, !ascending, NullCount);
         }
 
@@ -378,7 +378,7 @@ namespace Microsoft.Data.Analysis
         /// Returns the indices of non-null values that, when applied, result in this column being sorted in ascending order. Also returns the indices of null values in <paramref name="nullIndices"/>.
         /// </summary>
         /// <param name="nullIndices">Indices of values that are <see langword="null"/>.</param>
-        internal virtual PrimitiveDataFrameColumn<long> GetAscendingSortIndices(out Int64DataFrameColumn nullIndices) => throw new NotImplementedException();
+        internal virtual PrimitiveDataFrameColumn<long> GetAscendingSortIndices(out PrimitiveDataFrameColumn<long> nullIndices) => throw new NotImplementedException();
 
         internal delegate long GetBufferSortIndex(int bufferIndex, int sortIndex);
         internal delegate ValueTuple<T, int> GetValueAndBufferSortIndexAtBuffer<T>(int bufferIndex, int valueIndex);

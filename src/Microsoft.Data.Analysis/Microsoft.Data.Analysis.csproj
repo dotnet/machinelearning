@@ -38,11 +38,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Converters.tt</DependentUpon>
     </None>
-    <None Include="PrimitiveDataFrameColumn.BinaryOperators.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveDataFrameColumn.BinaryOperators.tt</DependentUpon>
-    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -61,14 +56,6 @@
     <None Update="Converters.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Converters.cs</LastGenOutput>
-    </None>
-    <None Update="PrimitiveDataFrameColumn.BinaryOperationAPIs.ExplodedColumns.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveDataFrameColumn.BinaryOperationAPIs.ExplodedColumns.cs</LastGenOutput>
-    </None>
-    <None Update="PrimitiveDataFrameColumn.BinaryOperationImplementations.Exploded.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveDataFrameColumn.BinaryOperationImplementations.Exploded.cs</LastGenOutput>
     </None>
     <None Update="DataFrameColumn.BinaryOperations.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -107,10 +94,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PrimitiveDataFrameColumn.BinaryOperations.cs</LastGenOutput>
     </None>
-    <None Update="PrimitiveDataFrameColumn.BinaryOperators.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveDataFrameColumn.BinaryOperators.cs</LastGenOutput>
-    </None>
     <None Update="PrimitiveDataFrameColumn.Computations.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PrimitiveDataFrameColumn.Computations.cs</LastGenOutput>
@@ -147,20 +130,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Converters.tt</DependentUpon>
     </Compile>
-    <Compile Update="PrimitiveDataFrameColumn.BinaryOperationImplementations.Exploded.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveDataFrameColumn.BinaryOperationImplementations.Exploded.tt</DependentUpon>
-    </Compile>
     <Compile Update="DataFrameColumn.BinaryOperations.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>DataFrameColumn.BinaryOperations.tt</DependentUpon>
-    </Compile>
-    <Compile Update="PrimitiveDataFrameColumn.BinaryOperationAPIs.ExplodedColumns.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveDataFrameColumn.BinaryOperationAPIs.ExplodedColumns.tt</DependentUpon>
     </Compile>
     <Compile Update="DataFrameColumn.BinaryOperators.cs">
       <DesignTime>True</DesignTime>
@@ -191,11 +164,6 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>PrimitiveDataFrameColumn.BinaryOperations.tt</DependentUpon>
-    </Compile>
-    <Compile Update="PrimitiveDataFrameColumn.BinaryOperators.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveDataFrameColumn.BinaryOperators.tt</DependentUpon>
     </Compile>
     <Compile Update="PrimitiveDataFrameColumn.Computations.cs">
       <DesignTime>True</DesignTime>

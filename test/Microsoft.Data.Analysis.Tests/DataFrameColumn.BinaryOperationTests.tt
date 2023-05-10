@@ -91,22 +91,22 @@ void GenerateAllBinaryTestsForMethod(string methodName, string methodOperator)
     }
     string otherColumnType = types.OtherColumnType;
 
-    string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
-    string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
-    string fullOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType) + "DataFrameColumn";
+    string fullColumnType = "PrimitiveDataFrameColumn<" + columnType +">";
+    string fullReturnType = "PrimitiveDataFrameColumn<" + returnType +">";
+    string fullOtherColumnType = "PrimitiveDataFrameColumn<" + otherColumnType +">";
 
     string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
     string capitalizedColumnType = GetCapitalizedPrimitiveTypes(columnType);
     string capitalizedOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType);
 #>
         [Fact]
-        public void <#=methodName#><#=fullOtherColumnType#>To<#=fullColumnType#>()
+        public void <#=methodName#><#=capitalizedOtherColumnType#>DataFrameColumnTo<#=capitalizedColumnType#>DataFrameColumn()
         {
             var columnEnumerable = Enumerable.Range(1, 10).Select(x => (<#=columnType#>)x);
             <#=fullColumnType#> column = new <#=fullColumnType#>("<#=capitalizedColumnType#>", columnEnumerable);
             var otherColumnEnumerable = Enumerable.Range(1, 10).Select(x => (<#=otherColumnType#>)x);
             <#=fullOtherColumnType#> otherColumn = new <#=fullOtherColumnType#>("<#=capitalizedOtherColumnType#>", otherColumnEnumerable);
-            <#=fullReturnType#> columnResult = column <#=methodOperator#> otherColumn;
+            DataFrameColumn columnResult = column <#=methodOperator#> otherColumn;
 <#GenerateBinaryVerify(methodName, fullReturnType, returnType); #>
             Assert.Equal(columnResult.Length, verify.Count());
             Assert.True(columnResult.ElementwiseEquals(verifyColumn).All());
@@ -415,16 +415,16 @@ void GenerateAllBinaryScalarTestsForMethod(string methodName, string methodOpera
     }
     string otherColumnType = types.OtherColumnType;
 
-    string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
-    string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
-    string fullOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType) + "DataFrameColumn";
+    string fullColumnType = "PrimitiveDataFrameColumn<" + columnType +">";
+    string fullReturnType = "PrimitiveDataFrameColumn<" + returnType +">";
+    string fullOtherColumnType = "PrimitiveDataFrameColumn<" + otherColumnType +">";
 
     string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
     string capitalizedColumnType = GetCapitalizedPrimitiveTypes(columnType);
     string capitalizedOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType);
 #>
         [Fact]
-        public void <#=methodName#><#=capitalizedOtherColumnType#>To<#=fullColumnType#>()
+        public void <#=methodName#><#=capitalizedOtherColumnType#>To<#=capitalizedColumnType#>DataFrameColumn()
         {
             var columnEnumerable = Enumerable.Range(1, 10).Select(x => (<#=columnType#>)x);
             <#=fullColumnType#> column = new <#=fullColumnType#>("<#=capitalizedColumnType#>", columnEnumerable);
@@ -433,13 +433,13 @@ void GenerateAllBinaryScalarTestsForMethod(string methodName, string methodOpera
             if (methodName.Contains("Reverse"))
             {
 #>
-            <#=fullReturnType#> columnResult = value <#=methodOperator#> column;
+            DataFrameColumn columnResult = value <#=methodOperator#> column;
 <#
             }
             else
             {
 #>
-            <#=fullReturnType#> columnResult = column <#=methodOperator#> value;
+            DataFrameColumn columnResult = column <#=methodOperator#> value;
 <#
             }
 #>
@@ -452,7 +452,7 @@ void GenerateAllBinaryScalarTestsForMethod(string methodName, string methodOpera
 }
 #>
 <#
-// Only generate the tests for BooleanDataFrameColumn.
+// Only generate the tests for PrimitiveDataFrameColumn<bool>.
 void GenerateAllBinaryScalarBitwiseTestsForMethod(string methodName, string methodOperator)
 {
  foreach (TypeCombination types in BinaryOperationCombinations.binaryOperationCombinations) 
@@ -465,16 +465,16 @@ void GenerateAllBinaryScalarBitwiseTestsForMethod(string methodName, string meth
     }
     string otherColumnType = types.OtherColumnType;
 
-    string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
-    string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
-    string fullOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType) + "DataFrameColumn";
+    string fullColumnType = "PrimitiveDataFrameColumn<" + columnType +">";
+    string fullReturnType = "PrimitiveDataFrameColumn<" + returnType +">";
+    string fullOtherColumnType = "PrimitiveDataFrameColumn<" + otherColumnType +">";
 
     string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
     string capitalizedColumnType = GetCapitalizedPrimitiveTypes(columnType);
     string capitalizedOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType);
 #>
         [Fact]
-        public void TestScalar<#=methodName#>On<#=fullColumnType#>()
+        public void TestScalar<#=methodName#>On<#=columnType#>DataFrameColumn()
         {
             var columnEnumerable = Enumerable.Range(1, 10).Select(x => (<#=columnType#>)false);
             <#=fullColumnType#> column = new <#=fullColumnType#>("<#=capitalizedColumnType#>", columnEnumerable);
@@ -515,9 +515,9 @@ void GenerateAllBinaryScalarComparisonTestsForMethod(string methodName, string m
     }
     string otherColumnType = types.OtherColumnType;
 
-    string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
-    string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
-    string fullOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType) + "DataFrameColumn";
+    string fullColumnType = "PrimitiveDataFrameColumn<" + columnType +">";
+    string fullReturnType = "PrimitiveDataFrameColumn<" + returnType +">";
+    string fullOtherColumnType = "PrimitiveDataFrameColumn<" + otherColumnType +">";
 
     string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
     string capitalizedColumnType = GetCapitalizedPrimitiveTypes(columnType);
@@ -529,7 +529,7 @@ void GenerateAllBinaryScalarComparisonTestsForMethod(string methodName, string m
             var columnEnumerable = Enumerable.Range(1, 10).Select(x => (<#=columnType#>)x);
             <#=fullColumnType#> column = new <#=fullColumnType#>("<#=capitalizedColumnType#>", columnEnumerable);
             <#=otherColumnType#> value = 100;
-            BooleanDataFrameColumn columnResult = column.<#=methodName#>(value);
+            PrimitiveDataFrameColumn<bool> columnResult = column.<#=methodName#>(value);
 <#GenerateBinaryComparisonScalarVerify(methodName, fullReturnType, returnType, (byte)5, methodName.Contains("Reverse") ? true : false); #>
             Assert.Equal(columnResult.Length, verify.Count());
 <# if (!methodName.Contains("Not")) { #>
@@ -556,9 +556,9 @@ void GenerateAllBinaryComparisonTestsForMethod(string methodName, string methodO
     }
     string otherColumnType = types.OtherColumnType;
 
-    string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
-    string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
-    string fullOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType) + "DataFrameColumn";
+    string fullColumnType = "PrimitiveDataFrameColumn<" + columnType +">";
+    string fullReturnType = "PrimitiveDataFrameColumn<" + returnType +">";
+    string fullOtherColumnType = "PrimitiveDataFrameColumn<" + otherColumnType +">";
 
     string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
     string capitalizedColumnType = GetCapitalizedPrimitiveTypes(columnType);
@@ -571,7 +571,7 @@ void GenerateAllBinaryComparisonTestsForMethod(string methodName, string methodO
             <#=fullColumnType#> column = new <#=fullColumnType#>("<#=capitalizedColumnType#>", columnEnumerable);
             var otherColumnEnumerable = Enumerable.Range(1, 10).Select(x => (<#=otherColumnType#>)x);
             <#=fullOtherColumnType#> otherColumn = new <#=fullOtherColumnType#>("<#=capitalizedOtherColumnType#>", otherColumnEnumerable);
-            BooleanDataFrameColumn columnResult = column.<#=methodName#>(otherColumn);
+            PrimitiveDataFrameColumn<bool> columnResult = column.<#=methodName#>(otherColumn);
 <#GenerateBinaryComparisonVerify(methodName, fullReturnType, returnType, (byte)5, methodName.Contains("Reverse") ? true : false); #>
             Assert.Equal(columnResult.Length, verify.Count());
 

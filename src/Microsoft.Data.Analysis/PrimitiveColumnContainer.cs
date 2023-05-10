@@ -467,7 +467,7 @@ namespace Microsoft.Data.Analysis
             return sb.ToString();
         }
 
-        private List<ReadOnlyDataFrameBuffer<byte>> CloneNullBitMapBuffers()
+        internal List<ReadOnlyDataFrameBuffer<byte>> CloneNullBitMapBuffers()
         {
             List<ReadOnlyDataFrameBuffer<byte>> ret = new List<ReadOnlyDataFrameBuffer<byte>>();
             foreach (ReadOnlyDataFrameBuffer<byte> buffer in NullBitMapBuffers)
@@ -594,24 +594,10 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        internal PrimitiveColumnContainer<byte> CloneAsByteContainer()
+        public PrimitiveColumnContainer<U> CloneTuncating<U>()
+            where U : unmanaged, INumber<U>
         {
-            var ret = new PrimitiveColumnContainer<byte>();
-            foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
-            {
-                ret.Length += buffer.Length;
-                DataFrameBuffer<byte> newBuffer = new DataFrameBuffer<byte>();
-                ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
-                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(ByteConverter<T>.Instance.GetByte(span[i]));
-                }
-            }
-            ret.NullBitMapBuffers = CloneNullBitMapBuffers();
-            ret.NullCount = NullCount;
-            return ret;
+            return PrimitiveColumnComputation.GetComputation<T>().CreateTruncating<U>(this);
         }
 
         internal PrimitiveColumnContainer<sbyte> CloneAsSByteContainer()
