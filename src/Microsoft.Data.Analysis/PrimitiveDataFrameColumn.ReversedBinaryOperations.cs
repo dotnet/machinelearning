@@ -41,7 +41,7 @@ namespace Microsoft.Data.Analysis
                             throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
                         }
                         PrimitiveDataFrameColumn<decimal> clonedDecimalColumn = CloneTruncating<decimal>();
-                        clonedDecimalColumn._columnContainer.ReverseAdd(DecimalConverter<U>.Instance.GetDecimal(value));
+                        clonedDecimalColumn._columnContainer.ReverseAdd(GetDecimalValue(value));
                         return clonedDecimalColumn;
                     }
                 case PrimitiveDataFrameColumn<byte> byteColumn:
@@ -76,13 +76,13 @@ namespace Microsoft.Data.Analysis
                         if (typeof(U) == typeof(decimal))
                         {
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                            decimalColumn._columnContainer.ReverseAdd(DecimalConverter<U>.Instance.GetDecimal(value));
+                            decimalColumn._columnContainer.ReverseAdd(GetDecimalValue(value));
                             return decimalColumn;
                         }
                         else
                         {
                             PrimitiveDataFrameColumn<double> clonedDoubleColumn = CloneTruncating<double>();
-                            clonedDoubleColumn._columnContainer.ReverseAdd(DoubleConverter<U>.Instance.GetDouble(value));
+                            clonedDoubleColumn._columnContainer.ReverseAdd(GetDoubleValue(value));
                             return clonedDoubleColumn;
                         }
                     }
@@ -116,7 +116,7 @@ namespace Microsoft.Data.Analysis
                             throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
                         }
                         PrimitiveDataFrameColumn<decimal> clonedDecimalColumn = CloneTruncating<decimal>();
-                        clonedDecimalColumn._columnContainer.ReverseSubtract(DecimalConverter<U>.Instance.GetDecimal(value));
+                        clonedDecimalColumn._columnContainer.ReverseSubtract(GetDecimalValue(value));
                         return clonedDecimalColumn;
                     }
                 case PrimitiveDataFrameColumn<byte> byteColumn:
@@ -151,13 +151,13 @@ namespace Microsoft.Data.Analysis
                         if (typeof(U) == typeof(decimal))
                         {
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                            decimalColumn._columnContainer.ReverseSubtract(DecimalConverter<U>.Instance.GetDecimal(value));
+                            decimalColumn._columnContainer.ReverseSubtract(GetDecimalValue(value));
                             return decimalColumn;
                         }
                         else
                         {
                             PrimitiveDataFrameColumn<double> clonedDoubleColumn = CloneTruncating<double>();
-                            clonedDoubleColumn._columnContainer.ReverseSubtract(DoubleConverter<U>.Instance.GetDouble(value));
+                            clonedDoubleColumn._columnContainer.ReverseSubtract(GetDoubleValue(value));
 
                             switch (typeof(U))
                             {
@@ -218,7 +218,7 @@ namespace Microsoft.Data.Analysis
                             throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
                         }
                         PrimitiveDataFrameColumn<decimal> clonedDecimalColumn = CloneTruncating<decimal>();
-                        clonedDecimalColumn._columnContainer.ReverseMultiply(DecimalConverter<U>.Instance.GetDecimal(value));
+                        clonedDecimalColumn._columnContainer.ReverseMultiply(GetDecimalValue(value));
                         return clonedDecimalColumn;
                     }
                 case PrimitiveDataFrameColumn<byte> byteColumn:
@@ -253,13 +253,13 @@ namespace Microsoft.Data.Analysis
                         if (typeof(U) == typeof(decimal))
                         {
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                            decimalColumn._columnContainer.ReverseMultiply(DecimalConverter<U>.Instance.GetDecimal(value));
+                            decimalColumn._columnContainer.ReverseMultiply(GetDecimalValue(value));
                             return decimalColumn;
                         }
                         else
                         {
                             PrimitiveDataFrameColumn<double> clonedDoubleColumn = CloneTruncating<double>();
-                            clonedDoubleColumn._columnContainer.ReverseMultiply(DoubleConverter<U>.Instance.GetDouble(value));
+                            clonedDoubleColumn._columnContainer.ReverseMultiply(GetDoubleValue(value));
                             return clonedDoubleColumn;
                         }
                     }
@@ -293,7 +293,7 @@ namespace Microsoft.Data.Analysis
                             throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
                         }
                         PrimitiveDataFrameColumn<decimal> clonedDecimalColumn = CloneTruncating<decimal>();
-                        clonedDecimalColumn._columnContainer.ReverseDivide(DecimalConverter<U>.Instance.GetDecimal(value));
+                        clonedDecimalColumn._columnContainer.ReverseDivide(GetDecimalValue(value));
                         return clonedDecimalColumn;
                     }
                 case PrimitiveDataFrameColumn<byte> byteColumn:
@@ -328,14 +328,14 @@ namespace Microsoft.Data.Analysis
                         if (typeof(U) == typeof(decimal))
                         {
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                            decimalColumn._columnContainer.ReverseDivide(DecimalConverter<U>.Instance.GetDecimal(value));
+                            decimalColumn._columnContainer.ReverseDivide(GetDecimalValue(value));
                             return decimalColumn;
                         }
                         else
                         {
 
                             PrimitiveDataFrameColumn<double> clonedDoubleColumn = CloneTruncating<double>();
-                            clonedDoubleColumn._columnContainer.ReverseDivide(DoubleConverter<U>.Instance.GetDouble(value));
+                            clonedDoubleColumn._columnContainer.ReverseDivide(GetDoubleValue(value));
 
                             switch (typeof(U))
                             {
@@ -396,7 +396,7 @@ namespace Microsoft.Data.Analysis
                             throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
                         }
                         PrimitiveDataFrameColumn<decimal> clonedDecimalColumn = CloneTruncating<decimal>();
-                        clonedDecimalColumn._columnContainer.ReverseModulo(DecimalConverter<U>.Instance.GetDecimal(value));
+                        clonedDecimalColumn._columnContainer.ReverseModulo(GetDecimalValue(value));
                         return clonedDecimalColumn;
                     }
                 case PrimitiveDataFrameColumn<byte> byteColumn:
@@ -431,13 +431,13 @@ namespace Microsoft.Data.Analysis
                         if (typeof(U) == typeof(decimal))
                         {
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                            decimalColumn._columnContainer.ReverseModulo(DecimalConverter<U>.Instance.GetDecimal(value));
+                            decimalColumn._columnContainer.ReverseModulo(GetDecimalValue(value));
                             return decimalColumn;
                         }
                         else
                         {
                             PrimitiveDataFrameColumn<double> clonedDoubleColumn = CloneTruncating<double>();
-                            clonedDoubleColumn._columnContainer.ReverseModulo(DoubleConverter<U>.Instance.GetDouble(value));
+                            clonedDoubleColumn._columnContainer.ReverseModulo(GetDoubleValue(value));
                             return clonedDoubleColumn;
                         }
                     }

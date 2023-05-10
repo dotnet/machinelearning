@@ -776,7 +776,7 @@ namespace Microsoft.Data.Analysis
                             throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
                         }
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                        decimalColumn._columnContainer.Add(DecimalConverter<U>.Instance.GetDecimal(value));
+                        decimalColumn._columnContainer.Add(GetDecimalValue(value));
                         return decimalColumn;
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
@@ -813,13 +813,13 @@ namespace Microsoft.Data.Analysis
                         if (typeof(U) == typeof(decimal))
                         {
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                            decimalColumn._columnContainer.Add(DecimalConverter<U>.Instance.GetDecimal(value));
+                            decimalColumn._columnContainer.Add(GetDecimalValue(value));
                             return decimalColumn;
                         }
                         else
                         {
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneTruncating<double>();
-                            doubleColumn._columnContainer.Add(DoubleConverter<U>.Instance.GetDouble(value));
+                            doubleColumn._columnContainer.Add(GetDoubleValue(value));
                             return doubleColumn;
                         }
                     }
@@ -827,6 +827,105 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
+        private static decimal GetDecimalValue<U>(U value)
+        {
+            decimal returnValue;
+
+            switch (value)
+            {
+                case byte byteValue:
+                    returnValue = (decimal)byteValue;
+                    break;
+                case Char charValue:
+                    returnValue = (decimal)charValue;
+                    break;
+                case double doubleValue:
+                    returnValue = (decimal)doubleValue;
+                    break;
+                case decimal decimalValue:
+                    returnValue = (decimal)decimalValue;
+                    break;
+                case float floatValue:
+                    returnValue = (decimal)floatValue;
+                    break;
+                case int intValue:
+                    returnValue = (decimal)intValue;
+                    break;
+                case long longValue:
+                    returnValue = (decimal)longValue;
+                    break;
+                case short shortValue:
+                    returnValue = (decimal)shortValue;
+                    break;
+                case sbyte sbyteValue:
+                    returnValue = (decimal)sbyteValue;
+                    break;
+                case uint uintValue:
+                    returnValue = (decimal)uintValue;
+                    break;
+                case ulong ulongValue:
+                    returnValue = (decimal)ulongValue;
+                    break;
+                case ushort ushortValue:
+                    returnValue = (decimal)ushortValue;
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        private static double GetDoubleValue<U>(U value)
+        {
+            double returnValue;
+
+            switch (value)
+            {
+                case byte byteValue:
+                    returnValue = (double)byteValue;
+                    break;
+                case Char charValue:
+                    returnValue = (double)charValue;
+                    break;
+                case decimal decimalValue:
+                    returnValue = (double)decimalValue;
+                    break;
+                case double doubleValue:
+                    returnValue = (double)doubleValue;
+                    break;
+                case float floatValue:
+                    returnValue = (double)floatValue;
+                    break;
+                case int intValue:
+                    returnValue = (double)intValue;
+                    break;
+                case long longValue:
+                    returnValue = (double)longValue;
+                    break;
+                case short shortValue:
+                    returnValue = (double)shortValue;
+                    break;
+                case sbyte sbyteValue:
+                    returnValue = (double)sbyteValue;
+                    break;
+                case uint uintValue:
+                    returnValue = (double)uintValue;
+                    break;
+                case ulong ulongValue:
+                    returnValue = (double)ulongValue;
+                    break;
+                case ushort ushortValue:
+                    returnValue = (double)ushortValue;
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
         internal DataFrameColumn SubtractImplementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
             where U : unmanaged
         {
@@ -962,7 +1061,7 @@ namespace Microsoft.Data.Analysis
                             throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
                         }
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                        decimalColumn._columnContainer.Subtract(DecimalConverter<U>.Instance.GetDecimal(value));
+                        decimalColumn._columnContainer.Subtract(GetDecimalValue(value));
                         return decimalColumn;
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
@@ -999,13 +1098,13 @@ namespace Microsoft.Data.Analysis
                         if (typeof(U) == typeof(decimal))
                         {
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                            decimalColumn._columnContainer.Subtract(DecimalConverter<U>.Instance.GetDecimal(value));
+                            decimalColumn._columnContainer.Subtract(GetDecimalValue(value));
                             return decimalColumn;
                         }
                         else
                         {
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneTruncating<double>();
-                            doubleColumn._columnContainer.Subtract(DoubleConverter<U>.Instance.GetDouble(value));
+                            doubleColumn._columnContainer.Subtract(GetDoubleValue(value));
 
                             switch (typeof(U))
                             {
@@ -1148,7 +1247,7 @@ namespace Microsoft.Data.Analysis
                             throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
                         }
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                        decimalColumn._columnContainer.Multiply(DecimalConverter<U>.Instance.GetDecimal(value));
+                        decimalColumn._columnContainer.Multiply(GetDecimalValue(value));
                         return decimalColumn;
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
@@ -1185,13 +1284,13 @@ namespace Microsoft.Data.Analysis
                         if (typeof(U) == typeof(decimal))
                         {
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                            decimalColumn._columnContainer.Multiply(DecimalConverter<U>.Instance.GetDecimal(value));
+                            decimalColumn._columnContainer.Multiply(GetDecimalValue(value));
                             return decimalColumn;
                         }
                         else
                         {
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneTruncating<double>();
-                            doubleColumn._columnContainer.Multiply(DoubleConverter<U>.Instance.GetDouble(value));
+                            doubleColumn._columnContainer.Multiply(GetDoubleValue(value));
                             return doubleColumn;
                         }
                     }
@@ -1307,7 +1406,7 @@ namespace Microsoft.Data.Analysis
                             throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
                         }
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                        decimalColumn._columnContainer.Divide(DecimalConverter<U>.Instance.GetDecimal(value));
+                        decimalColumn._columnContainer.Divide(GetDecimalValue(value));
                         return decimalColumn;
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
@@ -1344,13 +1443,13 @@ namespace Microsoft.Data.Analysis
                         if (typeof(U) == typeof(decimal))
                         {
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                            decimalColumn._columnContainer.Divide(DecimalConverter<U>.Instance.GetDecimal(value));
+                            decimalColumn._columnContainer.Divide(GetDecimalValue(value));
                             return decimalColumn;
                         }
                         else
                         {
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneTruncating<double>();
-                            doubleColumn._columnContainer.Divide(DoubleConverter<U>.Instance.GetDouble(value));
+                            doubleColumn._columnContainer.Divide(GetDoubleValue(value));
 
                             switch (typeof(U))
                             {
@@ -1493,7 +1592,7 @@ namespace Microsoft.Data.Analysis
                             throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
                         }
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                        decimalColumn._columnContainer.Modulo(DecimalConverter<U>.Instance.GetDecimal(value));
+                        decimalColumn._columnContainer.Modulo(GetDecimalValue(value));
                         return decimalColumn;
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
@@ -1530,13 +1629,13 @@ namespace Microsoft.Data.Analysis
                         if (typeof(U) == typeof(decimal))
                         {
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                            decimalColumn._columnContainer.Modulo(DecimalConverter<U>.Instance.GetDecimal(value));
+                            decimalColumn._columnContainer.Modulo(GetDecimalValue(value));
                             return decimalColumn;
                         }
                         else
                         {
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneTruncating<double>();
-                            doubleColumn._columnContainer.Modulo(DoubleConverter<U>.Instance.GetDouble(value));
+                            doubleColumn._columnContainer.Modulo(GetDoubleValue(value));
                             return doubleColumn;
                         }
                     }
@@ -1983,7 +2082,7 @@ namespace Microsoft.Data.Analysis
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                        decimalColumn._columnContainer.ElementwiseEquals(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
+                        decimalColumn._columnContainer.ElementwiseEquals(GetDecimalValue(value), newColumn._columnContainer);
                         return newColumn;
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
@@ -2023,14 +2122,14 @@ namespace Microsoft.Data.Analysis
                         {
                             PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                            decimalColumn._columnContainer.ElementwiseEquals(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
+                            decimalColumn._columnContainer.ElementwiseEquals(GetDecimalValue(value), newColumn._columnContainer);
                             return newColumn;
                         }
                         else
                         {
                             PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneTruncating<double>();
-                            doubleColumn._columnContainer.ElementwiseEquals(DoubleConverter<U>.Instance.GetDouble(value), newColumn._columnContainer);
+                            doubleColumn._columnContainer.ElementwiseEquals(GetDoubleValue(value), newColumn._columnContainer);
                             return newColumn;
                         }
                     }
@@ -2156,7 +2255,7 @@ namespace Microsoft.Data.Analysis
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                        decimalColumn._columnContainer.ElementwiseNotEquals(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
+                        decimalColumn._columnContainer.ElementwiseNotEquals(GetDecimalValue(value), newColumn._columnContainer);
                         return newColumn;
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
@@ -2196,14 +2295,14 @@ namespace Microsoft.Data.Analysis
                         {
                             PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                            decimalColumn._columnContainer.ElementwiseNotEquals(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
+                            decimalColumn._columnContainer.ElementwiseNotEquals(GetDecimalValue(value), newColumn._columnContainer);
                             return newColumn;
                         }
                         else
                         {
                             PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneTruncating<double>();
-                            doubleColumn._columnContainer.ElementwiseNotEquals(DoubleConverter<U>.Instance.GetDouble(value), newColumn._columnContainer);
+                            doubleColumn._columnContainer.ElementwiseNotEquals(GetDoubleValue(value), newColumn._columnContainer);
                             return newColumn;
                         }
                     }
@@ -2311,7 +2410,7 @@ namespace Microsoft.Data.Analysis
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                        decimalColumn._columnContainer.ElementwiseGreaterThanOrEqual(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
+                        decimalColumn._columnContainer.ElementwiseGreaterThanOrEqual(GetDecimalValue(value), newColumn._columnContainer);
                         return newColumn;
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
@@ -2345,14 +2444,14 @@ namespace Microsoft.Data.Analysis
                         {
                             PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                            decimalColumn._columnContainer.ElementwiseGreaterThanOrEqual(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
+                            decimalColumn._columnContainer.ElementwiseGreaterThanOrEqual(GetDecimalValue(value), newColumn._columnContainer);
                             return newColumn;
                         }
                         else
                         {
                             PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneTruncating<double>();
-                            doubleColumn._columnContainer.ElementwiseGreaterThanOrEqual(DoubleConverter<U>.Instance.GetDouble(value), newColumn._columnContainer);
+                            doubleColumn._columnContainer.ElementwiseGreaterThanOrEqual(GetDoubleValue(value), newColumn._columnContainer);
                             return newColumn;
                         }
                     }
@@ -2460,7 +2559,7 @@ namespace Microsoft.Data.Analysis
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                        decimalColumn._columnContainer.ElementwiseLessThanOrEqual(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
+                        decimalColumn._columnContainer.ElementwiseLessThanOrEqual(GetDecimalValue(value), newColumn._columnContainer);
                         return newColumn;
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
@@ -2494,14 +2593,14 @@ namespace Microsoft.Data.Analysis
                         {
                             PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                            decimalColumn._columnContainer.ElementwiseLessThanOrEqual(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
+                            decimalColumn._columnContainer.ElementwiseLessThanOrEqual(GetDecimalValue(value), newColumn._columnContainer);
                             return newColumn;
                         }
                         else
                         {
                             PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneTruncating<double>();
-                            doubleColumn._columnContainer.ElementwiseLessThanOrEqual(DoubleConverter<U>.Instance.GetDouble(value), newColumn._columnContainer);
+                            doubleColumn._columnContainer.ElementwiseLessThanOrEqual(GetDoubleValue(value), newColumn._columnContainer);
                             return newColumn;
                         }
                     }
@@ -2609,7 +2708,7 @@ namespace Microsoft.Data.Analysis
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                        decimalColumn._columnContainer.ElementwiseGreaterThan(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
+                        decimalColumn._columnContainer.ElementwiseGreaterThan(GetDecimalValue(value), newColumn._columnContainer);
                         return newColumn;
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
@@ -2643,14 +2742,14 @@ namespace Microsoft.Data.Analysis
                         {
                             PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                            decimalColumn._columnContainer.ElementwiseGreaterThan(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
+                            decimalColumn._columnContainer.ElementwiseGreaterThan(GetDecimalValue(value), newColumn._columnContainer);
                             return newColumn;
                         }
                         else
                         {
                             PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneTruncating<double>();
-                            doubleColumn._columnContainer.ElementwiseGreaterThan(DoubleConverter<U>.Instance.GetDouble(value), newColumn._columnContainer);
+                            doubleColumn._columnContainer.ElementwiseGreaterThan(GetDoubleValue(value), newColumn._columnContainer);
                             return newColumn;
                         }
                     }
@@ -2758,7 +2857,7 @@ namespace Microsoft.Data.Analysis
                     {
                         PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                        decimalColumn._columnContainer.ElementwiseLessThan(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
+                        decimalColumn._columnContainer.ElementwiseLessThan(GetDecimalValue(value), newColumn._columnContainer);
                         return newColumn;
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
@@ -2792,14 +2891,14 @@ namespace Microsoft.Data.Analysis
                         {
                             PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneTruncating<decimal>();
-                            decimalColumn._columnContainer.ElementwiseLessThan(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
+                            decimalColumn._columnContainer.ElementwiseLessThan(GetDecimalValue(value), newColumn._columnContainer);
                             return newColumn;
                         }
                         else
                         {
                             PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneTruncating<double>();
-                            doubleColumn._columnContainer.ElementwiseLessThan(DoubleConverter<U>.Instance.GetDouble(value), newColumn._columnContainer);
+                            doubleColumn._columnContainer.ElementwiseLessThan(GetDoubleValue(value), newColumn._columnContainer);
                             return newColumn;
                         }
                     }

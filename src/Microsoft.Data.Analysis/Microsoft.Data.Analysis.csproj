@@ -33,14 +33,6 @@
   </Target>
 
   <ItemGroup>
-    <None Include="Converters.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Converters.tt</DependentUpon>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Apache.Arrow" Version="$(ApacheArrowVersion)" />
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
@@ -53,10 +45,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Converters.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Converters.cs</LastGenOutput>
-    </None>
     <None Update="DataFrameColumn.BinaryOperations.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>DataFrameColumn.BinaryOperations.cs</LastGenOutput>
@@ -125,11 +113,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Converters.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Converters.tt</DependentUpon>
-    </Compile>
     <Compile Update="DataFrameColumn.BinaryOperations.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
