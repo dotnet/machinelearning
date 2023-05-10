@@ -44,122 +44,13 @@
     <ProjectReference Include="..\Microsoft.ML.DataView\Microsoft.ML.DataView.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="DataFrameColumn.BinaryOperations.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>DataFrameColumn.BinaryOperations.cs</LastGenOutput>
-    </None>
-    <None Update="DataFrameColumn.BinaryOperators.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>DataFrameColumn.BinaryOperators.cs</LastGenOutput>
-    </None>
-    <None Update="DataFrameColumn.Computations.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>DataFrameColumn.Computations.cs</LastGenOutput>
-    </None>
-    <None Update="DataFrame.BinaryOperations.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>DataFrame.BinaryOperations.cs</LastGenOutput>
-    </None>
-    <None Update="DataFrame.BinaryOperators.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>DataFrame.BinaryOperators.cs</LastGenOutput>
-    </None>
-    <None Update="DataFrameBinaryOperators.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>DataFrameBinaryOperators.cs</LastGenOutput>
-    </None>
-    <None Update="PrimitiveDataFrameColumn.BinaryOperations.Combinations.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveDataFrameColumn.BinaryOperations.Combinations.ttinclude</LastGenOutput>
-    </None>
-    <None Update="PrimitiveDataFrameColumn.BinaryOperations.Combinations.ttinclude">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveDataFrameColumn.BinaryOperations.Combinations.tt</DependentUpon>
-    </None>
-    <None Update="PrimitiveDataFrameColumn.BinaryOperations.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveDataFrameColumn.BinaryOperations.cs</LastGenOutput>
-    </None>
-    <None Update="PrimitiveDataFrameColumn.Computations.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveDataFrameColumn.Computations.cs</LastGenOutput>
-    </None>
-    <None Update="PrimitiveDataFrameColumn.ReversedBinaryOperations.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveDataFrameColumn.ReversedBinaryOperations.cs</LastGenOutput>
-    </None>
-    <None Update="PrimitiveColumnContainer.BinaryOperations.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveColumnContainer.BinaryOperations.cs</LastGenOutput>
-    </None>
-    <None Update="PrimitiveColumnContainer.BinaryOperations.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveColumnContainer.BinaryOperations.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
+  
 
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="DataFrameColumn.BinaryOperations.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DataFrameColumn.BinaryOperations.tt</DependentUpon>
-    </Compile>
-    <Compile Update="DataFrameColumn.BinaryOperators.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DataFrameColumn.BinaryOperators.tt</DependentUpon>
-    </Compile>
-    <Compile Update="DataFrameColumn.Computations.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DataFrameColumn.Computations.tt</DependentUpon>
-    </Compile>
-    <Compile Update="DataFrame.BinaryOperations.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DataFrame.BinaryOperations.tt</DependentUpon>
-    </Compile>
-    <Compile Update="DataFrame.BinaryOperators.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DataFrame.BinaryOperators.tt</DependentUpon>
-    </Compile>
-    <Compile Update="DataFrameBinaryOperators.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DataFrameBinaryOperators.tt</DependentUpon>
-    </Compile>
-    <Compile Update="PrimitiveDataFrameColumn.BinaryOperations.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveDataFrameColumn.BinaryOperations.tt</DependentUpon>
-    </Compile>
-    <Compile Update="PrimitiveDataFrameColumn.Computations.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveDataFrameColumn.Computations.tt</DependentUpon>
-    </Compile>
-    <Compile Update="PrimitiveDataFrameColumn.ReversedBinaryOperations.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveDataFrameColumn.ReversedBinaryOperations.tt</DependentUpon>
-    </Compile>
-    <Compile Update="PrimitiveColumnContainer.BinaryOperations.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveColumnContainer.BinaryOperations.tt</DependentUpon>
-    </Compile>
-    <Compile Update="PrimitiveColumnContainer.BinaryOperations.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveColumnContainer.BinaryOperations.tt</DependentUpon>
-    </Compile>
     <Compile Update="Strings.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
