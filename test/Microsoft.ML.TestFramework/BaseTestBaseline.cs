@@ -118,7 +118,7 @@ namespace Microsoft.ML.RunTests
             // on x64 vs x86 and dotnet core 3.1 vs others, so we have 4 combination:
             // x64-netcore3.1, x86-netcore3.1, x64-rest, x86-rest. In some cases x64 vs x86
             // have different results, in some cases netcore 3.1 vs rest have different results,
-            // the most complicate situation is 12 combinations (x64 vs x86, netcoreapp3.1 vs rest,
+            // the most complicate situation is 12 combinations (x64 vs x86, net6.0 vs rest,
             // win vs linux vs osx) have different results.
             // So use list of string to return different configurations and test will try to search
             // through this list and use the one file first found, make sure we don't have baseline file
@@ -140,17 +140,14 @@ namespace Microsoft.ML.RunTests
                 else
                     configurationDirs.Add("win-x86");
 
-            // Use netcore 3.1 result file if necessary.
-            // The small difference comes from CPUMath using different instruction set:
-            // 1. net framework and net core 2.1 uses CpuMathUtils.netstandard that uses SSE instruction set;
-            // 2. net core 3.1 uses CpuMathUtils.netcoreapp that uses AVX, SSE or direct floating point calculation
-            // depending on hardward availability.
-            // AVX and SSE generates slightly different result due to nature of floating point math.
-            // So Ideally we should adding AVX support at CPUMath native library,
-            // use below issue to track: https://github.com/dotnet/machinelearning/issues/5044
-            // don't need netcoreapp21 as this is the default case
-            if (AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") != null)
-                configurationDirs.Add("netcoreapp31");
+#if NETCOREAPP
+            // Use netcoreapp result file if necessary.
+            // The small difference comes from CPUMath using different instruction SSE (in CpuMathNative) vs
+            // AVX, SSE or direct floating point calculation depending on hardware availability 
+            // (in later versions that use compiler intrinsics).  
+            // There were further differences in floating point calculations introduced in .NET 6.0.
+            configurationDirs.Add("netcoreapp");
+#endif
 
             return configurationDirs;
         }

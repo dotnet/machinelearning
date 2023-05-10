@@ -153,7 +153,7 @@ namespace Microsoft.ML.AutoML
             if (parameter.TryGetValue(AutoMLExperiment.PipelineSearchspaceName, out var pipelineParameter))
             {
                 var schema = pipelineParameter["_SCHEMA_"].AsType<string>();
-                var estimatorStrings = Entity.FromExpression(_currentSchema)
+                var estimatorStrings = Entity.FromExpression(schema)
                                    .ValueEntities()
                                    .Where(e => e is StringEntity se && se.Value != "Nil")
                                    .Select((se) =>

@@ -71,7 +71,9 @@
               "DnnFeaturizerImage",
               "Naive",
               "ForecastBySsa",
-              "TextClassifcation"
+              "TextClassifcation",
+              "SentenceSimilarity",
+              "ObjectDetection"
             ]
           },
           "nugetDependencies": {
@@ -109,6 +111,7 @@
                 "Microsoft.ML.Vision",
                 "Microsoft.ML.Transforms.Image",
                 "Microsoft.ML.Trainers.FastTree",
+                "Microsoft.ML.TorchSharp",
                 "Microsoft.ML.Trainers.LightGbm"
               ]
             }
@@ -185,7 +188,15 @@
                     "confidenceLevel",
                     "variableHorizon",
                     "modelFactory",
-                    "sentence1ColumnName"
+                    "sentence1ColumnName",
+                    "boundingBoxColumnName",
+                    "imageColumnName",
+                    "maxEpoch",
+                    "iOUThreshold",
+                    "scoreThreshold",
+                    "steps",
+                    "initLearningRate",
+                    "weightDecay"
                   ]
                 },
                 "argumentType": {

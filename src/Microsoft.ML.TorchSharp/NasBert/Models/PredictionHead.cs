@@ -11,7 +11,7 @@ using TorchSharp.Modules;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Models
 {
-    internal sealed class PredictionHead : BaseHead
+    internal sealed class PredictionHead : torch.nn.Module<torch.Tensor, torch.Tensor>
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:Private field name not in: _camelCase format", Justification = "Has to match TorchSharp model.")]
         private readonly Sequential Classifier;

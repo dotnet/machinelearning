@@ -7,13 +7,15 @@
     <PackageDescription>ML.NET AutoML: Optimizes an ML pipeline for your dataset, by automatically locating the best feature engineering, model, and hyperparameters</PackageDescription>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
 
-    <!-- 
+    <!--
       1591: Documentation warnings
       NU5100: Warning that gets triggered because a .dll is not placed under lib folder on package. This is by design as we want AutoML Interactive to be under interactive-extensions folder.
        -->
     <NoWarn>$(NoWarn);1591;NU5100</NoWarn>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddAutoMLInteractiveToInteractiveExtensionsFolder</TargetsForTfmSpecificContentInPackage>
-    
+
+    <!-- Remove once we have resolved the TorchSharp issue. -->
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
 
   <!-- The following properties are set to package AutoML Interactive with the AutoML nuget package. If AutoML Interactive undergoes TFM or dependency changes, we need to update the TargetFramework passed in below-->
@@ -28,7 +30,7 @@
       <TfmSpecificPackageFile Include="@(_ItemsToIncludeForInteractive)" />
     </ItemGroup>
   </Target>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\..\tools-local\Microsoft.ML.AutoML.SourceGenerator\Microsoft.ML.AutoML.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj">
@@ -66,7 +68,12 @@
     <AdditionalFiles Include="CodeGen\*search_space.json" />
     <AdditionalFiles Include="CodeGen\code_gen_flag.json" />
     <AdditionalFiles Include="CodeGen\*-estimators.json" />
-    <AdditionalFiles Include="CodeGen\code_gen_flag.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Tuner\Portfolios.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">

@@ -29,6 +29,14 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
+        public InternalQuantileRegressionTree(int[] splitFeatures, double[] splitGain, double[] gainPValue,
+            float[] rawThresholds, float[] defaultValueForMissing, int[] lteChild, int[] gtChild, double[] leafValues,
+            int[][] categoricalSplitFeatures, bool[] categoricalSplit)
+            : base(splitFeatures, splitGain, gainPValue, rawThresholds, defaultValueForMissing,
+                lteChild, gtChild, leafValues, categoricalSplitFeatures, categoricalSplit)
+        {
+        }
+
         internal InternalQuantileRegressionTree(ModelLoadContext ctx, bool usingDefaultValue, bool categoricalSplits)
             : base(ctx, usingDefaultValue, categoricalSplits)
         {

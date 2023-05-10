@@ -165,7 +165,7 @@ namespace Microsoft.ML.RunTests
         public void MulticlassLRNonNegativeTest()
         {
             // [TEST_STABILITY]: use lower digit precision as dotnet core 3.1 generates slightly different result
-#if NETCOREAPP3_1
+#if NETCOREAPP3_1_OR_GREATER
             RunOneAllTests(TestLearners.multiclassLogisticRegressionNonNegative, TestDatasets.iris, digitsOfPrecision: 3);
 #else
             RunOneAllTests(TestLearners.multiclassLogisticRegressionNonNegative, TestDatasets.iris, digitsOfPrecision: 4);
@@ -336,7 +336,7 @@ namespace Microsoft.ML.RunTests
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
 
             // [TEST_STABILITY]: dotnet core 3.1 generates slightly different result
-#if NETCOREAPP3_1
+#if NETCOREAPP3_1_OR_GREATER
             RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 5);
 #else
             RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 6);
@@ -953,7 +953,7 @@ namespace Microsoft.ML.RunTests
                             for (int j = 0; j < predCount; j++)
                                 sum += vectorScores[j].GetItemOrDefault(i);
                             if (float.IsNaN(sum))
-                                Assert.Equal(vectorScore.GetItemOrDefault(i), sum / predCount, 3);
+                                Assert.Equal((double)vectorScore.GetItemOrDefault(i), (double)sum / predCount, 3);
                         }
                         Assert.Equal(probs.Count(p => p >= prob), probs.Count(p => p <= prob));
                     }

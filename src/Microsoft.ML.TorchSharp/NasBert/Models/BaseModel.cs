@@ -11,68 +11,31 @@ using TorchSharp;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Models
 {
-    internal abstract class BaseModel : BaseModule
+    internal abstract class BaseModel : torch.nn.Module<torch.Tensor, torch.Tensor, torch.Tensor>
     {
-        protected readonly TextClassificationTrainer.Options Options;
+        protected readonly NasBertTrainer.NasBertOptions Options;
         public BertTaskType HeadType => Options.TaskType;
 
-        protected readonly TransformerEncoder Encoder;
+        //public ModelType EncoderType => Options.ModelType;
 
 #pragma warning disable CA1024 // Use properties where appropriate: Modules should be fields in TorchSharp
-        public TransformerEncoder GetEncoder() => Encoder;
-
-        public abstract BaseHead GetHead();
+        public abstract TransformerEncoder GetEncoder();
 #pragma warning restore CA1024 // Use properties where appropriate
 
-        protected BaseModel(TextClassificationTrainer.Options options, int padIndex, int symbolsCount)
+        protected BaseModel(NasBertTrainer.NasBertOptions options)
             : base(nameof(BaseModel))
         {
             Options = options ?? throw new ArgumentNullException(nameof(options));
-            Encoder = new TransformerEncoder(
-                paddingIdx: padIndex,
-                vocabSize: symbolsCount,
-                dropout: Options.Dropout,
-                attentionDropout: Options.AttentionDropout,
-                activationDropout: Options.ActivationDropout,
-                activationFn: Options.ActivationFunction,
-                dynamicDropout: Options.DynamicDropout,
-                maxSeqLen: Options.MaxSequenceLength,
-                embedSize: Options.EmbeddingDim,
-                arches: Options.Arches?.ToList(),
-                numSegments: 0,
-                encoderNormalizeBefore: Options.EncoderNormalizeBefore,
-                numEncoderLayers: Options.EncoderLayers,
-                applyBertInit: true,
-                freezeTransfer: Options.FreezeTransfer);
-        }
-
-        protected void Initialize()
-        {
-            if (Options.FreezeEncoder)
-            {
-                ModelUtils.FreezeModuleParams(Encoder);
-            }
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
-        public new abstract torch.Tensor forward(torch.Tensor srcTokens, torch.Tensor tokenMask = null);
-
-        /// <summary>
-        /// Run only Encoder and return features.
-        /// </summary>
-        protected torch.Tensor ExtractFeatures(torch.Tensor srcTokens)
-        {
-            return Encoder.forward(srcTokens, null, null);
-        }
+        public override torch.Tensor forward(torch.Tensor srcTokens, torch.Tensor tokenMask = null)
+            => throw new NotImplementedException();
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
-        public override void train()
+        public override void train(bool train = true)
         {
-            base.train();
-            if (!Options.LayerNormTraining)
-            {
-                Encoder.CloseLayerNormTraining();
-            }
+            base.train(train);
         }
     }
 }

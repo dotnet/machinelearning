@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
   <PropertyGroup>
-    <Authors>Intel</Authors>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <IncludeBuildOutput Condition="'$(TargetFramework)' == 'netstandard2.0'">false</IncludeBuildOutput>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>

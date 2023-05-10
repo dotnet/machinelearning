@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 using System;
+using Microsoft.ML.Vision;
+
 namespace Microsoft.ML.AutoML.CodeGen
 {
     internal partial class LoadImages
@@ -40,8 +42,16 @@ namespace Microsoft.ML.AutoML.CodeGen
     {
         public override IEstimator<ITransformer> BuildFromOption(MLContext context, ImageClassificationOption param)
         {
+            var option = new ImageClassificationTrainer.Options
+            {
+                Arch = param.Arch,
+                BatchSize = param.BatchSize,
+                LabelColumnName = param.LabelColumnName,
+                FeatureColumnName = param.FeatureColumnName,
+                ScoreColumnName = param.ScoreColumnName,
+            };
 
-            return context.MulticlassClassification.Trainers.ImageClassification(param.LabelColumnName, param.FeatureColumnName, param.ScoreColumnName);
+            return context.MulticlassClassification.Trainers.ImageClassification(option);
         }
     }
 

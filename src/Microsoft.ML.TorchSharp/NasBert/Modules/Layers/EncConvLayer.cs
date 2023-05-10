@@ -54,7 +54,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules.Layers
         }
 
         private static torch.Tensor ForwardOneLayer(torch.Tensor input, torch.Tensor selfAttentionPaddingMask,
-            torch.nn.Module convLayer, torch.nn.Module layerNorm)
+            torch.nn.Module<torch.Tensor, torch.Tensor> convLayer, torch.nn.Module<torch.Tensor, torch.Tensor> layerNorm)
         {
             using var disposeScope = torch.NewDisposeScope();
 

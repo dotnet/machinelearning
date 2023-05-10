@@ -54,6 +54,8 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                         "colorBits" => "ColorBits",
                         "colorsOrder" => "ColorsOrder",
                         "dnnModelFactory" => "string",
+                        "bertArchitecture" => "BertArchitecture",
+                        "imageClassificationArchType" => "Microsoft.ML.Vision.ImageClassificationTrainer.Architecture",
                         _ => throw new ArgumentException("unknown type"),
                     };
 
@@ -70,6 +72,8 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                         (_, "ResizingKind") => defaultToken.GetValue<string>(),
                         (_, "ColorBits") => defaultToken.GetValue<string>(),
                         (_, "ColorsOrder") => defaultToken.GetValue<string>(),
+                        (_, "BertArchitecture") => defaultToken.GetValue<string>(),
+                        (_, "Microsoft.ML.Vision.ImageClassificationTrainer.Architecture") => defaultToken.GetValue<string>(),
                         (_, _) => throw new ArgumentException("unknown"),
                     };
 
@@ -124,7 +128,7 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                     Properties = options,
                 }.TransformText();
 
-                context.AddSource($"{className}.cs", code);
+                context.AddSource($"{className}.generated.cs", code);
             }
         }
 

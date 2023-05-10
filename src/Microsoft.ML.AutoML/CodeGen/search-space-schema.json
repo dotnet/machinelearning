@@ -10,11 +10,26 @@
       "type": "array",
       "items": { "type": "integer" }
     },
+    "imageClassificationArchArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/imageClassificationArchType"
+      }
+    },
     "dnnModelFactoryArray": {
       "type": "array",
       "items": {
         "$ref": "#/definitions/dnnModelFactoryType"
       }
+    },
+    "imageClassificationArchType": {
+      "type": "string",
+      "enum": [
+        "InceptionV3",
+        "MobilenetV2",
+        "ResnetV2101",
+        "ResnetV250"
+      ]
     },
     "dnnModelFactoryType": {
       "type": "string",
@@ -24,6 +39,18 @@
         "resnet_101",
         "alexnet"
       ]
+    },
+    "bertArchitecture": {
+      "type": "string",
+      "enum": [
+        "BertArchitecture.Roberta"
+      ]
+    },
+    "bertArchitectureArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/bertArchitecture"
+      }
     },
     "range": {
       "type": "object",
@@ -43,7 +70,13 @@
           "$ref": "#/definitions/dnnModelFactoryArray"
         },
         {
+          "$ref":  "#/definitions/imageClassificationArchArray"
+        },
+        {
           "$ref": "#/definitions/boolArray"
+        },
+        {
+          "$ref": "#/definitions/bertArchitectureArray"
         }
       ]
     },
@@ -58,6 +91,7 @@
         },
         "default": {
           "oneOf": [
+            { "$ref": "#/definitions/bertArchitecture" },
             { "type": "string" },
             { "type": "number" },
             { "type": "boolean" }
@@ -110,7 +144,9 @@
         "image_classification_option",
         "matrix_factorization_option",
         "dnn_featurizer_image_option",
-        "text_classification_option"
+        "text_classification_option",
+        "sentence_similarity_option",
+        "object_detection_option"
       ]
     },
     "option_name": {
@@ -157,7 +193,24 @@
         "OutputAsFloatArray",
         "ModelFactory",
         "DiskTranspose",
-        "Sentence1ColumnName"
+        "Sentence1ColumnName",
+        "Sentence2ColumnName",
+        "BatchSize",
+        "MaxEpochs",
+        "Epoch",
+        "Architecture",
+        "AddKeyValueAnnotationsAsText",
+        "Arch",
+        "PredictedLabelColumnName",
+        "PredictedBoundingBoxColumnName",
+        "BoundingBoxColumnName",
+        "ImageColumnName",
+        "IOUThreshold",
+        "ScoreThreshold",
+        "Steps",
+        "MaxEpoch",
+        "InitLearningRate",
+        "WeightDecay"
       ]
     },
     "option_type": {
@@ -173,7 +226,9 @@
         "colorBits",
         "colorsOrder",
         "anchor",
-        "dnnModelFactory"
+        "dnnModelFactory",
+        "bertArchitecture",
+        "imageClassificationArchType"
       ]
     }
   },

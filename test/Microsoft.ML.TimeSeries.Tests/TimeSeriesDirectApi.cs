@@ -183,7 +183,7 @@ namespace Microsoft.ML.Tests
             Prediction row = null;
 
             // [TEST_STABILITY]: dotnet core 3.1 generates slightly different result
-#if NETCOREAPP3_1
+#if NETCOREAPP3_1_OR_GREATER
             List<double> expectedValues = new List<double>() { 0, -3.31410551071167, 0.5, 5.12000000000001E-08, 0, 1.570083498954773, 5.2001145245395008E-07,
             0.012414560443710681, 0, 1.2854313850402832, 0.2881081472302483, 0.020389485008225454, 0, -1.0950632095336914, 0.3666388047550645, 0.02695657272695535};
 #else
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Tests
 
             // [TEST_STABILITY]: MKL generates different precision float number on Dotnet Core 3.1
             // and cause the forecast result differs
-#if NETCOREAPP3_1
+#if NETCOREAPP3_1_OR_GREATER
             List<float> expectedForecast = new List<float>() { 0.191492021f, 2.53994060f, 5.26454258f, 7.37313938f };
             List<float> minCnf = new List<float>() { -3.9741986f, -2.36872721f, 0.09407699f, 2.18899393f };
             List<float> maxCnf = new List<float>() { 4.3571825f, 7.4486084f, 10.435008f, 12.5572853f };
@@ -463,7 +463,7 @@ namespace Microsoft.ML.Tests
             // [Forecast, ConfidenceLowerBound, ConfidenceUpperBound]
 
             // [TEST_STABILITY]: dotnet core 3.1 generates slightly different result
-#if NETCOREAPP3_1
+#if NETCOREAPP3_1_OR_GREATER
             Assert.Equal(new float[] { -1.02245092f, 0.08333033f, 2.6073704f, 5.397318f, 7.5008316f, -5.1881413f, -4.82533741f,
                 -2.563095f, 0.21317233f, 2.29317045f, 3.1432397f, 4.991998f, 7.777836f, 10.581464f, 12.708492f }, result.Forecast);
 #else
@@ -481,7 +481,7 @@ namespace Microsoft.ML.Tests
             // [Forecast, ConfidenceLowerBound, ConfidenceUpperBound]
 
             // [TEST_STABILITY]: dotnet core 3.1 generates slightly different result
-#if NETCOREAPP3_1
+#if NETCOREAPP3_1_OR_GREATER
             Assert.Equal(new float[] { 4.310586f, 6.397167f, 7.73934f, 8.029469f, 0.14489543f,
                 1.48849952f, 2.5688744f, 2.845323f, 8.476276f, 11.305835f, 12.909805f, 13.2136145f }, result.Forecast);
 #else
@@ -508,7 +508,7 @@ namespace Microsoft.ML.Tests
             // [Forecast, ConfidenceLowerBound, ConfidenceUpperBound]
 
             // [TEST_STABILITY]: dotnet core 3.1 generates slightly different result
-#if NETCOREAPP3_1
+#if NETCOREAPP3_1_OR_GREATER
             Assert.Equal(new float[] { 6.006588f, 7.506871f, 7.964249f, 7.1751432f,
                 5.0265527f, 1.84089744f, 2.5982034f, 2.7937837f, 1.9909977f,
                 -0.1811084f, 10.172278f, 12.415539f, 13.1347151f, 12.359289f, 10.234214f}, result.Forecast);

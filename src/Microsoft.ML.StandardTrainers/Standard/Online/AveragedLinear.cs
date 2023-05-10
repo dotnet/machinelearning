@@ -10,6 +10,7 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.SearchSpace;
 
 // TODO: Check if it works properly if Averaged is set to false
 
@@ -26,6 +27,7 @@ namespace Microsoft.ML.Trainers
         [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate", ShortName = "lr", SortOrder = 50)]
         [TGUI(Label = "Learning rate", SuggestedSweeps = "0.01,0.1,0.5,1.0")]
         [TlcModule.SweepableDiscreteParam("LearningRate", new object[] { 0.01, 0.1, 0.5, 1.0 })]
+        [Range(1e-4f, 1f, 1f, true)]
         public float LearningRate = AveragedDefault.LearningRate;
 
         /// <summary>
@@ -38,6 +40,7 @@ namespace Microsoft.ML.Trainers
         [Argument(ArgumentType.AtMostOnce, HelpText = "Decrease learning rate", ShortName = "decreaselr", SortOrder = 50)]
         [TGUI(Label = "Decrease Learning Rate", Description = "Decrease learning rate as iterations progress")]
         [TlcModule.SweepableDiscreteParam("DecreaseLearningRate", new object[] { false, true })]
+        [BooleanChoice]
         public bool DecreaseLearningRate = AveragedDefault.DecreaseLearningRate;
 
         /// <summary>
@@ -66,6 +69,7 @@ namespace Microsoft.ML.Trainers
         [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization Weight", ShortName = "reg,L2RegularizerWeight", SortOrder = 50)]
         [TGUI(Label = "L2 Regularization Weight")]
         [TlcModule.SweepableFloatParam("L2RegularizerWeight", 0.0f, 0.4f)]
+        [Range(0f, 32768f, 0f, false)]
         public float L2Regularization = AveragedDefault.L2Regularization;
 
         /// <summary>

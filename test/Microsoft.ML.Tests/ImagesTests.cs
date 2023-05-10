@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -153,22 +153,22 @@ namespace Microsoft.ML.Tests
             {
                 var pathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cropped.Schema["ImagePath"]);
                 ReadOnlyMemory<char> path = default;
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropped.Schema["ImageCropped"]);
-                Bitmap bitmap = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(cropped.Schema["ImageCropped"]);
+                MLImage image = default;
                 while (cursor.MoveNext())
                 {
                     pathGetter(ref path);
-                    bitmapCropGetter(ref bitmap);
-                    Assert.NotNull(bitmap);
+                    imageCropGetter(ref image);
+                    Assert.NotNull(image);
                     var fileToSave = GetOutputPath(Path.GetFileNameWithoutExtension(path.ToString()) + ".cropped.jpg");
-                    bitmap.Save(fileToSave, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    image.Save(fileToSave);
                 }
             }
             Done();
         }
 
         [Fact]
-        public void TestGreyscaleTransformImages()
+        public void TestGrayscaleTransformImages()
         {
             IHostEnvironment env = new MLContext(1);
             var imageHeight = 150;
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Tests
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
             IDataView grey = new ImageGrayscalingTransformer(env, ("ImageGrey", "ImageCropped")).Transform(cropped);
-            var fname = nameof(TestGreyscaleTransformImages) + "_model.zip";
+            var fname = nameof(TestGrayscaleTransformImages) + "_model.zip";
 
             var fh = env.CreateOutputFile(fname);
             using (var ch = env.Start("save"))
@@ -200,19 +200,27 @@ namespace Microsoft.ML.Tests
             grey.Schema.TryGetColumnIndex("ImageGrey", out int greyColumn);
             using (var cursor = grey.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(grey.Schema["ImageGrey"]);
-                Bitmap bitmap = default;
+                var imageGetter = cursor.GetGetter<MLImage>(grey.Schema["ImageGrey"]);
+                MLImage image = default;
                 while (cursor.MoveNext())
                 {
-                    bitmapGetter(ref bitmap);
-                    Assert.NotNull(bitmap);
-                    for (int x = 0; x < imageWidth; x++)
-                        for (int y = 0; y < imageHeight; y++)
-                        {
-                            var pixel = bitmap.GetPixel(x, y);
-                            // greyscale image has same values for R,G and B
-                            Assert.True(pixel.R == pixel.G && pixel.G == pixel.B);
-                        }
+                    imageGetter(ref image);
+                    Assert.NotNull(image);
+
+                    ReadOnlySpan<byte> imageData = image.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = image.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+                    int pixelSize = image.BitsPerPixel / 8;
+
+                    for (int i = 0; i < imageData.Length; i += pixelSize)
+                    {
+                        // grayscale image has same values for R,G and B
+                        Assert.True(imageData[i + redIndex] == imageData[i + greenIndex] && imageData[i + greenIndex] == imageData[i + blueIndex]);
+                    }
                 }
             }
             Done();
@@ -222,7 +230,7 @@ namespace Microsoft.ML.Tests
         public void TestGrayScaleInMemory()
         {
             // Create an image list.
-            var images = new List<ImageDataPoint>() { new ImageDataPoint(10, 10, Color.Blue), new ImageDataPoint(10, 10, Color.Red) };
+            var images = new List<ImageDataPoint>() { new ImageDataPoint(10, 10, red: 0, green: 0, blue: 255), new ImageDataPoint(10, 10, red: 255, green: 0, blue: 0) };
 
             // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
             var data = ML.Data.LoadFromEnumerable(images);
@@ -233,7 +241,7 @@ namespace Microsoft.ML.Tests
             // Fit the model.
             var model = pipeline.Fit(data);
 
-            // Test path: image files -> IDataView -> Enumerable of Bitmaps.
+            // Test path: image files -> IDataView -> Enumerable of images.
             var transformedData = model.Transform(data);
 
             // Load images in DataView back to Enumerable.
@@ -249,42 +257,52 @@ namespace Microsoft.ML.Tests
                 Assert.Equal(image.Width, grayImage.Width);
                 Assert.Equal(image.Height, grayImage.Height);
 
-                for (int x = 0; x < grayImage.Width; ++x)
+                ReadOnlySpan<byte> imageData = grayImage.Pixels;
+                (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = grayImage.PixelFormat switch
                 {
-                    for (int y = 0; y < grayImage.Height; ++y)
-                    {
-                        var pixel = grayImage.GetPixel(x, y);
-                        // greyscale image has same values for R, G and B.
-                        Assert.True(pixel.R == pixel.G && pixel.G == pixel.B);
-                    }
+                    MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                    MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                    _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                };
+                int pixelSize = grayImage.BitsPerPixel / 8;
+
+                for (int i = 0; i < imageData.Length; i += pixelSize)
+                {
+                    // grayscale image has same values for R,G and B
+                    Assert.True(imageData[i + redIndex] == imageData[i + greenIndex] && imageData[i + greenIndex] == imageData[i + blueIndex]);
                 }
             }
 
             var engine = ML.Model.CreatePredictionEngine<ImageDataPoint, ImageDataPoint>(model);
-            var singleImage = new ImageDataPoint(17, 36, Color.Pink);
+            var singleImage = new ImageDataPoint(17, 36, red: 255, green: 192, blue: 203); // Pink color (255, 192, 203)
             var transformedSingleImage = engine.Predict(singleImage);
 
             Assert.Equal(singleImage.Image.Height, transformedSingleImage.GrayImage.Height);
             Assert.Equal(singleImage.Image.Width, transformedSingleImage.GrayImage.Width);
 
-            for (int x = 0; x < transformedSingleImage.GrayImage.Width; ++x)
+            ReadOnlySpan<byte> imageData1 = transformedSingleImage.GrayImage.Pixels;
+            (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = transformedSingleImage.GrayImage.PixelFormat switch
             {
-                for (int y = 0; y < transformedSingleImage.GrayImage.Height; ++y)
-                {
-                    var pixel = transformedSingleImage.GrayImage.GetPixel(x, y);
-                    // greyscale image has same values for R, G and B.
-                    Assert.True(pixel.R == pixel.G && pixel.G == pixel.B);
-                }
+                MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                _ => throw new InvalidOperationException($"Image pixel format is not supported")
+            };
+            int pixelSize1 = transformedSingleImage.GrayImage.BitsPerPixel / 8;
+
+            for (int i = 0; i < imageData1.Length; i += pixelSize1)
+            {
+                // grayscale image has same values for R,G and B
+                Assert.True(imageData1[i + redIndex1] == imageData1[i + greenIndex1] && imageData1[i + greenIndex1] == imageData1[i + blueIndex1]);
             }
         }
 
         private class ImageDataPoint
         {
             [ImageType(10, 10)]
-            public Bitmap Image { get; set; }
+            public MLImage Image { get; set; }
 
             [ImageType(10, 10)]
-            public Bitmap GrayImage { get; set; }
+            public MLImage GrayImage { get; set; }
 
             public ImageDataPoint()
             {
@@ -292,12 +310,19 @@ namespace Microsoft.ML.Tests
                 GrayImage = null;
             }
 
-            public ImageDataPoint(int width, int height, Color color)
+            public ImageDataPoint(int width, int height, byte red, byte green, byte blue)
             {
-                Image = new Bitmap(width, height);
-                for (int i = 0; i < width; ++i)
-                    for (int j = 0; j < height; ++j)
-                        Image.SetPixel(i, j, color);
+                byte[] imageData = new byte[width * height * 4]; // 4 for the red, green, blue and alpha colors
+                for (int i = 0; i < imageData.Length; i += 4)
+                {
+                    // Fill the buffer with the Bgra32 format
+                    imageData[i] = blue;
+                    imageData[i + 1] = green;
+                    imageData[i + 2] = red;
+                    imageData[i + 3] = 255;
+                }
+
+                Image = MLImage.CreateFromPixels(width, height, MLPixelFormat.Bgra32, imageData);
             }
         }
 
@@ -321,38 +346,56 @@ namespace Microsoft.ML.Tests
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, interleavePixelColors: true, scaleImage: 2f / 19, offsetImage: 30).Transform(cropped);
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+            IDataView backToImages = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
                ImagePixelExtractingEstimator.ColorBits.All, interleavedColors: true, scaleImage: 19 / 2f, offsetImage: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithAlphaInterleave) + "_model.zip";
 
             var fh = env.CreateOutputFile(fname);
             using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToImages));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToImages = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
+            using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
-                Bitmap restoredBitmap = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
-                Bitmap croppedBitmap = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
-                    bitmapGetter(ref restoredBitmap);
-                    Assert.NotNull(restoredBitmap);
-                    bitmapCropGetter(ref croppedBitmap);
-                    Assert.NotNull(croppedBitmap);
-                    for (int x = 0; x < imageWidth; x++)
-                        for (int y = 0; y < imageHeight; y++)
-                        {
-                            var c = croppedBitmap.GetPixel(x, y);
-                            var r = restoredBitmap.GetPixel(x, y);
-                            Assert.True(c == r);
-                        }
+                    imageGetter(ref restoredImage);
+                    Assert.NotNull(restoredImage);
+                    imageCropGetter(ref croppedImage);
+                    Assert.NotNull(croppedImage);
+
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    int pixelSize = restoredImage.BitsPerPixel / 8;
+
+                    for (int i = 0; i < restoredImageData.Length; i += pixelSize)
+                    {
+                        Assert.Equal(restoredImageData[i + redIndex], croppedImageData[i + redIndex1]);
+                        Assert.Equal(restoredImageData[i + greenIndex], croppedImageData[i + greenIndex1]);
+                        Assert.Equal(restoredImageData[i + blueIndex], croppedImageData[i + blueIndex1]);
+                    }
                 }
             }
             Done();
@@ -378,38 +421,57 @@ namespace Microsoft.ML.Tests
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", interleavePixelColors: true, scaleImage: 2f / 19, offsetImage: 30).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+            IDataView backToImages = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
                interleavedColors: true, scaleImage: 19 / 2f, offsetImage: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithoutAlphaInterleave) + "_model.zip";
 
             var fh = env.CreateOutputFile(fname);
             using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToImages));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToImages = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
+            using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
-                Bitmap restoredBitmap = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
-                Bitmap croppedBitmap = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
-                    bitmapGetter(ref restoredBitmap);
-                    Assert.NotNull(restoredBitmap);
-                    bitmapCropGetter(ref croppedBitmap);
-                    Assert.NotNull(croppedBitmap);
-                    for (int x = 0; x < imageWidth; x++)
-                        for (int y = 0; y < imageHeight; y++)
-                        {
-                            var c = croppedBitmap.GetPixel(x, y);
-                            var r = restoredBitmap.GetPixel(x, y);
-                            Assert.True(c.R == r.R && c.G == r.G && c.B == r.B);
-                        }
+                    imageGetter(ref restoredImage);
+                    Assert.NotNull(restoredImage);
+                    imageCropGetter(ref croppedImage);
+                    Assert.NotNull(croppedImage);
+
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    int pixelSize = restoredImage.BitsPerPixel / 8;
+
+                    for (int i = 0; i < restoredImageData.Length; i += pixelSize)
+                    {
+                        Assert.True(
+                            croppedImageData[i + redIndex1] == restoredImageData[i + redIndex] &&
+                            croppedImageData[i + greenIndex1] == restoredImageData[i + greenIndex] &&
+                            croppedImageData[i + blueIndex1] == restoredImageData[i + blueIndex]);
+                    }
                 }
             }
             Done();
@@ -435,40 +497,56 @@ namespace Microsoft.ML.Tests
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, orderOfExtraction: ImagePixelExtractingEstimator.ColorsOrder.ABRG).Transform(cropped);
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+            IDataView backToImages = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
                ImagePixelExtractingEstimator.ColorBits.All, orderOfColors: ImagePixelExtractingEstimator.ColorsOrder.ABRG).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithDifferentOrder) + "_model.zip";
 
             var fh = env.CreateOutputFile(fname);
             using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToImages));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToImages = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
+            using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
-                Bitmap restoredBitmap = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
-                Bitmap croppedBitmap = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
-                    bitmapGetter(ref restoredBitmap);
-                    Assert.NotNull(restoredBitmap);
-                    bitmapCropGetter(ref croppedBitmap);
-                    Assert.NotNull(croppedBitmap);
-                    for (int x = 0; x < imageWidth; x++)
-                        for (int y = 0; y < imageHeight; y++)
-                        {
-                            var c = croppedBitmap.GetPixel(x, y);
-                            var r = restoredBitmap.GetPixel(x, y);
-                            if (c != r)
-                                Assert.False(true);
-                            Assert.True(c == r);
-                        }
+                    imageGetter(ref restoredImage);
+                    Assert.NotNull(restoredImage);
+                    imageCropGetter(ref croppedImage);
+                    Assert.NotNull(croppedImage);
+
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    int pixelSize = restoredImage.BitsPerPixel / 8;
+
+                    for (int i = 0; i < restoredImageData.Length; i += pixelSize)
+                    {
+                        Assert.Equal(restoredImageData[i + redIndex], croppedImageData[i + redIndex1]);
+                        Assert.Equal(restoredImageData[i + greenIndex], croppedImageData[i + greenIndex1]);
+                        Assert.Equal(restoredImageData[i + blueIndex], croppedImageData[i + blueIndex1]);
+                    }
                 }
             }
             Done();
@@ -494,38 +572,56 @@ namespace Microsoft.ML.Tests
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, scaleImage: 2f / 19, offsetImage: 30).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+            IDataView backToImages = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
                 ImagePixelExtractingEstimator.ColorBits.All, scaleImage: 19 / 2f, offsetImage: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithAlphaNoInterleave) + "_model.zip";
 
             var fh = env.CreateOutputFile(fname);
             using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToImages));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToImages = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
+            using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
-                Bitmap restoredBitmap = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
-                Bitmap croppedBitmap = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
-                    bitmapGetter(ref restoredBitmap);
-                    Assert.NotNull(restoredBitmap);
-                    bitmapCropGetter(ref croppedBitmap);
-                    Assert.NotNull(croppedBitmap);
-                    for (int x = 0; x < imageWidth; x++)
-                        for (int y = 0; y < imageHeight; y++)
-                        {
-                            var c = croppedBitmap.GetPixel(x, y);
-                            var r = restoredBitmap.GetPixel(x, y);
-                            Assert.True(c == r);
-                        }
+                    imageGetter(ref restoredImage);
+                    Assert.NotNull(restoredImage);
+                    imageCropGetter(ref croppedImage);
+                    Assert.NotNull(croppedImage);
+
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    int pixelSize = restoredImage.BitsPerPixel / 8;
+
+                    for (int i = 0; i < restoredImageData.Length; i += pixelSize)
+                    {
+                        Assert.Equal(restoredImageData[i + redIndex], croppedImageData[i + redIndex1]);
+                        Assert.Equal(restoredImageData[i + greenIndex], croppedImageData[i + greenIndex1]);
+                        Assert.Equal(restoredImageData[i + blueIndex], croppedImageData[i + blueIndex1]);
+                    }
                 }
             }
             Done();
@@ -551,38 +647,56 @@ namespace Microsoft.ML.Tests
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", scaleImage: 2f / 19, offsetImage: 30).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+            IDataView backToImages = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
                 scaleImage: 19 / 2f, offsetImage: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithoutAlphaNoInterleave) + "_model.zip";
 
             var fh = env.CreateOutputFile(fname);
             using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToImages));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToImages = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
+            using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
-                Bitmap restoredBitmap = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
-                Bitmap croppedBitmap = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
-                    bitmapGetter(ref restoredBitmap);
-                    Assert.NotNull(restoredBitmap);
-                    bitmapCropGetter(ref croppedBitmap);
-                    Assert.NotNull(croppedBitmap);
-                    for (int x = 0; x < imageWidth; x++)
-                        for (int y = 0; y < imageHeight; y++)
-                        {
-                            var c = croppedBitmap.GetPixel(x, y);
-                            var r = restoredBitmap.GetPixel(x, y);
-                            Assert.True(c.R == r.R && c.G == r.G && c.B == r.B);
-                        }
+                    imageGetter(ref restoredImage);
+                    Assert.NotNull(restoredImage);
+                    imageCropGetter(ref croppedImage);
+                    Assert.NotNull(croppedImage);
+
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    int pixelSize = restoredImage.BitsPerPixel / 8;
+
+                    for (int i = 0; i < restoredImageData.Length; i += pixelSize)
+                    {
+                        Assert.Equal(restoredImageData[i + redIndex], croppedImageData[i + redIndex1]);
+                        Assert.Equal(restoredImageData[i + greenIndex], croppedImageData[i + greenIndex1]);
+                        Assert.Equal(restoredImageData[i + blueIndex], croppedImageData[i + blueIndex1]);
+                    }
                 }
             }
             Done();
@@ -609,38 +723,56 @@ namespace Microsoft.ML.Tests
 
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, interleavePixelColors: true).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+            IDataView backToImages = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
                 ImagePixelExtractingEstimator.ColorBits.All, interleavedColors: true).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithAlphaInterleaveNoOffset) + "_model.zip";
 
             var fh = env.CreateOutputFile(fname);
             using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToImages));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToImages = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
+            using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
-                Bitmap restoredBitmap = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
-                Bitmap croppedBitmap = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
-                    bitmapGetter(ref restoredBitmap);
-                    Assert.NotNull(restoredBitmap);
-                    bitmapCropGetter(ref croppedBitmap);
-                    Assert.NotNull(croppedBitmap);
-                    for (int x = 0; x < imageWidth; x++)
-                        for (int y = 0; y < imageHeight; y++)
-                        {
-                            var c = croppedBitmap.GetPixel(x, y);
-                            var r = restoredBitmap.GetPixel(x, y);
-                            Assert.True(c == r);
-                        }
+                    imageGetter(ref restoredImage);
+                    Assert.NotNull(restoredImage);
+                    imageCropGetter(ref croppedImage);
+                    Assert.NotNull(croppedImage);
+
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    int pixelSize = restoredImage.BitsPerPixel / 8;
+
+                    for (int i = 0; i < restoredImageData.Length; i += pixelSize)
+                    {
+                        Assert.Equal(restoredImageData[i + redIndex], croppedImageData[i + redIndex1]);
+                        Assert.Equal(restoredImageData[i + greenIndex], croppedImageData[i + greenIndex1]);
+                        Assert.Equal(restoredImageData[i + blueIndex], croppedImageData[i + blueIndex1]);
+                    }
                 }
             }
             Done();
@@ -667,37 +799,55 @@ namespace Microsoft.ML.Tests
 
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", interleavePixelColors: true).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels", interleavedColors: true).Transform(pixels);
+            IDataView backToImages = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels", interleavedColors: true).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithoutAlphaInterleaveNoOffset) + "_model.zip";
 
             var fh = env.CreateOutputFile(fname);
             using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToImages));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToImages = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
+            using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
-                Bitmap restoredBitmap = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
-                Bitmap croppedBitmap = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
-                    bitmapGetter(ref restoredBitmap);
-                    Assert.NotNull(restoredBitmap);
-                    bitmapCropGetter(ref croppedBitmap);
-                    Assert.NotNull(croppedBitmap);
-                    for (int x = 0; x < imageWidth; x++)
-                        for (int y = 0; y < imageHeight; y++)
-                        {
-                            var c = croppedBitmap.GetPixel(x, y);
-                            var r = restoredBitmap.GetPixel(x, y);
-                            Assert.True(c.R == r.R && c.G == r.G && c.B == r.B);
-                        }
+                    imageGetter(ref restoredImage);
+                    Assert.NotNull(restoredImage);
+                    imageCropGetter(ref croppedImage);
+                    Assert.NotNull(croppedImage);
+
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    int pixelSize = restoredImage.BitsPerPixel / 8;
+
+                    for (int i = 0; i < restoredImageData.Length; i += pixelSize)
+                    {
+                        Assert.Equal(restoredImageData[i + redIndex], croppedImageData[i + redIndex1]);
+                        Assert.Equal(restoredImageData[i + greenIndex], croppedImageData[i + greenIndex1]);
+                        Assert.Equal(restoredImageData[i + blueIndex], croppedImageData[i + blueIndex1]);
+                    }
                 }
             }
             Done();
@@ -724,38 +874,56 @@ namespace Microsoft.ML.Tests
 
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+            IDataView backToImages = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
                  ImagePixelExtractingEstimator.ColorBits.All).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithAlphaNoInterleaveNoOffset) + "_model.zip";
 
             var fh = env.CreateOutputFile(fname);
             using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToImages));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToImages = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
+            using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
-                Bitmap restoredBitmap = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
-                Bitmap croppedBitmap = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
-                    bitmapGetter(ref restoredBitmap);
-                    Assert.NotNull(restoredBitmap);
-                    bitmapCropGetter(ref croppedBitmap);
-                    Assert.NotNull(croppedBitmap);
-                    for (int x = 0; x < imageWidth; x++)
-                        for (int y = 0; y < imageHeight; y++)
-                        {
-                            var c = croppedBitmap.GetPixel(x, y);
-                            var r = restoredBitmap.GetPixel(x, y);
-                            Assert.True(c == r);
-                        }
+                    imageGetter(ref restoredImage);
+                    Assert.NotNull(restoredImage);
+                    imageCropGetter(ref croppedImage);
+                    Assert.NotNull(croppedImage);
+
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    int pixelSize = restoredImage.BitsPerPixel / 8;
+
+                    for (int i = 0; i < restoredImageData.Length; i += pixelSize)
+                    {
+                        Assert.Equal(restoredImageData[i + redIndex], croppedImageData[i + redIndex1]);
+                        Assert.Equal(restoredImageData[i + greenIndex], croppedImageData[i + greenIndex1]);
+                        Assert.Equal(restoredImageData[i + blueIndex], croppedImageData[i + blueIndex1]);
+                    }
                 }
             }
             Done();
@@ -781,37 +949,55 @@ namespace Microsoft.ML.Tests
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped").Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels").Transform(pixels);
+            IDataView backToImages = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels").Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithoutAlphaNoInterleaveNoOffset) + "_model.zip";
 
             var fh = env.CreateOutputFile(fname);
             using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToImages));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToImages = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
+            using (var cursor = backToImages.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
-                Bitmap restoredBitmap = default;
+                var imageGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageRestored"]);
+                MLImage restoredImage = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
-                Bitmap croppedBitmap = default;
+                var imageCropGetter = cursor.GetGetter<MLImage>(backToImages.Schema["ImageCropped"]);
+                MLImage croppedImage = default;
                 while (cursor.MoveNext())
                 {
-                    bitmapGetter(ref restoredBitmap);
-                    Assert.NotNull(restoredBitmap);
-                    bitmapCropGetter(ref croppedBitmap);
-                    Assert.NotNull(croppedBitmap);
-                    for (int x = 0; x < imageWidth; x++)
-                        for (int y = 0; y < imageHeight; y++)
-                        {
-                            var c = croppedBitmap.GetPixel(x, y);
-                            var r = restoredBitmap.GetPixel(x, y);
-                            Assert.True(c.R == r.R && c.G == r.G && c.B == r.B);
-                        }
+                    imageGetter(ref restoredImage);
+                    Assert.NotNull(restoredImage);
+                    imageCropGetter(ref croppedImage);
+                    Assert.NotNull(croppedImage);
+
+                    ReadOnlySpan<byte> restoredImageData = restoredImage.Pixels;
+                    (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = restoredImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    ReadOnlySpan<byte> croppedImageData = croppedImage.Pixels;
+                    (int alphaIndex1, int redIndex1, int greenIndex1, int blueIndex1) = croppedImage.PixelFormat switch
+                    {
+                        MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                        MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                        _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                    };
+
+                    int pixelSize = restoredImage.BitsPerPixel / 8;
+
+                    for (int i = 0; i < restoredImageData.Length; i += pixelSize)
+                    {
+                        Assert.Equal(restoredImageData[i + redIndex], croppedImageData[i + redIndex1]);
+                        Assert.Equal(restoredImageData[i + greenIndex], croppedImageData[i + greenIndex1]);
+                        Assert.Equal(restoredImageData[i + blueIndex], croppedImageData[i + blueIndex1]);
+                    }
                 }
                 Done();
             }
@@ -839,34 +1025,54 @@ namespace Microsoft.ML.Tests
             var rowView = pipe.Preview(data).RowView;
             Assert.Single(rowView);
 
-            using (var bitmap = (Bitmap)rowView.First().Values.Last().Value)
+            using (var image = (MLImage)rowView.First().Values.Last().Value)
             {
+                ReadOnlySpan<byte> imageData = image.Pixels;
+                (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = image.PixelFormat switch
+                {
+                    MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                    MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                    _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                };
+                int pixelSize = image.BitsPerPixel / 8;
+
                 // these points must be white
-                var topLeft = bitmap.GetPixel(0, 0);
-                var topRight = bitmap.GetPixel(bitmap.Width - 1, 0);
-                var bottomLeft = bitmap.GetPixel(0, bitmap.Height - 1);
-                var bottomRight = bitmap.GetPixel(bitmap.Width - 1, bitmap.Height - 1);
-                var middle = bitmap.GetPixel(bitmap.Width / 2, bitmap.Height / 2);
+                (int red, int green, int blue) topLeft = (imageData[redIndex], imageData[greenIndex], imageData[blueIndex]);
+                int index = pixelSize * (image.Width - 1);
+                (int red, int green, int blue) topRight = (imageData[index + redIndex], imageData[index + greenIndex], imageData[index + blueIndex]);
+                index = pixelSize * (image.Width) * (image.Height - 1);
+                (int red, int green, int blue) bottomLeft = (imageData[index + redIndex], imageData[index + greenIndex], imageData[index + blueIndex]);
+                index = pixelSize * image.Width * image.Height - pixelSize;
+                (int red, int green, int blue) bottomRight = (imageData[index + redIndex], imageData[index + greenIndex], imageData[index + blueIndex]);
+                index = pixelSize * image.Width * ((image.Height / 2) - 1) + pixelSize * ((image.Width / 2) - 1);
+                (int red, int green, int blue) middle = (imageData[index + redIndex], imageData[index + greenIndex], imageData[index + blueIndex]);
 
                 // these points must be red
-                var midTop = bitmap.GetPixel(bitmap.Width / 2, bitmap.Height / 3);
-                var midBottom = bitmap.GetPixel(bitmap.Width / 2, bitmap.Height / 3 * 2);
-                var leftMid = bitmap.GetPixel(bitmap.Width / 3, bitmap.Height / 2);
-                var rightMid = bitmap.GetPixel(bitmap.Width / 3 * 2, bitmap.Height / 2);
+                index = pixelSize * image.Width * ((image.Height / 3) - 1) + pixelSize * ((image.Width / 2) - 1);
+                (int red, int green, int blue) midTop = (imageData[index + redIndex], imageData[index + greenIndex], imageData[index + blueIndex]);
+
+                index = pixelSize * image.Width * ((image.Height / 3 * 2) - 1) + pixelSize * ((image.Width / 2) - 1);
+                (int red, int green, int blue) midBottom = (imageData[index + redIndex], imageData[index + greenIndex], imageData[index + blueIndex]);
+
+                index = pixelSize * image.Width * ((image.Height / 2) - 1) + pixelSize * ((image.Width / 3) - 1);
+                (int red, int green, int blue) leftMid = (imageData[index + redIndex], imageData[index + greenIndex], imageData[index + blueIndex]);
+
+                index = pixelSize * image.Width * ((image.Height / 2) - 1) + pixelSize * ((image.Width / 3 * 2) - 1);
+                (int red, int green, int blue) rightMid = (imageData[index + redIndex], imageData[index + greenIndex], imageData[index + blueIndex]);
 
                 // it turns out rounding errors on certain platforms may lead to a test failure
                 // instead of checking for exactly FFFFFF and FF0000 we allow a small interval here to be safe
                 Assert.All(new[] { topLeft, topRight, bottomLeft, bottomRight, middle }, c =>
                 {
-                    Assert.True(c.R >= 250);
-                    Assert.True(c.G >= 250);
-                    Assert.True(c.B >= 250);
+                    Assert.True(c.red >= 250);
+                    Assert.True(c.green >= 250);
+                    Assert.True(c.blue >= 250);
                 });
                 Assert.All(new[] { midTop, midBottom, leftMid, rightMid }, c =>
                 {
-                    Assert.True(c.R >= 250);
-                    Assert.True(c.G < 6);
-                    Assert.True(c.B < 6);
+                    Assert.True(c.red >= 250);
+                    Assert.True(c.green < 6);
+                    Assert.True(c.blue < 6);
                 });
             }
 
@@ -914,7 +1120,7 @@ namespace Microsoft.ML.Tests
         public class InMemoryImage
         {
             [ImageType(229, 299)]
-            public Bitmap LoadedImage;
+            public MLImage LoadedImage;
             public string Label;
 
             public static List<InMemoryImage> LoadFromTsv(MLContext mlContext, string tsvPath, string imageFolder)
@@ -946,7 +1152,7 @@ namespace Microsoft.ML.Tests
                                 new InMemoryImage()
                                 {
                                     Label = label,
-                                    LoadedImage = (Bitmap)Image.FromFile(imagePath)
+                                    LoadedImage = LoadImageFromFile(imagePath)
                                 }
                             );
                     }
@@ -955,12 +1161,14 @@ namespace Microsoft.ML.Tests
                 return inMemoryImages;
 
             }
+
+            private static MLImage LoadImageFromFile(string imagePath) => MLImage.CreateFromFile(imagePath);
         }
 
         public class InMemoryImageOutput : InMemoryImage
         {
             [ImageType(100, 100)]
-            public Bitmap ResizedImage;
+            public MLImage ResizedImage;
         }
 
         [Fact]
@@ -978,7 +1186,7 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(dataView);
             var resizedDV = model.Transform(dataView);
             var rowView = resizedDV.Preview().RowView;
-            var resizedImage = (Bitmap)rowView.First().Values.Last().Value;
+            var resizedImage = (MLImage)rowView.First().Values.Last().Value;
             Assert.Equal(100, resizedImage.Height);
             Assert.NotEqual(100, dataObjects[0].LoadedImage.Height);
 
@@ -1007,6 +1215,190 @@ namespace Microsoft.ML.Tests
             }
 
             Assert.False(disposed, "The last in memory image had been disposed by running ResizeImageTransformer");
+        }
+
+        public static IEnumerable<object[]> ImageListData()
+        {
+            yield return new object[] { "tomato.bmp" };
+            yield return new object[] { "hotdog.jpg" };
+            yield return new object[] { "banana.jpg" };
+            yield return new object[] { "tomato.jpg" };
+        }
+
+        [Theory]
+        [MemberData(nameof(ImageListData))]
+        public void MLImageCreationTests(string imageName)
+        {
+            var dataFile = GetDataPath($"images/{imageName}");
+
+            using MLImage image1 = MLImage.CreateFromFile(dataFile);
+            using FileStream imageStream = new FileStream(dataFile, FileMode.Open, FileAccess.Read);
+            using MLImage image2 = MLImage.CreateFromStream(imageStream);
+
+            Assert.Equal(image1.Tag, image2.Tag);
+            Assert.Equal(image1.Width, image2.Width);
+            Assert.Equal(image1.Height, image2.Height);
+            Assert.Equal(32, image1.BitsPerPixel);
+            Assert.Equal(image1.BitsPerPixel, image2.BitsPerPixel);
+            Assert.Equal(image1.PixelFormat, image2.PixelFormat);
+            Assert.Equal(image1.Pixels.ToArray(), image2.Pixels.ToArray());
+            Assert.Equal(image1.Width * image1.Height * (image1.BitsPerPixel / 8), image1.Pixels.Length);
+            Assert.True(image1.PixelFormat == MLPixelFormat.Rgba32 || image1.PixelFormat == MLPixelFormat.Bgra32);
+
+            image1.Tag = "image1";
+            Assert.Equal("image1", image1.Tag);
+            image2.Tag = "image2";
+            Assert.Equal("image2", image2.Tag);
+
+            using MLImage image3 = MLImage.CreateFromPixels(image1.Width, image1.Height, image1.PixelFormat, image1.Pixels);
+            Assert.Equal(image1.Width, image3.Width);
+            Assert.Equal(image1.Height, image3.Height);
+            Assert.Equal(image1.BitsPerPixel, image3.BitsPerPixel);
+            Assert.Equal(image1.PixelFormat, image3.PixelFormat);
+            Assert.Equal(image1.Pixels.ToArray(), image3.Pixels.ToArray());
+        }
+
+        [Fact]
+        public void MLImageCreateThrowingTest()
+        {
+            Assert.Throws<ArgumentNullException>(() => MLImage.CreateFromFile(null));
+            Assert.Throws<ArgumentException>(() => MLImage.CreateFromFile("This is Invalid Path"));
+            Assert.Throws<ArgumentNullException>(() => MLImage.CreateFromStream(null));
+            Assert.Throws<ArgumentException>(() => MLImage.CreateFromStream(new MemoryStream(new byte[10])));
+            Assert.Throws<ArgumentException>(() => MLImage.CreateFromPixels(10, 10, MLPixelFormat.Unknown, Array.Empty<byte>()));
+            Assert.Throws<ArgumentException>(() => MLImage.CreateFromPixels(10, 10, MLPixelFormat.Bgra32, Array.Empty<byte>()));
+            Assert.Throws<ArgumentException>(() => MLImage.CreateFromPixels(0, 10, MLPixelFormat.Bgra32, new byte[10]));
+            Assert.Throws<ArgumentException>(() => MLImage.CreateFromPixels(10, 0, MLPixelFormat.Bgra32, new byte[10]));
+            Assert.Throws<ArgumentException>(() => MLImage.CreateFromPixels(10, 10, MLPixelFormat.Bgra32, new byte[401]));
+        }
+
+        [Theory]
+        [MemberData(nameof(ImageListData))]
+        public void MLImageSaveTests(string imageName)
+        {
+            var dataFile = GetDataPath($"images/{imageName}");
+            using MLImage image1 = MLImage.CreateFromFile(dataFile);
+            string extension = Path.GetExtension(imageName);
+            string imageTempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + extension);
+
+            if (extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
+                extension.Equals(".webp", StringComparison.OrdinalIgnoreCase))
+            {
+                image1.Save(imageTempPath);
+                using MLImage image2 = MLImage.CreateFromFile(imageTempPath);
+
+                Assert.Equal(image1.Width, image2.Width);
+                Assert.Equal(image1.Height, image2.Height);
+                Assert.Equal(image1.BitsPerPixel, image2.BitsPerPixel);
+                Assert.Equal(image1.PixelFormat, image2.PixelFormat);
+
+                // When saving the image with specific encoding, the image decoder can manipulate the color
+                // and don't have to keep the exact original colors.
+            }
+            else
+            {
+                Assert.Throws<ArgumentException>(() => image1.Save(imageTempPath));
+            }
+        }
+
+        [Fact]
+        public void MLImageDisposingTest()
+        {
+            MLImage image = MLImage.CreateFromPixels(10, 10, MLPixelFormat.Bgra32, new byte[10 * 10 * 4]);
+            image.Tag = "Blank";
+
+            Assert.Equal(10, image.Width);
+            Assert.Equal(10, image.Height);
+            Assert.Equal(32, image.BitsPerPixel);
+            Assert.Equal(MLPixelFormat.Bgra32, image.PixelFormat);
+
+            image.Dispose();
+
+            Assert.Throws<InvalidOperationException>(() => image.Tag);
+            Assert.Throws<InvalidOperationException>(() => image.Tag = "Something");
+            Assert.Throws<InvalidOperationException>(() => image.Width);
+            Assert.Throws<InvalidOperationException>(() => image.Height);
+            Assert.Throws<InvalidOperationException>(() => image.PixelFormat);
+            Assert.Throws<InvalidOperationException>(() => image.BitsPerPixel);
+            Assert.Throws<InvalidOperationException>(() => image.Pixels[0]);
+        }
+
+        [Theory]
+        [MemberData(nameof(ImageListData))]
+        public void MLImageSourceDisposingTest(string imageName)
+        {
+            var imageFile = GetDataPath($"images/{imageName}");
+            using MLImage image1 = MLImage.CreateFromFile(imageFile);
+
+            // Create image from stream then close the stream and then try to access the image data
+            FileStream stream = new FileStream(imageFile, FileMode.Open, FileAccess.Read, FileShare.None);
+            MLImage image2 = MLImage.CreateFromStream(stream);
+            stream.Dispose();
+            Assert.Equal(image1.Pixels.ToArray(), image2.Pixels.ToArray());
+            image2.Dispose();
+
+            // Create image from non-seekable stream
+            stream = new FileStream(imageFile, FileMode.Open, FileAccess.Read, FileShare.None);
+            ReadOnlyNonSeekableStream nonSeekableStream = new ReadOnlyNonSeekableStream(stream);
+            image2 = MLImage.CreateFromStream(nonSeekableStream);
+            Assert.Equal(image1.Pixels.ToArray(), image2.Pixels.ToArray());
+            stream.Close();
+            Assert.Equal(image1.Pixels.ToArray(), image2.Pixels.ToArray());
+            image2.Dispose();
+
+            // Now test image stream contains image data prepended and appended with extra unrelated data.
+            stream = new FileStream(imageFile, FileMode.Open, FileAccess.Read, FileShare.None);
+            MemoryStream ms = new MemoryStream((int)stream.Length);
+            for (int i = 0; i < stream.Length; i++)
+            {
+                ms.WriteByte((byte)(i % 255));
+            }
+
+            long position = ms.Position;
+
+            stream.CopyTo(ms);
+            for (int i = 0; i < stream.Length; i++)
+            {
+                ms.WriteByte((byte)(i % 255));
+            }
+
+            ms.Seek(position, SeekOrigin.Begin);
+            image2 = MLImage.CreateFromStream(ms);
+            stream.Close();
+            ms.Close();
+            Assert.Equal(image1.Width, image2.Width);
+            Assert.Equal(image1.Height, image2.Height);
+            Assert.Equal(image1.Pixels.ToArray(), image2.Pixels.ToArray());
+            image2.Dispose();
+        }
+
+        private class ReadOnlyNonSeekableStream : Stream
+        {
+            private Stream _stream;
+
+            public ReadOnlyNonSeekableStream(Stream stream) => _stream = stream;
+
+            public override bool CanRead => _stream.CanRead;
+
+            public override bool CanSeek => false;
+
+            public override bool CanWrite => false;
+
+            public override long Length => _stream.Length;
+
+            public override long Position { get => _stream.Position; set => throw new InvalidOperationException($"The stream is not seekable"); }
+
+            public override void Flush() => _stream.Flush();
+
+            public override int Read(byte[] buffer, int offset, int count) => _stream.Read(buffer, offset, count);
+
+            public override long Seek(long offset, SeekOrigin origin) => throw new InvalidOperationException($"The stream is not seekable");
+
+            public override void SetLength(long value) => throw new InvalidOperationException($"The stream is not seekable");
+
+            public override void Write(byte[] buffer, int offset, int count) => throw new InvalidOperationException($"The stream is not writable");
         }
     }
 }

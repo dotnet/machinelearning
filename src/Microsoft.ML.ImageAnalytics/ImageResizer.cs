@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using Microsoft.ML;
@@ -276,8 +274,8 @@ namespace Microsoft.ML.Transforms.Image
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
 
-                var src = default(Bitmap);
-                var getSrc = input.GetGetter<Bitmap>(input.Schema[ColMapNewToOld[iinfo]]);
+                var src = default(MLImage);
+                var getSrc = input.GetGetter<MLImage>(input.Schema[ColMapNewToOld[iinfo]]);
                 var info = _parent._columns[iinfo];
 
                 disposer =
@@ -289,11 +287,13 @@ namespace Microsoft.ML.Transforms.Image
                         }
                     };
 
-                ValueGetter<Bitmap> del =
-                    (ref Bitmap dst) =>
+                ValueGetter<MLImage> del =
+                    (ref MLImage dst) =>
                     {
                         if (dst != null)
+                        {
                             dst.Dispose();
+                        }
 
                         getSrc(ref src);
                         if (src == null || src.Height <= 0 || src.Width <= 0)
@@ -304,108 +304,24 @@ namespace Microsoft.ML.Transforms.Image
                             return;
                         }
 
-                        int sourceWidth = src.Width;
-                        int sourceHeight = src.Height;
-                        int sourceX = 0;
-                        int sourceY = 0;
-                        int destX = 0;
-                        int destY = 0;
-                        int destWidth = 0;
-                        int destHeight = 0;
-                        float aspect = 0;
-                        float widthAspect = 0;
-                        float heightAspect = 0;
-
-                        widthAspect = (float)info.ImageWidth / sourceWidth;
-                        heightAspect = (float)info.ImageHeight / sourceHeight;
-
-                        if (info.Resizing == ImageResizingEstimator.ResizingKind.IsoPad)
-                        {
-                            widthAspect = (float)info.ImageWidth / sourceWidth;
-                            heightAspect = (float)info.ImageHeight / sourceHeight;
-                            if (heightAspect < widthAspect)
-                            {
-                                aspect = heightAspect;
-                                destX = (int)((info.ImageWidth - (sourceWidth * aspect)) / 2);
-                            }
-                            else
-                            {
-                                aspect = widthAspect;
-                                destY = (int)((info.ImageHeight - (sourceHeight * aspect)) / 2);
-                            }
-
-                            destWidth = (int)(sourceWidth * aspect);
-                            destHeight = (int)(sourceHeight * aspect);
-                        }
-                        else if (info.Resizing == ImageResizingEstimator.ResizingKind.IsoCrop)
-                        {
-                            if (heightAspect < widthAspect)
-                            {
-                                aspect = widthAspect;
-                                switch (info.Anchor)
+                        dst = src.CloneWithResizing(
+                                info.ImageWidth,
+                                info.ImageHeight,
+                                info.Resizing switch
                                 {
-                                    case ImageResizingEstimator.Anchor.Top:
-                                        destY = 0;
-                                        break;
-                                    case ImageResizingEstimator.Anchor.Bottom:
-                                        destY = (int)(info.ImageHeight - (sourceHeight * aspect));
-                                        break;
-                                    default:
-                                        destY = (int)((info.ImageHeight - (sourceHeight * aspect)) / 2);
-                                        break;
-                                }
-                            }
-                            else
-                            {
-                                aspect = heightAspect;
-                                switch (info.Anchor)
-                                {
-                                    case ImageResizingEstimator.Anchor.Left:
-                                        destX = 0;
-                                        break;
-                                    case ImageResizingEstimator.Anchor.Right:
-                                        destX = (int)(info.ImageWidth - (sourceWidth * aspect));
-                                        break;
-                                    default:
-                                        destX = (int)((info.ImageWidth - (sourceWidth * aspect)) / 2);
-                                        break;
-                                }
-                            }
-
-                            destWidth = (int)(sourceWidth * aspect);
-                            destHeight = (int)(sourceHeight * aspect);
-                        }
-                        else if (info.Resizing == ImageResizingEstimator.ResizingKind.Fill)
-                        {
-                            destWidth = info.ImageWidth;
-                            destHeight = info.ImageHeight;
-                        }
-
-                        // Graphics.DrawImage() does not support PixelFormat.Indexed. Hence convert the
-                        // pixel format to Format32bppArgb as described here https://stackoverflow.com/questions/17313285/graphics-on-indexed-image
-                        // For images with invalid pixel format also use Format32bppArgb to draw the resized image.
-                        // For images with Format16bppGrayScale or Format16bppArgb1555 GDI+ does not
-                        // support these formats, ref: https://bytes.com/topic/c-sharp/answers/278572-out-memory-graphics-fromimage
-                        if ((src.PixelFormat & PixelFormat.Indexed) != 0 ||
-                            src.PixelFormat == PixelFormat.Format16bppGrayScale ||
-                            src.PixelFormat == PixelFormat.Format16bppArgb1555 ||
-                            !Enum.IsDefined(typeof(PixelFormat), src.PixelFormat))
-                        {
-                            dst = new Bitmap(info.ImageWidth, info.ImageHeight);
-                            using (var ch = Host.Start(nameof(ImageResizingTransformer)))
-                            {
-                                ch.Warning($"Encountered image {src.Tag} of unsupported pixel format {src.PixelFormat} but converting it to {nameof(PixelFormat.Format32bppArgb)}.");
-                            }
-                        }
-                        else
-                            dst = new Bitmap(info.ImageWidth, info.ImageHeight, src.PixelFormat);
-
-                        var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
-                        var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
-                        using (var g = Graphics.FromImage(dst))
-                        {
-                            g.DrawImage(src, destRectangle, srcRectangle, GraphicsUnit.Pixel);
-                        }
+                                    ImageResizingEstimator.ResizingKind.IsoPad => ImageResizeMode.Pad,
+                                    ImageResizingEstimator.ResizingKind.IsoCrop =>
+                                        info.Anchor switch
+                                        {
+                                            ImageResizingEstimator.Anchor.Top => ImageResizeMode.CropAnchorTop,
+                                            ImageResizingEstimator.Anchor.Bottom => ImageResizeMode.CropAnchorBottom,
+                                            ImageResizingEstimator.Anchor.Left => ImageResizeMode.CropAnchorLeft,
+                                            ImageResizingEstimator.Anchor.Right => ImageResizeMode.CropAnchorRight,
+                                            _ => ImageResizeMode.CropAnchorCentral
+                                        },
+                                    ImageResizingEstimator.ResizingKind.Fill => ImageResizeMode.Fill,
+                                    _ => throw new InvalidOperationException($"Invalid image resizing mode value")
+                                });
 
                         dst.Tag = src.Tag;
                         Contracts.Assert(dst.Width == info.ImageWidth && dst.Height == info.ImageHeight);
@@ -426,8 +342,8 @@ namespace Microsoft.ML.Transforms.Image
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | <xref:System.Drawing.Bitmap> |
-    /// | Output column data type | <xref:System.Drawing.Bitmap> |
+    /// | Input column data type | <xref:Microsoft.ML.Data.MLImage> |
+    /// | Output column data type | <xref:Microsoft.ML.Data.MLImage> |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
     /// | Exportable to ONNX | No |
     ///
@@ -455,7 +371,7 @@ namespace Microsoft.ML.Transforms.Image
         }
 
         /// <summary>
-        /// Specifies how to resize the images: by croping them or padding in the direction needed to fill up.
+        /// Specifies how to resize the images: by cropping them or padding in the direction needed to fill up.
         /// </summary>
         public enum ResizingKind : byte
         {

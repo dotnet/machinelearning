@@ -32,7 +32,7 @@ namespace Microsoft.ML.AutoML
             _tuners = pipelineSchemas.ToDictionary(schema => schema, schema =>
             {
                 var searchSpace = sweepablePipeline.BuildSweepableEstimatorPipeline(schema).SearchSpace;
-                return new CostFrugalTuner(searchSpace, searchSpace.SampleFromFeatureSpace(searchSpace.Default)) as ITuner;
+                return new CostFrugalTuner(searchSpace, searchSpace.SampleFromFeatureSpace(searchSpace.Default), seed: settings.Seed) as ITuner;
             });
 
             if (trialResultManager != null)

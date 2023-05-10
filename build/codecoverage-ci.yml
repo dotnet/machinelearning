@@ -12,7 +12,8 @@ jobs:
         _configuration: Debug
         _config_short: D
         _includeBenchmarkData: false
-        _targetFramework: netcoreapp3.1
+        _targetFramework: net6.0
     codeCoverage: true
     pool:
-      vmImage: windows-2019
+      name: NetCore-Public
+      demands: ImageOverride -equals 1es-windows-2019-open

@@ -9,7 +9,7 @@ using TorchSharp;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Models
 {
-    internal abstract class BaseHead : BaseModule
+    internal abstract class BaseHead : torch.nn.Module
     {
         protected BaseHead(string name) : base(name)
         {

@@ -688,7 +688,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.Equal(1u, firstElement.MatrixColumnIndex);
             Assert.Equal(1u, firstElement.MatrixRowIndex);
             Assert.Equal(0.987113833, firstElement.Score, 3);
-            Assert.Equal(1, firstElement.Value, 3);
+            Assert.Equal(1d, firstElement.Value, 3);
 
             Assert.Equal(60u, lastElement.MatrixColumnIndex);
             Assert.Equal(100u, lastElement.MatrixRowIndex);
@@ -706,12 +706,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.Equal(1u, firstElement.MatrixColumnIndex);
             Assert.Equal(1u, firstElement.MatrixRowIndex);
             Assert.Equal(0.987113833, firstElement.Score, 3);
-            Assert.Equal(1, firstElement.Value, 3);
+            Assert.Equal(1d, firstElement.Value, 3);
 
             Assert.Equal(11u, lastElement.MatrixColumnIndex);
             Assert.Equal(1u, lastElement.MatrixRowIndex);
             Assert.Equal(0.987113833, lastElement.Score, 3);
-            Assert.Equal(1, lastElement.Value, 3);
+            Assert.Equal(1d, lastElement.Value, 3);
         }
 
         // A data structure used to encode a single value in matrix
@@ -842,7 +842,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Check if results computed by SSE code and MF predictor are the same.
             for (int i = 0; i < predictions.Count(); ++i)
-                Assert.Equal(predictions[i].Score, valuesAtSecondColumn[i], 3);
+                Assert.Equal((double)predictions[i].Score, (double)valuesAtSecondColumn[i], 3);
         }
     }
 }

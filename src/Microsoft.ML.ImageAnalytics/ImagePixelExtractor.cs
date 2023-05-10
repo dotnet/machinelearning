@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -322,8 +320,8 @@ namespace Microsoft.ML.Transforms.Image
                 Contracts.Assert(size == planes * height * width);
                 int cpix = height * width;
 
-                var getSrc = input.GetGetter<Bitmap>(input.Schema[ColMapNewToOld[iinfo]]);
-                var src = default(Bitmap);
+                var getSrc = input.GetGetter<MLImage>(input.Schema[ColMapNewToOld[iinfo]]);
+                var src = default(MLImage);
 
                 disposer =
                     () =>
@@ -349,20 +347,7 @@ namespace Microsoft.ML.Transforms.Image
 
                         Host.Check(src.Height == height && src.Width == width);
 
-                        if (src.PixelFormat != PixelFormat.Format32bppArgb && src.PixelFormat != PixelFormat.Format24bppRgb)
-                        {
-                            var clone = src.Clone(new Rectangle(0, 0, src.Width, src.Height), PixelFormat.Format32bppArgb);
-                            clone.Tag = src.Tag;
-                            src.Dispose();
-                            src = clone;
-                            using (var ch = Host.Start(nameof(ImagePixelExtractingTransformer)))
-                            {
-                                ch.Warning($"Encountered image {src.Tag} of unsupported pixel format {src.PixelFormat} but converting it to {nameof(PixelFormat.Format32bppArgb)}.");
-                            }
-                        }
-
                         var editor = VBufferEditor.Create(ref dst, size);
-                        var values = editor.Values;
 
                         float offset = ex.OffsetImage;
                         float scale = ex.ScaleImage;
@@ -377,91 +362,87 @@ namespace Microsoft.ML.Transforms.Image
 
                         ImagePixelExtractingEstimator.GetOrder(ex.OrderOfExtraction, ex.ColorsToExtract, out int a, out int r, out int b, out int g);
 
-                        BitmapData bmpData = null;
-                        try
+                        ReadOnlySpan<byte> pixelData = src.Pixels;
+                        (int alphaIndex, int redIndex, int greenIndex, int blueIndex) = src.PixelFormat switch
                         {
-                            bmpData = src.LockBits(new Rectangle(0, 0, src.Width, src.Height), ImageLockMode.ReadOnly, src.PixelFormat);
-                            int h = height;
-                            int w = width;
-                            byte[] row = new byte[bmpData.Stride];
-                            int pixelSize = System.Drawing.Image.GetPixelFormatSize(src.PixelFormat) / 8;
-                            Func<int, byte> alpha = pixelSize > 3 ? new Func<int, byte>(ix => row[ix + 3]) : new Func<int, byte>(ix => 255);
+                            MLPixelFormat.Bgra32 => (3, 2, 1, 0),
+                            MLPixelFormat.Rgba32 => (3, 0, 1, 2),
+                            _ => throw new InvalidOperationException($"Image pixel format is not supported")
+                        };
 
-                            if (ex.InterleavePixelColors)
-                            {
-                                int idst = 0;
-                                for (int y = 0; y < h; ++y)
-                                {
-                                    Marshal.Copy(bmpData.Scan0 + bmpData.Stride * y, row, 0, bmpData.Stride);
-                                    for (int x = 0; x < w; x++)
-                                    {
-                                        var ix = x * pixelSize;
-                                        if (!vb.IsEmpty)
-                                        {
-                                            if (a != -1) { vb[idst + a] = alpha(ix); }
-                                            if (r != -1) { vb[idst + r] = row[ix + 2]; }
-                                            if (g != -1) { vb[idst + g] = row[ix + 1]; }
-                                            if (b != -1) { vb[idst + b] = row[ix + 0]; }
-                                        }
-                                        else if (!needScale)
-                                        {
-                                            if (a != -1) { vf[idst + a] = alpha(ix); }
-                                            if (r != -1) { vf[idst + r] = row[ix + 2]; }
-                                            if (g != -1) { vf[idst + g] = row[ix + 1]; }
-                                            if (b != -1) { vf[idst + b] = row[ix + 0]; }
-                                        }
-                                        else
-                                        {
+                        int h = height;
+                        int w = width;
+                        int pixelByteCount = alphaIndex > 0 ? 4 : 3;
+                        int ix = 0;
 
-                                            if (a != -1) { vf[idst + a] = (alpha(ix) - offset) * scale; }
-                                            if (r != -1) { vf[idst + r] = (row[ix + 2] - offset) * scale; }
-                                            if (g != -1) { vf[idst + g] = (row[ix + 1] - offset) * scale; }
-                                            if (b != -1) { vf[idst + b] = (row[ix + 0] - offset) * scale; }
-                                        }
-                                        idst += ex.Planes;
-                                    }
-                                }
-                                Contracts.Assert(idst == size);
-                            }
-                            else
+                        if (ex.InterleavePixelColors)
+                        {
+                            int idst = 0;
+                            for (int y = 0; y < h; ++y)
                             {
-                                int idstMin = 0;
-                                for (int y = 0; y < h; ++y)
+                                for (int x = 0; x < w; x++)
                                 {
-                                    Marshal.Copy(bmpData.Scan0 + bmpData.Stride * y, row, 0, bmpData.Stride);
-                                    int idst = idstMin + y * w;
-                                    for (int x = 0; x < w; x++, idst++)
+                                    if (!vb.IsEmpty)
                                     {
-                                        var ix = x * pixelSize;
-                                        if (!vb.IsEmpty)
-                                        {
-                                            if (a != -1) vb[idst + cpix * a] = alpha(ix);
-                                            if (r != -1) vb[idst + cpix * r] = row[ix + 2];
-                                            if (g != -1) vb[idst + cpix * g] = row[ix + 1];
-                                            if (b != -1) vb[idst + cpix * b] = row[ix + 0];
-                                        }
-                                        else if (!needScale)
-                                        {
-                                            if (a != -1) vf[idst + cpix * a] = alpha(ix);
-                                            if (r != -1) vf[idst + cpix * r] = row[ix + 2];
-                                            if (g != -1) vf[idst + cpix * g] = row[ix + 1];
-                                            if (b != -1) vf[idst + cpix * b] = row[ix + 0];
-                                        }
-                                        else
-                                        {
-                                            if (a != -1) vf[idst + cpix * a] = (alpha(ix) - offset) * scale;
-                                            if (r != -1) vf[idst + cpix * r] = (row[ix + 2] - offset) * scale;
-                                            if (g != -1) vf[idst + cpix * g] = (row[ix + 1] - offset) * scale;
-                                            if (b != -1) vf[idst + cpix * b] = (row[ix + 0] - offset) * scale;
-                                        }
+                                        if (a != -1) { vb[idst + a] = (byte)(alphaIndex > 0 ? pixelData[ix + alphaIndex] : 255); }
+                                        if (r != -1) { vb[idst + r] = pixelData[ix + redIndex]; }
+                                        if (g != -1) { vb[idst + g] = pixelData[ix + greenIndex]; }
+                                        if (b != -1) { vb[idst + b] = pixelData[ix + blueIndex]; }
                                     }
+                                    else if (!needScale)
+                                    {
+                                        if (a != -1) { vf[idst + a] = (byte)(alphaIndex > 0 ? pixelData[ix + alphaIndex] : 255); }
+                                        if (r != -1) { vf[idst + r] = pixelData[ix + redIndex]; }
+                                        if (g != -1) { vf[idst + g] = pixelData[ix + greenIndex]; }
+                                        if (b != -1) { vf[idst + b] = pixelData[ix + blueIndex]; }
+                                    }
+                                    else
+                                    {
+                                        if (a != -1) { vf[idst + a] = ((byte)(alphaIndex > 0 ? pixelData[ix + alphaIndex] : 255) - offset) * scale; }
+                                        if (r != -1) { vf[idst + r] = (pixelData[ix + redIndex] - offset) * scale; }
+                                        if (g != -1) { vf[idst + g] = (pixelData[ix + greenIndex] - offset) * scale; }
+                                        if (b != -1) { vf[idst + b] = (pixelData[ix + blueIndex] - offset) * scale; }
+                                    }
+
+                                    ix += pixelByteCount;
+                                    idst += ex.Planes;
                                 }
                             }
+                            Contracts.Assert(idst == size);
                         }
-                        finally
+                        else
                         {
-                            if (bmpData != null)
-                                src.UnlockBits(bmpData);
+                            int idstMin = 0;
+                            for (int y = 0; y < h; ++y)
+                            {
+                                int idst = idstMin + y * w;
+                                for (int x = 0; x < w; x++, idst++)
+                                {
+                                    if (!vb.IsEmpty)
+                                    {
+                                        if (a != -1) vb[idst + cpix * a] = (byte)(alphaIndex > 0 ? pixelData[ix + alphaIndex] : 255);
+                                        if (r != -1) vb[idst + cpix * r] = pixelData[ix + redIndex];
+                                        if (g != -1) vb[idst + cpix * g] = pixelData[ix + greenIndex];
+                                        if (b != -1) vb[idst + cpix * b] = pixelData[ix + blueIndex];
+                                    }
+                                    else if (!needScale)
+                                    {
+                                        if (a != -1) vf[idst + cpix * a] = (byte)(alphaIndex > 0 ? pixelData[ix + alphaIndex] : 255);
+                                        if (r != -1) vf[idst + cpix * r] = pixelData[ix + redIndex];
+                                        if (g != -1) vf[idst + cpix * g] = pixelData[ix + greenIndex];
+                                        if (b != -1) vf[idst + cpix * b] = pixelData[ix + blueIndex];
+                                    }
+                                    else
+                                    {
+                                        if (a != -1) vf[idst + cpix * a] = ((byte)(alphaIndex > 0 ? pixelData[ix + alphaIndex] : 255) - offset) * scale;
+                                        if (r != -1) vf[idst + cpix * r] = (pixelData[ix + redIndex] - offset) * scale;
+                                        if (g != -1) vf[idst + cpix * g] = (pixelData[ix + greenIndex] - offset) * scale;
+                                        if (b != -1) vf[idst + cpix * b] = (pixelData[ix + blueIndex] - offset) * scale;
+                                    }
+
+                                    ix += pixelByteCount;
+                                }
+                            }
                         }
 
                         dst = editor.Commit();
@@ -505,7 +486,7 @@ namespace Microsoft.ML.Transforms.Image
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | <xref:System.Drawing.Bitmap> |
+    /// | Input column data type | <xref:Microsoft.ML.Data.MLImage> |
     /// | Output column data type | Known-sized vector of <xref:System.Single> or <xref:System.Byte> |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
     /// | Exportable to ONNX | No |

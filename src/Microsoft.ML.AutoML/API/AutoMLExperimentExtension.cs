@@ -27,10 +27,10 @@ namespace Microsoft.ML.AutoML
         /// <returns><see cref="AutoMLExperiment"/></returns>
         public static AutoMLExperiment SetDataset(this AutoMLExperiment experiment, IDataView train, IDataView validation)
         {
-            var datasetManager = new TrainTestDatasetManager()
+            var datasetManager = new TrainValidateDatasetManager()
             {
                 TrainDataset = train,
-                TestDataset = validation
+                ValidateDataset = validation
             };
 
             experiment.ServiceCollection.AddSingleton<IDatasetManager>(datasetManager);
@@ -57,14 +57,16 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
         /// <param name="dataset">dataset for cross-validation split.</param>
-        /// <param name="fold"></param>
+        /// <param name="fold">number of cross-validation folds</param>
+        /// <param name="samplingKeyColumnName">column name for sampling key</param>
         /// <returns><see cref="AutoMLExperiment"/></returns>
-        public static AutoMLExperiment SetDataset(this AutoMLExperiment experiment, IDataView dataset, int fold = 10)
+        public static AutoMLExperiment SetDataset(this AutoMLExperiment experiment, IDataView dataset, int fold = 10, string samplingKeyColumnName = null)
         {
             var datasetManager = new CrossValidateDatasetManager()
             {
                 Dataset = dataset,
                 Fold = fold,
+                SamplingKeyColumnName = samplingKeyColumnName,
             };
 
             experiment.ServiceCollection.AddSingleton<IDatasetManager>(datasetManager);
@@ -149,13 +151,145 @@ namespace Microsoft.ML.AutoML
             return experiment;
         }
 
+        /// <summary>
+        /// Set <see cref="DefaultPerformanceMonitor"/> as <see cref="IPerformanceMonitor"/> for <see cref="AutoMLExperiment"/>.
+        /// </summary>
+        /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
+        /// <param name="checkIntervalInMilliseconds">the interval in milliseconds for <see cref="DefaultPerformanceMonitor"/> to sample <see cref="TrialPerformanceMetrics"/></param>
+        /// <returns></returns>
         public static AutoMLExperiment SetPerformanceMonitor(this AutoMLExperiment experiment, int checkIntervalInMilliseconds = 1000)
         {
             experiment.SetPerformanceMonitor((service) =>
             {
                 var channel = service.GetService<IChannel>();
+                var settings = service.GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+                return new DefaultPerformanceMonitor(settings, channel, checkIntervalInMilliseconds);
+            });
 
-                return new DefaultPerformanceMonitor(channel, checkIntervalInMilliseconds);
+            return experiment;
+        }
+
+        /// <summary>
+        /// Set a custom performance monitor as <see cref="IPerformanceMonitor"/> for <see cref="AutoMLExperiment"/>.
+        /// </summary>
+        /// <typeparam name="TPerformanceMonitor"></typeparam>
+        /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
+        /// <param name="factory"></param>
+        /// <returns></returns>
+        public static AutoMLExperiment SetPerformanceMonitor<TPerformanceMonitor>(this AutoMLExperiment experiment, Func<IServiceProvider, TPerformanceMonitor> factory)
+            where TPerformanceMonitor : class, IPerformanceMonitor
+        {
+            experiment.ServiceCollection.AddTransient<IPerformanceMonitor>(factory);
+
+            return experiment;
+        }
+
+        /// <summary>
+        /// Set a custom performance monitor as <see cref="IPerformanceMonitor"/> for <see cref="AutoMLExperiment"/>.
+        /// </summary>
+        /// <typeparam name="TPerformanceMonitor"></typeparam>
+        /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
+        /// <returns></returns>
+        public static AutoMLExperiment SetPerformanceMonitor<TPerformanceMonitor>(this AutoMLExperiment experiment)
+            where TPerformanceMonitor : class, IPerformanceMonitor
+        {
+            experiment.ServiceCollection.AddTransient<IPerformanceMonitor, TPerformanceMonitor>();
+
+            return experiment;
+        }
+
+        /// <summary>
+        /// Set <see cref="SmacTuner"/> as tuner for hyper-parameter optimization. The performance of smac is in a large extend determined 
+        /// by <paramref name="numberOfTrees"/>, <paramref name="nMinForSpit"/> and <paramref name="splitRatio"/>, which are used to fit smac's inner 
+        /// regressor.
+        /// </summary>
+        /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
+        /// <param name="numberOfTrees">number of regression trees when fitting random forest.</param>
+        /// <param name="fitModelEveryNTrials">re-fit random forests in smac for every N trials.</param>
+        /// <param name="numberInitialPopulation">Number of points to use for random initialization.</param>
+        /// <param name="splitRatio">split ratio for fitting random forest in smac.</param>
+        /// <param name="nMinForSpit">minimum number of data points required to be in a node if it is to be split further for fitting random forest in smac.</param>
+        /// <param name="localSearchParentCount">Number of search parents to use for local search in maximizing EI acquisition function.</param>
+        /// <param name="numRandomEISearchConfigurations">Number of random configurations when maximizing EI acquisition function.</param>
+        /// <param name="numNeighboursForNumericalParams">Number of neighbours to sample from when applying one-step mutation for generating new parameters.</param>
+        /// <param name="epsilon">the threshold to exit during maximizing EI acquisition function.</param>
+        /// <returns></returns>
+        public static AutoMLExperiment SetSmacTuner(
+            this AutoMLExperiment experiment,
+            int numberInitialPopulation = 20,
+            int fitModelEveryNTrials = 10,
+            int numberOfTrees = 10,
+            int nMinForSpit = 2,
+            float splitRatio = 0.8f,
+            int localSearchParentCount = 5,
+            int numRandomEISearchConfigurations = 5000,
+            double epsilon = 1e-5,
+            int numNeighboursForNumericalParams = 4)
+        {
+            experiment.SetTuner((service) =>
+            {
+                var channel = service.GetRequiredService<IChannel>();
+                var settings = service.GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+                var context = service.GetRequiredService<MLContext>();
+                var smac = new SmacTuner(context, settings.SearchSpace, numberInitialPopulation, fitModelEveryNTrials, numberOfTrees, nMinForSpit, splitRatio, localSearchParentCount, numRandomEISearchConfigurations, epsilon, numNeighboursForNumericalParams, settings.Seed, channel);
+
+                return smac;
+            });
+
+            return experiment;
+        }
+
+        /// <summary>
+        /// Set <see cref="CostFrugalTuner"/> as tuner for hyper-parameter optimization.
+        /// </summary>
+        /// <param name="experiment"></param>
+        /// <returns></returns>
+        public static AutoMLExperiment SetCostFrugalTuner(this AutoMLExperiment experiment)
+        {
+            experiment.SetTuner((service) =>
+            {
+                var settings = service.GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+                var cfo = new CostFrugalTuner(settings);
+
+                return cfo;
+            });
+
+            return experiment;
+        }
+
+        /// <summary>
+        /// set <see cref="RandomSearchTuner"/> as tuner for hyper parameter optimization. If <paramref name="seed"/> is provided, it will use that 
+        /// seed to initialize <see cref="RandomSearchTuner"/>. Otherwise, <see cref="AutoMLExperiment.AutoMLExperimentSettings.Seed"/> will be used.
+        /// </summary>
+        /// <param name="seed"></param>
+        /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
+        public static AutoMLExperiment SetRandomSearchTuner(this AutoMLExperiment experiment, int? seed = null)
+        {
+            experiment.SetTuner((service) =>
+            {
+                var settings = service.GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+                seed = seed ?? settings.Seed;
+                var tuner = new RandomSearchTuner(settings.SearchSpace, seed);
+
+                return tuner;
+            });
+
+            return experiment;
+        }
+
+        /// <summary>
+        /// set <see cref="GridSearchTuner"/> as tuner for hyper parameter optimization.
+        /// </summary>
+        /// <param name="step">step size for numeric option.</param>
+        /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
+        public static AutoMLExperiment SetGridSearchTuner(this AutoMLExperiment experiment, int step = 10)
+        {
+            experiment.SetTuner((service) =>
+            {
+                var settings = service.GetRequiredService<AutoMLExperiment.AutoMLExperimentSettings>();
+                var tuner = new GridSearchTuner(settings.SearchSpace, step);
+
+                return tuner;
             });
 
             return experiment;
@@ -197,6 +331,18 @@ namespace Microsoft.ML.AutoML
 
                 return trialResultManager;
             });
+
+            return experiment;
+        }
+
+        /// <summary>
+        /// set <see cref="EciCostFrugalTuner"/> as tuner for hyper-parameter optimization. This tuner only works with search space from <see cref="SweepablePipeline"/>.
+        /// </summary>
+        /// <param name="experiment"></param>
+        /// <returns></returns>
+        public static AutoMLExperiment SetEciCostFrugalTuner(this AutoMLExperiment experiment)
+        {
+            experiment.SetTuner<EciCostFrugalTuner>();
 
             return experiment;
         }

@@ -4,6 +4,10 @@
     <AssemblyName>Microsoft.ML.Tests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrongNameKeyId>Test</StrongNameKeyId>
+    <NoWarn>$(NoWarn)</NoWarn>
+    
+    <!-- Remove once we have resolved the TorchSharp issue. -->
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
 
   <!-- Import the test signing certificate -->
@@ -18,6 +22,7 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Experimental\Microsoft.ML.Experimental.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.OneDal\Microsoft.ML.OneDal.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.csproj" />
@@ -37,6 +42,7 @@
 
   <ItemGroup Condition="'$(TargetArchitecture)' != 'x64'">
     <Compile Remove="TextClassificationTests.cs" />
+    <Compile Remove="ObjectDetectionTests.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,6 +53,7 @@
     <NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="MklProxyNative" />
     <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' == 'x64'" Include="OneDalNative" />
     <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
 
@@ -69,10 +76,10 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
-    <PackageReference Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
-    <!-- <PackageReference Include="TorchSharp-cuda-windows" Version="0.96.8" Condition="$([MSBuild]::IsOSPlatform('Windows'))" /> -->
-    <PackageReference Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
-    <PackageReference Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+    <PackageReference Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$(TargetArchitecture)' == 'x64'" />
+     <!--<PackageReference Include="TorchSharp-cuda-windows" Version="0.99.5" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />--> 
+    <PackageReference Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux')) AND '$(TargetArchitecture)' == 'x64'" />
+    <PackageReference Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX')) AND '$(TargetArchitecture)' == 'x64'" />
   </ItemGroup>
 
   <ItemGroup>

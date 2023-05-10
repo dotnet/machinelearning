@@ -139,6 +139,7 @@ namespace Microsoft.ML.AutoML
             }
 
             _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
+            _experiment.SetMaxModelToExplore(Settings.MaxModels);
         }
 
         public override ExperimentResult<RegressionMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<RegressionMetrics>> progressHandler = null)
@@ -158,7 +159,7 @@ namespace Microsoft.ML.AutoML
                 int numCrossValFolds = 10;
                 _experiment.SetDataset(trainData, numCrossValFolds);
                 _pipeline = CreateRegressionPipeline(trainData, columnInformation, preFeaturizer);
-
+                _experiment.SetPipeline(_pipeline);
                 TrialResultMonitor<RegressionMetrics> monitor = null;
                 _experiment.SetMonitor((provider) =>
                 {
@@ -309,7 +310,7 @@ namespace Microsoft.ML.AutoML
 
             var label = columnInformation.LabelColumnName;
             pipeline = pipeline.Append(Context.Auto().Featurizer(trainData, columnInformation, Features));
-            pipeline = pipeline.Append(Context.Auto().Regression(label, useSdca: useSdca, useFastTree: useFastTree, useLgbm: useLgbm, useLbfgs: uselbfgs, useFastForest: useFastForest, featureColumnName: Features));
+            pipeline = pipeline.Append(Context.Auto().Regression(label, useSdca: useSdca, useFastTree: useFastTree, useLgbm: useLgbm, useLbfgsPoissonRegression: uselbfgs, useFastForest: useFastForest, featureColumnName: Features));
 
             return pipeline;
         }
@@ -362,12 +363,14 @@ namespace Microsoft.ML.AutoML
         private MLContext _context;
         private readonly IDatasetManager _datasetManager;
         private readonly IMetricManager _metricManager;
+        private readonly IMLContextManager _contextManager;
         private readonly SweepablePipeline _pipeline;
         private readonly Random _rnd;
 
-        public RegressionTrialRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, SweepablePipeline pipeline, AutoMLExperiment.AutoMLExperimentSettings settings)
+        public RegressionTrialRunner(IMLContextManager contextManager, IDatasetManager datasetManager, IMetricManager metricManager, SweepablePipeline pipeline, AutoMLExperiment.AutoMLExperimentSettings settings)
         {
-            _context = context;
+            _context = contextManager.CreateMLContext();
+            _contextManager = contextManager;
             _datasetManager = datasetManager;
             _metricManager = metricManager;
             _pipeline = pipeline;
@@ -387,6 +390,8 @@ namespace Microsoft.ML.AutoML
                     {
                         var parameter = settings.Parameter[AutoMLExperiment.PipelineSearchspaceName];
                         var pipeline = _pipeline.BuildFromOption(_context, parameter);
+                        var refitContext = _contextManager.CreateMLContext();
+                        var refitPipeline = _pipeline.BuildFromOption(refitContext, parameter);
                         if (_datasetManager is ICrossValidateDatasetManager datasetManager)
                         {
                             var stopWatch = new Stopwatch();
@@ -397,14 +402,7 @@ namespace Microsoft.ML.AutoML
                             // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
                             var res = metrics[_rnd.Next(fold)];
                             var model = res.Model;
-                            var metric = metricManager.Metric switch
-                            {
-                                RegressionMetric.RootMeanSquaredError => res.Metrics.RootMeanSquaredError,
-                                RegressionMetric.RSquared => res.Metrics.RSquared,
-                                RegressionMetric.MeanSquaredError => res.Metrics.MeanSquaredError,
-                                RegressionMetric.MeanAbsoluteError => res.Metrics.MeanAbsoluteError,
-                                _ => throw new NotImplementedException($"{metricManager.MetricName} is not supported!"),
-                            };
+                            var metric = GetMetric(metricManager.Metric, res.Metrics);
                             var loss = metricManager.IsMaximize ? -metric : metric;
 
                             stopWatch.Stop();
@@ -419,26 +417,18 @@ namespace Microsoft.ML.AutoML
                                 DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
                                 Metrics = res.Metrics,
                                 CrossValidationMetrics = metrics,
-                                Pipeline = pipeline,
+                                Pipeline = refitPipeline,
                             } as TrialResult);
                         }
 
-                        if (_datasetManager is ITrainTestDatasetManager trainTestDatasetManager)
+                        if (_datasetManager is ITrainValidateDatasetManager trainTestDatasetManager)
                         {
                             var stopWatch = new Stopwatch();
                             stopWatch.Start();
                             var model = pipeline.Fit(trainTestDatasetManager.TrainDataset);
-                            var eval = model.Transform(trainTestDatasetManager.TestDataset);
-                            var res = _context.Regression.Evaluate(eval, metricManager.LabelColumn, scoreColumnName: metricManager.ScoreColumn);
-
-                            var metric = metricManager.Metric switch
-                            {
-                                RegressionMetric.RootMeanSquaredError => res.RootMeanSquaredError,
-                                RegressionMetric.RSquared => res.RSquared,
-                                RegressionMetric.MeanSquaredError => res.MeanSquaredError,
-                                RegressionMetric.MeanAbsoluteError => res.MeanAbsoluteError,
-                                _ => throw new NotImplementedException($"{metricManager.Metric} is not supported!"),
-                            };
+                            var eval = model.Transform(trainTestDatasetManager.ValidateDataset);
+                            var metrics = _context.Regression.Evaluate(eval, metricManager.LabelColumn, scoreColumnName: metricManager.ScoreColumn);
+                            var metric = GetMetric(metricManager.Metric, metrics);
                             var loss = metricManager.IsMaximize ? -metric : metric;
 
                             stopWatch.Stop();
@@ -448,16 +438,16 @@ namespace Microsoft.ML.AutoML
                             {
                                 Loss = loss,
                                 Metric = metric,
+                                Metrics = metrics,
                                 Model = model,
                                 TrialSettings = settings,
                                 DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
-                                Metrics = res,
-                                Pipeline = pipeline,
+                                Pipeline = refitPipeline,
                             } as TrialResult);
                         }
                     }
 
-                    throw new ArgumentException($"The runner metric manager is of type {_metricManager.GetType()} which expected to be of type {typeof(ITrainTestDatasetManager)} or {typeof(ICrossValidateDatasetManager)}");
+                    throw new ArgumentException($"The runner metric manager is of type {_metricManager.GetType()} which expected to be of type {typeof(ITrainValidateDatasetManager)} or {typeof(ICrossValidateDatasetManager)}");
                 }
             }
             catch (Exception ex) when (ct.IsCancellationRequested)
@@ -474,6 +464,18 @@ namespace Microsoft.ML.AutoML
         {
             _context.CancelExecution();
             _context = null;
+        }
+
+        private double GetMetric(RegressionMetric metric, RegressionMetrics metrics)
+        {
+            return metric switch
+            {
+                RegressionMetric.RootMeanSquaredError => metrics.RootMeanSquaredError,
+                RegressionMetric.RSquared => metrics.RSquared,
+                RegressionMetric.MeanSquaredError => metrics.MeanSquaredError,
+                RegressionMetric.MeanAbsoluteError => metrics.MeanAbsoluteError,
+                _ => throw new NotImplementedException($"{metric} is not supported!"),
+            };
         }
     }
 }

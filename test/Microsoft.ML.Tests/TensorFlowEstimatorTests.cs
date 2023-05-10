@@ -139,7 +139,7 @@ namespace Microsoft.ML.Tests
         {
             // typeof helps to load the TensorFlowTransformer type.
             Type type = typeof(TensorFlowTransformer);
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c modellocation={model_matmul/frozen_saved_model.pb}}" }), (int)0);
+            Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c modellocation={model_matmul/frozen_saved_model.pb}}" }));
         }
 
         [TensorFlowFact]

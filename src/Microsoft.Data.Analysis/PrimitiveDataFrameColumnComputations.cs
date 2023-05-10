@@ -12,7 +12,7 @@ using System.Collections.Generic;
 namespace Microsoft.Data.Analysis
 {
     internal interface IPrimitiveColumnComputation<T>
-        where T : struct
+        where T : unmanaged
     {
         void Abs(PrimitiveColumnContainer<T> column);
         void All(PrimitiveColumnContainer<T> column, out bool ret);
@@ -37,7 +37,7 @@ namespace Microsoft.Data.Analysis
     }
 
     internal static class PrimitiveColumnComputation<T>
-        where T : struct
+        where T : unmanaged
     {
         public static IPrimitiveColumnComputation<T> Instance { get; } = PrimitiveColumnComputation.GetComputation<T>();
     }
@@ -45,7 +45,7 @@ namespace Microsoft.Data.Analysis
     internal static class PrimitiveColumnComputation
     {
         public static IPrimitiveColumnComputation<T> GetComputation<T>()
-            where T : struct
+            where T : unmanaged
         {
             if (typeof(T) == typeof(bool))
             {

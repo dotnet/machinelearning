@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.ML.AutoML.Tuner;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
@@ -36,12 +37,18 @@ namespace Microsoft.ML.AutoML
         public ICollection<BinaryClassificationTrainer> Trainers { get; }
 
         /// <summary>
+        /// Set if use <see cref="AutoZeroTuner"/> for hyper-parameter optimization, default to false.
+        /// </summary>
+        public bool UseAutoZeroTuner { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of <see cref="BinaryExperimentSettings"/>.
         /// </summary>
         public BinaryExperimentSettings()
         {
             OptimizingMetric = BinaryClassificationMetric.Accuracy;
             Trainers = Enum.GetValues(typeof(BinaryClassificationTrainer)).OfType<BinaryClassificationTrainer>().ToList();
+            UseAutoZeroTuner = false;
         }
     }
 
@@ -133,7 +140,7 @@ namespace Microsoft.ML.AutoML
     /// </example>
     public sealed class BinaryClassificationExperiment : ExperimentBase<BinaryClassificationMetrics, BinaryExperimentSettings>
     {
-        private readonly AutoMLExperiment _experiment;
+        private AutoMLExperiment _experiment;
         private const string Features = "__Features__";
         private SweepablePipeline _pipeline;
 
@@ -150,13 +157,14 @@ namespace Microsoft.ML.AutoML
             {
                 _experiment.SetMaximumMemoryUsageInMegaByte(d);
             }
+            _experiment.SetMaxModelToExplore(settings.MaxModels);
+            _experiment.SetTrainingTimeInSeconds(settings.MaxExperimentTimeInSeconds);
         }
 
         public override ExperimentResult<BinaryClassificationMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<BinaryClassificationMetrics>> progressHandler = null)
         {
             var label = columnInformation.LabelColumnName;
             _experiment.SetBinaryClassificationMetric(Settings.OptimizingMetric, label);
-            _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
 
             // Cross val threshold for # of dataset rows --
             // If dataset has < threshold # of rows, use cross val.
@@ -193,7 +201,7 @@ namespace Microsoft.ML.AutoML
 
                 return monitor;
             });
-            _experiment.SetTrialRunner<BinaryClassificationRunner>();
+            _experiment = PostConfigureAutoMLExperiment(_experiment);
             _experiment.Run();
 
             var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToRunDetail(Context, e, _pipeline));
@@ -207,7 +215,6 @@ namespace Microsoft.ML.AutoML
         {
             var label = columnInformation.LabelColumnName;
             _experiment.SetBinaryClassificationMetric(Settings.OptimizingMetric, label);
-            _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, validationData);
             _pipeline = CreateBinaryClassificationPipeline(trainData, columnInformation, preFeaturizer);
             _experiment.SetPipeline(_pipeline);
@@ -227,7 +234,7 @@ namespace Microsoft.ML.AutoML
 
                 return monitor;
             });
-            _experiment.SetTrialRunner<BinaryClassificationRunner>();
+            _experiment = PostConfigureAutoMLExperiment(_experiment);
             _experiment.Run();
 
             var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToRunDetail(Context, e, _pipeline));
@@ -262,7 +269,6 @@ namespace Microsoft.ML.AutoML
         {
             var label = columnInformation.LabelColumnName;
             _experiment.SetBinaryClassificationMetric(Settings.OptimizingMetric, label);
-            _experiment.SetTrainingTimeInSeconds(Settings.MaxExperimentTimeInSeconds);
             _experiment.SetDataset(trainData, (int)numberOfCVFolds);
             _pipeline = CreateBinaryClassificationPipeline(trainData, columnInformation, preFeaturizer);
             _experiment.SetPipeline(_pipeline);
@@ -283,7 +289,7 @@ namespace Microsoft.ML.AutoML
                 return monitor;
             });
 
-            _experiment.SetTrialRunner<BinaryClassificationRunner>();
+            _experiment = PostConfigureAutoMLExperiment(_experiment);
             _experiment.Run();
 
             var runDetails = monitor.RunDetails.Select(e => BestResultUtil.ToCrossValidationRunDetail(Context, e, _pipeline));
@@ -326,13 +332,24 @@ namespace Microsoft.ML.AutoML
             if (preFeaturizer != null)
             {
                 return preFeaturizer.Append(Context.Auto().Featurizer(trainData, columnInformation, Features))
-                                        .Append(Context.Auto().BinaryClassification(labelColumnName: columnInformation.LabelColumnName, useSdca: useSdca, useFastTree: useFastTree, useLgbm: useLgbm, useLbfgs: uselbfgs, useFastForest: useFastForest, featureColumnName: Features));
+                                        .Append(Context.Auto().BinaryClassification(labelColumnName: columnInformation.LabelColumnName, useSdcaLogisticRegression: useSdca, useFastTree: useFastTree, useLgbm: useLgbm, useLbfgsLogisticRegression: uselbfgs, useFastForest: useFastForest, featureColumnName: Features));
             }
             else
             {
                 return Context.Auto().Featurizer(trainData, columnInformation, Features)
-                           .Append(Context.Auto().BinaryClassification(labelColumnName: columnInformation.LabelColumnName, useSdca: useSdca, useFastTree: useFastTree, useLgbm: useLgbm, useLbfgs: uselbfgs, useFastForest: useFastForest, featureColumnName: Features));
+                           .Append(Context.Auto().BinaryClassification(labelColumnName: columnInformation.LabelColumnName, useSdcaLogisticRegression: useSdca, useFastTree: useFastTree, useLgbm: useLgbm, useLbfgsLogisticRegression: uselbfgs, useFastForest: useFastForest, featureColumnName: Features));
             }
+        }
+
+        private AutoMLExperiment PostConfigureAutoMLExperiment(AutoMLExperiment experiment)
+        {
+            experiment.SetTrialRunner<BinaryClassificationRunner>();
+            if (Settings.UseAutoZeroTuner)
+            {
+                experiment.SetTuner<AutoZeroTuner>();
+            }
+
+            return experiment;
         }
     }
 
@@ -340,12 +357,14 @@ namespace Microsoft.ML.AutoML
     {
         private MLContext _context;
         private readonly IDatasetManager _datasetManager;
+        private readonly IMLContextManager _contextManager;
         private readonly IMetricManager _metricManager;
         private readonly SweepablePipeline _pipeline;
         private readonly Random _rnd;
-        public BinaryClassificationRunner(MLContext context, IDatasetManager datasetManager, IMetricManager metricManager, SweepablePipeline pipeline, AutoMLExperiment.AutoMLExperimentSettings settings)
+        public BinaryClassificationRunner(IMLContextManager contextManager, IDatasetManager datasetManager, IMetricManager metricManager, SweepablePipeline pipeline, AutoMLExperiment.AutoMLExperimentSettings settings)
         {
-            _context = context;
+            _context = contextManager.CreateMLContext();
+            _contextManager = contextManager;
             _datasetManager = datasetManager;
             _metricManager = metricManager;
             _pipeline = pipeline;
@@ -364,6 +383,10 @@ namespace Microsoft.ML.AutoML
             {
                 var parameter = settings.Parameter[AutoMLExperiment.PipelineSearchspaceName];
                 var pipeline = _pipeline.BuildFromOption(_context, parameter);
+                // _context will be cancelled after training. So returned pipeline need to be created on a 
+                // new MLContext.
+                var refitContext = _contextManager.CreateMLContext();
+                var refitPipeline = _pipeline.BuildFromOption(refitContext, parameter);
                 if (_datasetManager is ICrossValidateDatasetManager datasetManager)
                 {
                     var stopWatch = new Stopwatch();
@@ -374,14 +397,8 @@ namespace Microsoft.ML.AutoML
                     // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
                     var res = metrics[_rnd.Next(fold)];
                     var model = res.Model;
-                    var metric = metricManager.Metric switch
-                    {
-                        BinaryClassificationMetric.PositivePrecision => res.Metrics.PositivePrecision,
-                        BinaryClassificationMetric.Accuracy => res.Metrics.Accuracy,
-                        BinaryClassificationMetric.AreaUnderRocCurve => res.Metrics.AreaUnderRocCurve,
-                        BinaryClassificationMetric.AreaUnderPrecisionRecallCurve => res.Metrics.AreaUnderPrecisionRecallCurve,
-                        _ => throw new NotImplementedException($"{metricManager.MetricName} is not supported!"),
-                    };
+                    var metric = GetMetric(metricManager.Metric, res.Metrics);
+
                     var loss = metricManager.IsMaximize ? -metric : metric;
                     stopWatch.Stop();
 
@@ -395,27 +412,18 @@ namespace Microsoft.ML.AutoML
                         DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
                         Metrics = res.Metrics,
                         CrossValidationMetrics = metrics,
-                        Pipeline = pipeline,
+                        Pipeline = refitPipeline,
                     };
                 }
 
-                if (_datasetManager is ITrainTestDatasetManager trainTestDatasetManager)
+                if (_datasetManager is ITrainValidateDatasetManager trainTestDatasetManager)
                 {
                     var stopWatch = new Stopwatch();
                     stopWatch.Start();
                     var model = pipeline.Fit(trainTestDatasetManager.TrainDataset);
-                    var eval = model.Transform(trainTestDatasetManager.TestDataset);
+                    var eval = model.Transform(trainTestDatasetManager.ValidateDataset);
                     var metrics = _context.BinaryClassification.EvaluateNonCalibrated(eval, metricManager.LabelColumn, predictedLabelColumnName: metricManager.PredictedColumn);
-
-                    // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
-                    var metric = Enum.Parse(typeof(BinaryClassificationMetric), metricManager.MetricName) switch
-                    {
-                        BinaryClassificationMetric.PositivePrecision => metrics.PositivePrecision,
-                        BinaryClassificationMetric.Accuracy => metrics.Accuracy,
-                        BinaryClassificationMetric.AreaUnderRocCurve => metrics.AreaUnderRocCurve,
-                        BinaryClassificationMetric.AreaUnderPrecisionRecallCurve => metrics.AreaUnderPrecisionRecallCurve,
-                        _ => throw new NotImplementedException($"{metricManager.Metric} is not supported!"),
-                    };
+                    var metric = GetMetric(metricManager.Metric, metrics);
                     var loss = metricManager.IsMaximize ? -metric : metric;
 
                     stopWatch.Stop();
@@ -429,12 +437,12 @@ namespace Microsoft.ML.AutoML
                         TrialSettings = settings,
                         DurationInMilliseconds = stopWatch.ElapsedMilliseconds,
                         Metrics = metrics,
-                        Pipeline = pipeline,
+                        Pipeline = refitPipeline,
                     };
                 }
             }
 
-            throw new ArgumentException($"The runner metric manager is of type {_metricManager.GetType()} which expected to be of type {typeof(ITrainTestDatasetManager)} or {typeof(ICrossValidateDatasetManager)}");
+            throw new ArgumentException($"The runner metric manager is of type {_metricManager.GetType()} which expected to be of type {typeof(ITrainValidateDatasetManager)} or {typeof(ICrossValidateDatasetManager)}");
         }
 
         public Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
@@ -446,7 +454,7 @@ namespace Microsoft.ML.AutoML
                     _context?.CancelExecution();
                 }))
                 {
-                    return Task.Run(() => Run(settings));
+                    return Task.FromResult(Run(settings));
                 }
             }
             catch (Exception ex) when (ct.IsCancellationRequested)
@@ -457,6 +465,22 @@ namespace Microsoft.ML.AutoML
             {
                 throw;
             }
+        }
+
+        private double GetMetric(BinaryClassificationMetric metric, BinaryClassificationMetrics metrics)
+        {
+            return metric switch
+            {
+                BinaryClassificationMetric.PositivePrecision => metrics.PositivePrecision,
+                BinaryClassificationMetric.Accuracy => metrics.Accuracy,
+                BinaryClassificationMetric.AreaUnderRocCurve => metrics.AreaUnderRocCurve,
+                BinaryClassificationMetric.AreaUnderPrecisionRecallCurve => metrics.AreaUnderPrecisionRecallCurve,
+                BinaryClassificationMetric.PositiveRecall => metrics.PositiveRecall,
+                BinaryClassificationMetric.NegativePrecision => metrics.NegativePrecision,
+                BinaryClassificationMetric.NegativeRecall => metrics.NegativeRecall,
+                BinaryClassificationMetric.F1Score => metrics.F1Score,
+                _ => throw new NotImplementedException($"{metric} is not supported!"),
+            };
         }
     }
 }

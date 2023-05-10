@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -10,8 +11,9 @@ namespace Samples.Dynamic
         public static void Example()
         {
             // Download the squeeznet image model from ONNX model zoo, version 1.2
-            // https://github.com/onnx/models/tree/master/squeezenet or use
-            // Microsoft.ML.Onnx.TestModels nuget.
+            // https://github.com/onnx/models/tree/master/squeezenet or
+            // https://s3.amazonaws.com/download.onnx/models/opset_8/squeezenet.tar.gz
+            // or use Microsoft.ML.Onnx.TestModels nuget.
             var modelPath = @"squeezenet\00000001\model.onnx";
 
             // Create ML pipeline to score the data using OnnxScoringEstimator
@@ -56,7 +58,7 @@ namespace Samples.Dynamic
         // inputSize is the overall dimensions of the model input tensor.
         private const int inputSize = 224 * 224 * 3;
 
-        // A class to hold sample tensor data. Member name should match  
+        // A class to hold sample tensor data. Member name should match
         // the inputs that the model expects (in this case, data_0)
         public class TensorData
         {

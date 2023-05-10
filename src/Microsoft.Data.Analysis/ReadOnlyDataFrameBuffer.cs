@@ -15,7 +15,7 @@ namespace Microsoft.Data.Analysis
     /// </summary>
     /// <typeparam name="T"></typeparam>
     internal class ReadOnlyDataFrameBuffer<T>
-        where T : struct
+        where T : unmanaged
     {
         private readonly ReadOnlyMemory<byte> _readOnlyBuffer;
 
