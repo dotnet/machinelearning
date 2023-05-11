@@ -140,7 +140,8 @@ namespace Microsoft.ML.AutoML.Test
                 SearchSpace = searchSpace,
                 Seed = 1,
             });
-            var invalidLosses = new[] { double.NaN, double.NegativeInfinity, double.PositiveInfinity };
+            var invalidLosses = Enumerable.Repeat(new[] { double.NaN, double.NegativeInfinity, double.PositiveInfinity }, 100)
+                                .SelectMany(loss => loss);
             var id = 0;
             foreach (var loss in invalidLosses)
             {
@@ -155,7 +156,42 @@ namespace Microsoft.ML.AutoML.Test
                 {
                     TrialSettings = trialSetting,
                     DurationInMilliseconds = 10000,
-                    Loss = double.NaN,
+                    Loss = loss,
+                };
+                tuner.Update(trialResult);
+            }
+        }
+
+        [Fact]
+        public void EciCfo_should_handle_trial_result_with_no_improvements_over_losses()
+        {
+            // this test verify if tuner can find max value for LSE.
+            var context = new MLContext(1);
+            var pipeline = this.CreateDummySweepablePipeline(context);
+            var searchSpace = new SearchSpace.SearchSpace();
+            searchSpace["_pipeline_"] = pipeline.SearchSpace;
+            var tuner = new EciCostFrugalTuner(pipeline, new AutoMLExperiment.AutoMLExperimentSettings
+            {
+                SearchSpace = searchSpace,
+                Seed = 1,
+            });
+            var zeroLosses = Enumerable.Repeat(0.0, 100);
+            var randomLosses = Enumerable.Range(0, 100).Select(i => i * 0.1);
+            var id = 0;
+            foreach (var loss in zeroLosses.Concat(randomLosses))
+            {
+                var trialSetting = new TrialSettings
+                {
+                    TrialId = id++,
+                    Parameter = Parameter.CreateNestedParameter(),
+                };
+                var parameter = tuner.Propose(trialSetting);
+                trialSetting.Parameter = parameter;
+                var trialResult = new TrialResult
+                {
+                    TrialSettings = trialSetting,
+                    DurationInMilliseconds = 10000,
+                    Loss = loss,
                 };
                 tuner.Update(trialResult);
             }
