@@ -75,6 +75,11 @@
     {
       "name": "ExampleWeightColumnName",
       "type": "string"
+    },
+    {
+      "name": "DiskTranspose",
+      "type": "boolean",
+      "default": false
     }
   ]
 }
