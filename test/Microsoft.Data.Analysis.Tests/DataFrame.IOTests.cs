@@ -13,7 +13,6 @@ using System.Text;
 using System.Data.SQLite;
 using System.Data.SQLite.EF6;
 using Xunit;
-using Microsoft.ML.TestFramework.Attributes;
 
 namespace Microsoft.Data.Analysis.Tests
 {
@@ -102,7 +101,7 @@ namespace Microsoft.Data.Analysis.Tests
                 }
                 else if (dataType == typeof(DateTime))
                 {
-                    Assert.IsType<PrimitiveDataFrameColumn<DateTime>>(column);
+                    Assert.IsType<DateTimeDataFrameColumn>(column);
                 }
                 else
                 {
