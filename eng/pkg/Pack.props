@@ -12,7 +12,7 @@
   <!-- nuspec properties -->
   <PropertyGroup>
     <Authors>Microsoft</Authors>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://dot.net/ml</PackageProjectUrl>
     <PackageIcon>mlnetlogo.png</PackageIcon>
     <PackageReleaseNotes>https://aka.ms/mlnetreleasenotes</PackageReleaseNotes>
