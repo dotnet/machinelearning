@@ -41,11 +41,23 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
+        public void RenameColumn(string currentName, string newName)
+        {
+            var column = this[currentName];
+            column.SetName(newName);
+        }
+
+        [Obsolete]
         public void SetColumnName(DataFrameColumn column, string newName)
+        {
+            column.SetName(newName);
+        }
+
+        //Updates column's metadata (is used as a callback from Column class)
+        internal void UpdateColumnNameMetadata(DataFrameColumn column, string newName)
         {
             string currentName = column.Name;
             int currentIndex = _columnNameToIndexDictionary[currentName];
-            column.SetName(newName);
             _columnNames[currentIndex] = newName;
             _columnNameToIndexDictionary.Remove(currentName);
             _columnNameToIndexDictionary.Add(newName, currentIndex);
@@ -76,6 +88,9 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(string.Format(Strings.DuplicateColumnName, column.Name), nameof(column));
             }
+
+            column.AddOwner(this);
+
             RowCount = column.Length;
             _columnNames.Insert(columnIndex, column.Name);
             _columnNameToIndexDictionary[column.Name] = columnIndex;
@@ -99,10 +114,14 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(string.Format(Strings.DuplicateColumnName, column.Name), nameof(column));
             }
+
             _columnNameToIndexDictionary.Remove(_columnNames[columnIndex]);
             _columnNames[columnIndex] = column.Name;
             _columnNameToIndexDictionary[column.Name] = columnIndex;
+
+            this[columnIndex].RemoveOwner(this);
             base.SetItem(columnIndex, column);
+
             ColumnsChanged?.Invoke();
         }
 
@@ -114,7 +133,10 @@ namespace Microsoft.Data.Analysis
                 _columnNameToIndexDictionary[_columnNames[i]]--;
             }
             _columnNames.RemoveAt(columnIndex);
+
+            this[columnIndex].RemoveOwner(this);
             base.RemoveItem(columnIndex);
+
             ColumnsChanged?.Invoke();
         }
 
