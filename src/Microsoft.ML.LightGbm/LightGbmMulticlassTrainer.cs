@@ -262,7 +262,6 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             // Format in the file is objective=multiclass num_class:4
             var split = lines[i].Split(' ');
-            GbmOptions["objective"] = split[0].Split('=')[1];
             _numberOfClassesIncludingNan = int.Parse(split[1].Split(':')[1]);
             _numberOfClasses = _numberOfClassesIncludingNan;
         }

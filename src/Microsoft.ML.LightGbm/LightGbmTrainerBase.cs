@@ -369,12 +369,24 @@ namespace Microsoft.ML.Trainers.LightGbm
             {
                 if (LightGbmTrainerOptions.LightGbmModel != null)
                 {
+                    LightGbmTrainerOptions.LightGbmModel.Position = 0;
                     using (var ch = Host.Start("Loading LightGBM model file"))
                     {
                         StreamReader reader = new StreamReader(LightGbmTrainerOptions.LightGbmModel);
                         string modelText = reader.ReadToEnd();
 
                         AdditionalLoadPreTrainedModel(modelText);
+
+                        // Load objective into options
+                        string[] lines = modelText.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                        // Jump to the "objective" value in the file. It's at the beginning.
+                        int i = 0;
+                        while (!lines[i].StartsWith("objective"))
+                            i++;
+
+                        // Format in the file is objective=multiclass num_class:4
+                        var split = lines[i].Split(' ');
+                        GbmOptions["objective"] = split[0].Split('=')[1];
 
                         var modelParameters = Booster.GetParameters(modelText);
                         // Going to set the parameters via reflection so that we don't have manually set them on the options object
