@@ -317,7 +317,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var modelPath = GetDataPath("iris-lgbm.txt");
             var (pipeline, dataView) = GetMulticlassPipeline();
-            using (var fStream = new FileStream(modelPath, FileMode.Open))
+            using (var fStream = new FileStream(modelPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 var trainer = ML.MulticlassClassification.Trainers.LightGbm(fStream);
                 var pipe = pipeline.Append(trainer);
