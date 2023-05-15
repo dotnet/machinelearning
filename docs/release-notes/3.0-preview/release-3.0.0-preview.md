@@ -6,7 +6,7 @@
 - **Add Object Detection to AutoML Sweeper** ([#6633](https://github.com/dotnet/machinelearning/pull/6633)) - Added Object Detection to the AutoML Sweeper so now they can be used together.
 - **Add String Vector support to DataFrame** ([#6628](https://github.com/dotnet/machinelearning/pull/6628)) - Adds support for String Vectors in DataFrame. This also allows for Better IDataView <-> DataFrame conversions.
 - **Add AutoZero tuner to BinaryClassification** ([#6615](https://github.com/dotnet/machinelearning/pull/6615)) - Can now user AutoZero tuner in AutoML Binary Classification experiments.
-- **Added in Fairlearn** ([#6539](https://github.com/dotnet/machinelearning/pull/6539)) - Can now use some FairLearn which is an unfairness assessment and mitigation tool
+- **Added in fairness assessment and mitigation** ([#6539](https://github.com/dotnet/machinelearning/pull/6539)) - Support for fairness assessment and mitigation tool
 - **Added in Support for some Intel OneDal Algorithms** ([#6521](https://github.com/dotnet/machinelearning/pull/6521)) - You can now use Intel's OneDal for some algorithms. This gives you access to some accelerated versions of these algorithms. The models are fully interoperable between ML.NET's normal models and these, so you can train with OneDal and then still run on machines where OneDal is not supported. Thanks @rgesteve!
 - **Add in ability to have pre-defined weights for ngrams** ([#6458](https://github.com/dotnet/machinelearning/pull/6458)) - If you know the weights of your NGrams already you can now directly provide that.
 - **Add SentenceSimilarity sweepable estimator in AutoML** ([#6445](https://github.com/dotnet/machinelearning/pull/6445)) - Can now use SentenceSimilarity with the sweepable estimator.
@@ -24,8 +24,8 @@
 - **Update max_model when trial fails** ([#6596](https://github.com/dotnet/machinelearning/pull/6596))
 - **Add default search space for standard trainers** ([#6576](https://github.com/dotnet/machinelearning/pull/6576)) - Added a default search space for all standard trainers so users have reasonable default values.
 - **Adding more metrics to BinaryClassification Experiment** ([#6571](https://github.com/dotnet/machinelearning/pull/6571))
-- **Add checkAlive in NasBertTrainer** ([#6546](https://github.com/dotnet/machinelearning/pull/6546)) - Now we check between batches if cancellation was requestion and stop processing if so.
-- **Bail to default implementation if anything happens - OneDal** ([#6538](https://github.com/dotnet/machinelearning/pull/6538)) - If you specify you want to use OneDal but something happens that prevents you from using it, like it can't find the binaries/etc, it will auto default back to the normal implementation instead of crashing.
+- **Add checkAlive in NasBertTrainer** ([#6546](https://github.com/dotnet/machinelearning/pull/6546)) - Now we check between batches if cancellation was requested and stop processing if so.
+- **OneDAL - Fallback to default implementation** ([#6538](https://github.com/dotnet/machinelearning/pull/6538)) - If you specify you want to use OneDal but something happens that prevents you from using it, like it can't find the binaries/etc, it will auto default back to the normal implementation instead of crashing.
 - **Add addKeyValueAnnotationsAsText flag in AutoML** ([#6535](https://github.com/dotnet/machinelearning/pull/6535))
 - **Add continuous resource monitoring to AutoML.IMonitor** ([#6520](https://github.com/dotnet/machinelearning/pull/6520)) - Thanks @andrasfuchs!
 - **Update WebClient to HttpClient implementations** ([#6476](https://github.com/dotnet/machinelearning/pull/6476)) - Update a usage of WebClient to HttpClient since WebClient is now deprecated. Thanks @rgesteve!
