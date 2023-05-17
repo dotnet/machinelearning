@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
@@ -228,6 +230,26 @@ namespace Microsoft.ML.Trainers.LightGbm
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="LightGbmBinaryTrainer"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="lightGbmModel"> A pre-trained <see cref="System.IO.Stream"/> of a LightGBM model file inferencing</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        internal LightGbmBinaryTrainer(IHostEnvironment env,
+            Stream lightGbmModel,
+            string featureColumnName = DefaultColumnNames.Features)
+            : base(env,
+                  LoadNameValue,
+                  new Options()
+                  {
+                      FeatureColumnName = featureColumnName,
+                      LightGbmModel = lightGbmModel
+                  },
+                  new SchemaShape.Column())
+        {
+        }
+
         private protected override CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator> CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete");
@@ -241,11 +263,16 @@ namespace Microsoft.ML.Trainers.LightGbm
         {
             Host.AssertValue(ch);
             base.CheckDataValid(ch, data);
-            var labelType = data.Schema.Label.Value.Type;
-            if (!(labelType is BooleanDataViewType || labelType is KeyDataViewType || labelType == NumberDataViewType.Single))
+
+            // If using a pre-trained model file we don't need a label column
+            if (LightGbmTrainerOptions.LightGbmModel == null)
             {
-                throw ch.ExceptParam(nameof(data),
-                    $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType.RawType}', but must be unsigned int, boolean or float.");
+                var labelType = data.Schema.Label.Value.Type;
+                if (!(labelType is BooleanDataViewType || labelType is KeyDataViewType || labelType == NumberDataViewType.Single))
+                {
+                    throw ch.ExceptParam(nameof(data),
+                        $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType.RawType}', but must be unsigned int, boolean or float.");
+                }
             }
         }
 

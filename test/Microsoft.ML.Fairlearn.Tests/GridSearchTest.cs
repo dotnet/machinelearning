@@ -6,6 +6,7 @@ using FluentAssertions;
 using Microsoft.Data.Analysis;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.Fairlearn.AutoML;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -75,7 +76,7 @@ namespace Microsoft.ML.Fairlearn.Tests
         /// <summary>
         /// This trial runner run the tests from Grid searh for Binary Classification.ipynb
         /// </summary>
-        [Fact]
+        [X86X64Fact("Currently flaky on non x86/x64 devices. Disabling until we figure it out. See https://github.com/dotnet/machinelearning/issues/6684")]
         public void TestGridSearchTrialRunner2()
         {
             var context = new MLContext();

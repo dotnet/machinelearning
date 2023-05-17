@@ -20,6 +20,7 @@ using Microsoft.ML.Trainers.LightGbm;
 using Microsoft.ML.Transforms;
 using Xunit;
 using FluentAssertions;
+using System.IO;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
@@ -303,8 +304,26 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var (pipeline, dataView) = GetMulticlassPipeline();
             var trainer = ML.MulticlassClassification.Trainers.LightGbm(learningRate: 0.4);
             var pipe = pipeline.Append(trainer)
-                    .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
+                .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
             TestEstimatorCore(pipe, dataView);
+            Done();
+        }
+
+        /// <summary>
+        /// LightGbmMulticlass TrainerEstimator test loading a pre-trained model.
+        /// </summary>
+        [LightGBMFact]
+        public void LightGbmMulticlassEstimatorFile()
+        {
+            var modelPath = GetDataPath("iris-lgbm.txt");
+            var (pipeline, dataView) = GetMulticlassPipeline();
+            using (var fStream = new FileStream(modelPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                var trainer = ML.MulticlassClassification.Trainers.LightGbm(fStream);
+                var pipe = pipeline.Append(trainer);
+                var data = pipe.Fit(dataView).Transform(dataView).Preview();
+                TestEstimatorCore(pipe, dataView);
+            }
             Done();
         }
 
