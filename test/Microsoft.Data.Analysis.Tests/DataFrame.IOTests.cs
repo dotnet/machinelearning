@@ -13,6 +13,7 @@ using System.Text;
 using System.Data.SQLite;
 using System.Data.SQLite.EF6;
 using Xunit;
+using Microsoft.ML.TestFramework.Attributes;
 
 namespace Microsoft.Data.Analysis.Tests
 {
