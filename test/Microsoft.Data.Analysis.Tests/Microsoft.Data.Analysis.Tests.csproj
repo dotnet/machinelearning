@@ -8,6 +8,8 @@
         <ProjectReference Include="..\..\src\Microsoft.Data.Analysis\Microsoft.Data.Analysis.csproj" />
         <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
         <ProjectReference Include="..\..\src\Microsoft.ML\Microsoft.ML.csproj" />
+        <ProjectReference Include="..\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj" />
+        <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
         <Compile Include="..\..\src\Microsoft.Data.Analysis\TextFieldParser.cs" />
     </ItemGroup>
 
@@ -15,6 +17,10 @@
         <None Update="DataFrameColumn.BinaryOperationTests.tt">
             <Generator>TextTemplatingFileGenerator</Generator>
             <LastGenOutput>DataFrameColumn.BinaryOperationTests.cs</LastGenOutput>
+        </None>
+        <None Update="PrimitiveDataFrameColumnComputationsTests.tt">
+          <Generator>TextTemplatingFileGenerator</Generator>
+          <LastGenOutput>PrimitiveDataFrameColumnComputationsTests.cs</LastGenOutput>
         </None>
     </ItemGroup>
 
@@ -28,11 +34,21 @@
             <AutoGen>True</AutoGen>
             <DependentUpon>DataFrameColumn.BinaryOperationTests.tt</DependentUpon>
         </Compile>
+        <Compile Update="PrimitiveDataFrameColumnComputationsTests.cs">
+          <DesignTime>True</DesignTime>
+          <AutoGen>True</AutoGen>
+          <DependentUpon>PrimitiveDataFrameColumnComputationsTests.tt</DependentUpon>
+        </Compile>
     </ItemGroup>
 
     <ItemGroup>
         <Compile Include="../../src/Microsoft.Data.Analysis/Strings.Designer.cs" />
-        <EmbeddedResource Include="../../src/Microsoft.Data.Analysis/Strings.resx" LogicalName="Microsoft.Data.Analysis.Strings.resources"/>
+        <EmbeddedResource Include="../../src/Microsoft.Data.Analysis/Strings.resx" LogicalName="Microsoft.Data.Analysis.Strings.resources" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="System.Data.SQLite" Version="$(SystemDataSQLiteCoreVersion)" />
+      <PackageReference Include="System.Data.SQLite.Core" Version="$(SystemDataSQLiteCoreVersion)" PrivateAssets="none" />
     </ItemGroup>
 
 </Project>

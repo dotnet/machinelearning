@@ -11,7 +11,7 @@ using System;
 namespace Microsoft.Data.Analysis
 {
     internal interface IPrimitiveDataFrameColumnArithmetic<T>
-        where T : struct
+        where T : unmanaged
     {
         void Add(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right);
         void Add(PrimitiveColumnContainer<T> column, T scalar);
@@ -54,7 +54,7 @@ namespace Microsoft.Data.Analysis
     }
 
     internal static class PrimitiveDataFrameColumnArithmetic<T>
-        where T : struct
+        where T : unmanaged
     {
         public static IPrimitiveDataFrameColumnArithmetic<T> Instance { get; } = PrimitiveDataFrameColumnArithmetic.GetArithmetic<T>();
     }
@@ -62,7 +62,7 @@ namespace Microsoft.Data.Analysis
     internal static class PrimitiveDataFrameColumnArithmetic
     {
         public static IPrimitiveDataFrameColumnArithmetic<T> GetArithmetic<T>()
-            where T : struct
+            where T : unmanaged
         {
             if (typeof(T) == typeof(bool))
             {

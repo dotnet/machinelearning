@@ -4,11 +4,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Data.SQLite;
+using System.Data.SQLite.EF6;
 using Xunit;
+using Microsoft.ML.TestFramework.Attributes;
 
 namespace Microsoft.Data.Analysis.Tests
 {
@@ -1020,6 +1025,119 @@ CMT,";
                 Assert.Equal("", emptyColumn[i]);
             }
         }
+
+        [Fact]
+        public void TestLoadFromEnumerable()
+        {
+            var (columns, vals) = GetTestData();
+            var dataFrame = DataFrame.LoadFrom(vals, columns);
+            AssertEqual(dataFrame, columns, vals);
+        }
+
+        [Fact]
+        public void TestSaveToDataTable()
+        {
+            var (columns, vals) = GetTestData();
+            var dataFrame = DataFrame.LoadFrom(vals, columns);
+
+            using var table = dataFrame.ToTable();
+
+            var resColumns = table.Columns.Cast<DataColumn>().Select(column => (column.ColumnName, column.DataType)).ToArray();
+            Assert.Equal(columns, resColumns);
+
+            var resVals = table.Rows.Cast<DataRow>().Select(row => row.ItemArray).ToArray();
+            Assert.Equal(vals, resVals);
+        }
+
+        [X86X64FactAttribute("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
+        public async void TestSQLite()
+        {
+            var (columns, vals) = GetTestData();
+            var dataFrame = DataFrame.LoadFrom(vals, columns);
+
+            try
+            {
+                var (factory, connection) = InitSQLiteDb();
+                using (factory)
+                {
+                    using (connection)
+                    {
+                        using var dataAdapter = factory.CreateDataAdapter(connection, TableName);
+                        dataFrame.SaveTo(dataAdapter, factory);
+
+                        var resDataFrame = await DataFrame.LoadFrom(dataAdapter);
+
+                        AssertEqual(resDataFrame, columns, vals);
+                    }
+                }
+            }
+            finally
+            {
+                CleanupSQLiteDb();
+            }
+        }
+
+        static void AssertEqual(DataFrame dataFrame, (string name, Type type)[] columns, object[][] vals)
+        {
+            var resColumns = dataFrame.Columns.Select(column => (column.Name, column.DataType)).ToArray();
+            Assert.Equal(columns, resColumns);
+            var resVals = dataFrame.Rows.Select(row => row.ToArray()).ToArray();
+            Assert.Equal(vals, resVals);
+        }
+
+        static ((string name, Type type)[] columns, object[][] vals) GetTestData()
+        {
+            const int RowsCount = 10_000;
+
+            var columns = new[]
+            {
+                ("ID", typeof(long)),
+                ("Text", typeof(string))
+            };
+
+            var vals = new object[RowsCount][];
+            for (var i = 0L; i < RowsCount; i++)
+            {
+                var row = new object[columns.Length];
+                row[0] = i;
+                row[1] = $"test {i}";
+                vals[i] = row;
+            }
+
+            return (columns, vals);
+        }
+
+        static (SQLiteProviderFactory factory, DbConnection connection) InitSQLiteDb()
+        {
+            var connectionString = $"DataSource={SQLitePath};Version=3;New=True;Compress=True;";
+
+            SQLiteConnection.CreateFile(SQLitePath);
+            var factory = new SQLiteProviderFactory();
+
+            var connection = factory.CreateConnection();
+            connection.ConnectionString = connectionString;
+            connection.Open();
+
+            using var command = connection.CreateCommand();
+            command.CommandText = $"CREATE TABLE {TableName} (ID INTEGER NOT NULL PRIMARY KEY ASC, Text VARCHAR(25))";
+            command.ExecuteNonQuery();
+
+            return (factory, connection);
+        }
+
+        static void CleanupSQLiteDb()
+        {
+            if (File.Exists(SQLitePath))
+                File.Delete(SQLitePath);
+        }
+
+        static readonly string BasePath =
+            Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "/";
+
+        const string DbName = "TestDb";
+        const string TableName = "TestTable";
+
+        static readonly string SQLitePath = $@"{BasePath}/{DbName}.sqlite";
 
         public readonly struct LoadCsvVerifyingHelper
         {

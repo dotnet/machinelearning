@@ -234,6 +234,7 @@ namespace Microsoft.ML.AutoML
             var monitor = serviceProvider.GetService<IMonitor>();
             var trialResultManager = serviceProvider.GetService<ITrialResultManager>();
             var trialNum = trialResultManager?.GetAllTrialResults().Max(t => t.TrialSettings?.TrialId) + 1 ?? 0;
+            serviceProvider.GetService<ITrialRunner>();
             var tuner = serviceProvider.GetService<ITuner>();
             Contracts.Assert(tuner != null, "tuner can't be null");
 

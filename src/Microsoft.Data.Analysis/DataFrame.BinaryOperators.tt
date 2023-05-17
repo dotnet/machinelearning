@@ -18,7 +18,7 @@ namespace Microsoft.Data.Analysis
 {
     public partial class DataFrame
     {
-        #pragma warning disable 1591
+#pragma warning disable 1591
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.BinaryScalar) { #>
 <# if (method.IsBitwise == true) { #>
@@ -32,7 +32,7 @@ namespace Microsoft.Data.Analysis
         {
             return df.<#=method.MethodName#>(value);
         }
-        
+
         public static DataFrame operator <#=method.Operator#>(<#=type.TypeName#> value, DataFrame df)
         {
             return df.Reverse<#=method.MethodName#>(value);

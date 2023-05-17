@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
@@ -170,6 +171,26 @@ namespace Microsoft.ML.Trainers.LightGbm
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="LightGbmRankingTrainer"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="lightGbmModel"> A pre-trained <see cref="System.IO.Stream"/> of a LightGBM model file inferencing</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        internal LightGbmMulticlassTrainer(IHostEnvironment env,
+            Stream lightGbmModel,
+            string featureColumnName = DefaultColumnNames.Features)
+            : base(env,
+                  LoadNameValue,
+                  new Options()
+                  {
+                      FeatureColumnName = featureColumnName,
+                      LightGbmModel = lightGbmModel
+                  },
+                  new SchemaShape.Column())
+        {
+        }
+
         private InternalTreeEnsemble GetBinaryEnsemble(int classID)
         {
             var res = new InternalTreeEnsemble();
@@ -213,11 +234,15 @@ namespace Microsoft.ML.Trainers.LightGbm
         {
             Host.AssertValue(ch);
             base.CheckDataValid(ch, data);
-            var labelType = data.Schema.Label.Value.Type;
-            if (!(labelType is BooleanDataViewType || labelType is KeyDataViewType || labelType == NumberDataViewType.Single))
+            // If using a pre-trained model file we don't need a label or group column
+            if (LightGbmTrainerOptions.LightGbmModel == null)
             {
-                throw ch.ExceptParam(nameof(data),
-                    $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType.RawType}', but must be of unsigned int, boolean or float.");
+                var labelType = data.Schema.Label.Value.Type;
+                if (!(labelType is BooleanDataViewType || labelType is KeyDataViewType || labelType == NumberDataViewType.Single))
+                {
+                    throw ch.ExceptParam(nameof(data),
+                        $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType.RawType}', but must be of unsigned int, boolean or float.");
+                }
             }
         }
 
@@ -226,6 +251,21 @@ namespace Microsoft.ML.Trainers.LightGbm
             _numberOfClassesIncludingNan = -1;
             _numberOfClasses = 0;
         }
+
+        private protected override void AdditionalLoadPreTrainedModel(string modelText)
+        {
+            string[] lines = modelText.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            // Jump to the "objective" value in the file. It's at the beginning.
+            int i = 0;
+            while (!lines[i].StartsWith("objective"))
+                i++;
+
+            // Format in the file is objective=multiclass num_class:4
+            var split = lines[i].Split(' ');
+            _numberOfClassesIncludingNan = int.Parse(split[1].Split(':')[1]);
+            _numberOfClasses = _numberOfClassesIncludingNan;
+        }
+
 
         private protected override void ConvertNaNLabels(IChannel ch, RoleMappedData data, float[] labels)
         {
@@ -317,11 +357,14 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
-            bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
-            Contracts.Assert(success);
+            SchemaShape.Column labelCol = default;
+            if (LightGbmTrainerOptions.LightGbmModel == null)
+            {
+                bool success = inputSchema.TryFindColumn(LabelColumn.Name, out labelCol);
+                Contracts.Assert(success);
+            }
 
-            var metadata = new SchemaShape(labelCol.Annotations.Where(x => x.Name == AnnotationUtils.Kinds.KeyValues)
-                .Concat(AnnotationUtils.GetTrainerOutputAnnotation()));
+            var metadata = LightGbmTrainerOptions.LightGbmModel == null ? new SchemaShape(labelCol.Annotations.Where(x => x.Name == AnnotationUtils.Kinds.KeyValues).Concat(AnnotationUtils.GetTrainerOutputAnnotation())) : new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation());
             return new[]
             {
                 new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.AnnotationsForMulticlassScoreColumn(labelCol))),

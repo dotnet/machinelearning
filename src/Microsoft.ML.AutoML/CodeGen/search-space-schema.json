@@ -192,6 +192,7 @@
         "Quiet",
         "OutputAsFloatArray",
         "ModelFactory",
+        "DiskTranspose",
         "Sentence1ColumnName",
         "Sentence2ColumnName",
         "BatchSize",
