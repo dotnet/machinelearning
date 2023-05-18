@@ -4,6 +4,7 @@
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <IncludeBuildOutput Condition="'$(TargetFramework)' == 'netstandard2.0'">false</IncludeBuildOutput>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageLicenseExpression></PackageLicenseExpression>
     <PackageDescription>$(MSBuildProjectName) contains the MKL library redistributed as a NuGet package.</PackageDescription>
     <PackageTags>$(PackageTags) MLNET MKL</PackageTags>
      <!-- Empty package with no managed dependencies, only native, so no need to warn for empty lib folder/dependencies -->
