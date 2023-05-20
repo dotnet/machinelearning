@@ -288,7 +288,7 @@ namespace Microsoft.Data.Analysis
             }
             else if (kind == typeof(float))
             {
-                ret = new PrimitiveDataFrameColumn<float>(columnName));
+                ret = new PrimitiveDataFrameColumn<float>(columnName);
             }
             else if (kind == typeof(string))
             {
