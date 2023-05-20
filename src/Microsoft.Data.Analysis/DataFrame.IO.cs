@@ -4,9 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Microsoft.Data.Analysis
 {
@@ -109,12 +112,158 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        public static DataFrame LoadFrom(IEnumerable<IList<object>> vals, IList<(string, Type)> columnInfos)
+        {
+            var columnsCount = columnInfos.Count;
+            var columns = new List<DataFrameColumn>(columnsCount);
+
+            foreach (var (name, type) in columnInfos)
+            {
+                var column = CreateColumn(type, name);
+                columns.Add(column);
+            }
+
+            var res = new DataFrame(columns);
+
+            foreach (var items in vals)
+            {
+                for (var c = 0; c < items.Count; c++)
+                {
+                    items[c] = items[c];
+                }
+                res.Append(items, inPlace: true);
+            }
+
+            return res;
+        }
+
+        public void SaveTo(DataTable table)
+        {
+            var columnsCount = Columns.Count;
+
+            if (table.Columns.Count == 0)
+            {
+                foreach (var column in Columns)
+                {
+                    table.Columns.Add(column.Name, column.DataType);
+                }
+            }
+            else
+            {
+                if (table.Columns.Count != columnsCount)
+                    throw new ArgumentException();
+                for (var c = 0; c < columnsCount; c++)
+                {
+                    if (table.Columns[c].DataType != Columns[c].DataType)
+                        throw new ArgumentException();
+                }
+            }
+
+            var items = new object[columnsCount];
+            foreach (var row in Rows)
+            {
+                for (var c = 0; c < columnsCount; c++)
+                {
+                    items[c] = row[c] ?? DBNull.Value;
+                }
+                table.Rows.Add(items);
+            }
+        }
+
+        public DataTable ToTable()
+        {
+            var res = new DataTable();
+            SaveTo(res);
+            return res;
+        }
+
+        public static DataFrame FromSchema(DbDataReader reader)
+        {
+            var columnsCount = reader.FieldCount;
+            var columns = new DataFrameColumn[columnsCount];
+
+            for (var c = 0; c < columnsCount; c++)
+            {
+                var type = reader.GetFieldType(c);
+                var name = reader.GetName(c);
+                var column = CreateColumn(type, name);
+                columns[c] = column;
+            }
+
+            var res = new DataFrame(columns);
+            return res;
+        }
+
+        public static async Task<DataFrame> LoadFrom(DbDataReader reader)
+        {
+            var res = FromSchema(reader);
+            var columnsCount = reader.FieldCount;
+
+            var items = new object[columnsCount];
+            while (await reader.ReadAsync())
+            {
+                for (var c = 0; c < columnsCount; c++)
+                {
+                    items[c] = reader.IsDBNull(c)
+                        ? null
+                        : reader[c];
+                }
+                res.Append(items, inPlace: true);
+            }
+
+            reader.Close();
+
+            return res;
+        }
+
+        public static async Task<DataFrame> LoadFrom(DbDataAdapter adapter)
+        {
+            using var reader = await adapter.SelectCommand.ExecuteReaderAsync();
+            return await LoadFrom(reader);
+        }
+
+        public void SaveTo(DbDataAdapter dataAdapter, DbProviderFactory factory)
+        {
+            using var commandBuilder = factory.CreateCommandBuilder();
+            commandBuilder.DataAdapter = dataAdapter;
+            dataAdapter.InsertCommand = commandBuilder.GetInsertCommand();
+            dataAdapter.UpdateCommand = commandBuilder.GetUpdateCommand();
+            dataAdapter.DeleteCommand = commandBuilder.GetDeleteCommand();
+
+            using var table = ToTable();
+
+            var connection = dataAdapter.SelectCommand.Connection;
+            var needClose = connection.TryOpen();
+
+            try
+            {
+                using var transaction = connection.BeginTransaction();
+                try
+                {
+                    dataAdapter.Update(table);
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    transaction.Dispose();
+                    throw;
+                }
+                transaction.Commit();
+            }
+            finally
+            {
+                if (needClose)
+                    connection.Close();
+            }
+        }
+
         /// <summary>
         /// return <paramref name="columnIndex"/> of <paramref name="columnNames"/> if not null or empty, otherwise return "Column{i}" where i is <paramref name="columnIndex"/>.
         /// </summary>
         /// <param name="columnNames">column names.</param>
         /// <param name="columnIndex">column index.</param>
         /// <returns></returns>
+
         private static string GetColumnName(string[] columnNames, int columnIndex)
         {
             var defaultColumnName = "Column" + columnIndex.ToString();
@@ -126,74 +275,79 @@ namespace Microsoft.Data.Analysis
             return defaultColumnName;
         }
 
-        private static DataFrameColumn CreateColumn(Type kind, string[] columnNames, int columnIndex)
+        private static DataFrameColumn CreateColumn(Type kind, string columnName)
         {
             DataFrameColumn ret;
             if (kind == typeof(bool))
             {
-                ret = new PrimitiveDataFrameColumn<bool>(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<bool>(columnName);
             }
             else if (kind == typeof(int))
             {
-                ret = new PrimitiveDataFrameColumn<int>(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<int>(columnName);
             }
             else if (kind == typeof(float))
             {
-                ret = new PrimitiveDataFrameColumn<float>(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<float>(columnName));
             }
             else if (kind == typeof(string))
             {
-                ret = new StringDataFrameColumn(GetColumnName(columnNames, columnIndex), 0);
+                ret = new StringDataFrameColumn(columnName, 0);
             }
             else if (kind == typeof(long))
             {
-                ret = new PrimitiveDataFrameColumn<long>(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<long>(columnName);
             }
             else if (kind == typeof(decimal))
             {
-                ret = new PrimitiveDataFrameColumn<decimal>(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<decimal>(columnName);
             }
             else if (kind == typeof(byte))
             {
-                ret = new PrimitiveDataFrameColumn<byte>(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<byte>(columnName);
             }
             else if (kind == typeof(char))
             {
-                ret = new PrimitiveDataFrameColumn<char>(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<char>(columnName);
             }
             else if (kind == typeof(double))
             {
-                ret = new PrimitiveDataFrameColumn<double>(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<double>(columnName);
             }
             else if (kind == typeof(sbyte))
             {
-                ret = new PrimitiveDataFrameColumn<sbyte>(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<sbyte>(columnName);
             }
             else if (kind == typeof(short))
             {
-                ret = new PrimitiveDataFrameColumn<short>(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<short>(columnName);
             }
             else if (kind == typeof(uint))
             {
-                ret = new PrimitiveDataFrameColumn<uint>(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<uint>(columnName);
             }
             else if (kind == typeof(ulong))
             {
-                ret = new PrimitiveDataFrameColumn<ulong>(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<ulong>(columnName);
             }
             else if (kind == typeof(ushort))
             {
-                ret = new PrimitiveDataFrameColumn<ushort>(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<ushort>(columnName);
             }
             else if (kind == typeof(DateTime))
             {
-                ret = new PrimitiveDataFrameColumn<DateTime>(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<DateTime>(columnName);
             }
             else
             {
                 throw new NotSupportedException(nameof(kind));
             }
             return ret;
+        }
+
+        private static DataFrameColumn CreateColumn(Type kind, string[] columnNames, int columnIndex)
+        {
+            return CreateColumn(kind, GetColumnName(columnNames, columnIndex));
         }
 
         private static DataFrame ReadCsvLinesIntoDataFrame(WrappedStreamReaderOrStringReader wrappedReader,

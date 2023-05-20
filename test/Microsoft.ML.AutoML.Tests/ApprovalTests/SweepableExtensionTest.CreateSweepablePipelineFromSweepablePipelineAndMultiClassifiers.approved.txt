@@ -20,7 +20,8 @@
         "FeatureFraction": 1,
         "LearningRate": 0.1,
         "LabelColumnName": "Label",
-        "FeatureColumnName": "Features"
+        "FeatureColumnName": "Features",
+        "DiskTranspose": false
       }
     },
     "e3": {

@@ -66,4 +66,9 @@ namespace Microsoft.ML.AutoML
 
         public EstimatorChain<ITransformer> Pipeline { get; set; }
     }
+
+    public class FairnessTrialResult : TrialResult
+    {
+        public double FairnessMetric { get; set; }
+    }
 }

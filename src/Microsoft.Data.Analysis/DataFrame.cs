@@ -671,10 +671,12 @@ namespace Microsoft.Data.Analysis
             {
                 longestColumnName = Math.Max(longestColumnName, Columns[i].Name.Length);
             }
+
+            int padding = Math.Max(10, longestColumnName + 1);
             for (int i = 0; i < Columns.Count; i++)
             {
-                // Left align by 10
-                sb.Append(string.Format(Columns[i].Name.PadRight(longestColumnName)));
+                // Left align by 10 or more (in case of longer column names)
+                sb.Append(string.Format(Columns[i].Name.PadRight(padding)));
             }
             sb.AppendLine();
             long numberOfRows = Math.Min(Rows.Count, 25);
@@ -682,7 +684,7 @@ namespace Microsoft.Data.Analysis
             {
                 foreach (object obj in Rows[i])
                 {
-                    sb.Append((obj ?? "null").ToString().PadRight(longestColumnName));
+                    sb.Append((obj ?? "null").ToString().PadRight(padding));
                 }
                 sb.AppendLine();
             }

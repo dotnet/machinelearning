@@ -45,12 +45,20 @@ namespace Microsoft.ML.AutoML
 
         public virtual void ReportCompletedTrial(TrialResult result)
         {
-            _logger.Info($"Update Completed Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {_pipeline.ToString(result.TrialSettings.Parameter)} - Duration: {result.DurationInMilliseconds} - Peak CPU: {result.PeakCpu?.ToString("p")} - Peak Memory in MB: {result.PeakMemoryInMegaByte?.ToString("F")}");
+            if (result is FairnessTrialResult fResult)
+            {   //TODO: now we are assuming the higher the raw metric the better and the lower the fairness metric the better. If we have a raw metric that needs to be minimized then this should change
+                _logger.Info($"Update Completed Trial - Id: {result.TrialSettings.TrialId} - Raw Metric: {result.Metric + fResult.FairnessMetric} - Fairness Metric: {-fResult.FairnessMetric} - Total Metric: {result.Metric} - Pipeline: {this._pipeline} - Duration: {result.DurationInMilliseconds}");
+            }
+            else
+            {
+                _logger.Info($"Update Completed Trial - Id: {result.TrialSettings.TrialId} - Metric: {result.Metric} - Pipeline: {this._pipeline} - Duration: {result.DurationInMilliseconds}");
+            }
             _completedTrials.Add(result);
         }
 
         public virtual void ReportFailTrial(TrialSettings settings, Exception exception = null)
         {
+            _logger.Trace(exception.Message + exception.StackTrace);
             _logger.Info($"Update Failed Trial - Id: {settings.TrialId} - Pipeline: {_pipeline.ToString(settings.Parameter)}");
         }
 

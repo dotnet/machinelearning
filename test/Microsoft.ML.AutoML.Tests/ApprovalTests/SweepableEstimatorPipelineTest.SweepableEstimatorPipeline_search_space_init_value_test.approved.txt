@@ -23,6 +23,7 @@
     "FeatureFraction": 1,
     "LearningRate": 0.10,
     "LabelColumnName": "Label",
-    "FeatureColumnName": "Feature"
+    "FeatureColumnName": "Feature",
+    "DiskTranspose": false
   }
 }
