@@ -22,43 +22,43 @@ namespace Microsoft.Data.Analysis
                     BooleanArray arrowBooleanArray = (BooleanArray)arrowArray;
                     ReadOnlyMemory<byte> valueBuffer = arrowBooleanArray.ValueBuffer.Memory;
                     ReadOnlyMemory<byte> nullBitMapBuffer = arrowBooleanArray.NullBitmapBuffer.Memory;
-                    dataFrameColumn = new BooleanDataFrameColumn(fieldName, valueBuffer, nullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
+                    dataFrameColumn = new PrimitiveDataFrameColumn<bool>(fieldName, valueBuffer, nullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
                     break;
                 case ArrowTypeId.Double:
                     PrimitiveArray<double> arrowDoubleArray = (PrimitiveArray<double>)arrowArray;
                     ReadOnlyMemory<byte> doubleValueBuffer = arrowDoubleArray.ValueBuffer.Memory;
                     ReadOnlyMemory<byte> doubleNullBitMapBuffer = arrowDoubleArray.NullBitmapBuffer.Memory;
-                    dataFrameColumn = new DoubleDataFrameColumn(fieldName, doubleValueBuffer, doubleNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
+                    dataFrameColumn = new PrimitiveDataFrameColumn<double>(fieldName, doubleValueBuffer, doubleNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
                     break;
                 case ArrowTypeId.Float:
                     PrimitiveArray<float> arrowFloatArray = (PrimitiveArray<float>)arrowArray;
                     ReadOnlyMemory<byte> floatValueBuffer = arrowFloatArray.ValueBuffer.Memory;
                     ReadOnlyMemory<byte> floatNullBitMapBuffer = arrowFloatArray.NullBitmapBuffer.Memory;
-                    dataFrameColumn = new SingleDataFrameColumn(fieldName, floatValueBuffer, floatNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
+                    dataFrameColumn = new PrimitiveDataFrameColumn<float>(fieldName, floatValueBuffer, floatNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
                     break;
                 case ArrowTypeId.Int8:
                     PrimitiveArray<sbyte> arrowsbyteArray = (PrimitiveArray<sbyte>)arrowArray;
                     ReadOnlyMemory<byte> sbyteValueBuffer = arrowsbyteArray.ValueBuffer.Memory;
                     ReadOnlyMemory<byte> sbyteNullBitMapBuffer = arrowsbyteArray.NullBitmapBuffer.Memory;
-                    dataFrameColumn = new SByteDataFrameColumn(fieldName, sbyteValueBuffer, sbyteNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
+                    dataFrameColumn = new PrimitiveDataFrameColumn<sbyte>(fieldName, sbyteValueBuffer, sbyteNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
                     break;
                 case ArrowTypeId.Int16:
                     PrimitiveArray<short> arrowshortArray = (PrimitiveArray<short>)arrowArray;
                     ReadOnlyMemory<byte> shortValueBuffer = arrowshortArray.ValueBuffer.Memory;
                     ReadOnlyMemory<byte> shortNullBitMapBuffer = arrowshortArray.NullBitmapBuffer.Memory;
-                    dataFrameColumn = new Int16DataFrameColumn(fieldName, shortValueBuffer, shortNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
+                    dataFrameColumn = new PrimitiveDataFrameColumn<short>(fieldName, shortValueBuffer, shortNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
                     break;
                 case ArrowTypeId.Int32:
                     PrimitiveArray<int> arrowIntArray = (PrimitiveArray<int>)arrowArray;
                     ReadOnlyMemory<byte> intValueBuffer = arrowIntArray.ValueBuffer.Memory;
                     ReadOnlyMemory<byte> intNullBitMapBuffer = arrowIntArray.NullBitmapBuffer.Memory;
-                    dataFrameColumn = new Int32DataFrameColumn(fieldName, intValueBuffer, intNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
+                    dataFrameColumn = new PrimitiveDataFrameColumn<int>(fieldName, intValueBuffer, intNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
                     break;
                 case ArrowTypeId.Int64:
                     PrimitiveArray<long> arrowLongArray = (PrimitiveArray<long>)arrowArray;
                     ReadOnlyMemory<byte> longValueBuffer = arrowLongArray.ValueBuffer.Memory;
                     ReadOnlyMemory<byte> longNullBitMapBuffer = arrowLongArray.NullBitmapBuffer.Memory;
-                    dataFrameColumn = new Int64DataFrameColumn(fieldName, longValueBuffer, longNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
+                    dataFrameColumn = new PrimitiveDataFrameColumn<long>(fieldName, longValueBuffer, longNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
                     break;
                 case ArrowTypeId.String:
                     StringArray stringArray = (StringArray)arrowArray;
@@ -71,25 +71,25 @@ namespace Microsoft.Data.Analysis
                     PrimitiveArray<byte> arrowbyteArray = (PrimitiveArray<byte>)arrowArray;
                     ReadOnlyMemory<byte> byteValueBuffer = arrowbyteArray.ValueBuffer.Memory;
                     ReadOnlyMemory<byte> byteNullBitMapBuffer = arrowbyteArray.NullBitmapBuffer.Memory;
-                    dataFrameColumn = new ByteDataFrameColumn(fieldName, byteValueBuffer, byteNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
+                    dataFrameColumn = new PrimitiveDataFrameColumn<byte>(fieldName, byteValueBuffer, byteNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
                     break;
                 case ArrowTypeId.UInt16:
                     PrimitiveArray<ushort> arrowUshortArray = (PrimitiveArray<ushort>)arrowArray;
                     ReadOnlyMemory<byte> ushortValueBuffer = arrowUshortArray.ValueBuffer.Memory;
                     ReadOnlyMemory<byte> ushortNullBitMapBuffer = arrowUshortArray.NullBitmapBuffer.Memory;
-                    dataFrameColumn = new UInt16DataFrameColumn(fieldName, ushortValueBuffer, ushortNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
+                    dataFrameColumn = new PrimitiveDataFrameColumn<ushort>(fieldName, ushortValueBuffer, ushortNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
                     break;
                 case ArrowTypeId.UInt32:
                     PrimitiveArray<uint> arrowUintArray = (PrimitiveArray<uint>)arrowArray;
                     ReadOnlyMemory<byte> uintValueBuffer = arrowUintArray.ValueBuffer.Memory;
                     ReadOnlyMemory<byte> uintNullBitMapBuffer = arrowUintArray.NullBitmapBuffer.Memory;
-                    dataFrameColumn = new UInt32DataFrameColumn(fieldName, uintValueBuffer, uintNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
+                    dataFrameColumn = new PrimitiveDataFrameColumn<uint>(fieldName, uintValueBuffer, uintNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
                     break;
                 case ArrowTypeId.UInt64:
                     PrimitiveArray<ulong> arrowUlongArray = (PrimitiveArray<ulong>)arrowArray;
                     ReadOnlyMemory<byte> ulongValueBuffer = arrowUlongArray.ValueBuffer.Memory;
                     ReadOnlyMemory<byte> ulongNullBitMapBuffer = arrowUlongArray.NullBitmapBuffer.Memory;
-                    dataFrameColumn = new UInt64DataFrameColumn(fieldName, ulongValueBuffer, ulongNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
+                    dataFrameColumn = new PrimitiveDataFrameColumn<ulong>(fieldName, ulongValueBuffer, ulongNullBitMapBuffer, arrowArray.Length, arrowArray.NullCount);
                     break;
                 case ArrowTypeId.Struct:
                     StructArray structArray = (StructArray)arrowArray;

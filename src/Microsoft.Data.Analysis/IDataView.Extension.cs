@@ -66,51 +66,51 @@ namespace Microsoft.ML
                 DataViewType type = dataViewColumn.Type;
                 if (type == BooleanDataViewType.Instance)
                 {
-                    dataFrameColumns.Add(new BooleanDataFrameColumn(dataViewColumn.Name));
+                    dataFrameColumns.Add(new PrimitiveDataFrameColumn<bool>(dataViewColumn.Name));
                 }
                 else if (type == DateTimeDataViewType.Instance)
                 {
-                    dataFrameColumns.Add(new DateTimeDataFrameColumn(dataViewColumn.Name));
+                    dataFrameColumns.Add(new PrimitiveDataFrameColumn<DateTime>(dataViewColumn.Name));
                 }
                 else if (type == NumberDataViewType.Byte)
                 {
-                    dataFrameColumns.Add(new ByteDataFrameColumn(dataViewColumn.Name));
+                    dataFrameColumns.Add(new PrimitiveDataFrameColumn<byte>(dataViewColumn.Name));
                 }
                 else if (type == NumberDataViewType.Double)
                 {
-                    dataFrameColumns.Add(new DoubleDataFrameColumn(dataViewColumn.Name));
+                    dataFrameColumns.Add(new PrimitiveDataFrameColumn<double>(dataViewColumn.Name));
                 }
                 else if (type == NumberDataViewType.Single)
                 {
-                    dataFrameColumns.Add(new SingleDataFrameColumn(dataViewColumn.Name));
+                    dataFrameColumns.Add(new PrimitiveDataFrameColumn<float>(dataViewColumn.Name));
                 }
                 else if (type == NumberDataViewType.Int32)
                 {
-                    dataFrameColumns.Add(new Int32DataFrameColumn(dataViewColumn.Name));
+                    dataFrameColumns.Add(new PrimitiveDataFrameColumn<int>(dataViewColumn.Name));
                 }
                 else if (type == NumberDataViewType.Int64)
                 {
-                    dataFrameColumns.Add(new Int64DataFrameColumn(dataViewColumn.Name));
+                    dataFrameColumns.Add(new PrimitiveDataFrameColumn<long>(dataViewColumn.Name));
                 }
                 else if (type == NumberDataViewType.SByte)
                 {
-                    dataFrameColumns.Add(new SByteDataFrameColumn(dataViewColumn.Name));
+                    dataFrameColumns.Add(new PrimitiveDataFrameColumn<sbyte>(dataViewColumn.Name));
                 }
                 else if (type == NumberDataViewType.Int16)
                 {
-                    dataFrameColumns.Add(new Int16DataFrameColumn(dataViewColumn.Name));
+                    dataFrameColumns.Add(new PrimitiveDataFrameColumn<short>(dataViewColumn.Name));
                 }
                 else if (type == NumberDataViewType.UInt32)
                 {
-                    dataFrameColumns.Add(new UInt32DataFrameColumn(dataViewColumn.Name));
+                    dataFrameColumns.Add(new PrimitiveDataFrameColumn<uint>(dataViewColumn.Name));
                 }
                 else if (type == NumberDataViewType.UInt64)
                 {
-                    dataFrameColumns.Add(new UInt64DataFrameColumn(dataViewColumn.Name));
+                    dataFrameColumns.Add(new PrimitiveDataFrameColumn<ulong>(dataViewColumn.Name));
                 }
                 else if (type == NumberDataViewType.UInt16)
                 {
-                    dataFrameColumns.Add(new UInt16DataFrameColumn(dataViewColumn.Name));
+                    dataFrameColumns.Add(new PrimitiveDataFrameColumn<ushort>(dataViewColumn.Name));
                 }
                 else if (type == TextDataViewType.Instance)
                 {

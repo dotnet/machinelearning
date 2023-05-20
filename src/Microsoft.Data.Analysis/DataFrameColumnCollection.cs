@@ -234,15 +234,15 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Gets the <see cref="BooleanDataFrameColumn"/> with the specified <paramref name="name"/>.
+        /// Gets the <see cref="PrimitiveDataFrameColumn{T}"/> with the specified <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the column</param>
-        /// <returns><see cref="BooleanDataFrameColumn"/>.</returns>
+        /// <returns><see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         /// <exception cref="ArgumentException">A column named <paramref name="name"/> cannot be found, or if the column's type doesn't match.</exception>
-        public BooleanDataFrameColumn GetBooleanColumn(string name)
+        public PrimitiveDataFrameColumn<bool> GetBooleanColumn(string name)
         {
             DataFrameColumn column = this[name];
-            if (column is BooleanDataFrameColumn ret)
+            if (column is PrimitiveDataFrameColumn<bool> ret)
             {
                 return ret;
             }
@@ -251,15 +251,15 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Gets the <see cref="ByteDataFrameColumn"/> with the specified <paramref name="name"/> and attempts to return it as an <see cref="ByteDataFrameColumn"/>. If <see cref="DataFrameColumn.DataType"/> is not of type <see cref="Byte"/>, an exception is thrown.
+        /// Gets the <see cref="PrimitiveDataFrameColumn{T}"/> with the specified <paramref name="name"/> and attempts to return it as an <see cref="PrimitiveDataFrameColumn{T}"/>. If <see cref="DataFrameColumn.DataType"/> is not of type <see cref="Byte"/>, an exception is thrown.
         /// </summary>
         /// <param name="name">The name of the column</param>
-        /// <returns><see cref="ByteDataFrameColumn"/>.</returns>
+        /// <returns><see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         /// <exception cref="ArgumentException">A column named <paramref name="name"/> cannot be found, or if the column's type doesn't match.</exception>
-        public ByteDataFrameColumn GetByteColumn(string name)
+        public PrimitiveDataFrameColumn<byte> GetByteColumn(string name)
         {
             DataFrameColumn column = this[name];
-            if (column is ByteDataFrameColumn ret)
+            if (column is PrimitiveDataFrameColumn<byte> ret)
             {
                 return ret;
             }
@@ -268,15 +268,15 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Gets the <see cref="CharDataFrameColumn"/> with the specified <paramref name="name"/>.
+        /// Gets the <see cref="PrimitiveDataFrameColumn{T}"/> with the specified <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the column</param>
-        /// <returns><see cref="CharDataFrameColumn"/>.</returns>
+        /// <returns><see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         /// <exception cref="ArgumentException">A column named <paramref name="name"/> cannot be found, or if the column's type doesn't match.</exception>
-        public CharDataFrameColumn GetCharColumn(string name)
+        public PrimitiveDataFrameColumn<char> GetCharColumn(string name)
         {
             DataFrameColumn column = this[name];
-            if (column is CharDataFrameColumn ret)
+            if (column is PrimitiveDataFrameColumn<char> ret)
             {
                 return ret;
             }
@@ -285,15 +285,15 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Gets the <see cref="DoubleDataFrameColumn"/> with the specified <paramref name="name"/>.
+        /// Gets the <see cref="PrimitiveDataFrameColumn{T}"/> with the specified <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the column</param>
-        /// <returns><see cref="DoubleDataFrameColumn"/>.</returns>
+        /// <returns><see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         /// <exception cref="ArgumentException">A column named <paramref name="name"/> cannot be found, or if the column's type doesn't match.</exception>
-        public DoubleDataFrameColumn GetDoubleColumn(string name)
+        public PrimitiveDataFrameColumn<double> GetDoubleColumn(string name)
         {
             DataFrameColumn column = this[name];
-            if (column is DoubleDataFrameColumn ret)
+            if (column is PrimitiveDataFrameColumn<double> ret)
             {
                 return ret;
             }
@@ -302,15 +302,15 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Gets the <see cref="DecimalDataFrameColumn"/> with the specified <paramref name="name"/>.
+        /// Gets the <see cref="PrimitiveDataFrameColumn{T}"/> with the specified <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the column</param>
-        /// <returns><see cref="DecimalDataFrameColumn"/>.</returns>
+        /// <returns><see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         /// <exception cref="ArgumentException">A column named <paramref name="name"/> cannot be found, or if the column's type doesn't match.</exception>
-        public DecimalDataFrameColumn GetDecimalColumn(string name)
+        public PrimitiveDataFrameColumn<decimal> GetDecimalColumn(string name)
         {
             DataFrameColumn column = this[name];
-            if (column is DecimalDataFrameColumn ret)
+            if (column is PrimitiveDataFrameColumn<decimal> ret)
             {
                 return ret;
             }
@@ -319,15 +319,15 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Gets the <see cref="SingleDataFrameColumn"/> with the specified <paramref name="name"/>.
+        /// Gets the <see cref="PrimitiveDataFrameColumn{T}"/> with the specified <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the column</param>
-        /// <returns><see cref="SingleDataFrameColumn"/>.</returns>
+        /// <returns><see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         /// <exception cref="ArgumentException">A column named <paramref name="name"/> cannot be found, or if the column's type doesn't match.</exception>
-        public SingleDataFrameColumn GetSingleColumn(string name)
+        public PrimitiveDataFrameColumn<float> GetSingleColumn(string name)
         {
             DataFrameColumn column = this[name];
-            if (column is SingleDataFrameColumn ret)
+            if (column is PrimitiveDataFrameColumn<float> ret)
             {
                 return ret;
             }
@@ -336,15 +336,15 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Gets the <see cref="Int32DataFrameColumn"/> with the specified <paramref name="name"/>.
+        /// Gets the <see cref="PrimitiveDataFrameColumn{T}"/> with the specified <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the column</param>
-        /// <returns><see cref="Int32DataFrameColumn"/>.</returns>
+        /// <returns><see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         /// <exception cref="ArgumentException">A column named <paramref name="name"/> cannot be found, or if the column's type doesn't match.</exception>
-        public Int32DataFrameColumn GetInt32Column(string name)
+        public PrimitiveDataFrameColumn<int> GetInt32Column(string name)
         {
             DataFrameColumn column = this[name];
-            if (column is Int32DataFrameColumn ret)
+            if (column is PrimitiveDataFrameColumn<int> ret)
             {
                 return ret;
             }
@@ -353,15 +353,15 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Gets the <see cref="Int64DataFrameColumn"/> with the specified <paramref name="name"/>.
+        /// Gets the <see cref="PrimitiveDataFrameColumn{T}"/> with the specified <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the column</param>
-        /// <returns><see cref="Int64DataFrameColumn"/>.</returns>
+        /// <returns><see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         /// <exception cref="ArgumentException">A column named <paramref name="name"/> cannot be found, or if the column's type doesn't match.</exception>
-        public Int64DataFrameColumn GetInt64Column(string name)
+        public PrimitiveDataFrameColumn<long> GetInt64Column(string name)
         {
             DataFrameColumn column = this[name];
-            if (column is Int64DataFrameColumn ret)
+            if (column is PrimitiveDataFrameColumn<long> ret)
             {
                 return ret;
             }
@@ -370,15 +370,15 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Gets the <see cref="SByteDataFrameColumn"/> with the specified <paramref name="name"/>.
+        /// Gets the <see cref="PrimitiveDataFrameColumn{T}"/> with the specified <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the column</param>
-        /// <returns><see cref="SByteDataFrameColumn"/>.</returns>
+        /// <returns><see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         /// <exception cref="ArgumentException">A column named <paramref name="name"/> cannot be found, or if the column's type doesn't match.</exception>
-        public SByteDataFrameColumn GetSByteColumn(string name)
+        public PrimitiveDataFrameColumn<sbyte> GetSByteColumn(string name)
         {
             DataFrameColumn column = this[name];
-            if (column is SByteDataFrameColumn ret)
+            if (column is PrimitiveDataFrameColumn<sbyte> ret)
             {
                 return ret;
             }
@@ -387,15 +387,15 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Gets the <see cref="Int16DataFrameColumn"/> with the specified <paramref name="name"/>.
+        /// Gets the <see cref="PrimitiveDataFrameColumn{T}"/> with the specified <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the column</param>
-        /// <returns><see cref="Int16DataFrameColumn"/>.</returns>
+        /// <returns><see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         /// <exception cref="ArgumentException">A column named <paramref name="name"/> cannot be found, or if the column's type doesn't match.</exception>
-        public Int16DataFrameColumn GetInt16Column(string name)
+        public PrimitiveDataFrameColumn<short> GetInt16Column(string name)
         {
             DataFrameColumn column = this[name];
-            if (column is Int16DataFrameColumn ret)
+            if (column is PrimitiveDataFrameColumn<short> ret)
             {
                 return ret;
             }
@@ -404,15 +404,15 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Gets the <see cref="UInt32DataFrameColumn"/> with the specified <paramref name="name"/>.
+        /// Gets the <see cref="PrimitiveDataFrameColumn{T}"/> with the specified <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the column</param>
-        /// <returns><see cref="UInt32DataFrameColumn"/>.</returns>
+        /// <returns><see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         /// <exception cref="ArgumentException">A column named <paramref name="name"/> cannot be found, or if the column's type doesn't match.</exception>
-        public UInt32DataFrameColumn GetUInt32Column(string name)
+        public PrimitiveDataFrameColumn<uint> GetUInt32Column(string name)
         {
             DataFrameColumn column = this[name];
-            if (column is UInt32DataFrameColumn ret)
+            if (column is PrimitiveDataFrameColumn<uint> ret)
             {
                 return ret;
             }
@@ -421,15 +421,15 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Gets the <see cref="UInt64DataFrameColumn"/> with the specified <paramref name="name"/>.
+        /// Gets the <see cref="PrimitiveDataFrameColumn{T}"/> with the specified <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the column</param>
-        /// <returns><see cref="UInt64DataFrameColumn"/>.</returns>
+        /// <returns><see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         /// <exception cref="ArgumentException">A column named <paramref name="name"/> cannot be found, or if the column's type doesn't match.</exception>
-        public UInt64DataFrameColumn GetUInt64Column(string name)
+        public PrimitiveDataFrameColumn<ulong> GetUInt64Column(string name)
         {
             DataFrameColumn column = this[name];
-            if (column is UInt64DataFrameColumn ret)
+            if (column is PrimitiveDataFrameColumn<ulong> ret)
             {
                 return ret;
             }
@@ -438,15 +438,15 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Gets the <see cref="UInt16DataFrameColumn"/> with the specified <paramref name="name"/>.
+        /// Gets the <see cref="PrimitiveDataFrameColumn{T}"/> with the specified <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the column</param>
-        /// <returns><see cref="UInt16DataFrameColumn"/>.</returns>
+        /// <returns><see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         /// <exception cref="ArgumentException">A column named <paramref name="name"/> cannot be found, or if the column's type doesn't match.</exception>
-        public UInt16DataFrameColumn GetUInt16Column(string name)
+        public PrimitiveDataFrameColumn<ushort> GetUInt16Column(string name)
         {
             DataFrameColumn column = this[name];
-            if (column is UInt16DataFrameColumn ret)
+            if (column is PrimitiveDataFrameColumn<ushort> ret)
             {
                 return ret;
             }

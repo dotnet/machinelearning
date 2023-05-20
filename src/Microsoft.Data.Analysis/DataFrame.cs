@@ -643,7 +643,7 @@ namespace Microsoft.Data.Analysis
         private DataFrame Sort(string columnName, bool isAscending)
         {
             DataFrameColumn column = Columns[columnName];
-            PrimitiveDataFrameColumn<long> sortIndices = column.GetAscendingSortIndices(out Int64DataFrameColumn nullIndices);
+            PrimitiveDataFrameColumn<long> sortIndices = column.GetAscendingSortIndices(out PrimitiveDataFrameColumn<long> nullIndices);
             for (long i = 0; i < nullIndices.Length; i++)
             {
                 sortIndices.Append(nullIndices[i]);

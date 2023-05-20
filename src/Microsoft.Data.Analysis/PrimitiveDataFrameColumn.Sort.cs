@@ -14,20 +14,20 @@ namespace Microsoft.Data.Analysis
     {
         public new PrimitiveDataFrameColumn<T> Sort(bool ascending = true)
         {
-            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices(out Int64DataFrameColumn _);
+            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices(out PrimitiveDataFrameColumn<long> _);
             return Clone(sortIndices, !ascending, NullCount);
         }
 
-        internal override PrimitiveDataFrameColumn<long> GetAscendingSortIndices(out Int64DataFrameColumn nullIndices)
+        internal override PrimitiveDataFrameColumn<long> GetAscendingSortIndices(out PrimitiveDataFrameColumn<long> nullIndices)
         {
-            Int64DataFrameColumn sortIndices = GetSortIndices(Comparer<T>.Default, out nullIndices);
+            PrimitiveDataFrameColumn<long> sortIndices = GetSortIndices(Comparer<T>.Default, out nullIndices);
             return sortIndices;
         }
 
-        private Int64DataFrameColumn GetSortIndices(IComparer<T> comparer, out Int64DataFrameColumn columnNullIndices)
+        private PrimitiveDataFrameColumn<long> GetSortIndices(IComparer<T> comparer, out PrimitiveDataFrameColumn<long> columnNullIndices)
         {
             List<List<int>> bufferSortIndices = new List<List<int>>(_columnContainer.Buffers.Count);
-            columnNullIndices = new Int64DataFrameColumn("NullIndices", NullCount);
+            columnNullIndices = new PrimitiveDataFrameColumn<long>("NullIndices", NullCount);
             long nullIndicesSlot = 0;
             // Sort each buffer first
             for (int b = 0; b < _columnContainer.Buffers.Count; b++)
@@ -100,7 +100,7 @@ namespace Microsoft.Data.Analysis
                     heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(valueAndBufferIndex.Item1, new List<ValueTuple<int, int>>() { (valueAndBufferIndex.Item2, i) });
                 }
             }
-            Int64DataFrameColumn columnSortIndices = new Int64DataFrameColumn("SortIndices");
+            PrimitiveDataFrameColumn<long> columnSortIndices = new PrimitiveDataFrameColumn<long>("SortIndices");
             GetBufferSortIndex getBufferSortIndex = new GetBufferSortIndex((int bufferIndex, int sortIndex) => (bufferSortIndices[bufferIndex][sortIndex]) + bufferIndex * bufferSortIndices[0].Count);
             GetValueAndBufferSortIndexAtBuffer<T> getValueAndBufferSortIndexAtBuffer = new GetValueAndBufferSortIndexAtBuffer<T>((int bufferIndex, int sortIndex) => GetFirstNonNullValueAndBufferIndexStartingAtIndex(bufferIndex, sortIndex));
             GetBufferLengthAtIndex getBufferLengthAtIndex = new GetBufferLengthAtIndex((int bufferIndex) => bufferSortIndices[bufferIndex].Count);

@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Apache.Arrow;
 using Apache.Arrow.Types;
 using Microsoft.ML;
@@ -225,7 +226,7 @@ namespace Microsoft.Data.Analysis
             // Not the most efficient implementation. Using a selection algorithm here would be O(n) instead of O(nLogn)
             if (Length == 0)
                 return 0;
-            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices(out Int64DataFrameColumn _);
+            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices(out PrimitiveDataFrameColumn<long> _);
             long middle = sortIndices.Length / 2;
             double middleValue = (double)Convert.ChangeType(this[sortIndices[middle].Value].Value, typeof(double));
             if (sortIndices.Length % 2 == 0)
@@ -447,77 +448,33 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        internal BooleanDataFrameColumn CloneAsBooleanColumn()
+        internal PrimitiveDataFrameColumn<bool> CloneAsBooleanColumn()
         {
             PrimitiveColumnContainer<bool> newColumnContainer = _columnContainer.CloneAsBoolContainer();
-            return new BooleanDataFrameColumn(Name, newColumnContainer);
+            return new PrimitiveDataFrameColumn<bool>(Name, newColumnContainer);
         }
 
-        internal ByteDataFrameColumn CloneAsByteColumn()
+        internal PrimitiveDataFrameColumn<U> CloneTruncating<U>()
+            where U : unmanaged, INumber<U>
         {
-            PrimitiveColumnContainer<byte> newColumnContainer = _columnContainer.CloneAsByteContainer();
-            return new ByteDataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal SByteDataFrameColumn CloneAsSByteColumn()
-        {
-            PrimitiveColumnContainer<sbyte> newColumnContainer = _columnContainer.CloneAsSByteContainer();
-            return new SByteDataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal DoubleDataFrameColumn CloneAsDoubleColumn()
-        {
-            PrimitiveColumnContainer<double> newColumnContainer = _columnContainer.CloneAsDoubleContainer();
-            return new DoubleDataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal DecimalDataFrameColumn CloneAsDecimalColumn()
-        {
-            PrimitiveColumnContainer<decimal> newColumnContainer = _columnContainer.CloneAsDecimalContainer();
-            return new DecimalDataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal Int16DataFrameColumn CloneAsInt16Column()
-        {
-            PrimitiveColumnContainer<short> newColumnContainer = _columnContainer.CloneAsShortContainer();
-            return new Int16DataFrameColumn(Name, newColumnContainer);
-        }
-
-
-        internal UInt16DataFrameColumn CloneAsUInt16Column()
-        {
-            PrimitiveColumnContainer<ushort> newColumnContainer = _columnContainer.CloneAsUShortContainer();
-            return new UInt16DataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal Int32DataFrameColumn CloneAsInt32Column()
-        {
-            PrimitiveColumnContainer<int> newColumnContainer = _columnContainer.CloneAsIntContainer();
-            return new Int32DataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal UInt32DataFrameColumn CloneAsUInt32Column()
-        {
-            PrimitiveColumnContainer<uint> newColumnContainer = _columnContainer.CloneAsUIntContainer();
-            return new UInt32DataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal Int64DataFrameColumn CloneAsInt64Column()
-        {
-            PrimitiveColumnContainer<long> newColumnContainer = _columnContainer.CloneAsLongContainer();
-            return new Int64DataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal UInt64DataFrameColumn CloneAsUInt64Column()
-        {
-            PrimitiveColumnContainer<ulong> newColumnContainer = _columnContainer.CloneAsULongContainer();
-            return new UInt64DataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal SingleDataFrameColumn CloneAsSingleColumn()
-        {
-            PrimitiveColumnContainer<float> newColumnContainer = _columnContainer.CloneAsFloatContainer();
-            return new SingleDataFrameColumn(Name, newColumnContainer);
+            switch (typeof(U))
+            {
+                case Type decimalType when decimalType == typeof(decimal):
+                case Type byteType when byteType == typeof(byte):
+                case Type charType when charType == typeof(char):
+                case Type doubleType when doubleType == typeof(double):
+                case Type floatType when floatType == typeof(float):
+                case Type intType when intType == typeof(int):
+                case Type longType when longType == typeof(long):
+                case Type sbyteType when sbyteType == typeof(sbyte):
+                case Type shortType when shortType == typeof(short):
+                case Type uintType when uintType == typeof(uint):
+                case Type ulongType when ulongType == typeof(ulong):
+                case Type ushortType when ushortType == typeof(ushort):
+                    return new PrimitiveDataFrameColumn<U>(Name, _columnContainer.CloneTuncating<U>());
+                default:
+                    throw new NotSupportedException();
+            }
         }
 
         /// <inheritdoc/>

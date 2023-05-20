@@ -131,15 +131,15 @@ namespace Microsoft.Data.Analysis
             DataFrameColumn ret;
             if (kind == typeof(bool))
             {
-                ret = new BooleanDataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<bool>(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(int))
             {
-                ret = new Int32DataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<int>(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(float))
             {
-                ret = new SingleDataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<float>(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(string))
             {
@@ -147,43 +147,43 @@ namespace Microsoft.Data.Analysis
             }
             else if (kind == typeof(long))
             {
-                ret = new Int64DataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<long>(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(decimal))
             {
-                ret = new DecimalDataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<decimal>(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(byte))
             {
-                ret = new ByteDataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<byte>(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(char))
             {
-                ret = new CharDataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<char>(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(double))
             {
-                ret = new DoubleDataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<double>(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(sbyte))
             {
-                ret = new SByteDataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<sbyte>(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(short))
             {
-                ret = new Int16DataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<short>(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(uint))
             {
-                ret = new UInt32DataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<uint>(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(ulong))
             {
-                ret = new UInt64DataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<ulong>(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(ushort))
             {
-                ret = new UInt16DataFrameColumn(GetColumnName(columnNames, columnIndex));
+                ret = new PrimitiveDataFrameColumn<ushort>(GetColumnName(columnNames, columnIndex));
             }
             else if (kind == typeof(DateTime))
             {
