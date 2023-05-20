@@ -324,6 +324,44 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void RenameColumnWithSetNameTests()
+        {
+            StringDataFrameColumn city = new StringDataFrameColumn("City", new string[] { "London", "Berlin" });
+            PrimitiveDataFrameColumn<int> temp = new PrimitiveDataFrameColumn<int>("Temperature", new int[] { 12, 13 });
+
+            DataFrame dataframe = new DataFrame(city, temp);
+
+            // Change the name of the column:
+            dataframe["City"].SetName("Town");
+            var renamedColumn = dataframe["Town"];
+
+            Assert.Throws<ArgumentException>(() => dataframe["City"]);
+
+            Assert.NotNull(renamedColumn);
+            Assert.Equal("Town", renamedColumn.Name);
+            Assert.True(ReferenceEquals(city, renamedColumn));
+        }
+
+        [Fact]
+        public void RenameColumnWithRenameColumnTests()
+        {
+            StringDataFrameColumn city = new StringDataFrameColumn("City", new string[] { "London", "Berlin" });
+            PrimitiveDataFrameColumn<int> temp = new PrimitiveDataFrameColumn<int>("Temperature", new int[] { 12, 13 });
+
+            DataFrame dataframe = new DataFrame(city, temp);
+
+            // Change the name of the column:
+            dataframe.Columns.RenameColumn("City", "Town");
+            var renamedColumn = dataframe["Town"];
+
+            Assert.Throws<ArgumentException>(() => dataframe["City"]);
+
+            Assert.NotNull(renamedColumn);
+            Assert.Equal("Town", renamedColumn.Name);
+            Assert.True(ReferenceEquals(city, renamedColumn));
+        }
+
+        [Fact]
         public void TestBinaryOperations()
         {
             DataFrame df = MakeDataFrameWithTwoColumns(12);
