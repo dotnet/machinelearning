@@ -2767,6 +2767,56 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        //Issue 6127
+        public void TestMerge_CorrectColumnTypes()
+        {
+            DataFrame left = MakeDataFrameWithAllMutableColumnTypes(2, false);
+            DataFrame right = MakeDataFrameWithAllMutableColumnTypes(1);
+
+            DataFrame merge = left.Merge<int>(right, "Int", "Int");
+
+            Assert.NotNull(merge.Columns.GetBooleanColumn("Bool_left"));
+            Assert.NotNull(merge.Columns.GetBooleanColumn("Bool_right"));
+
+            Assert.NotNull(merge.Columns.GetDecimalColumn("Decimal_left"));
+            Assert.NotNull(merge.Columns.GetDecimalColumn("Decimal_right"));
+
+            Assert.NotNull(merge.Columns.GetSingleColumn("Float_left"));
+            Assert.NotNull(merge.Columns.GetSingleColumn("Float_right"));
+
+            Assert.NotNull(merge.Columns.GetDoubleColumn("Double_left"));
+            Assert.NotNull(merge.Columns.GetDoubleColumn("Double_right"));
+
+            Assert.NotNull(merge.Columns.GetByteColumn("Byte_left"));
+            Assert.NotNull(merge.Columns.GetByteColumn("Byte_right"));
+
+            Assert.NotNull(merge.Columns.GetCharColumn("Char_left"));
+            Assert.NotNull(merge.Columns.GetCharColumn("Char_right"));
+
+            Assert.NotNull(merge.Columns.GetInt16Column("Short_left"));
+            Assert.NotNull(merge.Columns.GetInt16Column("Short_right"));
+
+            Assert.NotNull(merge.Columns.GetUInt16Column("Ushort_left"));
+            Assert.NotNull(merge.Columns.GetUInt16Column("Ushort_right"));
+
+            Assert.NotNull(merge.Columns.GetInt32Column("Int_left"));
+            Assert.NotNull(merge.Columns.GetInt32Column("Int_right"));
+
+            Assert.NotNull(merge.Columns.GetUInt32Column("Uint_left"));
+            Assert.NotNull(merge.Columns.GetUInt32Column("Uint_right"));
+
+            Assert.NotNull(merge.Columns.GetInt64Column("Long_left"));
+            Assert.NotNull(merge.Columns.GetInt64Column("Long_right"));
+
+            Assert.NotNull(merge.Columns.GetUInt64Column("Ulong_left"));
+            Assert.NotNull(merge.Columns.GetUInt64Column("Ulong_right"));
+
+            Assert.NotNull(merge.Columns.GetDateTimeColumn("DateTime_left"));
+            Assert.NotNull(merge.Columns.GetDateTimeColumn("DateTime_right"));
+
+        }
+
+        [Fact]
         public void TestDescription()
         {
             DataFrame df = MakeDataFrameWithAllMutableColumnTypes(10);

@@ -221,6 +221,23 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
+        /// Gets the <see cref="PrimitiveDataFrameColumn{T}"/> with the specified <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">The name of the column</param>
+        /// <returns><see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
+        /// <exception cref="ArgumentException">A column named <paramref name="name"/> cannot be found, or if the column's type doesn't match.</exception>
+        public PrimitiveDataFrameColumn<DateTime> GetDateTimeColumn(string name)
+        {
+            DataFrameColumn column = this[name];
+            if (column is PrimitiveDataFrameColumn<DateTime> ret)
+            {
+                return ret;
+            }
+
+            throw new ArgumentException(string.Format(Strings.BadColumnCast, column.DataType, typeof(DateTime)));
+        }
+
+        /// <summary>
         /// Gets the <see cref="ArrowStringDataFrameColumn"/> with the specified <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the column</param>
