@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Apache.Arrow;
 using Apache.Arrow.Types;
 using Microsoft.ML;
@@ -104,6 +105,8 @@ namespace Microsoft.Data.Analysis
                 return UInt64Type.Default;
             else if (typeof(T) == typeof(ushort))
                 return UInt16Type.Default;
+            else if (typeof(T) == typeof(DateTime))
+                return Date64Type.Default;
             else
                 throw new NotImplementedException(nameof(T));
         }
@@ -127,36 +130,64 @@ namespace Microsoft.Data.Analysis
         {
             int arrayIndex = numberOfRows == 0 ? 0 : _columnContainer.GetArrayContainingRowIndex(startIndex);
             int offset = (int)(startIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity);
+
             if (numberOfRows != 0 && numberOfRows > _columnContainer.Buffers[arrayIndex].Length - offset)
             {
                 throw new ArgumentException(Strings.SpansMultipleBuffers, nameof(numberOfRows));
             }
-            ArrowBuffer valueBuffer = numberOfRows == 0 ? ArrowBuffer.Empty : new ArrowBuffer(_columnContainer.GetValueBuffer(startIndex));
-            ArrowBuffer nullBuffer = numberOfRows == 0 ? ArrowBuffer.Empty : new ArrowBuffer(_columnContainer.GetNullBuffer(startIndex));
+
             int nullCount = GetNullCount(startIndex, numberOfRows);
+
+            //DateTime requires convertion
+            if (this.DataType == typeof(DateTime))
+            {
+                if (numberOfRows == 0)
+                    return new Date64Array(ArrowBuffer.Empty, ArrowBuffer.Empty, numberOfRows, nullCount, offset);
+
+                ReadOnlyDataFrameBuffer<T> valueBuffer = (numberOfRows == 0) ? null : _columnContainer.Buffers[arrayIndex];
+                ReadOnlyDataFrameBuffer<byte> nullBuffer = (numberOfRows == 0) ? null : _columnContainer.NullBitMapBuffers[arrayIndex];
+
+                ReadOnlySpan<DateTime> valueSpan = MemoryMarshal.Cast<T, DateTime>(valueBuffer.ReadOnlySpan);
+                Date64Array.Builder builder = new Date64Array.Builder().Reserve(valueBuffer.Length);
+
+                for (int i = 0; i < valueBuffer.Length; i++)
+                {
+                    if (BitUtility.GetBit(nullBuffer.ReadOnlySpan, i))
+                        builder.Append(valueSpan[i]);
+                    else
+                        builder.AppendNull();
+                }
+
+                return builder.Build();
+            }
+
+            //No convertion
+            ArrowBuffer arrowValueBuffer = numberOfRows == 0 ? ArrowBuffer.Empty : new ArrowBuffer(_columnContainer.Buffers[arrayIndex].ReadOnlyBuffer);
+            ArrowBuffer arrowNullBuffer = numberOfRows == 0 ? ArrowBuffer.Empty : new ArrowBuffer(_columnContainer.NullBitMapBuffers[arrayIndex].ReadOnlyBuffer);
+
             Type type = this.DataType;
             if (type == typeof(bool))
-                return new BooleanArray(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new BooleanArray(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(double))
-                return new DoubleArray(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new DoubleArray(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(float))
-                return new FloatArray(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new FloatArray(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(int))
-                return new Int32Array(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new Int32Array(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(long))
-                return new Int64Array(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new Int64Array(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(sbyte))
-                return new Int8Array(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new Int8Array(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(short))
-                return new Int16Array(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new Int16Array(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(uint))
-                return new UInt32Array(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new UInt32Array(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(ulong))
-                return new UInt64Array(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new UInt64Array(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(ushort))
-                return new UInt16Array(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new UInt16Array(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(byte))
-                return new UInt8Array(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new UInt8Array(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else
                 throw new NotImplementedException(type.ToString());
         }
