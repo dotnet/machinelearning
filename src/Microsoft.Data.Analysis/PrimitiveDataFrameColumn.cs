@@ -165,7 +165,7 @@ namespace Microsoft.Data.Analysis
         {
             get
             {
-                if (startIndex > Length)
+                if (startIndex >= Length)
                 {
                     throw new ArgumentOutOfRangeException(nameof(startIndex));
                 }
@@ -175,7 +175,7 @@ namespace Microsoft.Data.Analysis
 
         protected override IReadOnlyList<object> GetValues(long startIndex, int length)
         {
-            if (startIndex > Length)
+            if (startIndex >= Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(startIndex));
             }
