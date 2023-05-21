@@ -74,13 +74,15 @@ namespace Microsoft.Data.Analysis
         protected override void InsertItem(int columnIndex, DataFrameColumn column)
         {
             column = column ?? throw new ArgumentNullException(nameof(column));
-            if (RowCount > 0 && column.Length != RowCount)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
 
-            if (Count >= 1 && RowCount == 0 && column.Length != RowCount)
+            if (Count == 0)
             {
+                //change RowCount on inserting first row to dataframe
+                RowCount = column.Length;
+            }
+            else if (column.Length != RowCount)
+            {
+                //check all columns in the dataframe have the same lenght (amount of rows)
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
 
@@ -91,7 +93,6 @@ namespace Microsoft.Data.Analysis
 
             column.AddOwner(this);
 
-            RowCount = column.Length;
             _columnNames.Insert(columnIndex, column.Name);
             _columnNameToIndexDictionary[column.Name] = columnIndex;
             for (int i = columnIndex + 1; i < Count; i++)
@@ -137,6 +138,10 @@ namespace Microsoft.Data.Analysis
             this[columnIndex].RemoveOwner(this);
             base.RemoveItem(columnIndex);
 
+            //Reset RowCount if the last column was removed and dataframe is empty
+            if (Count == 0)
+                RowCount = 0;
+
             ColumnsChanged?.Invoke();
         }
 
@@ -168,6 +173,9 @@ namespace Microsoft.Data.Analysis
             ColumnsChanged?.Invoke();
             _columnNames.Clear();
             _columnNameToIndexDictionary.Clear();
+
+            //reset RowCount as DataFrame is now empty
+            RowCount = 0;
         }
 
         /// <summary>
