@@ -148,9 +148,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < left.Buffers.Count; b++)
             {
-                var buffer = left.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<bool>.GetMutableBuffer(buffer);
-                left.Buffers[b] = mutableBuffer;
+                var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
@@ -163,9 +161,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < column.Buffers.Count; b++)
             {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<bool>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
+                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -177,9 +173,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < column.Buffers.Count; b++)
             {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<bool>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
+                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -191,9 +185,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < left.Buffers.Count; b++)
             {
-                var buffer = left.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<bool>.GetMutableBuffer(buffer);
-                left.Buffers[b] = mutableBuffer;
+                var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
@@ -206,9 +198,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < column.Buffers.Count; b++)
             {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<bool>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
+                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -220,9 +210,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < column.Buffers.Count; b++)
             {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<bool>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
+                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -234,9 +222,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < left.Buffers.Count; b++)
             {
-                var buffer = left.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<bool>.GetMutableBuffer(buffer);
-                left.Buffers[b] = mutableBuffer;
+                var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
@@ -249,9 +235,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < column.Buffers.Count; b++)
             {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<bool>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
+                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -263,9 +247,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < column.Buffers.Count; b++)
             {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<bool>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
+                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -285,9 +267,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < left.Buffers.Count; b++)
             {
-                var buffer = left.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<bool>.GetMutableBuffer(buffer);
-                left.Buffers[b] = mutableBuffer;
+                var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
@@ -300,9 +280,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < column.Buffers.Count; b++)
             {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<bool>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
+                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -314,9 +292,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < left.Buffers.Count; b++)
             {
-                var buffer = left.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<bool>.GetMutableBuffer(buffer);
-                left.Buffers[b] = mutableBuffer;
+                var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
@@ -329,9 +305,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < column.Buffers.Count; b++)
             {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<bool>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
+                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -483,9 +457,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < left.Buffers.Count; b++)
             {
-                var buffer = left.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<DateTime>.GetMutableBuffer(buffer);
-                left.Buffers[b] = mutableBuffer;
+                var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
@@ -498,9 +470,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < column.Buffers.Count; b++)
             {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<DateTime>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
+                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -512,9 +482,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < left.Buffers.Count; b++)
             {
-                var buffer = left.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<DateTime>.GetMutableBuffer(buffer);
-                left.Buffers[b] = mutableBuffer;
+                var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
@@ -527,9 +495,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < column.Buffers.Count; b++)
             {
-                var buffer = column.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<DateTime>.GetMutableBuffer(buffer);
-                column.Buffers[b] = mutableBuffer;
+                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
                 for (int i = 0; i < span.Length; i++)
                 {
