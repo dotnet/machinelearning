@@ -134,6 +134,18 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void TestAppendMany_SizeMoreThanMaxBufferCapacity()
+        {
+            const int MaxCapacityInBytes = 2147483591;
+
+            //Check appending values with extending column size over MaxCapacity of ReadOnlyDataFrameBuffer
+            PrimitiveDataFrameColumn<byte> intColumn = new PrimitiveDataFrameColumn<byte>("Byte1", MaxCapacityInBytes - 5);
+            intColumn.AppendMany(5, 10);
+
+            Assert.Equal(MaxCapacityInBytes + 5, intColumn.Length);
+        }
+
+        [Fact]
         public void TestBasicArrowStringColumn()
         {
             StringArray strArray = new StringArray.Builder().Append("foo").Append("bar").Build();
