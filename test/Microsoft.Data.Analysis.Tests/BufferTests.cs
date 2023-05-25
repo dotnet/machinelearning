@@ -188,6 +188,28 @@ namespace Microsoft.Data.Analysis.Tests
                 Assert.Null(clone[i]);
         }
 
+        /* Don't run tests during build as they fail, because build if build machine doesn't have enought memory
+        [Fact]
+        public void TestAppend_SizeMoreThanMaxBufferCapacity()
+        {
+            //Check appending value, than can increase buffer size over MaxCapacity (default strategy is to double buffer capacity)
+            PrimitiveDataFrameColumn<byte> intColumn = new PrimitiveDataFrameColumn<byte>("Byte1", int.MaxValue / 2 - 1);
+            intColumn.Append(10);
+        }
+
+        [Fact]
+        public void TestAppendMany_SizeMoreThanMaxBufferCapacity()
+        {
+            const int MaxCapacityInBytes = 2147483591;
+
+            //Check appending values with extending column size over MaxCapacity of ReadOnlyDataFrameBuffer
+            PrimitiveDataFrameColumn<byte> intColumn = new PrimitiveDataFrameColumn<byte>("Byte1", MaxCapacityInBytes - 5);
+            intColumn.AppendMany(5, 10);
+
+            Assert.Equal(MaxCapacityInBytes + 5, intColumn.Length);
+        }
+        */
+
         //#if !NETFRAMEWORK // https://github.com/dotnet/corefxlab/issues/2796
         //        [Fact]
         //        public void TestPrimitiveColumnGetReadOnlyBuffers()
