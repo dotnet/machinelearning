@@ -267,8 +267,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < left.Buffers.Count; b++)
             {
-                var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
+                var span = left.Buffers[b].ReadOnlySpan;
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -280,8 +279,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < column.Buffers.Count; b++)
             {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
+                var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
                     ret[i] = (span[i] == scalar);
@@ -292,8 +290,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < left.Buffers.Count; b++)
             {
-                var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
+                var span = left.Buffers[b].ReadOnlySpan;
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -305,8 +302,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < column.Buffers.Count; b++)
             {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
+                var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
                     ret[i] = (span[i] != scalar);
@@ -457,8 +453,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < left.Buffers.Count; b++)
             {
-                var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
+                var span = left.Buffers[b].ReadOnlySpan;
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -470,8 +465,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < column.Buffers.Count; b++)
             {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
+                var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
                     ret[i] = (span[i] == scalar);
@@ -482,8 +476,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < left.Buffers.Count; b++)
             {
-                var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
+                var span = left.Buffers[b].ReadOnlySpan;
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -495,8 +488,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int b = 0; b < column.Buffers.Count; b++)
             {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
+                var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
                     ret[i] = (span[i] != scalar);
