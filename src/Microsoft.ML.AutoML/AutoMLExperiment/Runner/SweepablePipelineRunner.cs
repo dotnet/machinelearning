@@ -68,8 +68,8 @@ namespace Microsoft.ML.AutoML
 
             if (_datasetManager is ITrainValidateDatasetManager trainTestDatasetManager)
             {
-                var model = mlnetPipeline.Fit(trainTestDatasetManager.TrainDataset);
-                var eval = model.Transform(trainTestDatasetManager.ValidateDataset);
+                var model = mlnetPipeline.Fit(trainTestDatasetManager.LoadTrainDataset(_mLContext, settings));
+                var eval = model.Transform(trainTestDatasetManager.LoadValidateDataset(_mLContext, settings));
                 var metric = _metricManager.Evaluate(_mLContext, eval);
                 stopWatch.Stop();
                 var loss = _metricManager.IsMaximize ? -metric : metric;

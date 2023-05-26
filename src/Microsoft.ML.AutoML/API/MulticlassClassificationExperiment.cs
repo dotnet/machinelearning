@@ -398,8 +398,8 @@ namespace Microsoft.ML.AutoML
                 {
                     var stopWatch = new Stopwatch();
                     stopWatch.Start();
-                    var model = pipeline.Fit(trainTestDatasetManager.TrainDataset);
-                    var eval = model.Transform(trainTestDatasetManager.ValidateDataset);
+                    var model = pipeline.Fit(trainTestDatasetManager.LoadTrainDataset(_context, settings));
+                    var eval = model.Transform(trainTestDatasetManager.LoadValidateDataset(_context, settings));
                     var metrics = _context.MulticlassClassification.Evaluate(eval, metricManager.LabelColumn, predictedLabelColumnName: metricManager.PredictedColumn);
                     var metric = GetMetric(metricManager.Metric, metrics);
                     var loss = metricManager.IsMaximize ? -metric : metric;
