@@ -9,6 +9,7 @@ using Microsoft.Data.Analysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.Data;
+using Microsoft.ML.SearchSpace;
 
 namespace Microsoft.ML.Fairlearn.AutoML
 {
@@ -55,9 +56,14 @@ namespace Microsoft.ML.Fairlearn.AutoML
             {
                 var datasetManager = serviceProvider.GetRequiredService<TrainValidateDatasetManager>();
                 var moment = new UtilityParity();
-                var sensitiveFeature = DataFrameColumn.Create("group_id", datasetManager.TrainDataset.GetColumn<string>(sensitiveColumnName));
-                var label = DataFrameColumn.Create("label", datasetManager.TrainDataset.GetColumn<bool>(labelColumn));
-                moment.LoadData(datasetManager.TrainDataset, label, sensitiveFeature);
+                var context = serviceProvider.GetRequiredService<MLContext>();
+                var trainData = datasetManager.LoadTrainDataset(context, new TrialSettings
+                {
+                    Parameter = Parameter.CreateNestedParameter(),
+                });
+                var sensitiveFeature = DataFrameColumn.Create("group_id", trainData.GetColumn<string>(sensitiveColumnName));
+                var label = DataFrameColumn.Create("label", trainData.GetColumn<bool>(labelColumn));
+                moment.LoadData(trainData, label, sensitiveFeature);
                 var lambdaSearchSpace = Utilities.GenerateBinaryClassificationLambdaSearchSpace(moment, gridLimit, negativeAllowed);
                 experiment.AddSearchSpace("_lambda_search_space", lambdaSearchSpace);
 

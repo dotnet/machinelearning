@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+#nullable enable
 
 using Microsoft.ML.SearchSpace;
 
@@ -18,16 +19,16 @@ namespace Microsoft.ML.AutoML
     {
         int? Fold { get; set; }
 
-        IDataView Dataset { get; set; }
+        IDataView? Dataset { get; set; }
 
-        string SamplingKeyColumnName { get; set; }
+        string? SamplingKeyColumnName { get; set; }
     }
 
     public interface ITrainValidateDatasetManager
     {
-        IDataView LoadTrainDataset(MLContext context, TrialSettings settings);
+        IDataView LoadTrainDataset(MLContext context, TrialSettings? settings);
 
-        IDataView LoadValidateDataset(MLContext context, TrialSettings settings);
+        IDataView LoadValidateDataset(MLContext context, TrialSettings? settings);
     }
 
     internal class TrainValidateDatasetManager : IDatasetManager, ITrainValidateDatasetManager
@@ -37,7 +38,7 @@ namespace Microsoft.ML.AutoML
         private readonly IDataView _validateDataset;
         private readonly string _subSamplingKey = "TrainValidateDatasetSubsamplingKey";
         private bool _isInitialized = false;
-        public TrainValidateDatasetManager(IDataView trainDataset, IDataView validateDataset, string subSamplingKey = null)
+        public TrainValidateDatasetManager(IDataView trainDataset, IDataView validateDataset, string? subSamplingKey = null)
         {
             _trainDataset = trainDataset;
             _validateDataset = validateDataset;
@@ -46,22 +47,20 @@ namespace Microsoft.ML.AutoML
 
         public string SubSamplingKey => _subSamplingKey;
 
-        public IDataView TrainDataset { get; set; }
-
-        public IDataView ValidateDataset { get; set; }
-
         /// <summary>
         /// Load Train Dataset. If <see cref="TrialSettings.Parameter"/> contains <see cref="_subSamplingKey"/> then the train dataset will be subsampled.
         /// </summary>
+        /// <param name="context">MLContext.</param>
+        /// <param name="settings">trial settings. If null, return entire train dataset.</param>
         /// <returns>train dataset.</returns>
-        public IDataView LoadTrainDataset(MLContext context, TrialSettings settings)
+        public IDataView LoadTrainDataset(MLContext context, TrialSettings? settings)
         {
             if (!_isInitialized)
             {
                 InitializeTrainDataset(context);
                 _isInitialized = true;
             }
-            var trainTestSplitParameter = settings.Parameter.ContainsKey(nameof(TrainValidateDatasetManager)) ? settings.Parameter[nameof(TrainValidateDatasetManager)] : null;
+            var trainTestSplitParameter = settings?.Parameter.ContainsKey(nameof(TrainValidateDatasetManager)) is true ? settings.Parameter[nameof(TrainValidateDatasetManager)] : null;
             if (trainTestSplitParameter is Parameter parameter)
             {
                 var subSampleRatio = parameter.ContainsKey(_subSamplingKey) ? parameter[_subSamplingKey].AsType<double>() : 1;
@@ -75,7 +74,7 @@ namespace Microsoft.ML.AutoML
             return _trainDataset;
         }
 
-        public IDataView LoadValidateDataset(MLContext context, TrialSettings settings)
+        public IDataView LoadValidateDataset(MLContext context, TrialSettings? settings)
         {
             return _validateDataset;
         }
@@ -89,10 +88,10 @@ namespace Microsoft.ML.AutoML
 
     internal class CrossValidateDatasetManager : IDatasetManager, ICrossValidateDatasetManager
     {
-        public IDataView Dataset { get; set; }
+        public IDataView? Dataset { get; set; }
 
         public int? Fold { get; set; }
 
-        public string SamplingKeyColumnName { get; set; }
+        public string? SamplingKeyColumnName { get; set; }
     }
 }

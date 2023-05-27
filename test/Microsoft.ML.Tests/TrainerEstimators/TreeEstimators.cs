@@ -21,6 +21,8 @@ using Microsoft.ML.Transforms;
 using Xunit;
 using FluentAssertions;
 using System.IO;
+using static Microsoft.ML.DataOperationsCatalog;
+using System.Data;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
@@ -48,6 +50,60 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
             var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
+        }
+
+        [Fact]
+        public void FastTreeBinaryEstimatorOnLongLengthArray()
+        {
+            var dataset = ML.Data.LoadFromEnumerable(GenerateIEnumerableWithMaxLongLength());
+            var trainer = ML.BinaryClassification.Trainers.FastTree(
+                new FastTreeBinaryTrainer.Options
+                {
+                    NumberOfThreads = 1,
+                    NumberOfTrees = 10,
+                    NumberOfLeaves = 5,
+                    DiskTranspose = true,
+                    LabelColumnName = nameof(SingleFeatureWithBooleanLabel.Label),
+                    FeatureColumnName = nameof(SingleFeatureWithBooleanLabel.Feature)
+                });
+            TestEstimatorCore(trainer, dataset);
+            Done();
+        }
+
+        class SingleFeatureWithBooleanLabel
+        {
+            public bool Label { get; set; }
+
+            [VectorType(1)]
+            public float[] Feature { get; set; }
+        }
+
+        private IEnumerable<SingleFeatureWithBooleanLabel> GenerateIEnumerableWithMaxLongLength()
+        {
+            var currentLabel = true;
+            var currentFloat = 0f;
+            var length = 0L;
+            var bufferLength = 2 >> 15;
+            var featureBuffer = new float[bufferLength];
+            var labelBuffer = new bool[bufferLength];
+            while (length < int.MaxValue / 2)
+            {
+                for (int i = 0; i < bufferLength; i++)
+                {
+                    featureBuffer[i] = currentFloat;
+                    labelBuffer[i] = currentLabel;
+                    currentFloat++;
+                    currentLabel = !currentLabel;
+                }
+
+                var buffer = Enumerable.Zip(featureBuffer, labelBuffer, (f, l) => new SingleFeatureWithBooleanLabel { Feature = new float[] { f }, Label = l });
+                foreach (var item in buffer)
+                {
+                    yield return item;
+                }
+
+                length += bufferLength;
+            }
         }
 
         [LightGBMFact]

@@ -369,7 +369,7 @@ namespace Microsoft.ML.AutoML.Test
             result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.5);
             result.TrialSettings.Parameter[nameof(TrainValidateDatasetManager)]["TrainValidateDatasetSubsamplingKey"]
-                .AsType<double>().Should().Be(0.1);
+                .AsType<float>().Should().Be(0.1f);
         }
 
         [Fact]
