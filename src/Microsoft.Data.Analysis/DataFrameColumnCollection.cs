@@ -70,7 +70,7 @@ namespace Microsoft.Data.Analysis
             }
             else if (column.Length != RowCount)
             {
-                //check all columns in the dataframe have the same lenght (amount of rows)
+                //check all columns in the dataframe have the same length (amount of rows)
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
 
