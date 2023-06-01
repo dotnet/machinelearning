@@ -20,6 +20,8 @@ namespace Microsoft.ML.TestFramework.Attributes
         /// <inheritdoc />
         protected override bool IsEnvironmentSupported()
         {
+            Console.WriteLine("Bug BUg");
+            Console.WriteLine(Environment.Is64BitProcess);
             return Environment.Is64BitProcess && NativeLibrary.NativeLibraryExists("lib_lightgbm");
         }
     }
