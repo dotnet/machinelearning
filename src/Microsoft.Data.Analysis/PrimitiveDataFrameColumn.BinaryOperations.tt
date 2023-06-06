@@ -40,10 +40,20 @@ namespace Microsoft.Data.Analysis
                     return <#=method.MethodName#>Implementation(<#=type.TypeName#>Column);
 <# } #>
 <# } #>
+<# if (method.MethodName == "ElementwiseEquals") {#>
+                case null:
+                    return ElementwiseIsNull();
+<# } #>
+<# if (method.MethodName == "ElementwiseNotEquals") {#>
+                case null:
+                    return ElementwiseIsNotNull();
+<# } #>
+
                 default:
                     throw new NotSupportedException();
             }
         }
+
 <# } #>
 <# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.ComparisonScalar) {#>
 <# if (method.MethodType == MethodType.BinaryScalar) {#>
@@ -79,6 +89,7 @@ namespace Microsoft.Data.Analysis
             return <#=method.MethodName#>Implementation(value);
 <# } #>
         }
+
 <# } #>
 <# if (method.MethodType == MethodType.BinaryInt ) {#>
         /// <inheritdoc/>
@@ -88,8 +99,8 @@ namespace Microsoft.Data.Analysis
         }
 <# } #>
 <# } #>
-
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
+
 <# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.ComparisonScalar) {#>
 <# if (method.MethodType == MethodType.BinaryScalar) {#>
 <# if (method.IsBitwise == true) { #>
