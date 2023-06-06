@@ -18,7 +18,7 @@ using System;
 namespace Microsoft.Data.Analysis
 {
     internal interface IPrimitiveDataFrameColumnArithmetic<T>
-        where T : struct
+        where T : unmanaged
     {
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
         <#= method.GetMethodSignature("PrimitiveColumnContainer", "T")#>;
@@ -29,7 +29,7 @@ namespace Microsoft.Data.Analysis
     }
 
     internal static class PrimitiveDataFrameColumnArithmetic<T>
-        where T : struct
+        where T : unmanaged
     {
         public static IPrimitiveDataFrameColumnArithmetic<T> Instance { get; } = PrimitiveDataFrameColumnArithmetic.GetArithmetic<T>();
     }
@@ -37,7 +37,7 @@ namespace Microsoft.Data.Analysis
     internal static class PrimitiveDataFrameColumnArithmetic
     {
         public static IPrimitiveDataFrameColumnArithmetic<T> GetArithmetic<T>()
-            where T : struct
+            where T : unmanaged
         {
 <# foreach (TypeConfiguration type in typeConfiguration) { #>
             <#=GenerateIfStatementHeader(type)#>
@@ -60,12 +60,17 @@ namespace Microsoft.Data.Analysis
 <# } else if (method.Operator != null) { #>
             for (int b = 0; b < <#= method.Op1Name #>.Buffers.Count; b++)
             {
-                var buffer = <#= method.Op1Name #>.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<<#=type.TypeName#>>.GetMutableBuffer(buffer);
-                <#= method.Op1Name #>.Buffers[b] = mutableBuffer;
-                var span = mutableBuffer.Span;
-<# if (method.MethodType == MethodType.Binary || method.MethodType == MethodType.Comparison) { #>
+<# if (method.MethodType == MethodType.Comparison) { #>
+                var span = <#= method.Op1Name #>.Buffers[b].ReadOnlySpan;
                 var otherSpan = <#=method.Op2Name#>.Buffers[b].ReadOnlySpan;
+<# } else if (method.MethodType == MethodType.ComparisonScalar){#>
+                var span = <#= method.Op1Name #>.Buffers[b].ReadOnlySpan;
+<# } else {#>
+                var mutableBuffer = <#= method.Op1Name #>.Buffers.GetOrCreateMutable(b);
+                var span = mutableBuffer.Span;
+<# if (method.MethodType == MethodType.Binary) { #>
+                var otherSpan = <#=method.Op2Name#>.Buffers[b].ReadOnlySpan;
+<# } #>
 <# } #>
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -92,9 +97,7 @@ namespace Microsoft.Data.Analysis
 <# } else if (method.Operator != null) { #>
             for (int b = 0; b < <#= method.Op1Name #>.Buffers.Count; b++)
             {
-                var buffer = <#= method.Op1Name #>.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<<#=type.TypeName#>>.GetMutableBuffer(buffer);
-                <#= method.Op1Name #>.Buffers[b] = mutableBuffer;
+                var mutableBuffer = <#= method.Op1Name #>.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
 <# if (method.MethodType == MethodType.Binary || method.MethodType == MethodType.Comparison) { #>
                 var otherSpan = <#=method.Op2Name#>.Buffers[b].ReadOnlySpan;

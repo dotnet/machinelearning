@@ -122,7 +122,7 @@ namespace Microsoft.ML.Fairlearn
             dfNeg["sign"].FillNulls("-", inPlace: true);
 
             // stack the temp dataframe dfNeg to the bottom dataframe that we want to return
-            dfNeg.Rows.ToList<DataFrameRow>().ForEach(row => { gSigned.Append(row, inPlace: true); });
+            gSigned.Append(dfNeg.Rows, inPlace: true);
 
             return gSigned;
         }
