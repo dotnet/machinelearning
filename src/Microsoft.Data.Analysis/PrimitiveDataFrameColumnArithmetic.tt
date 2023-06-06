@@ -79,9 +79,9 @@ namespace Microsoft.Data.Analysis
 <# } else if (method.MethodType == MethodType.Binary) { #>
                     span[i] = (<#=type.TypeName#>)(span[i] <#= method.Operator #> otherSpan[i]);
 <# } else if (method.MethodType == MethodType.Comparison) { #>
-                    ret[i] = (span[i] <#= method.Operator #> otherSpan[i]);
+                    ret[i + b] = (span[i] <#= method.Operator #> otherSpan[i]);
 <# } else if (method.MethodType == MethodType.ComparisonScalar) { #>
-                    ret[i] = (span[i] <#= method.Operator #> <#= method.Op2Name #>);
+                    ret[i + b] = (span[i] <#= method.Operator #> <#= method.Op2Name #>);
 <# } else {#>
                     throw new NotImplementedException();
 <# } #>

@@ -313,7 +313,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == otherSpan[i]);
+                    ret[i + b] = (span[i] == otherSpan[i]);
                 }
             }
         }
@@ -324,7 +324,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == scalar);
+                    ret[i + b] = (span[i] == scalar);
                 }
             }
         }
@@ -336,7 +336,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != otherSpan[i]);
+                    ret[i + b] = (span[i] != otherSpan[i]);
                 }
             }
         }
@@ -347,7 +347,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != scalar);
+                    ret[i + b] = (span[i] != scalar);
                 }
             }
         }
@@ -714,7 +714,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == otherSpan[i]);
+                    ret[i + b] = (span[i] == otherSpan[i]);
                 }
             }
         }
@@ -725,7 +725,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == scalar);
+                    ret[i + b] = (span[i] == scalar);
                 }
             }
         }
@@ -737,7 +737,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != otherSpan[i]);
+                    ret[i + b] = (span[i] != otherSpan[i]);
                 }
             }
         }
@@ -748,7 +748,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != scalar);
+                    ret[i + b] = (span[i] != scalar);
                 }
             }
         }
@@ -760,7 +760,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= otherSpan[i]);
+                    ret[i + b] = (span[i] >= otherSpan[i]);
                 }
             }
         }
@@ -771,7 +771,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= scalar);
+                    ret[i + b] = (span[i] >= scalar);
                 }
             }
         }
@@ -783,7 +783,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= otherSpan[i]);
+                    ret[i + b] = (span[i] <= otherSpan[i]);
                 }
             }
         }
@@ -794,7 +794,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= scalar);
+                    ret[i + b] = (span[i] <= scalar);
                 }
             }
         }
@@ -806,7 +806,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > otherSpan[i]);
+                    ret[i + b] = (span[i] > otherSpan[i]);
                 }
             }
         }
@@ -817,7 +817,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > scalar);
+                    ret[i + b] = (span[i] > scalar);
                 }
             }
         }
@@ -829,7 +829,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < otherSpan[i]);
+                    ret[i + b] = (span[i] < otherSpan[i]);
                 }
             }
         }
@@ -840,7 +840,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < scalar);
+                    ret[i + b] = (span[i] < scalar);
                 }
             }
         }
@@ -1175,7 +1175,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == otherSpan[i]);
+                    ret[i + b] = (span[i] == otherSpan[i]);
                 }
             }
         }
@@ -1186,7 +1186,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == scalar);
+                    ret[i + b] = (span[i] == scalar);
                 }
             }
         }
@@ -1198,7 +1198,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != otherSpan[i]);
+                    ret[i + b] = (span[i] != otherSpan[i]);
                 }
             }
         }
@@ -1209,7 +1209,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != scalar);
+                    ret[i + b] = (span[i] != scalar);
                 }
             }
         }
@@ -1221,7 +1221,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= otherSpan[i]);
+                    ret[i + b] = (span[i] >= otherSpan[i]);
                 }
             }
         }
@@ -1232,7 +1232,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= scalar);
+                    ret[i + b] = (span[i] >= scalar);
                 }
             }
         }
@@ -1244,7 +1244,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= otherSpan[i]);
+                    ret[i + b] = (span[i] <= otherSpan[i]);
                 }
             }
         }
@@ -1255,7 +1255,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= scalar);
+                    ret[i + b] = (span[i] <= scalar);
                 }
             }
         }
@@ -1267,7 +1267,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > otherSpan[i]);
+                    ret[i + b] = (span[i] > otherSpan[i]);
                 }
             }
         }
@@ -1278,7 +1278,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > scalar);
+                    ret[i + b] = (span[i] > scalar);
                 }
             }
         }
@@ -1290,7 +1290,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < otherSpan[i]);
+                    ret[i + b] = (span[i] < otherSpan[i]);
                 }
             }
         }
@@ -1301,7 +1301,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < scalar);
+                    ret[i + b] = (span[i] < scalar);
                 }
             }
         }
@@ -1545,7 +1545,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == otherSpan[i]);
+                    ret[i + b] = (span[i] == otherSpan[i]);
                 }
             }
         }
@@ -1556,7 +1556,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == scalar);
+                    ret[i + b] = (span[i] == scalar);
                 }
             }
         }
@@ -1568,7 +1568,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != otherSpan[i]);
+                    ret[i + b] = (span[i] != otherSpan[i]);
                 }
             }
         }
@@ -1579,7 +1579,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != scalar);
+                    ret[i + b] = (span[i] != scalar);
                 }
             }
         }
@@ -1591,7 +1591,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= otherSpan[i]);
+                    ret[i + b] = (span[i] >= otherSpan[i]);
                 }
             }
         }
@@ -1602,7 +1602,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= scalar);
+                    ret[i + b] = (span[i] >= scalar);
                 }
             }
         }
@@ -1614,7 +1614,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= otherSpan[i]);
+                    ret[i + b] = (span[i] <= otherSpan[i]);
                 }
             }
         }
@@ -1625,7 +1625,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= scalar);
+                    ret[i + b] = (span[i] <= scalar);
                 }
             }
         }
@@ -1637,7 +1637,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > otherSpan[i]);
+                    ret[i + b] = (span[i] > otherSpan[i]);
                 }
             }
         }
@@ -1648,7 +1648,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > scalar);
+                    ret[i + b] = (span[i] > scalar);
                 }
             }
         }
@@ -1660,7 +1660,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < otherSpan[i]);
+                    ret[i + b] = (span[i] < otherSpan[i]);
                 }
             }
         }
@@ -1671,7 +1671,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < scalar);
+                    ret[i + b] = (span[i] < scalar);
                 }
             }
         }
@@ -1915,7 +1915,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == otherSpan[i]);
+                    ret[i + b] = (span[i] == otherSpan[i]);
                 }
             }
         }
@@ -1926,7 +1926,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == scalar);
+                    ret[i + b] = (span[i] == scalar);
                 }
             }
         }
@@ -1938,7 +1938,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != otherSpan[i]);
+                    ret[i + b] = (span[i] != otherSpan[i]);
                 }
             }
         }
@@ -1949,7 +1949,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != scalar);
+                    ret[i + b] = (span[i] != scalar);
                 }
             }
         }
@@ -1961,7 +1961,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= otherSpan[i]);
+                    ret[i + b] = (span[i] >= otherSpan[i]);
                 }
             }
         }
@@ -1972,7 +1972,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= scalar);
+                    ret[i + b] = (span[i] >= scalar);
                 }
             }
         }
@@ -1984,7 +1984,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= otherSpan[i]);
+                    ret[i + b] = (span[i] <= otherSpan[i]);
                 }
             }
         }
@@ -1995,7 +1995,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= scalar);
+                    ret[i + b] = (span[i] <= scalar);
                 }
             }
         }
@@ -2007,7 +2007,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > otherSpan[i]);
+                    ret[i + b] = (span[i] > otherSpan[i]);
                 }
             }
         }
@@ -2018,7 +2018,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > scalar);
+                    ret[i + b] = (span[i] > scalar);
                 }
             }
         }
@@ -2030,7 +2030,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < otherSpan[i]);
+                    ret[i + b] = (span[i] < otherSpan[i]);
                 }
             }
         }
@@ -2041,7 +2041,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < scalar);
+                    ret[i + b] = (span[i] < scalar);
                 }
             }
         }
@@ -2285,7 +2285,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == otherSpan[i]);
+                    ret[i + b] = (span[i] == otherSpan[i]);
                 }
             }
         }
@@ -2296,7 +2296,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == scalar);
+                    ret[i + b] = (span[i] == scalar);
                 }
             }
         }
@@ -2308,7 +2308,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != otherSpan[i]);
+                    ret[i + b] = (span[i] != otherSpan[i]);
                 }
             }
         }
@@ -2319,7 +2319,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != scalar);
+                    ret[i + b] = (span[i] != scalar);
                 }
             }
         }
@@ -2331,7 +2331,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= otherSpan[i]);
+                    ret[i + b] = (span[i] >= otherSpan[i]);
                 }
             }
         }
@@ -2342,7 +2342,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= scalar);
+                    ret[i + b] = (span[i] >= scalar);
                 }
             }
         }
@@ -2354,7 +2354,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= otherSpan[i]);
+                    ret[i + b] = (span[i] <= otherSpan[i]);
                 }
             }
         }
@@ -2365,7 +2365,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= scalar);
+                    ret[i + b] = (span[i] <= scalar);
                 }
             }
         }
@@ -2377,7 +2377,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > otherSpan[i]);
+                    ret[i + b] = (span[i] > otherSpan[i]);
                 }
             }
         }
@@ -2388,7 +2388,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > scalar);
+                    ret[i + b] = (span[i] > scalar);
                 }
             }
         }
@@ -2400,7 +2400,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < otherSpan[i]);
+                    ret[i + b] = (span[i] < otherSpan[i]);
                 }
             }
         }
@@ -2411,7 +2411,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < scalar);
+                    ret[i + b] = (span[i] < scalar);
                 }
             }
         }
@@ -2746,7 +2746,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == otherSpan[i]);
+                    ret[i + b] = (span[i] == otherSpan[i]);
                 }
             }
         }
@@ -2757,7 +2757,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == scalar);
+                    ret[i + b] = (span[i] == scalar);
                 }
             }
         }
@@ -2769,7 +2769,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != otherSpan[i]);
+                    ret[i + b] = (span[i] != otherSpan[i]);
                 }
             }
         }
@@ -2780,7 +2780,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != scalar);
+                    ret[i + b] = (span[i] != scalar);
                 }
             }
         }
@@ -2792,7 +2792,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= otherSpan[i]);
+                    ret[i + b] = (span[i] >= otherSpan[i]);
                 }
             }
         }
@@ -2803,7 +2803,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= scalar);
+                    ret[i + b] = (span[i] >= scalar);
                 }
             }
         }
@@ -2815,7 +2815,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= otherSpan[i]);
+                    ret[i + b] = (span[i] <= otherSpan[i]);
                 }
             }
         }
@@ -2826,7 +2826,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= scalar);
+                    ret[i + b] = (span[i] <= scalar);
                 }
             }
         }
@@ -2838,7 +2838,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > otherSpan[i]);
+                    ret[i + b] = (span[i] > otherSpan[i]);
                 }
             }
         }
@@ -2849,7 +2849,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > scalar);
+                    ret[i + b] = (span[i] > scalar);
                 }
             }
         }
@@ -2861,7 +2861,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < otherSpan[i]);
+                    ret[i + b] = (span[i] < otherSpan[i]);
                 }
             }
         }
@@ -2872,7 +2872,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < scalar);
+                    ret[i + b] = (span[i] < scalar);
                 }
             }
         }
@@ -3207,7 +3207,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == otherSpan[i]);
+                    ret[i + b] = (span[i] == otherSpan[i]);
                 }
             }
         }
@@ -3218,7 +3218,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == scalar);
+                    ret[i + b] = (span[i] == scalar);
                 }
             }
         }
@@ -3230,7 +3230,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != otherSpan[i]);
+                    ret[i + b] = (span[i] != otherSpan[i]);
                 }
             }
         }
@@ -3241,7 +3241,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != scalar);
+                    ret[i + b] = (span[i] != scalar);
                 }
             }
         }
@@ -3253,7 +3253,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= otherSpan[i]);
+                    ret[i + b] = (span[i] >= otherSpan[i]);
                 }
             }
         }
@@ -3264,7 +3264,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= scalar);
+                    ret[i + b] = (span[i] >= scalar);
                 }
             }
         }
@@ -3276,7 +3276,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= otherSpan[i]);
+                    ret[i + b] = (span[i] <= otherSpan[i]);
                 }
             }
         }
@@ -3287,7 +3287,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= scalar);
+                    ret[i + b] = (span[i] <= scalar);
                 }
             }
         }
@@ -3299,7 +3299,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > otherSpan[i]);
+                    ret[i + b] = (span[i] > otherSpan[i]);
                 }
             }
         }
@@ -3310,7 +3310,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > scalar);
+                    ret[i + b] = (span[i] > scalar);
                 }
             }
         }
@@ -3322,7 +3322,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < otherSpan[i]);
+                    ret[i + b] = (span[i] < otherSpan[i]);
                 }
             }
         }
@@ -3333,7 +3333,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < scalar);
+                    ret[i + b] = (span[i] < scalar);
                 }
             }
         }
@@ -3668,7 +3668,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == otherSpan[i]);
+                    ret[i + b] = (span[i] == otherSpan[i]);
                 }
             }
         }
@@ -3679,7 +3679,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == scalar);
+                    ret[i + b] = (span[i] == scalar);
                 }
             }
         }
@@ -3691,7 +3691,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != otherSpan[i]);
+                    ret[i + b] = (span[i] != otherSpan[i]);
                 }
             }
         }
@@ -3702,7 +3702,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != scalar);
+                    ret[i + b] = (span[i] != scalar);
                 }
             }
         }
@@ -3714,7 +3714,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= otherSpan[i]);
+                    ret[i + b] = (span[i] >= otherSpan[i]);
                 }
             }
         }
@@ -3725,7 +3725,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= scalar);
+                    ret[i + b] = (span[i] >= scalar);
                 }
             }
         }
@@ -3737,7 +3737,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= otherSpan[i]);
+                    ret[i + b] = (span[i] <= otherSpan[i]);
                 }
             }
         }
@@ -3748,7 +3748,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= scalar);
+                    ret[i + b] = (span[i] <= scalar);
                 }
             }
         }
@@ -3760,7 +3760,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > otherSpan[i]);
+                    ret[i + b] = (span[i] > otherSpan[i]);
                 }
             }
         }
@@ -3771,7 +3771,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > scalar);
+                    ret[i + b] = (span[i] > scalar);
                 }
             }
         }
@@ -3783,7 +3783,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < otherSpan[i]);
+                    ret[i + b] = (span[i] < otherSpan[i]);
                 }
             }
         }
@@ -3794,7 +3794,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < scalar);
+                    ret[i + b] = (span[i] < scalar);
                 }
             }
         }
@@ -4129,7 +4129,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == otherSpan[i]);
+                    ret[i + b] = (span[i] == otherSpan[i]);
                 }
             }
         }
@@ -4140,7 +4140,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == scalar);
+                    ret[i + b] = (span[i] == scalar);
                 }
             }
         }
@@ -4152,7 +4152,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != otherSpan[i]);
+                    ret[i + b] = (span[i] != otherSpan[i]);
                 }
             }
         }
@@ -4163,7 +4163,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != scalar);
+                    ret[i + b] = (span[i] != scalar);
                 }
             }
         }
@@ -4175,7 +4175,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= otherSpan[i]);
+                    ret[i + b] = (span[i] >= otherSpan[i]);
                 }
             }
         }
@@ -4186,7 +4186,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= scalar);
+                    ret[i + b] = (span[i] >= scalar);
                 }
             }
         }
@@ -4198,7 +4198,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= otherSpan[i]);
+                    ret[i + b] = (span[i] <= otherSpan[i]);
                 }
             }
         }
@@ -4209,7 +4209,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= scalar);
+                    ret[i + b] = (span[i] <= scalar);
                 }
             }
         }
@@ -4221,7 +4221,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > otherSpan[i]);
+                    ret[i + b] = (span[i] > otherSpan[i]);
                 }
             }
         }
@@ -4232,7 +4232,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > scalar);
+                    ret[i + b] = (span[i] > scalar);
                 }
             }
         }
@@ -4244,7 +4244,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < otherSpan[i]);
+                    ret[i + b] = (span[i] < otherSpan[i]);
                 }
             }
         }
@@ -4255,7 +4255,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < scalar);
+                    ret[i + b] = (span[i] < scalar);
                 }
             }
         }
@@ -4590,7 +4590,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == otherSpan[i]);
+                    ret[i + b] = (span[i] == otherSpan[i]);
                 }
             }
         }
@@ -4601,7 +4601,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == scalar);
+                    ret[i + b] = (span[i] == scalar);
                 }
             }
         }
@@ -4613,7 +4613,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != otherSpan[i]);
+                    ret[i + b] = (span[i] != otherSpan[i]);
                 }
             }
         }
@@ -4624,7 +4624,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != scalar);
+                    ret[i + b] = (span[i] != scalar);
                 }
             }
         }
@@ -4636,7 +4636,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= otherSpan[i]);
+                    ret[i + b] = (span[i] >= otherSpan[i]);
                 }
             }
         }
@@ -4647,7 +4647,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= scalar);
+                    ret[i + b] = (span[i] >= scalar);
                 }
             }
         }
@@ -4659,7 +4659,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= otherSpan[i]);
+                    ret[i + b] = (span[i] <= otherSpan[i]);
                 }
             }
         }
@@ -4670,7 +4670,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= scalar);
+                    ret[i + b] = (span[i] <= scalar);
                 }
             }
         }
@@ -4682,7 +4682,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > otherSpan[i]);
+                    ret[i + b] = (span[i] > otherSpan[i]);
                 }
             }
         }
@@ -4693,7 +4693,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > scalar);
+                    ret[i + b] = (span[i] > scalar);
                 }
             }
         }
@@ -4705,7 +4705,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < otherSpan[i]);
+                    ret[i + b] = (span[i] < otherSpan[i]);
                 }
             }
         }
@@ -4716,7 +4716,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < scalar);
+                    ret[i + b] = (span[i] < scalar);
                 }
             }
         }
@@ -5051,7 +5051,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == otherSpan[i]);
+                    ret[i + b] = (span[i] == otherSpan[i]);
                 }
             }
         }
@@ -5062,7 +5062,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == scalar);
+                    ret[i + b] = (span[i] == scalar);
                 }
             }
         }
@@ -5074,7 +5074,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != otherSpan[i]);
+                    ret[i + b] = (span[i] != otherSpan[i]);
                 }
             }
         }
@@ -5085,7 +5085,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != scalar);
+                    ret[i + b] = (span[i] != scalar);
                 }
             }
         }
@@ -5097,7 +5097,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= otherSpan[i]);
+                    ret[i + b] = (span[i] >= otherSpan[i]);
                 }
             }
         }
@@ -5108,7 +5108,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= scalar);
+                    ret[i + b] = (span[i] >= scalar);
                 }
             }
         }
@@ -5120,7 +5120,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= otherSpan[i]);
+                    ret[i + b] = (span[i] <= otherSpan[i]);
                 }
             }
         }
@@ -5131,7 +5131,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= scalar);
+                    ret[i + b] = (span[i] <= scalar);
                 }
             }
         }
@@ -5143,7 +5143,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > otherSpan[i]);
+                    ret[i + b] = (span[i] > otherSpan[i]);
                 }
             }
         }
@@ -5154,7 +5154,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > scalar);
+                    ret[i + b] = (span[i] > scalar);
                 }
             }
         }
@@ -5166,7 +5166,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < otherSpan[i]);
+                    ret[i + b] = (span[i] < otherSpan[i]);
                 }
             }
         }
@@ -5177,7 +5177,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < scalar);
+                    ret[i + b] = (span[i] < scalar);
                 }
             }
         }
@@ -5512,7 +5512,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == otherSpan[i]);
+                    ret[i + b] = (span[i] == otherSpan[i]);
                 }
             }
         }
@@ -5523,7 +5523,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == scalar);
+                    ret[i + b] = (span[i] == scalar);
                 }
             }
         }
@@ -5535,7 +5535,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != otherSpan[i]);
+                    ret[i + b] = (span[i] != otherSpan[i]);
                 }
             }
         }
@@ -5546,7 +5546,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != scalar);
+                    ret[i + b] = (span[i] != scalar);
                 }
             }
         }
@@ -5558,7 +5558,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= otherSpan[i]);
+                    ret[i + b] = (span[i] >= otherSpan[i]);
                 }
             }
         }
@@ -5569,7 +5569,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] >= scalar);
+                    ret[i + b] = (span[i] >= scalar);
                 }
             }
         }
@@ -5581,7 +5581,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= otherSpan[i]);
+                    ret[i + b] = (span[i] <= otherSpan[i]);
                 }
             }
         }
@@ -5592,7 +5592,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] <= scalar);
+                    ret[i + b] = (span[i] <= scalar);
                 }
             }
         }
@@ -5604,7 +5604,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > otherSpan[i]);
+                    ret[i + b] = (span[i] > otherSpan[i]);
                 }
             }
         }
@@ -5615,7 +5615,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] > scalar);
+                    ret[i + b] = (span[i] > scalar);
                 }
             }
         }
@@ -5627,7 +5627,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < otherSpan[i]);
+                    ret[i + b] = (span[i] < otherSpan[i]);
                 }
             }
         }
@@ -5638,7 +5638,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] < scalar);
+                    ret[i + b] = (span[i] < scalar);
                 }
             }
         }
@@ -5757,7 +5757,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == otherSpan[i]);
+                    ret[i + b] = (span[i] == otherSpan[i]);
                 }
             }
         }
@@ -5768,7 +5768,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == scalar);
+                    ret[i + b] = (span[i] == scalar);
                 }
             }
         }
@@ -5780,7 +5780,7 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != otherSpan[i]);
+                    ret[i + b] = (span[i] != otherSpan[i]);
                 }
             }
         }
@@ -5791,7 +5791,7 @@ namespace Microsoft.Data.Analysis
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != scalar);
+                    ret[i + b] = (span[i] != scalar);
                 }
             }
         }
