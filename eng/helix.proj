@@ -99,15 +99,15 @@
       <HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD;export MICROSOFTML_RESOURCE_PATH=$HELIX_WORKITEM_ROOT;sudo chmod -R 777 $HELIX_WORKITEM_ROOT;sudo chown -R $USER $HELIX_WORKITEM_ROOT</HelixPreCommands>
       <HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=%HELIX_CORRELATION_PAYLOAD%;set MICROSOFTML_RESOURCE_PATH=%HELIX_WORKITEM_ROOT%</HelixPreCommands>
 
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);export DYLD_LIBRARY_PATH=$HELIX_WORKITEM_ROOT/runtimes/osx-x64/native:$DYLD_LIBRARY_PATH</HelixPreCommands>
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -id lib_lightgbm.dylib $HELIX_WORKITEM_ROOT/runtimes/osx-x64/native/lib_lightgbm.dylib</HelixPreCommands>
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);otool -L $HELIX_WORKITEM_ROOT/runtimes/osx-x64/native/lib_lightgbm.dylib</HelixPreCommands>
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "@loader_path/libomp.dylib" libSymSgdNative.dylib</HelixPreCommands>
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "@loader_path/libomp.dylib" runtimes/osx-x64/native/lib_lightgbm.dylib</HelixPreCommands>
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "@loader_path/libomp.dylib" runtimes/osx-x64/native/libonnxruntime.dylib</HelixPreCommands>
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);otool -L $HELIX_WORKITEM_ROOT/runtimes/osx-x64/native/lib_lightgbm.dylib</HelixPreCommands>
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);export DYLD_PRINT_LIBRARIES=1</HelixPreCommands>
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);ls /usr/lib/</HelixPreCommands>
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);export LD_LIBRARY_PATH=/opt/homebrew/opt/mono-libgdiplus/lib;</HelixPreCommands>
+
+
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);mv libSymSgdNative.dylib libSymSgdNative1.dylib;mv libSymSgdNative1.dylib libSymSgdNative.dylib</HelixPreCommands>
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);mv runtimes/osx-x64/native/lib_lightgbm.dylib runtimes/osx-x64/native/lib_lightgbm1.dylib;mv runtimes/osx-x64/native/lib_lightgbm1.dylib runtimes/osx-x64/native/lib_lightgbm.dylib</HelixPreCommands>
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);mv runtimes/osx-x64/native/libonnxruntime.dylib runtimes/osx-x64/native/libonnxruntime1.dylib;mv runtimes/osx-x64/native/libonnxruntime1.dylib runtimes/osx-x64/native/libonnxruntime.dylib</HelixPreCommands>
 
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('armarch'))">$(HelixPreCommands);sudo apt update;sudo apt-get install libomp-dev libomp5 -y</HelixPreCommands>
 
@@ -117,6 +117,9 @@
       <MacFilesToCopy>/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
       <MacFilesToCopy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('arm64'))">/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
     </PropertyGroup>
+
+    <Exec Command="&quot;$(MSBuildProjectDirectory)\build.cmd&quot; $(BuildArgs)" />
+
 
     <!-- Copy libiomp5.dylib and libomp.dylib to the publish folders for OSX-->
     <Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
