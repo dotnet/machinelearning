@@ -123,13 +123,13 @@
     </Copy>
 
     <Exec Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
-    Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; &quot;$(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/libSymSgdNative.dylib&quot;" />
+    Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; &quot;$(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/libSymSgdNative.dylib&quot; >/dev/null" />
     
     <Exec Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
-    Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; &quot;$(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/runtimes/osx-x64/native/lib_lightgbm.dylib&quot;" />
+    Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; &quot;$(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/runtimes/osx-x64/native/lib_lightgbm.dylib&quot; >/dev/null" />
     
     <Exec Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
-    Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; &quot;$(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/runtimes/osx-x64/native/libonnxruntime.dylib&quot;" />
+    Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; &quot;$(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/runtimes/osx-x64/native/libonnxruntime.dylib&quot; >/dev/null" />
 
     <!-- Remove the native libraries for other OS to save on payload size -->
     <ItemGroup>
