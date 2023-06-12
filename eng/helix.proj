@@ -119,23 +119,23 @@
       Retries="10"
       OverwriteReadOnlyFiles="true"
       RetryDelayMilliseconds="10"
-      DestinationFolder="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)">
+      DestinationFolder="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)">
     </Copy>
 
-    <Exec Condition="Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\libSymSgdNative.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
+    <Exec Condition="Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\libSymSgdNative.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
     Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; $(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/libSymSgdNative.dylib" />
     
-    <Exec Condition="Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\osx-x64\native\lib_lightgbm.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
+    <Exec Condition="Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\osx-x64\native\lib_lightgbm.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
     Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; $(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/runtimes/osx-x64/native/lib_lightgbm.dylib" />
     
-    <Exec Condition="Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\osx-x64\native\libonnxruntime.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
+    <Exec Condition="Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\osx-x64\native\libonnxruntime.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
     Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; $(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/runtimes/osx-x64/native/libonnxruntime.dylib" />
 
     <!-- Remove the native libraries for other OS to save on payload size -->
     <ItemGroup>
-      <WindowsFiles Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\win*\**\*.*"/>
-      <LinuxFiles Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\linux*\**\*.*"/>
-      <OsxFiles Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\osx*\**\*.*"/>
+      <WindowsFiles Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\win*\**\*.*"/>
+      <LinuxFiles Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\linux*\**\*.*"/>
+      <OsxFiles Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\osx*\**\*.*"/>
     </ItemGroup>
 
     <!-- <Message Text="First :  @(OsxFiles)" />
