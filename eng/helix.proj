@@ -99,9 +99,6 @@
       <HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD;export MICROSOFTML_RESOURCE_PATH=$HELIX_WORKITEM_ROOT;sudo chmod -R 777 $HELIX_WORKITEM_ROOT;sudo chown -R $USER $HELIX_WORKITEM_ROOT</HelixPreCommands>
       <HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=%HELIX_CORRELATION_PAYLOAD%;set MICROSOFTML_RESOURCE_PATH=%HELIX_WORKITEM_ROOT%</HelixPreCommands>
 
-      <!-- <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "@loader_path/libomp.dylib" libSymSgdNative.dylib</HelixPreCommands>
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "@loader_path/libomp.dylib" runtimes/osx-x64/native/lib_lightgbm.dylib</HelixPreCommands>
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);install_name_tool -change "/usr/local/opt/libomp/lib/libomp.dylib" "@loader_path/libomp.dylib" runtimes/osx-x64/native/libonnxruntime.dylib</HelixPreCommands> -->
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);export LD_LIBRARY_PATH=/opt/homebrew/opt/mono-libgdiplus/lib;</HelixPreCommands>
 
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('armarch'))">$(HelixPreCommands);sudo apt update;sudo apt-get install libomp-dev libomp5 -y</HelixPreCommands>
@@ -137,14 +134,6 @@
       <LinuxFiles Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\linux*\**\*.*"/>
       <OsxFiles Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\osx*\**\*.*"/>
     </ItemGroup>
-
-    <!-- <Message Text="First :  @(OsxFiles)" />
-
-    <PropertyGroup>
-        <MyCheck Condition="Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\libSymSgdNative.dylib')">true</MyCheck>
-        <MyCheck Condition="'$(MyCheck)'==''">false</MyCheck>
-    </PropertyGroup>  
-    <Message Text="My-File-Or-Folder-Name already exists? :  $(MyCheck)" /> -->
 
     <Delete Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('windows'))"
       Files="@(LinuxFiles);@(OsxFiles)" />

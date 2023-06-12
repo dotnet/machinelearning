@@ -48,8 +48,6 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
             yield return name;
             if (TryLocateNativeAssetFromDeps(name, out string appLocalNativePath, out string depsResolvedPath))
             {
-                System.Console.WriteLine(appLocalNativePath);
-                System.Console.WriteLine(depsResolvedPath);
                 yield return appLocalNativePath;
                 yield return depsResolvedPath;
             }
