@@ -15,16 +15,28 @@ namespace Microsoft.ML.AutoML
     {
     }
 
-    public interface ICrossValidateDatasetManager
+    /// <summary>
+    /// Inferface for cross validate dataset manager.
+    /// </summary>
+    public interface ICrossValidateDatasetManager : IDatasetManager
     {
-        int? Fold { get; set; }
+        /// <summary>
+        /// Cross validate fold.
+        /// </summary>
+        int Fold { get; set; }
 
-        IDataView? Dataset { get; set; }
+        /// <summary>
+        /// The dataset to cross validate.
+        /// </summary>
+        IDataView Dataset { get; set; }
 
+        /// <summary>
+        /// The dataset column used for grouping rows.
+        /// </summary>
         string? SamplingKeyColumnName { get; set; }
     }
 
-    public interface ITrainValidateDatasetManager
+    public interface ITrainValidateDatasetManager : IDatasetManager
     {
         IDataView LoadTrainDataset(MLContext context, TrialSettings? settings);
 
@@ -88,9 +100,16 @@ namespace Microsoft.ML.AutoML
 
     internal class CrossValidateDatasetManager : IDatasetManager, ICrossValidateDatasetManager
     {
-        public IDataView? Dataset { get; set; }
+        public CrossValidateDatasetManager(IDataView dataset, int fold, string? samplingKeyColumnName = null)
+        {
+            Dataset = dataset;
+            Fold = fold;
+            SamplingKeyColumnName = samplingKeyColumnName;
+        }
 
-        public int? Fold { get; set; }
+        public IDataView Dataset { get; set; }
+
+        public int Fold { get; set; }
 
         public string? SamplingKeyColumnName { get; set; }
     }

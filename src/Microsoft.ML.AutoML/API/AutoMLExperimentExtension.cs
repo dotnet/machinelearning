@@ -67,13 +67,7 @@ namespace Microsoft.ML.AutoML
         /// <returns><see cref="AutoMLExperiment"/></returns>
         public static AutoMLExperiment SetDataset(this AutoMLExperiment experiment, IDataView dataset, int fold = 10, string samplingKeyColumnName = null)
         {
-            var datasetManager = new CrossValidateDatasetManager()
-            {
-                Dataset = dataset,
-                Fold = fold,
-                SamplingKeyColumnName = samplingKeyColumnName,
-            };
-
+            var datasetManager = new CrossValidateDatasetManager(dataset, fold, samplingKeyColumnName);
             experiment.ServiceCollection.AddSingleton<IDatasetManager>(datasetManager);
             experiment.ServiceCollection.AddSingleton(datasetManager);
 
