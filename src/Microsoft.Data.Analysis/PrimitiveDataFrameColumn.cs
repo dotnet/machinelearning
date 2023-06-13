@@ -188,6 +188,16 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
+        internal virtual PrimitiveDataFrameColumn<T> CreateNewColumn(string name, PrimitiveColumnContainer<T> container)
+        {
+            return new PrimitiveDataFrameColumn<T>(name, container);
+        }
+
+        protected virtual PrimitiveDataFrameColumn<T> CreateNewColumn(string name, long length = 0)
+        {
+            return new PrimitiveDataFrameColumn<T>(name, length);
+        }
+
         internal T? GetTypedValue(long rowIndex) => _columnContainer[rowIndex];
 
         protected override object GetValue(long rowIndex) => GetTypedValue(rowIndex);
@@ -379,7 +389,7 @@ namespace Microsoft.Data.Analysis
         {
             if (boolColumn.Length > Length)
                 throw new ArgumentException(Strings.MapIndicesExceedsColumnLenth, nameof(boolColumn));
-            PrimitiveDataFrameColumn<T> ret = new PrimitiveDataFrameColumn<T>(Name);
+            PrimitiveDataFrameColumn<T> ret = CreateNewColumn(Name);
             for (long i = 0; i < boolColumn.Length; i++)
             {
                 bool? value = boolColumn[i];
@@ -406,7 +416,8 @@ namespace Microsoft.Data.Analysis
             }
             else
                 throw new NotImplementedException();
-            PrimitiveDataFrameColumn<T> ret = new PrimitiveDataFrameColumn<T>(Name, retContainer);
+
+            PrimitiveDataFrameColumn<T> ret = CreateNewColumn(Name, retContainer);
             return ret;
         }
 
@@ -415,7 +426,7 @@ namespace Microsoft.Data.Analysis
             if (mapIndices is null)
             {
                 PrimitiveColumnContainer<T> newColumnContainer = _columnContainer.Clone();
-                return new PrimitiveDataFrameColumn<T>(Name, newColumnContainer);
+                return CreateNewColumn(Name, newColumnContainer);
             }
             else
             {
