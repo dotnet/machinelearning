@@ -271,29 +271,44 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void ColumnAndTableCreationTest()
         {
-            DataFrameColumn intColumn = new Int32DataFrameColumn("IntColumn", Enumerable.Range(0, 10).Select(x => x));
-            DataFrameColumn floatColumn = new SingleDataFrameColumn("FloatColumn", Enumerable.Range(0, 10).Select(x => (float)x));
+            const int rowCount = 10;
+            DataFrameColumn intColumn = new Int32DataFrameColumn("IntColumn", Enumerable.Range(0, rowCount).Select(x => x));
+            DataFrameColumn floatColumn = new SingleDataFrameColumn("FloatColumn", Enumerable.Range(0, rowCount).Select(x => (float)x));
             DataFrame dataFrame = new DataFrame();
             dataFrame.Columns.Insert(0, intColumn);
             dataFrame.Columns.Insert(1, floatColumn);
-            Assert.Equal(10, dataFrame.Rows.Count);
+            Assert.Equal(rowCount, dataFrame.Rows.Count);
             Assert.Equal(2, dataFrame.Columns.Count);
-            Assert.Equal(10, dataFrame.Columns[0].Length);
+            Assert.Equal(2, dataFrame.Columns.LongCount());
+            Assert.Equal(rowCount, dataFrame.Columns[0].Length);
             Assert.Equal("IntColumn", dataFrame.Columns[0].Name);
-            Assert.Equal(10, dataFrame.Columns[1].Length);
+            Assert.Equal(rowCount, dataFrame.Columns[1].Length);
             Assert.Equal("FloatColumn", dataFrame.Columns[1].Name);
 
-            DataFrameColumn bigColumn = new SingleDataFrameColumn("BigColumn", Enumerable.Range(0, 11).Select(x => (float)x));
-            DataFrameColumn repeatedName = new SingleDataFrameColumn("FloatColumn", Enumerable.Range(0, 10).Select(x => (float)x));
+            //add column with bigger length than other columns in the dataframe
+            DataFrameColumn bigColumn = new SingleDataFrameColumn("BigColumn", Enumerable.Range(0, rowCount + 1).Select(x => (float)x));
             Assert.Throws<ArgumentException>(() => dataFrame.Columns.Insert(2, bigColumn));
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.Add(bigColumn));
+
+            //add column smaller than other columns in the dataframe
+            DataFrameColumn smallColumn = new SingleDataFrameColumn("SmallColumn", Enumerable.Range(0, rowCount - 1).Select(x => (float)x));
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.Insert(2, smallColumn));
+            Assert.Throws<ArgumentException>(() => dataFrame.Columns.Add(smallColumn));
+
+            //add column with duplicate name
+            DataFrameColumn repeatedName = new SingleDataFrameColumn("FloatColumn", Enumerable.Range(0, rowCount).Select(x => (float)x));
             Assert.Throws<ArgumentException>(() => dataFrame.Columns.Insert(2, repeatedName));
-            Assert.Throws<ArgumentOutOfRangeException>(() => dataFrame.Columns.Insert(10, repeatedName));
+
+            //Insert column at index out of range
+            DataFrameColumn extraColumn = new SingleDataFrameColumn("OtherFloatColumn", Enumerable.Range(0, rowCount).Select(x => (float)x));
+            var columnCount = dataFrame.Columns.Count;
+            Assert.Throws<ArgumentOutOfRangeException>(() => dataFrame.Columns.Insert(columnCount + 1, repeatedName));
 
             Assert.Equal(2, dataFrame.Columns.Count);
-            DataFrameColumn intColumnCopy = new Int32DataFrameColumn("IntColumn", Enumerable.Range(0, 10).Select(x => x));
+            DataFrameColumn intColumnCopy = new Int32DataFrameColumn("IntColumn", Enumerable.Range(0, rowCount).Select(x => x));
             Assert.Throws<ArgumentException>(() => dataFrame.Columns[1] = intColumnCopy);
 
-            DataFrameColumn differentIntColumn = new Int32DataFrameColumn("IntColumn1", Enumerable.Range(0, 10).Select(x => x));
+            DataFrameColumn differentIntColumn = new Int32DataFrameColumn("IntColumn1", Enumerable.Range(0, rowCount).Select(x => x));
             dataFrame.Columns[1] = differentIntColumn;
             Assert.True(object.ReferenceEquals(differentIntColumn, dataFrame.Columns[1]));
 
@@ -309,18 +324,68 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void InsertAndRemoveColumnTests()
+        public void InsertAndRemoveColumnToTheEndOfNotEmptyDataFrameTests()
         {
             DataFrame dataFrame = MakeDataFrameWithAllMutableColumnTypes(10);
-            DataFrameColumn intColumn = new Int32DataFrameColumn("IntColumn", Enumerable.Range(0, 10).Select(x => x));
-            DataFrameColumn charColumn = dataFrame.Columns["Char"];
-            int insertedIndex = dataFrame.Columns.Count;
-            dataFrame.Columns.Insert(dataFrame.Columns.Count, intColumn);
+            DataFrameColumn intColumn = new Int32DataFrameColumn("NewIntColumn", Enumerable.Range(0, 10).Select(x => x));
+
+            int columnCount = dataFrame.Columns.Count;
+            DataFrameColumn originalLastColumn = dataFrame.Columns[columnCount - 1];
+
+            //Insert new column at the end
+            dataFrame.Columns.Insert(columnCount, intColumn);
+            Assert.Equal(columnCount + 1, dataFrame.Columns.Count);
+
+            //Remove first
             dataFrame.Columns.RemoveAt(0);
-            DataFrameColumn intColumn_1 = dataFrame.Columns["IntColumn"];
-            DataFrameColumn charColumn_1 = dataFrame.Columns["Char"];
+            Assert.Equal(columnCount, dataFrame.Columns.Count);
+
+            //Check that int column was inserted
+            DataFrameColumn intColumn_1 = dataFrame.Columns["NewIntColumn"];
             Assert.True(ReferenceEquals(intColumn, intColumn_1));
-            Assert.True(ReferenceEquals(charColumn, charColumn_1));
+
+            //Check that last column of the original dataframe was not removed
+            DataFrameColumn lastColumn_1 = dataFrame.Columns[originalLastColumn.Name];
+            Assert.True(ReferenceEquals(originalLastColumn, lastColumn_1));
+
+            //Check that new column is the last one
+            int newIndex = dataFrame.Columns.IndexOf("NewIntColumn");
+            Assert.Equal(columnCount - 1, newIndex);
+
+            //Check that original last column now has correct index
+            int newIndexForOriginalLastColumn = dataFrame.Columns.IndexOf(originalLastColumn.Name);
+            Assert.Equal(columnCount - 2, newIndexForOriginalLastColumn);
+        }
+
+        [Fact]
+        public void AddAndRemoveColumnToTheEmptyDataFrameTests()
+        {
+            DataFrame dataFrame = new DataFrame();
+            DataFrameColumn intColumn = new Int32DataFrameColumn("NewIntColumn", Enumerable.Range(0, 10).Select(x => x));
+
+            dataFrame.Columns.Add(intColumn);
+            Assert.Single(dataFrame.Columns);
+            Assert.Equal(10, dataFrame.Rows.Count);
+
+            dataFrame.Columns.Remove(intColumn);
+            Assert.Empty(dataFrame.Columns);
+            Assert.Equal(0, dataFrame.Rows.Count);
+        }
+
+        [Fact]
+        public void ClearColumnsTests()
+        {
+            //Arrange
+            DataFrame dataFrame = MakeDataFrameWithAllMutableColumnTypes(10);
+
+            //Act
+            dataFrame.Columns.Clear();
+
+            //Assert
+            Assert.Empty(dataFrame.Columns);
+
+            Assert.Equal(0, dataFrame.Rows.Count);
+            Assert.Equal(0, dataFrame.Columns.LongCount());
         }
 
         [Fact]
@@ -2695,6 +2760,56 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(1, (int)merge.Columns["Int_left"][1]);
             MatchRowsOnMergedDataFrame(merge, left, right, 0, 0, 0);
             MatchRowsOnMergedDataFrame(merge, left, right, 1, 1, 0);
+        }
+
+        [Fact]
+        //Issue 6127
+        public void TestMerge_CorrectColumnTypes()
+        {
+            DataFrame left = MakeDataFrameWithAllMutableColumnTypes(2, false);
+            DataFrame right = MakeDataFrameWithAllMutableColumnTypes(1);
+
+            DataFrame merge = left.Merge<int>(right, "Int", "Int");
+
+            Assert.NotNull(merge.Columns.GetBooleanColumn("Bool_left"));
+            Assert.NotNull(merge.Columns.GetBooleanColumn("Bool_right"));
+
+            Assert.NotNull(merge.Columns.GetDecimalColumn("Decimal_left"));
+            Assert.NotNull(merge.Columns.GetDecimalColumn("Decimal_right"));
+
+            Assert.NotNull(merge.Columns.GetSingleColumn("Float_left"));
+            Assert.NotNull(merge.Columns.GetSingleColumn("Float_right"));
+
+            Assert.NotNull(merge.Columns.GetDoubleColumn("Double_left"));
+            Assert.NotNull(merge.Columns.GetDoubleColumn("Double_right"));
+
+            Assert.NotNull(merge.Columns.GetByteColumn("Byte_left"));
+            Assert.NotNull(merge.Columns.GetByteColumn("Byte_right"));
+
+            Assert.NotNull(merge.Columns.GetCharColumn("Char_left"));
+            Assert.NotNull(merge.Columns.GetCharColumn("Char_right"));
+
+            Assert.NotNull(merge.Columns.GetInt16Column("Short_left"));
+            Assert.NotNull(merge.Columns.GetInt16Column("Short_right"));
+
+            Assert.NotNull(merge.Columns.GetUInt16Column("Ushort_left"));
+            Assert.NotNull(merge.Columns.GetUInt16Column("Ushort_right"));
+
+            Assert.NotNull(merge.Columns.GetInt32Column("Int_left"));
+            Assert.NotNull(merge.Columns.GetInt32Column("Int_right"));
+
+            Assert.NotNull(merge.Columns.GetUInt32Column("Uint_left"));
+            Assert.NotNull(merge.Columns.GetUInt32Column("Uint_right"));
+
+            Assert.NotNull(merge.Columns.GetInt64Column("Long_left"));
+            Assert.NotNull(merge.Columns.GetInt64Column("Long_right"));
+
+            Assert.NotNull(merge.Columns.GetUInt64Column("Ulong_left"));
+            Assert.NotNull(merge.Columns.GetUInt64Column("Ulong_right"));
+
+            Assert.NotNull(merge.Columns.GetDateTimeColumn("DateTime_left"));
+            Assert.NotNull(merge.Columns.GetDateTimeColumn("DateTime_right"));
+
         }
 
         [Fact]

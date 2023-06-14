@@ -85,10 +85,11 @@ namespace Microsoft.Data.Analysis
 
         private int GetBufferIndexContainingRowIndex(ref long rowIndex)
         {
-            if (rowIndex > Length)
+            if (rowIndex >= Length)
             {
                 throw new ArgumentOutOfRangeException(Strings.ColumnIndexOutOfRange, nameof(rowIndex));
             }
+
             return (int)(rowIndex / int.MaxValue);
         }
 

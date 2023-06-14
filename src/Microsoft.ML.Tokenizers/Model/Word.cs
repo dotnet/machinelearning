@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 
@@ -11,7 +10,8 @@ namespace Microsoft.ML.Tokenizers
 {
     internal struct Word
     {
-        private static readonly Random _random = new Random();
+        [ThreadStatic]
+        private static Random? _random;
         private Vec<Symbol> _symbols;
 
         public Word() => _symbols = new Vec<Symbol>();
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Tokenizers
             while (queue.Count > 0)
             {
                 Merge top = queue.Dequeue();
-                if (dropout.HasValue && _random.NextDouble() < dropout)
+                if (dropout.HasValue && (_random ??= new()).NextDouble() < dropout)
                 {
                     skip.Push(top);
                 }
