@@ -55,9 +55,6 @@ namespace Microsoft.Data.Analysis
         {
             string currentName = column.Name;
             int currentIndex = _columnNameToIndexDictionary[currentName];
-
-            column.SetName(newName);
-
             _columnNameToIndexDictionary.Remove(currentName);
             _columnNameToIndexDictionary.Add(newName, currentIndex);
             ColumnsChanged?.Invoke();
