@@ -527,6 +527,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<byte> column, out byte? ret)
         {
             var value = byte.MinValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -537,12 +538,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (byte)(Math.Max(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Max(PrimitiveColumnContainer<byte> column, IEnumerable<long> rows, out byte? ret)
@@ -573,6 +575,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<byte> column, out byte? ret)
         {
             var value = byte.MaxValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -583,12 +586,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (byte)(Math.Min(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<byte> column, IEnumerable<long> rows, out byte? ret)
@@ -663,6 +667,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<byte> column, out byte? ret)
         {
             var value = (byte)0;
+            var hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -673,12 +678,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (byte)(readOnlySpan[i] + value);
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Sum(PrimitiveColumnContainer<byte> column, IEnumerable<long> rows, out byte? ret)
@@ -1008,6 +1014,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<char> column, out char? ret)
         {
             var value = char.MinValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -1018,12 +1025,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (char)(Math.Max(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Max(PrimitiveColumnContainer<char> column, IEnumerable<long> rows, out char? ret)
@@ -1054,6 +1062,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<char> column, out char? ret)
         {
             var value = char.MaxValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -1064,12 +1073,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (char)(Math.Min(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<char> column, IEnumerable<long> rows, out char? ret)
@@ -1144,6 +1154,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<char> column, out char? ret)
         {
             var value = (char)0;
+            var hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -1154,12 +1165,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (char)(readOnlySpan[i] + value);
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Sum(PrimitiveColumnContainer<char> column, IEnumerable<long> rows, out char? ret)
@@ -1489,6 +1501,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<decimal> column, out decimal? ret)
         {
             var value = decimal.MinValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -1499,12 +1512,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (decimal)(Math.Max(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Max(PrimitiveColumnContainer<decimal> column, IEnumerable<long> rows, out decimal? ret)
@@ -1535,6 +1549,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<decimal> column, out decimal? ret)
         {
             var value = decimal.MaxValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -1545,12 +1560,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (decimal)(Math.Min(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<decimal> column, IEnumerable<long> rows, out decimal? ret)
@@ -1625,6 +1641,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<decimal> column, out decimal? ret)
         {
             var value = (decimal)0;
+            var hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -1635,12 +1652,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (decimal)(readOnlySpan[i] + value);
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Sum(PrimitiveColumnContainer<decimal> column, IEnumerable<long> rows, out decimal? ret)
@@ -1970,6 +1988,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<double> column, out double? ret)
         {
             var value = double.MinValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -1980,12 +1999,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (double)(Math.Max(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Max(PrimitiveColumnContainer<double> column, IEnumerable<long> rows, out double? ret)
@@ -2016,6 +2036,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<double> column, out double? ret)
         {
             var value = double.MaxValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -2026,12 +2047,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (double)(Math.Min(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<double> column, IEnumerable<long> rows, out double? ret)
@@ -2106,6 +2128,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<double> column, out double? ret)
         {
             var value = (double)0;
+            var hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -2116,12 +2139,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (double)(readOnlySpan[i] + value);
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Sum(PrimitiveColumnContainer<double> column, IEnumerable<long> rows, out double? ret)
@@ -2451,6 +2475,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<float> column, out float? ret)
         {
             var value = float.MinValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -2461,12 +2486,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (float)(Math.Max(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Max(PrimitiveColumnContainer<float> column, IEnumerable<long> rows, out float? ret)
@@ -2497,6 +2523,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<float> column, out float? ret)
         {
             var value = float.MaxValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -2507,12 +2534,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (float)(Math.Min(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<float> column, IEnumerable<long> rows, out float? ret)
@@ -2587,6 +2615,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<float> column, out float? ret)
         {
             var value = (float)0;
+            var hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -2597,12 +2626,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (float)(readOnlySpan[i] + value);
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Sum(PrimitiveColumnContainer<float> column, IEnumerable<long> rows, out float? ret)
@@ -2932,6 +2962,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<int> column, out int? ret)
         {
             var value = int.MinValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -2942,12 +2973,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (int)(Math.Max(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Max(PrimitiveColumnContainer<int> column, IEnumerable<long> rows, out int? ret)
@@ -2978,6 +3010,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<int> column, out int? ret)
         {
             var value = int.MaxValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -2988,12 +3021,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (int)(Math.Min(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<int> column, IEnumerable<long> rows, out int? ret)
@@ -3068,6 +3102,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<int> column, out int? ret)
         {
             var value = (int)0;
+            var hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -3078,12 +3113,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (int)(readOnlySpan[i] + value);
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Sum(PrimitiveColumnContainer<int> column, IEnumerable<long> rows, out int? ret)
@@ -3413,6 +3449,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<long> column, out long? ret)
         {
             var value = long.MinValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -3423,12 +3460,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (long)(Math.Max(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Max(PrimitiveColumnContainer<long> column, IEnumerable<long> rows, out long? ret)
@@ -3459,6 +3497,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<long> column, out long? ret)
         {
             var value = long.MaxValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -3469,12 +3508,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (long)(Math.Min(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<long> column, IEnumerable<long> rows, out long? ret)
@@ -3549,6 +3589,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<long> column, out long? ret)
         {
             var value = (long)0;
+            var hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -3559,12 +3600,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (long)(readOnlySpan[i] + value);
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Sum(PrimitiveColumnContainer<long> column, IEnumerable<long> rows, out long? ret)
@@ -3894,6 +3936,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<sbyte> column, out sbyte? ret)
         {
             var value = sbyte.MinValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -3904,12 +3947,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (sbyte)(Math.Max(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Max(PrimitiveColumnContainer<sbyte> column, IEnumerable<long> rows, out sbyte? ret)
@@ -3940,6 +3984,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<sbyte> column, out sbyte? ret)
         {
             var value = sbyte.MaxValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -3950,12 +3995,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (sbyte)(Math.Min(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<sbyte> column, IEnumerable<long> rows, out sbyte? ret)
@@ -4030,6 +4076,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<sbyte> column, out sbyte? ret)
         {
             var value = (sbyte)0;
+            var hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -4040,12 +4087,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (sbyte)(readOnlySpan[i] + value);
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Sum(PrimitiveColumnContainer<sbyte> column, IEnumerable<long> rows, out sbyte? ret)
@@ -4375,6 +4423,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<short> column, out short? ret)
         {
             var value = short.MinValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -4385,12 +4434,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (short)(Math.Max(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Max(PrimitiveColumnContainer<short> column, IEnumerable<long> rows, out short? ret)
@@ -4421,6 +4471,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<short> column, out short? ret)
         {
             var value = short.MaxValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -4431,12 +4482,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (short)(Math.Min(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<short> column, IEnumerable<long> rows, out short? ret)
@@ -4511,6 +4563,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<short> column, out short? ret)
         {
             var value = (short)0;
+            var hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -4521,12 +4574,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (short)(readOnlySpan[i] + value);
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Sum(PrimitiveColumnContainer<short> column, IEnumerable<long> rows, out short? ret)
@@ -4856,6 +4910,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<uint> column, out uint? ret)
         {
             var value = uint.MinValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -4866,12 +4921,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (uint)(Math.Max(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Max(PrimitiveColumnContainer<uint> column, IEnumerable<long> rows, out uint? ret)
@@ -4902,6 +4958,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<uint> column, out uint? ret)
         {
             var value = uint.MaxValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -4912,12 +4969,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (uint)(Math.Min(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<uint> column, IEnumerable<long> rows, out uint? ret)
@@ -4992,6 +5050,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<uint> column, out uint? ret)
         {
             var value = (uint)0;
+            var hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -5002,12 +5061,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (uint)(readOnlySpan[i] + value);
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Sum(PrimitiveColumnContainer<uint> column, IEnumerable<long> rows, out uint? ret)
@@ -5337,6 +5397,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<ulong> column, out ulong? ret)
         {
             var value = ulong.MinValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -5347,12 +5408,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (ulong)(Math.Max(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Max(PrimitiveColumnContainer<ulong> column, IEnumerable<long> rows, out ulong? ret)
@@ -5383,6 +5445,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<ulong> column, out ulong? ret)
         {
             var value = ulong.MaxValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -5393,12 +5456,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (ulong)(Math.Min(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<ulong> column, IEnumerable<long> rows, out ulong? ret)
@@ -5473,6 +5537,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<ulong> column, out ulong? ret)
         {
             var value = (ulong)0;
+            var hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -5483,12 +5548,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (ulong)(readOnlySpan[i] + value);
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Sum(PrimitiveColumnContainer<ulong> column, IEnumerable<long> rows, out ulong? ret)
@@ -5818,6 +5884,7 @@ namespace Microsoft.Data.Analysis
         public void Max(PrimitiveColumnContainer<ushort> column, out ushort? ret)
         {
             var value = ushort.MinValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -5828,12 +5895,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (ushort)(Math.Max(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Max(PrimitiveColumnContainer<ushort> column, IEnumerable<long> rows, out ushort? ret)
@@ -5864,6 +5932,7 @@ namespace Microsoft.Data.Analysis
         public void Min(PrimitiveColumnContainer<ushort> column, out ushort? ret)
         {
             var value = ushort.MaxValue;
+            bool hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -5874,12 +5943,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (ushort)(Math.Min(readOnlySpan[i], value));
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Min(PrimitiveColumnContainer<ushort> column, IEnumerable<long> rows, out ushort? ret)
@@ -5954,6 +6024,7 @@ namespace Microsoft.Data.Analysis
         public void Sum(PrimitiveColumnContainer<ushort> column, out ushort? ret)
         {
             var value = (ushort)0;
+            var hasValue = false;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var buffer = column.Buffers[b];
@@ -5964,12 +6035,13 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column.IsValid(readOnlyBitMapSpan, i))
                     {
+                        hasValue = true;
                         value = (ushort)(readOnlySpan[i] + value);
                     }
                 }
             }
 
-            ret = value;
+            ret = hasValue ? value : null;
         }
 
         public void Sum(PrimitiveColumnContainer<ushort> column, IEnumerable<long> rows, out ushort? ret)

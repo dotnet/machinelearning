@@ -1153,18 +1153,32 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void TestDateTimeComputations_MaxMin_OnEmptyColumn()
+        public void TestIntSum_OnColumnWithNullsOnly()
         {
-            var column = new DateTimeDataFrameColumn("DateTime");
+            var column = new Int32DataFrameColumn("Int", new int?[] { null, null });
+            Assert.Null(column.Sum());
+        }
 
-            Assert.Null(column.Min());
-            Assert.Null(column.Max());
+        [Fact]
+        public void TestIntSum_OnEmptyColumn()
+        {
+            var column = new Int32DataFrameColumn("Int");
+            Assert.Null(column.Sum());
         }
 
         [Fact]
         public void TestIntComputations_MaxMin_OnEmptyColumn()
         {
             var column = new Int32DataFrameColumn("Int");
+
+            Assert.Null(column.Min());
+            Assert.Null(column.Max());
+        }
+
+        [Fact]
+        public void TestDateTimeComputations_MaxMin_OnEmptyColumn()
+        {
+            var column = new DateTimeDataFrameColumn("DateTime");
 
             Assert.Null(column.Min());
             Assert.Null(column.Max());
