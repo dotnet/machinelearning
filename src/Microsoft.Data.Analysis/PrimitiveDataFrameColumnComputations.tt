@@ -29,9 +29,9 @@ namespace Microsoft.Data.Analysis
 <# } else if (compMethod.MethodType == MethodType.ElementwiseComputation && compMethod.HasReturnValue == true) {#>
         void <#=compMethod.MethodName#>(PrimitiveColumnContainer<T> column, out T ret);
 <# } else if (compMethod.MethodType == MethodType.Reduction && compMethod.IsNumeric == true && compMethod.SupportsRowSubsets == true) { #>
-        void <#=compMethod.MethodName#>(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T ret);
+        void <#=compMethod.MethodName#>(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T? ret);
 <# } else if (compMethod.MethodType == MethodType.Reduction && compMethod.IsNumeric == true) { #>
-        void <#=compMethod.MethodName#>(PrimitiveColumnContainer<T> column, out T ret);
+        void <#=compMethod.MethodName#>(PrimitiveColumnContainer<T> column, out T? ret);
 <# } else { #>
         void <#=compMethod.MethodName#>(PrimitiveColumnContainer<T> column, out bool ret);
 <# } #>
@@ -78,9 +78,9 @@ namespace Microsoft.Data.Analysis
 <# } else if (method.MethodType == MethodType.ElementwiseComputation && method.HasReturnValue == true) {#>
         public void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, out <#=type.TypeName#> ret)
 <# } else if (method.MethodType == MethodType.Reduction && method.IsNumeric == true && method.SupportsRowSubsets == true) { #>
-        public void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, IEnumerable<long> rows, out <#=type.TypeName#> ret)
+        public void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, IEnumerable<long> rows, out <#=type.TypeName#>? ret)
 <# } else if (method.MethodType == MethodType.Reduction && method.IsNumeric == true) { #>
-        public void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, out <#=type.TypeName#> ret)
+        public void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, out <#=type.TypeName#>? ret)
 <# } else { #>
         public void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, out bool ret)
 <# } #>
@@ -90,11 +90,11 @@ namespace Microsoft.Data.Analysis
 <# } else { #>
 <# if ((method.MethodName == "Max" || method.MethodName == "Min" || method.MethodName == "Product" || method.MethodName == "Sum") && method.SupportsRowSubsets == true) { #>
 <# if (method.MethodName == "Max") { #>
-            ret = <#=type.TypeName#>.MinValue;
+            var value = <#=type.TypeName#>.MinValue;
 <# } else if (method.MethodName == "Min") { #>
-            ret = <#=type.TypeName#>.MaxValue;
+            var value = <#=type.TypeName#>.MaxValue;
 <# } else { #>
-            ret = default;
+            <#=type.TypeName#> value = default;
 <# } #>
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
             long minRange = 0;
@@ -113,18 +113,20 @@ namespace Microsoft.Data.Analysis
                 }
                 row -= minRange;
 <# if (method.MethodName == "Max") { #>
-                ret = (<#=type.TypeName#>)(Math.Max(readOnlySpan[(int)row], ret));
+                value = (<#=type.TypeName#>)(Math.Max(readOnlySpan[(int)row], value));
 <# } #>
 <# if (method.MethodName == "Min") { #>
-                ret = (<#=type.TypeName#>)(Math.Min(readOnlySpan[(int)row], ret));
+                value = (<#=type.TypeName#>)(Math.Min(readOnlySpan[(int)row], value));
 <# } #>
 <# if (method.MethodName == "Product") { #>
-                ret = checked((<#=type.TypeName#>)(readOnlySpan[(int)row] * ret));
+                value = checked((<#=type.TypeName#>)(readOnlySpan[(int)row] * value));
 <# } #>
 <# if (method.MethodName == "Sum") { #>
-                ret = checked((<#=type.TypeName#>)(readOnlySpan[(int)row] + ret));
+                value = checked((<#=type.TypeName#>)(readOnlySpan[(int)row] + value));
 <# } #>
             }
+
+            ret = value;
 <# } else if ((method.MethodName == "CumulativeMax" || method.MethodName == "CumulativeMin" || method.MethodName == "CumulativeProduct" || method.MethodName == "CumulativeSum") && method.SupportsRowSubsets == true) { #>
 <# if (method.MethodName == "CumulativeMax") { #>
             var ret = <#=type.TypeName#>.MinValue;
@@ -183,8 +185,10 @@ namespace Microsoft.Data.Analysis
 <# } else if (method.MethodName == "CumulativeMax" || method.MethodName == "CumulativeMin" || method.MethodName == "CumulativeProduct" || method.MethodName == "CumulativeSum" || method.MethodName == "Max" || method.MethodName == "Min" || method.MethodName == "Product" || method.MethodName == "Sum") { #>
 <# if (method.MethodName == "CumulativeMax" || method.MethodName == "CumulativeMin") { #>
             var ret = column.Buffers[0].ReadOnlySpan[0];
-<# } else if ((method.MethodName == "Max" || method.MethodName == "Min") && method.SupportsRowSubsets == false) { #>
-            ret = column.Buffers[0].ReadOnlySpan[0];
+<# } else if (method.MethodName == "Max" && method.SupportsRowSubsets == false) { #>
+            var value = <#=type.TypeName#>.MinValue;
+<# } else if (method.MethodName == "Min" && method.SupportsRowSubsets == false) { #>
+            var value = <#=type.TypeName#>.MaxValue;
 <# } else if (method.MethodName == "CumulativeProduct") { #>
             var ret = (<#=type.TypeName#>)1;
 <# } else if (method.MethodName =="Product" && method.SupportsRowSubsets == false) { #>
@@ -192,7 +196,7 @@ namespace Microsoft.Data.Analysis
 <# } else if (method.MethodName =="CumulativeSum") { #>
             var ret = (<#=type.TypeName#>)0;
 <# } else if (method.SupportsRowSubsets == false) { #>
-            ret = (<#=type.TypeName#>)0;
+            var value = (<#=type.TypeName#>)0;
 <# } #>
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -225,23 +229,29 @@ namespace Microsoft.Data.Analysis
                         mutableSpan[i] = ret;
 <# } #>
 <# if (method.MethodName == "Max") { #>
-                        ret = (<#=type.TypeName#>)(Math.Max(readOnlySpan[i], ret));
+                        value = (<#=type.TypeName#>)(Math.Max(readOnlySpan[i], value));
 <# } #>
 <# if (method.MethodName == "Min") { #>
-                        ret = (<#=type.TypeName#>)(Math.Min(readOnlySpan[i], ret));
+                        value = (<#=type.TypeName#>)(Math.Min(readOnlySpan[i], value));
 <# } #>
 <# if (method.MethodName == "Product") { #>
                         ret = (<#=type.TypeName#>)(readOnlySpan[i] * ret);
 <# } #>
 <# if (method.MethodName == "Sum") { #>
-                        ret = (<#=type.TypeName#>)(readOnlySpan[i] + ret);
+                        value = (<#=type.TypeName#>)(readOnlySpan[i] + value);
 <# } #>
                     }
                 }
 <# if (method.MethodName == "CumulativeMax" || method.MethodName == "CumulativeMin" || method.MethodName == "CumulativeProduct" || method.MethodName == "CumulativeSum") { #>
                 column.Buffers[b] = mutableBuffer;
-<# } #>
             }
+<# } else if (method.MethodName == "Product") { #>
+            }
+<# } else { #>
+            }
+
+            ret = value;
+<# } #>
 <# } else if (method.MethodType == MethodType.ElementwiseComputation && method.Operator != null) { #>
             for (int b = 0; b < column.Buffers.Count; b++)
             {
