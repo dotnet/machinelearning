@@ -19,5 +19,15 @@ namespace Microsoft.Data.Analysis
         public CharDataFrameColumn(string name, ReadOnlyMemory<byte> buffer, ReadOnlyMemory<byte> nullBitMap, int length = 0, int nullCount = 0) : base(name, buffer, nullBitMap, length, nullCount) { }
 
         internal CharDataFrameColumn(string name, PrimitiveColumnContainer<char> values) : base(name, values) { }
+
+        protected override PrimitiveDataFrameColumn<char> CreateNewColumn(string name, long length = 0)
+        {
+            return new CharDataFrameColumn(name, length);
+        }
+
+        internal override PrimitiveDataFrameColumn<char> CreateNewColumn(string name, PrimitiveColumnContainer<char> container)
+        {
+            return new CharDataFrameColumn(name, container);
+        }
     }
 }
