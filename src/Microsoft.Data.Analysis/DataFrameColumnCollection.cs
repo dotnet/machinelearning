@@ -130,6 +130,7 @@ namespace Microsoft.Data.Analysis
                 _columnNameToIndexDictionary[this[i].Name]--;
             }
 
+            this[columnIndex].RemoveOwner(this);
             base.RemoveItem(columnIndex);
 
             //Reset RowCount if the last column was removed and dataframe is empty
@@ -493,6 +494,5 @@ namespace Microsoft.Data.Analysis
 
             throw new ArgumentException(string.Format(Strings.BadColumnCast, column.DataType, typeof(UInt16)));
         }
-
     }
 }
