@@ -19,5 +19,15 @@ namespace Microsoft.Data.Analysis
         public DateTimeDataFrameColumn(string name, ReadOnlyMemory<byte> buffer, ReadOnlyMemory<byte> nullBitMap, int length = 0, int nullCount = 0) : base(name, buffer, nullBitMap, length, nullCount) { }
 
         internal DateTimeDataFrameColumn(string name, PrimitiveColumnContainer<DateTime> values) : base(name, values) { }
+
+        protected override PrimitiveDataFrameColumn<DateTime> CreateNewColumn(string name, long length = 0)
+        {
+            return new DateTimeDataFrameColumn(name, length);
+        }
+
+        internal override PrimitiveDataFrameColumn<DateTime> CreateNewColumn(string name, PrimitiveColumnContainer<DateTime> container)
+        {
+            return new DateTimeDataFrameColumn(name, container);
+        }
     }
 }

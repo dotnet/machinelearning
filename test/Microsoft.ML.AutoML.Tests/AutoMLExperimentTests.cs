@@ -359,6 +359,17 @@ namespace Microsoft.ML.AutoML.Test
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.5);
+
+            // test subsamping
+            experiment = context.Auto().CreateExperiment();
+            experiment.SetDataset(train, test, true)
+                    .SetRegressionMetric(RegressionMetric.RSquared, label)
+                    .SetPipeline(pipeline)
+                    .SetMaxModelToExplore(1);
+            result = await experiment.RunAsync();
+            result.Metric.Should().BeGreaterThan(0.5);
+            result.TrialSettings.Parameter[nameof(TrainValidateDatasetManager)]["TrainValidateDatasetSubsamplingKey"]
+                .AsType<float>().Should().Be(0.1f);
         }
 
         [Fact]

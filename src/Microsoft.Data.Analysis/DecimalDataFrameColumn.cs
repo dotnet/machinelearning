@@ -19,5 +19,15 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn(string name, ReadOnlyMemory<byte> buffer, ReadOnlyMemory<byte> nullBitMap, int length = 0, int nullCount = 0) : base(name, buffer, nullBitMap, length, nullCount) { }
 
         internal DecimalDataFrameColumn(string name, PrimitiveColumnContainer<decimal> values) : base(name, values) { }
+
+        protected override PrimitiveDataFrameColumn<decimal> CreateNewColumn(string name, long length = 0)
+        {
+            return new DecimalDataFrameColumn(name, length);
+        }
+
+        internal override PrimitiveDataFrameColumn<decimal> CreateNewColumn(string name, PrimitiveColumnContainer<decimal> container)
+        {
+            return new DecimalDataFrameColumn(name, container);
+        }
     }
 }

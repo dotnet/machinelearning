@@ -19,5 +19,15 @@ namespace Microsoft.Data.Analysis
         public UInt16DataFrameColumn(string name, ReadOnlyMemory<byte> buffer, ReadOnlyMemory<byte> nullBitMap, int length = 0, int nullCount = 0) : base(name, buffer, nullBitMap, length, nullCount) { }
 
         internal UInt16DataFrameColumn(string name, PrimitiveColumnContainer<ushort> values) : base(name, values) { }
+
+        protected override PrimitiveDataFrameColumn<ushort> CreateNewColumn(string name, long length = 0)
+        {
+            return new UInt16DataFrameColumn(name, length);
+        }
+
+        internal override PrimitiveDataFrameColumn<ushort> CreateNewColumn(string name, PrimitiveColumnContainer<ushort> container)
+        {
+            return new UInt16DataFrameColumn(name, container);
+        }
     }
 }
