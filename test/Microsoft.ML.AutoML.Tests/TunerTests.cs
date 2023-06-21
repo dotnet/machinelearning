@@ -67,6 +67,39 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void Smac_should_ignore_fail_trials_during_initialize()
+        {
+            // fix for https://github.com/dotnet/machinelearning-modelbuilder/issues/2721
+            var context = new MLContext(1);
+            var searchSpace = new SearchSpace<LbfgsOption>();
+            var tuner = new SmacTuner(context, searchSpace, seed: 1);
+            for (int i = 0; i != 1000; ++i)
+            {
+                var trialSettings = new TrialSettings()
+                {
+                    TrialId = i,
+                };
+
+                var param = tuner.Propose(trialSettings);
+                trialSettings.Parameter = param;
+                var option = param.AsType<LbfgsOption>();
+
+                option.L1Regularization.Should().BeInRange(0.03125f, 32768.0f);
+                option.L2Regularization.Should().BeInRange(0.03125f, 32768.0f);
+
+                tuner.Update(new TrialResult()
+                {
+                    DurationInMilliseconds = i * 1000,
+                    Loss = double.NaN,
+                    TrialSettings = trialSettings,
+                });
+            }
+
+            tuner.Candidates.Count.Should().Be(0);
+            tuner.Histories.Count.Should().Be(0);
+        }
+
+        [Fact]
         public void CFO_should_be_recoverd_if_history_provided()
         {
             // this test verify that cfo can be recovered by replaying history.
