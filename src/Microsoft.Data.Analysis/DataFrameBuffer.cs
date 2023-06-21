@@ -80,8 +80,9 @@ namespace Microsoft.Data.Analysis
         {
             set
             {
-                if (index > Length)
+                if (index >= Length)
                     throw new ArgumentOutOfRangeException(nameof(index));
+
                 RawSpan[index] = value;
             }
         }

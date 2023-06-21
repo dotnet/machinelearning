@@ -19,5 +19,15 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn(string name, ReadOnlyMemory<byte> buffer, ReadOnlyMemory<byte> nullBitMap, int length = 0, int nullCount = 0) : base(name, buffer, nullBitMap, length, nullCount) { }
 
         internal DoubleDataFrameColumn(string name, PrimitiveColumnContainer<double> values) : base(name, values) { }
+
+        protected override PrimitiveDataFrameColumn<double> CreateNewColumn(string name, long length = 0)
+        {
+            return new DoubleDataFrameColumn(name, length);
+        }
+
+        internal override PrimitiveDataFrameColumn<double> CreateNewColumn(string name, PrimitiveColumnContainer<double> container)
+        {
+            return new DoubleDataFrameColumn(name, container);
+        }
     }
 }

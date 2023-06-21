@@ -35,9 +35,9 @@ namespace Microsoft.Data.Analysis
 <# foreach (TypeConfiguration type in typeConfiguration) { #>
                 case PrimitiveDataFrameColumn<<#=type.TypeName#>> <#=type.TypeName#>Column:
 <# if (method.MethodType == MethodType.Binary) {#>
-                    return <#=method.MethodName#>Implementation(column as PrimitiveDataFrameColumn<<#=type.TypeName#>>, inPlace);
+                    return <#=method.MethodName#>Implementation(<#=type.TypeName#>Column, inPlace);
 <# } else { #>
-                    return <#=method.MethodName#>Implementation(column as PrimitiveDataFrameColumn<<#=type.TypeName#>>);
+                    return <#=method.MethodName#>Implementation(<#=type.TypeName#>Column);
 <# } #>
 <# } #>
                 default:

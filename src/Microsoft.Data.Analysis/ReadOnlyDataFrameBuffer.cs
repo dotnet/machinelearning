@@ -69,8 +69,9 @@ namespace Microsoft.Data.Analysis
         {
             get
             {
-                if (index > Length)
+                if (index >= Length)
                     throw new ArgumentOutOfRangeException(nameof(index));
+
                 return ReadOnlySpan[index];
             }
             set => throw new NotSupportedException();

@@ -14,9 +14,6 @@ namespace Microsoft.Data.Analysis
     public class DataFrameColumnCollection : Collection<DataFrameColumn>
     {
         private readonly Action ColumnsChanged;
-
-        private readonly List<string> _columnNames = new List<string>();
-
         private readonly Dictionary<string, int> _columnNameToIndexDictionary = new Dictionary<string, int>(StringComparer.Ordinal);
 
         internal long RowCount { get; set; }
@@ -46,7 +43,6 @@ namespace Microsoft.Data.Analysis
             string currentName = column.Name;
             int currentIndex = _columnNameToIndexDictionary[currentName];
             column.SetName(newName);
-            _columnNames[currentIndex] = newName;
             _columnNameToIndexDictionary.Remove(currentName);
             _columnNameToIndexDictionary.Add(newName, currentIndex);
             ColumnsChanged?.Invoke();
@@ -62,13 +58,15 @@ namespace Microsoft.Data.Analysis
         protected override void InsertItem(int columnIndex, DataFrameColumn column)
         {
             column = column ?? throw new ArgumentNullException(nameof(column));
-            if (RowCount > 0 && column.Length != RowCount)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
 
-            if (Count >= 1 && RowCount == 0 && column.Length != RowCount)
+            if (Count == 0)
             {
+                //change RowCount on inserting first row to dataframe
+                RowCount = column.Length;
+            }
+            else if (column.Length != RowCount)
+            {
+                //check all columns in the dataframe have the same length (amount of rows)
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
 
@@ -76,12 +74,13 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(string.Format(Strings.DuplicateColumnName, column.Name), nameof(column));
             }
+
             RowCount = column.Length;
-            _columnNames.Insert(columnIndex, column.Name);
+
             _columnNameToIndexDictionary[column.Name] = columnIndex;
             for (int i = columnIndex + 1; i < Count; i++)
             {
-                _columnNameToIndexDictionary[_columnNames[i]]++;
+                _columnNameToIndexDictionary[this[i].Name]++;
             }
             base.InsertItem(columnIndex, column);
             ColumnsChanged?.Invoke();
@@ -99,8 +98,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(string.Format(Strings.DuplicateColumnName, column.Name), nameof(column));
             }
-            _columnNameToIndexDictionary.Remove(_columnNames[columnIndex]);
-            _columnNames[columnIndex] = column.Name;
+            _columnNameToIndexDictionary.Remove(this[columnIndex].Name);
             _columnNameToIndexDictionary[column.Name] = columnIndex;
             base.SetItem(columnIndex, column);
             ColumnsChanged?.Invoke();
@@ -108,13 +106,17 @@ namespace Microsoft.Data.Analysis
 
         protected override void RemoveItem(int columnIndex)
         {
-            _columnNameToIndexDictionary.Remove(_columnNames[columnIndex]);
+            _columnNameToIndexDictionary.Remove(this[columnIndex].Name);
             for (int i = columnIndex + 1; i < Count; i++)
             {
-                _columnNameToIndexDictionary[_columnNames[i]]--;
+                _columnNameToIndexDictionary[this[i].Name]--;
             }
-            _columnNames.RemoveAt(columnIndex);
             base.RemoveItem(columnIndex);
+
+            //Reset RowCount if the last column was removed and dataframe is empty
+            if (Count == 0)
+                RowCount = 0;
+
             ColumnsChanged?.Invoke();
         }
 
@@ -144,8 +146,10 @@ namespace Microsoft.Data.Analysis
         {
             base.ClearItems();
             ColumnsChanged?.Invoke();
-            _columnNames.Clear();
             _columnNameToIndexDictionary.Clear();
+
+            //reset RowCount as DataFrame is now empty
+            RowCount = 0;
         }
 
         /// <summary>
@@ -197,6 +201,23 @@ namespace Microsoft.Data.Analysis
             }
 
             throw new ArgumentException(string.Format(Strings.BadColumnCast, column.DataType, typeof(T)), nameof(T));
+        }
+
+        /// <summary>
+        /// Gets the <see cref="DateTimeDataFrameColumn"/> with the specified <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">The name of the column</param>
+        /// <returns><see cref="DateTimeDataFrameColumn"/>.</returns>
+        /// <exception cref="ArgumentException">A column named <paramref name="name"/> cannot be found, or if the column's type doesn't match.</exception>
+        public DateTimeDataFrameColumn GetDateTimeColumn(string name)
+        {
+            DataFrameColumn column = this[name];
+            if (column is DateTimeDataFrameColumn ret)
+            {
+                return ret;
+            }
+
+            throw new ArgumentException(string.Format(Strings.BadColumnCast, column.DataType, typeof(DateTime)));
         }
 
         /// <summary>
