@@ -315,7 +315,7 @@ Abandoning Trial {trialSettings.TrialId} and continue training.
                     trialResultManager?.AddOrUpdateTrialResult(trialResult);
                     aggregateTrainingStopManager.Update(trialResult);
 
-                    if (ex is not OperationCanceledException && _bestTrialResult == null)
+                    if (ex is not OperationCanceledException && ex is not OutOfMemoryException && _bestTrialResult == null)
                     {
                         logger.Trace($"trial fatal error - {JsonSerializer.Serialize(trialSettings)}, stop training");
 

@@ -391,7 +391,7 @@ namespace Microsoft.ML.AutoML
                 {
                     var stopWatch = new Stopwatch();
                     stopWatch.Start();
-                    var fold = datasetManager.Fold ?? 5;
+                    var fold = datasetManager.Fold;
                     var metrics = _context.BinaryClassification.CrossValidateNonCalibrated(datasetManager.Dataset, pipeline, fold, metricManager.LabelColumn);
 
                     // now we just randomly pick a model, but a better way is to provide option to pick a model which score is the cloest to average or the best.
@@ -420,8 +420,8 @@ namespace Microsoft.ML.AutoML
                 {
                     var stopWatch = new Stopwatch();
                     stopWatch.Start();
-                    var model = pipeline.Fit(trainTestDatasetManager.TrainDataset);
-                    var eval = model.Transform(trainTestDatasetManager.ValidateDataset);
+                    var model = pipeline.Fit(trainTestDatasetManager.LoadTrainDataset(_context, settings));
+                    var eval = model.Transform(trainTestDatasetManager.LoadValidateDataset(_context, settings));
                     var metrics = _context.BinaryClassification.EvaluateNonCalibrated(eval, metricManager.LabelColumn, predictedLabelColumnName: metricManager.PredictedColumn);
                     var metric = GetMetric(metricManager.Metric, metrics);
                     var loss = metricManager.IsMaximize ? -metric : metric;

@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.SearchSpace.Option;
 using Newtonsoft.Json;
 using static Microsoft.ML.DataOperationsCatalog;
 
@@ -24,14 +25,18 @@ namespace Microsoft.ML.AutoML
         /// <param name="experiment"><see cref="AutoMLExperiment"/></param>
         /// <param name="train">dataset for training a model.</param>
         /// <param name="validation">dataset for validating a model during training.</param>
+        /// <param name="subSamplingTrainDataset">determine if subsampling <paramref name="train"/> to train. This will be useful if <paramref name="train"/> is too large to be held in memory.</param>
         /// <returns><see cref="AutoMLExperiment"/></returns>
-        public static AutoMLExperiment SetDataset(this AutoMLExperiment experiment, IDataView train, IDataView validation)
+        public static AutoMLExperiment SetDataset(this AutoMLExperiment experiment, IDataView train, IDataView validation, bool subSamplingTrainDataset = false)
         {
-            var datasetManager = new TrainValidateDatasetManager()
+            var datasetManager = new TrainValidateDatasetManager(train, validation);
+
+            if (subSamplingTrainDataset)
             {
-                TrainDataset = train,
-                ValidateDataset = validation
-            };
+                var searchSpace = new SearchSpace.SearchSpace();
+                searchSpace.Add(datasetManager.SubSamplingKey, new UniformSingleOption(0, 1, false, 0.1f));
+                experiment.AddSearchSpace(nameof(TrainValidateDatasetManager), searchSpace);
+            }
 
             experiment.ServiceCollection.AddSingleton<IDatasetManager>(datasetManager);
             experiment.ServiceCollection.AddSingleton(datasetManager);
@@ -62,13 +67,7 @@ namespace Microsoft.ML.AutoML
         /// <returns><see cref="AutoMLExperiment"/></returns>
         public static AutoMLExperiment SetDataset(this AutoMLExperiment experiment, IDataView dataset, int fold = 10, string samplingKeyColumnName = null)
         {
-            var datasetManager = new CrossValidateDatasetManager()
-            {
-                Dataset = dataset,
-                Fold = fold,
-                SamplingKeyColumnName = samplingKeyColumnName,
-            };
-
+            var datasetManager = new CrossValidateDatasetManager(dataset, fold, samplingKeyColumnName);
             experiment.ServiceCollection.AddSingleton<IDatasetManager>(datasetManager);
             experiment.ServiceCollection.AddSingleton(datasetManager);
 

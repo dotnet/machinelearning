@@ -19,5 +19,15 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn(string name, ReadOnlyMemory<byte> buffer, ReadOnlyMemory<byte> nullBitMap, int length = 0, int nullCount = 0) : base(name, buffer, nullBitMap, length, nullCount) { }
 
         internal BooleanDataFrameColumn(string name, PrimitiveColumnContainer<bool> values) : base(name, values) { }
+
+        protected override PrimitiveDataFrameColumn<bool> CreateNewColumn(string name, long length = 0)
+        {
+            return new BooleanDataFrameColumn(name, length);
+        }
+
+        internal override PrimitiveDataFrameColumn<bool> CreateNewColumn(string name, PrimitiveColumnContainer<bool> container)
+        {
+            return new BooleanDataFrameColumn(name, container);
+        }
     }
 }
