@@ -94,7 +94,6 @@ namespace Microsoft.ML.AutoML
         private void InitializeTrainDataset(MLContext context)
         {
             _rowCount = DatasetDimensionsUtil.CountRows(_trainDataset, ulong.MaxValue);
-            _trainDataset = context.Data.ShuffleRows(_trainDataset);
         }
     }
 
