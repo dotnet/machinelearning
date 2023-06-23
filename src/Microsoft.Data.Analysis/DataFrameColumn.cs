@@ -84,6 +84,26 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        // List of ColumnCollections that owns the column
+        // Current API allows column to be added into multiple dataframes, that's why the list is needed
+        private readonly List<DataFrameColumnCollection> _ownerColumnCollections = new();
+
+        internal void AddOwner(DataFrameColumnCollection columCollection)
+        {
+            if (!_ownerColumnCollections.Contains(columCollection))
+            {
+                _ownerColumnCollections.Add(columCollection);
+            }
+        }
+
+        internal void RemoveOwner(DataFrameColumnCollection columCollection)
+        {
+            if (_ownerColumnCollections.Contains(columCollection))
+            {
+                _ownerColumnCollections.Remove(columCollection);
+            }
+        }
+
         /// <summary>
         /// The number of <see langword="null" /> values in this column.
         /// </summary>
@@ -95,23 +115,29 @@ namespace Microsoft.Data.Analysis
         private string _name;
 
         /// <summary>
-        /// The name of this column.
+        /// The column name.
         /// </summary>
         public string Name => _name;
+
+        /// <summary>
+        /// Updates the column name.
+        /// </summary>
+        /// <param name="newName">The new name.</param>
+        public void SetName(string newName)
+        {
+            foreach (var owner in _ownerColumnCollections)
+                owner.UpdateColumnNameMetadata(this, newName);
+
+            _name = newName;
+        }
 
         /// <summary>
         /// Updates the name of this column.
         /// </summary>
         /// <param name="newName">The new name.</param>
-        /// <param name="dataFrame">If passed in, update the column name in <see cref="DataFrame.Columns"/></param>
-        public void SetName(string newName, DataFrame dataFrame = null)
-        {
-            if (!(dataFrame is null))
-            {
-                dataFrame.Columns.SetColumnName(this, newName);
-            }
-            _name = newName;
-        }
+        /// <param name="dataFrame">Ignored (for backward compatibility)</param>
+        [Obsolete]
+        public void SetName(string newName, DataFrame dataFrame) => SetName(newName);
 
         /// <summary>
         /// The type of data this column holds.

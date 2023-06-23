@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -38,11 +38,23 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
+        public void RenameColumn(string currentName, string newName)
+        {
+            var column = this[currentName];
+            column.SetName(newName);
+        }
+
+        [Obsolete]
         public void SetColumnName(DataFrameColumn column, string newName)
+        {
+            column.SetName(newName);
+        }
+
+        //Updates column's metadata (is used as a callback from Column class)
+        internal void UpdateColumnNameMetadata(DataFrameColumn column, string newName)
         {
             string currentName = column.Name;
             int currentIndex = _columnNameToIndexDictionary[currentName];
-            column.SetName(newName);
             _columnNameToIndexDictionary.Remove(currentName);
             _columnNameToIndexDictionary.Add(newName, currentIndex);
             ColumnsChanged?.Invoke();
@@ -66,7 +78,7 @@ namespace Microsoft.Data.Analysis
             }
             else if (column.Length != RowCount)
             {
-                //check all columns in the dataframe have the same length (amount of rows)
+                //check all columns in the dataframe have the same lenght (amount of rows)
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
 
@@ -75,7 +87,7 @@ namespace Microsoft.Data.Analysis
                 throw new ArgumentException(string.Format(Strings.DuplicateColumnName, column.Name), nameof(column));
             }
 
-            RowCount = column.Length;
+            column.AddOwner(this);
 
             _columnNameToIndexDictionary[column.Name] = columnIndex;
             for (int i = columnIndex + 1; i < Count; i++)
@@ -100,7 +112,10 @@ namespace Microsoft.Data.Analysis
             }
             _columnNameToIndexDictionary.Remove(this[columnIndex].Name);
             _columnNameToIndexDictionary[column.Name] = columnIndex;
+
+            this[columnIndex].RemoveOwner(this);
             base.SetItem(columnIndex, column);
+
             ColumnsChanged?.Invoke();
         }
 
@@ -111,6 +126,8 @@ namespace Microsoft.Data.Analysis
             {
                 _columnNameToIndexDictionary[this[i].Name]--;
             }
+
+            this[columnIndex].RemoveOwner(this);
             base.RemoveItem(columnIndex);
 
             //Reset RowCount if the last column was removed and dataframe is empty
@@ -204,10 +221,10 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Gets the <see cref="PrimitiveDataFrameColumn{DateTime}"/> with the specified <paramref name="name"/>.
+        /// Gets the <see cref="PrimitiveDataFrameColumn{T}"/> with the specified <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the column</param>
-        /// <returns><see cref="PrimitiveDataFrameColumn{DateTime}"/>.</returns>
+        /// <returns><see cref="PrimitiveDataFrameColumn{T}"/>.</returns>
         /// <exception cref="ArgumentException">A column named <paramref name="name"/> cannot be found, or if the column's type doesn't match.</exception>
         public PrimitiveDataFrameColumn<DateTime> GetDateTimeColumn(string name)
         {

@@ -374,18 +374,6 @@ namespace Microsoft.Data.Analysis
             return Buffers[arrayIndex].Length - (int)startIndex;
         }
 
-        internal ReadOnlyMemory<byte> GetValueBuffer(long startIndex)
-        {
-            int arrayIndex = GetArrayContainingRowIndex(startIndex);
-            return Buffers[arrayIndex].ReadOnlyBuffer;
-        }
-
-        internal ReadOnlyMemory<byte> GetNullBuffer(long startIndex)
-        {
-            int arrayIndex = GetArrayContainingRowIndex(startIndex);
-            return NullBitMapBuffers[arrayIndex].ReadOnlyBuffer;
-        }
-
         public IReadOnlyList<T?> this[long startIndex, int length]
         {
             get

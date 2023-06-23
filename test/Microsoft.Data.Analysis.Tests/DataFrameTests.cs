@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -386,6 +386,44 @@ namespace Microsoft.Data.Analysis.Tests
 
             Assert.Equal(0, dataFrame.Rows.Count);
             Assert.Equal(0, dataFrame.Columns.LongCount());
+        }
+
+        [Fact]
+        public void RenameColumnWithSetNameTests()
+        {
+            StringDataFrameColumn city = new StringDataFrameColumn("City", new string[] { "London", "Berlin" });
+            PrimitiveDataFrameColumn<int> temp = new PrimitiveDataFrameColumn<int>("Temperature", new int[] { 12, 13 });
+
+            DataFrame dataframe = new DataFrame(city, temp);
+
+            // Change the name of the column:
+            dataframe["City"].SetName("Town");
+            var renamedColumn = dataframe["Town"];
+
+            Assert.Throws<ArgumentException>(() => dataframe["City"]);
+
+            Assert.NotNull(renamedColumn);
+            Assert.Equal("Town", renamedColumn.Name);
+            Assert.True(ReferenceEquals(city, renamedColumn));
+        }
+
+        [Fact]
+        public void RenameColumnWithRenameColumnTests()
+        {
+            StringDataFrameColumn city = new StringDataFrameColumn("City", new string[] { "London", "Berlin" });
+            PrimitiveDataFrameColumn<int> temp = new PrimitiveDataFrameColumn<int>("Temperature", new int[] { 12, 13 });
+
+            DataFrame dataframe = new DataFrame(city, temp);
+
+            // Change the name of the column:
+            dataframe.Columns.RenameColumn("City", "Town");
+            var renamedColumn = dataframe["Town"];
+
+            Assert.Throws<ArgumentException>(() => dataframe["City"]);
+
+            Assert.NotNull(renamedColumn);
+            Assert.Equal("Town", renamedColumn.Name);
+            Assert.True(ReferenceEquals(city, renamedColumn));
         }
 
         [Fact]
