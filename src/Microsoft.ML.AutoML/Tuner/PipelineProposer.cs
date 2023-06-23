@@ -101,6 +101,13 @@ namespace Microsoft.ML.AutoML
             {
                 var probabilities = _pipelineSchemas.Select(id => _eci[id]).ToArray();
                 probabilities = ArrayMath.Inverse(probabilities);
+                // _eci (estimator improve cost) might be infinity, which means the estimator cost for finding an improvement is positive infinity
+                // in that case, we used to set the probability to be a very small number, in some cases it can be zero ( 1 / double.infinity), so that it will be very unlikely to be picked.
+                // however, there's a special situation where all the estimators have infinity eci
+                // which could happen when all the estimators have been tried, all retrieves perfect loss and no improvement can be made.
+                // in which case, all probablities will be zero and in that case, we will never be able to pick any of them.
+                // Therefore, we need to make sure non of the probabilities is zero, and we can do that by adding a very small number (double.epsilon) to each of them after inverse.
+                probabilities = probabilities.Select(p => p + double.Epsilon).ToArray();
                 probabilities = ArrayMath.Normalize(probabilities);
 
                 // sample

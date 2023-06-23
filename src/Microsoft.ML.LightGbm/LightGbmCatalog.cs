@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.LightGbm;
@@ -68,6 +69,22 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Create <see cref="LightGbmRegressionTrainer"/> from a pre-trained LightGBM model, which predicts a target using a gradient boosting decision tree regression.
+        /// </summary>
+        /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
+        /// <param name="lightGbmModel"> A pre-trained <see cref="System.IO.Stream"/> of a LightGBM model file inferencing</param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
+        public static LightGbmRegressionTrainer LightGbm(this RegressionCatalog.RegressionTrainers catalog,
+            Stream lightGbmModel,
+            string featureColumnName = DefaultColumnNames.Features
+            )
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new LightGbmRegressionTrainer(env, lightGbmModel, featureColumnName);
+        }
+
+        /// <summary>
         /// Create <see cref="LightGbmBinaryTrainer"/>, which predicts a target using a gradient boosting decision tree binary classification.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
@@ -117,6 +134,22 @@ namespace Microsoft.ML
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             return new LightGbmBinaryTrainer(env, options);
+        }
+
+        /// <summary>
+        /// Create <see cref="LightGbmBinaryTrainer"/> from a pre-trained LightGBM model, which predicts a target using a gradient boosting decision tree binary classification.
+        /// </summary>
+        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
+        /// <param name="lightGbmModel"> A pre-trained <see cref="System.IO.Stream"/> of a LightGBM model file inferencing</param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
+        public static LightGbmBinaryTrainer LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            Stream lightGbmModel,
+            string featureColumnName = DefaultColumnNames.Features
+            )
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new LightGbmBinaryTrainer(env, lightGbmModel, featureColumnName);
         }
 
         /// <summary>
@@ -175,6 +208,22 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Create <see cref="LightGbmRankingTrainer"/> from a pre-trained LightGBM model, which predicts a target using a gradient boosting decision tree ranking model.
+        /// </summary>
+        /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
+        /// <param name="lightGbmModel"> A pre-trained <see cref="System.IO.Stream"/> of a LightGBM model file inferencing</param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
+        public static LightGbmRankingTrainer LightGbm(this RankingCatalog.RankingTrainers catalog,
+            Stream lightGbmModel,
+            string featureColumnName = DefaultColumnNames.Features
+            )
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new LightGbmRankingTrainer(env, lightGbmModel, featureColumnName);
+        }
+
+        /// <summary>
         /// Create <see cref="LightGbmMulticlassTrainer"/>, which predicts a target using a gradient boosting decision tree multiclass classification model.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog"/>.</param>
@@ -224,6 +273,22 @@ namespace Microsoft.ML
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             return new LightGbmMulticlassTrainer(env, options);
+        }
+
+        /// <summary>
+        /// Create <see cref="LightGbmMulticlassTrainer"/> from a pre-trained LightGBM model, which predicts a target using a gradient boosting decision tree multiclass classification model.
+        /// </summary>
+        /// <param name="catalog">The <see cref="MulticlassClassificationCatalog"/>.</param>
+        /// <param name="lightGbmModel"> A pre-trained <see cref="System.IO.Stream"/> of a LightGBM model file inferencing</param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
+        public static LightGbmMulticlassTrainer LightGbm(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            Stream lightGbmModel,
+            string featureColumnName = DefaultColumnNames.Features
+            )
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new LightGbmMulticlassTrainer(env, lightGbmModel, featureColumnName);
         }
     }
 }

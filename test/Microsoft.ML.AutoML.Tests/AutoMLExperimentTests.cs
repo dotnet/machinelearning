@@ -14,6 +14,7 @@ using FluentAssertions;
 using Microsoft.Data.Analysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.AutoML.CodeGen;
+using Microsoft.ML.Fairlearn.AutoML;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
@@ -229,6 +230,31 @@ namespace Microsoft.ML.AutoML.Test
             result.Metric.Should().BeGreaterThan(0.8);
         }
 
+        [Fact(Skip = "skip in CI build")]
+        public async Task AutoMLExperiment_UCI_Adult_Fairlearn_Test()
+        {
+            var context = new MLContext(1);
+            context.Log += (o, e) =>
+            {
+                if (e.Source.StartsWith("AutoMLExperiment"))
+                {
+                    this.Output.WriteLine(e.RawMessage);
+                }
+            };
+            var data = DatasetUtil.GetUciAdultDataView();
+            var experiment = context.Auto().CreateExperiment();
+            var pipeline = context.Auto().Featurizer(data, "_Features_", excludeColumns: new[] { DatasetUtil.UciAdultLabel })
+                                .Append(context.Auto().BinaryClassification(DatasetUtil.UciAdultLabel, "_Features_", exampleWeightColumnName: "signedWeight", useLgbm: false, useSdcaLogisticRegression: false, useLbfgsLogisticRegression: false));
+
+            experiment.SetDataset(context.Data.TrainTestSplit(data))
+                    .SetPipeline(pipeline)
+                    .SetBinaryClassificationMetricWithFairLearn(DatasetUtil.UciAdultLabel, "PredictedLabel", "Workclass", "signedWeight")
+                    .SetMaxModelToExplore(100);
+
+            var result = await experiment.RunAsync();
+            result.Metric.Should().BeGreaterThan(0.8);
+        }
+
         [Fact]
         public async Task AutoMLExperiment_UCI_Adult_CV_5_Test()
         {
@@ -333,6 +359,17 @@ namespace Microsoft.ML.AutoML.Test
 
             var result = await experiment.RunAsync();
             result.Metric.Should().BeGreaterThan(0.5);
+
+            // test subsamping
+            experiment = context.Auto().CreateExperiment();
+            experiment.SetDataset(train, test, true)
+                    .SetRegressionMetric(RegressionMetric.RSquared, label)
+                    .SetPipeline(pipeline)
+                    .SetMaxModelToExplore(1);
+            result = await experiment.RunAsync();
+            result.Metric.Should().BeGreaterThan(0.5);
+            result.TrialSettings.Parameter[nameof(TrainValidateDatasetManager)]["TrainValidateDatasetSubsamplingKey"]
+                .AsType<float>().Should().Be(0.1f);
         }
 
         [Fact]

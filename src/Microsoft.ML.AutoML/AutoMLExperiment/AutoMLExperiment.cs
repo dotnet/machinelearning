@@ -234,6 +234,7 @@ namespace Microsoft.ML.AutoML
             var monitor = serviceProvider.GetService<IMonitor>();
             var trialResultManager = serviceProvider.GetService<ITrialResultManager>();
             var trialNum = trialResultManager?.GetAllTrialResults().Max(t => t.TrialSettings?.TrialId) + 1 ?? 0;
+            serviceProvider.GetService<ITrialRunner>();
             var tuner = serviceProvider.GetService<ITuner>();
             Contracts.Assert(tuner != null, "tuner can't be null");
 
@@ -314,7 +315,7 @@ Abandoning Trial {trialSettings.TrialId} and continue training.
                     trialResultManager?.AddOrUpdateTrialResult(trialResult);
                     aggregateTrainingStopManager.Update(trialResult);
 
-                    if (ex is not OperationCanceledException && _bestTrialResult == null)
+                    if (ex is not OperationCanceledException && ex is not OutOfMemoryException && _bestTrialResult == null)
                     {
                         logger.Trace($"trial fatal error - {JsonSerializer.Serialize(trialSettings)}, stop training");
 

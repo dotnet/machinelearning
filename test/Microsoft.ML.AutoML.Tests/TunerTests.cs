@@ -67,6 +67,39 @@ namespace Microsoft.ML.AutoML.Test
         }
 
         [Fact]
+        public void Smac_should_ignore_fail_trials_during_initialize()
+        {
+            // fix for https://github.com/dotnet/machinelearning-modelbuilder/issues/2721
+            var context = new MLContext(1);
+            var searchSpace = new SearchSpace<LbfgsOption>();
+            var tuner = new SmacTuner(context, searchSpace, seed: 1);
+            for (int i = 0; i != 1000; ++i)
+            {
+                var trialSettings = new TrialSettings()
+                {
+                    TrialId = i,
+                };
+
+                var param = tuner.Propose(trialSettings);
+                trialSettings.Parameter = param;
+                var option = param.AsType<LbfgsOption>();
+
+                option.L1Regularization.Should().BeInRange(0.03125f, 32768.0f);
+                option.L2Regularization.Should().BeInRange(0.03125f, 32768.0f);
+
+                tuner.Update(new TrialResult()
+                {
+                    DurationInMilliseconds = i * 1000,
+                    Loss = double.NaN,
+                    TrialSettings = trialSettings,
+                });
+            }
+
+            tuner.Candidates.Count.Should().Be(0);
+            tuner.Histories.Count.Should().Be(0);
+        }
+
+        [Fact]
         public void CFO_should_be_recoverd_if_history_provided()
         {
             // this test verify that cfo can be recovered by replaying history.
@@ -140,7 +173,8 @@ namespace Microsoft.ML.AutoML.Test
                 SearchSpace = searchSpace,
                 Seed = 1,
             });
-            var invalidLosses = new[] { double.NaN, double.NegativeInfinity, double.PositiveInfinity };
+            var invalidLosses = Enumerable.Repeat(new[] { double.NaN, double.NegativeInfinity, double.PositiveInfinity }, 100)
+                                .SelectMany(loss => loss);
             var id = 0;
             foreach (var loss in invalidLosses)
             {
@@ -155,7 +189,42 @@ namespace Microsoft.ML.AutoML.Test
                 {
                     TrialSettings = trialSetting,
                     DurationInMilliseconds = 10000,
-                    Loss = double.NaN,
+                    Loss = loss,
+                };
+                tuner.Update(trialResult);
+            }
+        }
+
+        [Fact]
+        public void EciCfo_should_handle_trial_result_with_no_improvements_over_losses()
+        {
+            // this test verify if tuner can find max value for LSE.
+            var context = new MLContext(1);
+            var pipeline = this.CreateDummySweepablePipeline(context);
+            var searchSpace = new SearchSpace.SearchSpace();
+            searchSpace["_pipeline_"] = pipeline.SearchSpace;
+            var tuner = new EciCostFrugalTuner(pipeline, new AutoMLExperiment.AutoMLExperimentSettings
+            {
+                SearchSpace = searchSpace,
+                Seed = 1,
+            });
+            var zeroLosses = Enumerable.Repeat(0.0, 100);
+            var randomLosses = Enumerable.Range(0, 100).Select(i => i * 0.1);
+            var id = 0;
+            foreach (var loss in zeroLosses.Concat(randomLosses))
+            {
+                var trialSetting = new TrialSettings
+                {
+                    TrialId = id++,
+                    Parameter = Parameter.CreateNestedParameter(),
+                };
+                var parameter = tuner.Propose(trialSetting);
+                trialSetting.Parameter = parameter;
+                var trialResult = new TrialResult
+                {
+                    TrialSettings = trialSetting,
+                    DurationInMilliseconds = 10000,
+                    Loss = loss,
                 };
                 tuner.Update(trialResult);
             }
