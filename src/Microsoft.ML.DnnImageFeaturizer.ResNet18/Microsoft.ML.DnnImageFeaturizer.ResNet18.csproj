@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.DnnImageFeaturizer.ResNet18</IncludeInPackage>
     <PackageDescription>ML.NET component for pretrained ResNet18 image featurization</PackageDescription>
   </PropertyGroup>

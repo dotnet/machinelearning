@@ -31,7 +31,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
     {
         private const string PrivateTitle = "Fix name";
 
-        private static ImmutableArray<string> _fixable = ImmutableArray.Create(
+        private static readonly ImmutableArray<string> _fixable = ImmutableArray.Create(
             NameAnalyzer.PrivateFieldName.Id, NameAnalyzer.GeneralName.Id,
             ParameterVariableNameAnalyzer.Id, TypeParamNameAnalyzer.Id);
 

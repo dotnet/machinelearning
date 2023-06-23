@@ -2,7 +2,7 @@
   <Import Project="$(RepoRoot)eng/pkg/Pack.props"/>
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.TimeSeries</IncludeInPackage>
     <PackageDescription>Microsoft.ML.TimeSeries contains ML.NET Time Series prediction algorithms. Uses Intel Mkl.</PackageDescription>
   </PropertyGroup>

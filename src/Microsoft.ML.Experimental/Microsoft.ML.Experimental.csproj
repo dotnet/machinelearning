@@ -2,7 +2,7 @@
   <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.Experimental</IncludeInPackage>
     <PackageDescription>Microsoft.ML.Experimental contains experimental work such extension methods to access internal methods.</PackageDescription>
   </PropertyGroup>

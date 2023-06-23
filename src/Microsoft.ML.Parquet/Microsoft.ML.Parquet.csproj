@@ -2,7 +2,7 @@
   <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.Parquet</IncludeInPackage>
     <PackageDescription>ML.NET components for Apache Parquet support.</PackageDescription>
   </PropertyGroup>
