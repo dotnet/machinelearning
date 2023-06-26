@@ -16,7 +16,7 @@ schedules:
     include:
     - main
     - feature/*
-    - releases/*
+    - release/*
   always: true
 
 
