@@ -2,6 +2,20 @@
 # ML.NET's Code Coverage validation build
 ################################################################################
 
+pr:
+  branches:
+    include:
+    - main
+    - feature/*
+    - release/*
+
+trigger:
+  branches:
+    include:
+    - main
+    - feature/*
+    - release/*
+
 jobs:
 - template: /build/ci/job-template.yml
   parameters:
