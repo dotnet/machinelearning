@@ -162,7 +162,7 @@ namespace Microsoft.ML
             }
         }
 
-        public float NextSingle()
+        public override float NextSingle()
         {
             NextState();
             return GetSingle();

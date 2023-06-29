@@ -10,6 +10,7 @@ using System.Threading;
 namespace Microsoft.ML.Tokenizers
 {
     internal sealed class Cache<TKey, TValue>
+        where TKey : notnull
     {
         internal Cache() : this(Bpe.DefaultCacheCapacity) { }
 
@@ -45,7 +46,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 foreach (TKey key in keys)
                 {
-                    if (Map.TryGetValue(key, out TValue value))
+                    if (Map.TryGetValue(key, out TValue? value))
                     {
                         values.Add(value);
                     }
@@ -61,7 +62,7 @@ namespace Microsoft.ML.Tokenizers
             _cacheLock.EnterReadLock();
             try
             {
-                if (Map.TryGetValue(key, out TValue value))
+                if (Map.TryGetValue(key, out TValue? value))
                 {
                     return value;
                 }
