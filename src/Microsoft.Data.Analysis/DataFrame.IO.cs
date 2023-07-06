@@ -280,15 +280,15 @@ namespace Microsoft.Data.Analysis
             DataFrameColumn ret;
             if (kind == typeof(bool))
             {
-                ret = new BooleanDataFrameColumn(columnName);
+                ret = new PrimitiveDataFrameColumn<bool>(columnName);
             }
             else if (kind == typeof(int))
             {
-                ret = new Int32DataFrameColumn(columnName);
+                ret = new PrimitiveDataFrameColumn<int>(columnName);
             }
             else if (kind == typeof(float))
             {
-                ret = new SingleDataFrameColumn(columnName);
+                ret = new PrimitiveDataFrameColumn<float>(columnName);
             }
             else if (kind == typeof(string))
             {
@@ -296,43 +296,43 @@ namespace Microsoft.Data.Analysis
             }
             else if (kind == typeof(long))
             {
-                ret = new Int64DataFrameColumn(columnName);
+                ret = new PrimitiveDataFrameColumn<long>(columnName);
             }
             else if (kind == typeof(decimal))
             {
-                ret = new DecimalDataFrameColumn(columnName);
+                ret = new PrimitiveDataFrameColumn<decimal>(columnName);
             }
             else if (kind == typeof(byte))
             {
-                ret = new ByteDataFrameColumn(columnName);
+                ret = new PrimitiveDataFrameColumn<byte>(columnName);
             }
             else if (kind == typeof(char))
             {
-                ret = new CharDataFrameColumn(columnName);
+                ret = new PrimitiveDataFrameColumn<char>(columnName);
             }
             else if (kind == typeof(double))
             {
-                ret = new DoubleDataFrameColumn(columnName);
+                ret = new PrimitiveDataFrameColumn<double>(columnName);
             }
             else if (kind == typeof(sbyte))
             {
-                ret = new SByteDataFrameColumn(columnName);
+                ret = new PrimitiveDataFrameColumn<sbyte>(columnName);
             }
             else if (kind == typeof(short))
             {
-                ret = new Int16DataFrameColumn(columnName);
+                ret = new PrimitiveDataFrameColumn<short>(columnName);
             }
             else if (kind == typeof(uint))
             {
-                ret = new UInt32DataFrameColumn(columnName);
+                ret = new PrimitiveDataFrameColumn<uint>(columnName);
             }
             else if (kind == typeof(ulong))
             {
-                ret = new UInt64DataFrameColumn(columnName);
+                ret = new PrimitiveDataFrameColumn<ulong>(columnName);
             }
             else if (kind == typeof(ushort))
             {
-                ret = new UInt16DataFrameColumn(columnName);
+                ret = new PrimitiveDataFrameColumn<ushort>(columnName);
             }
             else if (kind == typeof(DateTime))
             {

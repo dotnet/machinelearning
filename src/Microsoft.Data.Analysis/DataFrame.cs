@@ -301,7 +301,7 @@ namespace Microsoft.Data.Analysis
             for (int i = 0; i < df.Columns.Count; i++)
             {
                 DataFrameColumn column = df.Columns[i];
-                df._columnCollection.SetColumnName(column, prefix + column.Name);
+                column.SetName(prefix + column.Name);
                 df.OnColumnsChanged();
             }
             return df;
@@ -316,7 +316,7 @@ namespace Microsoft.Data.Analysis
             for (int i = 0; i < df.Columns.Count; i++)
             {
                 DataFrameColumn column = df.Columns[i];
-                df._columnCollection.SetColumnName(column, column.Name + suffix);
+                column.SetName(column.Name + suffix);
                 df.OnColumnsChanged();
             }
             return df;
@@ -643,7 +643,7 @@ namespace Microsoft.Data.Analysis
         private DataFrame Sort(string columnName, bool isAscending)
         {
             DataFrameColumn column = Columns[columnName];
-            PrimitiveDataFrameColumn<long> sortIndices = column.GetAscendingSortIndices(out Int64DataFrameColumn nullIndices);
+            PrimitiveDataFrameColumn<long> sortIndices = column.GetAscendingSortIndices(out PrimitiveDataFrameColumn<long> nullIndices);
             for (long i = 0; i < nullIndices.Length; i++)
             {
                 sortIndices.Append(nullIndices[i]);

@@ -6,6 +6,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Apache.Arrow;
 using Apache.Arrow.Types;
 using Microsoft.ML;
@@ -103,6 +105,8 @@ namespace Microsoft.Data.Analysis
                 return UInt64Type.Default;
             else if (typeof(T) == typeof(ushort))
                 return UInt16Type.Default;
+            else if (typeof(T) == typeof(DateTime))
+                return Date64Type.Default;
             else
                 throw new NotImplementedException(nameof(T));
         }
@@ -126,36 +130,64 @@ namespace Microsoft.Data.Analysis
         {
             int arrayIndex = numberOfRows == 0 ? 0 : _columnContainer.GetArrayContainingRowIndex(startIndex);
             int offset = (int)(startIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity);
+
             if (numberOfRows != 0 && numberOfRows > _columnContainer.Buffers[arrayIndex].Length - offset)
             {
                 throw new ArgumentException(Strings.SpansMultipleBuffers, nameof(numberOfRows));
             }
-            ArrowBuffer valueBuffer = numberOfRows == 0 ? ArrowBuffer.Empty : new ArrowBuffer(_columnContainer.GetValueBuffer(startIndex));
-            ArrowBuffer nullBuffer = numberOfRows == 0 ? ArrowBuffer.Empty : new ArrowBuffer(_columnContainer.GetNullBuffer(startIndex));
+
             int nullCount = GetNullCount(startIndex, numberOfRows);
+
+            //DateTime requires convertion
+            if (this.DataType == typeof(DateTime))
+            {
+                if (numberOfRows == 0)
+                    return new Date64Array(ArrowBuffer.Empty, ArrowBuffer.Empty, numberOfRows, nullCount, offset);
+
+                ReadOnlyDataFrameBuffer<T> valueBuffer = (numberOfRows == 0) ? null : _columnContainer.Buffers[arrayIndex];
+                ReadOnlyDataFrameBuffer<byte> nullBuffer = (numberOfRows == 0) ? null : _columnContainer.NullBitMapBuffers[arrayIndex];
+
+                ReadOnlySpan<DateTime> valueSpan = MemoryMarshal.Cast<T, DateTime>(valueBuffer.ReadOnlySpan);
+                Date64Array.Builder builder = new Date64Array.Builder().Reserve(valueBuffer.Length);
+
+                for (int i = 0; i < valueBuffer.Length; i++)
+                {
+                    if (BitUtility.GetBit(nullBuffer.ReadOnlySpan, i))
+                        builder.Append(valueSpan[i]);
+                    else
+                        builder.AppendNull();
+                }
+
+                return builder.Build();
+            }
+
+            //No convertion
+            ArrowBuffer arrowValueBuffer = numberOfRows == 0 ? ArrowBuffer.Empty : new ArrowBuffer(_columnContainer.Buffers[arrayIndex].ReadOnlyBuffer);
+            ArrowBuffer arrowNullBuffer = numberOfRows == 0 ? ArrowBuffer.Empty : new ArrowBuffer(_columnContainer.NullBitMapBuffers[arrayIndex].ReadOnlyBuffer);
+
             Type type = this.DataType;
             if (type == typeof(bool))
-                return new BooleanArray(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new BooleanArray(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(double))
-                return new DoubleArray(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new DoubleArray(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(float))
-                return new FloatArray(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new FloatArray(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(int))
-                return new Int32Array(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new Int32Array(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(long))
-                return new Int64Array(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new Int64Array(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(sbyte))
-                return new Int8Array(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new Int8Array(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(short))
-                return new Int16Array(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new Int16Array(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(uint))
-                return new UInt32Array(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new UInt32Array(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(ulong))
-                return new UInt64Array(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new UInt64Array(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(ushort))
-                return new UInt16Array(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new UInt16Array(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else if (type == typeof(byte))
-                return new UInt8Array(valueBuffer, nullBuffer, numberOfRows, nullCount, offset);
+                return new UInt8Array(arrowValueBuffer, arrowNullBuffer, numberOfRows, nullCount, offset);
             else
                 throw new NotImplementedException(type.ToString());
         }
@@ -235,7 +267,7 @@ namespace Microsoft.Data.Analysis
             // Not the most efficient implementation. Using a selection algorithm here would be O(n) instead of O(nLogn)
             if (Length == 0)
                 return 0;
-            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices(out Int64DataFrameColumn _);
+            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices(out PrimitiveDataFrameColumn<long> _);
             long middle = sortIndices.Length / 2;
             double middleValue = (double)Convert.ChangeType(this[sortIndices[middle].Value].Value, typeof(double));
             if (sortIndices.Length % 2 == 0)
@@ -458,77 +490,33 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        internal BooleanDataFrameColumn CloneAsBooleanColumn()
+        internal PrimitiveDataFrameColumn<bool> CloneAsBooleanColumn()
         {
             PrimitiveColumnContainer<bool> newColumnContainer = _columnContainer.CloneAsBoolContainer();
-            return new BooleanDataFrameColumn(Name, newColumnContainer);
+            return new PrimitiveDataFrameColumn<bool>(Name, newColumnContainer);
         }
 
-        internal ByteDataFrameColumn CloneAsByteColumn()
+        internal PrimitiveDataFrameColumn<U> CloneTruncating<U>()
+            where U : unmanaged, INumber<U>
         {
-            PrimitiveColumnContainer<byte> newColumnContainer = _columnContainer.CloneAsByteContainer();
-            return new ByteDataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal SByteDataFrameColumn CloneAsSByteColumn()
-        {
-            PrimitiveColumnContainer<sbyte> newColumnContainer = _columnContainer.CloneAsSByteContainer();
-            return new SByteDataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal DoubleDataFrameColumn CloneAsDoubleColumn()
-        {
-            PrimitiveColumnContainer<double> newColumnContainer = _columnContainer.CloneAsDoubleContainer();
-            return new DoubleDataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal DecimalDataFrameColumn CloneAsDecimalColumn()
-        {
-            PrimitiveColumnContainer<decimal> newColumnContainer = _columnContainer.CloneAsDecimalContainer();
-            return new DecimalDataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal Int16DataFrameColumn CloneAsInt16Column()
-        {
-            PrimitiveColumnContainer<short> newColumnContainer = _columnContainer.CloneAsShortContainer();
-            return new Int16DataFrameColumn(Name, newColumnContainer);
-        }
-
-
-        internal UInt16DataFrameColumn CloneAsUInt16Column()
-        {
-            PrimitiveColumnContainer<ushort> newColumnContainer = _columnContainer.CloneAsUShortContainer();
-            return new UInt16DataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal Int32DataFrameColumn CloneAsInt32Column()
-        {
-            PrimitiveColumnContainer<int> newColumnContainer = _columnContainer.CloneAsIntContainer();
-            return new Int32DataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal UInt32DataFrameColumn CloneAsUInt32Column()
-        {
-            PrimitiveColumnContainer<uint> newColumnContainer = _columnContainer.CloneAsUIntContainer();
-            return new UInt32DataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal Int64DataFrameColumn CloneAsInt64Column()
-        {
-            PrimitiveColumnContainer<long> newColumnContainer = _columnContainer.CloneAsLongContainer();
-            return new Int64DataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal UInt64DataFrameColumn CloneAsUInt64Column()
-        {
-            PrimitiveColumnContainer<ulong> newColumnContainer = _columnContainer.CloneAsULongContainer();
-            return new UInt64DataFrameColumn(Name, newColumnContainer);
-        }
-
-        internal SingleDataFrameColumn CloneAsSingleColumn()
-        {
-            PrimitiveColumnContainer<float> newColumnContainer = _columnContainer.CloneAsFloatContainer();
-            return new SingleDataFrameColumn(Name, newColumnContainer);
+            switch (typeof(U))
+            {
+                case Type decimalType when decimalType == typeof(decimal):
+                case Type byteType when byteType == typeof(byte):
+                case Type charType when charType == typeof(char):
+                case Type doubleType when doubleType == typeof(double):
+                case Type floatType when floatType == typeof(float):
+                case Type intType when intType == typeof(int):
+                case Type longType when longType == typeof(long):
+                case Type sbyteType when sbyteType == typeof(sbyte):
+                case Type shortType when shortType == typeof(short):
+                case Type uintType when uintType == typeof(uint):
+                case Type ulongType when ulongType == typeof(ulong):
+                case Type ushortType when ushortType == typeof(ushort):
+                    return new PrimitiveDataFrameColumn<U>(Name, _columnContainer.CloneTuncating<U>());
+                default:
+                    throw new NotSupportedException();
+            }
         }
 
         /// <inheritdoc/>
@@ -553,7 +541,7 @@ namespace Microsoft.Data.Analysis
                     for (int i = 0; i < readOnlySpan.Length; i++)
                     {
                         long currentLength = i + previousLength;
-                        if (_columnContainer.IsValid(nullBitMapSpan, i))
+                        if (BitmapHelper.IsValid(nullBitMapSpan, i))
                         {
                             bool containsKey = multimap.TryGetValue(readOnlySpan[i], out ICollection<long> values);
                             if (containsKey)
@@ -832,6 +820,30 @@ namespace Microsoft.Data.Analysis
         public override Dictionary<long, ICollection<long>> GetGroupedOccurrences(DataFrameColumn other, out HashSet<long> otherColumnNullIndices)
         {
             return GetGroupedOccurrences<T>(other, out otherColumnNullIndices);
+        }
+
+        public override PrimitiveDataFrameColumn<bool> ElementwiseIsNull()
+        {
+            var ret = new PrimitiveDataFrameColumn<bool>(Name, Length);
+
+            for (long i = 0; i < Length; i++)
+            {
+                ret[i] = !_columnContainer[i].HasValue;
+            }
+
+            return ret;
+        }
+
+        public override PrimitiveDataFrameColumn<bool> ElementwiseIsNotNull()
+        {
+            var ret = new PrimitiveDataFrameColumn<bool>(Name, Length);
+
+            for (long i = 0; i < Length; i++)
+            {
+                ret[i] = _columnContainer[i].HasValue;
+            }
+
+            return ret;
         }
     }
 }

@@ -30,7 +30,7 @@ namespace Microsoft.Data.Analysis
             {
                 // Pre-existing column. Change name
                 DataFrameColumn existingColumn = dataFrame.Columns[index];
-                dataFrame._columnCollection.SetColumnName(existingColumn, existingColumn.Name + leftSuffix);
+                existingColumn.SetName(existingColumn.Name + leftSuffix);
                 column.SetName(column.Name + rightSuffix);
                 index = dataFrame._columnCollection.IndexOf(column.Name);
             }
@@ -221,7 +221,7 @@ namespace Microsoft.Data.Analysis
 
                     retainedIndicesReverseMapping = newRetainedIndicesReverseMapping;
 
-                    var indices = new Int64DataFrameColumn("Indices", shrinkedRetainedIndices);
+                    var indices = new PrimitiveDataFrameColumn<long>("Indices", shrinkedRetainedIndices);
                     shrinkedRetainedColumn = shrinkedRetainedColumn.Clone(indices);
                 }
 
@@ -277,8 +277,8 @@ namespace Microsoft.Data.Analysis
             out PrimitiveDataFrameColumn<long> retainedRowIndices, out PrimitiveDataFrameColumn<long> supplementaryRowIndices,
             bool isInner, bool calculateIntersection)
         {
-            retainedRowIndices = new Int64DataFrameColumn("RetainedIndices");
-            supplementaryRowIndices = new Int64DataFrameColumn("SupplementaryIndices");
+            retainedRowIndices = new PrimitiveDataFrameColumn<long>("RetainedIndices");
+            supplementaryRowIndices = new PrimitiveDataFrameColumn<long>("SupplementaryIndices");
 
             HashSet<long> intersection = calculateIntersection ? new HashSet<long>() : null;
 

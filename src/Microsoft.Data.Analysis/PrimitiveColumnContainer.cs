@@ -12,8 +12,24 @@ using System.Text;
 
 namespace Microsoft.Data.Analysis
 {
+    internal static class BitmapHelper
+    {
+        // Faster to use when we already have a span since it avoids indexing
+        public static bool IsValid(ReadOnlySpan<byte> bitMapBufferSpan, int index)
+        {
+            int nullBitMapSpanIndex = index / 8;
+            byte thisBitMap = bitMapBufferSpan[nullBitMapSpanIndex];
+            return IsBitSet(thisBitMap, index);
+        }
+
+        public static bool IsBitSet(byte curBitMap, int index)
+        {
+            return ((curBitMap >> (index & 7)) & 1) != 0;
+        }
+    }
+
     /// <summary>
-    /// PrimitiveDataFrameColumnContainer is just a store for the column data. APIs that want to change the data must be defined in PrimitiveDataFrameColumn
+    /// PrimitiveColumnContainer is just a store for the column data. APIs that want to change the data must be defined in PrimitiveDataFrameColumn
     /// </summary>
     /// <typeparam name="T"></typeparam>
     internal partial class PrimitiveColumnContainer<T> : IEnumerable<T?>
@@ -223,7 +239,7 @@ namespace Microsoft.Data.Analysis
                 for (int i = 0; i < mutableBuffer.Length; i++)
                 {
                     long curIndex = i + prevLength;
-                    bool isValid = IsValid(mutableNullBitMapBuffer, i);
+                    bool isValid = BitmapHelper.IsValid(mutableNullBitMapBuffer, i);
                     T? value = func(isValid ? mutableBuffer[i] : null, curIndex);
                     mutableBuffer[i] = value.GetValueOrDefault();
                     SetValidityBit(mutableNullBitMapBuffer, i, value != null);
@@ -246,20 +262,12 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < sourceBuffer.Length; i++)
                 {
-                    bool isValid = IsValid(sourceNullBitMap, i);
+                    bool isValid = BitmapHelper.IsValid(sourceNullBitMap, i);
                     TResult? value = func(isValid ? sourceBuffer[i] : null);
                     mutableResultBuffer[i] = value.GetValueOrDefault();
                     resultContainer.SetValidityBit(mutableResultNullBitMapBuffers, i, value != null);
                 }
             }
-        }
-
-        // Faster to use when we already have a span since it avoids indexing
-        public bool IsValid(ReadOnlySpan<byte> bitMapBufferSpan, int index)
-        {
-            int nullBitMapSpanIndex = index / 8;
-            byte thisBitMap = bitMapBufferSpan[nullBitMapSpanIndex];
-            return IsBitSet(thisBitMap, index);
         }
 
         public bool IsValid(long index) => NullCount == 0 || GetValidityBit(index);
@@ -329,11 +337,6 @@ namespace Microsoft.Data.Analysis
             SetValidityBit(bitMapBuffer.Span, (int)index, value);
         }
 
-        private bool IsBitSet(byte curBitMap, int index)
-        {
-            return ((curBitMap >> (index & 7)) & 1) != 0;
-        }
-
         private bool GetValidityBit(long index)
         {
             if ((uint)index >= Length)
@@ -350,7 +353,7 @@ namespace Microsoft.Data.Analysis
             int bitMapBufferIndex = (int)((uint)index / 8);
             Debug.Assert(bitMapBuffer.Length > bitMapBufferIndex);
             byte curBitMap = bitMapBuffer[bitMapBufferIndex];
-            return IsBitSet(curBitMap, (int)index);
+            return BitmapHelper.IsBitSet(curBitMap, (int)index);
         }
 
         public long Length;
@@ -372,18 +375,6 @@ namespace Microsoft.Data.Analysis
             int arrayIndex = GetArrayContainingRowIndex(startIndex);
             startIndex = startIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity;
             return Buffers[arrayIndex].Length - (int)startIndex;
-        }
-
-        internal ReadOnlyMemory<byte> GetValueBuffer(long startIndex)
-        {
-            int arrayIndex = GetArrayContainingRowIndex(startIndex);
-            return Buffers[arrayIndex].ReadOnlyBuffer;
-        }
-
-        internal ReadOnlyMemory<byte> GetNullBuffer(long startIndex)
-        {
-            int arrayIndex = GetArrayContainingRowIndex(startIndex);
-            return NullBitMapBuffers[arrayIndex].ReadOnlyBuffer;
         }
 
         public IReadOnlyList<T?> this[long startIndex, int length]
@@ -467,7 +458,7 @@ namespace Microsoft.Data.Analysis
             return sb.ToString();
         }
 
-        private List<ReadOnlyDataFrameBuffer<byte>> CloneNullBitMapBuffers()
+        internal List<ReadOnlyDataFrameBuffer<byte>> CloneNullBitMapBuffers()
         {
             List<ReadOnlyDataFrameBuffer<byte>> ret = new List<ReadOnlyDataFrameBuffer<byte>>();
             foreach (ReadOnlyDataFrameBuffer<byte> buffer in NullBitMapBuffers)
@@ -524,7 +515,7 @@ namespace Microsoft.Data.Analysis
                         spanIndex = buffer.Length - 1 - i;
 
                     long mapRowIndex = mapIndicesIntSpan.IsEmpty ? mapIndicesLongSpan[spanIndex] : mapIndicesIntSpan[spanIndex];
-                    bool mapRowIndexIsValid = mapIndices.IsValid(mapIndicesNullBitMapSpan, spanIndex);
+                    bool mapRowIndexIsValid = BitmapHelper.IsValid(mapIndicesNullBitMapSpan, spanIndex);
                     if (mapRowIndexIsValid && (mapRowIndex < minRange || mapRowIndex >= maxRange))
                     {
                         int bufferIndex = (int)(mapRowIndex / maxCapacity);
@@ -539,7 +530,7 @@ namespace Microsoft.Data.Analysis
                     {
                         mapRowIndex -= minRange;
                         value = thisSpan[(int)mapRowIndex];
-                        isValid = IsValid(thisNullBitMapSpan, (int)mapRowIndex);
+                        isValid = BitmapHelper.IsValid(thisNullBitMapSpan, (int)mapRowIndex);
                     }
 
                     retSpan[i] = isValid ? value : default;
@@ -594,224 +585,10 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        internal PrimitiveColumnContainer<byte> CloneAsByteContainer()
+        public PrimitiveColumnContainer<U> CloneTuncating<U>()
+            where U : unmanaged, INumber<U>
         {
-            var ret = new PrimitiveColumnContainer<byte>();
-            foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
-            {
-                ret.Length += buffer.Length;
-                DataFrameBuffer<byte> newBuffer = new DataFrameBuffer<byte>();
-                ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
-                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(ByteConverter<T>.Instance.GetByte(span[i]));
-                }
-            }
-            ret.NullBitMapBuffers = CloneNullBitMapBuffers();
-            ret.NullCount = NullCount;
-            return ret;
-        }
-
-        internal PrimitiveColumnContainer<sbyte> CloneAsSByteContainer()
-        {
-            var ret = new PrimitiveColumnContainer<sbyte>();
-            foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
-            {
-                ret.Length += buffer.Length;
-                DataFrameBuffer<sbyte> newBuffer = new DataFrameBuffer<sbyte>();
-                ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
-                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(SByteConverter<T>.Instance.GetSByte(span[i]));
-                }
-            }
-            ret.NullBitMapBuffers = CloneNullBitMapBuffers();
-            ret.NullCount = NullCount;
-            return ret;
-        }
-
-        internal PrimitiveColumnContainer<double> CloneAsDoubleContainer()
-        {
-            var ret = new PrimitiveColumnContainer<double>();
-            foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
-            {
-                ret.Length += buffer.Length;
-                DataFrameBuffer<double> newBuffer = new DataFrameBuffer<double>();
-                ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
-                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(DoubleConverter<T>.Instance.GetDouble(span[i]));
-                }
-            }
-            ret.NullBitMapBuffers = CloneNullBitMapBuffers();
-            ret.NullCount = NullCount;
-            return ret;
-        }
-
-        internal PrimitiveColumnContainer<decimal> CloneAsDecimalContainer()
-        {
-            var ret = new PrimitiveColumnContainer<decimal>();
-            foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
-            {
-                ret.Length += buffer.Length;
-                DataFrameBuffer<decimal> newBuffer = new DataFrameBuffer<decimal>();
-                ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
-                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(DecimalConverter<T>.Instance.GetDecimal(span[i]));
-                }
-            }
-            ret.NullBitMapBuffers = CloneNullBitMapBuffers();
-            ret.NullCount = NullCount;
-            return ret;
-        }
-
-        internal PrimitiveColumnContainer<short> CloneAsShortContainer()
-        {
-            var ret = new PrimitiveColumnContainer<short>();
-            foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
-            {
-                ret.Length += buffer.Length;
-                DataFrameBuffer<short> newBuffer = new DataFrameBuffer<short>();
-                ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
-                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(Int16Converter<T>.Instance.GetInt16(span[i]));
-                }
-            }
-            ret.NullBitMapBuffers = CloneNullBitMapBuffers();
-            ret.NullCount = NullCount;
-            return ret;
-        }
-
-        internal PrimitiveColumnContainer<ushort> CloneAsUShortContainer()
-        {
-            var ret = new PrimitiveColumnContainer<ushort>();
-            foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
-            {
-                ret.Length += buffer.Length;
-                DataFrameBuffer<ushort> newBuffer = new DataFrameBuffer<ushort>();
-                ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
-                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(UInt16Converter<T>.Instance.GetUInt16(span[i]));
-                }
-            }
-            ret.NullBitMapBuffers = CloneNullBitMapBuffers();
-            ret.NullCount = NullCount;
-            return ret;
-        }
-
-        internal PrimitiveColumnContainer<int> CloneAsIntContainer()
-        {
-            var ret = new PrimitiveColumnContainer<int>();
-            foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
-            {
-                ret.Length += buffer.Length;
-                DataFrameBuffer<int> newBuffer = new DataFrameBuffer<int>();
-                ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
-                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(Int32Converter<T>.Instance.GetInt32(span[i]));
-                }
-            }
-            ret.NullBitMapBuffers = CloneNullBitMapBuffers();
-            ret.NullCount = NullCount;
-            return ret;
-        }
-
-        internal PrimitiveColumnContainer<uint> CloneAsUIntContainer()
-        {
-            var ret = new PrimitiveColumnContainer<uint>();
-            foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
-            {
-                ret.Length += buffer.Length;
-                DataFrameBuffer<uint> newBuffer = new DataFrameBuffer<uint>();
-                ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
-                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(UInt32Converter<T>.Instance.GetUInt32(span[i]));
-                }
-            }
-            ret.NullBitMapBuffers = CloneNullBitMapBuffers();
-            ret.NullCount = NullCount;
-            return ret;
-        }
-
-        internal PrimitiveColumnContainer<long> CloneAsLongContainer()
-        {
-            var ret = new PrimitiveColumnContainer<long>();
-            foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
-            {
-                ret.Length += buffer.Length;
-                DataFrameBuffer<long> newBuffer = new DataFrameBuffer<long>();
-                ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
-                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(Int64Converter<T>.Instance.GetInt64(span[i]));
-                }
-            }
-            ret.NullBitMapBuffers = CloneNullBitMapBuffers();
-            ret.NullCount = NullCount;
-            return ret;
-        }
-
-        internal PrimitiveColumnContainer<ulong> CloneAsULongContainer()
-        {
-            var ret = new PrimitiveColumnContainer<ulong>();
-            foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
-            {
-                ret.Length += buffer.Length;
-                DataFrameBuffer<ulong> newBuffer = new DataFrameBuffer<ulong>();
-                ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
-                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(UInt64Converter<T>.Instance.GetUInt64(span[i]));
-                }
-            }
-            ret.NullBitMapBuffers = CloneNullBitMapBuffers();
-            ret.NullCount = NullCount;
-            return ret;
-        }
-
-        internal PrimitiveColumnContainer<float> CloneAsFloatContainer()
-        {
-            var ret = new PrimitiveColumnContainer<float>();
-            foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
-            {
-                ret.Length += buffer.Length;
-                DataFrameBuffer<float> newBuffer = new DataFrameBuffer<float>();
-                ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
-                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(SingleConverter<T>.Instance.GetSingle(span[i]));
-                }
-            }
-            ret.NullBitMapBuffers = CloneNullBitMapBuffers();
-            ret.NullCount = NullCount;
-            return ret;
+            return PrimitiveColumnComputation.GetComputation<T>().CreateTruncating<U>(this);
         }
     }
 }

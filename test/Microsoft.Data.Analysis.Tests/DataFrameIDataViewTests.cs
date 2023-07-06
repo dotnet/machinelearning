@@ -251,7 +251,7 @@ namespace Microsoft.Data.Analysis.Tests
         public void TestDataFrameFromIDataView()
         {
             DataFrame df = DataFrameTests.MakeDataFrameWithAllMutableAndArrowColumnTypes(10, withNulls: false);
-            df.Columns.Remove("Char"); // Because chars are returned as uint16 by IDataView, so end up comparing CharDataFrameColumn to UInt16DataFrameColumn and fail asserts
+            df.Columns.Remove("Char"); // Because chars are returned as uint16 by IDataView, so end up comparing PrimitiveDataFrameColumn<char> to PrimitiveDataFrameColumn<ushort> and fail asserts
             IDataView dfAsIDataView = df;
             DataFrame newDf = dfAsIDataView.ToDataFrame();
             Assert.Equal(dfAsIDataView.GetRowCount(), newDf.Rows.Count);
@@ -281,8 +281,8 @@ namespace Microsoft.Data.Analysis.Tests
         public void TestDataFrameFromIDataView_SelectRows(int dataFrameSize, int rowSize)
         {
             DataFrame df = DataFrameTests.MakeDataFrameWithAllColumnTypes(dataFrameSize, withNulls: false);
-            df.Columns.Remove("Char"); // Because chars are returned as uint16 by DataViewSchema, so end up comparing CharDataFrameColumn to UInt16DataFrameColumn and fail asserts
-            df.Columns.Remove("Decimal"); // Because decimal is returned as double by DataViewSchema, so end up comparing DecimalDataFrameColumn to DoubleDataFrameColumn and fail asserts
+            df.Columns.Remove("Char"); // Because chars are returned as uint16 by DataViewSchema, so end up comparing PrimitiveDataFrameColumn<char> to PrimitiveDataFrameColumn<ushort> and fail asserts
+            df.Columns.Remove("Decimal"); // Because decimal is returned as double by DataViewSchema, so end up comparing PrimitiveDataFrameColumn<decimal> to PrimitiveDataFrameColumn<double> and fail asserts
             IDataView dfAsIDataView = df;
             DataFrame newDf;
             if (rowSize == 100)

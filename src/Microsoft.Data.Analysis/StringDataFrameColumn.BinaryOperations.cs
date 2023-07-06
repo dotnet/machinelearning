@@ -91,6 +91,9 @@ namespace Microsoft.Data.Analysis
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseEquals(DataFrameColumn column)
         {
+            if (column == null)
+                return ElementwiseIsNull();
+
             return ElementwiseEqualsImplementation(this, column);
         }
 
@@ -128,6 +131,26 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
+        public override PrimitiveDataFrameColumn<bool> ElementwiseIsNotNull()
+        {
+            PrimitiveDataFrameColumn<bool> ret = new PrimitiveDataFrameColumn<bool>(Name, Length);
+            for (long i = 0; i < Length; i++)
+            {
+                ret[i] = this[i] != null;
+            }
+            return ret;
+        }
+
+        public override PrimitiveDataFrameColumn<bool> ElementwiseIsNull()
+        {
+            PrimitiveDataFrameColumn<bool> ret = new PrimitiveDataFrameColumn<bool>(Name, Length);
+            for (long i = 0; i < Length; i++)
+            {
+                ret[i] = this[i] == null;
+            }
+            return ret;
+        }
+
         public PrimitiveDataFrameColumn<bool> ElementwiseNotEquals(string value)
         {
             PrimitiveDataFrameColumn<bool> ret = new PrimitiveDataFrameColumn<bool>(Name, Length);
@@ -141,6 +164,9 @@ namespace Microsoft.Data.Analysis
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseNotEquals(DataFrameColumn column)
         {
+            if (column == null)
+                return ElementwiseIsNotNull();
+
             return ElementwiseNotEqualsImplementation(this, column);
         }
 

@@ -2,43 +2,20 @@
     <PropertyGroup>
         <NoWarn>$(NoWarn);MSML_ParameterLocalVarName;MSML_PrivateFieldName;MSML_ExtendBaseTestClass;MSML_GeneralName</NoWarn>
         <LangVersion>preview</LangVersion>
+        <TargetFramework>net6.0</TargetFramework>
+        <TargetFrameworks>net6.0</TargetFrameworks>
     </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\Microsoft.Data.Analysis\Microsoft.Data.Analysis.csproj" />
         <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
-        <ProjectReference Include="..\..\src\Microsoft.ML\Microsoft.ML.csproj" />
         <ProjectReference Include="..\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj" />
         <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
         <Compile Include="..\..\src\Microsoft.Data.Analysis\TextFieldParser.cs" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Update="DataFrameColumn.BinaryOperationTests.tt">
-            <Generator>TextTemplatingFileGenerator</Generator>
-            <LastGenOutput>DataFrameColumn.BinaryOperationTests.cs</LastGenOutput>
-        </None>
-        <None Update="PrimitiveDataFrameColumnComputationsTests.tt">
-          <Generator>TextTemplatingFileGenerator</Generator>
-          <LastGenOutput>PrimitiveDataFrameColumnComputationsTests.cs</LastGenOutput>
-        </None>
-    </ItemGroup>
-
-    <ItemGroup>
         <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Compile Update="DataFrameColumn.BinaryOperationTests.cs">
-            <DesignTime>True</DesignTime>
-            <AutoGen>True</AutoGen>
-            <DependentUpon>DataFrameColumn.BinaryOperationTests.tt</DependentUpon>
-        </Compile>
-        <Compile Update="PrimitiveDataFrameColumnComputationsTests.cs">
-          <DesignTime>True</DesignTime>
-          <AutoGen>True</AutoGen>
-          <DependentUpon>PrimitiveDataFrameColumnComputationsTests.tt</DependentUpon>
-        </Compile>
     </ItemGroup>
 
     <ItemGroup>

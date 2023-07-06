@@ -171,20 +171,20 @@ namespace Microsoft.Data.Analysis
 
         public new StringDataFrameColumn Sort(bool ascending = true)
         {
-            PrimitiveDataFrameColumn<long> columnSortIndices = GetAscendingSortIndices(out Int64DataFrameColumn _);
+            PrimitiveDataFrameColumn<long> columnSortIndices = GetAscendingSortIndices(out PrimitiveDataFrameColumn<long> _);
             return Clone(columnSortIndices, !ascending, NullCount);
         }
 
-        internal override PrimitiveDataFrameColumn<long> GetAscendingSortIndices(out Int64DataFrameColumn nullIndices)
+        internal override PrimitiveDataFrameColumn<long> GetAscendingSortIndices(out PrimitiveDataFrameColumn<long> nullIndices)
         {
             PrimitiveDataFrameColumn<long> columnSortIndices = GetSortIndices(Comparer<string>.Default, out nullIndices);
             return columnSortIndices;
         }
 
-        private PrimitiveDataFrameColumn<long> GetSortIndices(Comparer<string> comparer, out Int64DataFrameColumn columnNullIndices)
+        private PrimitiveDataFrameColumn<long> GetSortIndices(Comparer<string> comparer, out PrimitiveDataFrameColumn<long> columnNullIndices)
         {
             List<int[]> bufferSortIndices = new List<int[]>(_stringBuffers.Count);
-            columnNullIndices = new Int64DataFrameColumn("NullIndices", NullCount);
+            columnNullIndices = new PrimitiveDataFrameColumn<long>("NullIndices", NullCount);
             long nullIndicesSlot = 0;
             foreach (List<string> buffer in _stringBuffers)
             {
