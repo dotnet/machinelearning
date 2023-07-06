@@ -840,7 +840,7 @@ namespace Microsoft.Data.Analysis
 
             for (long i = 0; i < Length; i++)
             {
-                ret[i] = !_columnContainer[i].HasValue;
+                ret[i] = !IsValid(i);
             }
 
             return ret;
@@ -852,7 +852,7 @@ namespace Microsoft.Data.Analysis
 
             for (long i = 0; i < Length; i++)
             {
-                ret[i] = _columnContainer[i].HasValue;
+                ret[i] = IsValid(i);
             }
 
             return ret;
