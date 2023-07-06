@@ -1,4 +1,4 @@
-
+﻿
 
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
@@ -265,47 +265,51 @@ namespace Microsoft.Data.Analysis
         }
         public void ElementwiseEquals(PrimitiveColumnContainer<bool> left, PrimitiveColumnContainer<bool> right, PrimitiveColumnContainer<bool> ret)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var span = left.Buffers[b].ReadOnlySpan;
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == otherSpan[i]);
+                    ret[index++] = (span[i] == otherSpan[i]);
                 }
             }
         }
         public void ElementwiseEquals(PrimitiveColumnContainer<bool> column, bool scalar, PrimitiveColumnContainer<bool> ret)
         {
+            long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == scalar);
+                    ret[index++] = (span[i] == scalar);
                 }
             }
         }
         public void ElementwiseNotEquals(PrimitiveColumnContainer<bool> left, PrimitiveColumnContainer<bool> right, PrimitiveColumnContainer<bool> ret)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var span = left.Buffers[b].ReadOnlySpan;
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != otherSpan[i]);
+                    ret[index++] = (span[i] != otherSpan[i]);
                 }
             }
         }
         public void ElementwiseNotEquals(PrimitiveColumnContainer<bool> column, bool scalar, PrimitiveColumnContainer<bool> ret)
         {
+            long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != scalar);
+                    ret[index++] = (span[i] != scalar);
                 }
             }
         }
@@ -451,47 +455,51 @@ namespace Microsoft.Data.Analysis
         }
         public void ElementwiseEquals(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right, PrimitiveColumnContainer<bool> ret)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var span = left.Buffers[b].ReadOnlySpan;
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == otherSpan[i]);
+                    ret[index++] = (span[i] == otherSpan[i]);
                 }
             }
         }
         public void ElementwiseEquals(PrimitiveColumnContainer<DateTime> column, DateTime scalar, PrimitiveColumnContainer<bool> ret)
         {
+            long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] == scalar);
+                    ret[index++] = (span[i] == scalar);
                 }
             }
         }
         public void ElementwiseNotEquals(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right, PrimitiveColumnContainer<bool> ret)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var span = left.Buffers[b].ReadOnlySpan;
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != otherSpan[i]);
+                    ret[index++] = (span[i] != otherSpan[i]);
                 }
             }
         }
         public void ElementwiseNotEquals(PrimitiveColumnContainer<DateTime> column, DateTime scalar, PrimitiveColumnContainer<bool> ret)
         {
+            long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
                 var span = column.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    ret[i] = (span[i] != scalar);
+                    ret[index++] = (span[i] != scalar);
                 }
             }
         }
