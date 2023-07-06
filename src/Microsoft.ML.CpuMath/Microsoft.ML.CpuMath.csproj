@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
+  <Import Project="$(RepoRoot)eng/pkg/Pack.props"/>
   <PropertyGroup>
     <TargetFrameworks>net8.0</TargetFrameworks>
     <IncludeInPackage>Microsoft.ML.CpuMath</IncludeInPackage>
@@ -11,7 +11,8 @@
     <Compile Include="..\Microsoft.ML.Core\Utilities\Contracts.cs" />
     <Compile Include="..\Microsoft.ML.Core\BestFriendAttribute.cs" />
     <Compile Include="..\Microsoft.ML.Core\PublicKey.cs" />
-    <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
-    <None Include="**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="build\**\*" Pack="true" PackagePath="build" />
   </ItemGroup>
 </Project>
