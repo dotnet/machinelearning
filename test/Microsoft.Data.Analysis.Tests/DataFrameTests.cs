@@ -1173,6 +1173,58 @@ namespace Microsoft.Data.Analysis.Tests
             }
         }
 
+        [Fact]
+        public void TestIntComputations_MaxMin_WithNulls()
+        {
+            var column = new Int32DataFrameColumn("Int", new int?[]
+                {
+                    null,
+                    2,
+                    1,
+                    4,
+                    3,
+                    null
+                });
+
+            Assert.Equal(1, column.Min());
+            Assert.Equal(4, column.Max());
+        }
+
+        [Fact]
+        public void TestDateTimeComputations_MaxMin_OnEmptyColumn()
+        {
+            var column = new DateTimeDataFrameColumn("DateTime");
+
+            Assert.Null(column.Min());
+            Assert.Null(column.Max());
+        }
+
+        [Fact]
+        public void TestIntComputations_MaxMin_OnEmptyColumn()
+        {
+            var column = new Int32DataFrameColumn("Int");
+
+            Assert.Null(column.Min());
+            Assert.Null(column.Max());
+        }
+
+        [Fact]
+        public void TestDateTimeComputations_MaxMin_WithNulls()
+        {
+            var dateTimeColumn = new DateTimeDataFrameColumn("DateTime", new DateTime?[]
+                {
+                    null,
+                    new DateTime(2022, 1, 1),
+                    new DateTime(2020, 1, 1),
+                    new DateTime(2023, 1, 1),
+                    new DateTime(2021, 1, 1),
+                    null
+                });
+
+            Assert.Equal(new DateTime(2020, 1, 1), dateTimeColumn.Min());
+            Assert.Equal(new DateTime(2023, 1, 1), dateTimeColumn.Max());
+        }
+
         [Theory]
         [InlineData(5, 10)]
         [InlineData(-15, 10)]

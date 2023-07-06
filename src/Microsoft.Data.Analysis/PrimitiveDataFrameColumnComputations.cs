@@ -26,14 +26,14 @@ namespace Microsoft.Data.Analysis
         void CumulativeProduct(PrimitiveColumnContainer<T> column, IEnumerable<long> rows);
         void CumulativeSum(PrimitiveColumnContainer<T> column);
         void CumulativeSum(PrimitiveColumnContainer<T> column, IEnumerable<long> rows);
-        void Max(PrimitiveColumnContainer<T> column, out T ret);
-        void Max(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T ret);
-        void Min(PrimitiveColumnContainer<T> column, out T ret);
-        void Min(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T ret);
-        void Product(PrimitiveColumnContainer<T> column, out T ret);
-        void Product(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T ret);
-        void Sum(PrimitiveColumnContainer<T> column, out T ret);
-        void Sum(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T ret);
+        void Max(PrimitiveColumnContainer<T> column, out T? ret);
+        void Max(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T? ret);
+        void Min(PrimitiveColumnContainer<T> column, out T? ret);
+        void Min(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T? ret);
+        void Product(PrimitiveColumnContainer<T> column, out T? ret);
+        void Product(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T? ret);
+        void Sum(PrimitiveColumnContainer<T> column, out T? ret);
+        void Sum(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T? ret);
         void Round(PrimitiveColumnContainer<T> column);
         PrimitiveColumnContainer<U> CreateTruncating<U>(PrimitiveColumnContainer<T> column) where U : unmanaged, INumber<U>;
     }
@@ -194,42 +194,42 @@ namespace Microsoft.Data.Analysis
             throw new NotSupportedException();
         }
 
-        public void Max(PrimitiveColumnContainer<bool> column, out bool ret)
+        public void Max(PrimitiveColumnContainer<bool> column, out bool? ret)
         {
             throw new NotSupportedException();
         }
 
-        public void Max(PrimitiveColumnContainer<bool> column, IEnumerable<long> rows, out bool ret)
+        public void Max(PrimitiveColumnContainer<bool> column, IEnumerable<long> rows, out bool? ret)
         {
             throw new NotSupportedException();
         }
 
-        public void Min(PrimitiveColumnContainer<bool> column, out bool ret)
+        public void Min(PrimitiveColumnContainer<bool> column, out bool? ret)
         {
             throw new NotSupportedException();
         }
 
-        public void Min(PrimitiveColumnContainer<bool> column, IEnumerable<long> rows, out bool ret)
+        public void Min(PrimitiveColumnContainer<bool> column, IEnumerable<long> rows, out bool? ret)
         {
             throw new NotSupportedException();
         }
 
-        public void Product(PrimitiveColumnContainer<bool> column, out bool ret)
+        public void Product(PrimitiveColumnContainer<bool> column, out bool? ret)
         {
             throw new NotSupportedException();
         }
 
-        public void Product(PrimitiveColumnContainer<bool> column, IEnumerable<long> rows, out bool ret)
+        public void Product(PrimitiveColumnContainer<bool> column, IEnumerable<long> rows, out bool? ret)
         {
             throw new NotSupportedException();
         }
 
-        public void Sum(PrimitiveColumnContainer<bool> column, out bool ret)
+        public void Sum(PrimitiveColumnContainer<bool> column, out bool? ret)
         {
             throw new NotSupportedException();
         }
 
-        public void Sum(PrimitiveColumnContainer<bool> column, IEnumerable<long> rows, out bool ret)
+        public void Sum(PrimitiveColumnContainer<bool> column, IEnumerable<long> rows, out bool? ret)
         {
             throw new NotSupportedException();
         }
