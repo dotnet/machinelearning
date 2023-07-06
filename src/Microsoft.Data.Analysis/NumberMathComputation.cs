@@ -143,7 +143,7 @@ namespace Microsoft.Data.Analysis
                 var bitmap = column.NullBitMapBuffers[b].ReadOnlySpan;
                 for (int i = 0; i < buffer.Length; i++)
                 {
-                    if (column.IsValid(bitmap, i))
+                    if (BitmapHelper.IsValid(bitmap, i))
                     {
                         buffer[i] = func(buffer[i]);
                     }
@@ -160,7 +160,7 @@ namespace Microsoft.Data.Analysis
                 var bitmap = column.NullBitMapBuffers[b].ReadOnlySpan;
                 for (int i = 0; i < buffer.Length; i++)
                 {
-                    if (column.IsValid(bitmap, i))
+                    if (BitmapHelper.IsValid(bitmap, i))
                     {
                         ret = func(buffer[i], ret);
                         buffer[i] = ret;
@@ -179,7 +179,7 @@ namespace Microsoft.Data.Analysis
                 var bitMap = column.NullBitMapBuffers[b].ReadOnlySpan;
                 for (int i = 0; i < buffer.Length; i++)
                 {
-                    if (column.IsValid(bitMap, i))
+                    if (BitmapHelper.IsValid(bitMap, i))
                     {
                         ret = checked(func(ret, buffer[i]));
                     }
@@ -212,7 +212,7 @@ namespace Microsoft.Data.Analysis
                 }
 
                 row -= minRange;
-                if (column.IsValid(bitmap, (int)row))
+                if (BitmapHelper.IsValid(bitmap, (int)row))
                 {
                     if (!isInitialized)
                     {
@@ -252,7 +252,7 @@ namespace Microsoft.Data.Analysis
                 }
                 row -= minRange;
 
-                if (column.IsValid(bitMap, (int)row))
+                if (BitmapHelper.IsValid(bitMap, (int)row))
                 {
                     if (!isInitialized)
                     {

@@ -45,7 +45,7 @@ namespace Microsoft.Data.Analysis
                 for (int i = 0; i < sortIndices.Length; i++)
                 {
                     int localSortIndex = sortIndices[i];
-                    if (_columnContainer.IsValid(nullBitMapSpan, localSortIndex))
+                    if (BitmapHelper.IsValid(nullBitMapSpan, localSortIndex))
                     {
                         nonNullSortIndices.Add(sortIndices[i]);
                     }
