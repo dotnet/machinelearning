@@ -30,7 +30,7 @@ namespace Microsoft.Data.Analysis
             {
                 // Pre-existing column. Change name
                 DataFrameColumn existingColumn = dataFrame.Columns[index];
-                dataFrame._columnCollection.SetColumnName(existingColumn, existingColumn.Name + leftSuffix);
+                existingColumn.SetName(existingColumn.Name + leftSuffix);
                 column.SetName(column.Name + rightSuffix);
                 index = dataFrame._columnCollection.IndexOf(column.Name);
             }

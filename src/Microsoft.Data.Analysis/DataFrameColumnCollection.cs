@@ -38,11 +38,23 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
+        public void RenameColumn(string currentName, string newName)
+        {
+            var column = this[currentName];
+            column.SetName(newName);
+        }
+
+        [Obsolete]
         public void SetColumnName(DataFrameColumn column, string newName)
+        {
+            column.SetName(newName);
+        }
+
+        //Updates column's metadata (is used as a callback from Column class)
+        internal void UpdateColumnNameMetadata(DataFrameColumn column, string newName)
         {
             string currentName = column.Name;
             int currentIndex = _columnNameToIndexDictionary[currentName];
-            column.SetName(newName);
             _columnNameToIndexDictionary.Remove(currentName);
             _columnNameToIndexDictionary.Add(newName, currentIndex);
             ColumnsChanged?.Invoke();
@@ -75,6 +87,8 @@ namespace Microsoft.Data.Analysis
                 throw new ArgumentException(string.Format(Strings.DuplicateColumnName, column.Name), nameof(column));
             }
 
+            column.AddOwner(this);
+
             RowCount = column.Length;
 
             _columnNameToIndexDictionary[column.Name] = columnIndex;
@@ -98,9 +112,13 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(string.Format(Strings.DuplicateColumnName, column.Name), nameof(column));
             }
+
             _columnNameToIndexDictionary.Remove(this[columnIndex].Name);
             _columnNameToIndexDictionary[column.Name] = columnIndex;
+
+            this[columnIndex].RemoveOwner(this);
             base.SetItem(columnIndex, column);
+
             ColumnsChanged?.Invoke();
         }
 
@@ -111,6 +129,8 @@ namespace Microsoft.Data.Analysis
             {
                 _columnNameToIndexDictionary[this[i].Name]--;
             }
+
+            this[columnIndex].RemoveOwner(this);
             base.RemoveItem(columnIndex);
 
             //Reset RowCount if the last column was removed and dataframe is empty
@@ -474,6 +494,5 @@ namespace Microsoft.Data.Analysis
 
             throw new ArgumentException(string.Format(Strings.BadColumnCast, column.DataType, typeof(UInt16)));
         }
-
     }
 }
