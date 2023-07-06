@@ -2,6 +2,20 @@
 # ML.NET's PR validation build
 ################################################################################
 
+pr:
+  branches:
+    include:
+    - main
+    - feature/*
+    - release/*
+
+trigger:
+  branches:
+    include:
+    - main
+    - feature/*
+    - release/*
+
 resources:
   containers:
   - container: CentosContainer

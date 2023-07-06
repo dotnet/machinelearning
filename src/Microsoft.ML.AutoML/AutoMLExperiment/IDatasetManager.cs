@@ -46,7 +46,7 @@ namespace Microsoft.ML.AutoML
     internal class TrainValidateDatasetManager : IDatasetManager, ITrainValidateDatasetManager
     {
         private ulong _rowCount;
-        private IDataView _trainDataset;
+        private readonly IDataView _trainDataset;
         private readonly IDataView _validateDataset;
         private readonly string _subSamplingKey = "TrainValidateDatasetSubsamplingKey";
         private bool _isInitialized = false;
@@ -94,7 +94,6 @@ namespace Microsoft.ML.AutoML
         private void InitializeTrainDataset(MLContext context)
         {
             _rowCount = DatasetDimensionsUtil.CountRows(_trainDataset, ulong.MaxValue);
-            _trainDataset = context.Data.ShuffleRows(_trainDataset);
         }
     }
 
