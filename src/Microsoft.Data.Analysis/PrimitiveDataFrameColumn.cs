@@ -824,7 +824,7 @@ namespace Microsoft.Data.Analysis
 
         public override PrimitiveDataFrameColumn<bool> ElementwiseIsNull()
         {
-            var ret = new BooleanDataFrameColumn(Name, Length);
+            var ret = new PrimitiveDataFrameColumn<bool>(Name, Length);
 
             for (long i = 0; i < Length; i++)
             {
@@ -836,7 +836,7 @@ namespace Microsoft.Data.Analysis
 
         public override PrimitiveDataFrameColumn<bool> ElementwiseIsNotNull()
         {
-            var ret = new BooleanDataFrameColumn(Name, Length);
+            var ret = new PrimitiveDataFrameColumn<bool>(Name, Length);
 
             for (long i = 0; i < Length; i++)
             {

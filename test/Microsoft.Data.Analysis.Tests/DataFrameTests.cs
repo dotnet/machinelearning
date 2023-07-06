@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -3494,7 +3494,7 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void Test_PrimitiveColumnNotEqualsNull()
         {
-            var col = new DoubleDataFrameColumn("col", new double?[] { 1.23, null, 2, 3 });
+            var col = new PrimitiveDataFrameColumn<double>("col", new double?[] { 1.23, null, 2, 3 });
             var dfTest = new DataFrame(col);
 
             var filteredNullDf = dfTest.Filter(dfTest["col"].ElementwiseNotEquals(null));
@@ -3510,8 +3510,8 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void Test_PrimitiveColumnEqualsNull()
         {
-            var index = new Int32DataFrameColumn("index", new int[] { 1, 2, 3, 4, 5 });
-            var col = new DoubleDataFrameColumn("col", new double?[] { 1.23, null, 2, 3, null }); ;
+            var index = new PrimitiveDataFrameColumn<int>("index", new int[] { 1, 2, 3, 4, 5 });
+            var col = new PrimitiveDataFrameColumn<double>("col", new double?[] { 1.23, null, 2, 3, null }); ;
             var dfTest = new DataFrame(index, col);
 
             var filteredNullDf = dfTest.Filter(dfTest["col"].ElementwiseEquals(null));
@@ -3544,7 +3544,7 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void Test_StringColumnEqualsNull()
         {
-            var index = new Int32DataFrameColumn("index", new int[] { 1, 2, 3, 4, 5 });
+            var index = new PrimitiveDataFrameColumn<int>("index", new int[] { 1, 2, 3, 4, 5 });
             var col = new StringDataFrameColumn("col", new[] { "One", null, "Three", "Four", null }); ;
             var dfTest = new DataFrame(index, col);
 
