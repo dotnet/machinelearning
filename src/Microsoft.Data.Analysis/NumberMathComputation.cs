@@ -9,7 +9,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.Versioning;
-using Microsoft.ML.Data;
 
 namespace Microsoft.Data.Analysis
 {
@@ -75,43 +74,43 @@ namespace Microsoft.Data.Analysis
             CumulativeApply(column, Add, rows);
         }
 
-        public void Max(PrimitiveColumnContainer<T> column, out T ret)
+        public void Max(PrimitiveColumnContainer<T> column, out T? ret)
         {
             ret = CalculateReduction(column, T.Max, column[0].Value);
         }
 
-        public void Max(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T ret)
+        public void Max(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T? ret)
         {
             ret = CalculateReduction(column, T.Max, rows);
         }
 
-        public void Min(PrimitiveColumnContainer<T> column, out T ret)
+        public void Min(PrimitiveColumnContainer<T> column, out T? ret)
         {
             ret = CalculateReduction(column, T.Min, column[0].Value);
         }
 
-        public void Min(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T ret)
+        public void Min(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T? ret)
         {
 
             ret = CalculateReduction(column, T.Min, rows);
         }
 
-        public void Product(PrimitiveColumnContainer<T> column, out T ret)
+        public void Product(PrimitiveColumnContainer<T> column, out T? ret)
         {
             ret = CalculateReduction(column, Multiply, T.One);
         }
 
-        public void Product(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T ret)
+        public void Product(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T? ret)
         {
             ret = CalculateReduction(column, Multiply, rows);
         }
 
-        public void Sum(PrimitiveColumnContainer<T> column, out T ret)
+        public void Sum(PrimitiveColumnContainer<T> column, out T? ret)
         {
             ret = CalculateReduction(column, Add, T.Zero);
         }
 
-        public void Sum(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T ret)
+        public void Sum(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T? ret)
         {
             ret = CalculateReduction(column, Add, rows);
         }

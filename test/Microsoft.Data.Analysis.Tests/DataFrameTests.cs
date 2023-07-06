@@ -1176,7 +1176,7 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestIntComputations_MaxMin_WithNulls()
         {
-            var column = new Int32DataFrameColumn("Int", new int?[]
+            var column = new PrimitiveDataFrameColumn<int>("Int", new int?[]
                 {
                     null,
                     2,
@@ -1193,7 +1193,7 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestDateTimeComputations_MaxMin_OnEmptyColumn()
         {
-            var column = new DateTimeDataFrameColumn("DateTime");
+            var column = new PrimitiveDataFrameColumn<DateTime>("DateTime");
 
             Assert.Null(column.Min());
             Assert.Null(column.Max());
@@ -1202,7 +1202,7 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestIntComputations_MaxMin_OnEmptyColumn()
         {
-            var column = new Int32DataFrameColumn("Int");
+            var column = new PrimitiveDataFrameColumn<int>("Int");
 
             Assert.Null(column.Min());
             Assert.Null(column.Max());
@@ -1211,7 +1211,7 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestDateTimeComputations_MaxMin_WithNulls()
         {
-            var dateTimeColumn = new DateTimeDataFrameColumn("DateTime", new DateTime?[]
+            var dateTimeColumn = new PrimitiveDataFrameColumn<DateTime>("DateTime", new DateTime?[]
                 {
                     null,
                     new DateTime(2022, 1, 1),
