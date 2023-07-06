@@ -102,7 +102,7 @@ namespace Microsoft.Data.Analysis.Tests
                 }
                 else if (dataType == typeof(DateTime))
                 {
-                    Assert.IsType<PrimitiveDataFrameColumn<DateTime>>(column);
+                    Assert.IsType<DateTimeDataFrameColumn>(column);
                 }
                 else
                 {
