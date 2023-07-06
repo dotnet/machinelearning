@@ -281,7 +281,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (byte)(Math.Max(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -345,7 +345,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (byte)(Math.Min(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -409,7 +409,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (byte)(readOnlySpan[i] * ret);
                         mutableSpan[i] = ret;
@@ -473,7 +473,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (byte)(readOnlySpan[i] + ret);
                         mutableSpan[i] = ret;
@@ -536,7 +536,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (byte)(Math.Max(readOnlySpan[i], value));
@@ -584,7 +584,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (byte)(Math.Min(readOnlySpan[i], value));
@@ -631,7 +631,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (byte)(readOnlySpan[i] * ret);
                     }
@@ -676,7 +676,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (byte)(readOnlySpan[i] + value);
@@ -768,7 +768,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (char)(Math.Max(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -832,7 +832,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (char)(Math.Min(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -896,7 +896,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (char)(readOnlySpan[i] * ret);
                         mutableSpan[i] = ret;
@@ -960,7 +960,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (char)(readOnlySpan[i] + ret);
                         mutableSpan[i] = ret;
@@ -1023,7 +1023,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (char)(Math.Max(readOnlySpan[i], value));
@@ -1071,7 +1071,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (char)(Math.Min(readOnlySpan[i], value));
@@ -1118,7 +1118,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (char)(readOnlySpan[i] * ret);
                     }
@@ -1163,7 +1163,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (char)(readOnlySpan[i] + value);
@@ -1255,7 +1255,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (decimal)(Math.Max(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -1319,7 +1319,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (decimal)(Math.Min(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -1383,7 +1383,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (decimal)(readOnlySpan[i] * ret);
                         mutableSpan[i] = ret;
@@ -1447,7 +1447,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (decimal)(readOnlySpan[i] + ret);
                         mutableSpan[i] = ret;
@@ -1510,7 +1510,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (decimal)(Math.Max(readOnlySpan[i], value));
@@ -1558,7 +1558,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (decimal)(Math.Min(readOnlySpan[i], value));
@@ -1605,7 +1605,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (decimal)(readOnlySpan[i] * ret);
                     }
@@ -1650,7 +1650,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (decimal)(readOnlySpan[i] + value);
@@ -1742,7 +1742,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (double)(Math.Max(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -1806,7 +1806,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (double)(Math.Min(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -1870,7 +1870,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (double)(readOnlySpan[i] * ret);
                         mutableSpan[i] = ret;
@@ -1934,7 +1934,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (double)(readOnlySpan[i] + ret);
                         mutableSpan[i] = ret;
@@ -1997,7 +1997,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (double)(Math.Max(readOnlySpan[i], value));
@@ -2045,7 +2045,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (double)(Math.Min(readOnlySpan[i], value));
@@ -2092,7 +2092,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (double)(readOnlySpan[i] * ret);
                     }
@@ -2137,7 +2137,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (double)(readOnlySpan[i] + value);
@@ -2229,7 +2229,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (float)(Math.Max(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -2293,7 +2293,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (float)(Math.Min(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -2357,7 +2357,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (float)(readOnlySpan[i] * ret);
                         mutableSpan[i] = ret;
@@ -2421,7 +2421,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (float)(readOnlySpan[i] + ret);
                         mutableSpan[i] = ret;
@@ -2484,7 +2484,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (float)(Math.Max(readOnlySpan[i], value));
@@ -2532,7 +2532,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (float)(Math.Min(readOnlySpan[i], value));
@@ -2579,7 +2579,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (float)(readOnlySpan[i] * ret);
                     }
@@ -2624,7 +2624,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (float)(readOnlySpan[i] + value);
@@ -2716,7 +2716,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (int)(Math.Max(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -2780,7 +2780,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (int)(Math.Min(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -2844,7 +2844,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (int)(readOnlySpan[i] * ret);
                         mutableSpan[i] = ret;
@@ -2908,7 +2908,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (int)(readOnlySpan[i] + ret);
                         mutableSpan[i] = ret;
@@ -2971,7 +2971,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (int)(Math.Max(readOnlySpan[i], value));
@@ -3019,7 +3019,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (int)(Math.Min(readOnlySpan[i], value));
@@ -3066,7 +3066,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (int)(readOnlySpan[i] * ret);
                     }
@@ -3111,7 +3111,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (int)(readOnlySpan[i] + value);
@@ -3203,7 +3203,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (long)(Math.Max(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -3267,7 +3267,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (long)(Math.Min(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -3331,7 +3331,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (long)(readOnlySpan[i] * ret);
                         mutableSpan[i] = ret;
@@ -3395,7 +3395,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (long)(readOnlySpan[i] + ret);
                         mutableSpan[i] = ret;
@@ -3458,7 +3458,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (long)(Math.Max(readOnlySpan[i], value));
@@ -3506,7 +3506,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (long)(Math.Min(readOnlySpan[i], value));
@@ -3553,7 +3553,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (long)(readOnlySpan[i] * ret);
                     }
@@ -3598,7 +3598,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (long)(readOnlySpan[i] + value);
@@ -3690,7 +3690,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (sbyte)(Math.Max(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -3754,7 +3754,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (sbyte)(Math.Min(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -3818,7 +3818,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (sbyte)(readOnlySpan[i] * ret);
                         mutableSpan[i] = ret;
@@ -3882,7 +3882,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (sbyte)(readOnlySpan[i] + ret);
                         mutableSpan[i] = ret;
@@ -3945,7 +3945,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (sbyte)(Math.Max(readOnlySpan[i], value));
@@ -3993,7 +3993,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (sbyte)(Math.Min(readOnlySpan[i], value));
@@ -4040,7 +4040,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (sbyte)(readOnlySpan[i] * ret);
                     }
@@ -4085,7 +4085,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (sbyte)(readOnlySpan[i] + value);
@@ -4177,7 +4177,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (short)(Math.Max(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -4241,7 +4241,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (short)(Math.Min(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -4305,7 +4305,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (short)(readOnlySpan[i] * ret);
                         mutableSpan[i] = ret;
@@ -4369,7 +4369,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (short)(readOnlySpan[i] + ret);
                         mutableSpan[i] = ret;
@@ -4432,7 +4432,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (short)(Math.Max(readOnlySpan[i], value));
@@ -4480,7 +4480,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (short)(Math.Min(readOnlySpan[i], value));
@@ -4527,7 +4527,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (short)(readOnlySpan[i] * ret);
                     }
@@ -4572,7 +4572,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (short)(readOnlySpan[i] + value);
@@ -4664,7 +4664,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (uint)(Math.Max(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -4728,7 +4728,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (uint)(Math.Min(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -4792,7 +4792,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (uint)(readOnlySpan[i] * ret);
                         mutableSpan[i] = ret;
@@ -4856,7 +4856,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (uint)(readOnlySpan[i] + ret);
                         mutableSpan[i] = ret;
@@ -4919,7 +4919,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (uint)(Math.Max(readOnlySpan[i], value));
@@ -4967,7 +4967,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (uint)(Math.Min(readOnlySpan[i], value));
@@ -5014,7 +5014,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (uint)(readOnlySpan[i] * ret);
                     }
@@ -5059,7 +5059,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (uint)(readOnlySpan[i] + value);
@@ -5151,7 +5151,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ulong)(Math.Max(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -5215,7 +5215,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ulong)(Math.Min(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -5279,7 +5279,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ulong)(readOnlySpan[i] * ret);
                         mutableSpan[i] = ret;
@@ -5343,7 +5343,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ulong)(readOnlySpan[i] + ret);
                         mutableSpan[i] = ret;
@@ -5406,7 +5406,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (ulong)(Math.Max(readOnlySpan[i], value));
@@ -5454,7 +5454,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (ulong)(Math.Min(readOnlySpan[i], value));
@@ -5501,7 +5501,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ulong)(readOnlySpan[i] * ret);
                     }
@@ -5546,7 +5546,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (ulong)(readOnlySpan[i] + value);
@@ -5638,7 +5638,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ushort)(Math.Max(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -5702,7 +5702,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ushort)(Math.Min(readOnlySpan[i], ret));
                         mutableSpan[i] = ret;
@@ -5766,7 +5766,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ushort)(readOnlySpan[i] * ret);
                         mutableSpan[i] = ret;
@@ -5830,7 +5830,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ushort)(readOnlySpan[i] + ret);
                         mutableSpan[i] = ret;
@@ -5893,7 +5893,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (ushort)(Math.Max(readOnlySpan[i], value));
@@ -5941,7 +5941,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (ushort)(Math.Min(readOnlySpan[i], value));
@@ -5988,7 +5988,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         ret = (ushort)(readOnlySpan[i] * ret);
                     }
@@ -6033,7 +6033,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (column.IsValid(readOnlyBitMapSpan, i))
+                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
                     {
                         hasValue = true;
                         value = (ushort)(readOnlySpan[i] + value);

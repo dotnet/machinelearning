@@ -12,8 +12,24 @@ using System.Text;
 
 namespace Microsoft.Data.Analysis
 {
+    internal static class BitmapHelper
+    {
+        // Faster to use when we already have a span since it avoids indexing
+        public static bool IsValid(ReadOnlySpan<byte> bitMapBufferSpan, int index)
+        {
+            int nullBitMapSpanIndex = index / 8;
+            byte thisBitMap = bitMapBufferSpan[nullBitMapSpanIndex];
+            return IsBitSet(thisBitMap, index);
+        }
+
+        public static bool IsBitSet(byte curBitMap, int index)
+        {
+            return ((curBitMap >> (index & 7)) & 1) != 0;
+        }
+    }
+
     /// <summary>
-    /// PrimitiveDataFrameColumnContainer is just a store for the column data. APIs that want to change the data must be defined in PrimitiveDataFrameColumn
+    /// PrimitiveColumnContainer is just a store for the column data. APIs that want to change the data must be defined in PrimitiveDataFrameColumn
     /// </summary>
     /// <typeparam name="T"></typeparam>
     internal partial class PrimitiveColumnContainer<T> : IEnumerable<T?>
@@ -223,7 +239,7 @@ namespace Microsoft.Data.Analysis
                 for (int i = 0; i < mutableBuffer.Length; i++)
                 {
                     long curIndex = i + prevLength;
-                    bool isValid = IsValid(mutableNullBitMapBuffer, i);
+                    bool isValid = BitmapHelper.IsValid(mutableNullBitMapBuffer, i);
                     T? value = func(isValid ? mutableBuffer[i] : null, curIndex);
                     mutableBuffer[i] = value.GetValueOrDefault();
                     SetValidityBit(mutableNullBitMapBuffer, i, value != null);
@@ -246,20 +262,12 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < sourceBuffer.Length; i++)
                 {
-                    bool isValid = IsValid(sourceNullBitMap, i);
+                    bool isValid = BitmapHelper.IsValid(sourceNullBitMap, i);
                     TResult? value = func(isValid ? sourceBuffer[i] : null);
                     mutableResultBuffer[i] = value.GetValueOrDefault();
                     resultContainer.SetValidityBit(mutableResultNullBitMapBuffers, i, value != null);
                 }
             }
-        }
-
-        // Faster to use when we already have a span since it avoids indexing
-        public bool IsValid(ReadOnlySpan<byte> bitMapBufferSpan, int index)
-        {
-            int nullBitMapSpanIndex = index / 8;
-            byte thisBitMap = bitMapBufferSpan[nullBitMapSpanIndex];
-            return IsBitSet(thisBitMap, index);
         }
 
         public bool IsValid(long index) => NullCount == 0 || GetValidityBit(index);
@@ -329,11 +337,6 @@ namespace Microsoft.Data.Analysis
             SetValidityBit(bitMapBuffer.Span, (int)index, value);
         }
 
-        private bool IsBitSet(byte curBitMap, int index)
-        {
-            return ((curBitMap >> (index & 7)) & 1) != 0;
-        }
-
         private bool GetValidityBit(long index)
         {
             if ((uint)index >= Length)
@@ -350,7 +353,7 @@ namespace Microsoft.Data.Analysis
             int bitMapBufferIndex = (int)((uint)index / 8);
             Debug.Assert(bitMapBuffer.Length > bitMapBufferIndex);
             byte curBitMap = bitMapBuffer[bitMapBufferIndex];
-            return IsBitSet(curBitMap, (int)index);
+            return BitmapHelper.IsBitSet(curBitMap, (int)index);
         }
 
         public long Length;
@@ -524,7 +527,7 @@ namespace Microsoft.Data.Analysis
                         spanIndex = buffer.Length - 1 - i;
 
                     long mapRowIndex = mapIndicesIntSpan.IsEmpty ? mapIndicesLongSpan[spanIndex] : mapIndicesIntSpan[spanIndex];
-                    bool mapRowIndexIsValid = mapIndices.IsValid(mapIndicesNullBitMapSpan, spanIndex);
+                    bool mapRowIndexIsValid = BitmapHelper.IsValid(mapIndicesNullBitMapSpan, spanIndex);
                     if (mapRowIndexIsValid && (mapRowIndex < minRange || mapRowIndex >= maxRange))
                     {
                         int bufferIndex = (int)(mapRowIndex / maxCapacity);
@@ -539,7 +542,7 @@ namespace Microsoft.Data.Analysis
                     {
                         mapRowIndex -= minRange;
                         value = thisSpan[(int)mapRowIndex];
-                        isValid = IsValid(thisNullBitMapSpan, (int)mapRowIndex);
+                        isValid = BitmapHelper.IsValid(thisNullBitMapSpan, (int)mapRowIndex);
                     }
 
                     retSpan[i] = isValid ? value : default;

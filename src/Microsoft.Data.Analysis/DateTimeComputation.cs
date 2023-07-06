@@ -202,10 +202,8 @@ namespace Microsoft.Data.Analysis
                 var bitmapSpan = column.NullBitMapBuffers[b].ReadOnlySpan;
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    int byteIndex = (int)((uint)i / 8);
-
                     //Check if bit is not set (value is null) - skip
-                    if (((bitmapSpan[byteIndex] >> (i & 7)) & 1) == 0)
+                    if (!BitmapHelper.IsValid(bitmapSpan, i))
                         continue;
 
                     var val = readOnlySpan[i];
@@ -262,10 +260,8 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    int byteIndex = (int)((uint)i / 8);
-
                     //Check if bit is not set (value is null) - skip
-                    if (((bitmapSpan[byteIndex] >> (i & 7)) & 1) == 0)
+                    if (!BitmapHelper.IsValid(bitmapSpan, i))
                         continue;
 
                     var val = readOnlySpan[i];
