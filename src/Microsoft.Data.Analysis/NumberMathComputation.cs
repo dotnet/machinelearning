@@ -8,8 +8,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
-using Microsoft.ML.Data;
 
 namespace Microsoft.Data.Analysis
 {
@@ -75,43 +76,43 @@ namespace Microsoft.Data.Analysis
             CumulativeApply(column, Add, rows);
         }
 
-        public void Max(PrimitiveColumnContainer<T> column, out T ret)
+        public void Max(PrimitiveColumnContainer<T> column, out T? ret)
         {
-            ret = CalculateReduction(column, T.Max, column[0].Value);
+            ret = CalculateReduction(column, T.Max);
         }
 
-        public void Max(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T ret)
+        public void Max(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T? ret)
         {
             ret = CalculateReduction(column, T.Max, rows);
         }
 
-        public void Min(PrimitiveColumnContainer<T> column, out T ret)
+        public void Min(PrimitiveColumnContainer<T> column, out T? ret)
         {
-            ret = CalculateReduction(column, T.Min, column[0].Value);
+            ret = CalculateReduction(column, T.Min);
         }
 
-        public void Min(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T ret)
+        public void Min(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T? ret)
         {
 
             ret = CalculateReduction(column, T.Min, rows);
         }
 
-        public void Product(PrimitiveColumnContainer<T> column, out T ret)
+        public void Product(PrimitiveColumnContainer<T> column, out T? ret)
         {
-            ret = CalculateReduction(column, Multiply, T.One);
+            ret = CalculateReduction(column, Multiply);
         }
 
-        public void Product(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T ret)
+        public void Product(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T? ret)
         {
             ret = CalculateReduction(column, Multiply, rows);
         }
 
-        public void Sum(PrimitiveColumnContainer<T> column, out T ret)
+        public void Sum(PrimitiveColumnContainer<T> column, out T? ret)
         {
-            ret = CalculateReduction(column, Add, T.Zero);
+            ret = CalculateReduction(column, Add);
         }
 
-        public void Sum(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T ret)
+        public void Sum(PrimitiveColumnContainer<T> column, IEnumerable<long> rows, out T? ret)
         {
             ret = CalculateReduction(column, Add, rows);
         }
@@ -144,7 +145,7 @@ namespace Microsoft.Data.Analysis
                 var bitmap = column.NullBitMapBuffers[b].ReadOnlySpan;
                 for (int i = 0; i < buffer.Length; i++)
                 {
-                    if (column.IsValid(bitmap, i))
+                    if (BitmapHelper.IsValid(bitmap, i))
                     {
                         buffer[i] = func(buffer[i]);
                     }
@@ -161,7 +162,7 @@ namespace Microsoft.Data.Analysis
                 var bitmap = column.NullBitMapBuffers[b].ReadOnlySpan;
                 for (int i = 0; i < buffer.Length; i++)
                 {
-                    if (column.IsValid(bitmap, i))
+                    if (BitmapHelper.IsValid(bitmap, i))
                     {
                         ret = func(buffer[i], ret);
                         buffer[i] = ret;
@@ -170,9 +171,10 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        protected T CalculateReduction(PrimitiveColumnContainer<T> column, Func<T, T, T> func, T startValue)
+        protected T? CalculateReduction(PrimitiveColumnContainer<T> column, Func<T, T, T> func)
         {
-            var ret = startValue;
+            T? ret = null;
+            bool isInitialized = false;
 
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -180,9 +182,17 @@ namespace Microsoft.Data.Analysis
                 var bitMap = column.NullBitMapBuffers[b].ReadOnlySpan;
                 for (int i = 0; i < buffer.Length; i++)
                 {
-                    if (column.IsValid(bitMap, i))
+                    if (BitmapHelper.IsValid(bitMap, i))
                     {
-                        ret = checked(func(ret, buffer[i]));
+                        if (!isInitialized)
+                        {
+                            isInitialized = true;
+                            ret = buffer[i];
+                        }
+                        else
+                        {
+                            ret = checked(func(ret.Value, buffer[i]));
+                        }
                     }
                 }
             }
@@ -213,7 +223,7 @@ namespace Microsoft.Data.Analysis
                 }
 
                 row -= minRange;
-                if (column.IsValid(bitmap, (int)row))
+                if (BitmapHelper.IsValid(bitmap, (int)row))
                 {
                     if (!isInitialized)
                     {
@@ -253,7 +263,7 @@ namespace Microsoft.Data.Analysis
                 }
                 row -= minRange;
 
-                if (column.IsValid(bitMap, (int)row))
+                if (BitmapHelper.IsValid(bitMap, (int)row))
                 {
                     if (!isInitialized)
                     {

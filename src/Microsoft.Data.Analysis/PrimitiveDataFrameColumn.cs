@@ -541,7 +541,7 @@ namespace Microsoft.Data.Analysis
                     for (int i = 0; i < readOnlySpan.Length; i++)
                     {
                         long currentLength = i + previousLength;
-                        if (_columnContainer.IsValid(nullBitMapSpan, i))
+                        if (BitmapHelper.IsValid(nullBitMapSpan, i))
                         {
                             bool containsKey = multimap.TryGetValue(readOnlySpan[i], out ICollection<long> values);
                             if (containsKey)
@@ -820,6 +820,30 @@ namespace Microsoft.Data.Analysis
         public override Dictionary<long, ICollection<long>> GetGroupedOccurrences(DataFrameColumn other, out HashSet<long> otherColumnNullIndices)
         {
             return GetGroupedOccurrences<T>(other, out otherColumnNullIndices);
+        }
+
+        public override PrimitiveDataFrameColumn<bool> ElementwiseIsNull()
+        {
+            var ret = new PrimitiveDataFrameColumn<bool>(Name, Length);
+
+            for (long i = 0; i < Length; i++)
+            {
+                ret[i] = !_columnContainer[i].HasValue;
+            }
+
+            return ret;
+        }
+
+        public override PrimitiveDataFrameColumn<bool> ElementwiseIsNotNull()
+        {
+            var ret = new PrimitiveDataFrameColumn<bool>(Name, Length);
+
+            for (long i = 0; i < Length; i++)
+            {
+                ret[i] = _columnContainer[i].HasValue;
+            }
+
+            return ret;
         }
     }
 }

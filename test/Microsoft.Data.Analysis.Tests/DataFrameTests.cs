@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1171,6 +1171,58 @@ namespace Microsoft.Data.Analysis.Tests
                 column.Product();
                 column.Sum();
             }
+        }
+
+        [Fact]
+        public void TestIntComputations_MaxMin_WithNulls()
+        {
+            var column = new PrimitiveDataFrameColumn<int>("Int", new int?[]
+                {
+                    null,
+                    2,
+                    1,
+                    4,
+                    3,
+                    null
+                });
+
+            Assert.Equal(1, column.Min());
+            Assert.Equal(4, column.Max());
+        }
+
+        [Fact]
+        public void TestDateTimeComputations_MaxMin_OnEmptyColumn()
+        {
+            var column = new PrimitiveDataFrameColumn<DateTime>("DateTime");
+
+            Assert.Null(column.Min());
+            Assert.Null(column.Max());
+        }
+
+        [Fact]
+        public void TestIntComputations_MaxMin_OnEmptyColumn()
+        {
+            var column = new PrimitiveDataFrameColumn<int>("Int");
+
+            Assert.Null(column.Min());
+            Assert.Null(column.Max());
+        }
+
+        [Fact]
+        public void TestDateTimeComputations_MaxMin_WithNulls()
+        {
+            var dateTimeColumn = new PrimitiveDataFrameColumn<DateTime>("DateTime", new DateTime?[]
+                {
+                    null,
+                    new DateTime(2022, 1, 1),
+                    new DateTime(2020, 1, 1),
+                    new DateTime(2023, 1, 1),
+                    new DateTime(2021, 1, 1),
+                    null
+                });
+
+            Assert.Equal(new DateTime(2020, 1, 1), dateTimeColumn.Min());
+            Assert.Equal(new DateTime(2023, 1, 1), dateTimeColumn.Max());
         }
 
         [Theory]
@@ -3489,6 +3541,74 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(40.0 / 9.0, df["Decimal"].Mean());
             Assert.Equal(4, df["Decimal"].Median());
 
+        }
+
+        [Fact]
+        public void Test_PrimitiveColumnNotEqualsNull()
+        {
+            var col = new PrimitiveDataFrameColumn<double>("col", new double?[] { 1.23, null, 2, 3 });
+            var dfTest = new DataFrame(col);
+
+            var filteredNullDf = dfTest.Filter(dfTest["col"].ElementwiseNotEquals(null));
+
+            Assert.True(filteredNullDf.Columns.IndexOf("col") >= 0);
+            Assert.Equal(3, filteredNullDf.Columns["col"].Length);
+
+            Assert.Equal(1.23, filteredNullDf.Columns["col"][0]);
+            Assert.Equal(2.0, filteredNullDf.Columns["col"][1]);
+            Assert.Equal(3.0, filteredNullDf.Columns["col"][2]);
+        }
+
+        [Fact]
+        public void Test_PrimitiveColumnEqualsNull()
+        {
+            var index = new PrimitiveDataFrameColumn<int>("index", new int[] { 1, 2, 3, 4, 5 });
+            var col = new PrimitiveDataFrameColumn<double>("col", new double?[] { 1.23, null, 2, 3, null }); ;
+            var dfTest = new DataFrame(index, col);
+
+            var filteredNullDf = dfTest.Filter(dfTest["col"].ElementwiseEquals(null));
+
+            Assert.True(filteredNullDf.Columns.IndexOf("col") >= 0);
+            Assert.True(filteredNullDf.Columns.IndexOf("index") >= 0);
+
+            Assert.Equal(2, filteredNullDf.Rows.Count);
+
+            Assert.Equal(2, filteredNullDf.Columns["index"][0]);
+            Assert.Equal(5, filteredNullDf.Columns["index"][1]);
+        }
+
+        [Fact]
+        public void Test_StringColumnNotEqualsNull()
+        {
+            var col = new StringDataFrameColumn("col", new[] { "One", null, "Two", "Three" });
+            var dfTest = new DataFrame(col);
+
+            var filteredNullDf = dfTest.Filter(dfTest["col"].ElementwiseNotEquals(null));
+
+            Assert.True(filteredNullDf.Columns.IndexOf("col") >= 0);
+            Assert.Equal(3, filteredNullDf.Columns["col"].Length);
+
+            Assert.Equal("One", filteredNullDf.Columns["col"][0]);
+            Assert.Equal("Two", filteredNullDf.Columns["col"][1]);
+            Assert.Equal("Three", filteredNullDf.Columns["col"][2]);
+        }
+
+        [Fact]
+        public void Test_StringColumnEqualsNull()
+        {
+            var index = new PrimitiveDataFrameColumn<int>("index", new int[] { 1, 2, 3, 4, 5 });
+            var col = new StringDataFrameColumn("col", new[] { "One", null, "Three", "Four", null }); ;
+            var dfTest = new DataFrame(index, col);
+
+            var filteredNullDf = dfTest.Filter(dfTest["col"].ElementwiseEquals(null));
+
+            Assert.True(filteredNullDf.Columns.IndexOf("col") >= 0);
+            Assert.True(filteredNullDf.Columns.IndexOf("index") >= 0);
+
+            Assert.Equal(2, filteredNullDf.Rows.Count);
+
+            Assert.Equal(2, filteredNullDf.Columns["index"][0]);
+            Assert.Equal(5, filteredNullDf.Columns["index"][1]);
         }
     }
 }
