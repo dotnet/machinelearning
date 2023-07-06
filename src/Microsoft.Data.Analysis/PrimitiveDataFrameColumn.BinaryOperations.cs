@@ -47,10 +47,12 @@ namespace Microsoft.Data.Analysis
                     return AddImplementation(ushortColumn, inPlace);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     return AddImplementation(DateTimeColumn, inPlace);
+
                 default:
                     throw new NotSupportedException();
             }
         }
+
         /// <inheritdoc/>
         public override DataFrameColumn Add<U>(U value, bool inPlace = false)
         {
@@ -61,6 +63,7 @@ namespace Microsoft.Data.Analysis
             }
             return AddImplementation(value, inPlace);
         }
+
         /// <inheritdoc/>
         public override DataFrameColumn Subtract(DataFrameColumn column, bool inPlace = false)
         {
@@ -94,10 +97,12 @@ namespace Microsoft.Data.Analysis
                     return SubtractImplementation(ushortColumn, inPlace);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     return SubtractImplementation(DateTimeColumn, inPlace);
+
                 default:
                     throw new NotSupportedException();
             }
         }
+
         /// <inheritdoc/>
         public override DataFrameColumn Subtract<U>(U value, bool inPlace = false)
         {
@@ -108,6 +113,7 @@ namespace Microsoft.Data.Analysis
             }
             return SubtractImplementation(value, inPlace);
         }
+
         /// <inheritdoc/>
         public override DataFrameColumn Multiply(DataFrameColumn column, bool inPlace = false)
         {
@@ -141,10 +147,12 @@ namespace Microsoft.Data.Analysis
                     return MultiplyImplementation(ushortColumn, inPlace);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     return MultiplyImplementation(DateTimeColumn, inPlace);
+
                 default:
                     throw new NotSupportedException();
             }
         }
+
         /// <inheritdoc/>
         public override DataFrameColumn Multiply<U>(U value, bool inPlace = false)
         {
@@ -155,6 +163,7 @@ namespace Microsoft.Data.Analysis
             }
             return MultiplyImplementation(value, inPlace);
         }
+
         /// <inheritdoc/>
         public override DataFrameColumn Divide(DataFrameColumn column, bool inPlace = false)
         {
@@ -188,10 +197,12 @@ namespace Microsoft.Data.Analysis
                     return DivideImplementation(ushortColumn, inPlace);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     return DivideImplementation(DateTimeColumn, inPlace);
+
                 default:
                     throw new NotSupportedException();
             }
         }
+
         /// <inheritdoc/>
         public override DataFrameColumn Divide<U>(U value, bool inPlace = false)
         {
@@ -202,6 +213,7 @@ namespace Microsoft.Data.Analysis
             }
             return DivideImplementation(value, inPlace);
         }
+
         /// <inheritdoc/>
         public override DataFrameColumn Modulo(DataFrameColumn column, bool inPlace = false)
         {
@@ -235,10 +247,12 @@ namespace Microsoft.Data.Analysis
                     return ModuloImplementation(ushortColumn, inPlace);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     return ModuloImplementation(DateTimeColumn, inPlace);
+
                 default:
                     throw new NotSupportedException();
             }
         }
+
         /// <inheritdoc/>
         public override DataFrameColumn Modulo<U>(U value, bool inPlace = false)
         {
@@ -249,6 +263,7 @@ namespace Microsoft.Data.Analysis
             }
             return ModuloImplementation(value, inPlace);
         }
+
         /// <inheritdoc/>
         public override DataFrameColumn And(DataFrameColumn column, bool inPlace = false)
         {
@@ -282,15 +297,18 @@ namespace Microsoft.Data.Analysis
                     return AndImplementation(ushortColumn, inPlace);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     return AndImplementation(DateTimeColumn, inPlace);
+
                 default:
                     throw new NotSupportedException();
             }
         }
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> And(bool value, bool inPlace = false)
         {
             return AndImplementation(value, inPlace);
         }
+
         /// <inheritdoc/>
         public override DataFrameColumn Or(DataFrameColumn column, bool inPlace = false)
         {
@@ -324,15 +342,18 @@ namespace Microsoft.Data.Analysis
                     return OrImplementation(ushortColumn, inPlace);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     return OrImplementation(DateTimeColumn, inPlace);
+
                 default:
                     throw new NotSupportedException();
             }
         }
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> Or(bool value, bool inPlace = false)
         {
             return OrImplementation(value, inPlace);
         }
+
         /// <inheritdoc/>
         public override DataFrameColumn Xor(DataFrameColumn column, bool inPlace = false)
         {
@@ -366,15 +387,18 @@ namespace Microsoft.Data.Analysis
                     return XorImplementation(ushortColumn, inPlace);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     return XorImplementation(DateTimeColumn, inPlace);
+
                 default:
                     throw new NotSupportedException();
             }
         }
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> Xor(bool value, bool inPlace = false)
         {
             return XorImplementation(value, inPlace);
         }
+
         /// <inheritdoc/>
         public override DataFrameColumn LeftShift(int value, bool inPlace = false)
         {
@@ -418,10 +442,14 @@ namespace Microsoft.Data.Analysis
                     return ElementwiseEqualsImplementation(ushortColumn);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     return ElementwiseEqualsImplementation(DateTimeColumn);
+                case null:
+                    return ElementwiseIsNull();
+
                 default:
                     throw new NotSupportedException();
             }
         }
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseEquals<U>(U value)
         {
@@ -432,6 +460,7 @@ namespace Microsoft.Data.Analysis
             }
             return ElementwiseEqualsImplementation(value);
         }
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseNotEquals(DataFrameColumn column)
         {
@@ -465,10 +494,14 @@ namespace Microsoft.Data.Analysis
                     return ElementwiseNotEqualsImplementation(ushortColumn);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     return ElementwiseNotEqualsImplementation(DateTimeColumn);
+                case null:
+                    return ElementwiseIsNotNull();
+
                 default:
                     throw new NotSupportedException();
             }
         }
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseNotEquals<U>(U value)
         {
@@ -479,6 +512,7 @@ namespace Microsoft.Data.Analysis
             }
             return ElementwiseNotEqualsImplementation(value);
         }
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseGreaterThanOrEqual(DataFrameColumn column)
         {
@@ -512,10 +546,12 @@ namespace Microsoft.Data.Analysis
                     return ElementwiseGreaterThanOrEqualImplementation(ushortColumn);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     return ElementwiseGreaterThanOrEqualImplementation(DateTimeColumn);
+
                 default:
                     throw new NotSupportedException();
             }
         }
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseGreaterThanOrEqual<U>(U value)
         {
@@ -526,6 +562,7 @@ namespace Microsoft.Data.Analysis
             }
             return ElementwiseGreaterThanOrEqualImplementation(value);
         }
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseLessThanOrEqual(DataFrameColumn column)
         {
@@ -559,10 +596,12 @@ namespace Microsoft.Data.Analysis
                     return ElementwiseLessThanOrEqualImplementation(ushortColumn);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     return ElementwiseLessThanOrEqualImplementation(DateTimeColumn);
+
                 default:
                     throw new NotSupportedException();
             }
         }
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseLessThanOrEqual<U>(U value)
         {
@@ -573,6 +612,7 @@ namespace Microsoft.Data.Analysis
             }
             return ElementwiseLessThanOrEqualImplementation(value);
         }
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseGreaterThan(DataFrameColumn column)
         {
@@ -606,10 +646,12 @@ namespace Microsoft.Data.Analysis
                     return ElementwiseGreaterThanImplementation(ushortColumn);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     return ElementwiseGreaterThanImplementation(DateTimeColumn);
+
                 default:
                     throw new NotSupportedException();
             }
         }
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseGreaterThan<U>(U value)
         {
@@ -620,6 +662,7 @@ namespace Microsoft.Data.Analysis
             }
             return ElementwiseGreaterThanImplementation(value);
         }
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseLessThan(DataFrameColumn column)
         {
@@ -653,10 +696,12 @@ namespace Microsoft.Data.Analysis
                     return ElementwiseLessThanImplementation(ushortColumn);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
                     return ElementwiseLessThanImplementation(DateTimeColumn);
+
                 default:
                     throw new NotSupportedException();
             }
         }
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseLessThan<U>(U value)
         {
@@ -667,6 +712,7 @@ namespace Microsoft.Data.Analysis
             }
             return ElementwiseLessThanImplementation(value);
         }
+
 
         internal DataFrameColumn AddImplementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
             where U : unmanaged
@@ -750,6 +796,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal DataFrameColumn AddImplementation<U>(U value, bool inPlace)
         {
             switch (typeof(T))
@@ -1035,6 +1082,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal DataFrameColumn SubtractImplementation<U>(U value, bool inPlace)
         {
             switch (typeof(T))
@@ -1139,6 +1187,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal DataFrameColumn MultiplyImplementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
             where U : unmanaged
         {
@@ -1221,6 +1270,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal DataFrameColumn MultiplyImplementation<U>(U value, bool inPlace)
         {
             switch (typeof(T))
@@ -1298,6 +1348,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal DataFrameColumn DivideImplementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
             where U : unmanaged
         {
@@ -1380,6 +1431,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal DataFrameColumn DivideImplementation<U>(U value, bool inPlace)
         {
             switch (typeof(T))
@@ -1484,6 +1536,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal DataFrameColumn ModuloImplementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
             where U : unmanaged
         {
@@ -1566,6 +1619,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal DataFrameColumn ModuloImplementation<U>(U value, bool inPlace)
         {
             switch (typeof(T))
@@ -1643,6 +1697,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal DataFrameColumn AndImplementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
             where U : unmanaged
         {
@@ -1678,6 +1733,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> AndImplementation<U>(U value, bool inPlace)
         {
             switch (typeof(T))
@@ -1708,6 +1764,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal DataFrameColumn OrImplementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
             where U : unmanaged
         {
@@ -1743,6 +1800,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> OrImplementation<U>(U value, bool inPlace)
         {
             switch (typeof(T))
@@ -1773,6 +1831,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal DataFrameColumn XorImplementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
             where U : unmanaged
         {
@@ -1808,6 +1867,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> XorImplementation<U>(U value, bool inPlace)
         {
             switch (typeof(T))
@@ -1838,6 +1898,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal DataFrameColumn LeftShiftImplementation(int value, bool inPlace)
         {
             switch (typeof(T))
@@ -1901,6 +1962,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal DataFrameColumn RightShiftImplementation(int value, bool inPlace)
         {
             switch (typeof(T))
@@ -1964,6 +2026,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseEqualsImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -2053,6 +2116,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseEqualsImplementation<U>(U value)
         {
             switch (typeof(T))
@@ -2137,6 +2201,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseNotEqualsImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -2226,6 +2291,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseNotEqualsImplementation<U>(U value)
         {
             switch (typeof(T))
@@ -2310,6 +2376,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseGreaterThanOrEqualImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -2387,6 +2454,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseGreaterThanOrEqualImplementation<U>(U value)
         {
             switch (typeof(T))
@@ -2459,6 +2527,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseLessThanOrEqualImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -2536,6 +2605,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseLessThanOrEqualImplementation<U>(U value)
         {
             switch (typeof(T))
@@ -2608,6 +2678,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseGreaterThanImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -2685,6 +2756,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseGreaterThanImplementation<U>(U value)
         {
             switch (typeof(T))
@@ -2757,6 +2829,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseLessThanImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -2834,6 +2907,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseLessThanImplementation<U>(U value)
         {
             switch (typeof(T))

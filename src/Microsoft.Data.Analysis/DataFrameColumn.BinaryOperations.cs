@@ -316,5 +316,14 @@ namespace Microsoft.Data.Analysis
             throw new NotImplementedException();
         }
 
+        public virtual PrimitiveDataFrameColumn<bool> ElementwiseIsNull()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual PrimitiveDataFrameColumn<bool> ElementwiseIsNotNull()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
