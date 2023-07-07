@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Apache.Arrow;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 
 namespace Microsoft.Data.Analysis.Tests
@@ -188,8 +189,7 @@ namespace Microsoft.Data.Analysis.Tests
                 Assert.Null(clone[i]);
         }
 
-        /* Don't run tests during build as they fail, because build if build machine doesn't have enought memory
-        [Fact]
+        [X64Fact("32-bit dosn't allow to allocate more than 2 Gb")]
         public void TestAppend_SizeMoreThanMaxBufferCapacity()
         {
             //Check appending value, than can increase buffer size over MaxCapacity (default strategy is to double buffer capacity)
@@ -197,7 +197,7 @@ namespace Microsoft.Data.Analysis.Tests
             intColumn.Append(10);
         }
 
-        [Fact]
+        [X64Fact("32-bit dosn't allow to allocate more than 2 Gb")]
         public void TestAppendMany_SizeMoreThanMaxBufferCapacity()
         {
             const int MaxCapacityInBytes = 2147483591;
@@ -208,7 +208,6 @@ namespace Microsoft.Data.Analysis.Tests
 
             Assert.Equal(MaxCapacityInBytes + 5, intColumn.Length);
         }
-        */
 
         //#if !NETFRAMEWORK // https://github.com/dotnet/corefxlab/issues/2796
         //        [Fact]
