@@ -58,6 +58,9 @@ namespace Microsoft.Data.Analysis
 <# if ((method.IsNumeric && !type.SupportsNumeric) || (method.IsBitwise && !type.SupportsBitwise) || (type.UnsupportedMethods.Contains(method.MethodName))) { #>
             throw new NotSupportedException();
 <# } else if (method.Operator != null) { #>
+<# if (method.MethodType == MethodType.Comparison || method.MethodType == MethodType.ComparisonScalar) { #>
+            long index = 0;
+<# } #>
             for (int b = 0; b < <#= method.Op1Name #>.Buffers.Count; b++)
             {
 <# if (method.MethodType == MethodType.Comparison) { #>
@@ -79,9 +82,9 @@ namespace Microsoft.Data.Analysis
 <# } else if (method.MethodType == MethodType.Binary) { #>
                     span[i] = (<#=type.TypeName#>)(span[i] <#= method.Operator #> otherSpan[i]);
 <# } else if (method.MethodType == MethodType.Comparison) { #>
-                    ret[i] = (span[i] <#= method.Operator #> otherSpan[i]);
+                    ret[index++] = (span[i] <#= method.Operator #> otherSpan[i]);
 <# } else if (method.MethodType == MethodType.ComparisonScalar) { #>
-                    ret[i] = (span[i] <#= method.Operator #> <#= method.Op2Name #>);
+                    ret[index++] = (span[i] <#= method.Operator #> <#= method.Op2Name #>);
 <# } else {#>
                     throw new NotImplementedException();
 <# } #>

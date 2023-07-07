@@ -46,7 +46,7 @@ namespace Microsoft.ML.AutoML
     internal class TrainValidateDatasetManager : IDatasetManager, ITrainValidateDatasetManager
     {
         private ulong _rowCount;
-        private IDataView _trainDataset;
+        private readonly IDataView _trainDataset;
         private readonly IDataView _validateDataset;
         private readonly string _subSamplingKey = "TrainValidateDatasetSubsamplingKey";
         private bool _isInitialized = false;
@@ -78,7 +78,15 @@ namespace Microsoft.ML.AutoML
                 var subSampleRatio = parameter.ContainsKey(_subSamplingKey) ? parameter[_subSamplingKey].AsType<double>() : 1;
                 if (subSampleRatio < 1.0)
                 {
-                    var subSampledTrainDataset = context.Data.TakeRows(_trainDataset, (long)(subSampleRatio * _rowCount));
+                    var count = (long)(subSampleRatio * _rowCount);
+                    if (count <= 10)
+                    {
+                        // fix issue https://github.com/dotnet/machinelearning-modelbuilder/issues/2734
+                        // take at least 10 rows to avoid empty dataset
+                        count = 10;
+                    }
+
+                    var subSampledTrainDataset = context.Data.TakeRows(_trainDataset, count);
                     return subSampledTrainDataset;
                 }
             }
@@ -94,7 +102,6 @@ namespace Microsoft.ML.AutoML
         private void InitializeTrainDataset(MLContext context)
         {
             _rowCount = DatasetDimensionsUtil.CountRows(_trainDataset, ulong.MaxValue);
-            _trainDataset = context.Data.ShuffleRows(_trainDataset);
         }
     }
 

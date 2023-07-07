@@ -181,7 +181,9 @@ namespace Microsoft.Data.Analysis
                 }
 
                 DataFrameBuffer<T> mutableLastBuffer = Buffers.GetOrCreateMutable(Buffers.Count - 1);
-                int allocatable = (int)Math.Min(remaining, ReadOnlyDataFrameBuffer<T>.MaxCapacity);
+
+                //Calculate how many values we can additionaly allocate and not exceed the MaxCapacity
+                int allocatable = (int)Math.Min(remaining, ReadOnlyDataFrameBuffer<T>.MaxCapacity - mutableLastBuffer.Length);
                 mutableLastBuffer.EnsureCapacity(allocatable);
 
                 DataFrameBuffer<byte> lastNullBitMapBuffer = NullBitMapBuffers.GetOrCreateMutable(NullBitMapBuffers.Count - 1);
@@ -204,7 +206,6 @@ namespace Microsoft.Data.Analysis
                     }
                     _modifyNullCountWhileIndexing = true;
                 }
-
 
                 remaining -= allocatable;
             }
@@ -372,18 +373,6 @@ namespace Microsoft.Data.Analysis
             int arrayIndex = GetArrayContainingRowIndex(startIndex);
             startIndex = startIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity;
             return Buffers[arrayIndex].Length - (int)startIndex;
-        }
-
-        internal ReadOnlyMemory<byte> GetValueBuffer(long startIndex)
-        {
-            int arrayIndex = GetArrayContainingRowIndex(startIndex);
-            return Buffers[arrayIndex].ReadOnlyBuffer;
-        }
-
-        internal ReadOnlyMemory<byte> GetNullBuffer(long startIndex)
-        {
-            int arrayIndex = GetArrayContainingRowIndex(startIndex);
-            return NullBitMapBuffers[arrayIndex].ReadOnlyBuffer;
         }
 
         public IReadOnlyList<T?> this[long startIndex, int length]

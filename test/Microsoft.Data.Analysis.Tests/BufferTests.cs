@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Apache.Arrow;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 
 namespace Microsoft.Data.Analysis.Tests
@@ -186,6 +187,26 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(stringColumn[1], clone[1]);
             for (int i = 2; i < 7; i++)
                 Assert.Null(clone[i]);
+        }
+
+        [X64Fact("32-bit dosn't allow to allocate more than 2 Gb")]
+        public void TestAppend_SizeMoreThanMaxBufferCapacity()
+        {
+            //Check appending value, than can increase buffer size over MaxCapacity (default strategy is to double buffer capacity)
+            PrimitiveDataFrameColumn<byte> intColumn = new PrimitiveDataFrameColumn<byte>("Byte1", int.MaxValue / 2 - 1);
+            intColumn.Append(10);
+        }
+
+        [X64Fact("32-bit dosn't allow to allocate more than 2 Gb")]
+        public void TestAppendMany_SizeMoreThanMaxBufferCapacity()
+        {
+            const int MaxCapacityInBytes = 2147483591;
+
+            //Check appending values with extending column size over MaxCapacity of ReadOnlyDataFrameBuffer
+            PrimitiveDataFrameColumn<byte> intColumn = new PrimitiveDataFrameColumn<byte>("Byte1", MaxCapacityInBytes - 5);
+            intColumn.AppendMany(5, 10);
+
+            Assert.Equal(MaxCapacityInBytes + 5, intColumn.Length);
         }
 
         //#if !NETFRAMEWORK // https://github.com/dotnet/corefxlab/issues/2796
