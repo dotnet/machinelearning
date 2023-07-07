@@ -1049,7 +1049,7 @@ CMT,";
             Assert.Equal(vals, resVals);
         }
 
-        [X86X64FactAttribute("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
+        [X86X64Fact("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
         public async void TestSQLite()
         {
             var (columns, vals) = GetTestData();
