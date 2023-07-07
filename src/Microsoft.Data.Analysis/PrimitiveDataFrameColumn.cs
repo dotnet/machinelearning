@@ -864,5 +864,29 @@ namespace Microsoft.Data.Analysis
         {
             return GetGroupedOccurrences<T>(other, out otherColumnNullIndices);
         }
+
+        public override PrimitiveDataFrameColumn<bool> ElementwiseIsNull()
+        {
+            var ret = new BooleanDataFrameColumn(Name, Length);
+
+            for (long i = 0; i < Length; i++)
+            {
+                ret[i] = !IsValid(i);
+            }
+
+            return ret;
+        }
+
+        public override PrimitiveDataFrameColumn<bool> ElementwiseIsNotNull()
+        {
+            var ret = new BooleanDataFrameColumn(Name, Length);
+
+            for (long i = 0; i < Length; i++)
+            {
+                ret[i] = IsValid(i);
+            }
+
+            return ret;
+        }
     }
 }

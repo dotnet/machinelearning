@@ -3486,5 +3486,73 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(4, df["Decimal"].Median());
 
         }
+
+        [Fact]
+        public void Test_PrimitiveColumnNotEqualsNull()
+        {
+            var col = new DoubleDataFrameColumn("col", new double?[] { 1.23, null, 2, 3 });
+            var dfTest = new DataFrame(col);
+
+            var filteredNullDf = dfTest.Filter(dfTest["col"].ElementwiseNotEquals(null));
+
+            Assert.True(filteredNullDf.Columns.IndexOf("col") >= 0);
+            Assert.Equal(3, filteredNullDf.Columns["col"].Length);
+
+            Assert.Equal(1.23, filteredNullDf.Columns["col"][0]);
+            Assert.Equal(2.0, filteredNullDf.Columns["col"][1]);
+            Assert.Equal(3.0, filteredNullDf.Columns["col"][2]);
+        }
+
+        [Fact]
+        public void Test_PrimitiveColumnEqualsNull()
+        {
+            var index = new Int32DataFrameColumn("index", new int[] { 1, 2, 3, 4, 5 });
+            var col = new DoubleDataFrameColumn("col", new double?[] { 1.23, null, 2, 3, null }); ;
+            var dfTest = new DataFrame(index, col);
+
+            var filteredNullDf = dfTest.Filter(dfTest["col"].ElementwiseEquals(null));
+
+            Assert.True(filteredNullDf.Columns.IndexOf("col") >= 0);
+            Assert.True(filteredNullDf.Columns.IndexOf("index") >= 0);
+
+            Assert.Equal(2, filteredNullDf.Rows.Count);
+
+            Assert.Equal(2, filteredNullDf.Columns["index"][0]);
+            Assert.Equal(5, filteredNullDf.Columns["index"][1]);
+        }
+
+        [Fact]
+        public void Test_StringColumnNotEqualsNull()
+        {
+            var col = new StringDataFrameColumn("col", new[] { "One", null, "Two", "Three" });
+            var dfTest = new DataFrame(col);
+
+            var filteredNullDf = dfTest.Filter(dfTest["col"].ElementwiseNotEquals(null));
+
+            Assert.True(filteredNullDf.Columns.IndexOf("col") >= 0);
+            Assert.Equal(3, filteredNullDf.Columns["col"].Length);
+
+            Assert.Equal("One", filteredNullDf.Columns["col"][0]);
+            Assert.Equal("Two", filteredNullDf.Columns["col"][1]);
+            Assert.Equal("Three", filteredNullDf.Columns["col"][2]);
+        }
+
+        [Fact]
+        public void Test_StringColumnEqualsNull()
+        {
+            var index = new Int32DataFrameColumn("index", new int[] { 1, 2, 3, 4, 5 });
+            var col = new StringDataFrameColumn("col", new[] { "One", null, "Three", "Four", null }); ;
+            var dfTest = new DataFrame(index, col);
+
+            var filteredNullDf = dfTest.Filter(dfTest["col"].ElementwiseEquals(null));
+
+            Assert.True(filteredNullDf.Columns.IndexOf("col") >= 0);
+            Assert.True(filteredNullDf.Columns.IndexOf("index") >= 0);
+
+            Assert.Equal(2, filteredNullDf.Rows.Count);
+
+            Assert.Equal(2, filteredNullDf.Columns["index"][0]);
+            Assert.Equal(5, filteredNullDf.Columns["index"][1]);
+        }
     }
 }
