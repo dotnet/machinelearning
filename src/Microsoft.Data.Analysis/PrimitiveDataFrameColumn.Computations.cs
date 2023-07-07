@@ -93,49 +93,49 @@ namespace Microsoft.Data.Analysis
         /// <inheritdoc/>
         public override object Max()
         {
-            PrimitiveColumnComputation<T>.Instance.Max(_columnContainer, out T ret);
+            PrimitiveColumnComputation<T>.Instance.Max(_columnContainer, out T? ret);
             return ret;
         }
         /// <inheritdoc/>
         public override object Max(IEnumerable<long> rowIndices)
         {
-            PrimitiveColumnComputation<T>.Instance.Max(_columnContainer, rowIndices, out T ret);
+            PrimitiveColumnComputation<T>.Instance.Max(_columnContainer, rowIndices, out T? ret);
             return ret;
         }
         /// <inheritdoc/>
         public override object Min()
         {
-            PrimitiveColumnComputation<T>.Instance.Min(_columnContainer, out T ret);
+            PrimitiveColumnComputation<T>.Instance.Min(_columnContainer, out T? ret);
             return ret;
         }
         /// <inheritdoc/>
         public override object Min(IEnumerable<long> rowIndices)
         {
-            PrimitiveColumnComputation<T>.Instance.Min(_columnContainer, rowIndices, out T ret);
+            PrimitiveColumnComputation<T>.Instance.Min(_columnContainer, rowIndices, out T? ret);
             return ret;
         }
         /// <inheritdoc/>
         public override object Product()
         {
-            PrimitiveColumnComputation<T>.Instance.Product(_columnContainer, out T ret);
+            PrimitiveColumnComputation<T>.Instance.Product(_columnContainer, out T? ret);
             return ret;
         }
         /// <inheritdoc/>
         public override object Product(IEnumerable<long> rowIndices)
         {
-            PrimitiveColumnComputation<T>.Instance.Product(_columnContainer, rowIndices, out T ret);
+            PrimitiveColumnComputation<T>.Instance.Product(_columnContainer, rowIndices, out T? ret);
             return ret;
         }
         /// <inheritdoc/>
         public override object Sum()
         {
-            PrimitiveColumnComputation<T>.Instance.Sum(_columnContainer, out T ret);
+            PrimitiveColumnComputation<T>.Instance.Sum(_columnContainer, out T? ret);
             return ret;
         }
         /// <inheritdoc/>
         public override object Sum(IEnumerable<long> rowIndices)
         {
-            PrimitiveColumnComputation<T>.Instance.Sum(_columnContainer, rowIndices, out T ret);
+            PrimitiveColumnComputation<T>.Instance.Sum(_columnContainer, rowIndices, out T? ret);
             return ret;
         }
         /// <inheritdoc/>

@@ -51,13 +51,13 @@ namespace Microsoft.Data.Analysis
             PrimitiveColumnComputation<T>.Instance.<#=compMethod.MethodName#>(ret._columnContainer);
             return ret;
 <# } else if (compMethod.MethodType == MethodType.ElementwiseComputation && compMethod.HasReturnValue == true) {#>
-            PrimitiveColumnComputation<T>.Instance.<#=compMethod.MethodName#>(_columnContainer, out T ret);
+            PrimitiveColumnComputation<T>.Instance.<#=compMethod.MethodName#>(_columnContainer, out T? ret);
             return ret;
 <# } else if (compMethod.MethodType == MethodType.Reduction && compMethod.IsNumeric == true && compMethod.SupportsRowSubsets == true) { #>
-            PrimitiveColumnComputation<T>.Instance.<#=compMethod.MethodName#>(_columnContainer, rowIndices, out T ret);
+            PrimitiveColumnComputation<T>.Instance.<#=compMethod.MethodName#>(_columnContainer, rowIndices, out T? ret);
             return ret;
 <# } else if (compMethod.MethodType == MethodType.Reduction && compMethod.IsNumeric == true) { #>
-            PrimitiveColumnComputation<T>.Instance.<#=compMethod.MethodName#>(_columnContainer, out T ret);
+            PrimitiveColumnComputation<T>.Instance.<#=compMethod.MethodName#>(_columnContainer, out T? ret);
             return ret;
 <# } else { #>
             PrimitiveColumnComputation<T>.Instance.<#=compMethod.MethodName#>(_columnContainer, out bool ret);

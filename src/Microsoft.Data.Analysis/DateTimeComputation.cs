@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
 using System.Text;
 
 namespace Microsoft.Data.Analysis
@@ -189,26 +191,35 @@ namespace Microsoft.Data.Analysis
             throw new NotSupportedException();
         }
 
-        public void Max(PrimitiveColumnContainer<DateTime> column, out DateTime ret)
+        public void Max(PrimitiveColumnContainer<DateTime> column, out DateTime? ret)
         {
-            ret = column.Buffers[0].ReadOnlySpan[0];
+            var maxDate = DateTime.MinValue;
+            bool hasMaxValue = false;
+
             for (int b = 0; b < column.Buffers.Count; b++)
             {
-                var buffer = column.Buffers[b];
-                var readOnlySpan = buffer.ReadOnlySpan;
+                var readOnlySpan = column.Buffers[b].ReadOnlySpan;
+                var bitmapSpan = column.NullBitMapBuffers[b].ReadOnlySpan;
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
+                    //Check if bit is not set (value is null) - skip
+                    if (!BitmapHelper.IsValid(bitmapSpan, i))
+                        continue;
+
                     var val = readOnlySpan[i];
 
-                    if (val > ret)
+                    if (val > maxDate)
                     {
-                        ret = val;
+                        maxDate = val;
+                        hasMaxValue = true;
                     }
                 }
             }
+
+            ret = hasMaxValue ? maxDate : null;
         }
 
-        public void Max(PrimitiveColumnContainer<DateTime> column, IEnumerable<long> rows, out DateTime ret)
+        public void Max(PrimitiveColumnContainer<DateTime> column, IEnumerable<long> rows, out DateTime? ret)
         {
             ret = default;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
@@ -237,26 +248,36 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public void Min(PrimitiveColumnContainer<DateTime> column, out DateTime ret)
+        public void Min(PrimitiveColumnContainer<DateTime> column, out DateTime? ret)
         {
-            ret = column.Buffers[0].ReadOnlySpan[0];
+            var minDate = DateTime.MaxValue;
+            bool hasMinValue = false;
+
             for (int b = 0; b < column.Buffers.Count; b++)
             {
-                var buffer = column.Buffers[b];
-                var readOnlySpan = buffer.ReadOnlySpan;
+                var readOnlySpan = column.Buffers[b].ReadOnlySpan;
+                var bitmapSpan = column.NullBitMapBuffers[b].ReadOnlySpan;
+
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
+                    //Check if bit is not set (value is null) - skip
+                    if (!BitmapHelper.IsValid(bitmapSpan, i))
+                        continue;
+
                     var val = readOnlySpan[i];
 
-                    if (val < ret)
+                    if (val < minDate)
                     {
-                        ret = val;
+                        minDate = val;
+                        hasMinValue = true;
                     }
                 }
             }
+
+            ret = hasMinValue ? minDate : null;
         }
 
-        public void Min(PrimitiveColumnContainer<DateTime> column, IEnumerable<long> rows, out DateTime ret)
+        public void Min(PrimitiveColumnContainer<DateTime> column, IEnumerable<long> rows, out DateTime? ret)
         {
             ret = default;
             var readOnlySpan = column.Buffers[0].ReadOnlySpan;
@@ -285,22 +306,22 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public void Product(PrimitiveColumnContainer<DateTime> column, out DateTime ret)
+        public void Product(PrimitiveColumnContainer<DateTime> column, out DateTime? ret)
         {
             throw new NotSupportedException();
         }
 
-        public void Product(PrimitiveColumnContainer<DateTime> column, IEnumerable<long> rows, out DateTime ret)
+        public void Product(PrimitiveColumnContainer<DateTime> column, IEnumerable<long> rows, out DateTime? ret)
         {
             throw new NotSupportedException();
         }
 
-        public void Sum(PrimitiveColumnContainer<DateTime> column, out DateTime ret)
+        public void Sum(PrimitiveColumnContainer<DateTime> column, out DateTime? ret)
         {
             throw new NotSupportedException();
         }
 
-        public void Sum(PrimitiveColumnContainer<DateTime> column, IEnumerable<long> rows, out DateTime ret)
+        public void Sum(PrimitiveColumnContainer<DateTime> column, IEnumerable<long> rows, out DateTime? ret)
         {
             throw new NotSupportedException();
         }
