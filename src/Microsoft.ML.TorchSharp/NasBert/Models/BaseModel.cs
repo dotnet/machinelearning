@@ -14,12 +14,17 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
     internal abstract class BaseModel : torch.nn.Module<torch.Tensor, torch.Tensor, torch.Tensor>
     {
         protected readonly NasBertTrainer.NasBertOptions Options;
+        public BertModelType EncoderType => Options.ModelType;
+
         public BertTaskType HeadType => Options.TaskType;
 
         //public ModelType EncoderType => Options.ModelType;
 
 #pragma warning disable CA1024 // Use properties where appropriate: Modules should be fields in TorchSharp
         public abstract TransformerEncoder GetEncoder();
+
+        public abstract BaseHead GetHead();
+
 #pragma warning restore CA1024 // Use properties where appropriate
 
         protected BaseModel(NasBertTrainer.NasBertOptions options)

@@ -11,22 +11,15 @@ using TorchSharp;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Models
 {
-    internal class NasBertModel : BaseModel
+    internal abstract class NasBertModel : BaseModel
     {
-        private readonly PredictionHead _predictionHead;
-
         public override TransformerEncoder GetEncoder() => Encoder;
 
         protected readonly TransformerEncoder Encoder;
 
-        public NasBertModel(NasBertTrainer.NasBertOptions options, int padIndex, int symbolsCount, int numClasses)
+        public NasBertModel(NasBertTrainer.NasBertOptions options, int padIndex, int symbolsCount)
             : base(options)
         {
-            _predictionHead = new PredictionHead(
-                inputDim: Options.EncoderOutputDim,
-                numClasses: numClasses,
-                dropoutRate: Options.PoolerDropout);
-
             Encoder = new TransformerEncoder(
                 paddingIdx: padIndex,
                 vocabSize: symbolsCount,
@@ -43,18 +36,6 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
                 numEncoderLayers: Options.EncoderLayers,
                 applyBertInit: true,
                 freezeTransfer: Options.FreezeTransfer);
-
-            Initialize();
-            RegisterComponents();
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
-        public override torch.Tensor forward(torch.Tensor srcTokens, torch.Tensor mask = null)
-        {
-            using var disposeScope = torch.NewDisposeScope();
-            var x = ExtractFeatures(srcTokens);
-            x = _predictionHead.forward(x);
-            return x.MoveToOuterDisposeScope();
         }
 
         protected void Initialize()

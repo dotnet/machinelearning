@@ -158,5 +158,43 @@ namespace Microsoft.ML.TorchSharp
         {
             return ObjectDetectionMetrics.MeasureMetrics(data, labelCol, actualBoundingBoxColumn, predictedLabelCol, predictedBoundingBoxColumn, scoreCol);
         }
+
+        /// <summary>
+        /// Fine tune a NAS-BERT model for NLP classification. The limit for any sentence is 512 tokens. Each word typically
+        /// will map to a single token, and we automatically add 2 specical tokens (a start token and a separator token)
+        /// so in general this limit will be 510 words for all sentences.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="labelColumnName">Name of the label column. Column should be a key type.</param>
+        /// <param name="outputColumnName">Name of the output column. It will be a key type. It is the predicted label.</param>
+        /// <param name="sentence1ColumnName">Name of the column for the first sentence.</param>
+        /// <param name="batchSize">Number of rows in the batch.</param>
+        /// <param name="maxEpochs">Maximum number of times to loop through your training set.</param>
+        /// <param name="architecture">Architecture for the model. Defaults to Roberta.</param>
+        /// <param name="validationSet">The validation set used while training to improve model quality.</param>
+        /// <returns></returns>
+#pragma warning disable MSML_GeneralName // This name should be PascalCased
+        public static NerTrainer NameEntityRecognition(
+#pragma warning restore MSML_GeneralName // This name should be PascalCased
+            this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            string labelColumnName = DefaultColumnNames.Label,
+            string outputColumnName = DefaultColumnNames.PredictedLabel,
+            string sentence1ColumnName = "Sentence",
+            int batchSize = 32,
+            int maxEpochs = 10,
+            BertArchitecture architecture = BertArchitecture.Roberta,
+            IDataView validationSet = null)
+            => new NerTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, outputColumnName, sentence1ColumnName, batchSize, maxEpochs, validationSet, architecture);
+
+        /// <summary>
+        /// Fine tune an object detection model.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="options">The full set of advanced options.</param>
+        /// <returns></returns>
+        public static NerTrainer NameEntityRecognition(
+            this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            NasBertTrainer.NasBertOptions options)
+            => new NerTrainer(CatalogUtils.GetEnvironment(catalog), options);
     }
 }

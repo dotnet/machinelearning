@@ -91,7 +91,6 @@ namespace Microsoft.ML.TorchSharp
             Contracts.Assert(options.MaxEpoch > 0);
             Contracts.AssertValue(options.LabelColumnName);
             Contracts.AssertValue(options.PredictionColumnName);
-            Contracts.AssertValue(options.ScoreColumnName);
             Option = options;
         }
 
@@ -329,10 +328,9 @@ namespace Microsoft.ML.TorchSharp
                 Model.train();
                 Optimizer.zero_grad();
 
-                var inputTensor = PrepareBatchTensor(ref inputTensors, device: Device);
                 var targetsTensor = CreateTargetsTensor(ref targets, device: Device);
 
-                RunModelAndBackPropagate(ref inputTensor, ref targetsTensor);
+                RunModelAndBackPropagate(ref inputTensors, ref targetsTensor);
                 host.CheckAlive();
 
                 OptimizeStep();
@@ -340,7 +338,7 @@ namespace Microsoft.ML.TorchSharp
                 return cursorValid;
             }
 
-            private protected abstract void RunModelAndBackPropagate(ref Tensor inputTensorm, ref Tensor targetsTensor);
+            private protected abstract void RunModelAndBackPropagate(ref List<Tensor> inputTensorm, ref Tensor targetsTensor);
 
             private protected abstract torch.Tensor PrepareRowTensor();
             private protected abstract torch.Tensor PrepareBatchTensor(ref List<Tensor> inputTensors, Device device);
@@ -421,7 +419,7 @@ namespace Microsoft.ML.TorchSharp
             // int: number of classes
             // BinaryStream: TS Model
             ctx.SaveNonEmptyString(Options.LabelColumnName);
-            ctx.SaveNonEmptyString(Options.ScoreColumnName);
+            ctx.SaveStringOrNull(Options.ScoreColumnName);
             ctx.SaveNonEmptyString(Options.PredictionColumnName);
             ctx.Writer.Write(Options.NumberOfClasses);
 

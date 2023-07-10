@@ -8,16 +8,9 @@ using System.Text;
 
 namespace Microsoft.ML.TorchSharp.NasBert
 {
-    /// <summary>
-    /// These are taken from the TorchSharp model we are implementing.
-    /// </summary>
-    public enum BertTaskType
+    internal enum BertModelType
     {
-        None = 0,
-        MaskedLM = 1,
-        TextClassification = 2,
-        SentenceRegression = 3,
-        NameEntityRecognition = 4,
-        QuestionAnswering = 5
+        NasBert,
+        Roberta
     }
 }

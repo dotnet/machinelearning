@@ -92,7 +92,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         private protected override TorchSharpBaseTransformer<float, float> CreateTransformer(IHost host, Options options, torch.nn.Module model, DataViewSchema.DetachedColumn labelColumn)
         {
-            return new SentenceSimilarityTransformer(host, options as NasBertOptions, model as NasBertModel, labelColumn);
+            return new SentenceSimilarityTransformer(host, options as NasBertOptions, model as ModelForPrediction, labelColumn);
         }
 
         private protected class Trainer : NasBertTrainerBase
@@ -170,7 +170,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 loaderAssemblyName: typeof(SentenceSimilarityTransformer).Assembly.FullName);
         }
 
-        internal SentenceSimilarityTransformer(IHostEnvironment env, NasBertOptions options, NasBertModel model, DataViewSchema.DetachedColumn labelColumn) : base(env, options, model, labelColumn)
+        internal SentenceSimilarityTransformer(IHostEnvironment env, NasBertOptions options, ModelForPrediction model, DataViewSchema.DetachedColumn labelColumn) : base(env, options, model, labelColumn)
         {
         }
 
@@ -225,7 +225,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             var tokenizer = TokenizerExtensions.GetInstance(ch);
             EnglishRoberta tokenizerModel = tokenizer.RobertaModel();
 
-            var model = new NasBertModel(options, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, options.NumberOfClasses);
+            var model = new ModelForPrediction(options, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, options.NumberOfClasses);
             if (!ctx.TryLoadBinaryStream("TSModel", r => model.load(r)))
                 throw env.ExceptDecode();
 
