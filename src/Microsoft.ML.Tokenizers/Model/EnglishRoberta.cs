@@ -136,6 +136,28 @@ namespace Microsoft.ML.Tokenizers
             skipSpecialTokens && id < 0 ? null : _vocabReverse.TryGetValue(id, out var value) ? value : null;
 
         /// <summary>
+        /// Map the tokenized Id to the original string.
+        /// </summary>
+        /// <param name="id">The Id to map to the string.</param>
+        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
+        /// <returns>The mapped token of the Id.</returns>
+        public override string? IdToString(int id, bool skipSpecialTokens = false)
+        {
+            if (skipSpecialTokens && id < 0)
+                return null;
+            if (_vocabReverse.TryGetValue(id, out var value))
+            {
+                var textChars = string.Join("", value)
+                    .Where(c => _unicodeToByte.ContainsKey(c))
+                    .Select(c => _unicodeToByte[c]);
+                var text = new string(textChars.ToArray());
+                return text;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Save the model data into the vocabulary, merges, and occurrence mapping files.
         /// </summary>
         /// <param name="path">The file system path to store the generated files at.</param>

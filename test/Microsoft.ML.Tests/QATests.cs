@@ -53,19 +53,24 @@ namespace Microsoft.ML.Tests
                     },
                 }));
             var chain = new EstimatorChain<ITransformer>();
-            var estimator = chain.Append(ML.MulticlassClassification.Trainers.QuestionAnswer());
+            var estimator = chain.Append(ML.MulticlassClassification.Trainers.QuestionAnswer(maxEpochs: 1));
 
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
             var prev = estimator.Fit(dataView).Transform(dataView).Preview();
-            //Assert.Equal(3, estimatorSchema.Count);
-            //Assert.Equal("outputColumn", estimatorSchema[2].Name);
-            //Assert.Equal(TextDataViewType.Instance, estimatorSchema[2].ItemType);
+            Assert.Equal(6, estimatorSchema.Count);
+            Assert.Equal("Answer", estimatorSchema[4].Name);
+            Assert.Equal("Score", estimatorSchema[5].Name);
+            Assert.Equal(TextDataViewType.Instance, estimatorSchema[4].ItemType);
+            Assert.Equal(NumberDataViewType.Single, estimatorSchema[5].ItemType);
 
             var transformer = estimator.Fit(dataView);
             var transformerSchema = transformer.GetOutputSchema(dataView.Schema);
 
-            //Assert.Equal(5, transformerSchema.Count);
-            //Assert.Equal("outputColumn", transformerSchema[4].Name);
+            Assert.Equal(6, transformerSchema.Count);
+            Assert.Equal("Answer", transformerSchema[4].Name);
+            Assert.Equal("Score", transformerSchema[5].Name);
+            Assert.Equal(new VectorDataViewType(TextDataViewType.Instance), transformerSchema[4].Type);
+            Assert.Equal(new VectorDataViewType(NumberDataViewType.Single), transformerSchema[5].Type);
 
             TestEstimatorCore(estimator, dataView);
         }

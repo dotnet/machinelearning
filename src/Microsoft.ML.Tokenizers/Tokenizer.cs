@@ -137,7 +137,10 @@ namespace Microsoft.ML.Tokenizers
 
             foreach (int id in ids)
             {
-                tokens.Add(Model.IdToToken(id) ?? "");
+                if (Model.GetType() == typeof(EnglishRoberta))
+                    tokens.Add(Model.IdToString(id) ?? "");
+                else
+                    tokens.Add(Model.IdToToken(id) ?? "");
             }
 
             return Decoder?.Decode(tokens) ?? string.Join("", tokens);

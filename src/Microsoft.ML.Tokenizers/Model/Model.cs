@@ -35,6 +35,8 @@ namespace Microsoft.ML.Tokenizers
         /// <returns>The mapped token of the Id.</returns>
         public abstract string? IdToToken(int id, bool skipSpecialTokens = false);
 
+        public abstract string? IdToString(int id, bool skipSpecialTokens = false);
+
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>

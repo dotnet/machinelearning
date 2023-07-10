@@ -195,7 +195,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
                 LossValue = 0;
                 _channel = ch;
 
-                // Get row count and figure out num of unique labels
+                // Get row count
                 RowCount = GetRowCount(input);
                 Device = TorchUtils.InitializeDevice(Parent.Host);
 
@@ -515,9 +515,6 @@ namespace Microsoft.ML.TorchSharp.Roberta
                     TextDataViewType.Instance, false);
 
             outColumns[Option.ScoreColumnName] = new SchemaShape.Column(Option.ScoreColumnName, SchemaShape.Column.VectorKind.VariableVector,
-                NumberDataViewType.Single, false);
-
-            outColumns[Option.ScoreColumnName] = new SchemaShape.Column(Option.ScoreColumnName, SchemaShape.Column.VectorKind.VariableVector,
                 NumberDataViewType.Single, false, new SchemaShape(scoreMetadata.ToArray()));
 
             return new SchemaShape(outColumns.Values);
@@ -627,7 +624,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "QA-ANSW",
+                modelSignature: "QA-ANSWR",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
@@ -688,7 +685,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
                 QuestionColumnName = ctx.LoadString(),
                 PredictedAnswerColumnName = ctx.LoadString(),
                 ScoreColumnName = ctx.LoadString(),
-                TopKAnswers = ctx.Reader.Read()
+                TopKAnswers = ctx.Reader.ReadInt32()
             };
 
             var ch = env.Start("Load Model");
@@ -740,9 +737,9 @@ namespace Microsoft.ML.TorchSharp.Roberta
                 meta.Add(AnnotationUtils.Kinds.ScoreValueKind, TextDataViewType.Instance, (ref ReadOnlyMemory<char> value) => { value = AnnotationUtils.Const.ScoreValueKind.Score.AsMemory(); });
 
 
-                info[0] = new DataViewSchema.DetachedColumn(_parent.Options.PredictedAnswerColumnName, new VectorDataViewType(TextDataViewType.Instance), meta.ToAnnotations());
+                info[0] = new DataViewSchema.DetachedColumn(_parent.Options.PredictedAnswerColumnName, new VectorDataViewType(TextDataViewType.Instance));
 
-                info[1] = new DataViewSchema.DetachedColumn(_parent.Options.ScoreColumnName, new VectorDataViewType(NumberDataViewType.Single));
+                info[1] = new DataViewSchema.DetachedColumn(_parent.Options.ScoreColumnName, new VectorDataViewType(NumberDataViewType.Single), meta.ToAnnotations());
                 return info;
             }
 
@@ -866,7 +863,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
                 questionLength = questionTokenId.Count;
                 contextIds = contextTokenId.ToArray();
 
-                return srcTensor;
+                return srcTensor.reshape(1, srcTensor.NumberOfElements);
             }
 
             private Tensor PrepAndRunModel(Tensor inputTensor)
@@ -887,8 +884,8 @@ namespace Microsoft.ML.TorchSharp.Roberta
                     Position = -1;
                     MaxLength = maxLength;
 
-                    PredictedAnswersBuffer = default;
-                    ScoresBuffer = default;
+                    PredictedAnswersBuffer = new ReadOnlyMemory<char>[maxLength];
+                    ScoresBuffer = new float[maxLength];
                 }
 
                 private bool _isDisposed;
@@ -907,24 +904,25 @@ namespace Microsoft.ML.TorchSharp.Roberta
                 if (outputCache.Position != position)
                 {
 
-                    var imageTensor = PrepInputTensors(ref context, ref question, getContext, getQuestion, out int contextLength, out int questionLength, out int[] contextIds);
+                    var inputTensor = PrepInputTensors(ref context, ref question, getContext, getQuestion, out int contextLength, out int questionLength, out int[] contextIds);
                     _parent.Model.eval();
-
-                    var logits = PrepAndRunModel(imageTensor);
-
-                    var topKSpans = MetricUtils.ComputeTopKSpansWithScore(logits, _parent.Options.TopKAnswers, questionLength, contextLength);
-                    int index = 0;
-                    foreach (var topKSpan in topKSpans)
+                    using (torch.no_grad())
                     {
-                        var predictStart = topKSpan.start;
-                        var predictEnd = topKSpan.end;
-                        var score = topKSpan.score;
-                        outputCache.PredictedAnswersBuffer[index] = new ReadOnlyMemory<char>(_parent.Tokenizer.Decode(Range.GetSubArray(contextIds, (predictStart - questionLength - 2)..(predictEnd - questionLength - 1))).Trim().ToCharArray());
-                        outputCache.ScoresBuffer[index++] = score;
+                        var logits = PrepAndRunModel(inputTensor);
+
+                        var topKSpans = MetricUtils.ComputeTopKSpansWithScore(logits, _parent.Options.TopKAnswers, questionLength, contextLength);
+                        int index = 0;
+                        foreach (var topKSpan in topKSpans)
+                        {
+                            var predictStart = topKSpan.start;
+                            var predictEnd = topKSpan.end;
+                            var score = topKSpan.score;
+                            outputCache.PredictedAnswersBuffer[index] = new ReadOnlyMemory<char>(_parent.Tokenizer.Decode(Range.GetSubArray(contextIds, (predictStart - questionLength - 2)..(predictEnd - questionLength - 1))).Trim().ToCharArray());
+                            outputCache.ScoresBuffer[index++] = score;
+                        }
+
+                        logits.Dispose();
                     }
-
-                    logits.Dispose();
-
                     outputCache.Position = position;
                 }
             }
