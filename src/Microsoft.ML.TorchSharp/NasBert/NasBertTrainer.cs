@@ -29,7 +29,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
     public class NasBertTrainer
     {
-        public sealed class NasBertOptions : TorchSharpBaseTrainer.Options
+        public class NasBertOptions : TorchSharpBaseTrainer.Options
         {
             /// <summary>
             /// The first sentence column.

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.TorchSharp.Roberta.Models;
 using Microsoft.ML.TorchSharp.Utils;
 using TorchSharp;
 
@@ -15,12 +16,12 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
     {
         public override TransformerEncoder GetEncoder() => Encoder;
 
-        protected readonly TransformerEncoder Encoder;
+        protected readonly NasBertEncoder Encoder;
 
         public NasBertModel(NasBertTrainer.NasBertOptions options, int padIndex, int symbolsCount)
             : base(options)
         {
-            Encoder = new TransformerEncoder(
+            Encoder = new NasBertEncoder(
                 paddingIdx: padIndex,
                 vocabSize: symbolsCount,
                 dropout: Options.Dropout,
@@ -51,7 +52,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
         /// </summary>
         protected torch.Tensor ExtractFeatures(torch.Tensor srcTokens)
         {
-            return Encoder.forward(srcTokens, null, null);
+            return Encoder.call(srcTokens, null, null);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]

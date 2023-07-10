@@ -61,8 +61,6 @@ namespace Microsoft.ML.TorchSharp.NasBert
     ///
     public class NerTrainer : NasBertTrainer<VBuffer<uint>, TargetType>
     {
-        private new const string ModelUrl = "models/finetuned_14M_8000000_conll2012_encoder.tsm";
-
         internal NerTrainer(IHostEnvironment env, NasBertOptions options) : base(env, options)
         {
         }

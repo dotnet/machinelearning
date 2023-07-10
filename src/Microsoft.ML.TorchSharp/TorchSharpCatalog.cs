@@ -8,6 +8,7 @@ using System.Text;
 using Microsoft.ML.Data;
 using Microsoft.ML.TorchSharp.AutoFormerV2;
 using Microsoft.ML.TorchSharp.NasBert;
+using Microsoft.ML.TorchSharp.Roberta;
 
 namespace Microsoft.ML.TorchSharp
 {
@@ -160,7 +161,7 @@ namespace Microsoft.ML.TorchSharp
         }
 
         /// <summary>
-        /// Fine tune a NAS-BERT model for NLP classification. The limit for any sentence is 512 tokens. Each word typically
+        /// Fine tune a NAS-BERT model for Name Entity Recognition. The limit for any sentence is 512 tokens. Each word typically
         /// will map to a single token, and we automatically add 2 specical tokens (a start token and a separator token)
         /// so in general this limit will be 510 words for all sentences.
         /// </summary>
@@ -173,9 +174,7 @@ namespace Microsoft.ML.TorchSharp
         /// <param name="architecture">Architecture for the model. Defaults to Roberta.</param>
         /// <param name="validationSet">The validation set used while training to improve model quality.</param>
         /// <returns></returns>
-#pragma warning disable MSML_GeneralName // This name should be PascalCased
         public static NerTrainer NameEntityRecognition(
-#pragma warning restore MSML_GeneralName // This name should be PascalCased
             this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string outputColumnName = DefaultColumnNames.PredictedLabel,
@@ -187,7 +186,7 @@ namespace Microsoft.ML.TorchSharp
             => new NerTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, outputColumnName, sentence1ColumnName, batchSize, maxEpochs, validationSet, architecture);
 
         /// <summary>
-        /// Fine tune an object detection model.
+        /// Fine tune a Name Entity Recognition model.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="options">The full set of advanced options.</param>
@@ -196,5 +195,39 @@ namespace Microsoft.ML.TorchSharp
             this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             NasBertTrainer.NasBertOptions options)
             => new NerTrainer(CatalogUtils.GetEnvironment(catalog), options);
+
+
+        /// <summary>
+        /// Fine tune a NAS-BERT model for Name Entity Recognition. The limit for any sentence is 512 tokens. Each word typically
+        /// will map to a single token, and we automatically add 2 specical tokens (a start token and a separator token)
+        /// so in general this limit will be 510 words for all sentences.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="contextColumnName">The context for the question.</param>
+        /// <param name="questionColumnName">The question being asked.</param>
+        /// <param name="trainingAnswerColumnName">The answer used to train the model.</param>
+        /// <param name="answerIndexColumnName">The starting character index of that answer in the context.</param>
+        /// <param name="predictedAnswerColumnName">The answer predicted by the model during inferencing.</param>
+        /// <param name="scoreColumnName">The score of the predicted answers.</param>
+        /// <param name="topK">How many top results you want back for a given question.</param>
+        /// <param name="batchSize">Number of rows in the batch.</param>
+        /// <param name="maxEpochs">Maximum number of times to loop through your training set.</param>
+        /// <param name="architecture">Architecture for the model. Defaults to Roberta.</param>
+        /// <param name="validationSet">The validation set used while training to improve model quality.</param>
+        /// <returns></returns>
+        public static QATrainer QuestionAnswer(
+            this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            string contextColumnName = "Context",
+            string questionColumnName = "Question",
+            string trainingAnswerColumnName = "TrainingAnswer",
+            string answerIndexColumnName = "AnswerIndex",
+            string predictedAnswerColumnName = "Answer",
+            string scoreColumnName = DefaultColumnNames.Score,
+            int topK = 3,
+            int batchSize = 4,
+            int maxEpochs = 10,
+            BertArchitecture architecture = BertArchitecture.Roberta,
+            IDataView validationSet = null)
+            => new QATrainer(CatalogUtils.GetEnvironment(catalog), contextColumnName, questionColumnName, trainingAnswerColumnName, answerIndexColumnName, predictedAnswerColumnName, scoreColumnName, topK, batchSize, maxEpochs, validationSet, architecture);
     }
 }
