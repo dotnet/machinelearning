@@ -14,13 +14,12 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
 {
     internal static class AdditionalMetadataReferences
     {
-#if NETCOREAPP
-        internal static readonly ReferenceAssemblies DefaultReferenceAssemblies = ReferenceAssemblies.Default
-            .AddPackages(ImmutableArray.Create(new PackageIdentity("System.Memory", "4.5.1")));
-#else
-        internal static readonly ReferenceAssemblies DefaultReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default
-            .AddPackages(ImmutableArray.Create(new PackageIdentity("System.Memory", "4.5.1")));
-#endif
+        internal static readonly ReferenceAssemblies DefaultReferenceAssemblies = new ReferenceAssemblies(
+                "net8.0",
+                new PackageIdentity(
+                    "Microsoft.NETCore.App.Ref",
+                    "8.0.0-preview.5.23280.8"),
+                Path.Combine("ref", "net8.0"));
 
         internal static readonly MetadataReference MSDataDataViewReference = RefFromType<IDataView>();
         internal static readonly MetadataReference MLNetCoreReference = RefFromType<IHostEnvironment>();
