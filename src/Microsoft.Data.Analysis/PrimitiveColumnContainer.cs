@@ -44,35 +44,6 @@ namespace Microsoft.Data.Analysis
         // Need a way to differentiate between columns initialized with default values and those with null values in SetValidityBit
         internal bool _modifyNullCountWhileIndexing = true;
 
-        public PrimitiveColumnContainer(T[] values)
-        {
-            values = values ?? throw new ArgumentNullException(nameof(values));
-            long length = values.LongLength;
-            DataFrameBuffer<T> curBuffer;
-            if (Buffers.Count == 0)
-            {
-                curBuffer = new DataFrameBuffer<T>();
-                Buffers.Add(curBuffer);
-                NullBitMapBuffers.Add(new DataFrameBuffer<byte>());
-            }
-            else
-            {
-                curBuffer = (DataFrameBuffer<T>)Buffers[Buffers.Count - 1];
-            }
-            for (long i = 0; i < length; i++)
-            {
-                if (curBuffer.Length == ReadOnlyDataFrameBuffer<T>.MaxCapacity)
-                {
-                    curBuffer = new DataFrameBuffer<T>();
-                    Buffers.Add(curBuffer);
-                    NullBitMapBuffers.Add(new DataFrameBuffer<byte>());
-                }
-                curBuffer.Append(values[i]);
-                SetValidityBit(Length, true);
-                Length++;
-            }
-        }
-
         public PrimitiveColumnContainer(IEnumerable<T> values)
         {
             values = values ?? throw new ArgumentNullException(nameof(values));
@@ -81,6 +52,7 @@ namespace Microsoft.Data.Analysis
                 Append(value);
             }
         }
+
         public PrimitiveColumnContainer(IEnumerable<T?> values)
         {
             values = values ?? throw new ArgumentNullException(nameof(values));
