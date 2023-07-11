@@ -127,10 +127,6 @@ namespace Microsoft.Data.Analysis
 
             foreach (var items in vals)
             {
-                for (var c = 0; c < items.Count; c++)
-                {
-                    items[c] = items[c];
-                }
                 res.Append(items, inPlace: true);
             }
 
