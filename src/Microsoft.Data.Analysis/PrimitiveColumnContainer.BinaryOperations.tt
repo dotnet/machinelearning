@@ -17,6 +17,7 @@ namespace Microsoft.Data.Analysis
         where T : unmanaged
     {
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
+
 <# if (method.MethodType == MethodType.Comparison) { #>
         public PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> right)
         {
@@ -39,11 +40,11 @@ namespace Microsoft.Data.Analysis
 <# } #>
             return this;
         }
-
 <# } #>
 <# } #>
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.BinaryScalar) { #>
+
         public PrimitiveColumnContainer<T> Reverse<#=method.MethodName#>(T scalar)
         {
             PrimitiveDataFrameColumnArithmetic<T>.Instance.<#=method.MethodName#>(scalar, this);
