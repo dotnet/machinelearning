@@ -18,12 +18,12 @@ namespace Microsoft.Data.Analysis
     {
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.Comparison) { #>
-        public BooleanDataFrameColumn <#=method.MethodName#>(PrimitiveColumnContainer<T> right)
+        public PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> right)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.<#=method.MethodName#>(this, right);
         }
 <# } else if (method.MethodType == MethodType.ComparisonScalar ) { #>
-        public BooleanDataFrameColumn <#=method.MethodName#>(T scalar)
+        public PrimitiveColumnContainer<bool> <#=method.MethodName#>(T scalar)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.<#=method.MethodName#>(this, scalar);
         }

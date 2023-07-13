@@ -118,51 +118,51 @@ namespace Microsoft.Data.Analysis
             return this;
         }
 
-        public BooleanDataFrameColumn ElementwiseEquals(PrimitiveColumnContainer<T> right)
+        public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<T> right)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseEquals(this, right);
         }
-        public BooleanDataFrameColumn ElementwiseEquals(T scalar)
+        public PrimitiveColumnContainer<bool> ElementwiseEquals(T scalar)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseEquals(this, scalar);
         }
-        public BooleanDataFrameColumn ElementwiseNotEquals(PrimitiveColumnContainer<T> right)
+        public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<T> right)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseNotEquals(this, right);
         }
-        public BooleanDataFrameColumn ElementwiseNotEquals(T scalar)
+        public PrimitiveColumnContainer<bool> ElementwiseNotEquals(T scalar)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseNotEquals(this, scalar);
         }
-        public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<T> right)
+        public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<T> right)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseGreaterThanOrEqual(this, right);
         }
-        public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(T scalar)
+        public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(T scalar)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseGreaterThanOrEqual(this, scalar);
         }
-        public BooleanDataFrameColumn ElementwiseLessThanOrEqual(PrimitiveColumnContainer<T> right)
+        public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<T> right)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThanOrEqual(this, right);
         }
-        public BooleanDataFrameColumn ElementwiseLessThanOrEqual(T scalar)
+        public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(T scalar)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThanOrEqual(this, scalar);
         }
-        public BooleanDataFrameColumn ElementwiseGreaterThan(PrimitiveColumnContainer<T> right)
+        public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<T> right)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseGreaterThan(this, right);
         }
-        public BooleanDataFrameColumn ElementwiseGreaterThan(T scalar)
+        public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(T scalar)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseGreaterThan(this, scalar);
         }
-        public BooleanDataFrameColumn ElementwiseLessThan(PrimitiveColumnContainer<T> right)
+        public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<T> right)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThan(this, right);
         }
-        public BooleanDataFrameColumn ElementwiseLessThan(T scalar)
+        public PrimitiveColumnContainer<bool> ElementwiseLessThan(T scalar)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThan(this, scalar);
         }
