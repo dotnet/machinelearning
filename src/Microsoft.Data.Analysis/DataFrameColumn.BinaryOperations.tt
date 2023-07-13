@@ -78,11 +78,17 @@ namespace Microsoft.Data.Analysis
 
 <# } #>
 <# } #>
+        /// <summary>
+        /// Performs an element-wise equal to Null on each value in the column
+        /// </summary>
         public virtual PrimitiveDataFrameColumn<bool> ElementwiseIsNull()
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs an element-wise not equal to Null on each value in the column
+        /// </summary>
         public virtual PrimitiveDataFrameColumn<bool> ElementwiseIsNotNull()
         {
             throw new NotImplementedException();
