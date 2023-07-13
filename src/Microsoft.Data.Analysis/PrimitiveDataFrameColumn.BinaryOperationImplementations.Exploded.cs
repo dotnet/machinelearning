@@ -1275,7 +1275,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseEqualsImplementation(bool value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
         }
     }
 
@@ -1283,7 +1283,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseEqualsImplementation(byte value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
         }
     }
 
@@ -1291,7 +1291,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseEqualsImplementation(decimal value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
         }
     }
 
@@ -1299,7 +1299,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseEqualsImplementation(double value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
         }
     }
 
@@ -1307,7 +1307,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseEqualsImplementation(float value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
         }
     }
 
@@ -1315,7 +1315,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseEqualsImplementation(int value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
         }
     }
 
@@ -1323,7 +1323,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseEqualsImplementation(long value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
         }
     }
 
@@ -1331,7 +1331,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseEqualsImplementation(sbyte value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
         }
     }
 
@@ -1339,7 +1339,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseEqualsImplementation(short value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
         }
     }
 
@@ -1347,7 +1347,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseEqualsImplementation(uint value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
         }
     }
 
@@ -1355,7 +1355,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseEqualsImplementation(ulong value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
         }
     }
 
@@ -1363,7 +1363,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseEqualsImplementation(ushort value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
         }
     }
 
@@ -1371,7 +1371,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseEqualsImplementation(DateTime value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
         }
     }
 
@@ -1483,7 +1483,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(bool value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseNotEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
         }
     }
 
@@ -1491,7 +1491,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(byte value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseNotEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
         }
     }
 
@@ -1499,7 +1499,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(decimal value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseNotEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
         }
     }
 
@@ -1507,7 +1507,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(double value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseNotEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
         }
     }
 
@@ -1515,7 +1515,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(float value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseNotEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
         }
     }
 
@@ -1523,7 +1523,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(int value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseNotEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
         }
     }
 
@@ -1531,7 +1531,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(long value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseNotEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
         }
     }
 
@@ -1539,7 +1539,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(sbyte value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseNotEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
         }
     }
 
@@ -1547,7 +1547,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(short value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseNotEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
         }
     }
 
@@ -1555,7 +1555,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(uint value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseNotEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
         }
     }
 
@@ -1563,7 +1563,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(ulong value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseNotEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
         }
     }
 
@@ -1571,7 +1571,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(ushort value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseNotEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
         }
     }
 
@@ -1579,7 +1579,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(DateTime value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseNotEquals(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
         }
     }
 
@@ -1691,7 +1691,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(bool value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
         }
     }
 
@@ -1699,7 +1699,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(byte value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
         }
     }
 
@@ -1707,7 +1707,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(decimal value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
         }
     }
 
@@ -1715,7 +1715,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(double value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
         }
     }
 
@@ -1723,7 +1723,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(float value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
         }
     }
 
@@ -1731,7 +1731,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(int value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
         }
     }
 
@@ -1739,7 +1739,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(long value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
         }
     }
 
@@ -1747,7 +1747,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(sbyte value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
         }
     }
 
@@ -1755,7 +1755,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(short value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
         }
     }
 
@@ -1763,7 +1763,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(uint value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
         }
     }
 
@@ -1771,7 +1771,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(ulong value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
         }
     }
 
@@ -1779,7 +1779,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(ushort value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
         }
     }
 
@@ -1787,7 +1787,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(DateTime value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
         }
     }
 
@@ -1899,7 +1899,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(bool value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
         }
     }
 
@@ -1907,7 +1907,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(byte value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
         }
     }
 
@@ -1915,7 +1915,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(decimal value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
         }
     }
 
@@ -1923,7 +1923,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(double value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
         }
     }
 
@@ -1931,7 +1931,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(float value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
         }
     }
 
@@ -1939,7 +1939,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(int value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
         }
     }
 
@@ -1947,7 +1947,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(long value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
         }
     }
 
@@ -1955,7 +1955,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(sbyte value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
         }
     }
 
@@ -1963,7 +1963,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(short value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
         }
     }
 
@@ -1971,7 +1971,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(uint value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
         }
     }
 
@@ -1979,7 +1979,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(ulong value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
         }
     }
 
@@ -1987,7 +1987,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(ushort value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
         }
     }
 
@@ -1995,7 +1995,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(DateTime value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
         }
     }
 
@@ -2107,7 +2107,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(bool value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
         }
     }
 
@@ -2115,7 +2115,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(byte value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
         }
     }
 
@@ -2123,7 +2123,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(decimal value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
         }
     }
 
@@ -2131,7 +2131,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(double value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
         }
     }
 
@@ -2139,7 +2139,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(float value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
         }
     }
 
@@ -2147,7 +2147,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(int value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
         }
     }
 
@@ -2155,7 +2155,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(long value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
         }
     }
 
@@ -2163,7 +2163,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(sbyte value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
         }
     }
 
@@ -2171,7 +2171,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(short value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
         }
     }
 
@@ -2179,7 +2179,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(uint value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
         }
     }
 
@@ -2187,7 +2187,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(ulong value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
         }
     }
 
@@ -2195,7 +2195,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(ushort value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
         }
     }
 
@@ -2203,7 +2203,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(DateTime value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseGreaterThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
         }
     }
 
@@ -2315,7 +2315,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanImplementation(bool value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
         }
     }
 
@@ -2323,7 +2323,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanImplementation(byte value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
         }
     }
 
@@ -2331,7 +2331,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanImplementation(decimal value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
         }
     }
 
@@ -2339,7 +2339,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanImplementation(double value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
         }
     }
 
@@ -2347,7 +2347,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanImplementation(float value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
         }
     }
 
@@ -2355,7 +2355,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanImplementation(int value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
         }
     }
 
@@ -2363,7 +2363,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanImplementation(long value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
         }
     }
 
@@ -2371,7 +2371,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanImplementation(sbyte value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
         }
     }
 
@@ -2379,7 +2379,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanImplementation(short value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
         }
     }
 
@@ -2387,7 +2387,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanImplementation(uint value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
         }
     }
 
@@ -2395,7 +2395,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanImplementation(ulong value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
         }
     }
 
@@ -2403,7 +2403,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanImplementation(ushort value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
         }
     }
 
@@ -2411,7 +2411,7 @@ namespace Microsoft.Data.Analysis
     {
         internal BooleanDataFrameColumn ElementwiseLessThanImplementation(DateTime value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.ElementwiseLessThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
         }
     }
 }

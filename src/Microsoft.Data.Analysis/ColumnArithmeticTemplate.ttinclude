@@ -426,7 +426,6 @@
                 case MethodType.Unary:
                 case MethodType.UnaryInPlace:
                     throw new ArgumentException();
-                    return $"{dataFrameType}<{genericType}> {Op1Name}";
                 case MethodType.BinaryScalar:
                     return $"{genericType} {Op2Name}";
                 case MethodType.ComparisonScalar:

@@ -201,7 +201,7 @@ void GenerateAllComparisonScalarCombinationsForMethod(string inputMethodName)
     {
         internal <#=fullReturnType#> <#=methodName#>(<#=otherColumnType#> value)
         {
-            return new BooleanDataFrameColumn (Name, ColumnContainer.<#=inputMethodName#>(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.<#=inputMethodName#>(value));
         }
     }
 <# 

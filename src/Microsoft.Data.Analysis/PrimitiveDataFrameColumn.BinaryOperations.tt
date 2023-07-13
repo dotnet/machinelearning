@@ -189,13 +189,10 @@ namespace Microsoft.Data.Analysis
                     {
                         throw new NotSupportedException();
                     }
-<# if (method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.Comparison) { #>
-                    PrimitiveDataFrameColumn<bool> ret<#=type.TypeName#>Column = CloneAsBooleanColumn();
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
-                    (this as PrimitiveDataFrameColumn<bool>)._columnContainer.<#=method.MethodName#>(Unsafe.As<U, bool>(ref value), ret<#=type.TypeName#>Column._columnContainer);
-<# } else { #>
-                    (this as PrimitiveDataFrameColumn<U>)._columnContainer.<#=method.MethodName#>(column._columnContainer, ret<#=type.TypeName#>Column._columnContainer);
-<# } #>
+                    return new BooleanDataFrameColumn(Name, (this as PrimitiveDataFrameColumn<bool>)._columnContainer.<#=method.MethodName#>(Unsafe.As<U, bool>(ref value)));
+<# } else if (method.MethodType == MethodType.Comparison) { #>
+                    return new BooleanDataFrameColumn(Name, (this as PrimitiveDataFrameColumn<U>)._columnContainer.<#=method.MethodName#>(column._columnContainer));
 <# } else if (method.MethodType == MethodType.BinaryScalar) {#>
                     PrimitiveDataFrameColumn<U> column = this as PrimitiveDataFrameColumn<U>;
                     PrimitiveDataFrameColumn<U> ret<#=type.TypeName#>Column = <#=GenerateInPlaceStatement("column", "column.Clone()")#>;
@@ -205,7 +202,6 @@ namespace Microsoft.Data.Analysis
                     PrimitiveDataFrameColumn<U> ret<#=type.TypeName#>Column = <#=GenerateInPlaceStatement("column", "column.Clone()")#>;
                     ret<#=type.TypeName#>Column._columnContainer.<#=method.MethodName#>(column._columnContainer);
 <# } #>
-                    return ret<#=type.TypeName#>Column;
 <# } #>
 <# } else if (type.TypeName == "decimal") { #>
                 case Type <#=type.TypeName#>Type when <#=type.TypeName#>Type == typeof(<#=type.TypeName#>):
@@ -216,18 +212,12 @@ namespace Microsoft.Data.Analysis
                     if (typeof(U) == typeof(T))
                     {
                         // No conversions
-<# if (method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.Comparison) { #>
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
                         PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.<#=method.MethodName#>(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
-                        return newColumn;
-<# } else { #>
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.<#=method.MethodName#>(Unsafe.As<U, T>(ref value)));
+<# } else if (method.MethodType == MethodType.Comparison){ #>
                         PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.<#=method.MethodName#>(column._columnContainer, newColumn._columnContainer);
-                        return newColumn;
-<# } #>
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.<#=method.MethodName#>(column._columnContainer));
 <# } else if (method.IsBitwise == true ) { #>
                         throw new NotSupportedException();
 <# } else if (method.MethodType == MethodType.BinaryScalar ) { #>
@@ -255,17 +245,12 @@ namespace Microsoft.Data.Analysis
                             throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
                         }
 <# } #>
-<# if (method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.Comparison) { #>
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.<#=method.MethodName#>(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
-                        return newColumn;
-<# } else { #>
+                        return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.<#=method.MethodName#>(DecimalConverter<U>.Instance.GetDecimal(value)));
+<# } else if (method.MethodType == MethodType.Comparison){ #>
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.<#=method.MethodName#>(column.CloneAsDecimalColumn()._columnContainer, newColumn._columnContainer);
-                        return newColumn;
-<# } #>
+                        return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.<#=method.MethodName#>(column.CloneAsDecimalColumn()._columnContainer));
 <# } else if (method.IsBitwise == true) { #>
                         throw new NotSupportedException();
 <# } else if (method.MethodType == MethodType.BinaryScalar) { #>
@@ -299,18 +284,12 @@ namespace Microsoft.Data.Analysis
                     if (typeof(U) == typeof(T))
                     {
                         // No conversions
-<# if (method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.Comparison) { #>
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
                         PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.<#=method.MethodName#>(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
-                        return newColumn;
-<# } else { #>
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.<#=method.MethodName#>(Unsafe.As<U, T>(ref value)));
+<# } else if (method.MethodType == MethodType.Comparison) { #>
                         PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.<#=method.MethodName#>(column._columnContainer, newColumn._columnContainer);
-                        return newColumn;
-<# } #>
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.<#=method.MethodName#>(column._columnContainer));
 <# } else if (method.IsBitwise == true ) { #>
                         throw new NotSupportedException();
 <# } else if (method.MethodType == MethodType.BinaryScalar ) { #>
@@ -340,17 +319,12 @@ namespace Microsoft.Data.Analysis
 <# } #>
                         if (typeof(U) == typeof(decimal))
                         {
-<# if (method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.Comparison) { #>
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.<#=method.MethodName#>(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
-                            return newColumn;
-<# } else { #>
+                            return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.<#=method.MethodName#>(DecimalConverter<U>.Instance.GetDecimal(value)));
+<# } else if (method.MethodType == MethodType.Comparison) { #>
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.<#=method.MethodName#>((column as PrimitiveDataFrameColumn<decimal>)._columnContainer, newColumn._columnContainer);
-                            return newColumn;
-<# } #>
+                            return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.<#=method.MethodName#>((column as PrimitiveDataFrameColumn<decimal>)._columnContainer));
 <# } else if (method.IsBitwise == true) { #>
                             throw new NotSupportedException();
 <# } else if (method.MethodType == MethodType.BinaryScalar) { #>
@@ -365,17 +339,12 @@ namespace Microsoft.Data.Analysis
                         }
                         else
                         {
-<# if (method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.Comparison) { #>
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.<#=method.MethodName#>(DoubleConverter<U>.Instance.GetDouble(value), newColumn._columnContainer);
-                            return newColumn;
-<# } else { #>
+                            return new BooleanDataFrameColumn(Name, doubleColumn._columnContainer.<#=method.MethodName#>(DoubleConverter<U>.Instance.GetDouble(value)));
+<# } else if (method.MethodType == MethodType.Comparison) { #>
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.<#=method.MethodName#>(column.CloneAsDoubleColumn()._columnContainer, newColumn._columnContainer);
-                            return newColumn;
-<# } #>
+                            return new BooleanDataFrameColumn(Name, doubleColumn._columnContainer.<#=method.MethodName#>(column.CloneAsDoubleColumn()._columnContainer));
 <# } else if (method.IsBitwise == true) { #>
                             throw new NotSupportedException();
 <# } else if (method.MethodType == MethodType.BinaryScalar ) { #>
