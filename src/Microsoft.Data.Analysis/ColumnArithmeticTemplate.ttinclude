@@ -438,7 +438,6 @@
                     return $"{dataFrameType}<{genericType}> {Op2Name}";
                 case MethodType.Contraction:
                     throw new ArgumentException();
-                    return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}, int[] leftAxes, int[] rightAxes";
                 default:
                     throw new ArgumentException();
             }

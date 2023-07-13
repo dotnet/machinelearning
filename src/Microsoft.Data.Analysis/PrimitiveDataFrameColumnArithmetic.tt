@@ -68,8 +68,12 @@ namespace Microsoft.Data.Analysis
 <# if ((method.IsNumeric && !type.SupportsNumeric) || (method.IsBitwise && !type.SupportsBitwise) || (type.UnsupportedMethods.Contains(method.MethodName))) { #>
             throw new NotSupportedException();
 <# } else if (method.Operator != null) { #>
-<# if (method.MethodType == MethodType.Comparison || method.MethodType == MethodType.ComparisonScalar) { #>
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+<# if (method.MethodType == MethodType.Comparison) { #>
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
+            long index = 0;
+<# } #>
+<# if (method.MethodType == MethodType.ComparisonScalar) { #>
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
 <# } #>
             for (int b = 0; b < <#= method.Op1Name #>.Buffers.Count; b++)

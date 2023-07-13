@@ -333,7 +333,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<bool> left, PrimitiveColumnContainer<bool> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -349,7 +349,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<bool> column, bool scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -364,7 +364,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<bool> left, PrimitiveColumnContainer<bool> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -380,7 +380,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<bool> column, bool scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -784,7 +784,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<byte> left, PrimitiveColumnContainer<byte> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -800,7 +800,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<byte> column, byte scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -815,7 +815,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<byte> left, PrimitiveColumnContainer<byte> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -831,7 +831,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<byte> column, byte scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -846,7 +846,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<byte> left, PrimitiveColumnContainer<byte> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -862,7 +862,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<byte> column, byte scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -877,7 +877,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<byte> left, PrimitiveColumnContainer<byte> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -893,7 +893,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<byte> column, byte scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -908,7 +908,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<byte> left, PrimitiveColumnContainer<byte> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -924,7 +924,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<byte> column, byte scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -939,7 +939,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<byte> left, PrimitiveColumnContainer<byte> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -955,7 +955,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<byte> column, byte scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -1319,7 +1319,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<char> left, PrimitiveColumnContainer<char> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -1335,7 +1335,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<char> column, char scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -1350,7 +1350,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<char> left, PrimitiveColumnContainer<char> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -1366,7 +1366,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<char> column, char scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -1381,7 +1381,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<char> left, PrimitiveColumnContainer<char> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -1397,7 +1397,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<char> column, char scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -1412,7 +1412,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<char> left, PrimitiveColumnContainer<char> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -1428,7 +1428,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<char> column, char scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -1443,7 +1443,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<char> left, PrimitiveColumnContainer<char> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -1459,7 +1459,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<char> column, char scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -1474,7 +1474,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<char> left, PrimitiveColumnContainer<char> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -1490,7 +1490,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<char> column, char scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -1763,7 +1763,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<decimal> left, PrimitiveColumnContainer<decimal> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -1779,7 +1779,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<decimal> column, decimal scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -1794,7 +1794,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<decimal> left, PrimitiveColumnContainer<decimal> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -1810,7 +1810,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<decimal> column, decimal scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -1825,7 +1825,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<decimal> left, PrimitiveColumnContainer<decimal> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -1841,7 +1841,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<decimal> column, decimal scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -1856,7 +1856,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<decimal> left, PrimitiveColumnContainer<decimal> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -1872,7 +1872,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<decimal> column, decimal scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -1887,7 +1887,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<decimal> left, PrimitiveColumnContainer<decimal> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -1903,7 +1903,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<decimal> column, decimal scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -1918,7 +1918,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<decimal> left, PrimitiveColumnContainer<decimal> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -1934,7 +1934,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<decimal> column, decimal scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -2207,7 +2207,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<double> left, PrimitiveColumnContainer<double> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -2223,7 +2223,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<double> column, double scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -2238,7 +2238,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<double> left, PrimitiveColumnContainer<double> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -2254,7 +2254,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<double> column, double scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -2269,7 +2269,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<double> left, PrimitiveColumnContainer<double> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -2285,7 +2285,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<double> column, double scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -2300,7 +2300,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<double> left, PrimitiveColumnContainer<double> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -2316,7 +2316,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<double> column, double scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -2331,7 +2331,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<double> left, PrimitiveColumnContainer<double> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -2347,7 +2347,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<double> column, double scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -2362,7 +2362,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<double> left, PrimitiveColumnContainer<double> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -2378,7 +2378,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<double> column, double scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -2651,7 +2651,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<float> left, PrimitiveColumnContainer<float> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -2667,7 +2667,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<float> column, float scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -2682,7 +2682,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<float> left, PrimitiveColumnContainer<float> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -2698,7 +2698,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<float> column, float scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -2713,7 +2713,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<float> left, PrimitiveColumnContainer<float> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -2729,7 +2729,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<float> column, float scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -2744,7 +2744,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<float> left, PrimitiveColumnContainer<float> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -2760,7 +2760,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<float> column, float scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -2775,7 +2775,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<float> left, PrimitiveColumnContainer<float> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -2791,7 +2791,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<float> column, float scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -2806,7 +2806,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<float> left, PrimitiveColumnContainer<float> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -2822,7 +2822,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<float> column, float scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -3186,7 +3186,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<int> left, PrimitiveColumnContainer<int> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -3202,7 +3202,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<int> column, int scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -3217,7 +3217,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<int> left, PrimitiveColumnContainer<int> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -3233,7 +3233,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<int> column, int scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -3248,7 +3248,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<int> left, PrimitiveColumnContainer<int> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -3264,7 +3264,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<int> column, int scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -3279,7 +3279,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<int> left, PrimitiveColumnContainer<int> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -3295,7 +3295,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<int> column, int scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -3310,7 +3310,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<int> left, PrimitiveColumnContainer<int> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -3326,7 +3326,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<int> column, int scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -3341,7 +3341,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<int> left, PrimitiveColumnContainer<int> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -3357,7 +3357,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<int> column, int scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -3721,7 +3721,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<long> left, PrimitiveColumnContainer<long> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -3737,7 +3737,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<long> column, long scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -3752,7 +3752,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<long> left, PrimitiveColumnContainer<long> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -3768,7 +3768,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<long> column, long scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -3783,7 +3783,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<long> left, PrimitiveColumnContainer<long> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -3799,7 +3799,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<long> column, long scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -3814,7 +3814,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<long> left, PrimitiveColumnContainer<long> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -3830,7 +3830,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<long> column, long scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -3845,7 +3845,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<long> left, PrimitiveColumnContainer<long> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -3861,7 +3861,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<long> column, long scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -3876,7 +3876,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<long> left, PrimitiveColumnContainer<long> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -3892,7 +3892,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<long> column, long scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -4256,7 +4256,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<sbyte> left, PrimitiveColumnContainer<sbyte> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -4272,7 +4272,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -4287,7 +4287,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<sbyte> left, PrimitiveColumnContainer<sbyte> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -4303,7 +4303,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -4318,7 +4318,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<sbyte> left, PrimitiveColumnContainer<sbyte> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -4334,7 +4334,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -4349,7 +4349,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<sbyte> left, PrimitiveColumnContainer<sbyte> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -4365,7 +4365,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -4380,7 +4380,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<sbyte> left, PrimitiveColumnContainer<sbyte> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -4396,7 +4396,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -4411,7 +4411,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<sbyte> left, PrimitiveColumnContainer<sbyte> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -4427,7 +4427,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -4791,7 +4791,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<short> left, PrimitiveColumnContainer<short> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -4807,7 +4807,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<short> column, short scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -4822,7 +4822,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<short> left, PrimitiveColumnContainer<short> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -4838,7 +4838,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<short> column, short scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -4853,7 +4853,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<short> left, PrimitiveColumnContainer<short> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -4869,7 +4869,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<short> column, short scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -4884,7 +4884,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<short> left, PrimitiveColumnContainer<short> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -4900,7 +4900,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<short> column, short scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -4915,7 +4915,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<short> left, PrimitiveColumnContainer<short> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -4931,7 +4931,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<short> column, short scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -4946,7 +4946,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<short> left, PrimitiveColumnContainer<short> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -4962,7 +4962,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<short> column, short scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -5326,7 +5326,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<uint> left, PrimitiveColumnContainer<uint> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -5342,7 +5342,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<uint> column, uint scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -5357,7 +5357,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<uint> left, PrimitiveColumnContainer<uint> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -5373,7 +5373,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<uint> column, uint scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -5388,7 +5388,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<uint> left, PrimitiveColumnContainer<uint> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -5404,7 +5404,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<uint> column, uint scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -5419,7 +5419,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<uint> left, PrimitiveColumnContainer<uint> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -5435,7 +5435,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<uint> column, uint scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -5450,7 +5450,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<uint> left, PrimitiveColumnContainer<uint> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -5466,7 +5466,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<uint> column, uint scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -5481,7 +5481,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<uint> left, PrimitiveColumnContainer<uint> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -5497,7 +5497,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<uint> column, uint scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -5861,7 +5861,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<ulong> left, PrimitiveColumnContainer<ulong> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -5877,7 +5877,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<ulong> column, ulong scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -5892,7 +5892,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<ulong> left, PrimitiveColumnContainer<ulong> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -5908,7 +5908,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<ulong> column, ulong scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -5923,7 +5923,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<ulong> left, PrimitiveColumnContainer<ulong> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -5939,7 +5939,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<ulong> column, ulong scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -5954,7 +5954,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<ulong> left, PrimitiveColumnContainer<ulong> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -5970,7 +5970,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<ulong> column, ulong scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -5985,7 +5985,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<ulong> left, PrimitiveColumnContainer<ulong> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -6001,7 +6001,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<ulong> column, ulong scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -6016,7 +6016,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<ulong> left, PrimitiveColumnContainer<ulong> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -6032,7 +6032,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<ulong> column, ulong scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -6396,7 +6396,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<ushort> left, PrimitiveColumnContainer<ushort> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -6412,7 +6412,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<ushort> column, ushort scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -6427,7 +6427,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<ushort> left, PrimitiveColumnContainer<ushort> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -6443,7 +6443,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<ushort> column, ushort scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -6458,7 +6458,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<ushort> left, PrimitiveColumnContainer<ushort> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -6474,7 +6474,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<ushort> column, ushort scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -6489,7 +6489,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<ushort> left, PrimitiveColumnContainer<ushort> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -6505,7 +6505,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<ushort> column, ushort scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -6520,7 +6520,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<ushort> left, PrimitiveColumnContainer<ushort> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -6536,7 +6536,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<ushort> column, ushort scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -6551,7 +6551,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<ushort> left, PrimitiveColumnContainer<ushort> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -6567,7 +6567,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<ushort> column, ushort scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -6715,7 +6715,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -6731,7 +6731,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
@@ -6746,7 +6746,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
@@ -6762,7 +6762,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<DateTime> column, DateTime scalar)
         {
-            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>();
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
             long index = 0;
             for (int b = 0; b < column.Buffers.Count; b++)
             {
