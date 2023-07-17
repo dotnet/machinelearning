@@ -4,7 +4,6 @@
 
 using Microsoft.ML.TorchSharp.Extensions;
 using Microsoft.ML.TorchSharp.Roberta.Modules;
-using System.Text;
 using TorchSharp;
 using TorchSharp.Modules;
 using TransformerEncoder = Microsoft.ML.TorchSharp.NasBert.Models.TransformerEncoder;

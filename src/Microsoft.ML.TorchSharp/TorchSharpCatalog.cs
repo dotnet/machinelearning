@@ -193,12 +193,12 @@ namespace Microsoft.ML.TorchSharp
         /// <returns></returns>
         public static NerTrainer NameEntityRecognition(
             this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-            NasBertTrainer.NasBertOptions options)
+            NerTrainer.NerOptions options)
             => new NerTrainer(CatalogUtils.GetEnvironment(catalog), options);
 
 
         /// <summary>
-        /// Fine tune a NAS-BERT model for Name Entity Recognition. The limit for any sentence is 512 tokens. Each word typically
+        /// Fine tune a ROBERTA model for Question and Answer. The limit for any sentence is 512 tokens. Each word typically
         /// will map to a single token, and we automatically add 2 specical tokens (a start token and a separator token)
         /// so in general this limit will be 510 words for all sentences.
         /// </summary>
@@ -229,5 +229,18 @@ namespace Microsoft.ML.TorchSharp
             BertArchitecture architecture = BertArchitecture.Roberta,
             IDataView validationSet = null)
             => new QATrainer(CatalogUtils.GetEnvironment(catalog), contextColumnName, questionColumnName, trainingAnswerColumnName, answerIndexColumnName, predictedAnswerColumnName, scoreColumnName, topK, batchSize, maxEpochs, validationSet, architecture);
+
+        /// <summary>
+        /// Fine tune a ROBERTA model for Question and Answer. The limit for any sentence is 512 tokens. Each word typically
+        /// will map to a single token, and we automatically add 2 specical tokens (a start token and a separator token)
+        /// so in general this limit will be 510 words for all sentences.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="options">The options for QA.</param>
+        /// <returns></returns>
+        public static QATrainer QuestionAnswer(
+            this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            QATrainer.Options options)
+            => new QATrainer(CatalogUtils.GetEnvironment(catalog), options);
     }
 }

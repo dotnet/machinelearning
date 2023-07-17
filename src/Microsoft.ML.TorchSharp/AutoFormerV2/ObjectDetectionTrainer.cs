@@ -17,19 +17,12 @@ using static TorchSharp.torch.optim;
 using static TorchSharp.torch.optim.lr_scheduler;
 using Microsoft.ML.TorchSharp.Utils;
 using Microsoft.ML;
-using Microsoft.ML.TorchSharp.NasBert;
 using System.IO;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.TorchSharp.Loss;
 using Microsoft.ML.Transforms.Image;
 using static Microsoft.ML.TorchSharp.AutoFormerV2.ObjectDetectionTrainer;
 using Microsoft.ML.TorchSharp.AutoFormerV2;
-using Microsoft.ML.Tokenizers;
-using Microsoft.ML.TorchSharp.Extensions;
-using Microsoft.ML.TorchSharp.NasBert.Models;
-using static Microsoft.ML.TorchSharp.NasBert.NasBertTrainer;
-using TorchSharp.Modules;
-using System.Text;
 using static Microsoft.ML.Data.AnnotationUtils;
 
 [assembly: LoadableClass(typeof(ObjectDetectionTransformer), null, typeof(SignatureLoadModel),

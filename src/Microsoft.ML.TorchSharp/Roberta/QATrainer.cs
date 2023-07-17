@@ -15,18 +15,13 @@ using static TorchSharp.TensorExtensionMethods;
 using Microsoft.ML.TorchSharp.Utils;
 using Microsoft.ML;
 using System.IO;
-using Microsoft.ML.Data.IO;
-using Microsoft.ML.TorchSharp.Loss;
 using static Microsoft.ML.TorchSharp.NasBert.NasBertTrainer;
 using static Microsoft.ML.Data.AnnotationUtils;
-using Microsoft.ML.TorchSharp.Roberta.Models;
 using Microsoft.ML.TorchSharp.NasBert.Optimizers;
 using Microsoft.ML.TorchSharp.Roberta;
 using Microsoft.ML.TorchSharp.NasBert;
 using Microsoft.ML.Tokenizers;
 using Microsoft.ML.TorchSharp.Extensions;
-using System.Net.Mime;
-using TorchSharp.Modules;
 
 [assembly: LoadableClass(typeof(QATransformer), null, typeof(SignatureLoadModel),
     QATransformer.UserName, QATransformer.LoaderSignature)]
@@ -78,9 +73,12 @@ namespace Microsoft.ML.TorchSharp.Roberta
             public Options()
             {
                 EncoderOutputDim = 768;
+                EmbeddingDim = 768;
                 PoolerDropout = 0;
                 ModelType = BertModelType.Roberta;
                 TaskType = BertTaskType.QuestionAnswering;
+                LearningRate = new List<double>() { .000001 };
+                WeightDecay = 0.01;
             }
         }
 
@@ -281,21 +279,19 @@ namespace Microsoft.ML.TorchSharp.Roberta
                 List<Tensor> inputTensors = new List<Tensor>(Parent.Option.BatchSize);
                 List<Tensor> targetTensors = new List<Tensor>(Parent.Option.BatchSize);
 
-                Model.train();
-
-                if (host is IHostEnvironmentInternal hostInternal)
-                {
-                    torch.random.manual_seed(hostInternal.Seed ?? 1);
-                    torch.cuda.manual_seed(hostInternal.Seed ?? 1);
-                }
-                else
-                {
-                    torch.random.manual_seed(1);
-                    torch.cuda.manual_seed(1);
-                }
-
                 while (cursorValid)
                 {
+
+                    if (host is IHostEnvironmentInternal hostInternal)
+                    {
+                        torch.random.manual_seed(hostInternal.Seed + Updates ?? 1);
+                        torch.cuda.manual_seed(hostInternal.Seed + Updates ?? 1);
+                    }
+                    else
+                    {
+                        torch.random.manual_seed(1);
+                        torch.cuda.manual_seed(1);
+                    }
                     cursorValid = TrainStep(host, cursor, contextGetter, questionGetter, answerGetter, answerIndexGetter, ref inputTensors, ref targetTensors, pch);
                 }
             }
@@ -327,9 +323,14 @@ namespace Microsoft.ML.TorchSharp.Roberta
                     cursorValid = cursor.MoveNext();
                     if (cursorValid)
                     {
-                        (srcTensor, targetTensor) = PrepareData(contextGetter, questionGetter, answerGetter, answerIndexGetter);
-                        inputTensors.Add(srcTensor);
-                        targetTensors.Add(targetTensor);
+                        (srcTensor, targetTensor, bool valid) = PrepareData(contextGetter, questionGetter, answerGetter, answerIndexGetter);
+                        if (valid)
+                        {
+                            inputTensors.Add(srcTensor);
+                            targetTensors.Add(targetTensor);
+                        }
+                        else
+                            i--;
                     }
                     else
                     {
@@ -342,12 +343,11 @@ namespace Microsoft.ML.TorchSharp.Roberta
 
                 Updates++;
                 host.CheckAlive();
-
+                Model.train();
                 Optimizer.zero_grad();
 
                 srcTensor = PrepareBatchTensor(ref inputTensors, device: Device, Tokenizer.RobertaModel().PadIndex);
                 targetTensor = PrepareBatchTensor(ref targetTensors, device: Device, 0);
-
                 var logits = Model.forward(srcTensor);  //[batchsize, maxseqlen, 2]
                 var splitLogits = logits.split(1, dim: -1);
                 var startLogits = splitLogits[0].squeeze(-1).contiguous();  //[batchsize, maxseqlen]
@@ -365,7 +365,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
 
                 loss.backward();
 
-                Optimizer.Optimizer.step();
+                Optimizer.Step();
                 LearningRateScheduler.step();
                 host.CheckAlive();
 
@@ -383,7 +383,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
                 return DataUtils.CollateTokens(inputTensors, padIndex, device: Device);
             }
 
-            private (Tensor image, Tensor Label) PrepareData(ValueGetter<ReadOnlyMemory<char>> contextGetter, ValueGetter<ReadOnlyMemory<char>> questionGetter, ValueGetter<ReadOnlyMemory<char>> answerGetter, ValueGetter<int> answerIndexGetter)
+            private (Tensor image, Tensor Label, bool hasMapping) PrepareData(ValueGetter<ReadOnlyMemory<char>> contextGetter, ValueGetter<ReadOnlyMemory<char>> questionGetter, ValueGetter<ReadOnlyMemory<char>> answerGetter, ValueGetter<int> answerIndexGetter)
             {
                 using (var _ = torch.NewDisposeScope())
                 {
@@ -400,22 +400,21 @@ namespace Microsoft.ML.TorchSharp.Roberta
                     var contextString = context.ToString();
                     var contextTokens = Tokenizer.Encode(contextString);
                     var contextToken = contextTokens.Tokens;
-                    var contextTokenId = contextTokens.Ids;
+                    var contextTokenId = Tokenizer.RobertaModel().IdsToOccurrenceRanks(contextTokens.Ids);
 
                     var mapping = AlignAnswerPosition(contextToken, contextString);
                     if (mapping == null)
                     {
-                        //return;
+                        return (null, null, false);
                     }
-                    var questionTokenId = Tokenizer.Encode(question.ToString()).Ids;
+                    var questionTokenId = Tokenizer.EncodeToConverted(question.ToString());
 
                     var answerEnd = answerIndex + answer.Length - 1;
                     if (!mapping.ContainsKey(answerIndex) || !mapping.ContainsKey(answerEnd))
                     {
-                        //return;
+                        return (null, null, false);
                     }
-
-                    var targetList = new List<int> { mapping[answerIndex] + 1 + questionTokenId.Count, mapping[answerEnd] + 1 + questionTokenId.Count };
+                    var targetList = new List<int> { mapping[answerIndex] + 2 + questionTokenId.Count, mapping[answerEnd] + 2 + questionTokenId.Count };
 
                     var srcTensor = torch.tensor((new[] { 0 /* InitToken */ }).Concat(questionTokenId).Concat(new[] { 2 /* SeparatorToken */ }).Concat(contextTokenId).ToList(), device: Device);
                     // If the end of the answer goes beyond the 512 tokens then set answer start/end index to 0
@@ -429,7 +428,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
                     if (srcTensor.NumberOfElements > 512)
                         srcTensor = srcTensor.slice(0, 0, 512, 1);
 
-                    return (srcTensor.MoveToOuterDisposeScope(), labelTensor.MoveToOuterDisposeScope());
+                    return (srcTensor.MoveToOuterDisposeScope(), labelTensor.MoveToOuterDisposeScope(), true);
                 }
             }
 
@@ -457,11 +456,11 @@ namespace Microsoft.ML.TorchSharp.Roberta
                         ++i;
                     }
                     // Chars not included in tokenizer will not appear in tokens
-                    //else if (!Tokenizer.IsValidChar(text[i]))
-                    //{
-                    //    mapping[i - surrogateDeduce] = tid;
-                    //    ++i;
-                    //}
+                    else if (!Tokenizer.IsValidChar(text[i]))
+                    {
+                        mapping[i - surrogateDeduce] = tid;
+                        ++i;
+                    }
                     // "\\\"", "``" and "''" converted to "\"" in normalizer
                     else if (i + 1 < text.Length && tokens[tid][j] == '"'
                         && ((text[i] == '`' && text[i + 1] == '`')
@@ -848,11 +847,9 @@ namespace Microsoft.ML.TorchSharp.Roberta
                 contextGetter(ref context);
                 questionGetter(ref question);
 
-                var contextString = context.ToString();
-                var contextTokens = _parent.Tokenizer.Encode(contextString);
-                var contextTokenId = contextTokens.Ids;
+                var contextTokenId = _parent.Tokenizer.RobertaModel().IdsToOccurrenceRanks(_parent.Tokenizer.Encode(context.ToString()).Ids);
 
-                var questionTokenId = _parent.Tokenizer.Encode(question.ToString()).Ids;
+                var questionTokenId = _parent.Tokenizer.RobertaModel().IdsToOccurrenceRanks(_parent.Tokenizer.Encode(question.ToString()).Ids);
 
                 var srcTensor = torch.tensor((new[] { 0 /* InitToken */ }).Concat(questionTokenId).Concat(new[] { 2 /* SeparatorToken */ }).Concat(contextTokenId).ToList(), device: _parent.Device);
 
@@ -917,7 +914,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
                             var predictStart = topKSpan.start;
                             var predictEnd = topKSpan.end;
                             var score = topKSpan.score;
-                            outputCache.PredictedAnswersBuffer[index] = new ReadOnlyMemory<char>(_parent.Tokenizer.Decode(Range.GetSubArray(contextIds, (predictStart - questionLength - 2)..(predictEnd - questionLength - 1))).Trim().ToCharArray());
+                            outputCache.PredictedAnswersBuffer[index] = new ReadOnlyMemory<char>(_parent.Tokenizer.Decode(Range.GetSubArray(_parent.Tokenizer.RobertaModel().OccurrenceRanksIds(contextIds).ToArray(), (predictStart - questionLength - 2)..(predictEnd - questionLength - 1))).Trim().ToCharArray());
                             outputCache.ScoresBuffer[index++] = score;
                         }
 

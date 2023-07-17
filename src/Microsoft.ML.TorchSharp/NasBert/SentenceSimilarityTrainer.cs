@@ -80,7 +80,9 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 BatchSize = batchSize,
                 MaxEpoch = maxEpochs,
                 ValidationSet = validationSet,
-                TaskType = BertTaskType.SentenceRegression
+                TaskType = BertTaskType.SentenceRegression,
+                LearningRate = new List<double>() { .0002 },
+                WeightDecay = .01
             })
         {
         }

@@ -5,7 +5,6 @@
 using System;
 using System.Linq;
 using Microsoft.ML.TorchSharp.Extensions;
-using Microsoft.ML.TorchSharp.Utils;
 using TorchSharp;
 using TorchSharp.Modules;
 

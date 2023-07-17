@@ -61,7 +61,17 @@ namespace Microsoft.ML.TorchSharp.NasBert
     ///
     public class NerTrainer : NasBertTrainer<VBuffer<uint>, TargetType>
     {
-        internal NerTrainer(IHostEnvironment env, NasBertOptions options) : base(env, options)
+        public class NerOptions : NasBertOptions
+        {
+            public NerOptions()
+            {
+                LearningRate = new List<double>() { 2e-4 };
+                EncoderOutputDim = 384;
+                EmbeddingDim = 128;
+                Arches = new int[] { 15, 16, 14, 0, 0, 0, 15, 16, 14, 0, 0, 0, 17, 14, 15, 0, 0, 0, 17, 14, 15, 0, 0, 0 };
+            }
+        }
+        internal NerTrainer(IHostEnvironment env, NerOptions options) : base(env, options)
         {
         }
 
@@ -73,7 +83,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             int maxEpochs = 10,
             IDataView validationSet = null,
             BertArchitecture architecture = BertArchitecture.Roberta) :
-            this(env, new NasBertOptions
+            this(env, new NerOptions
             {
                 PredictionColumnName = predictionColumnName,
                 ScoreColumnName = default,
@@ -102,6 +112,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
         {
             public Trainer(TorchSharpBaseTrainer<VBuffer<uint>, TargetType> parent, IChannel ch, IDataView input) : base(parent, ch, input)
             {
+                ModelUrl = "models/pretrained_NasBert_14M_encoder.tsm";
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -277,7 +288,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             var tokenizer = TokenizerExtensions.GetInstance(ch);
             EnglishRoberta tokenizerModel = tokenizer.RobertaModel();
 
-            var model = new ModelForNer(options, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, options.NumberOfClasses);
+            var model = new NerModel(options, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, options.NumberOfClasses);
             if (!ctx.TryLoadBinaryStream("TSModel", r => model.load(r)))
                 throw env.ExceptDecode();
 

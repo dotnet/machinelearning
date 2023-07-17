@@ -5,22 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using Apache.Arrow;
-using ICSharpCode.SharpZipLib.Tar;
+using MathNet.Numerics.Statistics;
 using Microsoft.Data.Analysis;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TorchSharp;
 using Microsoft.ML.TorchSharp.NasBert;
-using TorchSharp;
 using Xunit;
 using Xunit.Abstractions;
-using static TorchSharp.torch.utils;
 
 namespace Microsoft.ML.Tests
 {
@@ -427,7 +420,7 @@ namespace Microsoft.ML.Tests
                 },
                 HasHeader = true,
                 Separators = new[] { ',' },
-                MaxRows = 1000 // Dataset has 75k rows. Only load 1k for quicker training,
+                MaxRows = 5000 // Dataset has 75k rows. Only load 1k for quicker training,
             }, new MultiFileSource(trainFile));
 
             dataView = ML.Data.FilterRowsByMissingValues(dataView, "relevance");
@@ -440,6 +433,8 @@ namespace Microsoft.ML.Tests
                 Sentence1ColumnName = "search_term",
                 Sentence2ColumnName = "product_description",
                 LabelColumnName = "relevance",
+                LearningRate = new List<double>() { .0002 },
+                WeightDecay = .01
             };
 
             var estimator = ML.Regression.Trainers.SentenceSimilarity(options);
@@ -449,10 +444,9 @@ namespace Microsoft.ML.Tests
             var predictions = transformedData.GetColumn<float>("relevance").ToArray().Select(num => (double)num).ToArray();
             var targets = transformedData.GetColumn<float>("Score").ToArray().Select(num => (double)num).ToArray();
 
-            // Need to the nuget MathNet.Numerics.Signed for these.
-            //var pearson = Correlation.Pearson(predictions, targets);
+            var pearson = Correlation.Pearson(predictions, targets);
 
-            //var spearman = Correlation.Spearman(predictions, targets);
+            var spearman = Correlation.Spearman(predictions, targets);
         }
     }
 

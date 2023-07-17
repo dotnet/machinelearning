@@ -190,5 +190,10 @@ namespace Microsoft.ML.Tokenizers
             // To Do: support added vocabulary in the tokenizer which will include this returned special_tokens.
             // self.add_special_tokens(&special_tokens);
         }
+
+        public bool IsValidChar(char ch)
+        {
+            return Model.IsValidChar(ch);
+        }
     }
 }

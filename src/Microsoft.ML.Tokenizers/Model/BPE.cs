@@ -451,6 +451,11 @@ namespace Microsoft.ML.Tokenizers
             return tokens;
         }
 
+        public override bool IsValidChar(char ch)
+        {
+            throw new NotImplementedException();
+        }
+
         internal static readonly List<Token> EmptyTokensList = new();
     }
 }

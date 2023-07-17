@@ -74,5 +74,62 @@ namespace Microsoft.ML.Tests
 
             TestEstimatorCore(estimator, dataView);
         }
+
+        [Fact(Skip = "Needs to be on a comp with GPU or will take a LONG time.")]
+        public void TestQALargeFileGpu()
+        {
+            ML.GpuDeviceId = 0;
+            ML.FallbackToCpu = false;
+
+            var trainFile = GetDataPath("squad-train.tsv");
+
+            IDataView dataView = TextLoader.Create(ML, new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                new TextLoader.Column("Context", DataKind.String,0),
+                new TextLoader.Column("Question", DataKind.String,1),
+                new TextLoader.Column("TrainingAnswer", DataKind.String,2),
+                new TextLoader.Column("AnswerIndex", DataKind.Int32,3)
+                },
+                HasHeader = true,
+                Separators = new[] { '\t' },
+                MaxRows = 2000 // Dataset has 75k rows. Only load 1k for quicker training,
+            }, new MultiFileSource(trainFile));
+
+            var estimator = ML.MulticlassClassification.Trainers.QuestionAnswer(maxEpochs: 30);
+            var model = estimator.Fit(dataView);
+            var transformedData = model.Transform(dataView);
+
+            var cursor = transformedData.GetRowCursor(transformedData.Schema["Answer"], transformedData.Schema["Score"], transformedData.Schema["TrainingAnswer"], transformedData.Schema["Context"], transformedData.Schema["Question"]);
+            var answerGetter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(transformedData.Schema["Answer"]);
+            var contextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(transformedData.Schema["Context"]);
+            var questionGetter = cursor.GetGetter<ReadOnlyMemory<char>>(transformedData.Schema["Question"]);
+            var trainingAnswerGetter = cursor.GetGetter<ReadOnlyMemory<char>>(transformedData.Schema["TrainingAnswer"]);
+            var scoreGetter = cursor.GetGetter<VBuffer<float>>(transformedData.Schema["Score"]);
+
+            VBuffer<ReadOnlyMemory<char>> answer = default;
+            ReadOnlyMemory<char> trainingAnswer = default;
+            ReadOnlyMemory<char> context = default;
+            ReadOnlyMemory<char> question = default;
+            VBuffer<float> score = default;
+            int correct = 0;
+            int incorrect = 0;
+
+            while (cursor.MoveNext())
+            {
+                answerGetter(ref answer);
+                trainingAnswerGetter(ref trainingAnswer);
+                contextGetter(ref context);
+                questionGetter(ref question);
+                scoreGetter(ref score);
+                if (trainingAnswer.ToString().Contains(answer.GetValues()[0].ToString()) || answer.GetValues()[0].ToString().Contains(trainingAnswer.ToString()))
+                    correct++;
+                else
+                    incorrect++;
+            }
+
+            Assert.True(correct > incorrect);
+        }
     }
 }

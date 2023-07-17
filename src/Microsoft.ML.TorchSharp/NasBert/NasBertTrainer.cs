@@ -120,7 +120,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             /// <summary>
             /// The index numbers of model architecture. Fixed by the TorchSharp model.
             /// </summary>
-            internal IReadOnlyList<int> Arches = new int[] { 15, 16, 14, 0, 0, 0, 15, 16, 14, 0, 0, 0, 17, 14, 15, 0, 0, 0, 17, 14, 15, 0, 0, 0 };//new int[] { 9, 11, 7, 0, 0, 0, 11, 11, 7, 0, 0, 0, 9, 7, 11, 0, 0, 0, 10, 7, 9, 0, 0, 0 };
+            internal IReadOnlyList<int> Arches = new int[] { 9, 11, 7, 0, 0, 0, 11, 11, 7, 0, 0, 0, 9, 7, 11, 0, 0, 0, 10, 7, 9, 0, 0, 0 };
 
             /// <summary>
             /// Maximum length of a sample. Set by the TorchSharp model.
@@ -130,7 +130,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             /// <summary>
             /// Number of the embedding dimensions. Should be positive. Set by the TorchSharp model.
             /// </summary>
-            internal int EmbeddingDim = 128;
+            internal int EmbeddingDim = 64;
 
             /// <summary>
             /// Number of encoder layers. Set by the TorchSharp model.
@@ -140,7 +140,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             /// <summary>
             ///  Number of the output dimensions of encoder. Should be positive. Set by the TorchSharp model. 3 * EmbeddingDim
             /// </summary>
-            internal int EncoderOutputDim = 384;
+            internal int EncoderOutputDim = 192;
 
             /// <summary>
             /// The activation function to use for general situations. Set by the TorchSharp model.
@@ -164,7 +164,6 @@ namespace Microsoft.ML.TorchSharp.NasBert
     public abstract class NasBertTrainer<TLabelCol, TTargetsCol> : TorchSharpBaseTrainer<TLabelCol, TTargetsCol>
     {
 
-        protected string ModelUrl = "models/pretrained_NasBert_14M_encoder.tsm";
         internal readonly NasBertTrainer.NasBertOptions BertOptions;
 
         internal NasBertTrainer(IHostEnvironment env, Options options) : base(env, options)
@@ -176,6 +175,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         private protected abstract class NasBertTrainerBase : TrainerBase
         {
+            protected string ModelUrl = "models/NasBert2000000.tsm";
             public Tokenizer Tokenizer;
             public new BaseOptimizer Optimizer;
             public new NasBertTrainer<TLabelCol, TTargetsCol> Parent => base.Parent as NasBertTrainer<TLabelCol, TTargetsCol>;
@@ -206,10 +206,10 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
                 NasBertModel model;
                 if (Parent.BertOptions.TaskType == BertTaskType.NameEntityRecognition)
-                    model = new ModelForNer(Parent.BertOptions, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, Parent.Option.NumberOfClasses);
+                    model = new NerModel(Parent.BertOptions, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, Parent.Option.NumberOfClasses);
                 else
                     model = new ModelForPrediction(Parent.BertOptions, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, Parent.Option.NumberOfClasses);
-                model.GetEncoder().load(GetModelPath(Parent.ModelUrl));
+                model.GetEncoder().load(GetModelPath(ModelUrl));
                 Model = model;
                 return model;
             }

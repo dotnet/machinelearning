@@ -587,6 +587,11 @@ namespace Microsoft.ML.Tokenizers
 
             return pairs;
         }
+
+        public override bool IsValidChar(char ch)
+        {
+            return _byteToUnicode.ContainsKey(ch);
+        }
     }
 
     /// <summary>

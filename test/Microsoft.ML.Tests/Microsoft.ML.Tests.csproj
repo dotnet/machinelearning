@@ -67,6 +67,7 @@
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimeVersion)" />
     <PackageReference Include="FluentAssertions" Version="$(FluentAssertionVersion)" />
     <PackageReference Include="System.Data.SQLite.Core" Version="$(SystemDataSQLiteCoreVersion)" />
+    <PackageReference Include="MathNet.Numerics.Signed" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -77,7 +78,7 @@
 
   <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
     <PackageReference Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$(TargetArchitecture)' == 'x64'" />
-     <!--<PackageReference Include="TorchSharp-cuda-windows" Version="0.99.5" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />--> 
+     <!-- <PackageReference Include="TorchSharp-cuda-windows" Version="0.99.5" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />  -->
     <PackageReference Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux')) AND '$(TargetArchitecture)' == 'x64'" />
     <PackageReference Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX')) AND '$(TargetArchitecture)' == 'x64'" />
   </ItemGroup>
