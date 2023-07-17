@@ -9,6 +9,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using TorchSharp;
+using System.Runtime.CompilerServices;
 
 using static TorchSharp.torch;
 using static TorchSharp.TensorExtensionMethods;
@@ -914,7 +915,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
                             var predictStart = topKSpan.start;
                             var predictEnd = topKSpan.end;
                             var score = topKSpan.score;
-                            outputCache.PredictedAnswersBuffer[index] = new ReadOnlyMemory<char>(_parent.Tokenizer.Decode(Range.GetSubArray(_parent.Tokenizer.RobertaModel().OccurrenceRanksIds(contextIds).ToArray(), (predictStart - questionLength - 2)..(predictEnd - questionLength - 1))).Trim().ToCharArray());
+                            outputCache.PredictedAnswersBuffer[index] = new ReadOnlyMemory<char>(_parent.Tokenizer.Decode(_parent.Tokenizer.RobertaModel().OccurrenceRanksIds(contextIds).ToArray()[(predictStart - questionLength - 2)..(predictEnd - questionLength - 1)]).Trim().ToCharArray());
                             outputCache.ScoresBuffer[index++] = score;
                         }
 

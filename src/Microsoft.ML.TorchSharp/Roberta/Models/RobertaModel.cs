@@ -106,14 +106,14 @@ namespace Microsoft.ML.TorchSharp.Roberta.Models
                 var size = srcTokenArray.Length;
                 var questionSize = srcTokenArray.ToList().IndexOf(EosIndex) - 1;
                 var allSize = srcTokenArray.Count(token => token != PadIndex);
-                var position = torch.tensor(Range.GetSubArray(Positions, 0..allSize).Concat(Range.GetSubArray(Zeros, ..(size - allSize))).ToArray(),
+                var position = torch.tensor(Positions[0..allSize].Concat(Zeros[..(size - allSize)]).ToArray(),
                     1, size, dtype: torch.int64, device: device);
-                var segment = questionSize == size - 1 ? torch.tensor(Range.GetSubArray(Zeros, 0..size).ToArray(), 1, size, dtype: torch.int64, device: device) :
-                    torch.tensor(Range.GetSubArray(Zeros, 0..(questionSize + 2)).Concat(Range.GetSubArray(Ones, 0..(allSize - questionSize - 2))).Concat(Range.GetSubArray(Zeros, ..(size - allSize))).ToArray(),
+                var segment = questionSize == size - 1 ? torch.tensor(Zeros[0..size].ToArray(), 1, size, dtype: torch.int64, device: device) :
+                    torch.tensor(Zeros[0..(questionSize + 2)].Concat(Ones[0..(allSize - questionSize - 2)]).Concat(Zeros[..(size - allSize)]).ToArray(),
                     1, size, dtype: torch.int64, device: device);
                 //var segment = torch.tensor(Zeros[0..(questionSize + 2)].Concat(Ones[0..(allSize - questionSize - 2)]).Concat(Zeros[..(size - allSize)]).ToArray(),
                 //    1, size, dtype: torch.int64, device: device);
-                var attentionMask = torch.tensor(Range.GetSubArray(Zeros, ..allSize).Concat(Range.GetSubArray(NegBillionPad, ..(size - allSize))).ToArray(),
+                var attentionMask = torch.tensor(Zeros[..allSize].Concat(NegBillionPad[..(size - allSize)]).ToArray(),
                     new long[] { 1, 1, 1, size }, dtype: torch.float32, device: device);
 
                 positions[i] = position;
