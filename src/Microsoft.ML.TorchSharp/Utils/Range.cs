@@ -122,7 +122,7 @@ namespace System
 
             if ((uint)end > (uint)length || (uint)start > (uint)end)
             {
-                throw new ArgumentOutOfRangeException("length");
+                throw new ArgumentOutOfRangeException(nameof(length));
             }
 
             return (start, end - start);
