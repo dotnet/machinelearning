@@ -139,12 +139,15 @@ namespace Microsoft.ML.TorchSharp
             public float Accuracy;
             public readonly int TrainingRowCount;
 
-            public TrainerBase(TorchSharpBaseTrainer<TLabelCol, TTargetsCol> parent, IChannel ch, IDataView input)
+            protected string ModelUrl;
+
+            public TrainerBase(TorchSharpBaseTrainer<TLabelCol, TTargetsCol> parent, IChannel ch, IDataView input, string modelUrl)
             {
                 Parent = parent;
                 Updates = 0;
                 Accuracy = 0;
 
+                ModelUrl = modelUrl;
                 // Get row count and figure out num of unique labels
                 TrainingRowCount = GetRowCountAndSetLabelCount(input);
 

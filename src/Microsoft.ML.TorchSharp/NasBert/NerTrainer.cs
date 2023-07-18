@@ -110,9 +110,10 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         private protected class Trainer : NasBertTrainerBase
         {
-            public Trainer(TorchSharpBaseTrainer<VBuffer<uint>, TargetType> parent, IChannel ch, IDataView input) : base(parent, ch, input)
+            private const string ModelUrlString = "models/pretrained_NasBert_14M_encoder.tsm";
+
+            public Trainer(TorchSharpBaseTrainer<VBuffer<uint>, TargetType> parent, IChannel ch, IDataView input) : base(parent, ch, input, ModelUrlString)
             {
-                ModelUrl = "models/pretrained_NasBert_14M_encoder.tsm";
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -276,7 +277,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             //  int: id of sentence 2 column name
             // LabelValues
 
-            var options = new NasBertOptions()
+            var options = new NerTrainer.NerOptions()
             {
                 LabelColumnName = ctx.LoadString(),
                 ScoreColumnName = ctx.LoadStringOrNull(),

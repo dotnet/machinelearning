@@ -101,7 +101,9 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         private protected class Trainer : NasBertTrainerBase
         {
-            public Trainer(TorchSharpBaseTrainer<uint, long> parent, IChannel ch, IDataView input) : base(parent, ch, input)
+            private const string ModelUrlString = "models/NasBert2000000.tsm";
+
+            public Trainer(TorchSharpBaseTrainer<uint, long> parent, IChannel ch, IDataView input) : base(parent, ch, input, ModelUrlString)
             {
             }
 

@@ -175,7 +175,6 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         private protected abstract class NasBertTrainerBase : TrainerBase
         {
-            protected string ModelUrl = "models/NasBert2000000.tsm";
             public Tokenizer Tokenizer;
             public new BaseOptimizer Optimizer;
             public new NasBertTrainer<TLabelCol, TTargetsCol> Parent => base.Parent as NasBertTrainer<TLabelCol, TTargetsCol>;
@@ -183,7 +182,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             private protected ValueGetter<ReadOnlyMemory<char>> Sentence1Getter;
             private protected ValueGetter<ReadOnlyMemory<char>> Sentence2Getter;
 
-            public NasBertTrainerBase(TorchSharpBaseTrainer<TLabelCol, TTargetsCol> parent, IChannel ch, IDataView input) : base(parent, ch, input)
+            public NasBertTrainerBase(TorchSharpBaseTrainer<TLabelCol, TTargetsCol> parent, IChannel ch, IDataView input, string modelUrl) : base(parent, ch, input, modelUrl)
             {
                 // Get the parameters that need optimization and set up the optimizer
                 var parameters = Model.parameters().Where(p => p.requires_grad);
