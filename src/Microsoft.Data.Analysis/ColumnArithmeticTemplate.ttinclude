@@ -400,13 +400,11 @@
                 case MethodType.UnaryInPlace:
                     return $"{dataFrameType}<{genericType}> {Op1Name}";
                 case MethodType.BinaryScalar:
-                    return $"{dataFrameType}<{genericType}> {Op1Name}, {genericType} {Op2Name}";
                 case MethodType.ComparisonScalar:
                     return $"{dataFrameType}<{genericType}> {Op1Name}, {genericType} {Op2Name}";
                 case MethodType.BinaryInt:
                     return $"{dataFrameType}<{genericType}> {Op1Name}, int {Op2Name}";
                 case MethodType.Binary:
-                    return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}";
                 case MethodType.Comparison:
                     return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}";
                 case MethodType.Contraction:
@@ -427,13 +425,11 @@
                 case MethodType.UnaryInPlace:
                     throw new ArgumentException();
                 case MethodType.BinaryScalar:
-                    return $"{genericType} {Op2Name}";
                 case MethodType.ComparisonScalar:
                     return $"{genericType} {Op2Name}";
                 case MethodType.BinaryInt:
                     return $"int {Op2Name}";
                 case MethodType.Binary:
-                    return $"{dataFrameType}<{genericType}> {Op2Name}";
                 case MethodType.Comparison:
                     return $"{dataFrameType}<{genericType}> {Op2Name}";
                 case MethodType.Contraction:
