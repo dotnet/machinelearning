@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using Microsoft.ML.TorchSharp.Extensions;
+using Microsoft.ML.TorchSharp.Utils;
 using TorchSharp;
 using TorchSharp.Modules;
 
@@ -63,7 +64,7 @@ namespace Microsoft.ML.TorchSharp.Roberta.Modules
 
             var contextLayer = torch.matmul(attentionProbs, valueLayer);
             contextLayer = contextLayer.permute(0, 2, 1, 3).contiguous();
-            var contextShape = contextLayer.shape[..^2].Append(NumAttentionHeads * AttentionHeadSize).ToArray();
+            var contextShape = DataUtils.Concat<long>(contextLayer.shape.AsSpan(0, contextLayer.shape.Length - 2), NumAttentionHeads * AttentionHeadSize);
             contextLayer = contextLayer.view(contextShape);
             return contextLayer.MoveToOuterDisposeScope();
         }
@@ -74,7 +75,7 @@ namespace Microsoft.ML.TorchSharp.Roberta.Modules
         private torch.Tensor TransposeForScores(torch.Tensor x)
         {
             using var disposeScope = torch.NewDisposeScope();
-            var newShape = x.shape[..^1].Append(NumAttentionHeads).Append(AttentionHeadSize).ToArray();
+            var newShape = DataUtils.Concat<long>(x.shape.AsSpan(0, x.shape.Length - 1), NumAttentionHeads, AttentionHeadSize);
             x = x.view(newShape);
             x = x.permute(0, 2, 1, 3).contiguous();
             return x.MoveToOuterDisposeScope();
