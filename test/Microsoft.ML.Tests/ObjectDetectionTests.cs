@@ -97,10 +97,13 @@ namespace Microsoft.ML.Tests
                 },
                 MaxRows = 2
             }, new MultiFileSource(dataFile));
-            var prev = filteredPipeline.Fit(data).Transform(dataFiltered).Preview();
+            var prevModel = filteredPipeline.Fit(data);
+            var prev = prevModel.Transform(dataFiltered).Preview();
             Assert.Equal(2, prev.RowView.Count());
 
             TestEstimatorCore(pipeline, data);
+            model.Dispose();
+            prevModel.Dispose();
         }
     }
 }
