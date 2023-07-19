@@ -365,11 +365,13 @@ namespace Microsoft.ML.TorchSharp
     }
 
 
-    public abstract class TorchSharpBaseTransformer : RowToRowTransformerBase
+    public abstract class TorchSharpBaseTransformer : RowToRowTransformerBase, IDisposable
     {
         private protected TorchSharpBaseTransformer(IHost host) : base(host)
         {
         }
+
+        public abstract void Dispose();
     }
 
     public abstract class TorchSharpBaseTransformer<TLabelCol, TTargetsCol> : TorchSharpBaseTransformer
@@ -380,6 +382,7 @@ namespace Microsoft.ML.TorchSharp
 
         private protected readonly string ScoreColumnName;
         public readonly DataViewSchema.DetachedColumn LabelColumn;
+        private bool _disposedValue;
 
         internal TorchSharpBaseTransformer(IHostEnvironment env, TorchSharpBaseTrainer.Options options, Module model, DataViewSchema.DetachedColumn labelColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TorchSharpBaseTransformer)))
@@ -546,6 +549,33 @@ namespace Microsoft.ML.TorchSharp
 
             private protected override void SaveModel(ModelSaveContext ctx) => Parent.SaveModel(ctx);
 
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                }
+
+                Model.Dispose();
+                _disposedValue = true;
+            }
+        }
+
+        ~TorchSharpBaseTransformer()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
+        }
+
+        public override void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

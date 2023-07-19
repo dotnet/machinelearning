@@ -549,7 +549,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
         }
     }
 
-    public class QATransformer : RowToRowTransformerBase
+    public class QATransformer : RowToRowTransformerBase, IDisposable
     {
         private protected readonly Device Device;
         private protected readonly RobertaModelForQA Model;
@@ -562,6 +562,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
         internal const string LoaderSignature = "QATRAIN";
 
         public Tokenizer Tokenizer;
+        private bool _disposedValue;
 
         internal QATransformer(IHostEnvironment env, QATrainer.Options options, RobertaModelForQA model)
            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(QATransformer)))
@@ -931,6 +932,32 @@ namespace Microsoft.ML.TorchSharp.Roberta
             {
                 return col => (activeOutput(0) || activeOutput(1)) && _inputColIndices.Any(i => i == col);
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                }
+
+                Model.Dispose();
+                _disposedValue = true;
+            }
+        }
+
+        ~QATransformer()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

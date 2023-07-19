@@ -18,6 +18,7 @@ using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TorchSharp;
 using Microsoft.ML.TorchSharp.NasBert;
 using TorchSharp;
+using TorchSharp.Modules;
 using Xunit;
 using Xunit.Abstractions;
 using static TorchSharp.torch.utils;
@@ -73,6 +74,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(new VectorDataViewType(NumberDataViewType.Single), transformerSchema[5].Type);
 
             TestEstimatorCore(estimator, dataView);
+            transformer.Dispose();
         }
 
         [Fact(Skip = "Needs to be on a comp with GPU or will take a LONG time.")]
@@ -130,6 +132,7 @@ namespace Microsoft.ML.Tests
             }
 
             Assert.True(correct > incorrect);
+            model.Dispose();
         }
     }
 }

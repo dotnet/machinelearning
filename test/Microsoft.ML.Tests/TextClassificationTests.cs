@@ -160,6 +160,7 @@ namespace Microsoft.ML.Tests
             // Not enough training is done to get good results so just make sure the count is right.
             var a = predictedLabel.ToList();
             Assert.Equal(8, a.Count());
+            transformer.Dispose();
         }
 
         // To run the TestTextClassificationWithBigDataOnGpu, set the EnableRunningGpuTest property to true and in the csproj enable the package TorchSharp-cuda-windows and disable libtorch-cpu-win-x64.
@@ -182,6 +183,7 @@ namespace Microsoft.ML.Tests
             var metrics = mlContext.MulticlassClassification.Evaluate(predictionIdv);
             Assert.True(metrics.MacroAccuracy > .69);
             Assert.True(metrics.MicroAccuracy > .70);
+            model.Dispose();
         }
 
         [Fact]
@@ -254,6 +256,7 @@ namespace Microsoft.ML.Tests
             Assert.NotNull(transformedData);
             // Not enough training is done to get good results so just make sure the count is right.
             Assert.Equal(8, transformedData.RowView.Count());
+            transformer.Dispose();
         }
 
         [Fact]
@@ -336,6 +339,7 @@ namespace Microsoft.ML.Tests
             // Not enough training is done to get good results so just make sure there is the correct number.
             Assert.NotNull(predictedLabel);
             Assert.Equal(8, predictedLabel.Count());
+            transformer.Dispose();
         }
 
         [Fact]
@@ -400,6 +404,7 @@ namespace Microsoft.ML.Tests
             var score = transformer.Transform(dataView).GetColumn<float>(transformerSchema[3].Name);
             // Not enough training is done to get good results so just make sure there is the correct number.
             Assert.NotNull(score);
+            transformer.Dispose();
         }
 
         [Fact(Skip = "Needs to be on a comp with GPU or will take a LONG time.")]
@@ -447,6 +452,8 @@ namespace Microsoft.ML.Tests
             var pearson = Correlation.Pearson(predictions, targets);
 
             var spearman = Correlation.Spearman(predictions, targets);
+
+            model.Dispose();
         }
     }
 

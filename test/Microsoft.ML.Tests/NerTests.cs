@@ -70,6 +70,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal("outputColumn", transformerSchema[4].Name);
 
             TestEstimatorCore(estimator, dataView);
+            transformer.Dispose();
         }
     }
 }
