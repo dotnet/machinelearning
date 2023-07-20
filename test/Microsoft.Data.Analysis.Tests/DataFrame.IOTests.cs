@@ -632,7 +632,7 @@ CMT,1,1,181,0.6,CSH,4.5,0";
             Assert.Equal(3, dataFrame.Columns[0].Length);
 
             for (long i = 0; i < dataFrame.Columns[0].Length; i++)
-                Assert.Equal(i, dataFrame.Columns[0].Length);
+                Assert.Equal(i, dataFrame.Columns[0][i]);
         }
 
         [Fact]
