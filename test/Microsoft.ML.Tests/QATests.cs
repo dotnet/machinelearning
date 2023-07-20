@@ -57,7 +57,6 @@ namespace Microsoft.ML.Tests
             var estimator = chain.Append(ML.MulticlassClassification.Trainers.QuestionAnswer(maxEpochs: 1));
 
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
-            var prev = estimator.Fit(dataView).Transform(dataView).Preview();
             Assert.Equal(6, estimatorSchema.Count);
             Assert.Equal("Answer", estimatorSchema[4].Name);
             Assert.Equal("Score", estimatorSchema[5].Name);
