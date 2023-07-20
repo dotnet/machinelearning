@@ -197,6 +197,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (bool)(span[i] & otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void And(PrimitiveColumnContainer<bool> column, bool scalar)
@@ -234,6 +239,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (bool)(span[i] | otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Or(PrimitiveColumnContainer<bool> column, bool scalar)
@@ -271,6 +281,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (bool)(span[i] ^ otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Xor(PrimitiveColumnContainer<bool> column, bool scalar)
@@ -401,6 +416,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (byte)(span[i] + otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Add(PrimitiveColumnContainer<byte> column, byte scalar)
@@ -438,6 +458,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (byte)(span[i] - otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Subtract(PrimitiveColumnContainer<byte> column, byte scalar)
@@ -475,6 +500,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (byte)(span[i] * otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Multiply(PrimitiveColumnContainer<byte> column, byte scalar)
@@ -512,6 +542,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (byte)(span[i] / otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Divide(PrimitiveColumnContainer<byte> column, byte scalar)
@@ -549,6 +584,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (byte)(span[i] % otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Modulo(PrimitiveColumnContainer<byte> column, byte scalar)
@@ -586,6 +626,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (byte)(span[i] & otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void And(PrimitiveColumnContainer<byte> column, byte scalar)
@@ -623,6 +668,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (byte)(span[i] | otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Or(PrimitiveColumnContainer<byte> column, byte scalar)
@@ -660,6 +710,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (byte)(span[i] ^ otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Xor(PrimitiveColumnContainer<byte> column, byte scalar)
@@ -874,6 +929,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (char)(span[i] + otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Add(PrimitiveColumnContainer<char> column, char scalar)
@@ -911,6 +971,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (char)(span[i] - otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Subtract(PrimitiveColumnContainer<char> column, char scalar)
@@ -948,6 +1013,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (char)(span[i] * otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Multiply(PrimitiveColumnContainer<char> column, char scalar)
@@ -985,6 +1055,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (char)(span[i] / otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Divide(PrimitiveColumnContainer<char> column, char scalar)
@@ -1022,6 +1097,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (char)(span[i] % otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Modulo(PrimitiveColumnContainer<char> column, char scalar)
@@ -1059,6 +1139,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (char)(span[i] & otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void And(PrimitiveColumnContainer<char> column, char scalar)
@@ -1096,6 +1181,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (char)(span[i] | otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Or(PrimitiveColumnContainer<char> column, char scalar)
@@ -1133,6 +1223,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (char)(span[i] ^ otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Xor(PrimitiveColumnContainer<char> column, char scalar)
@@ -1347,6 +1442,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (decimal)(span[i] + otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Add(PrimitiveColumnContainer<decimal> column, decimal scalar)
@@ -1384,6 +1484,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (decimal)(span[i] - otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Subtract(PrimitiveColumnContainer<decimal> column, decimal scalar)
@@ -1421,6 +1526,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (decimal)(span[i] * otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Multiply(PrimitiveColumnContainer<decimal> column, decimal scalar)
@@ -1458,6 +1568,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (decimal)(span[i] / otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Divide(PrimitiveColumnContainer<decimal> column, decimal scalar)
@@ -1495,6 +1610,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (decimal)(span[i] % otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Modulo(PrimitiveColumnContainer<decimal> column, decimal scalar)
@@ -1729,6 +1849,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (double)(span[i] + otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Add(PrimitiveColumnContainer<double> column, double scalar)
@@ -1766,6 +1891,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (double)(span[i] - otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Subtract(PrimitiveColumnContainer<double> column, double scalar)
@@ -1803,6 +1933,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (double)(span[i] * otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Multiply(PrimitiveColumnContainer<double> column, double scalar)
@@ -1840,6 +1975,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (double)(span[i] / otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Divide(PrimitiveColumnContainer<double> column, double scalar)
@@ -1877,6 +2017,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (double)(span[i] % otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Modulo(PrimitiveColumnContainer<double> column, double scalar)
@@ -2111,6 +2256,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (float)(span[i] + otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Add(PrimitiveColumnContainer<float> column, float scalar)
@@ -2148,6 +2298,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (float)(span[i] - otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Subtract(PrimitiveColumnContainer<float> column, float scalar)
@@ -2185,6 +2340,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (float)(span[i] * otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Multiply(PrimitiveColumnContainer<float> column, float scalar)
@@ -2222,6 +2382,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (float)(span[i] / otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Divide(PrimitiveColumnContainer<float> column, float scalar)
@@ -2259,6 +2424,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (float)(span[i] % otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Modulo(PrimitiveColumnContainer<float> column, float scalar)
@@ -2493,6 +2663,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (int)(span[i] + otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Add(PrimitiveColumnContainer<int> column, int scalar)
@@ -2530,6 +2705,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (int)(span[i] - otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Subtract(PrimitiveColumnContainer<int> column, int scalar)
@@ -2567,6 +2747,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (int)(span[i] * otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Multiply(PrimitiveColumnContainer<int> column, int scalar)
@@ -2604,6 +2789,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (int)(span[i] / otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Divide(PrimitiveColumnContainer<int> column, int scalar)
@@ -2641,6 +2831,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (int)(span[i] % otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Modulo(PrimitiveColumnContainer<int> column, int scalar)
@@ -2678,6 +2873,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (int)(span[i] & otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void And(PrimitiveColumnContainer<int> column, int scalar)
@@ -2715,6 +2915,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (int)(span[i] | otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Or(PrimitiveColumnContainer<int> column, int scalar)
@@ -2752,6 +2957,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (int)(span[i] ^ otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Xor(PrimitiveColumnContainer<int> column, int scalar)
@@ -2966,6 +3176,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (long)(span[i] + otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Add(PrimitiveColumnContainer<long> column, long scalar)
@@ -3003,6 +3218,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (long)(span[i] - otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Subtract(PrimitiveColumnContainer<long> column, long scalar)
@@ -3040,6 +3260,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (long)(span[i] * otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Multiply(PrimitiveColumnContainer<long> column, long scalar)
@@ -3077,6 +3302,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (long)(span[i] / otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Divide(PrimitiveColumnContainer<long> column, long scalar)
@@ -3114,6 +3344,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (long)(span[i] % otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Modulo(PrimitiveColumnContainer<long> column, long scalar)
@@ -3151,6 +3386,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (long)(span[i] & otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void And(PrimitiveColumnContainer<long> column, long scalar)
@@ -3188,6 +3428,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (long)(span[i] | otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Or(PrimitiveColumnContainer<long> column, long scalar)
@@ -3225,6 +3470,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (long)(span[i] ^ otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Xor(PrimitiveColumnContainer<long> column, long scalar)
@@ -3439,6 +3689,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (sbyte)(span[i] + otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Add(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
@@ -3476,6 +3731,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (sbyte)(span[i] - otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Subtract(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
@@ -3513,6 +3773,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (sbyte)(span[i] * otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Multiply(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
@@ -3550,6 +3815,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (sbyte)(span[i] / otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Divide(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
@@ -3587,6 +3857,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (sbyte)(span[i] % otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Modulo(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
@@ -3624,6 +3899,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (sbyte)(span[i] & otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void And(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
@@ -3661,6 +3941,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (sbyte)(span[i] | otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Or(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
@@ -3698,6 +3983,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (sbyte)(span[i] ^ otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Xor(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
@@ -3912,6 +4202,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (short)(span[i] + otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Add(PrimitiveColumnContainer<short> column, short scalar)
@@ -3949,6 +4244,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (short)(span[i] - otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Subtract(PrimitiveColumnContainer<short> column, short scalar)
@@ -3986,6 +4286,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (short)(span[i] * otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Multiply(PrimitiveColumnContainer<short> column, short scalar)
@@ -4023,6 +4328,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (short)(span[i] / otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Divide(PrimitiveColumnContainer<short> column, short scalar)
@@ -4060,6 +4370,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (short)(span[i] % otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Modulo(PrimitiveColumnContainer<short> column, short scalar)
@@ -4097,6 +4412,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (short)(span[i] & otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void And(PrimitiveColumnContainer<short> column, short scalar)
@@ -4134,6 +4454,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (short)(span[i] | otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Or(PrimitiveColumnContainer<short> column, short scalar)
@@ -4171,6 +4496,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (short)(span[i] ^ otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Xor(PrimitiveColumnContainer<short> column, short scalar)
@@ -4385,6 +4715,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (uint)(span[i] + otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Add(PrimitiveColumnContainer<uint> column, uint scalar)
@@ -4422,6 +4757,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (uint)(span[i] - otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Subtract(PrimitiveColumnContainer<uint> column, uint scalar)
@@ -4459,6 +4799,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (uint)(span[i] * otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Multiply(PrimitiveColumnContainer<uint> column, uint scalar)
@@ -4496,6 +4841,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (uint)(span[i] / otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Divide(PrimitiveColumnContainer<uint> column, uint scalar)
@@ -4533,6 +4883,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (uint)(span[i] % otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Modulo(PrimitiveColumnContainer<uint> column, uint scalar)
@@ -4570,6 +4925,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (uint)(span[i] & otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void And(PrimitiveColumnContainer<uint> column, uint scalar)
@@ -4607,6 +4967,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (uint)(span[i] | otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Or(PrimitiveColumnContainer<uint> column, uint scalar)
@@ -4644,6 +5009,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (uint)(span[i] ^ otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Xor(PrimitiveColumnContainer<uint> column, uint scalar)
@@ -4858,6 +5228,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (ulong)(span[i] + otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Add(PrimitiveColumnContainer<ulong> column, ulong scalar)
@@ -4895,6 +5270,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (ulong)(span[i] - otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Subtract(PrimitiveColumnContainer<ulong> column, ulong scalar)
@@ -4932,6 +5312,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (ulong)(span[i] * otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Multiply(PrimitiveColumnContainer<ulong> column, ulong scalar)
@@ -4969,6 +5354,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (ulong)(span[i] / otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Divide(PrimitiveColumnContainer<ulong> column, ulong scalar)
@@ -5006,6 +5396,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (ulong)(span[i] % otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Modulo(PrimitiveColumnContainer<ulong> column, ulong scalar)
@@ -5043,6 +5438,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (ulong)(span[i] & otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void And(PrimitiveColumnContainer<ulong> column, ulong scalar)
@@ -5080,6 +5480,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (ulong)(span[i] | otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Or(PrimitiveColumnContainer<ulong> column, ulong scalar)
@@ -5117,6 +5522,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (ulong)(span[i] ^ otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Xor(PrimitiveColumnContainer<ulong> column, ulong scalar)
@@ -5331,6 +5741,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (ushort)(span[i] + otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Add(PrimitiveColumnContainer<ushort> column, ushort scalar)
@@ -5368,6 +5783,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (ushort)(span[i] - otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Subtract(PrimitiveColumnContainer<ushort> column, ushort scalar)
@@ -5405,6 +5825,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (ushort)(span[i] * otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Multiply(PrimitiveColumnContainer<ushort> column, ushort scalar)
@@ -5442,6 +5867,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (ushort)(span[i] / otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Divide(PrimitiveColumnContainer<ushort> column, ushort scalar)
@@ -5479,6 +5909,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (ushort)(span[i] % otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Modulo(PrimitiveColumnContainer<ushort> column, ushort scalar)
@@ -5516,6 +5951,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (ushort)(span[i] & otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void And(PrimitiveColumnContainer<ushort> column, ushort scalar)
@@ -5553,6 +5993,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (ushort)(span[i] | otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Or(PrimitiveColumnContainer<ushort> column, ushort scalar)
@@ -5590,6 +6035,11 @@ namespace Microsoft.Data.Analysis
                 {
                     span[i] = (ushort)(span[i] ^ otherSpan[i]);
                 }
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
             }
         }
         public void Xor(PrimitiveColumnContainer<ushort> column, ushort scalar)

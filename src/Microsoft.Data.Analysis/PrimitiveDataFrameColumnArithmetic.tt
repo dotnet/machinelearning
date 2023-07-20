@@ -89,6 +89,13 @@ namespace Microsoft.Data.Analysis
                     throw new NotImplementedException();
 <# } #>
                 }
+<# if (method.MethodType == MethodType.Binary) { #>
+
+                var mutableBitMapBuffer = left.NullBitMapBuffers.GetOrCreateMutable(b);
+                var bitmapSpan = mutableBitMapBuffer.Span;
+                for (int i = 0; i < left.NullBitMapBuffers[b].Length; i++)
+                    bitmapSpan[i] &= right.NullBitMapBuffers[b][i];
+<# } #>
             }
 <# } #>
         }

@@ -20,7 +20,6 @@ namespace Microsoft.Data.Analysis
                 bufferList[index] = mutableBuffer;
             }
 
-
             return mutableBuffer;
         }
     }
