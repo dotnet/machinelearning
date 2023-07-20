@@ -237,7 +237,7 @@ namespace Microsoft.ML.Tests
                 .Append(ML.MulticlassClassification.Trainers.TextClassification(outputColumnName: "outputColumn"))
                 .Append(ML.Transforms.Conversion.MapKeyToValue("outputColumn"));
 
-            TestEstimatorCore(estimator, dataView);
+            TestEstimatorCore(estimator, dataView, shouldDispose: true);
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
 
             Assert.Equal(5, estimatorSchema.Count);
@@ -321,7 +321,7 @@ namespace Microsoft.ML.Tests
             var estimator = ML.MulticlassClassification.Trainers.TextClassification(outputColumnName: "outputColumn", sentence1ColumnName: "Sentence", sentence2ColumnName: "Sentence2", validationSet: preppedData)
                 .Append(ML.Transforms.Conversion.MapKeyToValue("outputColumn"));
 
-            TestEstimatorCore(estimator, preppedData);
+            TestEstimatorCore(estimator, preppedData, shouldDispose: true);
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(preppedData.Schema));
 
             Assert.Equal(5, estimatorSchema.Count);
@@ -387,7 +387,7 @@ namespace Microsoft.ML.Tests
 
             var estimator = ML.Regression.Trainers.SentenceSimilarity(sentence1ColumnName: "Sentence", sentence2ColumnName: "Sentence2");
 
-            TestEstimatorCore(estimator, dataView);
+            TestEstimatorCore(estimator, dataView, shouldDispose: true);
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
 
             Assert.Equal(4, estimatorSchema.Count);
