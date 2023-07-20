@@ -73,7 +73,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(new VectorDataViewType(TextDataViewType.Instance), transformerSchema[4].Type);
             Assert.Equal(new VectorDataViewType(NumberDataViewType.Single), transformerSchema[5].Type);
 
-            TestEstimatorCore(estimator, dataView);
+            TestEstimatorCore(estimator, dataView, shouldDispose: true);
             transformer.Dispose();
         }
 
