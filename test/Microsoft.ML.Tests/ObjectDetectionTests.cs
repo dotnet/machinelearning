@@ -101,7 +101,7 @@ namespace Microsoft.ML.Tests
             var prev = prevModel.Transform(dataFiltered).Preview();
             Assert.Equal(2, prev.RowView.Count());
 
-            TestEstimatorCore(pipeline, data);
+            TestEstimatorCore(pipeline, data, shouldDispose: true);
             model.Dispose();
             prevModel.Dispose();
         }
