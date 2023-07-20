@@ -58,7 +58,6 @@ namespace Microsoft.ML.Tests
                .Append(ML.Transforms.Conversion.MapKeyToValue("outputColumn"));
 
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
-            var prev = estimator.Fit(dataView).Transform(dataView).Preview();
             Assert.Equal(3, estimatorSchema.Count);
             Assert.Equal("outputColumn", estimatorSchema[2].Name);
             Assert.Equal(TextDataViewType.Instance, estimatorSchema[2].ItemType);
