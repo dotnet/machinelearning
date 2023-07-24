@@ -16,6 +16,8 @@ namespace Microsoft.ML.TorchSharp.NasBert
         None = 0,
         MaskedLM = 1,
         TextClassification = 2,
-        SentenceRegression = 3
+        SentenceRegression = 3,
+        NameEntityRecognition = 4,
+        QuestionAnswering = 5
     }
 }

@@ -8,6 +8,7 @@ using System.Text;
 using Microsoft.ML.Data;
 using Microsoft.ML.TorchSharp.AutoFormerV2;
 using Microsoft.ML.TorchSharp.NasBert;
+using Microsoft.ML.TorchSharp.Roberta;
 
 namespace Microsoft.ML.TorchSharp
 {
@@ -158,5 +159,88 @@ namespace Microsoft.ML.TorchSharp
         {
             return ObjectDetectionMetrics.MeasureMetrics(data, labelCol, actualBoundingBoxColumn, predictedLabelCol, predictedBoundingBoxColumn, scoreCol);
         }
+
+        /// <summary>
+        /// Fine tune a NAS-BERT model for Name Entity Recognition. The limit for any sentence is 512 tokens. Each word typically
+        /// will map to a single token, and we automatically add 2 specical tokens (a start token and a separator token)
+        /// so in general this limit will be 510 words for all sentences.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="labelColumnName">Name of the label column. Column should be a key type.</param>
+        /// <param name="outputColumnName">Name of the output column. It will be a key type. It is the predicted label.</param>
+        /// <param name="sentence1ColumnName">Name of the column for the first sentence.</param>
+        /// <param name="batchSize">Number of rows in the batch.</param>
+        /// <param name="maxEpochs">Maximum number of times to loop through your training set.</param>
+        /// <param name="architecture">Architecture for the model. Defaults to Roberta.</param>
+        /// <param name="validationSet">The validation set used while training to improve model quality.</param>
+        /// <returns></returns>
+        public static NerTrainer NameEntityRecognition(
+            this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            string labelColumnName = DefaultColumnNames.Label,
+            string outputColumnName = DefaultColumnNames.PredictedLabel,
+            string sentence1ColumnName = "Sentence",
+            int batchSize = 32,
+            int maxEpochs = 10,
+            BertArchitecture architecture = BertArchitecture.Roberta,
+            IDataView validationSet = null)
+            => new NerTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, outputColumnName, sentence1ColumnName, batchSize, maxEpochs, validationSet, architecture);
+
+        /// <summary>
+        /// Fine tune a Name Entity Recognition model.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="options">The full set of advanced options.</param>
+        /// <returns></returns>
+        public static NerTrainer NameEntityRecognition(
+            this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            NerTrainer.NerOptions options)
+            => new NerTrainer(CatalogUtils.GetEnvironment(catalog), options);
+
+
+        /// <summary>
+        /// Fine tune a ROBERTA model for Question and Answer. The limit for any sentence is 512 tokens. Each word typically
+        /// will map to a single token, and we automatically add 2 specical tokens (a start token and a separator token)
+        /// so in general this limit will be 510 words for all sentences.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="contextColumnName">The context for the question.</param>
+        /// <param name="questionColumnName">The question being asked.</param>
+        /// <param name="trainingAnswerColumnName">The answer used to train the model.</param>
+        /// <param name="answerIndexColumnName">The starting character index of that answer in the context.</param>
+        /// <param name="predictedAnswerColumnName">The answer predicted by the model during inferencing.</param>
+        /// <param name="scoreColumnName">The score of the predicted answers.</param>
+        /// <param name="topK">How many top results you want back for a given question.</param>
+        /// <param name="batchSize">Number of rows in the batch.</param>
+        /// <param name="maxEpochs">Maximum number of times to loop through your training set.</param>
+        /// <param name="architecture">Architecture for the model. Defaults to Roberta.</param>
+        /// <param name="validationSet">The validation set used while training to improve model quality.</param>
+        /// <returns></returns>
+        public static QATrainer QuestionAnswer(
+            this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            string contextColumnName = "Context",
+            string questionColumnName = "Question",
+            string trainingAnswerColumnName = "TrainingAnswer",
+            string answerIndexColumnName = "AnswerIndex",
+            string predictedAnswerColumnName = "Answer",
+            string scoreColumnName = DefaultColumnNames.Score,
+            int topK = 3,
+            int batchSize = 4,
+            int maxEpochs = 10,
+            BertArchitecture architecture = BertArchitecture.Roberta,
+            IDataView validationSet = null)
+            => new QATrainer(CatalogUtils.GetEnvironment(catalog), contextColumnName, questionColumnName, trainingAnswerColumnName, answerIndexColumnName, predictedAnswerColumnName, scoreColumnName, topK, batchSize, maxEpochs, validationSet, architecture);
+
+        /// <summary>
+        /// Fine tune a ROBERTA model for Question and Answer. The limit for any sentence is 512 tokens. Each word typically
+        /// will map to a single token, and we automatically add 2 specical tokens (a start token and a separator token)
+        /// so in general this limit will be 510 words for all sentences.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="options">The options for QA.</param>
+        /// <returns></returns>
+        public static QATrainer QuestionAnswer(
+            this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            QATrainer.Options options)
+            => new QATrainer(CatalogUtils.GetEnvironment(catalog), options);
     }
 }

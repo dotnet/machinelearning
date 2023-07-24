@@ -101,7 +101,9 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         private protected class Trainer : NasBertTrainerBase
         {
-            public Trainer(TorchSharpBaseTrainer<uint, long> parent, IChannel ch, IDataView input) : base(parent, ch, input)
+            private const string ModelUrlString = "models/NasBert2000000.tsm";
+
+            public Trainer(TorchSharpBaseTrainer<uint, long> parent, IChannel ch, IDataView input) : base(parent, ch, input, ModelUrlString)
             {
             }
 
@@ -253,7 +255,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             var tokenizer = TokenizerExtensions.GetInstance(ch);
             EnglishRoberta tokenizerModel = tokenizer.RobertaModel();
 
-            var model = new NasBertModel(options, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, options.NumberOfClasses);
+            var model = new ModelForPrediction(options, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, options.NumberOfClasses);
             if (!ctx.TryLoadBinaryStream("TSModel", r => model.load(r)))
                 throw env.ExceptDecode();
 

@@ -80,7 +80,9 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 BatchSize = batchSize,
                 MaxEpoch = maxEpochs,
                 ValidationSet = validationSet,
-                TaskType = BertTaskType.SentenceRegression
+                TaskType = BertTaskType.SentenceRegression,
+                LearningRate = new List<double>() { .0002 },
+                WeightDecay = .01
             })
         {
         }
@@ -92,12 +94,14 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         private protected override TorchSharpBaseTransformer<float, float> CreateTransformer(IHost host, Options options, torch.nn.Module model, DataViewSchema.DetachedColumn labelColumn)
         {
-            return new SentenceSimilarityTransformer(host, options as NasBertOptions, model as NasBertModel, labelColumn);
+            return new SentenceSimilarityTransformer(host, options as NasBertOptions, model as ModelForPrediction, labelColumn);
         }
 
         private protected class Trainer : NasBertTrainerBase
         {
-            public Trainer(TorchSharpBaseTrainer<float, float> parent, IChannel ch, IDataView input) : base(parent, ch, input)
+            private const string ModelUrlString = "models/NasBert2000000.tsm";
+
+            public Trainer(TorchSharpBaseTrainer<float, float> parent, IChannel ch, IDataView input) : base(parent, ch, input, ModelUrlString)
             {
             }
 
@@ -170,7 +174,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 loaderAssemblyName: typeof(SentenceSimilarityTransformer).Assembly.FullName);
         }
 
-        internal SentenceSimilarityTransformer(IHostEnvironment env, NasBertOptions options, NasBertModel model, DataViewSchema.DetachedColumn labelColumn) : base(env, options, model, labelColumn)
+        internal SentenceSimilarityTransformer(IHostEnvironment env, NasBertOptions options, ModelForPrediction model, DataViewSchema.DetachedColumn labelColumn) : base(env, options, model, labelColumn)
         {
         }
 
@@ -225,7 +229,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             var tokenizer = TokenizerExtensions.GetInstance(ch);
             EnglishRoberta tokenizerModel = tokenizer.RobertaModel();
 
-            var model = new NasBertModel(options, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, options.NumberOfClasses);
+            var model = new ModelForPrediction(options, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, options.NumberOfClasses);
             if (!ctx.TryLoadBinaryStream("TSModel", r => model.load(r)))
                 throw env.ExceptDecode();
 

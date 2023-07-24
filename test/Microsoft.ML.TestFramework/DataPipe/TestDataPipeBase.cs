@@ -31,7 +31,7 @@ namespace Microsoft.ML.RunTests
         /// - schema propagation for fitted transformer conforms to schema propagation of estimator.
         /// </summary>
         protected void TestEstimatorCore(IEstimator<ITransformer> estimator,
-            IDataView validFitInput, IDataView validTransformInput = null, IDataView invalidInput = null, IDataView validForFitNotValidForTransformInput = null)
+            IDataView validFitInput, IDataView validTransformInput = null, IDataView invalidInput = null, IDataView validForFitNotValidForTransformInput = null, bool shouldDispose = false)
         {
             Contracts.AssertValue(estimator);
             Contracts.AssertValue(validFitInput);
@@ -148,6 +148,7 @@ namespace Microsoft.ML.RunTests
             var scoredTrainSchemaShape = SchemaShape.Create(transformer.GetOutputSchema(validFitInput.Schema));
             CheckSameSchemaShape(outSchemaShape, scoredTrainSchemaShape);
             (loadedTransformer as IDisposable)?.Dispose();
+            if (shouldDispose) (transformer as IDisposable)?.Dispose();
         }
 
         private void CheckSameSchemaShape(SchemaShape promised, SchemaShape delivered)
