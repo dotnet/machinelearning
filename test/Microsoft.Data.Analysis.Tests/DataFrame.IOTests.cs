@@ -155,6 +155,46 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void TestReadCsvWithHeaderAndDuplicatedColumns_WithoutRenaming()
+        {
+
+            string data = @$"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,payment_type,fare_amount
+CMT,1,1,1271,3.8,CRD,CRD,17.5
+CMT,1,1,474,1.5,CRD,CRD,8
+CMT,1,1,637,1.4,CRD,CRD,8.5
+CMT,1,1,181,0.6,CSH,CSH,4.5";
+
+            Assert.Throws<System.ArgumentException>(() => DataFrame.LoadCsv(GetStream(data)));
+        }
+
+        [Fact]
+        public void TestReadCsvWithHeaderAndDuplicatedColumns_WithDuplicateColumnRenaming()
+        {
+
+            string data = @$"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,payment_type,payment_type,fare_amount
+CMT,1,1,1271,3.8,CRD,CRD_1,Test,17.5
+CMT,1,1,474,1.5,CRD,CRD,Test,8
+CMT,1,1,637,1.4,CRD,CRD,Test,8.5
+CMT,1,1,181,0.6,CSH,CSH,Test,4.5";
+
+            DataFrame df = DataFrame.LoadCsv(GetStream(data), renameDuplicatedColumns: true);
+
+            Assert.Equal(4, df.Rows.Count);
+            Assert.Equal(9, df.Columns.Count);
+            Assert.Equal("CMT", df.Columns["vendor_id"][3]);
+
+            Assert.Equal("payment_type", df.Columns[5].Name);
+            Assert.Equal("payment_type.1", df.Columns[6].Name);
+            Assert.Equal("payment_type.2", df.Columns[7].Name);
+
+            Assert.Equal("CRD", df.Columns["payment_type"][0]);
+            Assert.Equal("CRD_1", df.Columns["payment_type.1"][0]);
+            Assert.Equal("Test", df.Columns["payment_type.2"][0]);
+
+            VerifyColumnTypes(df);
+        }
+
+        [Fact]
         public void TestReadCsvSplitAcrossMultipleLines()
         {
             string CMT = @"""C
