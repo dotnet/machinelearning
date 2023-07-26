@@ -60,7 +60,17 @@ namespace Microsoft.ML.TorchSharp.NasBert
     ///
     public class TextClassificationTrainer : NasBertTrainer<UInt32, long>
     {
-        internal TextClassificationTrainer(IHostEnvironment env, NasBertOptions options) : base(env, options)
+        public class TextClassificationOptions : NasBertTrainer.NasBertOptions
+        {
+            public TextClassificationOptions()
+            {
+                TaskType = BertTaskType.TextClassification;
+                BatchSize = 32;
+                MaxEpoch = 10;
+            }
+        }
+
+        internal TextClassificationTrainer(IHostEnvironment env, TextClassificationOptions options) : base(env, options)
         {
         }
 
@@ -74,7 +84,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             int maxEpochs = 10,
             IDataView validationSet = null,
             BertArchitecture architecture = BertArchitecture.Roberta) :
-            this(env, new NasBertOptions
+            this(env, new TextClassificationOptions
             {
                 PredictionColumnName = predictionColumnName,
                 ScoreColumnName = scoreColumnName,

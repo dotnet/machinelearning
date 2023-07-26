@@ -59,7 +59,7 @@ namespace Microsoft.ML.TorchSharp
         /// <returns></returns>
         public static TextClassificationTrainer TextClassification(
             this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-            NasBertTrainer.NasBertOptions options)
+            TextClassificationTrainer.TextClassificationOptions options)
             => new TextClassificationTrainer(CatalogUtils.GetEnvironment(catalog), options);
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace Microsoft.ML.TorchSharp
         /// <returns></returns>
         public static SentenceSimilarityTrainer SentenceSimilarity(
             this RegressionCatalog.RegressionTrainers catalog,
-            NasBertTrainer.NasBertOptions options)
+            SentenceSimilarityTrainer.SentenceSimilarityOptions options)
             => new SentenceSimilarityTrainer(CatalogUtils.GetEnvironment(catalog), options);
 
 
