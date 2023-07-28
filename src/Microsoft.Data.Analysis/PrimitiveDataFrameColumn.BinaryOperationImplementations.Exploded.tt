@@ -112,6 +112,7 @@ void GenerateAllBinaryScalarCombinationsForMethod(string inputMethodName)
     string methodName = inputMethodName;
     methodName += "Implementation";
 #>
+
     public partial class <#=fullColumnType#>
     {
 <#
@@ -161,13 +162,12 @@ void GenerateAllComparisonCombinationsForMethod(string inputMethodName)
     methodName += "Implementation";
 
 #>
+
     public partial class <#=fullColumnType#>
     {
         internal <#=fullReturnType#> <#=methodName#>(<#=fullOtherColumnType#> column)
         {
-            BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
-            ColumnContainer.<#=inputMethodName#>(column.ColumnContainer, newColumn.ColumnContainer);
-            return newColumn;
+            return new BooleanDataFrameColumn(Name, ColumnContainer.<#=inputMethodName#>(column.ColumnContainer));
         }
     }
 <# 
@@ -196,13 +196,12 @@ void GenerateAllComparisonScalarCombinationsForMethod(string inputMethodName)
     methodName += "Implementation";
 
 #>
+
     public partial class <#=fullColumnType#>
     {
         internal <#=fullReturnType#> <#=methodName#>(<#=otherColumnType#> value)
         {
-            BooleanDataFrameColumn newColumn = CloneAsBooleanColumn();
-            ColumnContainer.<#=inputMethodName#>(value, newColumn.ColumnContainer);
-            return newColumn;
+            return new BooleanDataFrameColumn(Name, ColumnContainer.<#=inputMethodName#>(value));
         }
     }
 <# 
