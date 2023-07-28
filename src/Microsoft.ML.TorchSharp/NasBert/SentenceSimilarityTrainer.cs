@@ -58,7 +58,19 @@ namespace Microsoft.ML.TorchSharp.NasBert
     ///
     public class SentenceSimilarityTrainer : NasBertTrainer<float, float>
     {
-        internal SentenceSimilarityTrainer(IHostEnvironment env, Options options) : base(env, options)
+
+        public class SentenceSimilarityOptions : NasBertOptions
+        {
+            public SentenceSimilarityOptions()
+            {
+                BatchSize = 32;
+                MaxEpoch = 10;
+                TaskType = BertTaskType.SentenceRegression;
+                LearningRate = new List<double>() { .0002 };
+                WeightDecay = .01;
+            }
+        }
+        internal SentenceSimilarityTrainer(IHostEnvironment env, SentenceSimilarityOptions options) : base(env, options)
         {
         }
 
@@ -71,7 +83,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             int maxEpochs = 10,
             IDataView validationSet = null,
             BertArchitecture architecture = BertArchitecture.Roberta) :
-            this(env, new NasBertOptions
+            this(env, new SentenceSimilarityOptions
             {
                 ScoreColumnName = scoreColumnName,
                 Sentence1ColumnName = sentence1ColumnName,

@@ -432,14 +432,12 @@ namespace Microsoft.ML.Tests
 
             var dataSplit = ML.Data.TrainTestSplit(dataView, testFraction: 0.2);
 
-            var options = new NasBertTrainer.NasBertOptions()
+            var options = new SentenceSimilarityTrainer.SentenceSimilarityOptions()
             {
                 TaskType = BertTaskType.SentenceRegression,
                 Sentence1ColumnName = "search_term",
                 Sentence2ColumnName = "product_description",
                 LabelColumnName = "relevance",
-                LearningRate = new List<double>() { .0002 },
-                WeightDecay = .01
             };
 
             var estimator = ML.Regression.Trainers.SentenceSimilarity(options);
