@@ -1862,9 +1862,7 @@ namespace Microsoft.Data.Analysis
                     {
                         throw new NotSupportedException();
                     }
-                    PrimitiveDataFrameColumn<bool> retboolColumn = CloneAsBooleanColumn();
-                    (this as PrimitiveDataFrameColumn<U>)._columnContainer.ElementwiseEquals(column._columnContainer, retboolColumn._columnContainer);
-                    return retboolColumn;
+                    return new BooleanDataFrameColumn(Name, (this as PrimitiveDataFrameColumn<U>)._columnContainer.ElementwiseEquals(column._columnContainer));
                 case Type decimalType when decimalType == typeof(decimal):
                     if (typeof(U) == typeof(bool))
                     {
@@ -1874,25 +1872,19 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseEquals(column._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseEquals(column._columnContainer));
                     }
                     else
                     {
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.ElementwiseEquals(column.CloneAsDecimalColumn()._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseEquals(column.CloneAsDecimalColumn()._columnContainer));
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
                     if (typeof(U) != typeof(DateTime))
                     {
                         throw new NotSupportedException();
                     }
-                    PrimitiveDataFrameColumn<bool> retDateTimeColumn = CloneAsBooleanColumn();
-                    (this as PrimitiveDataFrameColumn<U>)._columnContainer.ElementwiseEquals(column._columnContainer, retDateTimeColumn._columnContainer);
-                    return retDateTimeColumn;
+                    return new BooleanDataFrameColumn(Name, (this as PrimitiveDataFrameColumn<U>)._columnContainer.ElementwiseEquals(column._columnContainer));
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -1912,25 +1904,19 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseEquals(column._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseEquals(column._columnContainer));
                     }
                     else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.ElementwiseEquals((column as PrimitiveDataFrameColumn<decimal>)._columnContainer, newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseEquals((column as PrimitiveDataFrameColumn<decimal>)._columnContainer));
                         }
                         else
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.ElementwiseEquals(column.CloneAsDoubleColumn()._columnContainer, newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, doubleColumn._columnContainer.ElementwiseEquals(column.CloneAsDoubleColumn()._columnContainer));
                         }
                     }
                 default:
@@ -1947,9 +1933,7 @@ namespace Microsoft.Data.Analysis
                     {
                         throw new NotSupportedException();
                     }
-                    PrimitiveDataFrameColumn<bool> retboolColumn = CloneAsBooleanColumn();
-                    (this as PrimitiveDataFrameColumn<bool>)._columnContainer.ElementwiseEquals(Unsafe.As<U, bool>(ref value), retboolColumn._columnContainer);
-                    return retboolColumn;
+                    return new BooleanDataFrameColumn(Name, (this as PrimitiveDataFrameColumn<bool>)._columnContainer.ElementwiseEquals(Unsafe.As<U, bool>(ref value)));
                 case Type decimalType when decimalType == typeof(decimal):
                     if (typeof(U) == typeof(bool))
                     {
@@ -1959,25 +1943,19 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseEquals(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseEquals(Unsafe.As<U, T>(ref value)));
                     }
                     else
                     {
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.ElementwiseEquals(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseEquals(DecimalConverter<U>.Instance.GetDecimal(value)));
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
                     if (typeof(U) != typeof(DateTime))
                     {
                         throw new NotSupportedException();
                     }
-                    PrimitiveDataFrameColumn<bool> retDateTimeColumn = CloneAsBooleanColumn();
-                    (this as PrimitiveDataFrameColumn<bool>)._columnContainer.ElementwiseEquals(Unsafe.As<U, bool>(ref value), retDateTimeColumn._columnContainer);
-                    return retDateTimeColumn;
+                    return new BooleanDataFrameColumn(Name, (this as PrimitiveDataFrameColumn<bool>)._columnContainer.ElementwiseEquals(Unsafe.As<U, bool>(ref value)));
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -1997,25 +1975,19 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseEquals(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseEquals(Unsafe.As<U, T>(ref value)));
                     }
                     else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.ElementwiseEquals(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseEquals(DecimalConverter<U>.Instance.GetDecimal(value)));
                         }
                         else
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.ElementwiseEquals(DoubleConverter<U>.Instance.GetDouble(value), newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, doubleColumn._columnContainer.ElementwiseEquals(DoubleConverter<U>.Instance.GetDouble(value)));
                         }
                     }
                 default:
@@ -2037,9 +2009,7 @@ namespace Microsoft.Data.Analysis
                     {
                         throw new NotSupportedException();
                     }
-                    PrimitiveDataFrameColumn<bool> retboolColumn = CloneAsBooleanColumn();
-                    (this as PrimitiveDataFrameColumn<U>)._columnContainer.ElementwiseNotEquals(column._columnContainer, retboolColumn._columnContainer);
-                    return retboolColumn;
+                    return new BooleanDataFrameColumn(Name, (this as PrimitiveDataFrameColumn<U>)._columnContainer.ElementwiseNotEquals(column._columnContainer));
                 case Type decimalType when decimalType == typeof(decimal):
                     if (typeof(U) == typeof(bool))
                     {
@@ -2049,25 +2019,19 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseNotEquals(column._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseNotEquals(column._columnContainer));
                     }
                     else
                     {
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.ElementwiseNotEquals(column.CloneAsDecimalColumn()._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseNotEquals(column.CloneAsDecimalColumn()._columnContainer));
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
                     if (typeof(U) != typeof(DateTime))
                     {
                         throw new NotSupportedException();
                     }
-                    PrimitiveDataFrameColumn<bool> retDateTimeColumn = CloneAsBooleanColumn();
-                    (this as PrimitiveDataFrameColumn<U>)._columnContainer.ElementwiseNotEquals(column._columnContainer, retDateTimeColumn._columnContainer);
-                    return retDateTimeColumn;
+                    return new BooleanDataFrameColumn(Name, (this as PrimitiveDataFrameColumn<U>)._columnContainer.ElementwiseNotEquals(column._columnContainer));
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -2087,25 +2051,19 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseNotEquals(column._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseNotEquals(column._columnContainer));
                     }
                     else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.ElementwiseNotEquals((column as PrimitiveDataFrameColumn<decimal>)._columnContainer, newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseNotEquals((column as PrimitiveDataFrameColumn<decimal>)._columnContainer));
                         }
                         else
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.ElementwiseNotEquals(column.CloneAsDoubleColumn()._columnContainer, newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, doubleColumn._columnContainer.ElementwiseNotEquals(column.CloneAsDoubleColumn()._columnContainer));
                         }
                     }
                 default:
@@ -2122,9 +2080,7 @@ namespace Microsoft.Data.Analysis
                     {
                         throw new NotSupportedException();
                     }
-                    PrimitiveDataFrameColumn<bool> retboolColumn = CloneAsBooleanColumn();
-                    (this as PrimitiveDataFrameColumn<bool>)._columnContainer.ElementwiseNotEquals(Unsafe.As<U, bool>(ref value), retboolColumn._columnContainer);
-                    return retboolColumn;
+                    return new BooleanDataFrameColumn(Name, (this as PrimitiveDataFrameColumn<bool>)._columnContainer.ElementwiseNotEquals(Unsafe.As<U, bool>(ref value)));
                 case Type decimalType when decimalType == typeof(decimal):
                     if (typeof(U) == typeof(bool))
                     {
@@ -2134,25 +2090,19 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseNotEquals(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseNotEquals(Unsafe.As<U, T>(ref value)));
                     }
                     else
                     {
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.ElementwiseNotEquals(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseNotEquals(DecimalConverter<U>.Instance.GetDecimal(value)));
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
                     if (typeof(U) != typeof(DateTime))
                     {
                         throw new NotSupportedException();
                     }
-                    PrimitiveDataFrameColumn<bool> retDateTimeColumn = CloneAsBooleanColumn();
-                    (this as PrimitiveDataFrameColumn<bool>)._columnContainer.ElementwiseNotEquals(Unsafe.As<U, bool>(ref value), retDateTimeColumn._columnContainer);
-                    return retDateTimeColumn;
+                    return new BooleanDataFrameColumn(Name, (this as PrimitiveDataFrameColumn<bool>)._columnContainer.ElementwiseNotEquals(Unsafe.As<U, bool>(ref value)));
                 case Type byteType when byteType == typeof(byte):
                 case Type charType when charType == typeof(char):
                 case Type doubleType when doubleType == typeof(double):
@@ -2172,25 +2122,19 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseNotEquals(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseNotEquals(Unsafe.As<U, T>(ref value)));
                     }
                     else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.ElementwiseNotEquals(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseNotEquals(DecimalConverter<U>.Instance.GetDecimal(value)));
                         }
                         else
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.ElementwiseNotEquals(DoubleConverter<U>.Instance.GetDouble(value), newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, doubleColumn._columnContainer.ElementwiseNotEquals(DoubleConverter<U>.Instance.GetDouble(value)));
                         }
                     }
                 default:
@@ -2218,16 +2162,12 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseGreaterThanOrEqual(column._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseGreaterThanOrEqual(column._columnContainer));
                     }
                     else
                     {
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.ElementwiseGreaterThanOrEqual(column.CloneAsDecimalColumn()._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseGreaterThanOrEqual(column.CloneAsDecimalColumn()._columnContainer));
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
                     throw new NotSupportedException();
@@ -2250,25 +2190,19 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseGreaterThanOrEqual(column._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseGreaterThanOrEqual(column._columnContainer));
                     }
                     else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.ElementwiseGreaterThanOrEqual((column as PrimitiveDataFrameColumn<decimal>)._columnContainer, newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseGreaterThanOrEqual((column as PrimitiveDataFrameColumn<decimal>)._columnContainer));
                         }
                         else
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.ElementwiseGreaterThanOrEqual(column.CloneAsDoubleColumn()._columnContainer, newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, doubleColumn._columnContainer.ElementwiseGreaterThanOrEqual(column.CloneAsDoubleColumn()._columnContainer));
                         }
                     }
                 default:
@@ -2291,16 +2225,12 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseGreaterThanOrEqual(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseGreaterThanOrEqual(Unsafe.As<U, T>(ref value)));
                     }
                     else
                     {
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.ElementwiseGreaterThanOrEqual(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseGreaterThanOrEqual(DecimalConverter<U>.Instance.GetDecimal(value)));
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
                     throw new NotSupportedException();
@@ -2323,25 +2253,19 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseGreaterThanOrEqual(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseGreaterThanOrEqual(Unsafe.As<U, T>(ref value)));
                     }
                     else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.ElementwiseGreaterThanOrEqual(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseGreaterThanOrEqual(DecimalConverter<U>.Instance.GetDecimal(value)));
                         }
                         else
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.ElementwiseGreaterThanOrEqual(DoubleConverter<U>.Instance.GetDouble(value), newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, doubleColumn._columnContainer.ElementwiseGreaterThanOrEqual(DoubleConverter<U>.Instance.GetDouble(value)));
                         }
                     }
                 default:
@@ -2369,16 +2293,12 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseLessThanOrEqual(column._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseLessThanOrEqual(column._columnContainer));
                     }
                     else
                     {
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.ElementwiseLessThanOrEqual(column.CloneAsDecimalColumn()._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseLessThanOrEqual(column.CloneAsDecimalColumn()._columnContainer));
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
                     throw new NotSupportedException();
@@ -2401,25 +2321,19 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseLessThanOrEqual(column._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseLessThanOrEqual(column._columnContainer));
                     }
                     else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.ElementwiseLessThanOrEqual((column as PrimitiveDataFrameColumn<decimal>)._columnContainer, newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseLessThanOrEqual((column as PrimitiveDataFrameColumn<decimal>)._columnContainer));
                         }
                         else
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.ElementwiseLessThanOrEqual(column.CloneAsDoubleColumn()._columnContainer, newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, doubleColumn._columnContainer.ElementwiseLessThanOrEqual(column.CloneAsDoubleColumn()._columnContainer));
                         }
                     }
                 default:
@@ -2442,16 +2356,12 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseLessThanOrEqual(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseLessThanOrEqual(Unsafe.As<U, T>(ref value)));
                     }
                     else
                     {
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.ElementwiseLessThanOrEqual(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseLessThanOrEqual(DecimalConverter<U>.Instance.GetDecimal(value)));
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
                     throw new NotSupportedException();
@@ -2474,25 +2384,19 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseLessThanOrEqual(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseLessThanOrEqual(Unsafe.As<U, T>(ref value)));
                     }
                     else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.ElementwiseLessThanOrEqual(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseLessThanOrEqual(DecimalConverter<U>.Instance.GetDecimal(value)));
                         }
                         else
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.ElementwiseLessThanOrEqual(DoubleConverter<U>.Instance.GetDouble(value), newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, doubleColumn._columnContainer.ElementwiseLessThanOrEqual(DoubleConverter<U>.Instance.GetDouble(value)));
                         }
                     }
                 default:
@@ -2520,16 +2424,12 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseGreaterThan(column._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseGreaterThan(column._columnContainer));
                     }
                     else
                     {
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.ElementwiseGreaterThan(column.CloneAsDecimalColumn()._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseGreaterThan(column.CloneAsDecimalColumn()._columnContainer));
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
                     throw new NotSupportedException();
@@ -2552,25 +2452,19 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseGreaterThan(column._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseGreaterThan(column._columnContainer));
                     }
                     else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.ElementwiseGreaterThan((column as PrimitiveDataFrameColumn<decimal>)._columnContainer, newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseGreaterThan((column as PrimitiveDataFrameColumn<decimal>)._columnContainer));
                         }
                         else
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.ElementwiseGreaterThan(column.CloneAsDoubleColumn()._columnContainer, newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, doubleColumn._columnContainer.ElementwiseGreaterThan(column.CloneAsDoubleColumn()._columnContainer));
                         }
                     }
                 default:
@@ -2593,16 +2487,12 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseGreaterThan(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseGreaterThan(Unsafe.As<U, T>(ref value)));
                     }
                     else
                     {
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.ElementwiseGreaterThan(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseGreaterThan(DecimalConverter<U>.Instance.GetDecimal(value)));
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
                     throw new NotSupportedException();
@@ -2625,25 +2515,19 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseGreaterThan(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseGreaterThan(Unsafe.As<U, T>(ref value)));
                     }
                     else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.ElementwiseGreaterThan(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseGreaterThan(DecimalConverter<U>.Instance.GetDecimal(value)));
                         }
                         else
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.ElementwiseGreaterThan(DoubleConverter<U>.Instance.GetDouble(value), newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, doubleColumn._columnContainer.ElementwiseGreaterThan(DoubleConverter<U>.Instance.GetDouble(value)));
                         }
                     }
                 default:
@@ -2671,16 +2555,12 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseLessThan(column._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseLessThan(column._columnContainer));
                     }
                     else
                     {
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.ElementwiseLessThan(column.CloneAsDecimalColumn()._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseLessThan(column.CloneAsDecimalColumn()._columnContainer));
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
                     throw new NotSupportedException();
@@ -2703,25 +2583,19 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseLessThan(column._columnContainer, newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseLessThan(column._columnContainer));
                     }
                     else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.ElementwiseLessThan((column as PrimitiveDataFrameColumn<decimal>)._columnContainer, newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseLessThan((column as PrimitiveDataFrameColumn<decimal>)._columnContainer));
                         }
                         else
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.ElementwiseLessThan(column.CloneAsDoubleColumn()._columnContainer, newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, doubleColumn._columnContainer.ElementwiseLessThan(column.CloneAsDoubleColumn()._columnContainer));
                         }
                     }
                 default:
@@ -2744,16 +2618,12 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseLessThan(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseLessThan(Unsafe.As<U, T>(ref value)));
                     }
                     else
                     {
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.ElementwiseLessThan(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseLessThan(DecimalConverter<U>.Instance.GetDecimal(value)));
                     }
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
                     throw new NotSupportedException();
@@ -2776,25 +2646,19 @@ namespace Microsoft.Data.Analysis
                     {
                         // No conversions
                         PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
-                        primitiveColumn._columnContainer.ElementwiseLessThan(Unsafe.As<U, T>(ref value), newColumn._columnContainer);
-                        return newColumn;
+                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.ElementwiseLessThan(Unsafe.As<U, T>(ref value)));
                     }
                     else
                     {
                         if (typeof(U) == typeof(decimal))
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.ElementwiseLessThan(DecimalConverter<U>.Instance.GetDecimal(value), newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.ElementwiseLessThan(DecimalConverter<U>.Instance.GetDecimal(value)));
                         }
                         else
                         {
-                            PrimitiveDataFrameColumn<bool> newColumn = CloneAsBooleanColumn();
                             PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.ElementwiseLessThan(DoubleConverter<U>.Instance.GetDouble(value), newColumn._columnContainer);
-                            return newColumn;
+                            return new BooleanDataFrameColumn(Name, doubleColumn._columnContainer.ElementwiseLessThan(DoubleConverter<U>.Instance.GetDouble(value)));
                         }
                     }
                 default:

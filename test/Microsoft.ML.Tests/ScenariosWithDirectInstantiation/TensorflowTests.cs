@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -180,6 +179,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(0d, prediction.PredictedScores[0], 2);
             Assert.Equal(0d, prediction.PredictedScores[1], 2);
             Assert.Equal(1d, prediction.PredictedScores[2], 2);
+            (transformer as IDisposable)?.Dispose();
         }
 
         [TensorFlowFact]
@@ -199,9 +199,10 @@ namespace Microsoft.ML.Scenarios
                                                      3.0f, 3.0f } } }));
 
             using var tfModel = _mlContext.Model.LoadTensorFlowModel(modelLocation);
-            var trans = tfModel.ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" }).Fit(loader).Transform(loader);
+            var trans = tfModel.ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" }).Fit(loader);
+            var idv = trans.Transform(loader);
 
-            using (var cursor = trans.GetRowCursorForAllColumns())
+            using (var cursor = idv.GetRowCursorForAllColumns())
             {
                 var cgetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema[2]);
                 Assert.True(cursor.MoveNext());
@@ -226,6 +227,7 @@ namespace Microsoft.ML.Scenarios
 
                 Assert.False(cursor.MoveNext());
             }
+            (trans as IDisposable)?.Dispose();
         }
 
         private class ShapeData
@@ -289,9 +291,10 @@ namespace Microsoft.ML.Scenarios
             var outputs = new string[] { "o_OneDim", "o_TwoDim", "o_ThreeDim", "o_FourDim", "o_FourDimKnown" };
 
             using var tfModel = _mlContext.Model.LoadTensorFlowModel(modelLocation);
-            var trans = tfModel.ScoreTensorFlowModel(outputs, inputs).Fit(loader).Transform(loader);
+            var trans = tfModel.ScoreTensorFlowModel(outputs, inputs).Fit(loader);
+            var idv = trans.Transform(loader);
 
-            using (var cursor = trans.GetRowCursorForAllColumns())
+            using (var cursor = idv.GetRowCursorForAllColumns())
             {
                 int outColIndex = 5;
                 var oneDimgetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema[outColIndex]);
@@ -337,6 +340,7 @@ namespace Microsoft.ML.Scenarios
                 }
                 Assert.False(cursor.MoveNext());
             }
+            (trans as IDisposable)?.Dispose();
         }
 
         private class TypesData
@@ -409,9 +413,10 @@ namespace Microsoft.ML.Scenarios
             var inputs = new string[] { "f64", "f32", "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8", "b" };
             var outputs = new string[] { "o_f64", "o_f32", "o_i64", "o_i32", "o_i16", "o_i8", "o_u64", "o_u32", "o_u16", "o_u8", "o_b" };
             using var tfModel = _mlContext.Model.LoadTensorFlowModel(modelLocation);
-            var trans = tfModel.ScoreTensorFlowModel(outputs, inputs).Fit(loader).Transform(loader);
+            var trans = tfModel.ScoreTensorFlowModel(outputs, inputs).Fit(loader);
+            var idv = trans.Transform(loader);
 
-            using (var cursor = trans.GetRowCursorForAllColumns())
+            using (var cursor = idv.GetRowCursorForAllColumns())
             {
                 var f64getter = cursor.GetGetter<VBuffer<double>>(cursor.Schema[11]);
                 var f32getter = cursor.GetGetter<VBuffer<float>>(cursor.Schema[12]);
@@ -490,6 +495,7 @@ namespace Microsoft.ML.Scenarios
                 }
                 Assert.False(cursor.MoveNext());
             }
+            (trans as IDisposable)?.Dispose();
         }
 
         [Fact(Skip = "Model files are not available yet")]
@@ -680,6 +686,7 @@ namespace Microsoft.ML.Scenarios
             var onePrediction = predictFunction.Predict(oneSample);
 
             Assert.Equal(5, GetMaxIndexForOnePrediction(onePrediction));
+            (trainedModel as IDisposable)?.Dispose();
         }
 
         [TensorFlowFact]
@@ -742,6 +749,7 @@ namespace Microsoft.ML.Scenarios
                         Assert.NotEqual(trainedBias.GetValues().ToArray(), new float[] { 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f });
                     }
                 }
+                (trainedModel as IDisposable)?.Dispose();
             }
             finally
             {
@@ -854,6 +862,7 @@ namespace Microsoft.ML.Scenarios
                 var prediction = predictFunction.Predict(oneSample);
 
                 Assert.Equal(2, GetMaxIndexForOnePrediction(prediction));
+                (trainedModel as IDisposable)?.Dispose();
             }
             finally
             {
@@ -904,6 +913,7 @@ namespace Microsoft.ML.Scenarios
 
             // Second group of checks
             Assert.Equal(5, GetMaxIndexForOnePrediction(onePrediction));
+            (trainedModel as IDisposable)?.Dispose();
         }
 
         private MNISTData GetOneMNISTExample()
@@ -1016,19 +1026,19 @@ namespace Microsoft.ML.Scenarios
                     "ImageCropped", interleavePixelColors: true));
 
             var pixels = pipeEstimator.Fit(data).Transform(data);
-            IDataView trans = tensorFlowModel.ScoreTensorFlowModel("Output", "Input")
-                .Fit(pixels).Transform(pixels);
+            var trans = tensorFlowModel.ScoreTensorFlowModel("Output", "Input").Fit(pixels);
+            IDataView idv = trans.Transform(pixels);
 
-            trans.Schema.TryGetColumnIndex("Output", out int output);
-            using (var cursor = trans.GetRowCursor(trans.Schema["Output"]))
-            using (var cursor2 = trans.GetRowCursor(trans.Schema["Output"]))
+            idv.Schema.TryGetColumnIndex("Output", out int output);
+            using (var cursor = idv.GetRowCursor(idv.Schema["Output"]))
+            using (var cursor2 = idv.GetRowCursor(idv.Schema["Output"]))
             {
                 var buffer = default(VBuffer<float>);
                 var buffer2 = default(VBuffer<float>);
                 var getter =
-                    cursor.GetGetter<VBuffer<float>>(trans.Schema["Output"]);
+                    cursor.GetGetter<VBuffer<float>>(idv.Schema["Output"]);
                 var getter2 =
-                    cursor2.GetGetter<VBuffer<float>>(trans.Schema["Output"]);
+                    cursor2.GetGetter<VBuffer<float>>(idv.Schema["Output"]);
                 var numRows = 0;
                 while (cursor.MoveNext() && cursor2.MoveNext())
                 {
@@ -1043,6 +1053,7 @@ namespace Microsoft.ML.Scenarios
 
                 Assert.Equal(7, numRows);
             }
+            (trans as IDisposable)?.Dispose();
         }
 
         [TensorFlowFact]
@@ -1067,12 +1078,13 @@ namespace Microsoft.ML.Scenarios
             var images = _mlContext.Transforms.LoadImages("ImageReal", imageFolder, "ImagePath").Fit(data).Transform(data);
             var cropped = _mlContext.Transforms.ResizeImages("ImageCropped", imageWidth, imageHeight, "ImageReal").Fit(images).Transform(images);
             var pixels = _mlContext.Transforms.ExtractPixels("Input", "ImageCropped", interleavePixelColors: true).Fit(cropped).Transform(cropped);
-            IDataView trans = tensorFlowModel.ScoreTensorFlowModel("Output", "Input").Fit(pixels).Transform(pixels);
+            var trans = tensorFlowModel.ScoreTensorFlowModel("Output", "Input").Fit(pixels);
+            IDataView idv = trans.Transform(pixels);
 
-            using (var cursor = trans.GetRowCursorForAllColumns())
+            using (var cursor = idv.GetRowCursorForAllColumns())
             {
                 var buffer = default(VBuffer<float>);
-                var getter = cursor.GetGetter<VBuffer<float>>(trans.Schema["Output"]);
+                var getter = cursor.GetGetter<VBuffer<float>>(idv.Schema["Output"]);
                 var numRows = 0;
                 while (cursor.MoveNext())
                 {
@@ -1082,6 +1094,7 @@ namespace Microsoft.ML.Scenarios
                 }
                 Assert.Equal(4, numRows);
             }
+            (trans as IDisposable)?.Dispose();
         }
 
         // This test doesn't really check the values of the results
@@ -1196,6 +1209,8 @@ namespace Microsoft.ML.Scenarios
                 for (var j = 0; j < predictions[i].PredictedScores.Length; j++)
                     Assert.Equal((double)predictions[i].PredictedScores[j], (double)testPredictions[i].PredictedScores[j], 2);
             }
+            (testTransformer as IDisposable)?.Dispose();
+            testPredictFunction.Dispose();
         }
 
         [TensorFlowFact]
@@ -1229,6 +1244,7 @@ namespace Microsoft.ML.Scenarios
                 thrown = true;
             }
             Assert.True(thrown);
+            model.Dispose();
         }
 
         /// <summary>
@@ -1283,6 +1299,10 @@ namespace Microsoft.ML.Scenarios
 
             Assert.Equal(2, prediction.Prediction.Length);
             Assert.InRange(prediction.Prediction[1], 0.650032759 - 0.01, 0.650032759 + 0.01);
+            (model as IDisposable)?.Dispose();
+            dataPipe.Dispose();
+            (pipelineModel as IDisposable)?.Dispose();
+            tfEnginePipe.Dispose();
         }
 
         class TextInput
@@ -1343,6 +1363,7 @@ namespace Microsoft.ML.Scenarios
             for (int i = 0; i < input.A.Length; i++)
                 Assert.Equal(input.A[i], textOutput.AOut[i]);
             Assert.Equal(string.Join(" ", input.B).Replace("/", " "), textOutput.BOut[0]);
+            transformer.Dispose();
         }
 
         [TensorFlowFact]
@@ -1371,6 +1392,7 @@ namespace Microsoft.ML.Scenarios
             var primitiveOutput = transformer.Predict(input);
 
             Assert.Equal("This is fine.Thank you very much!.", primitiveOutput.string_merge);
+            transformer.Dispose();
         }
 
         [TensorFlowFact]
@@ -1417,6 +1439,7 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(metrics.MacroAccuracy, 0.8, 1);
 
             (loadedModel as IDisposable)?.Dispose();
+            (trainedModel as IDisposable)?.Dispose();
         }
 
         internal bool ShouldReuse(string workspacePath, string trainSetBottleneckCachedValuesFileName, string validationSetBottleneckCachedValuesFileName)
@@ -1565,6 +1588,7 @@ namespace Microsoft.ML.Scenarios
             Assert.True(Array.IndexOf(labels, predictionSecond.PredictedLabel) > -1);
 
             (loadedModel as IDisposable)?.Dispose();
+            (trainedModel as IDisposable)?.Dispose();
         }
 
         [TensorFlowFact]
@@ -1727,6 +1751,8 @@ namespace Microsoft.ML.Scenarios
             Assert.True(File.Exists(Path.Combine(Path.GetTempPath(), "MLNET", ImageClassificationTrainer.ModelFileName[options.Arch])));
 
             (loadedModel as IDisposable)?.Dispose();
+            (trainedModel as IDisposable)?.Dispose();
+            predictionEngine.Dispose();
         }
 
         [TensorFlowTheory]
@@ -1808,6 +1834,7 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(lastEpoch, 1, 49);
 
             (loadedModel as IDisposable)?.Dispose();
+            (trainedModel as IDisposable)?.Dispose();
         }
 
         [TensorFlowFact]
@@ -1877,6 +1904,7 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(metrics.MacroAccuracy, 0.3, 1);
 
             (loadedModel as IDisposable)?.Dispose();
+            (trainedModel as IDisposable)?.Dispose();
         }
 
         public static IEnumerable<ImageData> LoadImagesFromDirectory(string folder,
@@ -2041,6 +2069,7 @@ namespace Microsoft.ML.Scenarios
                 var transformer = pipeline.Fit(data);
 
                 tfInputShape = transformer.LastTransformer.TFInputShapes;
+                transformer.Dispose();
             }
 
             Assert.Equal(imageHeight, tfInputShape.ElementAt(0)[1].dims[0]);

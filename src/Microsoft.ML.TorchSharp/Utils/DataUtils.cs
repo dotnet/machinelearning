@@ -73,5 +73,39 @@ namespace Microsoft.ML.TorchSharp.Utils
                 dst.copy_(src);
             }
         }
+
+        public static T[] Concat<T>(ReadOnlySpan<T> s1, ReadOnlySpan<T> s2)
+        {
+            var array = new T[s1.Length + s2.Length];
+            s1.CopyTo(array);
+            s2.CopyTo(array.AsSpan(s1.Length));
+            return array;
+        }
+
+        public static T[] Concat<T>(ReadOnlySpan<T> s1, ReadOnlySpan<T> s2, ReadOnlySpan<T> s3)
+        {
+            var array = new T[s1.Length + s2.Length + s3.Length];
+            s1.CopyTo(array);
+            s2.CopyTo(array.AsSpan(s1.Length));
+            s3.CopyTo(array.AsSpan(s1.Length + s2.Length));
+            return array;
+        }
+
+        public static T[] Concat<T>(ReadOnlySpan<T> s1, T s2)
+        {
+            var array = new T[s1.Length + 1];
+            s1.CopyTo(array);
+            array.AsSpan(s1.Length)[0] = s2;
+            return array;
+        }
+
+        public static T[] Concat<T>(ReadOnlySpan<T> s1, T s2, T s3)
+        {
+            var array = new T[s1.Length + 2];
+            s1.CopyTo(array);
+            array.AsSpan(s1.Length)[0] = s2;
+            array.AsSpan(s1.Length + 1)[0] = s3;
+            return array;
+        }
     }
 }

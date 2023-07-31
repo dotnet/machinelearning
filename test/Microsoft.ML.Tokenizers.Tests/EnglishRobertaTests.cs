@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new int[] { 15496, 22108, 64 },
                     new string[] { "Hello", "\u0120Bert", "a" },
                     new (int, int)[] { (0, 5), (5, 10), (10, 11) },
-                    "Hello\u0120Berta",
+                    "Hello Berta",
                     new int[] { 35245, 144292, 18759122 }
                 };
 
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new int[] { 15496, 22108, 64 },
                     new string[] { "Hello", "\u0120Bert", "a" },
                     new (int, int)[] { (0, 5), (5, 10), (10, 11) },
-                    "Hello\u0120Berta",
+                    "Hello Berta",
                     new int[] { 35245, 144292, 18759122 }
                 };
 
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new int[] { 818, 262, 1755, 13 },
                     new string[] { "In", "\u0120the", "\u0120night", "." },
                     new (int, int)[] { (0, 2), (2, 6), (6, 12), (12, 13) },
-                    "In\u0120the\u0120night.",
+                    "In the night.",
                     new int[] { 2224123, 800385005, 6062347, 850314647 }
                 };
 
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new int[] { 1544, 18798, 4312, 8326 },
                     new string[] { "He", "llo", "ĠBer", "ta" },
                     new (int, int)[] { (0, 2), (4, 7), (7, 11), (13, 15) },
-                    "Hello\u0120Berta",
+                    "Hello Berta",
                     new int[] { 2759525, 207306, 565286, 560191 }
                 };
 
