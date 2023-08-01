@@ -14,6 +14,7 @@ using System.Data.SQLite;
 using System.Data.SQLite.EF6;
 using Xunit;
 using Microsoft.ML.TestFramework.Attributes;
+using System.Threading;
 
 namespace Microsoft.Data.Analysis.Tests
 {
@@ -152,6 +153,42 @@ namespace Microsoft.Data.Analysis.Tests
             ReducedRowsTest(reducedRows);
             csvDf = DataFrame.LoadCsvFromString(data, numberOfRowsToRead: 3);
             ReducedRowsTest(csvDf);
+        }
+
+        [Fact]
+        public void TestReadCsvWithHeaderCultureInfoAndSeparator()
+        {
+            string data = @$"vendor_id;rate_code;passenger_count;trip_time_in_secs;trip_distance;payment_type;fare_amount
+CMT;1;1;1271;3,8;CRD;17,5
+CMT;1;1;474;1,5;CRD;8
+CMT;1;1;637;1,4;CRD;8,5
+CMT;1;1;181;0,6;CSH;4,5";
+
+            void RegularTest(DataFrame df)
+            {
+                Assert.Equal(4, df.Rows.Count);
+                Assert.Equal(7, df.Columns.Count);
+
+                Assert.Equal(3.8f, (float)df["trip_distance"][0]);
+                Assert.Equal(17.5f, (float)df["fare_amount"][0]);
+
+                Assert.Equal(1.5f, (float)df["trip_distance"][1]);
+                Assert.Equal(8f, (float)df["fare_amount"][1]);
+
+                Assert.Equal(1.4f, (float)df["trip_distance"][2]);
+                Assert.Equal(8.5f, (float)df["fare_amount"][2]);
+
+                VerifyColumnTypes(df);
+            }
+
+            // de-DE has ',' as decimal separator
+            var cultureInfo = new CultureInfo("de-DE");
+            DataFrame df = DataFrame.LoadCsv(GetStream(data), separator: ';', cultureInfo: cultureInfo);
+
+            RegularTest(df);
+
+            DataFrame csvDf = DataFrame.LoadCsvFromString(data, separator: ';', cultureInfo: cultureInfo);
+            RegularTest(csvDf);
         }
 
         [Fact]
