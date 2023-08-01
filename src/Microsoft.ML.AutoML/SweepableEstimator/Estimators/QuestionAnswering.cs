@@ -7,9 +7,9 @@ using Microsoft.ML.TorchSharp.Roberta;
 
 namespace Microsoft.ML.AutoML.CodeGen
 {
-    internal class QuestionAnsweringMulti
+    internal partial class QuestionAnsweringMulti
     {
-        public IEstimator<ITransformer> BuildFromOption(MLContext context, QATrainer.Options param)
+        public override IEstimator<ITransformer> BuildFromOption(MLContext context, QuestionAnsweringOption param)
         {
             return context.MulticlassClassification.Trainers.QuestionAnswer(
                    contextColumnName: param.ContextColumnName,
@@ -19,9 +19,10 @@ namespace Microsoft.ML.AutoML.CodeGen
                    predictedAnswerColumnName: param.PredictedAnswerColumnName,
                    scoreColumnName: param.ScoreColumnName,
                    batchSize: param.BatchSize,
-                   maxEpochs: param.MaxEpoch,
+                   maxEpochs: param.MaxEpochs,
                    topK: param.TopKAnswers,
                    architecture: BertArchitecture.Roberta);
         }
+
     }
 }

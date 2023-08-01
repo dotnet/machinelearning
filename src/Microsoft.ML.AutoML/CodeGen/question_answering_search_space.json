@@ -1,6 +1,6 @@
 ﻿{
   "$schema": "./search-space-schema.json#",
-  "name": "question_answering _option",
+  "name": "question_answering_option",
   "search_space": [
     {
       "name": "ContextColumnName",
@@ -8,7 +8,7 @@
       "default": "Context"
     },
     {
-      "name": " QuestionColumnName",
+      "name": "QuestionColumnName",
       "type": "string",
       "default": "Question"
     },
@@ -41,6 +41,11 @@
       "name": "MaxEpochs",
       "type": "integer",
       "default": 10
+    },
+    {
+      "name": "TopKAnswers",
+      "type": "integer",
+      "default": 3
     },
     {
       "name": "Architecture",
