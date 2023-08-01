@@ -146,7 +146,8 @@
         "dnn_featurizer_image_option",
         "text_classification_option",
         "sentence_similarity_option",
-        "object_detection_option"
+        "object_detection_option",
+        "question_answering _option"
       ]
     },
     "option_name": {

@@ -73,7 +73,8 @@
               "ForecastBySsa",
               "TextClassifcation",
               "SentenceSimilarity",
-              "ObjectDetection"
+              "ObjectDetection",
+              "QuestionAnswering"
             ]
           },
           "nugetDependencies": {

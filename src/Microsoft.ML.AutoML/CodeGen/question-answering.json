@@ -1,0 +1,51 @@
+﻿{
+  "$schema": "./search-space-schema.json#",
+  "name": "question_answering _option",
+  "search_space": [
+    {
+      "name": "ContextColumnName",
+      "type": "string",
+      "default": "Context"
+    },
+    {
+      "name": " QuestionColumnName",
+      "type": "string",
+      "default": "Question"
+    },
+    {
+      "name": "TrainingAnswerColumnName",
+      "type": "string",
+      "default": "TrainingAnswer"
+    },
+    {
+      "name": "AnswerIndexStartColumnName",
+      "type": "string",
+      "default": "AnswerStart"
+    },
+    {
+      "name": "ScoreColumnName",
+      "type": "string",
+      "default": "Score"
+    },
+    {
+      "name": "predictedAnswerColumnName",
+      "type": "string",
+      "default": "Answer"
+    },
+    {
+      "name": "BatchSize",
+      "type": "integer",
+      "default": 4
+    },
+    {
+      "name": "MaxEpochs",
+      "type": "integer",
+      "default": 10
+    },
+    {
+      "name": "Architecture",
+      "type": "bertArchitecture",
+      "default": "BertArchitecture.Roberta"
+    }
+  ]
+}
