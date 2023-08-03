@@ -146,7 +146,8 @@
         "dnn_featurizer_image_option",
         "text_classification_option",
         "sentence_similarity_option",
-        "object_detection_option"
+        "object_detection_option",
+        "question_answering_option"
       ]
     },
     "option_name": {
@@ -210,7 +211,13 @@
         "Steps",
         "MaxEpoch",
         "InitLearningRate",
-        "WeightDecay"
+        "WeightDecay",
+        "ContextColumnName",
+        "QuestionColumnName",
+        "TrainingAnswerColumnName",
+        "AnswerIndexStartColumnName",
+        "predictedAnswerColumnName",
+        "TopKAnswers"
       ]
     },
     "option_type": {
