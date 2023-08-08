@@ -217,7 +217,8 @@
         "TrainingAnswerColumnName",
         "AnswerIndexStartColumnName",
         "predictedAnswerColumnName",
-        "TopKAnswers"
+        "TopKAnswers",
+        "TargetType"
       ]
     },
     "option_type": {
@@ -235,7 +236,8 @@
         "anchor",
         "dnnModelFactory",
         "bertArchitecture",
-        "imageClassificationArchType"
+        "imageClassificationArchType",
+        "DataKind"
       ]
     }
   },
