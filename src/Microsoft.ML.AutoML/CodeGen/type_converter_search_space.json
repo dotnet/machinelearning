@@ -12,7 +12,7 @@
     },
     {
       "name": "TargetType",
-      "type": "DataKind"
+      "type": "dataKind"
     }
   ]
 }
