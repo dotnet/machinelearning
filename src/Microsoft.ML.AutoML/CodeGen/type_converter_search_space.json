@@ -12,7 +12,8 @@
     },
     {
       "name": "TargetType",
-      "type": "dataKind"
+      "type": "dataKind",
+      "default": "DataKind.Single"
     }
   ]
 }
