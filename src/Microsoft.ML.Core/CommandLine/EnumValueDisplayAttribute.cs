@@ -4,20 +4,19 @@
 
 using System;
 
-namespace Microsoft.ML.CommandLine
-{
-    /// <summary>
-    /// On an enum value - specifies the display name.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Field)]
-    [BestFriend]
-    internal sealed class EnumValueDisplayAttribute : Attribute
-    {
-        public readonly string Name;
+namespace Microsoft.ML.CommandLine;
 
-        public EnumValueDisplayAttribute(string name)
-        {
-            Name = name;
-        }
+/// <summary>
+/// On an enum value - specifies the display name.
+/// </summary>
+[AttributeUsage(AttributeTargets.Field)]
+[BestFriend]
+internal sealed class EnumValueDisplayAttribute : Attribute
+{
+    public readonly string Name;
+
+    public EnumValueDisplayAttribute(string name)
+    {
+        Name = name;
     }
 }
