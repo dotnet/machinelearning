@@ -8,25 +8,24 @@ using System;
 using System.Reflection;
 using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities;
+
+/// <summary>
+/// Represents the <see cref="MethodInfo"/> for a generic function corresponding to <see cref="Func{TResult}"/>,
+/// with the following characteristics:
+///
+/// <list type="bullet">
+/// <item><description>The method is static.</description></item>
+/// <item><description>One generic type argument.</description></item>
+/// <item><description>A return value of <typeparamref name="TResult"/>.</description></item>
+/// </list>
+/// </summary>
+/// <typeparam name="TResult">The type of the return value of the method.</typeparam>
+internal sealed class FuncStaticMethodInfo1<TResult> : FuncMethodInfo1<TResult>
 {
-    /// <summary>
-    /// Represents the <see cref="MethodInfo"/> for a generic function corresponding to <see cref="Func{TResult}"/>,
-    /// with the following characteristics:
-    ///
-    /// <list type="bullet">
-    /// <item><description>The method is static.</description></item>
-    /// <item><description>One generic type argument.</description></item>
-    /// <item><description>A return value of <typeparamref name="TResult"/>.</description></item>
-    /// </list>
-    /// </summary>
-    /// <typeparam name="TResult">The type of the return value of the method.</typeparam>
-    internal sealed class FuncStaticMethodInfo1<TResult> : FuncMethodInfo1<TResult>
+    public FuncStaticMethodInfo1(Func<TResult> function)
+        : base(function.Method)
     {
-        public FuncStaticMethodInfo1(Func<TResult> function)
-            : base(function.Method)
-        {
-            Contracts.CheckParam(GenericMethodDefinition.IsStatic, nameof(function), "Should be a static method");
-        }
+        Contracts.CheckParam(GenericMethodDefinition.IsStatic, nameof(function), "Should be a static method");
     }
 }

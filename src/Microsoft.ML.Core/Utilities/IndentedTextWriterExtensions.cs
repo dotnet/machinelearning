@@ -5,44 +5,43 @@
 using System;
 using System.CodeDom.Compiler;
 
-namespace Microsoft.ML.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities;
+
+[BestFriend]
+internal static class IndentedTextWriterExtensions
 {
-    [BestFriend]
-    internal static class IndentedTextWriterExtensions
+    public struct Scope : IDisposable
     {
-        public struct Scope : IDisposable
-        {
-            private IndentedTextWriter _writer;
+        private IndentedTextWriter _writer;
 
-            public Scope(IndentedTextWriter writer)
-            {
-                _writer = writer;
-                _writer.Indent();
-            }
-            public void Dispose()
-            {
-                _writer.Outdent();
-                _writer = null;
-            }
+        public Scope(IndentedTextWriter writer)
+        {
+            _writer = writer;
+            _writer.Indent();
         }
+        public void Dispose()
+        {
+            _writer.Outdent();
+            _writer = null;
+        }
+    }
 
-        public static Scope Nest(this IndentedTextWriter writer)
-        {
-            return new Scope(writer);
-        }
+    public static Scope Nest(this IndentedTextWriter writer)
+    {
+        return new Scope(writer);
+    }
 
-        public static void Indent(this IndentedTextWriter writer)
-        {
-            writer.Indent++;
-        }
-        public static void Outdent(this IndentedTextWriter writer)
-        {
-            writer.Indent--;
-        }
+    public static void Indent(this IndentedTextWriter writer)
+    {
+        writer.Indent++;
+    }
+    public static void Outdent(this IndentedTextWriter writer)
+    {
+        writer.Indent--;
+    }
 
-        public static void WriteLineNoTabs(this IndentedTextWriter writer)
-        {
-            writer.WriteLineNoTabs(string.Empty);
-        }
+    public static void WriteLineNoTabs(this IndentedTextWriter writer)
+    {
+        writer.WriteLineNoTabs(string.Empty);
     }
 }

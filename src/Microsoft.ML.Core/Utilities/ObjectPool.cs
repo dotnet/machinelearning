@@ -6,60 +6,59 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 
-namespace Microsoft.ML.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities;
+
+[BestFriend]
+internal sealed class ObjectPool<T> : ObjectPoolBase<T> where T : class, new()
 {
-    [BestFriend]
-    internal sealed class ObjectPool<T> : ObjectPoolBase<T> where T : class, new()
+    protected override T Create()
     {
-        protected override T Create()
-        {
-            return new T();
-        }
+        return new T();
+    }
+}
+
+[BestFriend]
+internal sealed class MadeObjectPool<T> : ObjectPoolBase<T>
+{
+    private readonly Func<T> _maker;
+
+    public MadeObjectPool(Func<T> maker)
+    {
+        _maker = maker;
     }
 
-    [BestFriend]
-    internal sealed class MadeObjectPool<T> : ObjectPoolBase<T>
+    protected override T Create()
     {
-        private readonly Func<T> _maker;
+        return _maker();
+    }
+}
 
-        public MadeObjectPool(Func<T> maker)
-        {
-            _maker = maker;
-        }
+internal abstract class ObjectPoolBase<T>
+{
+    private readonly ConcurrentBag<T> _pool;
+    private int _numCreated;
 
-        protected override T Create()
-        {
-            return _maker();
-        }
+    public int Count => _pool.Count;
+    public int NumCreated { get { return _numCreated; } }
+
+    private protected ObjectPoolBase()
+    {
+        _pool = new ConcurrentBag<T>();
     }
 
-    internal abstract class ObjectPoolBase<T>
+    public T Get()
     {
-        private readonly ConcurrentBag<T> _pool;
-        private int _numCreated;
+        T result;
+        if (_pool.TryTake(out result))
+            return result;
+        Interlocked.Increment(ref _numCreated);
+        return Create();
+    }
 
-        public int Count => _pool.Count;
-        public int NumCreated { get { return _numCreated; } }
+    protected abstract T Create();
 
-        private protected ObjectPoolBase()
-        {
-            _pool = new ConcurrentBag<T>();
-        }
-
-        public T Get()
-        {
-            T result;
-            if (_pool.TryTake(out result))
-                return result;
-            Interlocked.Increment(ref _numCreated);
-            return Create();
-        }
-
-        protected abstract T Create();
-
-        public void Return(T item)
-        {
-            _pool.Add(item);
-        }
+    public void Return(T item)
+    {
+        _pool.Add(item);
     }
 }
