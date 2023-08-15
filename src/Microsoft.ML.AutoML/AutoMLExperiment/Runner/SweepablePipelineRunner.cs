@@ -45,6 +45,10 @@ namespace Microsoft.ML.AutoML
                 var models = new List<ITransformer>();
                 foreach (var split in datasetSplit)
                 {
+                    // a work-around to fix issue https://github.com/dotnet/machinelearning-modelbuilder/issues/2718
+                    // where the root cause is the shape of deep learning model is determined by the first time when this model is trained
+                    // therefore, the deep learning model can't be retrained using the same pipeline
+                    mlnetPipeline = _pipeline.BuildFromOption(_mLContext, parameter);
                     var model = mlnetPipeline.Fit(split.TrainSet);
                     var eval = model.Transform(split.TestSet);
                     metrics.Add(_metricManager.Evaluate(_mLContext, eval));

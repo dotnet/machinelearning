@@ -3,10 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.ML.TorchSharp.Utils;
 using TorchSharp;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Models
@@ -14,12 +10,15 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
     internal abstract class BaseModel : torch.nn.Module<torch.Tensor, torch.Tensor, torch.Tensor>
     {
         protected readonly NasBertTrainer.NasBertOptions Options;
-        public BertTaskType HeadType => Options.TaskType;
+        public BertModelType EncoderType => Options.ModelType;
 
-        //public ModelType EncoderType => Options.ModelType;
+        public BertTaskType HeadType => Options.TaskType;
 
 #pragma warning disable CA1024 // Use properties where appropriate: Modules should be fields in TorchSharp
         public abstract TransformerEncoder GetEncoder();
+
+        public abstract BaseHead GetHead();
+
 #pragma warning restore CA1024 // Use properties where appropriate
 
         protected BaseModel(NasBertTrainer.NasBertOptions options)

@@ -5,22 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using Apache.Arrow;
-using ICSharpCode.SharpZipLib.Tar;
+using MathNet.Numerics.Statistics;
 using Microsoft.Data.Analysis;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TorchSharp;
 using Microsoft.ML.TorchSharp.NasBert;
-using TorchSharp;
 using Xunit;
 using Xunit.Abstractions;
-using static TorchSharp.torch.utils;
 
 namespace Microsoft.ML.Tests
 {
@@ -167,6 +160,7 @@ namespace Microsoft.ML.Tests
             // Not enough training is done to get good results so just make sure the count is right.
             var a = predictedLabel.ToList();
             Assert.Equal(8, a.Count());
+            transformer.Dispose();
         }
 
         // To run the TestTextClassificationWithBigDataOnGpu, set the EnableRunningGpuTest property to true and in the csproj enable the package TorchSharp-cuda-windows and disable libtorch-cpu-win-x64.
@@ -189,6 +183,7 @@ namespace Microsoft.ML.Tests
             var metrics = mlContext.MulticlassClassification.Evaluate(predictionIdv);
             Assert.True(metrics.MacroAccuracy > .69);
             Assert.True(metrics.MicroAccuracy > .70);
+            model.Dispose();
         }
 
         [Fact]
@@ -242,7 +237,7 @@ namespace Microsoft.ML.Tests
                 .Append(ML.MulticlassClassification.Trainers.TextClassification(outputColumnName: "outputColumn"))
                 .Append(ML.Transforms.Conversion.MapKeyToValue("outputColumn"));
 
-            TestEstimatorCore(estimator, dataView);
+            TestEstimatorCore(estimator, dataView, shouldDispose: true);
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
 
             Assert.Equal(5, estimatorSchema.Count);
@@ -261,6 +256,7 @@ namespace Microsoft.ML.Tests
             Assert.NotNull(transformedData);
             // Not enough training is done to get good results so just make sure the count is right.
             Assert.Equal(8, transformedData.RowView.Count());
+            transformer.Dispose();
         }
 
         [Fact]
@@ -325,7 +321,7 @@ namespace Microsoft.ML.Tests
             var estimator = ML.MulticlassClassification.Trainers.TextClassification(outputColumnName: "outputColumn", sentence1ColumnName: "Sentence", sentence2ColumnName: "Sentence2", validationSet: preppedData)
                 .Append(ML.Transforms.Conversion.MapKeyToValue("outputColumn"));
 
-            TestEstimatorCore(estimator, preppedData);
+            TestEstimatorCore(estimator, preppedData, shouldDispose: true);
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(preppedData.Schema));
 
             Assert.Equal(5, estimatorSchema.Count);
@@ -343,6 +339,7 @@ namespace Microsoft.ML.Tests
             // Not enough training is done to get good results so just make sure there is the correct number.
             Assert.NotNull(predictedLabel);
             Assert.Equal(8, predictedLabel.Count());
+            transformer.Dispose();
         }
 
         [Fact]
@@ -390,7 +387,7 @@ namespace Microsoft.ML.Tests
 
             var estimator = ML.Regression.Trainers.SentenceSimilarity(sentence1ColumnName: "Sentence", sentence2ColumnName: "Sentence2");
 
-            TestEstimatorCore(estimator, dataView);
+            TestEstimatorCore(estimator, dataView, shouldDispose: true);
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
 
             Assert.Equal(4, estimatorSchema.Count);
@@ -407,6 +404,7 @@ namespace Microsoft.ML.Tests
             var score = transformer.Transform(dataView).GetColumn<float>(transformerSchema[3].Name);
             // Not enough training is done to get good results so just make sure there is the correct number.
             Assert.NotNull(score);
+            transformer.Dispose();
         }
 
         [Fact(Skip = "Needs to be on a comp with GPU or will take a LONG time.")]
@@ -427,14 +425,14 @@ namespace Microsoft.ML.Tests
                 },
                 HasHeader = true,
                 Separators = new[] { ',' },
-                MaxRows = 1000 // Dataset has 75k rows. Only load 1k for quicker training,
+                MaxRows = 5000 // Dataset has 75k rows. Only load 1k for quicker training,
             }, new MultiFileSource(trainFile));
 
             dataView = ML.Data.FilterRowsByMissingValues(dataView, "relevance");
 
             var dataSplit = ML.Data.TrainTestSplit(dataView, testFraction: 0.2);
 
-            var options = new NasBertTrainer.NasBertOptions()
+            var options = new SentenceSimilarityTrainer.SentenceSimilarityOptions()
             {
                 TaskType = BertTaskType.SentenceRegression,
                 Sentence1ColumnName = "search_term",
@@ -449,10 +447,11 @@ namespace Microsoft.ML.Tests
             var predictions = transformedData.GetColumn<float>("relevance").ToArray().Select(num => (double)num).ToArray();
             var targets = transformedData.GetColumn<float>("Score").ToArray().Select(num => (double)num).ToArray();
 
-            // Need to the nuget MathNet.Numerics.Signed for these.
-            //var pearson = Correlation.Pearson(predictions, targets);
+            var pearson = Correlation.Pearson(predictions, targets);
 
-            //var spearman = Correlation.Spearman(predictions, targets);
+            var spearman = Correlation.Spearman(predictions, targets);
+
+            model.Dispose();
         }
     }
 

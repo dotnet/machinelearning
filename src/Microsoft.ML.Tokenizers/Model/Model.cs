@@ -35,6 +35,8 @@ namespace Microsoft.ML.Tokenizers
         /// <returns>The mapped token of the Id.</returns>
         public abstract string? IdToToken(int id, bool skipSpecialTokens = false);
 
+        public abstract string? IdToString(int id, bool skipSpecialTokens = false);
+
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
@@ -57,6 +59,14 @@ namespace Microsoft.ML.Tokenizers
         /// Gets a trainer object to use in training the model.
         /// </summary>
         public abstract Trainer? GetTrainer();
+
+        /// <summary>
+        /// Return true if the char is valid in the tokenizer; otherwise return false.
+        /// </summary>
+        /// <param name="ch"></param>
+        /// <returns></returns>
+        public abstract bool IsValidChar(char ch);
+
     }
 
 }
