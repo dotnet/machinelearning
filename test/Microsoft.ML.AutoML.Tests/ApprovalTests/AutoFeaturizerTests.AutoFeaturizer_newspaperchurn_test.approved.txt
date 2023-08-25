@@ -21,7 +21,8 @@
         ],
         "InputColumnNames": [
           "dummy for Children"
-        ]
+        ],
+        "TargetType": "Single"
       }
     },
     "e2": {
