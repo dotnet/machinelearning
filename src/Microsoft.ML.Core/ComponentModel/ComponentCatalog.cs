@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime
                 return AccessModifier.Internal;
             if (methodInfo.IsPublic)
                 return AccessModifier.Public;
-            throw new ArgumentException("Did not find access modifier", "methodInfo");
+            throw new ArgumentException("Did not find access modifier", nameof(methodInfo));
         }
 
         internal static AccessModifier Accessmodifier(this ConstructorInfo constructorInfo)
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Runtime
                 return AccessModifier.Internal;
             if (constructorInfo.IsPublic)
                 return AccessModifier.Public;
-            throw new ArgumentException("Did not find access modifier", "constructorInfo");
+            throw new ArgumentException("Did not find access modifier", nameof(constructorInfo));
         }
 
         internal enum AccessModifier
