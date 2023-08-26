@@ -46,6 +46,26 @@
         "BertArchitecture.Roberta"
       ]
     },
+    "dataKind": {
+      "type": "string",
+      "enum": [
+        "DataKind.Int16",
+        "DataKind.SByte",
+        "DataKind.Byte",
+        "DataKind.UInt16",
+        "DataKind.Int32",
+        "DataKind.UInt32",
+        "DataKind.Int64",
+        "DataKind.UInt64",
+        "DataKind.Single",
+        "DataKind.Double",
+        "DataKind.String",
+        "DataKind.Boolean",
+        "DataKind.TimeSpan",
+        "DataKind.DateTime",
+        "DataKind.DateTimeOffset"
+      ]
+    },
     "bertArchitectureArray": {
       "type": "array",
       "items": {
@@ -217,7 +237,8 @@
         "TrainingAnswerColumnName",
         "AnswerIndexStartColumnName",
         "predictedAnswerColumnName",
-        "TopKAnswers"
+        "TopKAnswers",
+        "TargetType"
       ]
     },
     "option_type": {
@@ -235,7 +256,8 @@
         "anchor",
         "dnnModelFactory",
         "bertArchitecture",
-        "imageClassificationArchType"
+        "imageClassificationArchType",
+        "dataKind"
       ]
     }
   },
