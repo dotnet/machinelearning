@@ -34,6 +34,7 @@ using ResizingKind = Microsoft.ML.Transforms.Image.ImageResizingEstimator.Resizi
 using Anchor = Microsoft.ML.Transforms.Image.ImageResizingEstimator.Anchor;
 using BertArchitecture = Microsoft.ML.TorchSharp.NasBert.BertArchitecture;
 using static Microsoft.ML.Vision.ImageClassificationTrainer.Architecture;
+using DataKind = Microsoft.ML.Data.DataKind;
 #nullable enable
 
 namespace ");
@@ -92,7 +93,7 @@ public IEnumerable<(string, string, string, string)> Properties {get; set;}
         /// <summary>
         /// The string builder that generation-time code is using to assemble generated output
         /// </summary>
-        protected System.Text.StringBuilder GenerationEnvironment
+        public System.Text.StringBuilder GenerationEnvironment
         {
             get
             {
