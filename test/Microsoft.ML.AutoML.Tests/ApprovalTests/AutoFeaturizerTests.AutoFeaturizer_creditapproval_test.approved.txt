@@ -21,7 +21,8 @@
         ],
         "InputColumnNames": [
           "BooleanFeatures"
-        ]
+        ],
+        "TargetType": "Single"
       }
     },
     "e2": {
