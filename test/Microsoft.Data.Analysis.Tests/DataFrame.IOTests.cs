@@ -660,6 +660,19 @@ CMT,1,1,181,0.6,CSH,4.5,0";
         }
 
         [Fact]
+        public void TestLoadCsvWithAddIndexColumn()
+        {
+            var dataFrame = DataFrame.LoadCsvFromString("11\r\n22\r\n33", header: false, addIndexColumn: true);
+
+            Assert.Equal(2, dataFrame.Columns.Count);
+            Assert.Equal("IndexColumn", dataFrame.Columns[0].Name);
+            Assert.Equal(3, dataFrame.Columns[0].Length);
+
+            for (long i = 0; i < dataFrame.Columns[0].Length; i++)
+                Assert.Equal(i, dataFrame.Columns[0][i]);
+        }
+
+        [Fact]
         public void TestReadCsvWithExtraColumnInRow()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount
