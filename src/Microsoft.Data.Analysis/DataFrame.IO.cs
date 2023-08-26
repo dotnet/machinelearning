@@ -459,14 +459,13 @@ namespace Microsoft.Data.Analysis
 
                 if (addIndexColumn)
                 {
-                    PrimitiveDataFrameColumn<int> indexColumn = new PrimitiveDataFrameColumn<int>("IndexColumn", columns[0].Length);
-                    for (int i = 0; i < columns[0].Length; i++)
+                    Int64DataFrameColumn indexColumn = new Int64DataFrameColumn("IndexColumn", columns[0].Length);
+                    for (long i = 0; i < columns[0].Length; i++)
                     {
                         indexColumn[i] = i;
                     }
-                    columns.Insert(0, indexColumn);
+                    ret.Columns.Insert(0, indexColumn);
                 }
-
             }
 
             return ret;
