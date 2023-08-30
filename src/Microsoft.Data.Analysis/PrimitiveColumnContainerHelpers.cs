@@ -11,10 +11,9 @@ namespace Microsoft.Data.Analysis
         internal static DataFrameBuffer<T> GetOrCreateMutable<T>(this IList<ReadOnlyDataFrameBuffer<T>> bufferList, int index)
             where T : unmanaged
         {
-            ReadOnlyDataFrameBuffer<T> sourceBuffer = bufferList[index];
-            DataFrameBuffer<T> mutableBuffer = sourceBuffer as DataFrameBuffer<T>;
+            var sourceBuffer = bufferList[index];
 
-            if (mutableBuffer == null)
+            if (sourceBuffer is not DataFrameBuffer<T> mutableBuffer)
             {
                 mutableBuffer = DataFrameBuffer<T>.GetMutableBuffer(sourceBuffer);
                 bufferList[index] = mutableBuffer;
