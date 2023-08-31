@@ -3620,5 +3620,78 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(2, filteredNullDf.Columns["index"][0]);
             Assert.Equal(5, filteredNullDf.Columns["index"][1]);
         }
+
+        [Fact]
+        public void Test_ArithmeticsSumWithNull()
+        {
+            // Arrange
+            var left_column = new PrimitiveDataFrameColumn<int>("Left", new int?[] { 1, 1, null, null });
+            var right_column = new PrimitiveDataFrameColumn<int>("Right", new int?[] { 1, null, 1, null });
+
+            // Act
+            var sum = left_column + right_column;
+
+            // Assert
+            Assert.Equal(3, sum.NullCount);
+
+            Assert.Equal(2, sum[0]);  // 1 + 1
+            Assert.Null(sum[1]); // null + 1
+            Assert.Null(sum[2]); // 1 + null
+            Assert.Null(sum[3]); // null + null
+        }
+
+        [Fact]
+        public void Test_ArithmeticsDiffWithNull()
+        {
+            // Arrange
+            var left_column = new PrimitiveDataFrameColumn<int>("Left", new int?[] { 1, 1, null, null });
+            var right_column = new PrimitiveDataFrameColumn<int>("Right", new int?[] { 1, null, 1, null });
+
+            // Act
+            var diff = left_column - right_column;
+
+            // Assert
+            Assert.Equal(3, diff.NullCount);
+            Assert.Equal(0, diff[0]);  // 1 - 1
+            Assert.Null(diff[1]); // null - 1
+            Assert.Null(diff[2]); // 1 - null
+            Assert.Null(diff[3]); // null - null
+        }
+
+        [Fact]
+        public void Test_ArithmeticsMultWithNull()
+        {
+            // Arrange
+            var left_column = new PrimitiveDataFrameColumn<int>("Left", new int?[] { 1, 1, null, null });
+            var right_column = new PrimitiveDataFrameColumn<int>("Right", new int?[] { 1, null, 1, null });
+
+            // Act
+            var mult = left_column * right_column;
+
+            // Assert
+            Assert.Equal(3, mult.NullCount);
+            Assert.Equal(1, mult[0]);  // 1 * 1
+            Assert.Null(mult[1]); // null * 1
+            Assert.Null(mult[2]); // 1 * null
+            Assert.Null(mult[3]); // null * null
+        }
+
+        [Fact]
+        public void Test_ArithmeticsDivWithNull()
+        {
+            // Arrange
+            var left_column = new PrimitiveDataFrameColumn<int>("Left", new int?[] { 1, 1, null, null });
+            var right_column = new PrimitiveDataFrameColumn<int>("Right", new int?[] { 1, null, 1, null });
+
+            // Act
+            var mult = left_column / right_column;
+
+            // Assert
+            Assert.Equal(3, mult.NullCount);
+            Assert.Equal(1, mult[0]);  // 1 / 1
+            Assert.Null(mult[1]); // null / 1
+            Assert.Null(mult[2]); // 1 / null
+            Assert.Null(mult[3]); // null / null
+        }
     }
 }
