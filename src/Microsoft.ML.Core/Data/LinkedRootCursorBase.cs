@@ -4,50 +4,49 @@
 
 using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.ML.Data;
+
+/// <summary>
+/// Base class for a cursor has an input cursor, but still needs to do work on <see cref="DataViewRowCursor.MoveNext"/>.
+/// </summary>
+[BestFriend]
+internal abstract class LinkedRootCursorBase : RootCursorBase
 {
+
+    /// <summary>Gets the input cursor.</summary>
+    protected DataViewRowCursor Input { get; }
+
     /// <summary>
-    /// Base class for a cursor has an input cursor, but still needs to do work on <see cref="DataViewRowCursor.MoveNext"/>.
+    /// Returns the root cursor of the input. It should be used to perform <see cref="DataViewRowCursor.MoveNext"/>
+    /// operations, but with the distinction, as compared to <see cref="SynchronizedCursorBase"/>, that this is not
+    /// a simple passthrough, but rather very implementation specific. For example, a common usage of this class is
+    /// on filter cursor implementations, where how that input cursor is consumed is very implementation specific.
+    /// That is why this is <see langword="protected"/>, not <see langword="private"/>.
     /// </summary>
-    [BestFriend]
-    internal abstract class LinkedRootCursorBase : RootCursorBase
+    protected DataViewRowCursor Root { get; }
+
+    private bool _disposed;
+
+    protected LinkedRootCursorBase(IChannelProvider provider, DataViewRowCursor input)
+        : base(provider)
     {
+        Ch.AssertValue(input, nameof(input));
 
-        /// <summary>Gets the input cursor.</summary>
-        protected DataViewRowCursor Input { get; }
+        Input = input;
+        Root = Input is SynchronizedCursorBase snycInput ? snycInput.Root : input;
+    }
 
-        /// <summary>
-        /// Returns the root cursor of the input. It should be used to perform <see cref="DataViewRowCursor.MoveNext"/>
-        /// operations, but with the distinction, as compared to <see cref="SynchronizedCursorBase"/>, that this is not
-        /// a simple passthrough, but rather very implementation specific. For example, a common usage of this class is
-        /// on filter cursor implementations, where how that input cursor is consumed is very implementation specific.
-        /// That is why this is <see langword="protected"/>, not <see langword="private"/>.
-        /// </summary>
-        protected DataViewRowCursor Root { get; }
-
-        private bool _disposed;
-
-        protected LinkedRootCursorBase(IChannelProvider provider, DataViewRowCursor input)
-            : base(provider)
+    protected override void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+        if (disposing)
         {
-            Ch.AssertValue(input, nameof(input));
+            Input.Dispose();
+            // The base class should set the state to done under these circumstances.
 
-            Input = input;
-            Root = Input is SynchronizedCursorBase snycInput ? snycInput.Root : input;
         }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (_disposed)
-                return;
-            if (disposing)
-            {
-                Input.Dispose();
-                // The base class should set the state to done under these circumstances.
-
-            }
-            _disposed = true;
-            base.Dispose(disposing);
-        }
+        _disposed = true;
+        base.Dispose(disposing);
     }
 }
