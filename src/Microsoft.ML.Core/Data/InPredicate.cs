@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.ML.Data
-{
-    [BestFriend]
-    internal delegate bool InPredicate<T>(in T value);
-}
+namespace Microsoft.ML.Data;
+
+[BestFriend]
+internal delegate bool InPredicate<T>(in T value);
