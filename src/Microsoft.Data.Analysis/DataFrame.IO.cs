@@ -8,6 +8,7 @@ using System.Data;
 using System.Data.Common;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -349,8 +350,8 @@ namespace Microsoft.Data.Analysis
         private static DataFrame ReadCsvLinesIntoDataFrame(WrappedStreamReaderOrStringReader wrappedReader,
                                 char separator = ',', bool header = true,
                                 string[] columnNames = null, Type[] dataTypes = null,
-                                long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false
-                                )
+                                long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false,
+                                bool renameDuplicatedColumns = false)
         {
             if (dataTypes == null && guessRows <= 0)
             {
@@ -376,6 +377,25 @@ namespace Microsoft.Data.Analysis
                 // First pass: schema and number of rows.
                 while ((fields = parser.ReadFields()) != null)
                 {
+                    if (renameDuplicatedColumns)
+                    {
+                        var names = new Dictionary<string, int>();
+
+                        for (int i = 0; i < fields.Length; i++)
+                        {
+                            if (names.TryGetValue(fields[i], out int index))
+                            {
+                                var newName = String.Format("{0}.{1}", fields[i], index);
+                                names[fields[i]] = ++index;
+                                fields[i] = newName;
+                            }
+                            else
+                            {
+                                names.Add(fields[i], 1);
+                            }
+                        }
+                    }
+
                     if ((numberOfRowsToRead == -1) || rowline < numberOfRowsToRead)
                     {
                         if (linesForGuessType.Count < guessRows || (header && rowline == 0))
@@ -524,12 +544,13 @@ namespace Microsoft.Data.Analysis
         /// <param name="guessRows">number of rows used to guess types</param>
         /// <param name="addIndexColumn">add one column with the row index</param>
         /// <param name="encoding">The character encoding. Defaults to UTF8 if not specified</param>
+        /// <param name="renameDuplicatedColumns">If set to true, columns with repeated names are auto-renamed.</param>
         /// <returns><see cref="DataFrame"/></returns>
         public static DataFrame LoadCsv(Stream csvStream,
                                 char separator = ',', bool header = true,
                                 string[] columnNames = null, Type[] dataTypes = null,
                                 long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false,
-                                Encoding encoding = null)
+                                Encoding encoding = null, bool renameDuplicatedColumns = false)
         {
             if (!csvStream.CanSeek)
             {
@@ -542,7 +563,7 @@ namespace Microsoft.Data.Analysis
             }
 
             WrappedStreamReaderOrStringReader wrappedStreamReaderOrStringReader = new WrappedStreamReaderOrStringReader(csvStream, encoding ?? Encoding.UTF8);
-            return ReadCsvLinesIntoDataFrame(wrappedStreamReaderOrStringReader, separator, header, columnNames, dataTypes, numberOfRowsToRead, guessRows, addIndexColumn);
+            return ReadCsvLinesIntoDataFrame(wrappedStreamReaderOrStringReader, separator, header, columnNames, dataTypes, numberOfRowsToRead, guessRows, addIndexColumn, renameDuplicatedColumns);
         }
 
         /// <summary>
