@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -484,12 +485,13 @@ namespace Microsoft.Data.Analysis
         /// <remarks>If a <seealso cref="DataFrameRow"/> in <paramref name="rows"/> is null, a null value is appended to each column</remarks>
         /// <param name="rows">The rows to be appended to this DataFrame </param> 
         /// <param name="inPlace">If set, appends <paramref name="rows"/> in place. Otherwise, a new DataFrame is returned with the <paramref name="rows"/> appended</param>
-        public DataFrame Append(IEnumerable<DataFrameRow> rows, bool inPlace = false)
+        /// <param name="cultureInfo">culture info for formatting values</param>
+        public DataFrame Append(IEnumerable<DataFrameRow> rows, bool inPlace = false, CultureInfo cultureInfo = null)
         {
             DataFrame ret = inPlace ? this : Clone();
             foreach (DataFrameRow row in rows)
             {
-                ret.Append(row, inPlace: true);
+                ret.Append(row, inPlace: true, cultureInfo: cultureInfo);
             }
             return ret;
         }
@@ -501,8 +503,14 @@ namespace Microsoft.Data.Analysis
         /// <remarks>If <paramref name="row"/> is null, a null value is appended to each column</remarks>
         /// <param name="row"></param> 
         /// <param name="inPlace">If set, appends a <paramref name="row"/> in place. Otherwise, a new DataFrame is returned with an appended <paramref name="row"/> </param>
-        public DataFrame Append(IEnumerable<object> row = null, bool inPlace = false)
+        /// <param name="cultureInfo">culture info for formatting values</param>
+        public DataFrame Append(IEnumerable<object> row = null, bool inPlace = false, CultureInfo cultureInfo = null)
         {
+            if (cultureInfo == null)
+            {
+                cultureInfo = CultureInfo.CurrentCulture;
+            }
+
             DataFrame ret = inPlace ? this : Clone();
             IEnumerator<DataFrameColumn> columnEnumerator = ret.Columns.GetEnumerator();
             bool columnMoveNext = columnEnumerator.MoveNext();
@@ -530,7 +538,7 @@ namespace Microsoft.Data.Analysis
                     }
                     if (value != null)
                     {
-                        value = Convert.ChangeType(value, column.DataType);
+                        value = Convert.ChangeType(value, column.DataType, cultureInfo);
 
                         if (value is null)
                         {
