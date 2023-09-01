@@ -482,6 +482,7 @@ namespace Microsoft.Data.Analysis
         /// </summary> 
         /// <remarks>If an input column's value doesn't match a DataFrameColumn's data type, a conversion will be attempted</remarks> 
         /// <remarks>If a <seealso cref="DataFrameRow"/> in <paramref name="rows"/> is null, a null value is appended to each column</remarks>
+        /// <remarks> Values are appended based on the column names</remarks>
         /// <param name="rows">The rows to be appended to this DataFrame </param> 
         /// <param name="inPlace">If set, appends <paramref name="rows"/> in place. Otherwise, a new DataFrame is returned with the <paramref name="rows"/> appended</param>
         public DataFrame Append(IEnumerable<DataFrameRow> rows, bool inPlace = false)
@@ -489,7 +490,7 @@ namespace Microsoft.Data.Analysis
             DataFrame ret = inPlace ? this : Clone();
             foreach (DataFrameRow row in rows)
             {
-                ret.Append(row, inPlace: true);
+                ret.Append(row.GetValues(), inPlace: true);
             }
             return ret;
         }

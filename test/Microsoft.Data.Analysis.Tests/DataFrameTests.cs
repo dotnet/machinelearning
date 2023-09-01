@@ -3207,6 +3207,35 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void TestAppendRowsIfColumnAreOutOfOrder()
+        {
+            var dataFrame = new DataFrame(
+                new StringDataFrameColumn("ColumnA", new string[] { "a", "b", "c" }),
+                new Int32DataFrameColumn("ColumnB", new int[] { 1, 2, 3 }),
+                new Int32DataFrameColumn("ColumnC", new int[] { 10, 20, 30 }));
+
+            //ColumnC and ColumnB are swaped
+            var dataFrame2 = new DataFrame(
+                new StringDataFrameColumn("ColumnA", new string[] { "d", "e", "f" }),
+                new Int32DataFrameColumn("ColumnC", new int[] { 40, 50, 60 }),
+                new Int32DataFrameColumn("ColumnB", new int[] { 4, 5, 6 }));
+
+            var resultDataFrame = dataFrame.Append(dataFrame2.Rows);
+
+            Assert.Equal(3, resultDataFrame.Columns.Count);
+            Assert.Equal(6, resultDataFrame.Rows.Count);
+
+            Assert.Equal("c", resultDataFrame["ColumnA"][2]);
+            Assert.Equal("d", resultDataFrame["ColumnA"][3]);
+
+            Assert.Equal(3, resultDataFrame["ColumnB"][2]);
+            Assert.Equal(4, resultDataFrame["ColumnB"][3]);
+
+            Assert.Equal(30, resultDataFrame["ColumnC"][2]);
+            Assert.Equal(40, resultDataFrame["ColumnC"][3]);
+        }
+
+        [Fact]
         public void TestAppendRow()
         {
             DataFrame df = MakeDataFrame<int, bool>(10);
