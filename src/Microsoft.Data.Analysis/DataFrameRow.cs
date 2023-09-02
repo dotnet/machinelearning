@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace Microsoft.Data.Analysis
@@ -17,6 +18,7 @@ namespace Microsoft.Data.Analysis
     {
         private readonly DataFrame _dataFrame;
         private readonly long _rowIndex;
+
         internal DataFrameRow(DataFrame df, long rowIndex)
         {
             Debug.Assert(rowIndex < df.Columns.RowCount);
@@ -33,6 +35,11 @@ namespace Microsoft.Data.Analysis
             {
                 yield return column[_rowIndex];
             }
+        }
+
+        public IEnumerable<KeyValuePair<string, object>> GetValues()
+        {
+            return _dataFrame.Columns.Select(col => new KeyValuePair<string, object>(col.Name, col[_rowIndex]));
         }
 
         /// <summary>
