@@ -68,6 +68,9 @@ namespace Microsoft.Data.Analysis
 <# if ((method.IsNumeric && !type.SupportsNumeric) || (method.IsBitwise && !type.SupportsBitwise) || (type.UnsupportedMethods.Contains(method.MethodName))) { #>
             throw new NotSupportedException();
 <# } else if (method.Operator != null) { #>
+<# if (method.MethodType == MethodType.Binary) { #>
+            long index = 0;
+<# } #>
 <# if (method.MethodType == MethodType.Comparison) { #>
             PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
@@ -95,7 +98,16 @@ namespace Microsoft.Data.Analysis
 <# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.BinaryInt) { #>
                     span[i] = (<#=type.TypeName#>)(span[i] <#= method.Operator #> <#= method.Op2Name #>);
 <# } else if (method.MethodType == MethodType.Binary) { #>
-                    span[i] = (<#=type.TypeName#>)(span[i] <#= method.Operator #> otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (<#=type.TypeName#>)(span[i] <#= method.Operator #> otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
 <# } else if (method.MethodType == MethodType.Comparison) { #>
                     ret[index++] = (span[i] <#= method.Operator #> otherSpan[i]);
 <# } else if (method.MethodType == MethodType.ComparisonScalar) { #>

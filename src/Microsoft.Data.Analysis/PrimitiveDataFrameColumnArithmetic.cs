@@ -203,6 +203,7 @@ namespace Microsoft.Data.Analysis
 
         public void And(PrimitiveColumnContainer<bool> left, PrimitiveColumnContainer<bool> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -210,7 +211,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (bool)(span[i] & otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (bool)(span[i] & otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -243,6 +253,7 @@ namespace Microsoft.Data.Analysis
 
         public void Or(PrimitiveColumnContainer<bool> left, PrimitiveColumnContainer<bool> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -250,7 +261,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (bool)(span[i] | otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (bool)(span[i] | otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -283,6 +303,7 @@ namespace Microsoft.Data.Analysis
 
         public void Xor(PrimitiveColumnContainer<bool> left, PrimitiveColumnContainer<bool> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -290,7 +311,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (bool)(span[i] ^ otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (bool)(span[i] ^ otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -438,6 +468,7 @@ namespace Microsoft.Data.Analysis
 
         public void Add(PrimitiveColumnContainer<byte> left, PrimitiveColumnContainer<byte> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -445,7 +476,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (byte)(span[i] + otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (byte)(span[i] + otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -478,6 +518,7 @@ namespace Microsoft.Data.Analysis
 
         public void Subtract(PrimitiveColumnContainer<byte> left, PrimitiveColumnContainer<byte> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -485,7 +526,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (byte)(span[i] - otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (byte)(span[i] - otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -518,6 +568,7 @@ namespace Microsoft.Data.Analysis
 
         public void Multiply(PrimitiveColumnContainer<byte> left, PrimitiveColumnContainer<byte> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -525,7 +576,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (byte)(span[i] * otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (byte)(span[i] * otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -558,6 +618,7 @@ namespace Microsoft.Data.Analysis
 
         public void Divide(PrimitiveColumnContainer<byte> left, PrimitiveColumnContainer<byte> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -565,7 +626,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (byte)(span[i] / otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (byte)(span[i] / otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -598,6 +668,7 @@ namespace Microsoft.Data.Analysis
 
         public void Modulo(PrimitiveColumnContainer<byte> left, PrimitiveColumnContainer<byte> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -605,7 +676,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (byte)(span[i] % otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (byte)(span[i] % otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -638,6 +718,7 @@ namespace Microsoft.Data.Analysis
 
         public void And(PrimitiveColumnContainer<byte> left, PrimitiveColumnContainer<byte> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -645,7 +726,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (byte)(span[i] & otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (byte)(span[i] & otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -678,6 +768,7 @@ namespace Microsoft.Data.Analysis
 
         public void Or(PrimitiveColumnContainer<byte> left, PrimitiveColumnContainer<byte> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -685,7 +776,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (byte)(span[i] | otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (byte)(span[i] | otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -718,6 +818,7 @@ namespace Microsoft.Data.Analysis
 
         public void Xor(PrimitiveColumnContainer<byte> left, PrimitiveColumnContainer<byte> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -725,7 +826,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (byte)(span[i] ^ otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (byte)(span[i] ^ otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -973,6 +1083,7 @@ namespace Microsoft.Data.Analysis
 
         public void Add(PrimitiveColumnContainer<char> left, PrimitiveColumnContainer<char> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -980,7 +1091,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (char)(span[i] + otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (char)(span[i] + otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -1013,6 +1133,7 @@ namespace Microsoft.Data.Analysis
 
         public void Subtract(PrimitiveColumnContainer<char> left, PrimitiveColumnContainer<char> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -1020,7 +1141,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (char)(span[i] - otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (char)(span[i] - otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -1053,6 +1183,7 @@ namespace Microsoft.Data.Analysis
 
         public void Multiply(PrimitiveColumnContainer<char> left, PrimitiveColumnContainer<char> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -1060,7 +1191,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (char)(span[i] * otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (char)(span[i] * otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -1093,6 +1233,7 @@ namespace Microsoft.Data.Analysis
 
         public void Divide(PrimitiveColumnContainer<char> left, PrimitiveColumnContainer<char> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -1100,7 +1241,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (char)(span[i] / otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (char)(span[i] / otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -1133,6 +1283,7 @@ namespace Microsoft.Data.Analysis
 
         public void Modulo(PrimitiveColumnContainer<char> left, PrimitiveColumnContainer<char> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -1140,7 +1291,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (char)(span[i] % otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (char)(span[i] % otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -1173,6 +1333,7 @@ namespace Microsoft.Data.Analysis
 
         public void And(PrimitiveColumnContainer<char> left, PrimitiveColumnContainer<char> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -1180,7 +1341,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (char)(span[i] & otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (char)(span[i] & otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -1213,6 +1383,7 @@ namespace Microsoft.Data.Analysis
 
         public void Or(PrimitiveColumnContainer<char> left, PrimitiveColumnContainer<char> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -1220,7 +1391,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (char)(span[i] | otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (char)(span[i] | otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -1253,6 +1433,7 @@ namespace Microsoft.Data.Analysis
 
         public void Xor(PrimitiveColumnContainer<char> left, PrimitiveColumnContainer<char> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -1260,7 +1441,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (char)(span[i] ^ otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (char)(span[i] ^ otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -1508,6 +1698,7 @@ namespace Microsoft.Data.Analysis
 
         public void Add(PrimitiveColumnContainer<decimal> left, PrimitiveColumnContainer<decimal> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -1515,7 +1706,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (decimal)(span[i] + otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (decimal)(span[i] + otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -1548,6 +1748,7 @@ namespace Microsoft.Data.Analysis
 
         public void Subtract(PrimitiveColumnContainer<decimal> left, PrimitiveColumnContainer<decimal> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -1555,7 +1756,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (decimal)(span[i] - otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (decimal)(span[i] - otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -1588,6 +1798,7 @@ namespace Microsoft.Data.Analysis
 
         public void Multiply(PrimitiveColumnContainer<decimal> left, PrimitiveColumnContainer<decimal> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -1595,7 +1806,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (decimal)(span[i] * otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (decimal)(span[i] * otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -1628,6 +1848,7 @@ namespace Microsoft.Data.Analysis
 
         public void Divide(PrimitiveColumnContainer<decimal> left, PrimitiveColumnContainer<decimal> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -1635,7 +1856,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (decimal)(span[i] / otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (decimal)(span[i] / otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -1668,6 +1898,7 @@ namespace Microsoft.Data.Analysis
 
         public void Modulo(PrimitiveColumnContainer<decimal> left, PrimitiveColumnContainer<decimal> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -1675,7 +1906,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (decimal)(span[i] % otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (decimal)(span[i] % otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -1952,6 +2192,7 @@ namespace Microsoft.Data.Analysis
 
         public void Add(PrimitiveColumnContainer<double> left, PrimitiveColumnContainer<double> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -1959,7 +2200,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (double)(span[i] + otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (double)(span[i] + otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -1992,6 +2242,7 @@ namespace Microsoft.Data.Analysis
 
         public void Subtract(PrimitiveColumnContainer<double> left, PrimitiveColumnContainer<double> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -1999,7 +2250,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (double)(span[i] - otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (double)(span[i] - otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -2032,6 +2292,7 @@ namespace Microsoft.Data.Analysis
 
         public void Multiply(PrimitiveColumnContainer<double> left, PrimitiveColumnContainer<double> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -2039,7 +2300,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (double)(span[i] * otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (double)(span[i] * otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -2072,6 +2342,7 @@ namespace Microsoft.Data.Analysis
 
         public void Divide(PrimitiveColumnContainer<double> left, PrimitiveColumnContainer<double> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -2079,7 +2350,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (double)(span[i] / otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (double)(span[i] / otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -2112,6 +2392,7 @@ namespace Microsoft.Data.Analysis
 
         public void Modulo(PrimitiveColumnContainer<double> left, PrimitiveColumnContainer<double> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -2119,7 +2400,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (double)(span[i] % otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (double)(span[i] % otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -2396,6 +2686,7 @@ namespace Microsoft.Data.Analysis
 
         public void Add(PrimitiveColumnContainer<float> left, PrimitiveColumnContainer<float> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -2403,7 +2694,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (float)(span[i] + otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (float)(span[i] + otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -2436,6 +2736,7 @@ namespace Microsoft.Data.Analysis
 
         public void Subtract(PrimitiveColumnContainer<float> left, PrimitiveColumnContainer<float> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -2443,7 +2744,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (float)(span[i] - otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (float)(span[i] - otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -2476,6 +2786,7 @@ namespace Microsoft.Data.Analysis
 
         public void Multiply(PrimitiveColumnContainer<float> left, PrimitiveColumnContainer<float> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -2483,7 +2794,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (float)(span[i] * otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (float)(span[i] * otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -2516,6 +2836,7 @@ namespace Microsoft.Data.Analysis
 
         public void Divide(PrimitiveColumnContainer<float> left, PrimitiveColumnContainer<float> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -2523,7 +2844,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (float)(span[i] / otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (float)(span[i] / otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -2556,6 +2886,7 @@ namespace Microsoft.Data.Analysis
 
         public void Modulo(PrimitiveColumnContainer<float> left, PrimitiveColumnContainer<float> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -2563,7 +2894,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (float)(span[i] % otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (float)(span[i] % otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -2840,6 +3180,7 @@ namespace Microsoft.Data.Analysis
 
         public void Add(PrimitiveColumnContainer<int> left, PrimitiveColumnContainer<int> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -2847,7 +3188,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (int)(span[i] + otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (int)(span[i] + otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -2880,6 +3230,7 @@ namespace Microsoft.Data.Analysis
 
         public void Subtract(PrimitiveColumnContainer<int> left, PrimitiveColumnContainer<int> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -2887,7 +3238,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (int)(span[i] - otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (int)(span[i] - otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -2920,6 +3280,7 @@ namespace Microsoft.Data.Analysis
 
         public void Multiply(PrimitiveColumnContainer<int> left, PrimitiveColumnContainer<int> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -2927,7 +3288,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (int)(span[i] * otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (int)(span[i] * otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -2960,6 +3330,7 @@ namespace Microsoft.Data.Analysis
 
         public void Divide(PrimitiveColumnContainer<int> left, PrimitiveColumnContainer<int> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -2967,7 +3338,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (int)(span[i] / otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (int)(span[i] / otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -3000,6 +3380,7 @@ namespace Microsoft.Data.Analysis
 
         public void Modulo(PrimitiveColumnContainer<int> left, PrimitiveColumnContainer<int> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -3007,7 +3388,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (int)(span[i] % otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (int)(span[i] % otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -3040,6 +3430,7 @@ namespace Microsoft.Data.Analysis
 
         public void And(PrimitiveColumnContainer<int> left, PrimitiveColumnContainer<int> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -3047,7 +3438,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (int)(span[i] & otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (int)(span[i] & otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -3080,6 +3480,7 @@ namespace Microsoft.Data.Analysis
 
         public void Or(PrimitiveColumnContainer<int> left, PrimitiveColumnContainer<int> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -3087,7 +3488,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (int)(span[i] | otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (int)(span[i] | otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -3120,6 +3530,7 @@ namespace Microsoft.Data.Analysis
 
         public void Xor(PrimitiveColumnContainer<int> left, PrimitiveColumnContainer<int> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -3127,7 +3538,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (int)(span[i] ^ otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (int)(span[i] ^ otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -3375,6 +3795,7 @@ namespace Microsoft.Data.Analysis
 
         public void Add(PrimitiveColumnContainer<long> left, PrimitiveColumnContainer<long> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -3382,7 +3803,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (long)(span[i] + otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (long)(span[i] + otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -3415,6 +3845,7 @@ namespace Microsoft.Data.Analysis
 
         public void Subtract(PrimitiveColumnContainer<long> left, PrimitiveColumnContainer<long> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -3422,7 +3853,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (long)(span[i] - otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (long)(span[i] - otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -3455,6 +3895,7 @@ namespace Microsoft.Data.Analysis
 
         public void Multiply(PrimitiveColumnContainer<long> left, PrimitiveColumnContainer<long> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -3462,7 +3903,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (long)(span[i] * otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (long)(span[i] * otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -3495,6 +3945,7 @@ namespace Microsoft.Data.Analysis
 
         public void Divide(PrimitiveColumnContainer<long> left, PrimitiveColumnContainer<long> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -3502,7 +3953,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (long)(span[i] / otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (long)(span[i] / otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -3535,6 +3995,7 @@ namespace Microsoft.Data.Analysis
 
         public void Modulo(PrimitiveColumnContainer<long> left, PrimitiveColumnContainer<long> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -3542,7 +4003,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (long)(span[i] % otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (long)(span[i] % otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -3575,6 +4045,7 @@ namespace Microsoft.Data.Analysis
 
         public void And(PrimitiveColumnContainer<long> left, PrimitiveColumnContainer<long> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -3582,7 +4053,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (long)(span[i] & otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (long)(span[i] & otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -3615,6 +4095,7 @@ namespace Microsoft.Data.Analysis
 
         public void Or(PrimitiveColumnContainer<long> left, PrimitiveColumnContainer<long> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -3622,7 +4103,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (long)(span[i] | otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (long)(span[i] | otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -3655,6 +4145,7 @@ namespace Microsoft.Data.Analysis
 
         public void Xor(PrimitiveColumnContainer<long> left, PrimitiveColumnContainer<long> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -3662,7 +4153,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (long)(span[i] ^ otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (long)(span[i] ^ otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -3910,6 +4410,7 @@ namespace Microsoft.Data.Analysis
 
         public void Add(PrimitiveColumnContainer<sbyte> left, PrimitiveColumnContainer<sbyte> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -3917,7 +4418,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (sbyte)(span[i] + otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (sbyte)(span[i] + otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -3950,6 +4460,7 @@ namespace Microsoft.Data.Analysis
 
         public void Subtract(PrimitiveColumnContainer<sbyte> left, PrimitiveColumnContainer<sbyte> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -3957,7 +4468,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (sbyte)(span[i] - otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (sbyte)(span[i] - otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -3990,6 +4510,7 @@ namespace Microsoft.Data.Analysis
 
         public void Multiply(PrimitiveColumnContainer<sbyte> left, PrimitiveColumnContainer<sbyte> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -3997,7 +4518,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (sbyte)(span[i] * otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (sbyte)(span[i] * otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -4030,6 +4560,7 @@ namespace Microsoft.Data.Analysis
 
         public void Divide(PrimitiveColumnContainer<sbyte> left, PrimitiveColumnContainer<sbyte> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -4037,7 +4568,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (sbyte)(span[i] / otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (sbyte)(span[i] / otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -4070,6 +4610,7 @@ namespace Microsoft.Data.Analysis
 
         public void Modulo(PrimitiveColumnContainer<sbyte> left, PrimitiveColumnContainer<sbyte> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -4077,7 +4618,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (sbyte)(span[i] % otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (sbyte)(span[i] % otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -4110,6 +4660,7 @@ namespace Microsoft.Data.Analysis
 
         public void And(PrimitiveColumnContainer<sbyte> left, PrimitiveColumnContainer<sbyte> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -4117,7 +4668,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (sbyte)(span[i] & otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (sbyte)(span[i] & otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -4150,6 +4710,7 @@ namespace Microsoft.Data.Analysis
 
         public void Or(PrimitiveColumnContainer<sbyte> left, PrimitiveColumnContainer<sbyte> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -4157,7 +4718,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (sbyte)(span[i] | otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (sbyte)(span[i] | otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -4190,6 +4760,7 @@ namespace Microsoft.Data.Analysis
 
         public void Xor(PrimitiveColumnContainer<sbyte> left, PrimitiveColumnContainer<sbyte> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -4197,7 +4768,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (sbyte)(span[i] ^ otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (sbyte)(span[i] ^ otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -4445,6 +5025,7 @@ namespace Microsoft.Data.Analysis
 
         public void Add(PrimitiveColumnContainer<short> left, PrimitiveColumnContainer<short> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -4452,7 +5033,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (short)(span[i] + otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (short)(span[i] + otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -4485,6 +5075,7 @@ namespace Microsoft.Data.Analysis
 
         public void Subtract(PrimitiveColumnContainer<short> left, PrimitiveColumnContainer<short> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -4492,7 +5083,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (short)(span[i] - otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (short)(span[i] - otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -4525,6 +5125,7 @@ namespace Microsoft.Data.Analysis
 
         public void Multiply(PrimitiveColumnContainer<short> left, PrimitiveColumnContainer<short> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -4532,7 +5133,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (short)(span[i] * otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (short)(span[i] * otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -4565,6 +5175,7 @@ namespace Microsoft.Data.Analysis
 
         public void Divide(PrimitiveColumnContainer<short> left, PrimitiveColumnContainer<short> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -4572,7 +5183,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (short)(span[i] / otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (short)(span[i] / otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -4605,6 +5225,7 @@ namespace Microsoft.Data.Analysis
 
         public void Modulo(PrimitiveColumnContainer<short> left, PrimitiveColumnContainer<short> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -4612,7 +5233,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (short)(span[i] % otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (short)(span[i] % otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -4645,6 +5275,7 @@ namespace Microsoft.Data.Analysis
 
         public void And(PrimitiveColumnContainer<short> left, PrimitiveColumnContainer<short> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -4652,7 +5283,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (short)(span[i] & otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (short)(span[i] & otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -4685,6 +5325,7 @@ namespace Microsoft.Data.Analysis
 
         public void Or(PrimitiveColumnContainer<short> left, PrimitiveColumnContainer<short> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -4692,7 +5333,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (short)(span[i] | otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (short)(span[i] | otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -4725,6 +5375,7 @@ namespace Microsoft.Data.Analysis
 
         public void Xor(PrimitiveColumnContainer<short> left, PrimitiveColumnContainer<short> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -4732,7 +5383,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (short)(span[i] ^ otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (short)(span[i] ^ otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -4980,6 +5640,7 @@ namespace Microsoft.Data.Analysis
 
         public void Add(PrimitiveColumnContainer<uint> left, PrimitiveColumnContainer<uint> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -4987,7 +5648,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (uint)(span[i] + otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (uint)(span[i] + otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -5020,6 +5690,7 @@ namespace Microsoft.Data.Analysis
 
         public void Subtract(PrimitiveColumnContainer<uint> left, PrimitiveColumnContainer<uint> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -5027,7 +5698,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (uint)(span[i] - otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (uint)(span[i] - otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -5060,6 +5740,7 @@ namespace Microsoft.Data.Analysis
 
         public void Multiply(PrimitiveColumnContainer<uint> left, PrimitiveColumnContainer<uint> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -5067,7 +5748,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (uint)(span[i] * otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (uint)(span[i] * otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -5100,6 +5790,7 @@ namespace Microsoft.Data.Analysis
 
         public void Divide(PrimitiveColumnContainer<uint> left, PrimitiveColumnContainer<uint> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -5107,7 +5798,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (uint)(span[i] / otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (uint)(span[i] / otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -5140,6 +5840,7 @@ namespace Microsoft.Data.Analysis
 
         public void Modulo(PrimitiveColumnContainer<uint> left, PrimitiveColumnContainer<uint> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -5147,7 +5848,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (uint)(span[i] % otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (uint)(span[i] % otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -5180,6 +5890,7 @@ namespace Microsoft.Data.Analysis
 
         public void And(PrimitiveColumnContainer<uint> left, PrimitiveColumnContainer<uint> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -5187,7 +5898,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (uint)(span[i] & otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (uint)(span[i] & otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -5220,6 +5940,7 @@ namespace Microsoft.Data.Analysis
 
         public void Or(PrimitiveColumnContainer<uint> left, PrimitiveColumnContainer<uint> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -5227,7 +5948,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (uint)(span[i] | otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (uint)(span[i] | otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -5260,6 +5990,7 @@ namespace Microsoft.Data.Analysis
 
         public void Xor(PrimitiveColumnContainer<uint> left, PrimitiveColumnContainer<uint> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -5267,7 +5998,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (uint)(span[i] ^ otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (uint)(span[i] ^ otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -5515,6 +6255,7 @@ namespace Microsoft.Data.Analysis
 
         public void Add(PrimitiveColumnContainer<ulong> left, PrimitiveColumnContainer<ulong> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -5522,7 +6263,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (ulong)(span[i] + otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (ulong)(span[i] + otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -5555,6 +6305,7 @@ namespace Microsoft.Data.Analysis
 
         public void Subtract(PrimitiveColumnContainer<ulong> left, PrimitiveColumnContainer<ulong> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -5562,7 +6313,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (ulong)(span[i] - otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (ulong)(span[i] - otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -5595,6 +6355,7 @@ namespace Microsoft.Data.Analysis
 
         public void Multiply(PrimitiveColumnContainer<ulong> left, PrimitiveColumnContainer<ulong> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -5602,7 +6363,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (ulong)(span[i] * otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (ulong)(span[i] * otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -5635,6 +6405,7 @@ namespace Microsoft.Data.Analysis
 
         public void Divide(PrimitiveColumnContainer<ulong> left, PrimitiveColumnContainer<ulong> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -5642,7 +6413,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (ulong)(span[i] / otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (ulong)(span[i] / otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -5675,6 +6455,7 @@ namespace Microsoft.Data.Analysis
 
         public void Modulo(PrimitiveColumnContainer<ulong> left, PrimitiveColumnContainer<ulong> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -5682,7 +6463,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (ulong)(span[i] % otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (ulong)(span[i] % otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -5715,6 +6505,7 @@ namespace Microsoft.Data.Analysis
 
         public void And(PrimitiveColumnContainer<ulong> left, PrimitiveColumnContainer<ulong> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -5722,7 +6513,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (ulong)(span[i] & otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (ulong)(span[i] & otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -5755,6 +6555,7 @@ namespace Microsoft.Data.Analysis
 
         public void Or(PrimitiveColumnContainer<ulong> left, PrimitiveColumnContainer<ulong> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -5762,7 +6563,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (ulong)(span[i] | otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (ulong)(span[i] | otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -5795,6 +6605,7 @@ namespace Microsoft.Data.Analysis
 
         public void Xor(PrimitiveColumnContainer<ulong> left, PrimitiveColumnContainer<ulong> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -5802,7 +6613,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (ulong)(span[i] ^ otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (ulong)(span[i] ^ otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -6050,6 +6870,7 @@ namespace Microsoft.Data.Analysis
 
         public void Add(PrimitiveColumnContainer<ushort> left, PrimitiveColumnContainer<ushort> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -6057,7 +6878,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (ushort)(span[i] + otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (ushort)(span[i] + otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -6090,6 +6920,7 @@ namespace Microsoft.Data.Analysis
 
         public void Subtract(PrimitiveColumnContainer<ushort> left, PrimitiveColumnContainer<ushort> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -6097,7 +6928,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (ushort)(span[i] - otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (ushort)(span[i] - otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -6130,6 +6970,7 @@ namespace Microsoft.Data.Analysis
 
         public void Multiply(PrimitiveColumnContainer<ushort> left, PrimitiveColumnContainer<ushort> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -6137,7 +6978,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (ushort)(span[i] * otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (ushort)(span[i] * otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -6170,6 +7020,7 @@ namespace Microsoft.Data.Analysis
 
         public void Divide(PrimitiveColumnContainer<ushort> left, PrimitiveColumnContainer<ushort> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -6177,7 +7028,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (ushort)(span[i] / otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (ushort)(span[i] / otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -6210,6 +7070,7 @@ namespace Microsoft.Data.Analysis
 
         public void Modulo(PrimitiveColumnContainer<ushort> left, PrimitiveColumnContainer<ushort> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -6217,7 +7078,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (ushort)(span[i] % otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (ushort)(span[i] % otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -6250,6 +7120,7 @@ namespace Microsoft.Data.Analysis
 
         public void And(PrimitiveColumnContainer<ushort> left, PrimitiveColumnContainer<ushort> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -6257,7 +7128,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (ushort)(span[i] & otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (ushort)(span[i] & otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -6290,6 +7170,7 @@ namespace Microsoft.Data.Analysis
 
         public void Or(PrimitiveColumnContainer<ushort> left, PrimitiveColumnContainer<ushort> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -6297,7 +7178,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (ushort)(span[i] | otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (ushort)(span[i] | otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -6330,6 +7220,7 @@ namespace Microsoft.Data.Analysis
 
         public void Xor(PrimitiveColumnContainer<ushort> left, PrimitiveColumnContainer<ushort> right)
         {
+            long index = 0;
             for (int b = 0; b < left.Buffers.Count; b++)
             {
                 var mutableBuffer = left.Buffers.GetOrCreateMutable(b);
@@ -6337,7 +7228,16 @@ namespace Microsoft.Data.Analysis
                 var otherSpan = right.Buffers[b].ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
-                    span[i] = (ushort)(span[i] ^ otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (ushort)(span[i] ^ otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
                 }
             }
         }

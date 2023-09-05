@@ -1,10 +1,11 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -482,14 +483,16 @@ namespace Microsoft.Data.Analysis
         /// </summary> 
         /// <remarks>If an input column's value doesn't match a DataFrameColumn's data type, a conversion will be attempted</remarks> 
         /// <remarks>If a <seealso cref="DataFrameRow"/> in <paramref name="rows"/> is null, a null value is appended to each column</remarks>
+        /// <remarks> Values are appended based on the column names</remarks>
         /// <param name="rows">The rows to be appended to this DataFrame </param> 
         /// <param name="inPlace">If set, appends <paramref name="rows"/> in place. Otherwise, a new DataFrame is returned with the <paramref name="rows"/> appended</param>
-        public DataFrame Append(IEnumerable<DataFrameRow> rows, bool inPlace = false)
+        /// <param name="cultureInfo">culture info for formatting values</param>
+        public DataFrame Append(IEnumerable<DataFrameRow> rows, bool inPlace = false, CultureInfo cultureInfo = null)
         {
             DataFrame ret = inPlace ? this : Clone();
             foreach (DataFrameRow row in rows)
             {
-                ret.Append(row, inPlace: true);
+                ret.Append(row.GetValues(), inPlace: true, cultureInfo: cultureInfo);
             }
             return ret;
         }
@@ -501,8 +504,14 @@ namespace Microsoft.Data.Analysis
         /// <remarks>If <paramref name="row"/> is null, a null value is appended to each column</remarks>
         /// <param name="row"></param> 
         /// <param name="inPlace">If set, appends a <paramref name="row"/> in place. Otherwise, a new DataFrame is returned with an appended <paramref name="row"/> </param>
-        public DataFrame Append(IEnumerable<object> row = null, bool inPlace = false)
+        /// <param name="cultureInfo">Culture info for formatting values</param>
+        public DataFrame Append(IEnumerable<object> row = null, bool inPlace = false, CultureInfo cultureInfo = null)
         {
+            if (cultureInfo == null)
+            {
+                cultureInfo = CultureInfo.CurrentCulture;
+            }
+
             DataFrame ret = inPlace ? this : Clone();
             IEnumerator<DataFrameColumn> columnEnumerator = ret.Columns.GetEnumerator();
             bool columnMoveNext = columnEnumerator.MoveNext();
@@ -530,7 +539,7 @@ namespace Microsoft.Data.Analysis
                     }
                     if (value != null)
                     {
-                        value = Convert.ChangeType(value, column.DataType);
+                        value = Convert.ChangeType(value, column.DataType, cultureInfo);
 
                         if (value is null)
                         {
@@ -578,8 +587,14 @@ namespace Microsoft.Data.Analysis
         /// <remarks>If a column's value doesn't match its column's data type, a conversion will be attempted</remarks> 
         /// <param name="row">An enumeration of column name and value to be appended</param> 
         /// <param name="inPlace">If set, appends <paramref name="row"/> in place. Otherwise, a new DataFrame is returned with an appended <paramref name="row"/> </param>
-        public DataFrame Append(IEnumerable<KeyValuePair<string, object>> row, bool inPlace = false)
+        /// <param name="cultureInfo">Culture info for formatting values</param>
+        public DataFrame Append(IEnumerable<KeyValuePair<string, object>> row, bool inPlace = false, CultureInfo cultureInfo = null)
         {
+            if (cultureInfo == null)
+            {
+                cultureInfo = CultureInfo.CurrentCulture;
+            }
+
             DataFrame ret = inPlace ? this : Clone();
             if (row == null)
             {
@@ -600,7 +615,7 @@ namespace Microsoft.Data.Analysis
                 object value = columnAndValue.Value;
                 if (value != null)
                 {
-                    value = Convert.ChangeType(value, column.DataType);
+                    value = Convert.ChangeType(value, column.DataType, cultureInfo);
                     if (value is null)
                     {
                         throw new ArgumentException(string.Format(Strings.MismatchedValueType, column.DataType), column.Name);
