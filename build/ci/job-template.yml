@@ -44,7 +44,6 @@ jobs:
       ${{ if eq(parameters.codeCoverage, 'false') }}:
         hardLink: '/p:CreateHardLinksForCopyLocalIfPossible=True'
       testTargetFramework: '/p:TestTargetFramework=$(_targetFramework)'
-      CODECOV_TOKEN: 03031e35-fe75-4e4c-87ee-e919ae601748
     strategy:
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:
