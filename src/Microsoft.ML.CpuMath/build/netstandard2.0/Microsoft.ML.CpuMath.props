@@ -19,6 +19,13 @@
       <Visible>false</Visible>
       <Link>%(Filename)%(Extension)</Link>
     </Content>
+
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\runtimes\win-arm64\nativeassets\netstandard2.0\*.dll"
+             Condition="'$(PlatformTarget)' == 'arm64'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+      <Link>%(Filename)%(Extension)</Link>
+    </Content> 
   </ItemGroup>
 
 </Project>
