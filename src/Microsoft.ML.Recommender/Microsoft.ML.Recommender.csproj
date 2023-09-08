@@ -26,6 +26,7 @@
       <!--The path needed to be hardcoded for this to work on our publishing CI-->
       <BuildOutputInPackage Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MatrixFactorizationNative.pdb')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MatrixFactorizationNative.pdb" TargetPath="..\..\runtimes\win-x86\native"/>
       <BuildOutputInPackage Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MatrixFactorizationNative.pdb')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MatrixFactorizationNative.pdb" TargetPath="..\..\runtimes\win-x64\native"/>
+      <BuildOutputInPackage Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-arm64\native\MatrixFactorizationNative.pdb')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-arm64\native\MatrixFactorizationNative.pdb" TargetPath="..\..\runtimes\win-arm64\native"/>
     </ItemGroup>
   </Target>
 </Project>
