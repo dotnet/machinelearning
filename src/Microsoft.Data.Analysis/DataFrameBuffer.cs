@@ -38,10 +38,11 @@ namespace Microsoft.Data.Analysis
 
         public DataFrameBuffer(int numberOfValues = 8) : base(numberOfValues) { }
 
-        internal DataFrameBuffer(ReadOnlyMemory<byte> buffer, int length) : base(buffer, length)
+        internal DataFrameBuffer(ReadOnlyMemory<byte> buffer, int length)
         {
             _memory = new byte[buffer.Length];
             buffer.CopyTo(_memory);
+            Length = length;
         }
 
         public void Append(T value)

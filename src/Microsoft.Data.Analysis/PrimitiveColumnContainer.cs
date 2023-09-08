@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.ML.Data;
 
 namespace Microsoft.Data.Analysis
 {
@@ -436,13 +437,8 @@ namespace Microsoft.Data.Analysis
             List<ReadOnlyDataFrameBuffer<byte>> ret = new List<ReadOnlyDataFrameBuffer<byte>>();
             foreach (ReadOnlyDataFrameBuffer<byte> buffer in NullBitMapBuffers)
             {
-                DataFrameBuffer<byte> newBuffer = new DataFrameBuffer<byte>();
+                DataFrameBuffer<byte> newBuffer = new DataFrameBuffer<byte>(buffer.ReadOnlyBuffer, buffer.Length);
                 ret.Add(newBuffer);
-                ReadOnlySpan<byte> span = buffer.ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(span[i]);
-                }
             }
             return ret;
         }
@@ -518,14 +514,9 @@ namespace Microsoft.Data.Analysis
             var ret = new PrimitiveColumnContainer<T>();
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
-                DataFrameBuffer<T> newBuffer = new DataFrameBuffer<T>();
+                DataFrameBuffer<T> newBuffer = new DataFrameBuffer<T>(buffer.ReadOnlyBuffer, buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 ret.Length += buffer.Length;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(span[i]);
-                }
             }
             ret.NullBitMapBuffers = CloneNullBitMapBuffers();
             ret.NullCount = NullCount;
