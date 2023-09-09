@@ -5,6 +5,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Microsoft.ML.Data;
 
 namespace Microsoft.Data.Analysis
 {
@@ -36,7 +37,15 @@ namespace Microsoft.Data.Analysis
             get => MemoryMarshal.Cast<byte, T>(Buffer.Span);
         }
 
-        public DataFrameBuffer(int numberOfValues = 8) : base(numberOfValues) { }
+        public DataFrameBuffer(int numberOfValues = 8)
+        {
+            if ((long)numberOfValues * Size > MaxCapacity)
+            {
+                throw new ArgumentException($"{numberOfValues} exceeds buffer capacity", nameof(numberOfValues));
+            }
+
+            _memory = new byte[numberOfValues];
+        }
 
         internal DataFrameBuffer(ReadOnlyMemory<byte> buffer, int length)
         {
