@@ -5,7 +5,6 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Microsoft.ML.Data;
 
 namespace Microsoft.Data.Analysis
 {
