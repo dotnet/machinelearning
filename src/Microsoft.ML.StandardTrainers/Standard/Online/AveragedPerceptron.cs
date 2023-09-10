@@ -184,7 +184,7 @@ namespace Microsoft.ML.Trainers
                 DecreaseLearningRate = decreaseLearningRate,
                 L2Regularization = l2Regularization,
                 NumberOfIterations = numberOfIterations,
-                LossFunction = lossFunction ?? new HingeLoss()
+                LossFunction = lossFunction
             })
         {
         }
