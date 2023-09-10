@@ -15,6 +15,8 @@ namespace Microsoft.Data.Analysis
     internal class DataFrameBuffer<T> : ReadOnlyDataFrameBuffer<T>
         where T : unmanaged
     {
+        private const int MinCapacity = 8;
+
         private Memory<byte> _memory;
 
         public override ReadOnlyMemory<byte> ReadOnlyBuffer => _memory;
@@ -36,14 +38,14 @@ namespace Microsoft.Data.Analysis
             get => MemoryMarshal.Cast<byte, T>(Buffer.Span);
         }
 
-        public DataFrameBuffer(int numberOfValues = 8)
+        public DataFrameBuffer(int capacity = 0)
         {
-            if ((long)numberOfValues * Size > MaxCapacity)
+            if ((long)capacity * Size > MaxCapacity)
             {
-                throw new ArgumentException($"{numberOfValues} exceeds buffer capacity", nameof(numberOfValues));
+                throw new ArgumentException($"{capacity} exceeds buffer capacity", nameof(capacity));
             }
 
-            _memory = new byte[numberOfValues];
+            _memory = new byte[Math.Max(capacity, MinCapacity)];
         }
 
         internal DataFrameBuffer(ReadOnlyMemory<byte> buffer, int length)
@@ -63,6 +65,12 @@ namespace Microsoft.Data.Analysis
             if (Length < MaxCapacity)
                 ++Length;
             Span[Length - 1] = value;
+        }
+
+        public void IncreaseSize(int numberOfValues)
+        {
+            EnsureCapacity(numberOfValues);
+            Length += numberOfValues;
         }
 
         public void EnsureCapacity(int numberOfValues)

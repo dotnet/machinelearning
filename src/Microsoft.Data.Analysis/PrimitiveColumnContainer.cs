@@ -67,9 +67,8 @@ namespace Microsoft.Data.Analysis
             ReadOnlyDataFrameBuffer<T> dataBuffer;
             if (buffer.IsEmpty)
             {
-                DataFrameBuffer<T> mutableBuffer = new DataFrameBuffer<T>();
-                mutableBuffer.EnsureCapacity(length);
-                mutableBuffer.Length = length;
+                DataFrameBuffer<T> mutableBuffer = new DataFrameBuffer<T>(length);
+                mutableBuffer.IncreaseSize(length);
                 mutableBuffer.RawSpan.Fill(default(T));
                 dataBuffer = mutableBuffer;
             }
@@ -172,15 +171,12 @@ namespace Microsoft.Data.Analysis
 
                 //Calculate how many values we can additionaly allocate and not exceed the MaxCapacity
                 int allocatable = (int)Math.Min(remaining, ReadOnlyDataFrameBuffer<T>.MaxCapacity - mutableLastBuffer.Length);
-                mutableLastBuffer.EnsureCapacity(allocatable);
+                mutableLastBuffer.IncreaseSize(allocatable);
 
                 DataFrameBuffer<byte> lastNullBitMapBuffer = NullBitMapBuffers.GetOrCreateMutable(NullBitMapBuffers.Count - 1);
                 int nullBufferAllocatable = (allocatable + 7) / 8;
-                lastNullBitMapBuffer.EnsureCapacity(nullBufferAllocatable);
+                lastNullBitMapBuffer.IncreaseSize(nullBufferAllocatable);
 
-
-                mutableLastBuffer.Length += allocatable;
-                lastNullBitMapBuffer.Length += nullBufferAllocatable;
                 Length += allocatable;
 
                 if (value.HasValue)
@@ -529,6 +525,7 @@ namespace Microsoft.Data.Analysis
             {
                 DataFrameBuffer<bool> newBuffer = new DataFrameBuffer<bool>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
+                newBuffer.IncreaseSize(buffer.Length);
 
                 if (typeof(T) == typeof(bool))
                 {
@@ -540,7 +537,6 @@ namespace Microsoft.Data.Analysis
                 {
                     newBuffer.Span.Fill(false);
                 }
-                newBuffer.Length = buffer.Length;
                 ret.Length += buffer.Length;
             }
             ret.NullBitMapBuffers = CloneNullBitMapBuffers();
