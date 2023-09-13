@@ -187,6 +187,101 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void TestNotNullableColumnClone()
+        {
+            //Arrange
+            var column = new Int32DataFrameColumn("Int column", values: new[] { -1, 2, 3, 2, 1, -2 });
+
+            //Act
+            var clonedColumn = column.Clone();
+
+            //Assert
+            Assert.NotSame(column, clonedColumn);
+            Assert.Equal(column.Name, clonedColumn.Name);
+            Assert.Equal(column.DataType, clonedColumn.DataType);
+            Assert.Equal(column.NullCount, clonedColumn.NullCount);
+            Assert.Equal(column.Length, clonedColumn.Length);
+
+            for (long i = 0; i < column.Length; i++)
+                Assert.Equal(column[i], clonedColumn[i]);
+        }
+
+        [Fact]
+        public void TestNullableColumnClone()
+        {
+            //Arrange
+            var column = new Int32DataFrameColumn("Int column", values: new int?[] { -1, null, 3, 2, 1, -2 });
+
+            //Act
+            var clonedColumn = column.Clone();
+
+            //Assert
+            Assert.NotSame(column, clonedColumn);
+            Assert.Equal(column.Name, clonedColumn.Name);
+            Assert.Equal(column.DataType, clonedColumn.DataType);
+            Assert.Equal(column.NullCount, clonedColumn.NullCount);
+            Assert.Equal(column.Length, clonedColumn.Length);
+
+            for (long i = 0; i < column.Length; i++)
+                Assert.Equal(column[i], clonedColumn[i]);
+
+        }
+
+        [Fact]
+        public void TestNotNullableColumnCloneWithIndicesMap()
+        {
+            //Arrange
+            var column = new Int32DataFrameColumn("Int column", values: new[] { 0, 5, 2, 4, 1, 3 });
+            var indicesMap = new Int32DataFrameColumn("Indices", new[] { 0, 1, 2, 5, 3, 4 });
+
+            //Act
+            var clonedColumn = column.Clone(indicesMap);
+
+            //Assert
+            Assert.NotSame(column, clonedColumn);
+            Assert.Equal(column.Name, clonedColumn.Name);
+            Assert.Equal(column.DataType, clonedColumn.DataType);
+            Assert.Equal(column.NullCount, clonedColumn.NullCount);
+            Assert.Equal(indicesMap.Length, clonedColumn.Length);
+
+            for (int i = 0; i < indicesMap.Length; i++)
+                Assert.Equal(column[indicesMap[i].Value], clonedColumn[i]);
+
+        }
+
+        [Fact]
+        public void TestNullableColumnCloneWithIndicesMapAndSmallerSize()
+        {
+            //Arrange
+            var column = new Int32DataFrameColumn("Int column", values: new int?[] { null, 5, 2, 4, 1, 3 });
+            var indicesMap = new Int32DataFrameColumn("Indices", new[] { 0, 4, 2, 5, 3 });
+
+            //Act
+            var clonedColumn = column.Clone(indicesMap);
+
+            //Assert
+            Assert.NotSame(column, clonedColumn);
+            Assert.Equal(column.Name, clonedColumn.Name);
+            Assert.Equal(indicesMap.Length, clonedColumn.Length);
+            Assert.Equal(column.DataType, clonedColumn.DataType);
+
+            for (int i = 0; i < indicesMap.Length; i++)
+                Assert.Equal(indicesMap.IsValid(i) ? column[indicesMap[i].Value] : null, clonedColumn[i]);
+        }
+
+        [Fact]
+        public void TestNullableColumnCloneWithIndicesMap_OutOfRange()
+        {
+            //Arrange
+            var column = new Int32DataFrameColumn("Int column", values: new int?[] { null, 1, 1 });
+            var indicesMap = new Int32DataFrameColumn("Indices", new[] { 0, 1, 4 });
+
+            //Act and assert
+            Assert.Throws<IndexOutOfRangeException>(() => column.Clone(indicesMap));
+        }
+
+
+        [Fact]
         public void TestBasicArrowStringColumn()
         {
             StringArray strArray = new StringArray.Builder().Append("foo").Append("bar").Build();
