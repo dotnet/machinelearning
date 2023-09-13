@@ -106,9 +106,11 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void TestAppendMany()
+        public void TestAppendManyNullsToEmptyColumn()
         {
             PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int1");
+
+            //Act
             intColumn.AppendMany(null, 5);
             Assert.Equal(5, intColumn.NullCount);
             Assert.Equal(5, intColumn.Length);
@@ -116,20 +118,70 @@ namespace Microsoft.Data.Analysis.Tests
             {
                 Assert.False(intColumn.IsValid(i));
             }
+        }
 
-            intColumn.AppendMany(5, 5);
-            Assert.Equal(5, intColumn.NullCount);
+        [Fact]
+        public void TestAppendManyNullsToColumnWithValues()
+        {
+            //Arrange
+            var initialValues = new int?[] { 1, 2, null, 4, 5 };
+            PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int1", initialValues);
+
+            //Act
+            intColumn.AppendMany(null, 5);
+
+            //Assert
+            Assert.Equal(6, intColumn.NullCount);
             Assert.Equal(10, intColumn.Length);
-            for (int i = 5; i < intColumn.Length; i++)
+
+            for (int i = 0; i < 5; i++)
             {
-                Assert.True(intColumn.IsValid(i));
+                Assert.Equal(initialValues[i], intColumn[i]);
             }
 
+            for (int i = 5; i < 10; i++)
+            {
+                Assert.False(intColumn.IsValid(i));
+            }
+        }
+
+        [Fact]
+        public void TestAppendManyNotNullsToEmptyColumn()
+        {
+            //Arrange
+            PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int1");
+
+            //Act
+            intColumn.AppendMany(5, 5);
+
+            //Assert
+            Assert.Equal(0, intColumn.NullCount);
+            Assert.Equal(5, intColumn.Length);
+
+            for (int i = 0; i < intColumn.Length; i++)
+            {
+                Assert.Equal(5, intColumn[i]);
+            }
+        }
+
+        [Fact]
+        public void TestNullCountChange()
+        {
+            //Arrange
+            var initialValues = new int?[] { null, null, null, null, null, 5, 5, 5, 5, 5 };
+            PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int1", initialValues);
+
+            //Act
             intColumn[2] = 10;
+
+            //Assert
             Assert.Equal(4, intColumn.NullCount);
             Assert.True(intColumn.IsValid(2));
 
+            //Act
             intColumn[7] = null;
+
+            //Assert
             Assert.Equal(5, intColumn.NullCount);
             Assert.False(intColumn.IsValid(7));
         }
