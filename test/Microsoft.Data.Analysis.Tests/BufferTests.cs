@@ -246,8 +246,29 @@ namespace Microsoft.Data.Analysis.Tests
 
             for (int i = 0; i < indicesMap.Length; i++)
                 Assert.Equal(column[indicesMap[i].Value], clonedColumn[i]);
-
         }
+
+        [Fact]
+        public void TestNotNullableColumnCloneWithIndicesMapAsEnumerable()
+        {
+            //Arrange
+            var column = new Int32DataFrameColumn("Int column", values: new[] { 0, 5, 2, 4, 1, 3 });
+            var indicesMap = new long[] { 0, 1, 2, 5, 3, 4 };
+
+            //Act
+            var clonedColumn = column.Clone(indicesMap);
+
+            //Assert
+            Assert.NotSame(column, clonedColumn);
+            Assert.Equal(column.Name, clonedColumn.Name);
+            Assert.Equal(column.DataType, clonedColumn.DataType);
+            Assert.Equal(column.NullCount, clonedColumn.NullCount);
+            Assert.Equal(indicesMap.Length, clonedColumn.Length);
+
+            for (int i = 0; i < indicesMap.Length; i++)
+                Assert.Equal(column[indicesMap[i]], clonedColumn[i]);
+        }
+
 
         [Fact]
         public void TestNullableColumnCloneWithIndicesMapAndSmallerSize()

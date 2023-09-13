@@ -41,9 +41,6 @@ namespace Microsoft.Data.Analysis
         // A set bit implies a valid value. An unset bit => null value
         public IList<ReadOnlyDataFrameBuffer<byte>> NullBitMapBuffers = new List<ReadOnlyDataFrameBuffer<byte>>();
 
-        // Need a way to differentiate between columns initialized with default values and those with null values in SetValidityBit
-        internal bool _modifyNullCountWhileIndexing = true;
-
         public PrimitiveColumnContainer(IEnumerable<T> values)
         {
             values = values ?? throw new ArgumentNullException(nameof(values));
@@ -242,7 +239,7 @@ namespace Microsoft.Data.Analysis
             if (value)
             {
                 newBitMap = (byte)(curBitMap | (byte)(1 << (index & 7))); //bit hack for index % 8
-                if (_modifyNullCountWhileIndexing && ((curBitMap >> (index & 7)) & 1) == 0 && index < Length && NullCount > 0)
+                if (((curBitMap >> (index & 7)) & 1) == 0 && index < Length && NullCount > 0)
                 {
                     // Old value was null.
                     NullCount--;
@@ -250,12 +247,12 @@ namespace Microsoft.Data.Analysis
             }
             else
             {
-                if (_modifyNullCountWhileIndexing && ((curBitMap >> (index & 7)) & 1) == 1 && index < Length)
+                if (((curBitMap >> (index & 7)) & 1) == 1 && index < Length)
                 {
                     // old value was NOT null and new value is null
                     NullCount++;
                 }
-                else if (_modifyNullCountWhileIndexing && index == Length)
+                else if (index == Length)
                 {
                     // New entry from an append
                     NullCount++;
