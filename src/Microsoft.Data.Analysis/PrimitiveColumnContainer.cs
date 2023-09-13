@@ -183,17 +183,8 @@ namespace Microsoft.Data.Analysis
                 lastNullBitMapBuffer.Length += nullBufferAllocatable;
                 Length += allocatable;
 
-                if (value.HasValue)
-                {
-                    mutableLastBuffer.RawSpan.Slice(mutableLastBuffer.Length - allocatable, allocatable).Fill(value ?? default);
-
-                    _modifyNullCountWhileIndexing = false;
-                    for (long i = Length - allocatable; i < Length; i++)
-                    {
-                        SetValidityBit(i, value.HasValue);
-                    }
-                    _modifyNullCountWhileIndexing = true;
-                }
+                mutableLastBuffer.RawSpan.Slice(mutableLastBuffer.Length - allocatable, allocatable).Fill(value ?? default);
+                lastNullBitMapBuffer.RawSpan.Slice(lastNullBitMapBuffer.Length - nullBufferAllocatable, nullBufferAllocatable).Fill(value.HasValue ? (byte)0xFF : (byte)0x0);
 
                 remaining -= allocatable;
             }
