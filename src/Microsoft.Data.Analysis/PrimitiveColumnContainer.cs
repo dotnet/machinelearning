@@ -180,8 +180,11 @@ namespace Microsoft.Data.Analysis
                 lastNullBitMapBuffer.Length += nullBufferAllocatable;
                 Length += allocatable;
 
-                mutableLastBuffer.RawSpan.Slice(mutableLastBuffer.Length - allocatable, allocatable).Fill(value ?? default);
-                lastNullBitMapBuffer.RawSpan.Slice(lastNullBitMapBuffer.Length - nullBufferAllocatable, nullBufferAllocatable).Fill(value.HasValue ? (byte)0xFF : (byte)0x0);
+                if (value.HasValue)
+                {
+                    mutableLastBuffer.RawSpan.Slice(mutableLastBuffer.Length - allocatable, allocatable).Fill(value.Value);
+                    lastNullBitMapBuffer.RawSpan.Slice(lastNullBitMapBuffer.Length - nullBufferAllocatable, nullBufferAllocatable).Fill(0xFF);
+                }
 
                 remaining -= allocatable;
             }
