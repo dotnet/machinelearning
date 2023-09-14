@@ -84,39 +84,39 @@ namespace Microsoft.Data.Analysis.PerformanceTests
         }
         #endregion
 
-        #region Substract
+        #region Subtract
         [Benchmark]
-        public void Substract_Int32()
+        public void Subtract_Int32()
         {
             var column = _int32Column1 - _int32Column2;
         }
 
         [Benchmark]
-        public void Substract_Int16()
+        public void Subtract_Int16()
         {
             var column = _int16Column1 - _int16Column2;
         }
 
         [Benchmark]
-        public void Substract_Double()
+        public void Subtract_Double()
         {
             var column = _doubleColumn1 - _doubleColumn2;
         }
 
         [Benchmark]
-        public void Substract_Float()
+        public void Subtract_Float()
         {
             var column = _floatColumn1 - _floatColumn2;
         }
 
         [Benchmark]
-        public void Substract_Int32_Int16()
+        public void Subtract_Int32_Int16()
         {
             var column = _int32Column1 - _int16Column2;
         }
 
         [Benchmark]
-        public void Substract_Double_Float()
+        public void Subtract_Double_Float()
         {
             var column = _doubleColumn1 - _floatColumn2;
         }
