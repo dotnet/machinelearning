@@ -30,17 +30,19 @@ namespace Microsoft.Data.Analysis.PerformanceTests
         [GlobalSetup]
         public void SetUp()
         {
-            _int32Column1 = new Int32DataFrameColumn("Column1", ItemsCount);
-            _int32Column2 = new Int32DataFrameColumn("Column2", ItemsCount);
+            var values = Enumerable.Range(1, ItemsCount).ToArray();
 
-            _int16Column1 = new Int16DataFrameColumn("Column1", ItemsCount);
-            _int16Column2 = new Int16DataFrameColumn("Column2", ItemsCount);
+            _int32Column1 = new Int32DataFrameColumn("Column1", values);
+            _int32Column2 = new Int32DataFrameColumn("Column2", values);
 
-            _doubleColumn1 = new DoubleDataFrameColumn("Column1", ItemsCount);
-            _doubleColumn2 = new DoubleDataFrameColumn("Column2", ItemsCount);
+            _int16Column1 = new Int16DataFrameColumn("Column1", values.Select(v => (short)v));
+            _int16Column2 = new Int16DataFrameColumn("Column2", values.Select(v => (short)v));
 
-            _floatColumn1 = new SingleDataFrameColumn("Column1", ItemsCount);
-            _floatColumn2 = new SingleDataFrameColumn("Column2", ItemsCount);
+            _doubleColumn1 = new DoubleDataFrameColumn("Column1", values.Select(v => (double)v));
+            _doubleColumn2 = new DoubleDataFrameColumn("Column2", values.Select(v => (double)v));
+
+            _floatColumn1 = new SingleDataFrameColumn("Column1", values.Select(v => (float)v));
+            _floatColumn2 = new SingleDataFrameColumn("Column2", values.Select(v => (float)v));
         }
 
         #region Addition
