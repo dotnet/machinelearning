@@ -86,11 +86,15 @@ namespace Microsoft.Data.Analysis
                 if (!buffer.IsEmpty)
                 {
                     // Create a new bitMap with all the bits up to length set
-                    var bitMap = new byte[bitMapBufferLength];
-                    bitMap.AsSpan().Fill(255);
+                    var bitMap = new DataFrameBuffer<byte>(bitMapBufferLength);
+                    bitMap.IncreaseSize(bitMapBufferLength);
+
+                    var span = bitMap.Span;
+                    span.Fill(255);
                     int lastByte = 1 << (length - (bitMapBufferLength - 1) * 8);
-                    bitMap[bitMapBufferLength - 1] = (byte)(lastByte - 1);
-                    nullDataFrameBuffer = new DataFrameBuffer<byte>(bitMap, bitMapBufferLength);
+                    span[bitMapBufferLength - 1] = (byte)(lastByte - 1);
+
+                    nullDataFrameBuffer = bitMap;
                 }
                 else
                 {

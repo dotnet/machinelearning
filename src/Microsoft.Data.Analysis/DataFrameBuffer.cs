@@ -110,7 +110,6 @@ namespace Microsoft.Data.Analysis
             if (mutableBuffer == null)
             {
                 mutableBuffer = new DataFrameBuffer<T>(buffer.ReadOnlyBuffer, buffer.Length);
-                mutableBuffer.Length = buffer.Length;
             }
             return mutableBuffer;
         }
