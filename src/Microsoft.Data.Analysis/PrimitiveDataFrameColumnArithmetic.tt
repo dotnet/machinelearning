@@ -23,11 +23,16 @@ namespace Microsoft.Data.Analysis
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.Comparison || method.MethodType == MethodType.ComparisonScalar) { #>
         PrimitiveColumnContainer<bool> <#=method.MethodName#>(<#=method.GetMethodArguments("PrimitiveColumnContainer", "T")#>);
-<#} else {#>
-        void <#=method.MethodName#>(<#=method.GetMethodArguments("PrimitiveColumnContainer", "T")#>);
 <# } #>
-<# if (method.MethodType == MethodType.BinaryScalar) { #>
-        <#= method.GetInvertedMethodSignatureForBinaryScalarsOps("PrimitiveColumnContainer", "T")#>;
+<# else if (method.MethodType == MethodType.Binary) { #>
+        void <#=method.MethodName#>(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right);
+<# } #>
+<# else if (method.MethodType == MethodType.BinaryScalar) { #>
+        void <#=method.MethodName#>(PrimitiveColumnContainer<T> column, T scalar);
+        void <#=method.MethodName#>(T scalar, PrimitiveColumnContainer<T> column);
+<# } #>
+<# else if (method.MethodType == MethodType.BinaryInt) { #>
+        void <#=method.MethodName#>(PrimitiveColumnContainer<T> column, int value);
 <# } #>
 <# } #>
     }
