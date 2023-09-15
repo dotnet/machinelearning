@@ -35,8 +35,9 @@ namespace Microsoft.Data.Analysis.PerformanceTests
             _int32Column1 = new Int32DataFrameColumn("Column1", values);
             _int32Column2 = new Int32DataFrameColumn("Column2", values);
 
-            _int16Column1 = new Int16DataFrameColumn("Column1", values.Select(v => (short)v));
-            _int16Column2 = new Int16DataFrameColumn("Column2", values.Select(v => (short)v));
+            var shortValues = values.Select(v => (short)(v / short.MaxValue + 1)).ToArray();
+            _int16Column1 = new Int16DataFrameColumn("Column1", shortValues);
+            _int16Column2 = new Int16DataFrameColumn("Column2", shortValues);
 
             _doubleColumn1 = new DoubleDataFrameColumn("Column1", values.Select(v => (double)v));
             _doubleColumn2 = new DoubleDataFrameColumn("Column2", values.Select(v => (double)v));
