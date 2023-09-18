@@ -28,7 +28,7 @@ namespace Microsoft.Data.Analysis
         PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> column, T scalar);
 <# } #>
 <# else if (method.MethodType == MethodType.Binary) { #>
-        void <#=method.MethodName#>(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right);
+        void <#=method.MethodName#>(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result);
 <# } #>
 <# else if (method.MethodType == MethodType.BinaryScalar) { #>
         void <#=method.MethodName#>(PrimitiveColumnContainer<T> column, T scalar);
@@ -53,7 +53,7 @@ namespace Microsoft.Data.Analysis
         public virtual PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
 <# } #>
 <# else if (method.MethodType == MethodType.Binary) { #>
-        public virtual void <#=method.MethodName#>(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right) => throw new NotSupportedException();
+        public virtual void <#=method.MethodName#>(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result) => throw new NotSupportedException();
 <# } #>
 <# else if (method.MethodType == MethodType.BinaryScalar) { #>
         public virtual void <#=method.MethodName#>(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
@@ -95,7 +95,13 @@ namespace Microsoft.Data.Analysis
 <# } #>
 <# else if (method.MethodType == MethodType.Binary) { #>
 
-        public override void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> left, PrimitiveColumnContainer<<#=type.TypeName#>> right)
+        public override void <#=method.MethodName#>(ReadOnlySpan<<#=type.TypeName#>> span, ReadOnlySpan<<#=type.TypeName#>> otherSpan, Span<<#=type.TypeName#>> resultSpan)
+        {
+            for (int i = 0; i < span.Length; i++)
+            {
+                resultSpan[i] = (<#=type.TypeName#>)(span[i] <#= method.Operator #> otherSpan[i]);
+            }
+        }
 <# } #>
 <# else if (method.MethodType == MethodType.BinaryScalar) { #>
 
@@ -105,10 +111,8 @@ namespace Microsoft.Data.Analysis
 
         public override void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, int value)
 <# } #>
+<# if (method.MethodType != MethodType.Binary) { #>
         {
-<# if (method.MethodType == MethodType.Binary) { #>
-            long index = 0;
-<# } #>
 <# if (method.MethodType == MethodType.Comparison) { #>
             PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
             long index = 0;
@@ -127,25 +131,11 @@ namespace Microsoft.Data.Analysis
 <# } else {#>
                 var mutableBuffer = <#= method.Op1Name #>.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
-<# if (method.MethodType == MethodType.Binary) { #>
-                var otherSpan = <#=method.Op2Name#>.Buffers[b].ReadOnlySpan;
-<# } #>
 <# } #>
                 for (int i = 0; i < span.Length; i++)
                 {
 <# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.BinaryInt) { #>
                     span[i] = (<#=type.TypeName#>)(span[i] <#= method.Operator #> <#= method.Op2Name #>);
-<# } else if (method.MethodType == MethodType.Binary) { #>
-                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
-                    {
-                        span[i] = (<#=type.TypeName#>)(span[i] <#= method.Operator #> otherSpan[i]);
-                    }
-                    else
-                    {
-                        left[index] = null;
-                    }
-
-                    index++;
 <# } else if (method.MethodType == MethodType.Comparison) { #>
                     ret[index++] = (span[i] <#= method.Operator #> otherSpan[i]);
 <# } else if (method.MethodType == MethodType.ComparisonScalar) { #>
@@ -159,6 +149,7 @@ namespace Microsoft.Data.Analysis
             return ret;
 <# } #>
         }
+<# } #>
 <# if (method.MethodType == MethodType.BinaryScalar) { #>
 
         public override <#= method.GetInvertedMethodSignatureForBinaryScalarsOps("PrimitiveColumnContainer", type.TypeName) #>
@@ -167,7 +158,7 @@ namespace Microsoft.Data.Analysis
             {
                 var mutableBuffer = <#= method.Op1Name #>.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
-<# if (method.MethodType == MethodType.Binary || method.MethodType == MethodType.Comparison) { #>
+<# if (method.MethodType == MethodType.Comparison) { #>
                 var otherSpan = <#=method.Op2Name#>.Buffers[b].ReadOnlySpan;
 <# } #>
                 for (int i = 0; i < span.Length; i++)
