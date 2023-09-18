@@ -21,21 +21,49 @@ namespace Microsoft.Data.Analysis
         where T : unmanaged
     {
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
-<# if (method.MethodType == MethodType.Comparison || method.MethodType == MethodType.ComparisonScalar) { #>
-        PrimitiveColumnContainer<bool> <#=method.MethodName#>(<#=method.GetMethodArguments("PrimitiveColumnContainer", "T")#>);
-<#} else {#>
-        void <#=method.MethodName#>(<#=method.GetMethodArguments("PrimitiveColumnContainer", "T")#>);
+<# if (method.MethodType == MethodType.Comparison) { #>
+        PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right);
 <# } #>
-<# if (method.MethodType == MethodType.BinaryScalar) { #>
-        <#= method.GetInvertedMethodSignatureForBinaryScalarsOps("PrimitiveColumnContainer", "T")#>;
+<# else if (method.MethodType == MethodType.ComparisonScalar) { #>
+        PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> column, T scalar);
+<# } #>
+<# else if (method.MethodType == MethodType.Binary) { #>
+        void <#=method.MethodName#>(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right);
+<# } #>
+<# else if (method.MethodType == MethodType.BinaryScalar) { #>
+        void <#=method.MethodName#>(PrimitiveColumnContainer<T> column, T scalar);
+        void <#=method.MethodName#>(T scalar, PrimitiveColumnContainer<T> column);
+<# } #>
+<# else if (method.MethodType == MethodType.BinaryInt) { #>
+        void <#=method.MethodName#>(PrimitiveColumnContainer<T> column, int value);
 <# } #>
 <# } #>
     }
 
-    internal static class PrimitiveDataFrameColumnArithmetic<T>
+    internal class PrimitiveDataFrameColumnArithmetic<T> : IPrimitiveDataFrameColumnArithmetic<T>
         where T : unmanaged
     {
         public static IPrimitiveDataFrameColumnArithmetic<T> Instance { get; } = PrimitiveDataFrameColumnArithmetic.GetArithmetic<T>();
+
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType == MethodType.Comparison) { #>
+        public virtual PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right) => throw new NotSupportedException();
+<# } #>
+<# else if (method.MethodType == MethodType.ComparisonScalar) { #>
+        public virtual PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
+<# } #>
+<# else if (method.MethodType == MethodType.Binary) { #>
+        public virtual void <#=method.MethodName#>(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right) => throw new NotSupportedException();
+<# } #>
+<# else if (method.MethodType == MethodType.BinaryScalar) { #>
+        public virtual void <#=method.MethodName#>(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
+        public virtual void <#=method.MethodName#>(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
+<# } #>
+<# else if (method.MethodType == MethodType.BinaryInt) { #>
+        public virtual void <#=method.MethodName#>(PrimitiveColumnContainer<T> column, int value) => throw new NotSupportedException();
+<# } #>
+<# } #>
+
     }
 
     internal static class PrimitiveDataFrameColumnArithmetic
@@ -53,21 +81,31 @@ namespace Microsoft.Data.Analysis
         }
     }
 <# foreach (TypeConfiguration type in typeConfiguration) { #>
-    internal class <#=type.ClassPrefix#>Arithmetic : IPrimitiveDataFrameColumnArithmetic<<#=type.TypeName#>>
+    internal class <#=type.ClassPrefix#>Arithmetic : PrimitiveDataFrameColumnArithmetic<<#=type.TypeName#>>
     {
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
-<# if (method.MethodType == MethodType.Comparison || method.MethodType == MethodType.ComparisonScalar) { #>
+<# if (!((method.IsNumeric && !type.SupportsNumeric) || (method.IsBitwise && !type.SupportsBitwise) || (type.UnsupportedMethods.Contains(method.MethodName))) && method.Operator != null) { #>
+<# if (method.MethodType == MethodType.Comparison) { #>
 
-        public PrimitiveColumnContainer<bool> <#=method.MethodName#>(<#=method.GetMethodArguments("PrimitiveColumnContainer", type.TypeName)#>)
-        {
-<#} else {#>
-
-        public void <#=method.MethodName#>(<#=method.GetMethodArguments("PrimitiveColumnContainer", type.TypeName)#>)
-        {
+        public override PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> left, PrimitiveColumnContainer<<#=type.TypeName#>> right)
 <# } #>
-<# if ((method.IsNumeric && !type.SupportsNumeric) || (method.IsBitwise && !type.SupportsBitwise) || (type.UnsupportedMethods.Contains(method.MethodName))) { #>
-            throw new NotSupportedException();
-<# } else if (method.Operator != null) { #>
+<# else if (method.MethodType == MethodType.ComparisonScalar) { #>
+
+        public override PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, <#=type.TypeName#> scalar)
+<# } #>
+<# else if (method.MethodType == MethodType.Binary) { #>
+
+        public override void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> left, PrimitiveColumnContainer<<#=type.TypeName#>> right)
+<# } #>
+<# else if (method.MethodType == MethodType.BinaryScalar) { #>
+
+        public override void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, <#=type.TypeName#> scalar)
+<# } #>
+<# else if (method.MethodType == MethodType.BinaryInt) { #>
+
+        public override void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, int value)
+<# } #>
+        {
 <# if (method.MethodType == MethodType.Binary) { #>
             long index = 0;
 <# } #>
@@ -120,15 +158,11 @@ namespace Microsoft.Data.Analysis
 <# if (method.MethodType == MethodType.Comparison || method.MethodType == MethodType.ComparisonScalar) { #>
             return ret;
 <# } #>
-<# } #>
         }
 <# if (method.MethodType == MethodType.BinaryScalar) { #>
 
-        public <#= method.GetInvertedMethodSignatureForBinaryScalarsOps("PrimitiveColumnContainer", type.TypeName) #>
+        public override <#= method.GetInvertedMethodSignatureForBinaryScalarsOps("PrimitiveColumnContainer", type.TypeName) #>
         {
-<# if ((method.IsNumeric && !type.SupportsNumeric) || (method.IsBitwise && !type.SupportsBitwise) || (type.UnsupportedMethods.Contains(method.MethodName))) { #>
-            throw new NotSupportedException();
-<# } else if (method.Operator != null) { #>
             for (int b = 0; b < <#= method.Op1Name #>.Buffers.Count; b++)
             {
                 var mutableBuffer = <#= method.Op1Name #>.Buffers.GetOrCreateMutable(b);
@@ -143,8 +177,8 @@ namespace Microsoft.Data.Analysis
 <# } #>
                 }
             }
-<# } #>
         }
+<# } #>
 <# } #>
 <# } #>
     }
