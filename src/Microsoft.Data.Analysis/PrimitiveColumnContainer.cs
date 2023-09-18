@@ -26,6 +26,12 @@ namespace Microsoft.Data.Analysis
         {
             return ((curBitMap >> (index & 7)) & 1) != 0;
         }
+
+        public static void ElementwiseAnd(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right, Span<byte> result)
+        {
+            for (int i = 0; i < left.Length; i++)
+                result[i] = (byte)(left[i] & right[i]);
+        }
     }
 
     /// <summary>

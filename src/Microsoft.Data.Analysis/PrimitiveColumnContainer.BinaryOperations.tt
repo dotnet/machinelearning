@@ -28,6 +28,30 @@ namespace Microsoft.Data.Analysis
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.<#=method.MethodName#>(this, scalar);
         }
+<# } else if (method.MethodType == MethodType.Binary ) { #>
+        public PrimitiveColumnContainer<T> <#=method.MethodName#>(PrimitiveColumnContainer<T> right)
+        {
+            for (int i = 0; i < this.Buffers.Count; i++)
+            {
+                //Calculate raw values
+                var mutableBuffer = this.Buffers.GetOrCreateMutable(i);
+                var span = mutableBuffer.Span;
+                var otherSpan = right.Buffers[i].ReadOnlySpan;
+
+                PrimitiveDataFrameColumnArithmetic<T>.Instance.<#=method.MethodName#>(span, otherSpan, span);
+
+                //Calculate validity
+                var validityBuffer = this.NullBitMapBuffers.GetOrCreateMutable(i);
+                var otherValidityBuffer = right.NullBitMapBuffers[i];
+
+                BitmapHelper.ElementwiseAnd(validityBuffer.ReadOnlySpan, otherValidityBuffer.ReadOnlySpan, validityBuffer.Span);
+
+                //Calculate NullCount
+                this.NullCount = 0;
+            }
+
+            return this;
+        }
 <# } else { #>
         public <#= method.GetSingleArgumentMethodSignature("PrimitiveColumnContainer", "T")#>
         {
