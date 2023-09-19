@@ -146,7 +146,7 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void TestAppendManyNotNullsToEmptyColumn()
+        public void TestAppendManyValuesToEmptyColumn()
         {
             //Arrange
             PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int1");
@@ -159,6 +159,29 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(5, intColumn.Length);
 
             for (int i = 0; i < intColumn.Length; i++)
+            {
+                Assert.Equal(5, intColumn[i]);
+            }
+        }
+
+        [Fact]
+        public void TestAppendManyValuesToColumnWithValues()
+        {
+            //Arrange
+            PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int1", new int?[] { 1, 2, 3, null, null });
+
+            //Act
+            intColumn.AppendMany(5, 5);
+
+            //Assert
+            Assert.Equal(2, intColumn.NullCount);
+            Assert.Equal(10, intColumn.Length);
+
+            Assert.Equal(3, intColumn[2]);
+            Assert.Null(intColumn[3]);
+            Assert.Null(intColumn[4]);
+
+            for (int i = 5; i < intColumn.Length; i++)
             {
                 Assert.Equal(5, intColumn[i]);
             }
