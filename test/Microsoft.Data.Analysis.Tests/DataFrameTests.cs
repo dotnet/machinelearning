@@ -632,7 +632,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.False(notEqualsResult[0]);
             Assert.True(notEqualsResult[4]);
 
-            var notEqualsByDataFrameResult = df["DateTime1"].ElementwiseEquals(dataFrameColumn2);
+            var notEqualsByDataFrameResult = df["DateTime1"].ElementwiseNotEquals(dataFrameColumn2);
             Assert.Equal(notEqualsResult, notEqualsByDataFrameResult);
         }
 
