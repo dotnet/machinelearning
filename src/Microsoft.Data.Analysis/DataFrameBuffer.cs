@@ -57,14 +57,10 @@ namespace Microsoft.Data.Analysis
 
         public void Append(T value)
         {
-            if (Length == MaxCapacity)
-            {
-                throw new ArgumentException("Current buffer is full", nameof(value));
-            }
             EnsureCapacity(1);
-            if (Length < MaxCapacity)
-                ++Length;
-            Span[Length - 1] = value;
+
+            RawSpan[Length] = value;
+            Length++;
         }
 
         public void IncreaseSize(int numberOfValues)
