@@ -93,10 +93,10 @@ namespace Microsoft.Data.Analysis.Tests
 
             //Act
             intColumn.Append(null);
-            intColumn.Append(null);
 
             Assert.Equal(1, intColumn.NullCount);
             Assert.Equal(1, intColumn.Length);
+
             for (int i = 0; i < intColumn.Length; i++)
             {
                 Assert.False(intColumn.IsValid(i));
