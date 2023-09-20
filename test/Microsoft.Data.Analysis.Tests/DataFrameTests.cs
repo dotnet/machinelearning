@@ -3654,8 +3654,8 @@ namespace Microsoft.Data.Analysis.Tests
         public void Test_ArithmeticsSumWithNull()
         {
             // Arrange
-            var left_column = new PrimitiveDataFrameColumn<int>("Left", new int?[] { 1, 1, null, null });
-            var right_column = new PrimitiveDataFrameColumn<int>("Right", new int?[] { 1, null, 1, null });
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 1, 1, null, null });
+            var right_column = new Int32DataFrameColumn("Right", new int?[] { 1, null, 1, null });
 
             // Act
             var sum = left_column + right_column;
@@ -3673,8 +3673,8 @@ namespace Microsoft.Data.Analysis.Tests
         public void Test_ArithmeticsDiffWithNull()
         {
             // Arrange
-            var left_column = new PrimitiveDataFrameColumn<int>("Left", new int?[] { 1, 1, null, null });
-            var right_column = new PrimitiveDataFrameColumn<int>("Right", new int?[] { 1, null, 1, null });
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 1, 1, null, null });
+            var right_column = new Int32DataFrameColumn("Right", new int?[] { 1, null, 1, null });
 
             // Act
             var diff = left_column - right_column;
@@ -3691,8 +3691,8 @@ namespace Microsoft.Data.Analysis.Tests
         public void Test_ArithmeticsMultWithNull()
         {
             // Arrange
-            var left_column = new PrimitiveDataFrameColumn<int>("Left", new int?[] { 1, 1, null, null });
-            var right_column = new PrimitiveDataFrameColumn<int>("Right", new int?[] { 1, null, 1, null });
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 1, 1, null, null });
+            var right_column = new Int32DataFrameColumn("Right", new int?[] { 1, null, 1, null });
 
             // Act
             var mult = left_column * right_column;
@@ -3709,18 +3709,18 @@ namespace Microsoft.Data.Analysis.Tests
         public void Test_ArithmeticsDivWithNull()
         {
             // Arrange
-            var left_column = new PrimitiveDataFrameColumn<int>("Left", new int?[] { 1, 1, null, null });
-            var right_column = new PrimitiveDataFrameColumn<int>("Right", new int?[] { 1, null, 1, null });
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 1, 1, null, null });
+            var right_column = new Int32DataFrameColumn("Right", new int?[] { 1, null, 1, null });
 
             // Act
-            var mult = left_column / right_column;
+            var div = left_column / right_column;
 
             // Assert
-            Assert.Equal(3, mult.NullCount);
-            Assert.Equal(1, mult[0]);  // 1 / 1
-            Assert.Null(mult[1]); // null / 1
-            Assert.Null(mult[2]); // 1 / null
-            Assert.Null(mult[3]); // null / null
+            Assert.Equal(3, div.NullCount);
+            Assert.Equal(1, div[0]);  // 1 / 1
+            Assert.Null(div[1]); // null / 1
+            Assert.Null(div[2]); // 1 / null
+            Assert.Null(div[3]); // null / null
         }
     }
 }
