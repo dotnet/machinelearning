@@ -31,6 +31,7 @@ namespace Microsoft.Data.Analysis
 <# } else if (method.MethodType == MethodType.Binary ) { #>
         public PrimitiveColumnContainer<T> <#=method.MethodName#>(PrimitiveColumnContainer<T> right)
         {
+            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
             long nullCount = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
@@ -39,17 +40,25 @@ namespace Microsoft.Data.Analysis
                 var span = mutableBuffer.Span;
                 var otherSpan = right.Buffers[i].ReadOnlySpan;
 
-                PrimitiveDataFrameColumnArithmetic<T>.Instance.<#=method.MethodName#>(span, otherSpan, span);
+                var validitySpan = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
+                var otherValiditySpan = right.NullBitMapBuffers[i].ReadOnlySpan;
+
+<# if (method.MethodName == "Divide" ) { #>
+                //Divide is a special case, as we have to avoid division by zero
+                arithmetic.<#=method.MethodName#>(span, otherSpan, otherValiditySpan, span, validitySpan);
+<#} else { #>
+                //Calculate raw values
+                arithmetic.<#=method.MethodName#>(span, otherSpan, span);
 
                 //Calculate validity
-                var validityBuffer = this.NullBitMapBuffers.GetOrCreateMutable(i);
-                var otherValidityBuffer = right.NullBitMapBuffers[i];
-
-                BitmapHelper.ElementwiseAnd(validityBuffer.ReadOnlySpan, otherValidityBuffer.ReadOnlySpan, validityBuffer.Span);
+                BitmapHelper.ElementwiseAnd(validitySpan, otherValiditySpan, validitySpan);
+<# } #>
 
                 //Calculate NullCount
-                nullCount += BitmapHelper.GetBitCount(validityBuffer.Span, mutableBuffer.Length);
+                nullCount += BitmapHelper.GetBitCount(validitySpan, mutableBuffer.Length);
             }
+
+            NullCount = nullCount;
 
             return this;
         }

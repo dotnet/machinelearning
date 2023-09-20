@@ -9,27 +9,31 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Numerics;
 
 namespace Microsoft.Data.Analysis
 {
     internal static class BitmapHelper
     {
+        private static ReadOnlySpan<byte> PopcountTable => new byte[] {
+            0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+            1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+            1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+            2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+            1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+            2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+            2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+            3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8,
+        };
+
         private static ReadOnlySpan<byte> BitMask => new byte[] {
             1, 2, 4, 8, 16, 32, 64, 128
         };
 
-        public static void ElementwiseAnd(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right, Span<byte> result)
-        {
-            for (int i = 0; i < left.Length; i++)
-                result[i] = (byte)(left[i] & right[i]);
-        }
-
         // Faster to use when we already have a span since it avoids indexing
         public static bool IsValid(ReadOnlySpan<byte> bitMapBufferSpan, int index)
         {
-            int nullBitMapSpanIndex = index / 8;
-            byte thisBitMap = bitMapBufferSpan[nullBitMapSpanIndex];
+            var nullBitMapSpanIndex = index / 8;
+            var thisBitMap = bitMapBufferSpan[nullBitMapSpanIndex];
             return IsBitSet(thisBitMap, index);
         }
 
@@ -54,10 +58,10 @@ namespace Microsoft.Data.Analysis
             data[index / 8] |= BitMask[index % 8];
         }
 
-        public static void SetBit(Span<byte> data, int index, bool value)
+        public static void SetBit(Span<byte> data, long index, bool value)
         {
-            int idx = index / 8;
-            int mod = index % 8;
+            var idx = (int)(index / 8);
+            var mod = (int)(index % 8);
             data[idx] = value
                 ? (byte)(data[idx] | BitMask[mod])
                 : (byte)(data[idx] & ~BitMask[mod]);
@@ -71,17 +75,17 @@ namespace Microsoft.Data.Analysis
         /// <param name="index">Bit index to start counting from.</param>
         /// <param name="length">Maximum of bits in the span to consider.</param>
         /// <param name="value">Bit value.</param>
-        public static void SetBits(Span<byte> data, int index, int length, bool value)
+        public static void SetBits(Span<byte> data, long index, long length, bool value)
         {
             if (length == 0)
                 return;
 
-            int endBitIndex = checked(index + length - 1);
+            var endBitIndex = index + length - 1;
 
             // Use simpler method if there aren't many values
             if (length < 20)
             {
-                for (int i = index; i <= endBitIndex; i++)
+                for (var i = index; i <= endBitIndex; i++)
                 {
                     SetBit(data, i, value);
                 }
@@ -89,45 +93,77 @@ namespace Microsoft.Data.Analysis
             }
 
             // Otherwise do the work to figure out how to copy whole bytes
-            int startByteIndex = index / 8;
-            int startBitOffset = index % 8;
-            int endByteIndex = endBitIndex / 8;
-            int endBitOffset = endBitIndex % 8;
+            var startByteIndex = (int)(index / 8);
+            var startBitOffset = (int)(index % 8);
+            var endByteIndex = (int)(endBitIndex / 8);
+            var endBitOffset = (int)(endBitIndex % 8);
 
             // If the starting index and ending index are not byte-aligned,
             // we'll need to set bits the slow way. If they are
             // byte-aligned, and for all other bytes in the 'middle', we
             // can use a faster byte-aligned set.
-            int fullByteStartIndex = startBitOffset == 0 ? startByteIndex : startByteIndex + 1;
-            int fullByteEndIndex = endBitOffset == 7 ? endByteIndex : endByteIndex - 1;
+            var fullByteStartIndex = startBitOffset == 0 ? startByteIndex : startByteIndex + 1;
+            var fullByteEndIndex = endBitOffset == 7 ? endByteIndex : endByteIndex - 1;
 
             // Bits we will be using to finish up the first byte
             if (startBitOffset != 0)
             {
-                Span<byte> slice = data.Slice(startByteIndex, 1);
-                for (int i = startBitOffset; i <= 7; i++)
+                var slice = data.Slice(startByteIndex, 1);
+                for (var i = startBitOffset; i <= 7; i++)
                     SetBit(slice, i, value);
             }
 
             if (fullByteEndIndex >= fullByteStartIndex)
             {
-                Span<byte> slice = data.Slice(fullByteStartIndex, fullByteEndIndex - fullByteStartIndex + 1);
-                byte fill = (byte)(value ? 0xFF : 0x00);
+                var slice = data.Slice(fullByteStartIndex, fullByteEndIndex - fullByteStartIndex + 1);
+                var fill = (byte)(value ? 0xFF : 0x00);
 
                 slice.Fill(fill);
             }
 
             if (endBitOffset != 7)
             {
-                Span<byte> slice = data.Slice(endByteIndex, 1);
-                for (int i = 0; i <= endBitOffset; i++)
+                var slice = data.Slice(endByteIndex, 1);
+                for (var i = 0; i <= endBitOffset; i++)
                     SetBit(slice, i, value);
             }
         }
 
-        public static long GetBitCount(Span<byte> span, long length)
+        public static void ElementwiseAnd(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right, Span<byte> result)
         {
-            return 0;
+            for (var i = 0; i < left.Length; i++)
+                result[i] = (byte)(left[i] & right[i]);
+        }
+
+        /// <summary>
+        /// Returns the population count (number of bits set) in a span of bytes starting
+        /// at 0 bit and limiting to length of bits.
+        /// </summary>
+        /// <param name="span"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public static long GetBitCount(ReadOnlySpan<byte> span, long length)
+        {
+            var endByteIndex = (int)(length / 8);
+
+            Debug.Assert(span.Length > endByteIndex);
+
+            long count = 0;
+            for (var i = 0; i < endByteIndex; i++)
+                count += PopcountTable[span[i]];
+
+            var endBitOffset = (int)(length % 8);
+
+            if (endBitOffset != 0)
+            {
+                var partialByte = span[endByteIndex];
+                for (var j = 0; j < endBitOffset; j++)
+                {
+                    count += GetBit(partialByte, j) ? 0 : 1;
+                }
+            }
+
+            return count;
         }
     }
 

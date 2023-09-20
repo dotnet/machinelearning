@@ -6,7 +6,6 @@
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".cs" #>
 <#@ include file="ColumnArithmeticTemplate.ttinclude" #>
-
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
@@ -28,7 +27,12 @@ namespace Microsoft.Data.Analysis
         PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> column, T scalar);
 <# } #>
 <# else if (method.MethodType == MethodType.Binary) { #>
+<# if (method.MethodName == "Divide") { #>
+        void <#=method.MethodName#>(ReadOnlySpan<T> span, ReadOnlySpan<T> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<T> resultSpan, Span<byte> returnValiditySpan);
+<# } #>
+<# else { #>
         void <#=method.MethodName#>(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result);
+<# } #>
 <# } #>
 <# else if (method.MethodType == MethodType.BinaryScalar) { #>
         void <#=method.MethodName#>(PrimitiveColumnContainer<T> column, T scalar);
@@ -53,7 +57,12 @@ namespace Microsoft.Data.Analysis
         public virtual PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
 <# } #>
 <# else if (method.MethodType == MethodType.Binary) { #>
+<# if (method.MethodName == "Divide") { #>
+        public virtual void <#=method.MethodName#>(ReadOnlySpan<T> span, ReadOnlySpan<T> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<T> resultSpan, Span<byte> returnValiditySpan) => throw new NotSupportedException();
+<# } #>
+<# else { #>
         public virtual void <#=method.MethodName#>(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result) => throw new NotSupportedException();
+<# } #>
 <# } #>
 <# else if (method.MethodType == MethodType.BinaryScalar) { #>
         public virtual void <#=method.MethodName#>(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
@@ -94,7 +103,19 @@ namespace Microsoft.Data.Analysis
         public override PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, <#=type.TypeName#> scalar)
 <# } #>
 <# else if (method.MethodType == MethodType.Binary) { #>
-
+<# if (method.MethodName == "Divide") { #>
+        public override void <#=method.MethodName#>(ReadOnlySpan<<#=type.TypeName#>> span, ReadOnlySpan<<#=type.TypeName#>> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<<#=type.TypeName#>> resultSpan, Span<byte> resultValiditySpan)
+        {
+            for (int i = 0; i < span.Length; i++)
+            {
+                if (BitmapHelper.IsValid(otherValiditySpan, i))
+                    resultSpan[i] = (<#=type.TypeName#>)(span[i] <#= method.Operator #> otherSpan[i]);
+                else
+                    BitmapHelper.ClearBit(resultValiditySpan, i);
+            }
+        }
+<# } #>
+<# else { #>
         public override void <#=method.MethodName#>(ReadOnlySpan<<#=type.TypeName#>> span, ReadOnlySpan<<#=type.TypeName#>> otherSpan, Span<<#=type.TypeName#>> resultSpan)
         {
             for (int i = 0; i < span.Length; i++)
@@ -102,6 +123,7 @@ namespace Microsoft.Data.Analysis
                 resultSpan[i] = (<#=type.TypeName#>)(span[i] <#= method.Operator #> otherSpan[i]);
             }
         }
+<# } #>
 <# } #>
 <# else if (method.MethodType == MethodType.BinaryScalar) { #>
 
