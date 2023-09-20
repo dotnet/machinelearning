@@ -13,6 +13,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<T> Add(PrimitiveColumnContainer<T> right)
         {
+            long nullCount = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 //Calculate raw values
@@ -29,7 +30,7 @@ namespace Microsoft.Data.Analysis
                 BitmapHelper.ElementwiseAnd(validityBuffer.ReadOnlySpan, otherValidityBuffer.ReadOnlySpan, validityBuffer.Span);
 
                 //Calculate NullCount
-                this.NullCount = 0;
+                nullCount += BitmapHelper.GetBitCount(validityBuffer.Span, mutableBuffer.Length);
             }
 
             return this;
@@ -43,6 +44,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<T> Subtract(PrimitiveColumnContainer<T> right)
         {
+            long nullCount = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 //Calculate raw values
@@ -59,7 +61,7 @@ namespace Microsoft.Data.Analysis
                 BitmapHelper.ElementwiseAnd(validityBuffer.ReadOnlySpan, otherValidityBuffer.ReadOnlySpan, validityBuffer.Span);
 
                 //Calculate NullCount
-                this.NullCount = 0;
+                nullCount += BitmapHelper.GetBitCount(validityBuffer.Span, mutableBuffer.Length);
             }
 
             return this;
@@ -73,6 +75,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<T> Multiply(PrimitiveColumnContainer<T> right)
         {
+            long nullCount = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 //Calculate raw values
@@ -89,7 +92,7 @@ namespace Microsoft.Data.Analysis
                 BitmapHelper.ElementwiseAnd(validityBuffer.ReadOnlySpan, otherValidityBuffer.ReadOnlySpan, validityBuffer.Span);
 
                 //Calculate NullCount
-                this.NullCount = 0;
+                nullCount += BitmapHelper.GetBitCount(validityBuffer.Span, mutableBuffer.Length);
             }
 
             return this;
@@ -103,6 +106,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<T> Divide(PrimitiveColumnContainer<T> right)
         {
+            long nullCount = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 //Calculate raw values
@@ -119,7 +123,7 @@ namespace Microsoft.Data.Analysis
                 BitmapHelper.ElementwiseAnd(validityBuffer.ReadOnlySpan, otherValidityBuffer.ReadOnlySpan, validityBuffer.Span);
 
                 //Calculate NullCount
-                this.NullCount = 0;
+                nullCount += BitmapHelper.GetBitCount(validityBuffer.Span, mutableBuffer.Length);
             }
 
             return this;
@@ -133,6 +137,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<T> Modulo(PrimitiveColumnContainer<T> right)
         {
+            long nullCount = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 //Calculate raw values
@@ -149,7 +154,7 @@ namespace Microsoft.Data.Analysis
                 BitmapHelper.ElementwiseAnd(validityBuffer.ReadOnlySpan, otherValidityBuffer.ReadOnlySpan, validityBuffer.Span);
 
                 //Calculate NullCount
-                this.NullCount = 0;
+                nullCount += BitmapHelper.GetBitCount(validityBuffer.Span, mutableBuffer.Length);
             }
 
             return this;
@@ -163,6 +168,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<T> And(PrimitiveColumnContainer<T> right)
         {
+            long nullCount = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 //Calculate raw values
@@ -179,7 +185,7 @@ namespace Microsoft.Data.Analysis
                 BitmapHelper.ElementwiseAnd(validityBuffer.ReadOnlySpan, otherValidityBuffer.ReadOnlySpan, validityBuffer.Span);
 
                 //Calculate NullCount
-                this.NullCount = 0;
+                nullCount += BitmapHelper.GetBitCount(validityBuffer.Span, mutableBuffer.Length);
             }
 
             return this;
@@ -193,6 +199,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<T> Or(PrimitiveColumnContainer<T> right)
         {
+            long nullCount = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 //Calculate raw values
@@ -209,7 +216,7 @@ namespace Microsoft.Data.Analysis
                 BitmapHelper.ElementwiseAnd(validityBuffer.ReadOnlySpan, otherValidityBuffer.ReadOnlySpan, validityBuffer.Span);
 
                 //Calculate NullCount
-                this.NullCount = 0;
+                nullCount += BitmapHelper.GetBitCount(validityBuffer.Span, mutableBuffer.Length);
             }
 
             return this;
@@ -223,6 +230,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<T> Xor(PrimitiveColumnContainer<T> right)
         {
+            long nullCount = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 //Calculate raw values
@@ -239,7 +247,7 @@ namespace Microsoft.Data.Analysis
                 BitmapHelper.ElementwiseAnd(validityBuffer.ReadOnlySpan, otherValidityBuffer.ReadOnlySpan, validityBuffer.Span);
 
                 //Calculate NullCount
-                this.NullCount = 0;
+                nullCount += BitmapHelper.GetBitCount(validityBuffer.Span, mutableBuffer.Length);
             }
 
             return this;

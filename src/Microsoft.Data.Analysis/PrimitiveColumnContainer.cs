@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Numerics;
 
 namespace Microsoft.Data.Analysis
 {
@@ -17,7 +18,7 @@ namespace Microsoft.Data.Analysis
         private static ReadOnlySpan<byte> BitMask => new byte[] {
             1, 2, 4, 8, 16, 32, 64, 128
         };
-        
+
         public static void ElementwiseAnd(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right, Span<byte> result)
         {
             for (int i = 0; i < left.Length; i++)
@@ -36,8 +37,8 @@ namespace Microsoft.Data.Analysis
         {
             return ((curBitMap >> (index & 7)) & 1) != 0;
         }
-        
-                public static bool GetBit(byte data, int index) =>
+
+        public static bool GetBit(byte data, int index) =>
            ((data >> index) & 1) != 0;
 
         public static bool GetBit(ReadOnlySpan<byte> data, int index) =>
@@ -70,7 +71,7 @@ namespace Microsoft.Data.Analysis
         /// <param name="index">Bit index to start counting from.</param>
         /// <param name="length">Maximum of bits in the span to consider.</param>
         /// <param name="value">Bit value.</param>
-        internal static void SetBits(Span<byte> data, int index, int length, bool value)
+        public static void SetBits(Span<byte> data, int index, int length, bool value)
         {
             if (length == 0)
                 return;
@@ -122,6 +123,11 @@ namespace Microsoft.Data.Analysis
                 for (int i = 0; i <= endBitOffset; i++)
                     SetBit(slice, i, value);
             }
+        }
+
+        public static long GetBitCount(Span<byte> span, long length)
+        {
+            return 0;
         }
     }
 

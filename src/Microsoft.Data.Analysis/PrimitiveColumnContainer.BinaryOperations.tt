@@ -31,6 +31,7 @@ namespace Microsoft.Data.Analysis
 <# } else if (method.MethodType == MethodType.Binary ) { #>
         public PrimitiveColumnContainer<T> <#=method.MethodName#>(PrimitiveColumnContainer<T> right)
         {
+            long nullCount = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 //Calculate raw values
@@ -47,7 +48,7 @@ namespace Microsoft.Data.Analysis
                 BitmapHelper.ElementwiseAnd(validityBuffer.ReadOnlySpan, otherValidityBuffer.ReadOnlySpan, validityBuffer.Span);
 
                 //Calculate NullCount
-                this.NullCount = 0;
+                nullCount += BitmapHelper.GetBitCount(validityBuffer.Span, mutableBuffer.Length);
             }
 
             return this;
