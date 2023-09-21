@@ -3691,15 +3691,15 @@ namespace Microsoft.Data.Analysis.Tests
         public void Test_ArithmeticsMultWithNull()
         {
             // Arrange
-            var left_column = new Int32DataFrameColumn("Left", new int?[] { 1, 1, null, null });
-            var right_column = new Int32DataFrameColumn("Right", new int?[] { 1, null, 1, null });
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 4, 1, null, null });
+            var right_column = new Int32DataFrameColumn("Right", new int?[] { 2, null, 1, null });
 
             // Act
             var mult = left_column * right_column;
 
             // Assert
             Assert.Equal(3, mult.NullCount);
-            Assert.Equal(1, mult[0]);  // 1 * 1
+            Assert.Equal(8, mult[0]);  // 1 * 1
             Assert.Null(mult[1]); // null * 1
             Assert.Null(mult[2]); // 1 * null
             Assert.Null(mult[3]); // null * null
@@ -3709,15 +3709,15 @@ namespace Microsoft.Data.Analysis.Tests
         public void Test_ArithmeticsDivWithNull()
         {
             // Arrange
-            var left_column = new Int32DataFrameColumn("Left", new int?[] { 1, 1, null, null });
-            var right_column = new Int32DataFrameColumn("Right", new int?[] { 1, null, 1, null });
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 4, 1, null, null });
+            var right_column = new Int32DataFrameColumn("Right", new int?[] { 2, null, 1, null });
 
             // Act
             var div = left_column / right_column;
 
             // Assert
             Assert.Equal(3, div.NullCount);
-            Assert.Equal(1, div[0]);  // 1 / 1
+            Assert.Equal(2, div[0]);  // 1 / 1
             Assert.Null(div[1]); // null / 1
             Assert.Null(div[2]); // 1 / null
             Assert.Null(div[3]); // null / null
