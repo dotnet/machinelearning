@@ -6,8 +6,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.Data.Analysis.Interactive\Microsoft.Data.Analysis.Interactive.csproj" />
-
-    <!--<PackageReference Include=" System.Text.Encodings.Web" Version="$(SystemTextEncodingsWebVersion)" />-->
   </ItemGroup>
 
   <!-- register for test discovery in Visual Studio -->
