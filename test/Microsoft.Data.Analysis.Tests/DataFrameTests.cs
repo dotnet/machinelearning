@@ -625,15 +625,17 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.True(equalsResult[0]);
             Assert.False(equalsResult[4]);
 
-            var equalsByDataFrameResult = df["DateTime1"].ElementwiseEquals(dataFrameColumn2);
-            Assert.Equal(equalsResult, equalsByDataFrameResult);
+            var equalsToScalarResult = df["DateTime1"].ElementwiseEquals(SampleDateTime);
+            Assert.True(equalsToScalarResult[0]);
+            Assert.False(equalsToScalarResult[1]);
 
             var notEqualsResult = dataFrameColumn1.ElementwiseNotEquals(dataFrameColumn2);
             Assert.False(notEqualsResult[0]);
             Assert.True(notEqualsResult[4]);
 
-            var notEqualsByDataFrameResult = df["DateTime1"].ElementwiseNotEquals(dataFrameColumn2);
-            Assert.Equal(notEqualsResult, notEqualsByDataFrameResult);
+            var notEqualsToScalarResult = df["DateTime1"].ElementwiseNotEquals(SampleDateTime);
+            Assert.False(notEqualsToScalarResult[0]);
+            Assert.True(notEqualsToScalarResult[1]);
         }
 
         [Fact]
