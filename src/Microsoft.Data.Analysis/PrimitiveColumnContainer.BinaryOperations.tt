@@ -16,8 +16,30 @@ namespace Microsoft.Data.Analysis
     internal partial class PrimitiveColumnContainer<T>
         where T : unmanaged
     {
-<# foreach (MethodConfiguration method in methodConfiguration) { #>
+        public PrimitiveColumnContainer<T> HandleOperation(BinaryOperation operation, PrimitiveColumnContainer<T> right)
+        {
+            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+            long nullCount = 0;
+            for (int i = 0; i < this.Buffers.Count; i++)
+            {
+                var mutableBuffer = this.Buffers.GetOrCreateMutable(i);
+                var leftSpan = mutableBuffer.Span;
+                var rightSpan = right.Buffers[i].ReadOnlySpan;
 
+                var leftValidity = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
+                var rightValidity = right.NullBitMapBuffers[i].ReadOnlySpan;
+
+                arithmetic.HandleOperation(operation, leftSpan, leftValidity, rightSpan, rightValidity);
+
+                //Calculate NullCount
+                nullCount += BitmapHelper.GetBitCount(leftValidity, mutableBuffer.Length);
+            }
+
+            NullCount = nullCount;
+            return this;
+        }
+
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.Comparison) { #>
         public PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> right)
         {
@@ -28,41 +50,7 @@ namespace Microsoft.Data.Analysis
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.<#=method.MethodName#>(this, scalar);
         }
-<# } else if (method.MethodType == MethodType.Binary ) { #>
-        public PrimitiveColumnContainer<T> <#=method.MethodName#>(PrimitiveColumnContainer<T> right)
-        {
-            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
-            long nullCount = 0;
-            for (int i = 0; i < this.Buffers.Count; i++)
-            {
-                //Calculate raw values
-                var mutableBuffer = this.Buffers.GetOrCreateMutable(i);
-                var span = mutableBuffer.Span;
-                var otherSpan = right.Buffers[i].ReadOnlySpan;
-
-                var validitySpan = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
-                var otherValiditySpan = right.NullBitMapBuffers[i].ReadOnlySpan;
-
-<# if (method.MethodName == "Divide" ) { #>
-                //Divide is a special case, as we have to avoid division by zero
-                arithmetic.<#=method.MethodName#>(span, otherSpan, otherValiditySpan, span, validitySpan);
-<#} else { #>
-                //Calculate raw values
-                arithmetic.<#=method.MethodName#>(span, otherSpan, span);
-
-                //Calculate validity
-                BitmapHelper.ElementwiseAnd(validitySpan, otherValiditySpan, validitySpan);
-<# } #>
-
-                //Calculate NullCount
-                nullCount += BitmapHelper.GetBitCount(validitySpan, mutableBuffer.Length);
-            }
-
-            NullCount = nullCount;
-
-            return this;
-        }
-<# } else { #>
+<# } else if (method.MethodType != MethodType.Binary ) { #>
         public <#= method.GetSingleArgumentMethodSignature("PrimitiveColumnContainer", "T")#>
         {
 <# if (method.MethodType == MethodType.BinaryScalar) { #>

@@ -19,20 +19,14 @@ namespace Microsoft.Data.Analysis
     internal interface IPrimitiveDataFrameColumnArithmetic<T>
         where T : unmanaged
     {
+        void HandleOperation(BinaryOperation operation, Span<T> left, Span<byte> leftValidity, ReadOnlySpan<T> right, ReadOnlySpan<byte> rightValidity);
+
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.Comparison) { #>
         PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right);
 <# } #>
 <# else if (method.MethodType == MethodType.ComparisonScalar) { #>
         PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> column, T scalar);
-<# } #>
-<# else if (method.MethodType == MethodType.Binary) { #>
-<# if (method.MethodName == "Divide") { #>
-        void <#=method.MethodName#>(ReadOnlySpan<T> span, ReadOnlySpan<T> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<T> resultSpan, Span<byte> returnValiditySpan);
-<# } #>
-<# else { #>
-        void <#=method.MethodName#>(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result);
-<# } #>
 <# } #>
 <# else if (method.MethodType == MethodType.BinaryScalar) { #>
         void <#=method.MethodName#>(PrimitiveColumnContainer<T> column, T scalar);
@@ -49,6 +43,26 @@ namespace Microsoft.Data.Analysis
     {
         public static IPrimitiveDataFrameColumnArithmetic<T> Instance { get; } = PrimitiveDataFrameColumnArithmetic.GetArithmetic<T>();
 
+        public virtual void HandleOperation(BinaryOperation operation, Span<T> left, Span<byte> leftValidity, ReadOnlySpan<T> right, ReadOnlySpan<byte> rightValidity)
+        {
+            if (operation == BinaryOperation.Divide)
+            {
+                Divide(left, leftValidity, right, rightValidity);
+                return;
+            }
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType == MethodType.Binary) { #>
+<# if (method.MethodName != "Divide") { #>
+            else if (operation == BinaryOperation.<#=method.MethodName#>)
+            {
+                <#=method.MethodName#>(left, right);
+            }
+<# } #>
+<# } #>
+<# } #>
+            BitmapHelper.ElementwiseAnd(leftValidity, rightValidity, leftValidity);
+        }
+
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.Comparison) { #>
         public virtual PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right) => throw new NotSupportedException();
@@ -58,10 +72,10 @@ namespace Microsoft.Data.Analysis
 <# } #>
 <# else if (method.MethodType == MethodType.Binary) { #>
 <# if (method.MethodName == "Divide") { #>
-        public virtual void <#=method.MethodName#>(ReadOnlySpan<T> span, ReadOnlySpan<T> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<T> resultSpan, Span<byte> returnValiditySpan) => throw new NotSupportedException();
+        public virtual void <#=method.MethodName#>(Span<T> left, Span<byte> leftValidity, ReadOnlySpan<T> right, ReadOnlySpan<byte> rightValidity) => throw new NotSupportedException();
 <# } #>
 <# else { #>
-        public virtual void <#=method.MethodName#>(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result) => throw new NotSupportedException();
+        public virtual void <#=method.MethodName#>(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
 <# } #>
 <# } #>
 <# else if (method.MethodType == MethodType.BinaryScalar) { #>
@@ -92,6 +106,7 @@ namespace Microsoft.Data.Analysis
 <# foreach (TypeConfiguration type in typeConfiguration) { #>
     internal class <#=type.ClassPrefix#>Arithmetic : PrimitiveDataFrameColumnArithmetic<<#=type.TypeName#>>
     {
+
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (!((method.IsNumeric && !type.SupportsNumeric) || (method.IsBitwise && !type.SupportsBitwise) || (type.UnsupportedMethods.Contains(method.MethodName))) && method.Operator != null) { #>
 <# if (method.MethodType == MethodType.Comparison) { #>
@@ -104,23 +119,23 @@ namespace Microsoft.Data.Analysis
 <# } #>
 <# else if (method.MethodType == MethodType.Binary) { #>
 <# if (method.MethodName == "Divide") { #>
-        public override void <#=method.MethodName#>(ReadOnlySpan<<#=type.TypeName#>> span, ReadOnlySpan<<#=type.TypeName#>> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<<#=type.TypeName#>> resultSpan, Span<byte> resultValiditySpan)
+        public override void <#=method.MethodName#>(Span<<#=type.TypeName#>> left, Span<byte> leftValidity, ReadOnlySpan<<#=type.TypeName#>> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(otherValiditySpan, i))
-                    resultSpan[i] = (<#=type.TypeName#>)(span[i] <#= method.Operator #> otherSpan[i]);
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    left[i] = (<#=type.TypeName#>)(left[i] <#= method.Operator #> right[i]);
                 else
-                    BitmapHelper.ClearBit(resultValiditySpan, i);
+                    BitmapHelper.ClearBit(leftValidity, i);
             }
         }
 <# } #>
 <# else { #>
-        public override void <#=method.MethodName#>(ReadOnlySpan<<#=type.TypeName#>> span, ReadOnlySpan<<#=type.TypeName#>> otherSpan, Span<<#=type.TypeName#>> resultSpan)
+        public override void <#=method.MethodName#>(Span<<#=type.TypeName#>> left, ReadOnlySpan<<#=type.TypeName#>> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (<#=type.TypeName#>)(span[i] <#= method.Operator #> otherSpan[i]);
+                left[i] = (<#=type.TypeName#>)(left[i] <#= method.Operator #> right[i]);
             }
         }
 <# } #>

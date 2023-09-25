@@ -12,28 +12,22 @@ namespace Microsoft.Data.Analysis
     internal interface IPrimitiveDataFrameColumnArithmetic<T>
         where T : unmanaged
     {
-        void Add(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result);
+        void HandleOperation(BinaryOperation operation, Span<T> left, Span<byte> leftValidity, ReadOnlySpan<T> right, ReadOnlySpan<byte> rightValidity);
+
         void Add(PrimitiveColumnContainer<T> column, T scalar);
         void Add(T scalar, PrimitiveColumnContainer<T> column);
-        void Subtract(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result);
         void Subtract(PrimitiveColumnContainer<T> column, T scalar);
         void Subtract(T scalar, PrimitiveColumnContainer<T> column);
-        void Multiply(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result);
         void Multiply(PrimitiveColumnContainer<T> column, T scalar);
         void Multiply(T scalar, PrimitiveColumnContainer<T> column);
-        void Divide(ReadOnlySpan<T> span, ReadOnlySpan<T> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<T> resultSpan, Span<byte> returnValiditySpan);
         void Divide(PrimitiveColumnContainer<T> column, T scalar);
         void Divide(T scalar, PrimitiveColumnContainer<T> column);
-        void Modulo(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result);
         void Modulo(PrimitiveColumnContainer<T> column, T scalar);
         void Modulo(T scalar, PrimitiveColumnContainer<T> column);
-        void And(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result);
         void And(PrimitiveColumnContainer<T> column, T scalar);
         void And(T scalar, PrimitiveColumnContainer<T> column);
-        void Or(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result);
         void Or(PrimitiveColumnContainer<T> column, T scalar);
         void Or(T scalar, PrimitiveColumnContainer<T> column);
-        void Xor(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result);
         void Xor(PrimitiveColumnContainer<T> column, T scalar);
         void Xor(T scalar, PrimitiveColumnContainer<T> column);
         void LeftShift(PrimitiveColumnContainer<T> column, int value);
@@ -57,28 +51,66 @@ namespace Microsoft.Data.Analysis
     {
         public static IPrimitiveDataFrameColumnArithmetic<T> Instance { get; } = PrimitiveDataFrameColumnArithmetic.GetArithmetic<T>();
 
-        public virtual void Add(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result) => throw new NotSupportedException();
+        public virtual void HandleOperation(BinaryOperation operation, Span<T> left, Span<byte> leftValidity, ReadOnlySpan<T> right, ReadOnlySpan<byte> rightValidity)
+        {
+            if (operation == BinaryOperation.Divide)
+            {
+                Divide(left, leftValidity, right, rightValidity);
+                return;
+            }
+            else if (operation == BinaryOperation.Add)
+            {
+                Add(left, right);
+            }
+            else if (operation == BinaryOperation.Subtract)
+            {
+                Subtract(left, right);
+            }
+            else if (operation == BinaryOperation.Multiply)
+            {
+                Multiply(left, right);
+            }
+            else if (operation == BinaryOperation.Modulo)
+            {
+                Modulo(left, right);
+            }
+            else if (operation == BinaryOperation.And)
+            {
+                And(left, right);
+            }
+            else if (operation == BinaryOperation.Or)
+            {
+                Or(left, right);
+            }
+            else if (operation == BinaryOperation.Xor)
+            {
+                Xor(left, right);
+            }
+            BitmapHelper.ElementwiseAnd(leftValidity, rightValidity, leftValidity);
+        }
+
+        public virtual void Add(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
         public virtual void Add(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
         public virtual void Add(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
-        public virtual void Subtract(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result) => throw new NotSupportedException();
+        public virtual void Subtract(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
         public virtual void Subtract(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
         public virtual void Subtract(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
-        public virtual void Multiply(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result) => throw new NotSupportedException();
+        public virtual void Multiply(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
         public virtual void Multiply(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
         public virtual void Multiply(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
-        public virtual void Divide(ReadOnlySpan<T> span, ReadOnlySpan<T> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<T> resultSpan, Span<byte> returnValiditySpan) => throw new NotSupportedException();
+        public virtual void Divide(Span<T> left, Span<byte> leftValidity, ReadOnlySpan<T> right, ReadOnlySpan<byte> rightValidity) => throw new NotSupportedException();
         public virtual void Divide(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
         public virtual void Divide(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
-        public virtual void Modulo(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result) => throw new NotSupportedException();
+        public virtual void Modulo(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
         public virtual void Modulo(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
         public virtual void Modulo(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
-        public virtual void And(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result) => throw new NotSupportedException();
+        public virtual void And(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
         public virtual void And(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
         public virtual void And(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
-        public virtual void Or(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result) => throw new NotSupportedException();
+        public virtual void Or(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
         public virtual void Or(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
         public virtual void Or(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
-        public virtual void Xor(ReadOnlySpan<T> left, ReadOnlySpan<T> right, Span<T> result) => throw new NotSupportedException();
+        public virtual void Xor(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
         public virtual void Xor(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
         public virtual void Xor(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
         public virtual void LeftShift(PrimitiveColumnContainer<T> column, int value) => throw new NotSupportedException();
@@ -164,11 +196,12 @@ namespace Microsoft.Data.Analysis
     }
     internal class BoolArithmetic : PrimitiveDataFrameColumnArithmetic<bool>
     {
-        public override void And(ReadOnlySpan<bool> span, ReadOnlySpan<bool> otherSpan, Span<bool> resultSpan)
+
+        public override void And(Span<bool> left, ReadOnlySpan<bool> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (bool)(span[i] & otherSpan[i]);
+                left[i] = (bool)(left[i] & right[i]);
             }
         }
 
@@ -197,11 +230,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Or(ReadOnlySpan<bool> span, ReadOnlySpan<bool> otherSpan, Span<bool> resultSpan)
+        public override void Or(Span<bool> left, ReadOnlySpan<bool> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (bool)(span[i] | otherSpan[i]);
+                left[i] = (bool)(left[i] | right[i]);
             }
         }
 
@@ -230,11 +263,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Xor(ReadOnlySpan<bool> span, ReadOnlySpan<bool> otherSpan, Span<bool> resultSpan)
+        public override void Xor(Span<bool> left, ReadOnlySpan<bool> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (bool)(span[i] ^ otherSpan[i]);
+                left[i] = (bool)(left[i] ^ right[i]);
             }
         }
 
@@ -328,11 +361,12 @@ namespace Microsoft.Data.Analysis
     }
     internal class ByteArithmetic : PrimitiveDataFrameColumnArithmetic<byte>
     {
-        public override void Add(ReadOnlySpan<byte> span, ReadOnlySpan<byte> otherSpan, Span<byte> resultSpan)
+
+        public override void Add(Span<byte> left, ReadOnlySpan<byte> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (byte)(span[i] + otherSpan[i]);
+                left[i] = (byte)(left[i] + right[i]);
             }
         }
 
@@ -361,11 +395,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Subtract(ReadOnlySpan<byte> span, ReadOnlySpan<byte> otherSpan, Span<byte> resultSpan)
+        public override void Subtract(Span<byte> left, ReadOnlySpan<byte> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (byte)(span[i] - otherSpan[i]);
+                left[i] = (byte)(left[i] - right[i]);
             }
         }
 
@@ -394,11 +428,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Multiply(ReadOnlySpan<byte> span, ReadOnlySpan<byte> otherSpan, Span<byte> resultSpan)
+        public override void Multiply(Span<byte> left, ReadOnlySpan<byte> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (byte)(span[i] * otherSpan[i]);
+                left[i] = (byte)(left[i] * right[i]);
             }
         }
 
@@ -427,14 +461,14 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Divide(ReadOnlySpan<byte> span, ReadOnlySpan<byte> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<byte> resultSpan, Span<byte> resultValiditySpan)
+        public override void Divide(Span<byte> left, Span<byte> leftValidity, ReadOnlySpan<byte> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(otherValiditySpan, i))
-                    resultSpan[i] = (byte)(span[i] / otherSpan[i]);
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    left[i] = (byte)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(resultValiditySpan, i);
+                    BitmapHelper.ClearBit(leftValidity, i);
             }
         }
 
@@ -463,11 +497,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Modulo(ReadOnlySpan<byte> span, ReadOnlySpan<byte> otherSpan, Span<byte> resultSpan)
+        public override void Modulo(Span<byte> left, ReadOnlySpan<byte> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (byte)(span[i] % otherSpan[i]);
+                left[i] = (byte)(left[i] % right[i]);
             }
         }
 
@@ -496,11 +530,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void And(ReadOnlySpan<byte> span, ReadOnlySpan<byte> otherSpan, Span<byte> resultSpan)
+        public override void And(Span<byte> left, ReadOnlySpan<byte> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (byte)(span[i] & otherSpan[i]);
+                left[i] = (byte)(left[i] & right[i]);
             }
         }
 
@@ -529,11 +563,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Or(ReadOnlySpan<byte> span, ReadOnlySpan<byte> otherSpan, Span<byte> resultSpan)
+        public override void Or(Span<byte> left, ReadOnlySpan<byte> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (byte)(span[i] | otherSpan[i]);
+                left[i] = (byte)(left[i] | right[i]);
             }
         }
 
@@ -562,11 +596,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Xor(ReadOnlySpan<byte> span, ReadOnlySpan<byte> otherSpan, Span<byte> resultSpan)
+        public override void Xor(Span<byte> left, ReadOnlySpan<byte> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (byte)(span[i] ^ otherSpan[i]);
+                left[i] = (byte)(left[i] ^ right[i]);
             }
         }
 
@@ -810,11 +844,12 @@ namespace Microsoft.Data.Analysis
     }
     internal class CharArithmetic : PrimitiveDataFrameColumnArithmetic<char>
     {
-        public override void Add(ReadOnlySpan<char> span, ReadOnlySpan<char> otherSpan, Span<char> resultSpan)
+
+        public override void Add(Span<char> left, ReadOnlySpan<char> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (char)(span[i] + otherSpan[i]);
+                left[i] = (char)(left[i] + right[i]);
             }
         }
 
@@ -843,11 +878,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Subtract(ReadOnlySpan<char> span, ReadOnlySpan<char> otherSpan, Span<char> resultSpan)
+        public override void Subtract(Span<char> left, ReadOnlySpan<char> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (char)(span[i] - otherSpan[i]);
+                left[i] = (char)(left[i] - right[i]);
             }
         }
 
@@ -876,11 +911,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Multiply(ReadOnlySpan<char> span, ReadOnlySpan<char> otherSpan, Span<char> resultSpan)
+        public override void Multiply(Span<char> left, ReadOnlySpan<char> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (char)(span[i] * otherSpan[i]);
+                left[i] = (char)(left[i] * right[i]);
             }
         }
 
@@ -909,14 +944,14 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Divide(ReadOnlySpan<char> span, ReadOnlySpan<char> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<char> resultSpan, Span<byte> resultValiditySpan)
+        public override void Divide(Span<char> left, Span<byte> leftValidity, ReadOnlySpan<char> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(otherValiditySpan, i))
-                    resultSpan[i] = (char)(span[i] / otherSpan[i]);
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    left[i] = (char)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(resultValiditySpan, i);
+                    BitmapHelper.ClearBit(leftValidity, i);
             }
         }
 
@@ -945,11 +980,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Modulo(ReadOnlySpan<char> span, ReadOnlySpan<char> otherSpan, Span<char> resultSpan)
+        public override void Modulo(Span<char> left, ReadOnlySpan<char> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (char)(span[i] % otherSpan[i]);
+                left[i] = (char)(left[i] % right[i]);
             }
         }
 
@@ -978,11 +1013,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void And(ReadOnlySpan<char> span, ReadOnlySpan<char> otherSpan, Span<char> resultSpan)
+        public override void And(Span<char> left, ReadOnlySpan<char> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (char)(span[i] & otherSpan[i]);
+                left[i] = (char)(left[i] & right[i]);
             }
         }
 
@@ -1011,11 +1046,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Or(ReadOnlySpan<char> span, ReadOnlySpan<char> otherSpan, Span<char> resultSpan)
+        public override void Or(Span<char> left, ReadOnlySpan<char> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (char)(span[i] | otherSpan[i]);
+                left[i] = (char)(left[i] | right[i]);
             }
         }
 
@@ -1044,11 +1079,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Xor(ReadOnlySpan<char> span, ReadOnlySpan<char> otherSpan, Span<char> resultSpan)
+        public override void Xor(Span<char> left, ReadOnlySpan<char> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (char)(span[i] ^ otherSpan[i]);
+                left[i] = (char)(left[i] ^ right[i]);
             }
         }
 
@@ -1292,11 +1327,12 @@ namespace Microsoft.Data.Analysis
     }
     internal class DecimalArithmetic : PrimitiveDataFrameColumnArithmetic<decimal>
     {
-        public override void Add(ReadOnlySpan<decimal> span, ReadOnlySpan<decimal> otherSpan, Span<decimal> resultSpan)
+
+        public override void Add(Span<decimal> left, ReadOnlySpan<decimal> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (decimal)(span[i] + otherSpan[i]);
+                left[i] = (decimal)(left[i] + right[i]);
             }
         }
 
@@ -1325,11 +1361,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Subtract(ReadOnlySpan<decimal> span, ReadOnlySpan<decimal> otherSpan, Span<decimal> resultSpan)
+        public override void Subtract(Span<decimal> left, ReadOnlySpan<decimal> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (decimal)(span[i] - otherSpan[i]);
+                left[i] = (decimal)(left[i] - right[i]);
             }
         }
 
@@ -1358,11 +1394,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Multiply(ReadOnlySpan<decimal> span, ReadOnlySpan<decimal> otherSpan, Span<decimal> resultSpan)
+        public override void Multiply(Span<decimal> left, ReadOnlySpan<decimal> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (decimal)(span[i] * otherSpan[i]);
+                left[i] = (decimal)(left[i] * right[i]);
             }
         }
 
@@ -1391,14 +1427,14 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Divide(ReadOnlySpan<decimal> span, ReadOnlySpan<decimal> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<decimal> resultSpan, Span<byte> resultValiditySpan)
+        public override void Divide(Span<decimal> left, Span<byte> leftValidity, ReadOnlySpan<decimal> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(otherValiditySpan, i))
-                    resultSpan[i] = (decimal)(span[i] / otherSpan[i]);
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    left[i] = (decimal)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(resultValiditySpan, i);
+                    BitmapHelper.ClearBit(leftValidity, i);
             }
         }
 
@@ -1427,11 +1463,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Modulo(ReadOnlySpan<decimal> span, ReadOnlySpan<decimal> otherSpan, Span<decimal> resultSpan)
+        public override void Modulo(Span<decimal> left, ReadOnlySpan<decimal> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (decimal)(span[i] % otherSpan[i]);
+                left[i] = (decimal)(left[i] % right[i]);
             }
         }
 
@@ -1649,11 +1685,12 @@ namespace Microsoft.Data.Analysis
     }
     internal class DoubleArithmetic : PrimitiveDataFrameColumnArithmetic<double>
     {
-        public override void Add(ReadOnlySpan<double> span, ReadOnlySpan<double> otherSpan, Span<double> resultSpan)
+
+        public override void Add(Span<double> left, ReadOnlySpan<double> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (double)(span[i] + otherSpan[i]);
+                left[i] = (double)(left[i] + right[i]);
             }
         }
 
@@ -1682,11 +1719,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Subtract(ReadOnlySpan<double> span, ReadOnlySpan<double> otherSpan, Span<double> resultSpan)
+        public override void Subtract(Span<double> left, ReadOnlySpan<double> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (double)(span[i] - otherSpan[i]);
+                left[i] = (double)(left[i] - right[i]);
             }
         }
 
@@ -1715,11 +1752,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Multiply(ReadOnlySpan<double> span, ReadOnlySpan<double> otherSpan, Span<double> resultSpan)
+        public override void Multiply(Span<double> left, ReadOnlySpan<double> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (double)(span[i] * otherSpan[i]);
+                left[i] = (double)(left[i] * right[i]);
             }
         }
 
@@ -1748,14 +1785,14 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Divide(ReadOnlySpan<double> span, ReadOnlySpan<double> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<double> resultSpan, Span<byte> resultValiditySpan)
+        public override void Divide(Span<double> left, Span<byte> leftValidity, ReadOnlySpan<double> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(otherValiditySpan, i))
-                    resultSpan[i] = (double)(span[i] / otherSpan[i]);
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    left[i] = (double)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(resultValiditySpan, i);
+                    BitmapHelper.ClearBit(leftValidity, i);
             }
         }
 
@@ -1784,11 +1821,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Modulo(ReadOnlySpan<double> span, ReadOnlySpan<double> otherSpan, Span<double> resultSpan)
+        public override void Modulo(Span<double> left, ReadOnlySpan<double> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (double)(span[i] % otherSpan[i]);
+                left[i] = (double)(left[i] % right[i]);
             }
         }
 
@@ -2006,11 +2043,12 @@ namespace Microsoft.Data.Analysis
     }
     internal class FloatArithmetic : PrimitiveDataFrameColumnArithmetic<float>
     {
-        public override void Add(ReadOnlySpan<float> span, ReadOnlySpan<float> otherSpan, Span<float> resultSpan)
+
+        public override void Add(Span<float> left, ReadOnlySpan<float> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (float)(span[i] + otherSpan[i]);
+                left[i] = (float)(left[i] + right[i]);
             }
         }
 
@@ -2039,11 +2077,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Subtract(ReadOnlySpan<float> span, ReadOnlySpan<float> otherSpan, Span<float> resultSpan)
+        public override void Subtract(Span<float> left, ReadOnlySpan<float> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (float)(span[i] - otherSpan[i]);
+                left[i] = (float)(left[i] - right[i]);
             }
         }
 
@@ -2072,11 +2110,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Multiply(ReadOnlySpan<float> span, ReadOnlySpan<float> otherSpan, Span<float> resultSpan)
+        public override void Multiply(Span<float> left, ReadOnlySpan<float> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (float)(span[i] * otherSpan[i]);
+                left[i] = (float)(left[i] * right[i]);
             }
         }
 
@@ -2105,14 +2143,14 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Divide(ReadOnlySpan<float> span, ReadOnlySpan<float> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<float> resultSpan, Span<byte> resultValiditySpan)
+        public override void Divide(Span<float> left, Span<byte> leftValidity, ReadOnlySpan<float> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(otherValiditySpan, i))
-                    resultSpan[i] = (float)(span[i] / otherSpan[i]);
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    left[i] = (float)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(resultValiditySpan, i);
+                    BitmapHelper.ClearBit(leftValidity, i);
             }
         }
 
@@ -2141,11 +2179,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Modulo(ReadOnlySpan<float> span, ReadOnlySpan<float> otherSpan, Span<float> resultSpan)
+        public override void Modulo(Span<float> left, ReadOnlySpan<float> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (float)(span[i] % otherSpan[i]);
+                left[i] = (float)(left[i] % right[i]);
             }
         }
 
@@ -2363,11 +2401,12 @@ namespace Microsoft.Data.Analysis
     }
     internal class IntArithmetic : PrimitiveDataFrameColumnArithmetic<int>
     {
-        public override void Add(ReadOnlySpan<int> span, ReadOnlySpan<int> otherSpan, Span<int> resultSpan)
+
+        public override void Add(Span<int> left, ReadOnlySpan<int> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (int)(span[i] + otherSpan[i]);
+                left[i] = (int)(left[i] + right[i]);
             }
         }
 
@@ -2396,11 +2435,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Subtract(ReadOnlySpan<int> span, ReadOnlySpan<int> otherSpan, Span<int> resultSpan)
+        public override void Subtract(Span<int> left, ReadOnlySpan<int> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (int)(span[i] - otherSpan[i]);
+                left[i] = (int)(left[i] - right[i]);
             }
         }
 
@@ -2429,11 +2468,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Multiply(ReadOnlySpan<int> span, ReadOnlySpan<int> otherSpan, Span<int> resultSpan)
+        public override void Multiply(Span<int> left, ReadOnlySpan<int> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (int)(span[i] * otherSpan[i]);
+                left[i] = (int)(left[i] * right[i]);
             }
         }
 
@@ -2462,14 +2501,14 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Divide(ReadOnlySpan<int> span, ReadOnlySpan<int> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<int> resultSpan, Span<byte> resultValiditySpan)
+        public override void Divide(Span<int> left, Span<byte> leftValidity, ReadOnlySpan<int> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(otherValiditySpan, i))
-                    resultSpan[i] = (int)(span[i] / otherSpan[i]);
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    left[i] = (int)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(resultValiditySpan, i);
+                    BitmapHelper.ClearBit(leftValidity, i);
             }
         }
 
@@ -2498,11 +2537,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Modulo(ReadOnlySpan<int> span, ReadOnlySpan<int> otherSpan, Span<int> resultSpan)
+        public override void Modulo(Span<int> left, ReadOnlySpan<int> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (int)(span[i] % otherSpan[i]);
+                left[i] = (int)(left[i] % right[i]);
             }
         }
 
@@ -2531,11 +2570,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void And(ReadOnlySpan<int> span, ReadOnlySpan<int> otherSpan, Span<int> resultSpan)
+        public override void And(Span<int> left, ReadOnlySpan<int> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (int)(span[i] & otherSpan[i]);
+                left[i] = (int)(left[i] & right[i]);
             }
         }
 
@@ -2564,11 +2603,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Or(ReadOnlySpan<int> span, ReadOnlySpan<int> otherSpan, Span<int> resultSpan)
+        public override void Or(Span<int> left, ReadOnlySpan<int> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (int)(span[i] | otherSpan[i]);
+                left[i] = (int)(left[i] | right[i]);
             }
         }
 
@@ -2597,11 +2636,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Xor(ReadOnlySpan<int> span, ReadOnlySpan<int> otherSpan, Span<int> resultSpan)
+        public override void Xor(Span<int> left, ReadOnlySpan<int> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (int)(span[i] ^ otherSpan[i]);
+                left[i] = (int)(left[i] ^ right[i]);
             }
         }
 
@@ -2845,11 +2884,12 @@ namespace Microsoft.Data.Analysis
     }
     internal class LongArithmetic : PrimitiveDataFrameColumnArithmetic<long>
     {
-        public override void Add(ReadOnlySpan<long> span, ReadOnlySpan<long> otherSpan, Span<long> resultSpan)
+
+        public override void Add(Span<long> left, ReadOnlySpan<long> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (long)(span[i] + otherSpan[i]);
+                left[i] = (long)(left[i] + right[i]);
             }
         }
 
@@ -2878,11 +2918,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Subtract(ReadOnlySpan<long> span, ReadOnlySpan<long> otherSpan, Span<long> resultSpan)
+        public override void Subtract(Span<long> left, ReadOnlySpan<long> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (long)(span[i] - otherSpan[i]);
+                left[i] = (long)(left[i] - right[i]);
             }
         }
 
@@ -2911,11 +2951,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Multiply(ReadOnlySpan<long> span, ReadOnlySpan<long> otherSpan, Span<long> resultSpan)
+        public override void Multiply(Span<long> left, ReadOnlySpan<long> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (long)(span[i] * otherSpan[i]);
+                left[i] = (long)(left[i] * right[i]);
             }
         }
 
@@ -2944,14 +2984,14 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Divide(ReadOnlySpan<long> span, ReadOnlySpan<long> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<long> resultSpan, Span<byte> resultValiditySpan)
+        public override void Divide(Span<long> left, Span<byte> leftValidity, ReadOnlySpan<long> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(otherValiditySpan, i))
-                    resultSpan[i] = (long)(span[i] / otherSpan[i]);
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    left[i] = (long)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(resultValiditySpan, i);
+                    BitmapHelper.ClearBit(leftValidity, i);
             }
         }
 
@@ -2980,11 +3020,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Modulo(ReadOnlySpan<long> span, ReadOnlySpan<long> otherSpan, Span<long> resultSpan)
+        public override void Modulo(Span<long> left, ReadOnlySpan<long> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (long)(span[i] % otherSpan[i]);
+                left[i] = (long)(left[i] % right[i]);
             }
         }
 
@@ -3013,11 +3053,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void And(ReadOnlySpan<long> span, ReadOnlySpan<long> otherSpan, Span<long> resultSpan)
+        public override void And(Span<long> left, ReadOnlySpan<long> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (long)(span[i] & otherSpan[i]);
+                left[i] = (long)(left[i] & right[i]);
             }
         }
 
@@ -3046,11 +3086,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Or(ReadOnlySpan<long> span, ReadOnlySpan<long> otherSpan, Span<long> resultSpan)
+        public override void Or(Span<long> left, ReadOnlySpan<long> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (long)(span[i] | otherSpan[i]);
+                left[i] = (long)(left[i] | right[i]);
             }
         }
 
@@ -3079,11 +3119,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Xor(ReadOnlySpan<long> span, ReadOnlySpan<long> otherSpan, Span<long> resultSpan)
+        public override void Xor(Span<long> left, ReadOnlySpan<long> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (long)(span[i] ^ otherSpan[i]);
+                left[i] = (long)(left[i] ^ right[i]);
             }
         }
 
@@ -3327,11 +3367,12 @@ namespace Microsoft.Data.Analysis
     }
     internal class SByteArithmetic : PrimitiveDataFrameColumnArithmetic<sbyte>
     {
-        public override void Add(ReadOnlySpan<sbyte> span, ReadOnlySpan<sbyte> otherSpan, Span<sbyte> resultSpan)
+
+        public override void Add(Span<sbyte> left, ReadOnlySpan<sbyte> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (sbyte)(span[i] + otherSpan[i]);
+                left[i] = (sbyte)(left[i] + right[i]);
             }
         }
 
@@ -3360,11 +3401,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Subtract(ReadOnlySpan<sbyte> span, ReadOnlySpan<sbyte> otherSpan, Span<sbyte> resultSpan)
+        public override void Subtract(Span<sbyte> left, ReadOnlySpan<sbyte> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (sbyte)(span[i] - otherSpan[i]);
+                left[i] = (sbyte)(left[i] - right[i]);
             }
         }
 
@@ -3393,11 +3434,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Multiply(ReadOnlySpan<sbyte> span, ReadOnlySpan<sbyte> otherSpan, Span<sbyte> resultSpan)
+        public override void Multiply(Span<sbyte> left, ReadOnlySpan<sbyte> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (sbyte)(span[i] * otherSpan[i]);
+                left[i] = (sbyte)(left[i] * right[i]);
             }
         }
 
@@ -3426,14 +3467,14 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Divide(ReadOnlySpan<sbyte> span, ReadOnlySpan<sbyte> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<sbyte> resultSpan, Span<byte> resultValiditySpan)
+        public override void Divide(Span<sbyte> left, Span<byte> leftValidity, ReadOnlySpan<sbyte> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(otherValiditySpan, i))
-                    resultSpan[i] = (sbyte)(span[i] / otherSpan[i]);
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    left[i] = (sbyte)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(resultValiditySpan, i);
+                    BitmapHelper.ClearBit(leftValidity, i);
             }
         }
 
@@ -3462,11 +3503,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Modulo(ReadOnlySpan<sbyte> span, ReadOnlySpan<sbyte> otherSpan, Span<sbyte> resultSpan)
+        public override void Modulo(Span<sbyte> left, ReadOnlySpan<sbyte> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (sbyte)(span[i] % otherSpan[i]);
+                left[i] = (sbyte)(left[i] % right[i]);
             }
         }
 
@@ -3495,11 +3536,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void And(ReadOnlySpan<sbyte> span, ReadOnlySpan<sbyte> otherSpan, Span<sbyte> resultSpan)
+        public override void And(Span<sbyte> left, ReadOnlySpan<sbyte> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (sbyte)(span[i] & otherSpan[i]);
+                left[i] = (sbyte)(left[i] & right[i]);
             }
         }
 
@@ -3528,11 +3569,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Or(ReadOnlySpan<sbyte> span, ReadOnlySpan<sbyte> otherSpan, Span<sbyte> resultSpan)
+        public override void Or(Span<sbyte> left, ReadOnlySpan<sbyte> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (sbyte)(span[i] | otherSpan[i]);
+                left[i] = (sbyte)(left[i] | right[i]);
             }
         }
 
@@ -3561,11 +3602,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Xor(ReadOnlySpan<sbyte> span, ReadOnlySpan<sbyte> otherSpan, Span<sbyte> resultSpan)
+        public override void Xor(Span<sbyte> left, ReadOnlySpan<sbyte> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (sbyte)(span[i] ^ otherSpan[i]);
+                left[i] = (sbyte)(left[i] ^ right[i]);
             }
         }
 
@@ -3809,11 +3850,12 @@ namespace Microsoft.Data.Analysis
     }
     internal class ShortArithmetic : PrimitiveDataFrameColumnArithmetic<short>
     {
-        public override void Add(ReadOnlySpan<short> span, ReadOnlySpan<short> otherSpan, Span<short> resultSpan)
+
+        public override void Add(Span<short> left, ReadOnlySpan<short> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (short)(span[i] + otherSpan[i]);
+                left[i] = (short)(left[i] + right[i]);
             }
         }
 
@@ -3842,11 +3884,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Subtract(ReadOnlySpan<short> span, ReadOnlySpan<short> otherSpan, Span<short> resultSpan)
+        public override void Subtract(Span<short> left, ReadOnlySpan<short> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (short)(span[i] - otherSpan[i]);
+                left[i] = (short)(left[i] - right[i]);
             }
         }
 
@@ -3875,11 +3917,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Multiply(ReadOnlySpan<short> span, ReadOnlySpan<short> otherSpan, Span<short> resultSpan)
+        public override void Multiply(Span<short> left, ReadOnlySpan<short> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (short)(span[i] * otherSpan[i]);
+                left[i] = (short)(left[i] * right[i]);
             }
         }
 
@@ -3908,14 +3950,14 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Divide(ReadOnlySpan<short> span, ReadOnlySpan<short> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<short> resultSpan, Span<byte> resultValiditySpan)
+        public override void Divide(Span<short> left, Span<byte> leftValidity, ReadOnlySpan<short> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(otherValiditySpan, i))
-                    resultSpan[i] = (short)(span[i] / otherSpan[i]);
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    left[i] = (short)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(resultValiditySpan, i);
+                    BitmapHelper.ClearBit(leftValidity, i);
             }
         }
 
@@ -3944,11 +3986,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Modulo(ReadOnlySpan<short> span, ReadOnlySpan<short> otherSpan, Span<short> resultSpan)
+        public override void Modulo(Span<short> left, ReadOnlySpan<short> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (short)(span[i] % otherSpan[i]);
+                left[i] = (short)(left[i] % right[i]);
             }
         }
 
@@ -3977,11 +4019,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void And(ReadOnlySpan<short> span, ReadOnlySpan<short> otherSpan, Span<short> resultSpan)
+        public override void And(Span<short> left, ReadOnlySpan<short> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (short)(span[i] & otherSpan[i]);
+                left[i] = (short)(left[i] & right[i]);
             }
         }
 
@@ -4010,11 +4052,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Or(ReadOnlySpan<short> span, ReadOnlySpan<short> otherSpan, Span<short> resultSpan)
+        public override void Or(Span<short> left, ReadOnlySpan<short> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (short)(span[i] | otherSpan[i]);
+                left[i] = (short)(left[i] | right[i]);
             }
         }
 
@@ -4043,11 +4085,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Xor(ReadOnlySpan<short> span, ReadOnlySpan<short> otherSpan, Span<short> resultSpan)
+        public override void Xor(Span<short> left, ReadOnlySpan<short> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (short)(span[i] ^ otherSpan[i]);
+                left[i] = (short)(left[i] ^ right[i]);
             }
         }
 
@@ -4291,11 +4333,12 @@ namespace Microsoft.Data.Analysis
     }
     internal class UIntArithmetic : PrimitiveDataFrameColumnArithmetic<uint>
     {
-        public override void Add(ReadOnlySpan<uint> span, ReadOnlySpan<uint> otherSpan, Span<uint> resultSpan)
+
+        public override void Add(Span<uint> left, ReadOnlySpan<uint> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (uint)(span[i] + otherSpan[i]);
+                left[i] = (uint)(left[i] + right[i]);
             }
         }
 
@@ -4324,11 +4367,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Subtract(ReadOnlySpan<uint> span, ReadOnlySpan<uint> otherSpan, Span<uint> resultSpan)
+        public override void Subtract(Span<uint> left, ReadOnlySpan<uint> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (uint)(span[i] - otherSpan[i]);
+                left[i] = (uint)(left[i] - right[i]);
             }
         }
 
@@ -4357,11 +4400,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Multiply(ReadOnlySpan<uint> span, ReadOnlySpan<uint> otherSpan, Span<uint> resultSpan)
+        public override void Multiply(Span<uint> left, ReadOnlySpan<uint> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (uint)(span[i] * otherSpan[i]);
+                left[i] = (uint)(left[i] * right[i]);
             }
         }
 
@@ -4390,14 +4433,14 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Divide(ReadOnlySpan<uint> span, ReadOnlySpan<uint> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<uint> resultSpan, Span<byte> resultValiditySpan)
+        public override void Divide(Span<uint> left, Span<byte> leftValidity, ReadOnlySpan<uint> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(otherValiditySpan, i))
-                    resultSpan[i] = (uint)(span[i] / otherSpan[i]);
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    left[i] = (uint)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(resultValiditySpan, i);
+                    BitmapHelper.ClearBit(leftValidity, i);
             }
         }
 
@@ -4426,11 +4469,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Modulo(ReadOnlySpan<uint> span, ReadOnlySpan<uint> otherSpan, Span<uint> resultSpan)
+        public override void Modulo(Span<uint> left, ReadOnlySpan<uint> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (uint)(span[i] % otherSpan[i]);
+                left[i] = (uint)(left[i] % right[i]);
             }
         }
 
@@ -4459,11 +4502,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void And(ReadOnlySpan<uint> span, ReadOnlySpan<uint> otherSpan, Span<uint> resultSpan)
+        public override void And(Span<uint> left, ReadOnlySpan<uint> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (uint)(span[i] & otherSpan[i]);
+                left[i] = (uint)(left[i] & right[i]);
             }
         }
 
@@ -4492,11 +4535,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Or(ReadOnlySpan<uint> span, ReadOnlySpan<uint> otherSpan, Span<uint> resultSpan)
+        public override void Or(Span<uint> left, ReadOnlySpan<uint> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (uint)(span[i] | otherSpan[i]);
+                left[i] = (uint)(left[i] | right[i]);
             }
         }
 
@@ -4525,11 +4568,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Xor(ReadOnlySpan<uint> span, ReadOnlySpan<uint> otherSpan, Span<uint> resultSpan)
+        public override void Xor(Span<uint> left, ReadOnlySpan<uint> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (uint)(span[i] ^ otherSpan[i]);
+                left[i] = (uint)(left[i] ^ right[i]);
             }
         }
 
@@ -4773,11 +4816,12 @@ namespace Microsoft.Data.Analysis
     }
     internal class ULongArithmetic : PrimitiveDataFrameColumnArithmetic<ulong>
     {
-        public override void Add(ReadOnlySpan<ulong> span, ReadOnlySpan<ulong> otherSpan, Span<ulong> resultSpan)
+
+        public override void Add(Span<ulong> left, ReadOnlySpan<ulong> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (ulong)(span[i] + otherSpan[i]);
+                left[i] = (ulong)(left[i] + right[i]);
             }
         }
 
@@ -4806,11 +4850,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Subtract(ReadOnlySpan<ulong> span, ReadOnlySpan<ulong> otherSpan, Span<ulong> resultSpan)
+        public override void Subtract(Span<ulong> left, ReadOnlySpan<ulong> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (ulong)(span[i] - otherSpan[i]);
+                left[i] = (ulong)(left[i] - right[i]);
             }
         }
 
@@ -4839,11 +4883,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Multiply(ReadOnlySpan<ulong> span, ReadOnlySpan<ulong> otherSpan, Span<ulong> resultSpan)
+        public override void Multiply(Span<ulong> left, ReadOnlySpan<ulong> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (ulong)(span[i] * otherSpan[i]);
+                left[i] = (ulong)(left[i] * right[i]);
             }
         }
 
@@ -4872,14 +4916,14 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Divide(ReadOnlySpan<ulong> span, ReadOnlySpan<ulong> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<ulong> resultSpan, Span<byte> resultValiditySpan)
+        public override void Divide(Span<ulong> left, Span<byte> leftValidity, ReadOnlySpan<ulong> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(otherValiditySpan, i))
-                    resultSpan[i] = (ulong)(span[i] / otherSpan[i]);
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    left[i] = (ulong)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(resultValiditySpan, i);
+                    BitmapHelper.ClearBit(leftValidity, i);
             }
         }
 
@@ -4908,11 +4952,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Modulo(ReadOnlySpan<ulong> span, ReadOnlySpan<ulong> otherSpan, Span<ulong> resultSpan)
+        public override void Modulo(Span<ulong> left, ReadOnlySpan<ulong> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (ulong)(span[i] % otherSpan[i]);
+                left[i] = (ulong)(left[i] % right[i]);
             }
         }
 
@@ -4941,11 +4985,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void And(ReadOnlySpan<ulong> span, ReadOnlySpan<ulong> otherSpan, Span<ulong> resultSpan)
+        public override void And(Span<ulong> left, ReadOnlySpan<ulong> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (ulong)(span[i] & otherSpan[i]);
+                left[i] = (ulong)(left[i] & right[i]);
             }
         }
 
@@ -4974,11 +5018,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Or(ReadOnlySpan<ulong> span, ReadOnlySpan<ulong> otherSpan, Span<ulong> resultSpan)
+        public override void Or(Span<ulong> left, ReadOnlySpan<ulong> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (ulong)(span[i] | otherSpan[i]);
+                left[i] = (ulong)(left[i] | right[i]);
             }
         }
 
@@ -5007,11 +5051,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Xor(ReadOnlySpan<ulong> span, ReadOnlySpan<ulong> otherSpan, Span<ulong> resultSpan)
+        public override void Xor(Span<ulong> left, ReadOnlySpan<ulong> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (ulong)(span[i] ^ otherSpan[i]);
+                left[i] = (ulong)(left[i] ^ right[i]);
             }
         }
 
@@ -5255,11 +5299,12 @@ namespace Microsoft.Data.Analysis
     }
     internal class UShortArithmetic : PrimitiveDataFrameColumnArithmetic<ushort>
     {
-        public override void Add(ReadOnlySpan<ushort> span, ReadOnlySpan<ushort> otherSpan, Span<ushort> resultSpan)
+
+        public override void Add(Span<ushort> left, ReadOnlySpan<ushort> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (ushort)(span[i] + otherSpan[i]);
+                left[i] = (ushort)(left[i] + right[i]);
             }
         }
 
@@ -5288,11 +5333,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Subtract(ReadOnlySpan<ushort> span, ReadOnlySpan<ushort> otherSpan, Span<ushort> resultSpan)
+        public override void Subtract(Span<ushort> left, ReadOnlySpan<ushort> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (ushort)(span[i] - otherSpan[i]);
+                left[i] = (ushort)(left[i] - right[i]);
             }
         }
 
@@ -5321,11 +5366,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Multiply(ReadOnlySpan<ushort> span, ReadOnlySpan<ushort> otherSpan, Span<ushort> resultSpan)
+        public override void Multiply(Span<ushort> left, ReadOnlySpan<ushort> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (ushort)(span[i] * otherSpan[i]);
+                left[i] = (ushort)(left[i] * right[i]);
             }
         }
 
@@ -5354,14 +5399,14 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Divide(ReadOnlySpan<ushort> span, ReadOnlySpan<ushort> otherSpan, ReadOnlySpan<byte> otherValiditySpan, Span<ushort> resultSpan, Span<byte> resultValiditySpan)
+        public override void Divide(Span<ushort> left, Span<byte> leftValidity, ReadOnlySpan<ushort> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(otherValiditySpan, i))
-                    resultSpan[i] = (ushort)(span[i] / otherSpan[i]);
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    left[i] = (ushort)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(resultValiditySpan, i);
+                    BitmapHelper.ClearBit(leftValidity, i);
             }
         }
 
@@ -5390,11 +5435,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Modulo(ReadOnlySpan<ushort> span, ReadOnlySpan<ushort> otherSpan, Span<ushort> resultSpan)
+        public override void Modulo(Span<ushort> left, ReadOnlySpan<ushort> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (ushort)(span[i] % otherSpan[i]);
+                left[i] = (ushort)(left[i] % right[i]);
             }
         }
 
@@ -5423,11 +5468,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void And(ReadOnlySpan<ushort> span, ReadOnlySpan<ushort> otherSpan, Span<ushort> resultSpan)
+        public override void And(Span<ushort> left, ReadOnlySpan<ushort> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (ushort)(span[i] & otherSpan[i]);
+                left[i] = (ushort)(left[i] & right[i]);
             }
         }
 
@@ -5456,11 +5501,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Or(ReadOnlySpan<ushort> span, ReadOnlySpan<ushort> otherSpan, Span<ushort> resultSpan)
+        public override void Or(Span<ushort> left, ReadOnlySpan<ushort> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (ushort)(span[i] | otherSpan[i]);
+                left[i] = (ushort)(left[i] | right[i]);
             }
         }
 
@@ -5489,11 +5534,11 @@ namespace Microsoft.Data.Analysis
                 }
             }
         }
-        public override void Xor(ReadOnlySpan<ushort> span, ReadOnlySpan<ushort> otherSpan, Span<ushort> resultSpan)
+        public override void Xor(Span<ushort> left, ReadOnlySpan<ushort> right)
         {
-            for (int i = 0; i < span.Length; i++)
+            for (int i = 0; i < left.Length; i++)
             {
-                resultSpan[i] = (ushort)(span[i] ^ otherSpan[i]);
+                left[i] = (ushort)(left[i] ^ right[i]);
             }
         }
 
@@ -5737,6 +5782,7 @@ namespace Microsoft.Data.Analysis
     }
     internal class DateTimeArithmetic : PrimitiveDataFrameColumnArithmetic<DateTime>
     {
+
 
         public override PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<DateTime> left, PrimitiveColumnContainer<DateTime> right)
         {

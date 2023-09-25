@@ -10,33 +10,26 @@ namespace Microsoft.Data.Analysis
     internal partial class PrimitiveColumnContainer<T>
         where T : unmanaged
     {
-
-        public PrimitiveColumnContainer<T> Add(PrimitiveColumnContainer<T> right)
+        public PrimitiveColumnContainer<T> HandleOperation(BinaryOperation operation, PrimitiveColumnContainer<T> right)
         {
             var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
             long nullCount = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
-                //Calculate raw values
                 var mutableBuffer = this.Buffers.GetOrCreateMutable(i);
-                var span = mutableBuffer.Span;
-                var otherSpan = right.Buffers[i].ReadOnlySpan;
+                var leftSpan = mutableBuffer.Span;
+                var rightSpan = right.Buffers[i].ReadOnlySpan;
 
-                var validitySpan = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
-                var otherValiditySpan = right.NullBitMapBuffers[i].ReadOnlySpan;
+                var leftValidity = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
+                var rightValidity = right.NullBitMapBuffers[i].ReadOnlySpan;
 
-                //Calculate raw values
-                arithmetic.Add(span, otherSpan, span);
-
-                //Calculate validity
-                BitmapHelper.ElementwiseAnd(validitySpan, otherValiditySpan, validitySpan);
+                arithmetic.HandleOperation(operation, leftSpan, leftValidity, rightSpan, rightValidity);
 
                 //Calculate NullCount
-                nullCount += BitmapHelper.GetBitCount(validitySpan, mutableBuffer.Length);
+                nullCount += BitmapHelper.GetBitCount(leftValidity, mutableBuffer.Length);
             }
 
             NullCount = nullCount;
-
             return this;
         }
 
@@ -45,316 +38,95 @@ namespace Microsoft.Data.Analysis
             PrimitiveDataFrameColumnArithmetic<T>.Instance.Add(this, scalar);
             return this;
         }
-
-        public PrimitiveColumnContainer<T> Subtract(PrimitiveColumnContainer<T> right)
-        {
-            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
-            long nullCount = 0;
-            for (int i = 0; i < this.Buffers.Count; i++)
-            {
-                //Calculate raw values
-                var mutableBuffer = this.Buffers.GetOrCreateMutable(i);
-                var span = mutableBuffer.Span;
-                var otherSpan = right.Buffers[i].ReadOnlySpan;
-
-                var validitySpan = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
-                var otherValiditySpan = right.NullBitMapBuffers[i].ReadOnlySpan;
-
-                //Calculate raw values
-                arithmetic.Subtract(span, otherSpan, span);
-
-                //Calculate validity
-                BitmapHelper.ElementwiseAnd(validitySpan, otherValiditySpan, validitySpan);
-
-                //Calculate NullCount
-                nullCount += BitmapHelper.GetBitCount(validitySpan, mutableBuffer.Length);
-            }
-
-            NullCount = nullCount;
-
-            return this;
-        }
-
         public PrimitiveColumnContainer<T> Subtract(T scalar)
         {
             PrimitiveDataFrameColumnArithmetic<T>.Instance.Subtract(this, scalar);
             return this;
         }
-
-        public PrimitiveColumnContainer<T> Multiply(PrimitiveColumnContainer<T> right)
-        {
-            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
-            long nullCount = 0;
-            for (int i = 0; i < this.Buffers.Count; i++)
-            {
-                //Calculate raw values
-                var mutableBuffer = this.Buffers.GetOrCreateMutable(i);
-                var span = mutableBuffer.Span;
-                var otherSpan = right.Buffers[i].ReadOnlySpan;
-
-                var validitySpan = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
-                var otherValiditySpan = right.NullBitMapBuffers[i].ReadOnlySpan;
-
-                //Calculate raw values
-                arithmetic.Multiply(span, otherSpan, span);
-
-                //Calculate validity
-                BitmapHelper.ElementwiseAnd(validitySpan, otherValiditySpan, validitySpan);
-
-                //Calculate NullCount
-                nullCount += BitmapHelper.GetBitCount(validitySpan, mutableBuffer.Length);
-            }
-
-            NullCount = nullCount;
-
-            return this;
-        }
-
         public PrimitiveColumnContainer<T> Multiply(T scalar)
         {
             PrimitiveDataFrameColumnArithmetic<T>.Instance.Multiply(this, scalar);
             return this;
         }
-
-        public PrimitiveColumnContainer<T> Divide(PrimitiveColumnContainer<T> right)
-        {
-            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
-            long nullCount = 0;
-            for (int i = 0; i < this.Buffers.Count; i++)
-            {
-                //Calculate raw values
-                var mutableBuffer = this.Buffers.GetOrCreateMutable(i);
-                var span = mutableBuffer.Span;
-                var otherSpan = right.Buffers[i].ReadOnlySpan;
-
-                var validitySpan = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
-                var otherValiditySpan = right.NullBitMapBuffers[i].ReadOnlySpan;
-
-                //Divide is a special case, as we have to avoid division by zero
-                arithmetic.Divide(span, otherSpan, otherValiditySpan, span, validitySpan);
-
-                //Calculate NullCount
-                nullCount += BitmapHelper.GetBitCount(validitySpan, mutableBuffer.Length);
-            }
-
-            NullCount = nullCount;
-
-            return this;
-        }
-
         public PrimitiveColumnContainer<T> Divide(T scalar)
         {
             PrimitiveDataFrameColumnArithmetic<T>.Instance.Divide(this, scalar);
             return this;
         }
-
-        public PrimitiveColumnContainer<T> Modulo(PrimitiveColumnContainer<T> right)
-        {
-            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
-            long nullCount = 0;
-            for (int i = 0; i < this.Buffers.Count; i++)
-            {
-                //Calculate raw values
-                var mutableBuffer = this.Buffers.GetOrCreateMutable(i);
-                var span = mutableBuffer.Span;
-                var otherSpan = right.Buffers[i].ReadOnlySpan;
-
-                var validitySpan = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
-                var otherValiditySpan = right.NullBitMapBuffers[i].ReadOnlySpan;
-
-                //Calculate raw values
-                arithmetic.Modulo(span, otherSpan, span);
-
-                //Calculate validity
-                BitmapHelper.ElementwiseAnd(validitySpan, otherValiditySpan, validitySpan);
-
-                //Calculate NullCount
-                nullCount += BitmapHelper.GetBitCount(validitySpan, mutableBuffer.Length);
-            }
-
-            NullCount = nullCount;
-
-            return this;
-        }
-
         public PrimitiveColumnContainer<T> Modulo(T scalar)
         {
             PrimitiveDataFrameColumnArithmetic<T>.Instance.Modulo(this, scalar);
             return this;
         }
-
-        public PrimitiveColumnContainer<T> And(PrimitiveColumnContainer<T> right)
-        {
-            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
-            long nullCount = 0;
-            for (int i = 0; i < this.Buffers.Count; i++)
-            {
-                //Calculate raw values
-                var mutableBuffer = this.Buffers.GetOrCreateMutable(i);
-                var span = mutableBuffer.Span;
-                var otherSpan = right.Buffers[i].ReadOnlySpan;
-
-                var validitySpan = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
-                var otherValiditySpan = right.NullBitMapBuffers[i].ReadOnlySpan;
-
-                //Calculate raw values
-                arithmetic.And(span, otherSpan, span);
-
-                //Calculate validity
-                BitmapHelper.ElementwiseAnd(validitySpan, otherValiditySpan, validitySpan);
-
-                //Calculate NullCount
-                nullCount += BitmapHelper.GetBitCount(validitySpan, mutableBuffer.Length);
-            }
-
-            NullCount = nullCount;
-
-            return this;
-        }
-
         public PrimitiveColumnContainer<T> And(T scalar)
         {
             PrimitiveDataFrameColumnArithmetic<T>.Instance.And(this, scalar);
             return this;
         }
-
-        public PrimitiveColumnContainer<T> Or(PrimitiveColumnContainer<T> right)
-        {
-            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
-            long nullCount = 0;
-            for (int i = 0; i < this.Buffers.Count; i++)
-            {
-                //Calculate raw values
-                var mutableBuffer = this.Buffers.GetOrCreateMutable(i);
-                var span = mutableBuffer.Span;
-                var otherSpan = right.Buffers[i].ReadOnlySpan;
-
-                var validitySpan = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
-                var otherValiditySpan = right.NullBitMapBuffers[i].ReadOnlySpan;
-
-                //Calculate raw values
-                arithmetic.Or(span, otherSpan, span);
-
-                //Calculate validity
-                BitmapHelper.ElementwiseAnd(validitySpan, otherValiditySpan, validitySpan);
-
-                //Calculate NullCount
-                nullCount += BitmapHelper.GetBitCount(validitySpan, mutableBuffer.Length);
-            }
-
-            NullCount = nullCount;
-
-            return this;
-        }
-
         public PrimitiveColumnContainer<T> Or(T scalar)
         {
             PrimitiveDataFrameColumnArithmetic<T>.Instance.Or(this, scalar);
             return this;
         }
-
-        public PrimitiveColumnContainer<T> Xor(PrimitiveColumnContainer<T> right)
-        {
-            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
-            long nullCount = 0;
-            for (int i = 0; i < this.Buffers.Count; i++)
-            {
-                //Calculate raw values
-                var mutableBuffer = this.Buffers.GetOrCreateMutable(i);
-                var span = mutableBuffer.Span;
-                var otherSpan = right.Buffers[i].ReadOnlySpan;
-
-                var validitySpan = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
-                var otherValiditySpan = right.NullBitMapBuffers[i].ReadOnlySpan;
-
-                //Calculate raw values
-                arithmetic.Xor(span, otherSpan, span);
-
-                //Calculate validity
-                BitmapHelper.ElementwiseAnd(validitySpan, otherValiditySpan, validitySpan);
-
-                //Calculate NullCount
-                nullCount += BitmapHelper.GetBitCount(validitySpan, mutableBuffer.Length);
-            }
-
-            NullCount = nullCount;
-
-            return this;
-        }
-
         public PrimitiveColumnContainer<T> Xor(T scalar)
         {
             PrimitiveDataFrameColumnArithmetic<T>.Instance.Xor(this, scalar);
             return this;
         }
-
         public PrimitiveColumnContainer<T> LeftShift(int value)
         {
             PrimitiveDataFrameColumnArithmetic<T>.Instance.LeftShift(this, value);
             return this;
         }
-
         public PrimitiveColumnContainer<T> RightShift(int value)
         {
             PrimitiveDataFrameColumnArithmetic<T>.Instance.RightShift(this, value);
             return this;
         }
-
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<T> right)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseEquals(this, right);
         }
-
         public PrimitiveColumnContainer<bool> ElementwiseEquals(T scalar)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseEquals(this, scalar);
         }
-
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<T> right)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseNotEquals(this, right);
         }
-
         public PrimitiveColumnContainer<bool> ElementwiseNotEquals(T scalar)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseNotEquals(this, scalar);
         }
-
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<T> right)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseGreaterThanOrEqual(this, right);
         }
-
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(T scalar)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseGreaterThanOrEqual(this, scalar);
         }
-
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<T> right)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThanOrEqual(this, right);
         }
-
         public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(T scalar)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThanOrEqual(this, scalar);
         }
-
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<T> right)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseGreaterThan(this, right);
         }
-
         public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(T scalar)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseGreaterThan(this, scalar);
         }
-
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<T> right)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThan(this, right);
         }
-
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(T scalar)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThan(this, scalar);

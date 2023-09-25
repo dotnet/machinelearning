@@ -17,296 +17,296 @@ namespace Microsoft.Data.Analysis
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.AddImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.SubtractImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Divide(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.DivideImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.ModuloImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
         public DecimalDataFrameColumn Add(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.AddImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DecimalDataFrameColumn Subtract(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.SubtractImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DecimalDataFrameColumn Multiply(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.MultiplyImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DecimalDataFrameColumn Divide(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.DivideImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DecimalDataFrameColumn Modulo(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ModuloImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public DoubleDataFrameColumn Add(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.AddImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.SubtractImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.MultiplyImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.DivideImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ModuloImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public SingleDataFrameColumn Add(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.AddImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.SubtractImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.MultiplyImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public SingleDataFrameColumn Divide(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.DivideImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ModuloImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int32DataFrameColumn Add(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.AddImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.SubtractImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public Int32DataFrameColumn Divide(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.DivideImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ModuloImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int64DataFrameColumn Add(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.AddImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.SubtractImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.MultiplyImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public Int64DataFrameColumn Divide(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.DivideImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ModuloImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int32DataFrameColumn Add(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.AddImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.SubtractImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Divide(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.DivideImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.ModuloImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Add(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.AddImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.SubtractImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Divide(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.DivideImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.ModuloImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
         public UInt32DataFrameColumn Add(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.AddImplementation(column, inPlace: true);
+            return uintColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public UInt32DataFrameColumn Subtract(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.SubtractImplementation(column, inPlace: true);
+            return uintColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public UInt32DataFrameColumn Multiply(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.MultiplyImplementation(column, inPlace: true);
+            return uintColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public UInt32DataFrameColumn Divide(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.DivideImplementation(column, inPlace: true);
+            return uintColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public UInt32DataFrameColumn Modulo(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ModuloImplementation(column, inPlace: true);
+            return uintColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public UInt64DataFrameColumn Add(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.AddImplementation(column, inPlace: true);
+            return ulongColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public UInt64DataFrameColumn Subtract(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.SubtractImplementation(column, inPlace: true);
+            return ulongColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public UInt64DataFrameColumn Multiply(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.MultiplyImplementation(column, inPlace: true);
+            return ulongColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public UInt64DataFrameColumn Divide(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.DivideImplementation(column, inPlace: true);
+            return ulongColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public UInt64DataFrameColumn Modulo(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ModuloImplementation(column, inPlace: true);
+            return ulongColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int32DataFrameColumn Add(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.AddImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.SubtractImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Divide(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.DivideImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.ModuloImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
     }
     public partial class DecimalDataFrameColumn
@@ -314,222 +314,222 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn Add(ByteDataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return AddImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Subtract(ByteDataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return SubtractImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Multiply(ByteDataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return MultiplyImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Divide(ByteDataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return DivideImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Modulo(ByteDataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ModuloImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Add(DecimalDataFrameColumn column, bool inPlace = false)
         {
-            return AddImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, column, inPlace);
         }
         public DecimalDataFrameColumn Subtract(DecimalDataFrameColumn column, bool inPlace = false)
         {
-            return SubtractImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace);
         }
         public DecimalDataFrameColumn Multiply(DecimalDataFrameColumn column, bool inPlace = false)
         {
-            return MultiplyImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace);
         }
         public DecimalDataFrameColumn Divide(DecimalDataFrameColumn column, bool inPlace = false)
         {
-            return DivideImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, column, inPlace);
         }
         public DecimalDataFrameColumn Modulo(DecimalDataFrameColumn column, bool inPlace = false)
         {
-            return ModuloImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace);
         }
         public DecimalDataFrameColumn Add(Int32DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return AddImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Subtract(Int32DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return SubtractImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Multiply(Int32DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return MultiplyImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Divide(Int32DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return DivideImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Modulo(Int32DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ModuloImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Add(Int64DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return AddImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Subtract(Int64DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return SubtractImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Multiply(Int64DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return MultiplyImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Divide(Int64DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return DivideImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Modulo(Int64DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ModuloImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Add(SByteDataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return AddImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Subtract(SByteDataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return SubtractImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Multiply(SByteDataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return MultiplyImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Divide(SByteDataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return DivideImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Modulo(SByteDataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ModuloImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Add(Int16DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return AddImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Subtract(Int16DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return SubtractImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Multiply(Int16DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return MultiplyImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Divide(Int16DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return DivideImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Modulo(Int16DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ModuloImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Add(UInt32DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return AddImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Subtract(UInt32DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return SubtractImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Multiply(UInt32DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return MultiplyImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Divide(UInt32DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return DivideImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Modulo(UInt32DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ModuloImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Add(UInt64DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return AddImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Subtract(UInt64DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return SubtractImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Multiply(UInt64DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return MultiplyImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Divide(UInt64DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return DivideImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Modulo(UInt64DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ModuloImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Add(UInt16DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return AddImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Subtract(UInt16DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return SubtractImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Multiply(UInt16DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return MultiplyImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Divide(UInt16DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return DivideImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdecimalColumn, inPlace);
         }
         public DecimalDataFrameColumn Modulo(UInt16DataFrameColumn column, bool inPlace = false)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ModuloImplementation(otherdecimalColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdecimalColumn, inPlace);
         }
     }
     public partial class DoubleDataFrameColumn
@@ -537,247 +537,247 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn Add(ByteDataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return AddImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Subtract(ByteDataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return SubtractImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Multiply(ByteDataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return MultiplyImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Divide(ByteDataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return DivideImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Modulo(ByteDataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ModuloImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Add(DoubleDataFrameColumn column, bool inPlace = false)
         {
-            return AddImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, column, inPlace);
         }
         public DoubleDataFrameColumn Subtract(DoubleDataFrameColumn column, bool inPlace = false)
         {
-            return SubtractImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace);
         }
         public DoubleDataFrameColumn Multiply(DoubleDataFrameColumn column, bool inPlace = false)
         {
-            return MultiplyImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace);
         }
         public DoubleDataFrameColumn Divide(DoubleDataFrameColumn column, bool inPlace = false)
         {
-            return DivideImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, column, inPlace);
         }
         public DoubleDataFrameColumn Modulo(DoubleDataFrameColumn column, bool inPlace = false)
         {
-            return ModuloImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace);
         }
         public DoubleDataFrameColumn Add(SingleDataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return AddImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Subtract(SingleDataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return SubtractImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Multiply(SingleDataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return MultiplyImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Divide(SingleDataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return DivideImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Modulo(SingleDataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ModuloImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Add(Int32DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return AddImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Subtract(Int32DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return SubtractImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Multiply(Int32DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return MultiplyImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Divide(Int32DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return DivideImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Modulo(Int32DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ModuloImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Add(Int64DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return AddImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Subtract(Int64DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return SubtractImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Multiply(Int64DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return MultiplyImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Divide(Int64DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return DivideImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Modulo(Int64DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ModuloImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Add(SByteDataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return AddImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Subtract(SByteDataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return SubtractImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Multiply(SByteDataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return MultiplyImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Divide(SByteDataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return DivideImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Modulo(SByteDataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ModuloImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Add(Int16DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return AddImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Subtract(Int16DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return SubtractImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Multiply(Int16DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return MultiplyImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Divide(Int16DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return DivideImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Modulo(Int16DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ModuloImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Add(UInt32DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return AddImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Subtract(UInt32DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return SubtractImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Multiply(UInt32DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return MultiplyImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Divide(UInt32DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return DivideImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Modulo(UInt32DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ModuloImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Add(UInt64DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return AddImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Subtract(UInt64DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return SubtractImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Multiply(UInt64DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return MultiplyImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Divide(UInt64DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return DivideImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Modulo(UInt64DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ModuloImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Add(UInt16DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return AddImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Subtract(UInt16DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return SubtractImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Multiply(UInt16DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return MultiplyImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Divide(UInt16DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return DivideImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherdoubleColumn, inPlace);
         }
         public DoubleDataFrameColumn Modulo(UInt16DataFrameColumn column, bool inPlace = false)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ModuloImplementation(otherdoubleColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherdoubleColumn, inPlace);
         }
     }
     public partial class SingleDataFrameColumn
@@ -785,247 +785,247 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn Add(ByteDataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return AddImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Subtract(ByteDataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return SubtractImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Multiply(ByteDataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return MultiplyImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Divide(ByteDataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return DivideImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Modulo(ByteDataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ModuloImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherfloatColumn, inPlace);
         }
         public DoubleDataFrameColumn Add(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.AddImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.SubtractImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.MultiplyImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.DivideImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ModuloImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public SingleDataFrameColumn Add(SingleDataFrameColumn column, bool inPlace = false)
         {
-            return AddImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, column, inPlace);
         }
         public SingleDataFrameColumn Subtract(SingleDataFrameColumn column, bool inPlace = false)
         {
-            return SubtractImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace);
         }
         public SingleDataFrameColumn Multiply(SingleDataFrameColumn column, bool inPlace = false)
         {
-            return MultiplyImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace);
         }
         public SingleDataFrameColumn Divide(SingleDataFrameColumn column, bool inPlace = false)
         {
-            return DivideImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, column, inPlace);
         }
         public SingleDataFrameColumn Modulo(SingleDataFrameColumn column, bool inPlace = false)
         {
-            return ModuloImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace);
         }
         public SingleDataFrameColumn Add(Int32DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return AddImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Subtract(Int32DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return SubtractImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Multiply(Int32DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return MultiplyImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Divide(Int32DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return DivideImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Modulo(Int32DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ModuloImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Add(Int64DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return AddImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Subtract(Int64DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return SubtractImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Multiply(Int64DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return MultiplyImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Divide(Int64DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return DivideImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Modulo(Int64DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ModuloImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Add(SByteDataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return AddImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Subtract(SByteDataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return SubtractImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Multiply(SByteDataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return MultiplyImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Divide(SByteDataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return DivideImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Modulo(SByteDataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ModuloImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Add(Int16DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return AddImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Subtract(Int16DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return SubtractImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Multiply(Int16DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return MultiplyImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Divide(Int16DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return DivideImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Modulo(Int16DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ModuloImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Add(UInt32DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return AddImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Subtract(UInt32DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return SubtractImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Multiply(UInt32DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return MultiplyImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Divide(UInt32DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return DivideImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Modulo(UInt32DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ModuloImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Add(UInt64DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return AddImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Subtract(UInt64DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return SubtractImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Multiply(UInt64DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return MultiplyImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Divide(UInt64DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return DivideImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Modulo(UInt64DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ModuloImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Add(UInt16DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return AddImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Subtract(UInt16DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return SubtractImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Multiply(UInt16DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return MultiplyImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Divide(UInt16DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return DivideImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherfloatColumn, inPlace);
         }
         public SingleDataFrameColumn Modulo(UInt16DataFrameColumn column, bool inPlace = false)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ModuloImplementation(otherfloatColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherfloatColumn, inPlace);
         }
     }
     public partial class Int32DataFrameColumn
@@ -1033,282 +1033,282 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn Add(ByteDataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return AddImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Subtract(ByteDataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return SubtractImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Multiply(ByteDataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return MultiplyImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Divide(ByteDataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return DivideImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Modulo(ByteDataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ModuloImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace);
         }
         public DecimalDataFrameColumn Add(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.AddImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DecimalDataFrameColumn Subtract(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.SubtractImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DecimalDataFrameColumn Multiply(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.MultiplyImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DecimalDataFrameColumn Divide(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.DivideImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DecimalDataFrameColumn Modulo(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ModuloImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public DoubleDataFrameColumn Add(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.AddImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.SubtractImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.MultiplyImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.DivideImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ModuloImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public SingleDataFrameColumn Add(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.AddImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.SubtractImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.MultiplyImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public SingleDataFrameColumn Divide(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.DivideImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ModuloImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int32DataFrameColumn Add(Int32DataFrameColumn column, bool inPlace = false)
         {
-            return AddImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, column, inPlace);
         }
         public Int32DataFrameColumn Subtract(Int32DataFrameColumn column, bool inPlace = false)
         {
-            return SubtractImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace);
         }
         public Int32DataFrameColumn Multiply(Int32DataFrameColumn column, bool inPlace = false)
         {
-            return MultiplyImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace);
         }
         public Int32DataFrameColumn Divide(Int32DataFrameColumn column, bool inPlace = false)
         {
-            return DivideImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, column, inPlace);
         }
         public Int32DataFrameColumn Modulo(Int32DataFrameColumn column, bool inPlace = false)
         {
-            return ModuloImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace);
         }
         public Int64DataFrameColumn Add(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.AddImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.SubtractImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.MultiplyImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public Int64DataFrameColumn Divide(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.DivideImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ModuloImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int32DataFrameColumn Add(SByteDataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return AddImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Subtract(SByteDataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return SubtractImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Multiply(SByteDataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return MultiplyImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Divide(SByteDataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return DivideImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Modulo(SByteDataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ModuloImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Add(Int16DataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return AddImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Subtract(Int16DataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return SubtractImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Multiply(Int16DataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return MultiplyImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Divide(Int16DataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return DivideImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Modulo(Int16DataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ModuloImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace);
         }
         public Int64DataFrameColumn Add(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.AddImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Add, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.SubtractImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.MultiplyImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Divide(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.DivideImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Divide, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.ModuloImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherlongColumn, inPlace: true);
         }
         public SingleDataFrameColumn Add(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.AddImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Add, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.SubtractImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.MultiplyImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Divide(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.DivideImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Divide, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.ModuloImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherfloatColumn, inPlace: true);
         }
         public Int32DataFrameColumn Add(UInt16DataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return AddImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Subtract(UInt16DataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return SubtractImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Multiply(UInt16DataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return MultiplyImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Divide(UInt16DataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return DivideImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace);
         }
         public Int32DataFrameColumn Modulo(UInt16DataFrameColumn column, bool inPlace = false)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ModuloImplementation(otherintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace);
         }
     }
     public partial class Int64DataFrameColumn
@@ -1316,247 +1316,247 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn Add(ByteDataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return AddImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Subtract(ByteDataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return SubtractImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Multiply(ByteDataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return MultiplyImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Divide(ByteDataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return DivideImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Modulo(ByteDataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ModuloImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherlongColumn, inPlace);
         }
         public DecimalDataFrameColumn Add(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.AddImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DecimalDataFrameColumn Subtract(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.SubtractImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DecimalDataFrameColumn Multiply(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.MultiplyImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DecimalDataFrameColumn Divide(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.DivideImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DecimalDataFrameColumn Modulo(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ModuloImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public DoubleDataFrameColumn Add(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.AddImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.SubtractImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.MultiplyImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.DivideImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ModuloImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public SingleDataFrameColumn Add(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.AddImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.SubtractImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.MultiplyImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public SingleDataFrameColumn Divide(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.DivideImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ModuloImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int64DataFrameColumn Add(Int32DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return AddImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Subtract(Int32DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return SubtractImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Multiply(Int32DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return MultiplyImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Divide(Int32DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return DivideImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Modulo(Int32DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ModuloImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Add(Int64DataFrameColumn column, bool inPlace = false)
         {
-            return AddImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, column, inPlace);
         }
         public Int64DataFrameColumn Subtract(Int64DataFrameColumn column, bool inPlace = false)
         {
-            return SubtractImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace);
         }
         public Int64DataFrameColumn Multiply(Int64DataFrameColumn column, bool inPlace = false)
         {
-            return MultiplyImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace);
         }
         public Int64DataFrameColumn Divide(Int64DataFrameColumn column, bool inPlace = false)
         {
-            return DivideImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, column, inPlace);
         }
         public Int64DataFrameColumn Modulo(Int64DataFrameColumn column, bool inPlace = false)
         {
-            return ModuloImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace);
         }
         public Int64DataFrameColumn Add(SByteDataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return AddImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Subtract(SByteDataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return SubtractImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Multiply(SByteDataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return MultiplyImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Divide(SByteDataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return DivideImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Modulo(SByteDataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ModuloImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Add(Int16DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return AddImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Subtract(Int16DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return SubtractImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Multiply(Int16DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return MultiplyImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Divide(Int16DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return DivideImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Modulo(Int16DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ModuloImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Add(UInt32DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return AddImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Subtract(UInt32DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return SubtractImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Multiply(UInt32DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return MultiplyImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Divide(UInt32DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return DivideImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Modulo(UInt32DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ModuloImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Add(UInt16DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return AddImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Subtract(UInt16DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return SubtractImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Multiply(UInt16DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return MultiplyImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Divide(UInt16DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return DivideImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherlongColumn, inPlace);
         }
         public Int64DataFrameColumn Modulo(UInt16DataFrameColumn column, bool inPlace = false)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ModuloImplementation(otherlongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherlongColumn, inPlace);
         }
     }
     public partial class SByteDataFrameColumn
@@ -1565,306 +1565,306 @@ namespace Microsoft.Data.Analysis
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.AddImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.SubtractImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Divide(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.DivideImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.ModuloImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
         public DecimalDataFrameColumn Add(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.AddImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DecimalDataFrameColumn Subtract(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.SubtractImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DecimalDataFrameColumn Multiply(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.MultiplyImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DecimalDataFrameColumn Divide(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.DivideImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DecimalDataFrameColumn Modulo(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ModuloImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public DoubleDataFrameColumn Add(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.AddImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.SubtractImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.MultiplyImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.DivideImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ModuloImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public SingleDataFrameColumn Add(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.AddImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.SubtractImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.MultiplyImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public SingleDataFrameColumn Divide(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.DivideImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ModuloImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int32DataFrameColumn Add(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.AddImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.SubtractImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public Int32DataFrameColumn Divide(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.DivideImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ModuloImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int64DataFrameColumn Add(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.AddImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.SubtractImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.MultiplyImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public Int64DataFrameColumn Divide(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.DivideImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ModuloImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int32DataFrameColumn Add(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.AddImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.SubtractImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Divide(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.DivideImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.ModuloImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Add(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.AddImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.SubtractImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Divide(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.DivideImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.ModuloImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
         public Int64DataFrameColumn Add(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.AddImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Add, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.SubtractImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.MultiplyImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Divide(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.DivideImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Divide, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.ModuloImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherlongColumn, inPlace: true);
         }
         public SingleDataFrameColumn Add(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.AddImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Add, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.SubtractImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.MultiplyImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Divide(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.DivideImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Divide, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.ModuloImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherfloatColumn, inPlace: true);
         }
         public Int32DataFrameColumn Add(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.AddImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.SubtractImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Divide(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.DivideImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.ModuloImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
     }
     public partial class Int16DataFrameColumn
@@ -1873,306 +1873,306 @@ namespace Microsoft.Data.Analysis
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.AddImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.SubtractImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Divide(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.DivideImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.ModuloImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
         public DecimalDataFrameColumn Add(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.AddImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DecimalDataFrameColumn Subtract(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.SubtractImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DecimalDataFrameColumn Multiply(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.MultiplyImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DecimalDataFrameColumn Divide(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.DivideImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DecimalDataFrameColumn Modulo(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ModuloImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public DoubleDataFrameColumn Add(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.AddImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.SubtractImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.MultiplyImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.DivideImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ModuloImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public SingleDataFrameColumn Add(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.AddImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.SubtractImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.MultiplyImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public SingleDataFrameColumn Divide(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.DivideImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ModuloImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int32DataFrameColumn Add(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.AddImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.SubtractImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public Int32DataFrameColumn Divide(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.DivideImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ModuloImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int64DataFrameColumn Add(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.AddImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.SubtractImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.MultiplyImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public Int64DataFrameColumn Divide(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.DivideImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ModuloImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int32DataFrameColumn Add(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.AddImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.SubtractImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Divide(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.DivideImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.ModuloImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Add(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.AddImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.SubtractImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Divide(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.DivideImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.ModuloImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
         public Int64DataFrameColumn Add(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.AddImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Add, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.SubtractImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.MultiplyImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Divide(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.DivideImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Divide, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.ModuloImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherlongColumn, inPlace: true);
         }
         public SingleDataFrameColumn Add(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.AddImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Add, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.SubtractImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.MultiplyImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Divide(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.DivideImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Divide, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.ModuloImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherfloatColumn, inPlace: true);
         }
         public Int32DataFrameColumn Add(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.AddImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.SubtractImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Divide(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.DivideImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.ModuloImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
     }
     public partial class UInt32DataFrameColumn
@@ -2180,287 +2180,287 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn Add(ByteDataFrameColumn column, bool inPlace = false)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return AddImplementation(otheruintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otheruintColumn, inPlace);
         }
         public UInt32DataFrameColumn Subtract(ByteDataFrameColumn column, bool inPlace = false)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return SubtractImplementation(otheruintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otheruintColumn, inPlace);
         }
         public UInt32DataFrameColumn Multiply(ByteDataFrameColumn column, bool inPlace = false)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return MultiplyImplementation(otheruintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otheruintColumn, inPlace);
         }
         public UInt32DataFrameColumn Divide(ByteDataFrameColumn column, bool inPlace = false)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return DivideImplementation(otheruintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otheruintColumn, inPlace);
         }
         public UInt32DataFrameColumn Modulo(ByteDataFrameColumn column, bool inPlace = false)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ModuloImplementation(otheruintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otheruintColumn, inPlace);
         }
         public DecimalDataFrameColumn Add(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.AddImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DecimalDataFrameColumn Subtract(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.SubtractImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DecimalDataFrameColumn Multiply(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.MultiplyImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DecimalDataFrameColumn Divide(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.DivideImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DecimalDataFrameColumn Modulo(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ModuloImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public DoubleDataFrameColumn Add(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.AddImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.SubtractImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.MultiplyImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.DivideImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ModuloImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public SingleDataFrameColumn Add(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.AddImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.SubtractImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.MultiplyImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public SingleDataFrameColumn Divide(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.DivideImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ModuloImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int64DataFrameColumn Add(Int32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.AddImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Add, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(Int32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.SubtractImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(Int32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.MultiplyImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Divide(Int32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.DivideImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Divide, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(Int32DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.ModuloImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Add(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.AddImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.SubtractImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.MultiplyImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public Int64DataFrameColumn Divide(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.DivideImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ModuloImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int64DataFrameColumn Add(SByteDataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.AddImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Add, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(SByteDataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.SubtractImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(SByteDataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.MultiplyImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Divide(SByteDataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.DivideImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Divide, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(SByteDataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.ModuloImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Add(Int16DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.AddImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Add, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(Int16DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.SubtractImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(Int16DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.MultiplyImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Divide(Int16DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.DivideImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Divide, otherlongColumn, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(Int16DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return longColumn.ModuloImplementation(otherlongColumn, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherlongColumn, inPlace: true);
         }
         public UInt32DataFrameColumn Add(UInt32DataFrameColumn column, bool inPlace = false)
         {
-            return AddImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, column, inPlace);
         }
         public UInt32DataFrameColumn Subtract(UInt32DataFrameColumn column, bool inPlace = false)
         {
-            return SubtractImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace);
         }
         public UInt32DataFrameColumn Multiply(UInt32DataFrameColumn column, bool inPlace = false)
         {
-            return MultiplyImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace);
         }
         public UInt32DataFrameColumn Divide(UInt32DataFrameColumn column, bool inPlace = false)
         {
-            return DivideImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, column, inPlace);
         }
         public UInt32DataFrameColumn Modulo(UInt32DataFrameColumn column, bool inPlace = false)
         {
-            return ModuloImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace);
         }
         public UInt64DataFrameColumn Add(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.AddImplementation(column, inPlace: true);
+            return ulongColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public UInt64DataFrameColumn Subtract(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.SubtractImplementation(column, inPlace: true);
+            return ulongColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public UInt64DataFrameColumn Multiply(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.MultiplyImplementation(column, inPlace: true);
+            return ulongColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public UInt64DataFrameColumn Divide(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.DivideImplementation(column, inPlace: true);
+            return ulongColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public UInt64DataFrameColumn Modulo(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ModuloImplementation(column, inPlace: true);
+            return ulongColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public UInt32DataFrameColumn Add(UInt16DataFrameColumn column, bool inPlace = false)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return AddImplementation(otheruintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otheruintColumn, inPlace);
         }
         public UInt32DataFrameColumn Subtract(UInt16DataFrameColumn column, bool inPlace = false)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return SubtractImplementation(otheruintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otheruintColumn, inPlace);
         }
         public UInt32DataFrameColumn Multiply(UInt16DataFrameColumn column, bool inPlace = false)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return MultiplyImplementation(otheruintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otheruintColumn, inPlace);
         }
         public UInt32DataFrameColumn Divide(UInt16DataFrameColumn column, bool inPlace = false)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return DivideImplementation(otheruintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otheruintColumn, inPlace);
         }
         public UInt32DataFrameColumn Modulo(UInt16DataFrameColumn column, bool inPlace = false)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ModuloImplementation(otheruintColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otheruintColumn, inPlace);
         }
     }
     public partial class UInt64DataFrameColumn
@@ -2468,262 +2468,262 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn Add(ByteDataFrameColumn column, bool inPlace = false)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return AddImplementation(otherulongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherulongColumn, inPlace);
         }
         public UInt64DataFrameColumn Subtract(ByteDataFrameColumn column, bool inPlace = false)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return SubtractImplementation(otherulongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherulongColumn, inPlace);
         }
         public UInt64DataFrameColumn Multiply(ByteDataFrameColumn column, bool inPlace = false)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return MultiplyImplementation(otherulongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherulongColumn, inPlace);
         }
         public UInt64DataFrameColumn Divide(ByteDataFrameColumn column, bool inPlace = false)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return DivideImplementation(otherulongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherulongColumn, inPlace);
         }
         public UInt64DataFrameColumn Modulo(ByteDataFrameColumn column, bool inPlace = false)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ModuloImplementation(otherulongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherulongColumn, inPlace);
         }
         public DecimalDataFrameColumn Add(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.AddImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DecimalDataFrameColumn Subtract(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.SubtractImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DecimalDataFrameColumn Multiply(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.MultiplyImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DecimalDataFrameColumn Divide(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.DivideImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DecimalDataFrameColumn Modulo(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ModuloImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public DoubleDataFrameColumn Add(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.AddImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.SubtractImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.MultiplyImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.DivideImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ModuloImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public SingleDataFrameColumn Add(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.AddImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.SubtractImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.MultiplyImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public SingleDataFrameColumn Divide(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.DivideImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ModuloImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public SingleDataFrameColumn Add(Int32DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.AddImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Add, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(Int32DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.SubtractImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(Int32DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.MultiplyImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Divide(Int32DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.DivideImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Divide, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(Int32DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.ModuloImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Add(SByteDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.AddImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Add, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(SByteDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.SubtractImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(SByteDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.MultiplyImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Divide(SByteDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.DivideImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Divide, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(SByteDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.ModuloImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Add(Int16DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.AddImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Add, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(Int16DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.SubtractImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(Int16DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.MultiplyImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Divide(Int16DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.DivideImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Divide, otherfloatColumn, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(Int16DataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return floatColumn.ModuloImplementation(otherfloatColumn, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherfloatColumn, inPlace: true);
         }
         public UInt64DataFrameColumn Add(UInt32DataFrameColumn column, bool inPlace = false)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return AddImplementation(otherulongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherulongColumn, inPlace);
         }
         public UInt64DataFrameColumn Subtract(UInt32DataFrameColumn column, bool inPlace = false)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return SubtractImplementation(otherulongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherulongColumn, inPlace);
         }
         public UInt64DataFrameColumn Multiply(UInt32DataFrameColumn column, bool inPlace = false)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return MultiplyImplementation(otherulongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherulongColumn, inPlace);
         }
         public UInt64DataFrameColumn Divide(UInt32DataFrameColumn column, bool inPlace = false)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return DivideImplementation(otherulongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherulongColumn, inPlace);
         }
         public UInt64DataFrameColumn Modulo(UInt32DataFrameColumn column, bool inPlace = false)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ModuloImplementation(otherulongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherulongColumn, inPlace);
         }
         public UInt64DataFrameColumn Add(UInt64DataFrameColumn column, bool inPlace = false)
         {
-            return AddImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, column, inPlace);
         }
         public UInt64DataFrameColumn Subtract(UInt64DataFrameColumn column, bool inPlace = false)
         {
-            return SubtractImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace);
         }
         public UInt64DataFrameColumn Multiply(UInt64DataFrameColumn column, bool inPlace = false)
         {
-            return MultiplyImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace);
         }
         public UInt64DataFrameColumn Divide(UInt64DataFrameColumn column, bool inPlace = false)
         {
-            return DivideImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, column, inPlace);
         }
         public UInt64DataFrameColumn Modulo(UInt64DataFrameColumn column, bool inPlace = false)
         {
-            return ModuloImplementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace);
         }
         public UInt64DataFrameColumn Add(UInt16DataFrameColumn column, bool inPlace = false)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return AddImplementation(otherulongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Add, otherulongColumn, inPlace);
         }
         public UInt64DataFrameColumn Subtract(UInt16DataFrameColumn column, bool inPlace = false)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return SubtractImplementation(otherulongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Subtract, otherulongColumn, inPlace);
         }
         public UInt64DataFrameColumn Multiply(UInt16DataFrameColumn column, bool inPlace = false)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return MultiplyImplementation(otherulongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Multiply, otherulongColumn, inPlace);
         }
         public UInt64DataFrameColumn Divide(UInt16DataFrameColumn column, bool inPlace = false)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return DivideImplementation(otherulongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Divide, otherulongColumn, inPlace);
         }
         public UInt64DataFrameColumn Modulo(UInt16DataFrameColumn column, bool inPlace = false)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ModuloImplementation(otherulongColumn, inPlace);
+            return HandleOperationImplementation(BinaryOperation.Modulo, otherulongColumn, inPlace);
         }
     }
     public partial class UInt16DataFrameColumn
@@ -2732,296 +2732,296 @@ namespace Microsoft.Data.Analysis
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.AddImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.SubtractImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Divide(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.DivideImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.ModuloImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
         public DecimalDataFrameColumn Add(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.AddImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DecimalDataFrameColumn Subtract(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.SubtractImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DecimalDataFrameColumn Multiply(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.MultiplyImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DecimalDataFrameColumn Divide(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.DivideImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DecimalDataFrameColumn Modulo(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ModuloImplementation(column, inPlace: true);
+            return decimalColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public DoubleDataFrameColumn Add(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.AddImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.SubtractImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.MultiplyImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.DivideImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ModuloImplementation(column, inPlace: true);
+            return doubleColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public SingleDataFrameColumn Add(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.AddImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.SubtractImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.MultiplyImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public SingleDataFrameColumn Divide(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.DivideImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ModuloImplementation(column, inPlace: true);
+            return floatColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int32DataFrameColumn Add(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.AddImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.SubtractImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public Int32DataFrameColumn Divide(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.DivideImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ModuloImplementation(column, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int64DataFrameColumn Add(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.AddImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.SubtractImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.MultiplyImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public Int64DataFrameColumn Divide(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.DivideImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ModuloImplementation(column, inPlace: true);
+            return longColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int32DataFrameColumn Add(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.AddImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.SubtractImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Divide(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.DivideImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.ModuloImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Add(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.AddImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.SubtractImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Divide(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.DivideImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.ModuloImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
         public UInt32DataFrameColumn Add(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.AddImplementation(column, inPlace: true);
+            return uintColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public UInt32DataFrameColumn Subtract(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.SubtractImplementation(column, inPlace: true);
+            return uintColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public UInt32DataFrameColumn Multiply(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.MultiplyImplementation(column, inPlace: true);
+            return uintColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public UInt32DataFrameColumn Divide(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.DivideImplementation(column, inPlace: true);
+            return uintColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public UInt32DataFrameColumn Modulo(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ModuloImplementation(column, inPlace: true);
+            return uintColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public UInt64DataFrameColumn Add(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.AddImplementation(column, inPlace: true);
+            return ulongColumn.HandleOperationImplementation(BinaryOperation.Add, column, inPlace: true);
         }
         public UInt64DataFrameColumn Subtract(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.SubtractImplementation(column, inPlace: true);
+            return ulongColumn.HandleOperationImplementation(BinaryOperation.Subtract, column, inPlace: true);
         }
         public UInt64DataFrameColumn Multiply(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.MultiplyImplementation(column, inPlace: true);
+            return ulongColumn.HandleOperationImplementation(BinaryOperation.Multiply, column, inPlace: true);
         }
         public UInt64DataFrameColumn Divide(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.DivideImplementation(column, inPlace: true);
+            return ulongColumn.HandleOperationImplementation(BinaryOperation.Divide, column, inPlace: true);
         }
         public UInt64DataFrameColumn Modulo(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ModuloImplementation(column, inPlace: true);
+            return ulongColumn.HandleOperationImplementation(BinaryOperation.Modulo, column, inPlace: true);
         }
         public Int32DataFrameColumn Add(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.AddImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Add, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.SubtractImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Subtract, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.MultiplyImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Multiply, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Divide(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.DivideImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Divide, otherintColumn, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return intColumn.ModuloImplementation(otherintColumn, inPlace: true);
+            return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
     }
     public partial class ByteDataFrameColumn
@@ -8746,7 +8746,7 @@ namespace Microsoft.Data.Analysis
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
             BooleanDataFrameColumn retColumn = inPlace ? this : CloneAsBooleanColumn();
-            retColumn.ColumnContainer.And(column.ColumnContainer);
+            retColumn.ColumnContainer.HandleOperation(BinaryOperation.And, column.ColumnContainer);
             return retColumn;
         }
     }
@@ -8768,7 +8768,7 @@ namespace Microsoft.Data.Analysis
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
             BooleanDataFrameColumn retColumn = inPlace ? this : CloneAsBooleanColumn();
-            retColumn.ColumnContainer.Or(column.ColumnContainer);
+            retColumn.ColumnContainer.HandleOperation(BinaryOperation.Or, column.ColumnContainer);
             return retColumn;
         }
     }
@@ -8790,7 +8790,7 @@ namespace Microsoft.Data.Analysis
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
             BooleanDataFrameColumn retColumn = inPlace ? this : CloneAsBooleanColumn();
-            retColumn.ColumnContainer.Xor(column.ColumnContainer);
+            retColumn.ColumnContainer.HandleOperation(BinaryOperation.Xor, column.ColumnContainer);
             return retColumn;
         }
     }

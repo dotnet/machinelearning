@@ -20,33 +20,33 @@ namespace Microsoft.Data.Analysis
             switch (column)
             {
                 case PrimitiveDataFrameColumn<bool> boolColumn:
-                    return AddImplementation(boolColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Add, boolColumn, inPlace);
                 case PrimitiveDataFrameColumn<byte> byteColumn:
-                    return AddImplementation(byteColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Add, byteColumn, inPlace);
                 case PrimitiveDataFrameColumn<char> charColumn:
-                    return AddImplementation(charColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Add, charColumn, inPlace);
                 case PrimitiveDataFrameColumn<decimal> decimalColumn:
-                    return AddImplementation(decimalColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Add, decimalColumn, inPlace);
                 case PrimitiveDataFrameColumn<double> doubleColumn:
-                    return AddImplementation(doubleColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Add, doubleColumn, inPlace);
                 case PrimitiveDataFrameColumn<float> floatColumn:
-                    return AddImplementation(floatColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Add, floatColumn, inPlace);
                 case PrimitiveDataFrameColumn<int> intColumn:
-                    return AddImplementation(intColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Add, intColumn, inPlace);
                 case PrimitiveDataFrameColumn<long> longColumn:
-                    return AddImplementation(longColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Add, longColumn, inPlace);
                 case PrimitiveDataFrameColumn<sbyte> sbyteColumn:
-                    return AddImplementation(sbyteColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Add, sbyteColumn, inPlace);
                 case PrimitiveDataFrameColumn<short> shortColumn:
-                    return AddImplementation(shortColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Add, shortColumn, inPlace);
                 case PrimitiveDataFrameColumn<uint> uintColumn:
-                    return AddImplementation(uintColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Add, uintColumn, inPlace);
                 case PrimitiveDataFrameColumn<ulong> ulongColumn:
-                    return AddImplementation(ulongColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Add, ulongColumn, inPlace);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
-                    return AddImplementation(ushortColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Add, ushortColumn, inPlace);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
-                    return AddImplementation(DateTimeColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Add, DateTimeColumn, inPlace);
 
                 default:
                     throw new NotSupportedException();
@@ -70,33 +70,33 @@ namespace Microsoft.Data.Analysis
             switch (column)
             {
                 case PrimitiveDataFrameColumn<bool> boolColumn:
-                    return SubtractImplementation(boolColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Subtract, boolColumn, inPlace);
                 case PrimitiveDataFrameColumn<byte> byteColumn:
-                    return SubtractImplementation(byteColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Subtract, byteColumn, inPlace);
                 case PrimitiveDataFrameColumn<char> charColumn:
-                    return SubtractImplementation(charColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Subtract, charColumn, inPlace);
                 case PrimitiveDataFrameColumn<decimal> decimalColumn:
-                    return SubtractImplementation(decimalColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Subtract, decimalColumn, inPlace);
                 case PrimitiveDataFrameColumn<double> doubleColumn:
-                    return SubtractImplementation(doubleColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Subtract, doubleColumn, inPlace);
                 case PrimitiveDataFrameColumn<float> floatColumn:
-                    return SubtractImplementation(floatColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Subtract, floatColumn, inPlace);
                 case PrimitiveDataFrameColumn<int> intColumn:
-                    return SubtractImplementation(intColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Subtract, intColumn, inPlace);
                 case PrimitiveDataFrameColumn<long> longColumn:
-                    return SubtractImplementation(longColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Subtract, longColumn, inPlace);
                 case PrimitiveDataFrameColumn<sbyte> sbyteColumn:
-                    return SubtractImplementation(sbyteColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Subtract, sbyteColumn, inPlace);
                 case PrimitiveDataFrameColumn<short> shortColumn:
-                    return SubtractImplementation(shortColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Subtract, shortColumn, inPlace);
                 case PrimitiveDataFrameColumn<uint> uintColumn:
-                    return SubtractImplementation(uintColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Subtract, uintColumn, inPlace);
                 case PrimitiveDataFrameColumn<ulong> ulongColumn:
-                    return SubtractImplementation(ulongColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Subtract, ulongColumn, inPlace);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
-                    return SubtractImplementation(ushortColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Subtract, ushortColumn, inPlace);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
-                    return SubtractImplementation(DateTimeColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Subtract, DateTimeColumn, inPlace);
 
                 default:
                     throw new NotSupportedException();
@@ -120,33 +120,33 @@ namespace Microsoft.Data.Analysis
             switch (column)
             {
                 case PrimitiveDataFrameColumn<bool> boolColumn:
-                    return MultiplyImplementation(boolColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Multiply, boolColumn, inPlace);
                 case PrimitiveDataFrameColumn<byte> byteColumn:
-                    return MultiplyImplementation(byteColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Multiply, byteColumn, inPlace);
                 case PrimitiveDataFrameColumn<char> charColumn:
-                    return MultiplyImplementation(charColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Multiply, charColumn, inPlace);
                 case PrimitiveDataFrameColumn<decimal> decimalColumn:
-                    return MultiplyImplementation(decimalColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Multiply, decimalColumn, inPlace);
                 case PrimitiveDataFrameColumn<double> doubleColumn:
-                    return MultiplyImplementation(doubleColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Multiply, doubleColumn, inPlace);
                 case PrimitiveDataFrameColumn<float> floatColumn:
-                    return MultiplyImplementation(floatColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Multiply, floatColumn, inPlace);
                 case PrimitiveDataFrameColumn<int> intColumn:
-                    return MultiplyImplementation(intColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Multiply, intColumn, inPlace);
                 case PrimitiveDataFrameColumn<long> longColumn:
-                    return MultiplyImplementation(longColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Multiply, longColumn, inPlace);
                 case PrimitiveDataFrameColumn<sbyte> sbyteColumn:
-                    return MultiplyImplementation(sbyteColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Multiply, sbyteColumn, inPlace);
                 case PrimitiveDataFrameColumn<short> shortColumn:
-                    return MultiplyImplementation(shortColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Multiply, shortColumn, inPlace);
                 case PrimitiveDataFrameColumn<uint> uintColumn:
-                    return MultiplyImplementation(uintColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Multiply, uintColumn, inPlace);
                 case PrimitiveDataFrameColumn<ulong> ulongColumn:
-                    return MultiplyImplementation(ulongColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Multiply, ulongColumn, inPlace);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
-                    return MultiplyImplementation(ushortColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Multiply, ushortColumn, inPlace);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
-                    return MultiplyImplementation(DateTimeColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Multiply, DateTimeColumn, inPlace);
 
                 default:
                     throw new NotSupportedException();
@@ -170,33 +170,33 @@ namespace Microsoft.Data.Analysis
             switch (column)
             {
                 case PrimitiveDataFrameColumn<bool> boolColumn:
-                    return DivideImplementation(boolColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Divide, boolColumn, inPlace);
                 case PrimitiveDataFrameColumn<byte> byteColumn:
-                    return DivideImplementation(byteColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Divide, byteColumn, inPlace);
                 case PrimitiveDataFrameColumn<char> charColumn:
-                    return DivideImplementation(charColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Divide, charColumn, inPlace);
                 case PrimitiveDataFrameColumn<decimal> decimalColumn:
-                    return DivideImplementation(decimalColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Divide, decimalColumn, inPlace);
                 case PrimitiveDataFrameColumn<double> doubleColumn:
-                    return DivideImplementation(doubleColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Divide, doubleColumn, inPlace);
                 case PrimitiveDataFrameColumn<float> floatColumn:
-                    return DivideImplementation(floatColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Divide, floatColumn, inPlace);
                 case PrimitiveDataFrameColumn<int> intColumn:
-                    return DivideImplementation(intColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Divide, intColumn, inPlace);
                 case PrimitiveDataFrameColumn<long> longColumn:
-                    return DivideImplementation(longColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Divide, longColumn, inPlace);
                 case PrimitiveDataFrameColumn<sbyte> sbyteColumn:
-                    return DivideImplementation(sbyteColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Divide, sbyteColumn, inPlace);
                 case PrimitiveDataFrameColumn<short> shortColumn:
-                    return DivideImplementation(shortColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Divide, shortColumn, inPlace);
                 case PrimitiveDataFrameColumn<uint> uintColumn:
-                    return DivideImplementation(uintColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Divide, uintColumn, inPlace);
                 case PrimitiveDataFrameColumn<ulong> ulongColumn:
-                    return DivideImplementation(ulongColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Divide, ulongColumn, inPlace);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
-                    return DivideImplementation(ushortColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Divide, ushortColumn, inPlace);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
-                    return DivideImplementation(DateTimeColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Divide, DateTimeColumn, inPlace);
 
                 default:
                     throw new NotSupportedException();
@@ -220,33 +220,33 @@ namespace Microsoft.Data.Analysis
             switch (column)
             {
                 case PrimitiveDataFrameColumn<bool> boolColumn:
-                    return ModuloImplementation(boolColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Modulo, boolColumn, inPlace);
                 case PrimitiveDataFrameColumn<byte> byteColumn:
-                    return ModuloImplementation(byteColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Modulo, byteColumn, inPlace);
                 case PrimitiveDataFrameColumn<char> charColumn:
-                    return ModuloImplementation(charColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Modulo, charColumn, inPlace);
                 case PrimitiveDataFrameColumn<decimal> decimalColumn:
-                    return ModuloImplementation(decimalColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Modulo, decimalColumn, inPlace);
                 case PrimitiveDataFrameColumn<double> doubleColumn:
-                    return ModuloImplementation(doubleColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Modulo, doubleColumn, inPlace);
                 case PrimitiveDataFrameColumn<float> floatColumn:
-                    return ModuloImplementation(floatColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Modulo, floatColumn, inPlace);
                 case PrimitiveDataFrameColumn<int> intColumn:
-                    return ModuloImplementation(intColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Modulo, intColumn, inPlace);
                 case PrimitiveDataFrameColumn<long> longColumn:
-                    return ModuloImplementation(longColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Modulo, longColumn, inPlace);
                 case PrimitiveDataFrameColumn<sbyte> sbyteColumn:
-                    return ModuloImplementation(sbyteColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Modulo, sbyteColumn, inPlace);
                 case PrimitiveDataFrameColumn<short> shortColumn:
-                    return ModuloImplementation(shortColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Modulo, shortColumn, inPlace);
                 case PrimitiveDataFrameColumn<uint> uintColumn:
-                    return ModuloImplementation(uintColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Modulo, uintColumn, inPlace);
                 case PrimitiveDataFrameColumn<ulong> ulongColumn:
-                    return ModuloImplementation(ulongColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Modulo, ulongColumn, inPlace);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
-                    return ModuloImplementation(ushortColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Modulo, ushortColumn, inPlace);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
-                    return ModuloImplementation(DateTimeColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Modulo, DateTimeColumn, inPlace);
 
                 default:
                     throw new NotSupportedException();
@@ -270,33 +270,33 @@ namespace Microsoft.Data.Analysis
             switch (column)
             {
                 case PrimitiveDataFrameColumn<bool> boolColumn:
-                    return AndImplementation(boolColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.And, boolColumn, inPlace);
                 case PrimitiveDataFrameColumn<byte> byteColumn:
-                    return AndImplementation(byteColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.And, byteColumn, inPlace);
                 case PrimitiveDataFrameColumn<char> charColumn:
-                    return AndImplementation(charColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.And, charColumn, inPlace);
                 case PrimitiveDataFrameColumn<decimal> decimalColumn:
-                    return AndImplementation(decimalColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.And, decimalColumn, inPlace);
                 case PrimitiveDataFrameColumn<double> doubleColumn:
-                    return AndImplementation(doubleColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.And, doubleColumn, inPlace);
                 case PrimitiveDataFrameColumn<float> floatColumn:
-                    return AndImplementation(floatColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.And, floatColumn, inPlace);
                 case PrimitiveDataFrameColumn<int> intColumn:
-                    return AndImplementation(intColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.And, intColumn, inPlace);
                 case PrimitiveDataFrameColumn<long> longColumn:
-                    return AndImplementation(longColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.And, longColumn, inPlace);
                 case PrimitiveDataFrameColumn<sbyte> sbyteColumn:
-                    return AndImplementation(sbyteColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.And, sbyteColumn, inPlace);
                 case PrimitiveDataFrameColumn<short> shortColumn:
-                    return AndImplementation(shortColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.And, shortColumn, inPlace);
                 case PrimitiveDataFrameColumn<uint> uintColumn:
-                    return AndImplementation(uintColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.And, uintColumn, inPlace);
                 case PrimitiveDataFrameColumn<ulong> ulongColumn:
-                    return AndImplementation(ulongColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.And, ulongColumn, inPlace);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
-                    return AndImplementation(ushortColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.And, ushortColumn, inPlace);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
-                    return AndImplementation(DateTimeColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.And, DateTimeColumn, inPlace);
 
                 default:
                     throw new NotSupportedException();
@@ -315,33 +315,33 @@ namespace Microsoft.Data.Analysis
             switch (column)
             {
                 case PrimitiveDataFrameColumn<bool> boolColumn:
-                    return OrImplementation(boolColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Or, boolColumn, inPlace);
                 case PrimitiveDataFrameColumn<byte> byteColumn:
-                    return OrImplementation(byteColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Or, byteColumn, inPlace);
                 case PrimitiveDataFrameColumn<char> charColumn:
-                    return OrImplementation(charColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Or, charColumn, inPlace);
                 case PrimitiveDataFrameColumn<decimal> decimalColumn:
-                    return OrImplementation(decimalColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Or, decimalColumn, inPlace);
                 case PrimitiveDataFrameColumn<double> doubleColumn:
-                    return OrImplementation(doubleColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Or, doubleColumn, inPlace);
                 case PrimitiveDataFrameColumn<float> floatColumn:
-                    return OrImplementation(floatColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Or, floatColumn, inPlace);
                 case PrimitiveDataFrameColumn<int> intColumn:
-                    return OrImplementation(intColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Or, intColumn, inPlace);
                 case PrimitiveDataFrameColumn<long> longColumn:
-                    return OrImplementation(longColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Or, longColumn, inPlace);
                 case PrimitiveDataFrameColumn<sbyte> sbyteColumn:
-                    return OrImplementation(sbyteColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Or, sbyteColumn, inPlace);
                 case PrimitiveDataFrameColumn<short> shortColumn:
-                    return OrImplementation(shortColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Or, shortColumn, inPlace);
                 case PrimitiveDataFrameColumn<uint> uintColumn:
-                    return OrImplementation(uintColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Or, uintColumn, inPlace);
                 case PrimitiveDataFrameColumn<ulong> ulongColumn:
-                    return OrImplementation(ulongColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Or, ulongColumn, inPlace);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
-                    return OrImplementation(ushortColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Or, ushortColumn, inPlace);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
-                    return OrImplementation(DateTimeColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Or, DateTimeColumn, inPlace);
 
                 default:
                     throw new NotSupportedException();
@@ -360,33 +360,33 @@ namespace Microsoft.Data.Analysis
             switch (column)
             {
                 case PrimitiveDataFrameColumn<bool> boolColumn:
-                    return XorImplementation(boolColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Xor, boolColumn, inPlace);
                 case PrimitiveDataFrameColumn<byte> byteColumn:
-                    return XorImplementation(byteColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Xor, byteColumn, inPlace);
                 case PrimitiveDataFrameColumn<char> charColumn:
-                    return XorImplementation(charColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Xor, charColumn, inPlace);
                 case PrimitiveDataFrameColumn<decimal> decimalColumn:
-                    return XorImplementation(decimalColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Xor, decimalColumn, inPlace);
                 case PrimitiveDataFrameColumn<double> doubleColumn:
-                    return XorImplementation(doubleColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Xor, doubleColumn, inPlace);
                 case PrimitiveDataFrameColumn<float> floatColumn:
-                    return XorImplementation(floatColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Xor, floatColumn, inPlace);
                 case PrimitiveDataFrameColumn<int> intColumn:
-                    return XorImplementation(intColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Xor, intColumn, inPlace);
                 case PrimitiveDataFrameColumn<long> longColumn:
-                    return XorImplementation(longColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Xor, longColumn, inPlace);
                 case PrimitiveDataFrameColumn<sbyte> sbyteColumn:
-                    return XorImplementation(sbyteColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Xor, sbyteColumn, inPlace);
                 case PrimitiveDataFrameColumn<short> shortColumn:
-                    return XorImplementation(shortColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Xor, shortColumn, inPlace);
                 case PrimitiveDataFrameColumn<uint> uintColumn:
-                    return XorImplementation(uintColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Xor, uintColumn, inPlace);
                 case PrimitiveDataFrameColumn<ulong> ulongColumn:
-                    return XorImplementation(ulongColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Xor, ulongColumn, inPlace);
                 case PrimitiveDataFrameColumn<ushort> ushortColumn:
-                    return XorImplementation(ushortColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Xor, ushortColumn, inPlace);
                 case PrimitiveDataFrameColumn<DateTime> DateTimeColumn:
-                    return XorImplementation(DateTimeColumn, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.Xor, DateTimeColumn, inPlace);
 
                 default:
                     throw new NotSupportedException();
@@ -714,89 +714,6 @@ namespace Microsoft.Data.Analysis
         }
 
 
-        internal DataFrameColumn AddImplementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
-            where U : unmanaged
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    throw new NotSupportedException();
-                case Type decimalType when decimalType == typeof(decimal):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Add(column._columnContainer);
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
-                        }
-                        PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.Add(column.CloneAsDecimalColumn()._columnContainer);
-                        return decimalColumn;
-                    }
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                    throw new NotSupportedException();
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Add(column._columnContainer);
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
-                        }
-                        if (typeof(U) == typeof(decimal))
-                        {
-                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.Add((column as PrimitiveDataFrameColumn<decimal>)._columnContainer);
-                            return decimalColumn;
-                        }
-                        else
-                        {
-                            PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.Add(column.CloneAsDoubleColumn()._columnContainer);
-                            return doubleColumn;
-                        }
-                    }
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
         internal DataFrameColumn AddImplementation<U>(U value, bool inPlace)
         {
             switch (typeof(T))
@@ -874,90 +791,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
-        internal DataFrameColumn SubtractImplementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
-            where U : unmanaged
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    throw new NotSupportedException();
-                case Type decimalType when decimalType == typeof(decimal):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Subtract(column._columnContainer);
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
-                        }
-                        PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.Subtract(column.CloneAsDecimalColumn()._columnContainer);
-                        return decimalColumn;
-                    }
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                    throw new NotSupportedException();
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Subtract(column._columnContainer);
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
-                        }
-                        if (typeof(U) == typeof(decimal))
-                        {
-                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.Subtract((column as PrimitiveDataFrameColumn<decimal>)._columnContainer);
-                            return decimalColumn;
-                        }
-                        else
-                        {
-                            PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.Subtract(column.CloneAsDoubleColumn()._columnContainer);
-                            return doubleColumn;
-                        }
-                    }
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
         internal DataFrameColumn SubtractImplementation<U>(U value, bool inPlace)
         {
             switch (typeof(T))
@@ -1035,90 +868,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
-        internal DataFrameColumn MultiplyImplementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
-            where U : unmanaged
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    throw new NotSupportedException();
-                case Type decimalType when decimalType == typeof(decimal):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Multiply(column._columnContainer);
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
-                        }
-                        PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.Multiply(column.CloneAsDecimalColumn()._columnContainer);
-                        return decimalColumn;
-                    }
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                    throw new NotSupportedException();
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Multiply(column._columnContainer);
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
-                        }
-                        if (typeof(U) == typeof(decimal))
-                        {
-                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.Multiply((column as PrimitiveDataFrameColumn<decimal>)._columnContainer);
-                            return decimalColumn;
-                        }
-                        else
-                        {
-                            PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.Multiply(column.CloneAsDoubleColumn()._columnContainer);
-                            return doubleColumn;
-                        }
-                    }
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
         internal DataFrameColumn MultiplyImplementation<U>(U value, bool inPlace)
         {
             switch (typeof(T))
@@ -1196,90 +945,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
-        internal DataFrameColumn DivideImplementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
-            where U : unmanaged
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    throw new NotSupportedException();
-                case Type decimalType when decimalType == typeof(decimal):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Divide(column._columnContainer);
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
-                        }
-                        PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.Divide(column.CloneAsDecimalColumn()._columnContainer);
-                        return decimalColumn;
-                    }
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                    throw new NotSupportedException();
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Divide(column._columnContainer);
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
-                        }
-                        if (typeof(U) == typeof(decimal))
-                        {
-                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.Divide((column as PrimitiveDataFrameColumn<decimal>)._columnContainer);
-                            return decimalColumn;
-                        }
-                        else
-                        {
-                            PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.Divide(column.CloneAsDoubleColumn()._columnContainer);
-                            return doubleColumn;
-                        }
-                    }
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
         internal DataFrameColumn DivideImplementation<U>(U value, bool inPlace)
         {
             switch (typeof(T))
@@ -1357,90 +1022,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
-        internal DataFrameColumn ModuloImplementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
-            where U : unmanaged
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    throw new NotSupportedException();
-                case Type decimalType when decimalType == typeof(decimal):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Modulo(column._columnContainer);
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
-                        }
-                        PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.Modulo(column.CloneAsDecimalColumn()._columnContainer);
-                        return decimalColumn;
-                    }
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                    throw new NotSupportedException();
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Modulo(column._columnContainer);
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
-                        }
-                        if (typeof(U) == typeof(decimal))
-                        {
-                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.Modulo((column as PrimitiveDataFrameColumn<decimal>)._columnContainer);
-                            return decimalColumn;
-                        }
-                        else
-                        {
-                            PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.Modulo(column.CloneAsDoubleColumn()._columnContainer);
-                            return doubleColumn;
-                        }
-                    }
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
         internal DataFrameColumn ModuloImplementation<U>(U value, bool inPlace)
         {
             switch (typeof(T))
@@ -1518,43 +1099,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
-        internal DataFrameColumn AndImplementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
-            where U : unmanaged
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    if (typeof(U) != typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    PrimitiveDataFrameColumn<U> typedColumn = this as PrimitiveDataFrameColumn<U>;
-                    PrimitiveDataFrameColumn<U> retColumn = inPlace ? typedColumn : typedColumn.Clone();
-                    retColumn._columnContainer.And(column._columnContainer);
-                    return retColumn;
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type decimalType when decimalType == typeof(decimal):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
         internal PrimitiveDataFrameColumn<bool> AndImplementation<U>(U value, bool inPlace)
         {
             switch (typeof(T))
@@ -1585,43 +1129,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
-        internal DataFrameColumn OrImplementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
-            where U : unmanaged
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    if (typeof(U) != typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    PrimitiveDataFrameColumn<U> typedColumn = this as PrimitiveDataFrameColumn<U>;
-                    PrimitiveDataFrameColumn<U> retColumn = inPlace ? typedColumn : typedColumn.Clone();
-                    retColumn._columnContainer.Or(column._columnContainer);
-                    return retColumn;
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type decimalType when decimalType == typeof(decimal):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
         internal PrimitiveDataFrameColumn<bool> OrImplementation<U>(U value, bool inPlace)
         {
             switch (typeof(T))
@@ -1652,43 +1159,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
-        internal DataFrameColumn XorImplementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
-            where U : unmanaged
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    if (typeof(U) != typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    PrimitiveDataFrameColumn<U> typedColumn = this as PrimitiveDataFrameColumn<U>;
-                    PrimitiveDataFrameColumn<U> retColumn = inPlace ? typedColumn : typedColumn.Clone();
-                    retColumn._columnContainer.Xor(column._columnContainer);
-                    return retColumn;
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type decimalType when decimalType == typeof(decimal):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
         internal PrimitiveDataFrameColumn<bool> XorImplementation<U>(U value, bool inPlace)
         {
             switch (typeof(T))
@@ -1719,7 +1189,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
         internal DataFrameColumn LeftShiftImplementation(int value, bool inPlace)
         {
             switch (typeof(T))
@@ -1783,7 +1252,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
         internal DataFrameColumn RightShiftImplementation(int value, bool inPlace)
         {
             switch (typeof(T))
@@ -1847,7 +1315,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
         internal PrimitiveDataFrameColumn<bool> ElementwiseEqualsImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -1923,7 +1390,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
         internal PrimitiveDataFrameColumn<bool> ElementwiseEqualsImplementation<U>(U value)
         {
             switch (typeof(T))
@@ -1994,7 +1460,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
         internal PrimitiveDataFrameColumn<bool> ElementwiseNotEqualsImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -2070,7 +1535,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
         internal PrimitiveDataFrameColumn<bool> ElementwiseNotEqualsImplementation<U>(U value)
         {
             switch (typeof(T))
@@ -2141,7 +1605,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
         internal PrimitiveDataFrameColumn<bool> ElementwiseGreaterThanOrEqualImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -2209,7 +1672,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
         internal PrimitiveDataFrameColumn<bool> ElementwiseGreaterThanOrEqualImplementation<U>(U value)
         {
             switch (typeof(T))
@@ -2272,7 +1734,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
         internal PrimitiveDataFrameColumn<bool> ElementwiseLessThanOrEqualImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -2340,7 +1801,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
         internal PrimitiveDataFrameColumn<bool> ElementwiseLessThanOrEqualImplementation<U>(U value)
         {
             switch (typeof(T))
@@ -2403,7 +1863,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
         internal PrimitiveDataFrameColumn<bool> ElementwiseGreaterThanImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -2471,7 +1930,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
         internal PrimitiveDataFrameColumn<bool> ElementwiseGreaterThanImplementation<U>(U value)
         {
             switch (typeof(T))
@@ -2534,7 +1992,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
         internal PrimitiveDataFrameColumn<bool> ElementwiseLessThanImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -2602,7 +2059,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
         internal PrimitiveDataFrameColumn<bool> ElementwiseLessThanImplementation<U>(U value)
         {
             switch (typeof(T))

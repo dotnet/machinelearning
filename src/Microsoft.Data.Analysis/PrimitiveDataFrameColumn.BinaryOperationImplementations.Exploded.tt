@@ -31,7 +31,7 @@ bool supportedInPlace(string type1, string type2)
 #>
 <# 
 // This method generates implementations where the arguments are of the same type.
-void GenerateAllBinaryCombinationsForMethod(string inputMethodName)
+void GenerateAllBinaryCombinationsForMethods()
 {
  foreach (TypeCombination types in BinaryOperationCombinations.binaryOperationCombinations) 
 { 
@@ -53,7 +53,6 @@ void GenerateAllBinaryCombinationsForMethod(string inputMethodName)
     string fullOtherColumnType = fullColumnType;
 
     string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
-    string methodName = inputMethodName + "Implementation";
 #>
     public partial class <#=fullColumnType#>
     {
@@ -61,13 +60,13 @@ void GenerateAllBinaryCombinationsForMethod(string inputMethodName)
     if (supportedInPlace(columnType, otherColumnType))
     {
 #>
-        internal <#=fullReturnType#> <#=methodName#>(<#=fullOtherColumnType#> column, bool inPlace = false)
+        internal <#=fullReturnType#> HandleOperationImplementation(BinaryOperation operation, <#=fullOtherColumnType#> column, bool inPlace = false)
 <#
     }
     else
     {
 #>
-        internal <#=fullReturnType#> <#=methodName#>(<#=fullOtherColumnType#> column)
+        internal <#=fullReturnType#> HandleOperationImplementation(BinaryOperation operation, <#=fullOtherColumnType#> column)
 <#
     }
 #>
@@ -77,7 +76,7 @@ void GenerateAllBinaryCombinationsForMethod(string inputMethodName)
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
             <#=fullReturnType#> newColumn = inPlace ? this : (<#=fullReturnType#>)Clone();
-            newColumn.ColumnContainer.<#=inputMethodName#>(column.ColumnContainer);
+            newColumn.ColumnContainer.HandleOperation(operation, column.ColumnContainer);
             return newColumn;
         }
     }
@@ -209,14 +208,12 @@ void GenerateAllComparisonScalarCombinationsForMethod(string inputMethodName)
  }
 #>
 <#
+GenerateAllBinaryCombinationsForMethods();
+
 foreach (MethodConfiguration method in methodConfiguration)
 {
-    // Don't generate method for Comparison and ComparisonScalar methods here
-    if (method.MethodType == MethodType.Binary && method.IsNumeric)
-    {
-        GenerateAllBinaryCombinationsForMethod(method.MethodName);
-    }
-    else if (method.MethodType == MethodType.BinaryScalar && method.IsNumeric)
+    // Don't generate method for Comparison, ComparisonScalar and Binary methods here
+    if (method.MethodType == MethodType.BinaryScalar && method.IsNumeric)
     {
         GenerateAllBinaryScalarCombinationsForMethod(method.MethodName);
         GenerateAllBinaryScalarCombinationsForMethod("Reverse" + method.MethodName);

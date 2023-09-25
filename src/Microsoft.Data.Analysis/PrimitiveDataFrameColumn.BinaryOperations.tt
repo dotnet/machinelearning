@@ -35,7 +35,7 @@ namespace Microsoft.Data.Analysis
 <# foreach (TypeConfiguration type in typeConfiguration) { #>
                 case PrimitiveDataFrameColumn<<#=type.TypeName#>> <#=type.TypeName#>Column:
 <# if (method.MethodType == MethodType.Binary) {#>
-                    return <#=method.MethodName#>Implementation(<#=type.TypeName#>Column, inPlace);
+                    return HandleOperationImplementation(BinaryOperation.<#=method.MethodName#>, <#=type.TypeName#>Column, inPlace);
 <# } else { #>
                     return <#=method.MethodName#>Implementation(<#=type.TypeName#>Column);
 <# } #>
@@ -99,8 +99,9 @@ namespace Microsoft.Data.Analysis
         }
 <# } #>
 <# } #>
-<# foreach (MethodConfiguration method in methodConfiguration) { #>
 
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType != MethodType.Binary) { #>
 <# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.ComparisonScalar) {#>
 <# if (method.MethodType == MethodType.BinaryScalar) {#>
 <# if (method.IsBitwise == true) { #>
@@ -112,20 +113,15 @@ namespace Microsoft.Data.Analysis
         internal PrimitiveDataFrameColumn<bool> <#=method.MethodName#>Implementation<U>(U value)
 <# } #>
 <# } #>
-<# if (method.MethodType == MethodType.Binary || method.MethodType == MethodType.Comparison) {#>
-<# if (method.MethodType == MethodType.Binary) {#>
-        internal DataFrameColumn <#=method.MethodName#>Implementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
-<# } else { #>
+<# if (method.MethodType == MethodType.Comparison) {#>
         internal PrimitiveDataFrameColumn<bool> <#=method.MethodName#>Implementation<U>(PrimitiveDataFrameColumn<U> column)
-<# } #>
             where U : unmanaged
 <# } #>
 <# if (method.MethodType == MethodType.BinaryInt ) {#>
         internal DataFrameColumn <#=method.MethodName#>Implementation(int value, bool inPlace)
 <# } #>
         {
-<# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.BinaryInt) {#>
-<# } else { #>
+<# if (method.MethodType != MethodType.BinaryScalar && method.MethodType != MethodType.ComparisonScalar && method.MethodType != MethodType.BinaryInt) {#>
             if (column.Length != Length)
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
@@ -239,11 +235,6 @@ namespace Microsoft.Data.Analysis
                         {
                             throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
                         }
-<# } else if (method.MethodType == MethodType.Binary) { #>
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
-                        }
 <# } #>
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
                         PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
@@ -311,11 +302,6 @@ namespace Microsoft.Data.Analysis
                         {
                             throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
                         }
-<# } else if (method.MethodType == MethodType.Binary) { #>
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
-                        }
 <# } #>
                         if (typeof(U) == typeof(decimal))
                         {
@@ -363,6 +349,7 @@ namespace Microsoft.Data.Analysis
             }
 <# } #>
         }
+<# } #>
 <# } #>
     }
 }

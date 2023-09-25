@@ -13,92 +13,92 @@ namespace Microsoft.Data.Analysis
 {
     public partial class DecimalDataFrameColumn
     {
-        internal DecimalDataFrameColumn AddImplementation(DecimalDataFrameColumn column, bool inPlace = false)
+        internal DecimalDataFrameColumn HandleOperationImplementation(BinaryOperation operation, DecimalDataFrameColumn column, bool inPlace = false)
         {
             if (column.Length != Length)
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
             DecimalDataFrameColumn newColumn = inPlace ? this : (DecimalDataFrameColumn)Clone();
-            newColumn.ColumnContainer.Add(column.ColumnContainer);
+            newColumn.ColumnContainer.HandleOperation(operation, column.ColumnContainer);
             return newColumn;
         }
     }
     public partial class DoubleDataFrameColumn
     {
-        internal DoubleDataFrameColumn AddImplementation(DoubleDataFrameColumn column, bool inPlace = false)
+        internal DoubleDataFrameColumn HandleOperationImplementation(BinaryOperation operation, DoubleDataFrameColumn column, bool inPlace = false)
         {
             if (column.Length != Length)
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
             DoubleDataFrameColumn newColumn = inPlace ? this : (DoubleDataFrameColumn)Clone();
-            newColumn.ColumnContainer.Add(column.ColumnContainer);
+            newColumn.ColumnContainer.HandleOperation(operation, column.ColumnContainer);
             return newColumn;
         }
     }
     public partial class SingleDataFrameColumn
     {
-        internal SingleDataFrameColumn AddImplementation(SingleDataFrameColumn column, bool inPlace = false)
+        internal SingleDataFrameColumn HandleOperationImplementation(BinaryOperation operation, SingleDataFrameColumn column, bool inPlace = false)
         {
             if (column.Length != Length)
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
             SingleDataFrameColumn newColumn = inPlace ? this : (SingleDataFrameColumn)Clone();
-            newColumn.ColumnContainer.Add(column.ColumnContainer);
+            newColumn.ColumnContainer.HandleOperation(operation, column.ColumnContainer);
             return newColumn;
         }
     }
     public partial class Int32DataFrameColumn
     {
-        internal Int32DataFrameColumn AddImplementation(Int32DataFrameColumn column, bool inPlace = false)
+        internal Int32DataFrameColumn HandleOperationImplementation(BinaryOperation operation, Int32DataFrameColumn column, bool inPlace = false)
         {
             if (column.Length != Length)
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
             Int32DataFrameColumn newColumn = inPlace ? this : (Int32DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Add(column.ColumnContainer);
+            newColumn.ColumnContainer.HandleOperation(operation, column.ColumnContainer);
             return newColumn;
         }
     }
     public partial class Int64DataFrameColumn
     {
-        internal Int64DataFrameColumn AddImplementation(Int64DataFrameColumn column, bool inPlace = false)
+        internal Int64DataFrameColumn HandleOperationImplementation(BinaryOperation operation, Int64DataFrameColumn column, bool inPlace = false)
         {
             if (column.Length != Length)
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
             Int64DataFrameColumn newColumn = inPlace ? this : (Int64DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Add(column.ColumnContainer);
+            newColumn.ColumnContainer.HandleOperation(operation, column.ColumnContainer);
             return newColumn;
         }
     }
     public partial class UInt32DataFrameColumn
     {
-        internal UInt32DataFrameColumn AddImplementation(UInt32DataFrameColumn column, bool inPlace = false)
+        internal UInt32DataFrameColumn HandleOperationImplementation(BinaryOperation operation, UInt32DataFrameColumn column, bool inPlace = false)
         {
             if (column.Length != Length)
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
             UInt32DataFrameColumn newColumn = inPlace ? this : (UInt32DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Add(column.ColumnContainer);
+            newColumn.ColumnContainer.HandleOperation(operation, column.ColumnContainer);
             return newColumn;
         }
     }
     public partial class UInt64DataFrameColumn
     {
-        internal UInt64DataFrameColumn AddImplementation(UInt64DataFrameColumn column, bool inPlace = false)
+        internal UInt64DataFrameColumn HandleOperationImplementation(BinaryOperation operation, UInt64DataFrameColumn column, bool inPlace = false)
         {
             if (column.Length != Length)
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
             UInt64DataFrameColumn newColumn = inPlace ? this : (UInt64DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Add(column.ColumnContainer);
+            newColumn.ColumnContainer.HandleOperation(operation, column.ColumnContainer);
             return newColumn;
         }
     }
@@ -242,97 +242,6 @@ namespace Microsoft.Data.Analysis
             return newColumn;
         }
     }
-    public partial class DecimalDataFrameColumn
-    {
-        internal DecimalDataFrameColumn SubtractImplementation(DecimalDataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            DecimalDataFrameColumn newColumn = inPlace ? this : (DecimalDataFrameColumn)Clone();
-            newColumn.ColumnContainer.Subtract(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class DoubleDataFrameColumn
-    {
-        internal DoubleDataFrameColumn SubtractImplementation(DoubleDataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            DoubleDataFrameColumn newColumn = inPlace ? this : (DoubleDataFrameColumn)Clone();
-            newColumn.ColumnContainer.Subtract(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class SingleDataFrameColumn
-    {
-        internal SingleDataFrameColumn SubtractImplementation(SingleDataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            SingleDataFrameColumn newColumn = inPlace ? this : (SingleDataFrameColumn)Clone();
-            newColumn.ColumnContainer.Subtract(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class Int32DataFrameColumn
-    {
-        internal Int32DataFrameColumn SubtractImplementation(Int32DataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            Int32DataFrameColumn newColumn = inPlace ? this : (Int32DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Subtract(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class Int64DataFrameColumn
-    {
-        internal Int64DataFrameColumn SubtractImplementation(Int64DataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            Int64DataFrameColumn newColumn = inPlace ? this : (Int64DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Subtract(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class UInt32DataFrameColumn
-    {
-        internal UInt32DataFrameColumn SubtractImplementation(UInt32DataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            UInt32DataFrameColumn newColumn = inPlace ? this : (UInt32DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Subtract(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class UInt64DataFrameColumn
-    {
-        internal UInt64DataFrameColumn SubtractImplementation(UInt64DataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            UInt64DataFrameColumn newColumn = inPlace ? this : (UInt64DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Subtract(column.ColumnContainer);
-            return newColumn;
-        }
-    }
 
     public partial class DecimalDataFrameColumn
     {
@@ -470,97 +379,6 @@ namespace Microsoft.Data.Analysis
         {
             UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
             newColumn.ColumnContainer.ReverseSubtract(value);
-            return newColumn;
-        }
-    }
-    public partial class DecimalDataFrameColumn
-    {
-        internal DecimalDataFrameColumn MultiplyImplementation(DecimalDataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            DecimalDataFrameColumn newColumn = inPlace ? this : (DecimalDataFrameColumn)Clone();
-            newColumn.ColumnContainer.Multiply(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class DoubleDataFrameColumn
-    {
-        internal DoubleDataFrameColumn MultiplyImplementation(DoubleDataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            DoubleDataFrameColumn newColumn = inPlace ? this : (DoubleDataFrameColumn)Clone();
-            newColumn.ColumnContainer.Multiply(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class SingleDataFrameColumn
-    {
-        internal SingleDataFrameColumn MultiplyImplementation(SingleDataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            SingleDataFrameColumn newColumn = inPlace ? this : (SingleDataFrameColumn)Clone();
-            newColumn.ColumnContainer.Multiply(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class Int32DataFrameColumn
-    {
-        internal Int32DataFrameColumn MultiplyImplementation(Int32DataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            Int32DataFrameColumn newColumn = inPlace ? this : (Int32DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Multiply(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class Int64DataFrameColumn
-    {
-        internal Int64DataFrameColumn MultiplyImplementation(Int64DataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            Int64DataFrameColumn newColumn = inPlace ? this : (Int64DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Multiply(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class UInt32DataFrameColumn
-    {
-        internal UInt32DataFrameColumn MultiplyImplementation(UInt32DataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            UInt32DataFrameColumn newColumn = inPlace ? this : (UInt32DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Multiply(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class UInt64DataFrameColumn
-    {
-        internal UInt64DataFrameColumn MultiplyImplementation(UInt64DataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            UInt64DataFrameColumn newColumn = inPlace ? this : (UInt64DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Multiply(column.ColumnContainer);
             return newColumn;
         }
     }
@@ -704,97 +522,6 @@ namespace Microsoft.Data.Analysis
             return newColumn;
         }
     }
-    public partial class DecimalDataFrameColumn
-    {
-        internal DecimalDataFrameColumn DivideImplementation(DecimalDataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            DecimalDataFrameColumn newColumn = inPlace ? this : (DecimalDataFrameColumn)Clone();
-            newColumn.ColumnContainer.Divide(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class DoubleDataFrameColumn
-    {
-        internal DoubleDataFrameColumn DivideImplementation(DoubleDataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            DoubleDataFrameColumn newColumn = inPlace ? this : (DoubleDataFrameColumn)Clone();
-            newColumn.ColumnContainer.Divide(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class SingleDataFrameColumn
-    {
-        internal SingleDataFrameColumn DivideImplementation(SingleDataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            SingleDataFrameColumn newColumn = inPlace ? this : (SingleDataFrameColumn)Clone();
-            newColumn.ColumnContainer.Divide(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class Int32DataFrameColumn
-    {
-        internal Int32DataFrameColumn DivideImplementation(Int32DataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            Int32DataFrameColumn newColumn = inPlace ? this : (Int32DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Divide(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class Int64DataFrameColumn
-    {
-        internal Int64DataFrameColumn DivideImplementation(Int64DataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            Int64DataFrameColumn newColumn = inPlace ? this : (Int64DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Divide(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class UInt32DataFrameColumn
-    {
-        internal UInt32DataFrameColumn DivideImplementation(UInt32DataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            UInt32DataFrameColumn newColumn = inPlace ? this : (UInt32DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Divide(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class UInt64DataFrameColumn
-    {
-        internal UInt64DataFrameColumn DivideImplementation(UInt64DataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            UInt64DataFrameColumn newColumn = inPlace ? this : (UInt64DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Divide(column.ColumnContainer);
-            return newColumn;
-        }
-    }
 
     public partial class DecimalDataFrameColumn
     {
@@ -932,97 +659,6 @@ namespace Microsoft.Data.Analysis
         {
             UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
             newColumn.ColumnContainer.ReverseDivide(value);
-            return newColumn;
-        }
-    }
-    public partial class DecimalDataFrameColumn
-    {
-        internal DecimalDataFrameColumn ModuloImplementation(DecimalDataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            DecimalDataFrameColumn newColumn = inPlace ? this : (DecimalDataFrameColumn)Clone();
-            newColumn.ColumnContainer.Modulo(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class DoubleDataFrameColumn
-    {
-        internal DoubleDataFrameColumn ModuloImplementation(DoubleDataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            DoubleDataFrameColumn newColumn = inPlace ? this : (DoubleDataFrameColumn)Clone();
-            newColumn.ColumnContainer.Modulo(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class SingleDataFrameColumn
-    {
-        internal SingleDataFrameColumn ModuloImplementation(SingleDataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            SingleDataFrameColumn newColumn = inPlace ? this : (SingleDataFrameColumn)Clone();
-            newColumn.ColumnContainer.Modulo(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class Int32DataFrameColumn
-    {
-        internal Int32DataFrameColumn ModuloImplementation(Int32DataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            Int32DataFrameColumn newColumn = inPlace ? this : (Int32DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Modulo(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class Int64DataFrameColumn
-    {
-        internal Int64DataFrameColumn ModuloImplementation(Int64DataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            Int64DataFrameColumn newColumn = inPlace ? this : (Int64DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Modulo(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class UInt32DataFrameColumn
-    {
-        internal UInt32DataFrameColumn ModuloImplementation(UInt32DataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            UInt32DataFrameColumn newColumn = inPlace ? this : (UInt32DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Modulo(column.ColumnContainer);
-            return newColumn;
-        }
-    }
-    public partial class UInt64DataFrameColumn
-    {
-        internal UInt64DataFrameColumn ModuloImplementation(UInt64DataFrameColumn column, bool inPlace = false)
-        {
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-            UInt64DataFrameColumn newColumn = inPlace ? this : (UInt64DataFrameColumn)Clone();
-            newColumn.ColumnContainer.Modulo(column.ColumnContainer);
             return newColumn;
         }
     }

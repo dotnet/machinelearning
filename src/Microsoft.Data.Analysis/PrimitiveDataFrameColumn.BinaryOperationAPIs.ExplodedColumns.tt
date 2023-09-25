@@ -29,7 +29,7 @@ bool supportedInPlace(string type1, string type2)
 }
 #>
 <# 
-void GenerateAllBinaryCombinationsForMethod()
+void GenerateAllBinaryCombinations()
 {
     HashSet<string> visited = new HashSet<string> { };
  foreach (TypeCombination outer in BinaryOperationCombinations.binaryOperationCombinations) 
@@ -84,7 +84,7 @@ void GenerateAllBinaryCombinationsForMethod()
         if (fullReturnType == fullColumnType || fullReturnType == fullOtherColumnType)
         {
 #>
-            return <#=methodName#>Implementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.<#=methodName#>, column, inPlace);
 <#
         }
         else
@@ -93,7 +93,7 @@ void GenerateAllBinaryCombinationsForMethod()
 #>
             <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
             <#=fullReturnType#> other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(other<#=returnType#>Column, inPlace: true);
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryOperation.<#=methodName#>, other<#=returnType#>Column, inPlace: true);
 <#
         }
     }
@@ -108,14 +108,14 @@ void GenerateAllBinaryCombinationsForMethod()
             {
 #>
             <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(column, inPlace: true);
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryOperation.<#=methodName#>, column, inPlace: true);
 <#
             }
             else
             {
 #>
             <#=fullReturnType#> other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
-            return <#=methodName#>Implementation(other<#=returnType#>Column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.<#=methodName#>, other<#=returnType#>Column, inPlace);
 <#
             }
         }
@@ -125,7 +125,7 @@ void GenerateAllBinaryCombinationsForMethod()
 #>
             <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
             <#=fullReturnType#> other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(other<#=returnType#>Column, inPlace: true);
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryOperation.<#=methodName#>, other<#=returnType#>Column, inPlace: true);
 <#
         }
     }
@@ -347,7 +347,7 @@ void GenerateAllBinaryBitwiseOperationsForMethod(string methodName)
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
             BooleanDataFrameColumn retColumn = inPlace ? this : CloneAsBooleanColumn();
-            retColumn.ColumnContainer.<#=methodName#>(column.ColumnContainer);
+            retColumn.ColumnContainer.HandleOperation(BinaryOperation.<#=methodName#>, column.ColumnContainer);
             return retColumn;
         }
     }
@@ -371,7 +371,7 @@ void GenerateAllBinaryScalarBitwiseOperationsForMethod(string methodName)
 }
 #>
 <#
-        GenerateAllBinaryCombinationsForMethod();
+        GenerateAllBinaryCombinations();
         GenerateAllBinaryScalarCombinationsForMethod();
 foreach (MethodConfiguration method in methodConfiguration)
 {

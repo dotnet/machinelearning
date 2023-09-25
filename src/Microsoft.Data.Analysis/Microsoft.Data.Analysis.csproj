@@ -147,6 +147,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Converters.tt</DependentUpon>
     </Compile>
+    <Compile Update="ColumnArithmetic.OperationEnums.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ColumnArithmetic.OperationEnums.tt</DependentUpon>
+    </Compile>
     <Compile Update="PrimitiveDataFrameColumn.BinaryOperationImplementations.Exploded.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
