@@ -74,7 +74,7 @@
     <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
     <!-- Test-only Dependencies -->
     <ApprovalTestsVersion>5.4.7</ApprovalTestsVersion>
-    <BenchmarkDotNetVersion>0.12.0</BenchmarkDotNetVersion>
+    <BenchmarkDotNetVersion>0.13.5</BenchmarkDotNetVersion>
     <DotNetRuntime60Version>6.0.9</DotNetRuntime60Version>
     <DotNetRuntime80Version>8.0.0-preview.3.23174.8</DotNetRuntime80Version>
     <FluentAssertionVersion>5.10.2</FluentAssertionVersion>
