@@ -72,8 +72,12 @@ namespace Microsoft.ML.OneDal
                             {
                                 featuresList.Add(0);
                             }
-                            featuresList.Add(values[indices[j]]);
+                            featuresList.Add(values[j]);
                             i = indices[j] + 1;
+                        }
+                        for (int j = i; j < numberOfFeatures; ++j)
+                        {
+                            featuresList.Add(0);
                         }
                     }
                     n++;
