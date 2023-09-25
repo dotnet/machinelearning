@@ -47,6 +47,7 @@
     <ItemGroup>
       <PackageReference Include="System.Data.SQLite" Version="$(SystemDataSQLiteCoreVersion)" />
       <PackageReference Include="System.Data.SQLite.Core" Version="$(SystemDataSQLiteCoreVersion)" PrivateAssets="none" />
+      <PackageReference Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" />
     </ItemGroup>
 
 </Project>
