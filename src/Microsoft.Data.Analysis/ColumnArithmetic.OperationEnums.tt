@@ -20,4 +20,13 @@ namespace Microsoft.Data.Analysis
 <# } #>
 <# } #>
     }
+
+    internal enum BinaryScalarOperation
+    {
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType == MethodType.BinaryScalar) { #>
+        <#=method.MethodName#>,
+<# } #>
+<# } #>
+    }
 }

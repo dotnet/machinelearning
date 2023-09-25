@@ -59,9 +59,9 @@ namespace Microsoft.Data.Analysis
             DataFrameColumn column = value as DataFrameColumn;
             if (column != null)
             {
-                return Add(column, inPlace);
+                return HandleOperationImplementation(BinaryScalarOperation.Add, column, inPlace);
             }
-            return AddImplementation(value, inPlace);
+            return HandleOperationImplementation(BinaryScalarOperation.Add, value, inPlace);
         }
 
         /// <inheritdoc/>
@@ -109,9 +109,9 @@ namespace Microsoft.Data.Analysis
             DataFrameColumn column = value as DataFrameColumn;
             if (column != null)
             {
-                return Subtract(column, inPlace);
+                return HandleOperationImplementation(BinaryScalarOperation.Subtract, column, inPlace);
             }
-            return SubtractImplementation(value, inPlace);
+            return HandleOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace);
         }
 
         /// <inheritdoc/>
@@ -159,9 +159,9 @@ namespace Microsoft.Data.Analysis
             DataFrameColumn column = value as DataFrameColumn;
             if (column != null)
             {
-                return Multiply(column, inPlace);
+                return HandleOperationImplementation(BinaryScalarOperation.Multiply, column, inPlace);
             }
-            return MultiplyImplementation(value, inPlace);
+            return HandleOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace);
         }
 
         /// <inheritdoc/>
@@ -209,9 +209,9 @@ namespace Microsoft.Data.Analysis
             DataFrameColumn column = value as DataFrameColumn;
             if (column != null)
             {
-                return Divide(column, inPlace);
+                return HandleOperationImplementation(BinaryScalarOperation.Divide, column, inPlace);
             }
-            return DivideImplementation(value, inPlace);
+            return HandleOperationImplementation(BinaryScalarOperation.Divide, value, inPlace);
         }
 
         /// <inheritdoc/>
@@ -259,9 +259,9 @@ namespace Microsoft.Data.Analysis
             DataFrameColumn column = value as DataFrameColumn;
             if (column != null)
             {
-                return Modulo(column, inPlace);
+                return HandleOperationImplementation(BinaryScalarOperation.Modulo, column, inPlace);
             }
-            return ModuloImplementation(value, inPlace);
+            return HandleOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace);
         }
 
         /// <inheritdoc/>
@@ -306,7 +306,7 @@ namespace Microsoft.Data.Analysis
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> And(bool value, bool inPlace = false)
         {
-            return AndImplementation(value, inPlace);
+            return HandleBitwiseOperationImplementation(BinaryScalarOperation.And, value, inPlace);
         }
 
         /// <inheritdoc/>
@@ -351,7 +351,7 @@ namespace Microsoft.Data.Analysis
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> Or(bool value, bool inPlace = false)
         {
-            return OrImplementation(value, inPlace);
+            return HandleBitwiseOperationImplementation(BinaryScalarOperation.Or, value, inPlace);
         }
 
         /// <inheritdoc/>
@@ -396,7 +396,7 @@ namespace Microsoft.Data.Analysis
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> Xor(bool value, bool inPlace = false)
         {
-            return XorImplementation(value, inPlace);
+            return HandleBitwiseOperationImplementation(BinaryScalarOperation.Xor, value, inPlace);
         }
 
         /// <inheritdoc/>
@@ -714,481 +714,6 @@ namespace Microsoft.Data.Analysis
         }
 
 
-        internal DataFrameColumn AddImplementation<U>(U value, bool inPlace)
-        {
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    throw new NotSupportedException();
-                case Type decimalType when decimalType == typeof(decimal):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Add(Unsafe.As<U, T>(ref value));
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
-                        }
-                        PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.Add(DecimalConverter<U>.Instance.GetDecimal(value));
-                        return decimalColumn;
-                    }
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                    throw new NotSupportedException();
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Add(Unsafe.As<U, T>(ref value));
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
-                        }
-                        if (typeof(U) == typeof(decimal))
-                        {
-                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.Add(DecimalConverter<U>.Instance.GetDecimal(value));
-                            return decimalColumn;
-                        }
-                        else
-                        {
-                            PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.Add(DoubleConverter<U>.Instance.GetDouble(value));
-                            return doubleColumn;
-                        }
-                    }
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-        internal DataFrameColumn SubtractImplementation<U>(U value, bool inPlace)
-        {
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    throw new NotSupportedException();
-                case Type decimalType when decimalType == typeof(decimal):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Subtract(Unsafe.As<U, T>(ref value));
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
-                        }
-                        PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.Subtract(DecimalConverter<U>.Instance.GetDecimal(value));
-                        return decimalColumn;
-                    }
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                    throw new NotSupportedException();
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Subtract(Unsafe.As<U, T>(ref value));
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
-                        }
-                        if (typeof(U) == typeof(decimal))
-                        {
-                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.Subtract(DecimalConverter<U>.Instance.GetDecimal(value));
-                            return decimalColumn;
-                        }
-                        else
-                        {
-                            PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.Subtract(DoubleConverter<U>.Instance.GetDouble(value));
-                            return doubleColumn;
-                        }
-                    }
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-        internal DataFrameColumn MultiplyImplementation<U>(U value, bool inPlace)
-        {
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    throw new NotSupportedException();
-                case Type decimalType when decimalType == typeof(decimal):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Multiply(Unsafe.As<U, T>(ref value));
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
-                        }
-                        PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.Multiply(DecimalConverter<U>.Instance.GetDecimal(value));
-                        return decimalColumn;
-                    }
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                    throw new NotSupportedException();
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Multiply(Unsafe.As<U, T>(ref value));
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
-                        }
-                        if (typeof(U) == typeof(decimal))
-                        {
-                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.Multiply(DecimalConverter<U>.Instance.GetDecimal(value));
-                            return decimalColumn;
-                        }
-                        else
-                        {
-                            PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.Multiply(DoubleConverter<U>.Instance.GetDouble(value));
-                            return doubleColumn;
-                        }
-                    }
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-        internal DataFrameColumn DivideImplementation<U>(U value, bool inPlace)
-        {
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    throw new NotSupportedException();
-                case Type decimalType when decimalType == typeof(decimal):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Divide(Unsafe.As<U, T>(ref value));
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
-                        }
-                        PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.Divide(DecimalConverter<U>.Instance.GetDecimal(value));
-                        return decimalColumn;
-                    }
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                    throw new NotSupportedException();
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Divide(Unsafe.As<U, T>(ref value));
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
-                        }
-                        if (typeof(U) == typeof(decimal))
-                        {
-                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.Divide(DecimalConverter<U>.Instance.GetDecimal(value));
-                            return decimalColumn;
-                        }
-                        else
-                        {
-                            PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.Divide(DoubleConverter<U>.Instance.GetDouble(value));
-                            return doubleColumn;
-                        }
-                    }
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-        internal DataFrameColumn ModuloImplementation<U>(U value, bool inPlace)
-        {
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    throw new NotSupportedException();
-                case Type decimalType when decimalType == typeof(decimal):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Modulo(Unsafe.As<U, T>(ref value));
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
-                        }
-                        PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.Modulo(DecimalConverter<U>.Instance.GetDecimal(value));
-                        return decimalColumn;
-                    }
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                    throw new NotSupportedException();
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-                        PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
-                        newColumn._columnContainer.Modulo(Unsafe.As<U, T>(ref value));
-                        return newColumn;
-                    }
-                    else
-                    {
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
-                        }
-                        if (typeof(U) == typeof(decimal))
-                        {
-                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.Modulo(DecimalConverter<U>.Instance.GetDecimal(value));
-                            return decimalColumn;
-                        }
-                        else
-                        {
-                            PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.Modulo(DoubleConverter<U>.Instance.GetDouble(value));
-                            return doubleColumn;
-                        }
-                    }
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-        internal PrimitiveDataFrameColumn<bool> AndImplementation<U>(U value, bool inPlace)
-        {
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    if (typeof(U) != typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    PrimitiveDataFrameColumn<bool> typedColumn = this as PrimitiveDataFrameColumn<bool>;
-                    PrimitiveDataFrameColumn<bool> retColumn = inPlace ? typedColumn : typedColumn.Clone();
-                    retColumn._columnContainer.And(Unsafe.As<U, bool>(ref value));
-                    return retColumn as PrimitiveDataFrameColumn<bool>;
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type decimalType when decimalType == typeof(decimal):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-        internal PrimitiveDataFrameColumn<bool> OrImplementation<U>(U value, bool inPlace)
-        {
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    if (typeof(U) != typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    PrimitiveDataFrameColumn<bool> typedColumn = this as PrimitiveDataFrameColumn<bool>;
-                    PrimitiveDataFrameColumn<bool> retColumn = inPlace ? typedColumn : typedColumn.Clone();
-                    retColumn._columnContainer.Or(Unsafe.As<U, bool>(ref value));
-                    return retColumn as PrimitiveDataFrameColumn<bool>;
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type decimalType when decimalType == typeof(decimal):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-        internal PrimitiveDataFrameColumn<bool> XorImplementation<U>(U value, bool inPlace)
-        {
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    if (typeof(U) != typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    PrimitiveDataFrameColumn<bool> typedColumn = this as PrimitiveDataFrameColumn<bool>;
-                    PrimitiveDataFrameColumn<bool> retColumn = inPlace ? typedColumn : typedColumn.Clone();
-                    retColumn._columnContainer.Xor(Unsafe.As<U, bool>(ref value));
-                    return retColumn as PrimitiveDataFrameColumn<bool>;
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type decimalType when decimalType == typeof(decimal):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                default:
-                    throw new NotSupportedException();
-            }
-        }
         internal DataFrameColumn LeftShiftImplementation(int value, bool inPlace)
         {
             switch (typeof(T))

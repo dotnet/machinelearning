@@ -13,23 +13,9 @@ namespace Microsoft.Data.Analysis
         where T : unmanaged
     {
         void HandleOperation(BinaryOperation operation, Span<T> left, Span<byte> leftValidity, ReadOnlySpan<T> right, ReadOnlySpan<byte> rightValidity);
+        void HandleOperation(BinaryScalarOperation operation, Span<T> left, T right);
+        void HandleOperation(BinaryScalarOperation operation, T left, Span<T> right, Span<byte> rightValidity);
 
-        void Add(PrimitiveColumnContainer<T> column, T scalar);
-        void Add(T scalar, PrimitiveColumnContainer<T> column);
-        void Subtract(PrimitiveColumnContainer<T> column, T scalar);
-        void Subtract(T scalar, PrimitiveColumnContainer<T> column);
-        void Multiply(PrimitiveColumnContainer<T> column, T scalar);
-        void Multiply(T scalar, PrimitiveColumnContainer<T> column);
-        void Divide(PrimitiveColumnContainer<T> column, T scalar);
-        void Divide(T scalar, PrimitiveColumnContainer<T> column);
-        void Modulo(PrimitiveColumnContainer<T> column, T scalar);
-        void Modulo(T scalar, PrimitiveColumnContainer<T> column);
-        void And(PrimitiveColumnContainer<T> column, T scalar);
-        void And(T scalar, PrimitiveColumnContainer<T> column);
-        void Or(PrimitiveColumnContainer<T> column, T scalar);
-        void Or(T scalar, PrimitiveColumnContainer<T> column);
-        void Xor(PrimitiveColumnContainer<T> column, T scalar);
-        void Xor(T scalar, PrimitiveColumnContainer<T> column);
         void LeftShift(PrimitiveColumnContainer<T> column, int value);
         void RightShift(PrimitiveColumnContainer<T> column, int value);
         PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right);
@@ -59,60 +45,93 @@ namespace Microsoft.Data.Analysis
                 return;
             }
             else if (operation == BinaryOperation.Add)
-            {
                 Add(left, right);
-            }
             else if (operation == BinaryOperation.Subtract)
-            {
                 Subtract(left, right);
-            }
             else if (operation == BinaryOperation.Multiply)
-            {
                 Multiply(left, right);
-            }
             else if (operation == BinaryOperation.Modulo)
-            {
                 Modulo(left, right);
-            }
             else if (operation == BinaryOperation.And)
-            {
                 And(left, right);
-            }
             else if (operation == BinaryOperation.Or)
-            {
                 Or(left, right);
-            }
             else if (operation == BinaryOperation.Xor)
-            {
                 Xor(left, right);
-            }
+
             BitmapHelper.ElementwiseAnd(leftValidity, rightValidity, leftValidity);
         }
 
+        public virtual void HandleOperation(BinaryScalarOperation operation, Span<T> left, T right)
+        {
+            if (operation == BinaryScalarOperation.Divide)
+            {
+                Divide(left, right);
+                return;
+            }
+            else if (operation == BinaryScalarOperation.Add)
+                Add(left, right);
+            else if (operation == BinaryScalarOperation.Subtract)
+                Subtract(left, right);
+            else if (operation == BinaryScalarOperation.Multiply)
+                Multiply(left, right);
+            else if (operation == BinaryScalarOperation.Modulo)
+                Modulo(left, right);
+            else if (operation == BinaryScalarOperation.And)
+                And(left, right);
+            else if (operation == BinaryScalarOperation.Or)
+                Or(left, right);
+            else if (operation == BinaryScalarOperation.Xor)
+                Xor(left, right);
+        }
+
+        public virtual void HandleOperation(BinaryScalarOperation operation, T left, Span<T> right, Span<byte> rightValidity)
+        {
+            if (operation == BinaryScalarOperation.Divide)
+            {
+                Divide(left, right);
+                return;
+            }
+            else if (operation == BinaryScalarOperation.Add)
+                Add(left, right);
+            else if (operation == BinaryScalarOperation.Subtract)
+                Subtract(left, right);
+            else if (operation == BinaryScalarOperation.Multiply)
+                Multiply(left, right);
+            else if (operation == BinaryScalarOperation.Modulo)
+                Modulo(left, right);
+            else if (operation == BinaryScalarOperation.And)
+                And(left, right);
+            else if (operation == BinaryScalarOperation.Or)
+                Or(left, right);
+            else if (operation == BinaryScalarOperation.Xor)
+                Xor(left, right);
+        }
+
         public virtual void Add(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
-        public virtual void Add(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
-        public virtual void Add(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
+        public virtual void Add(Span<T> left, T scalar) => throw new NotSupportedException();
+        public virtual void Add(T left, Span<T> right) => throw new NotSupportedException();
         public virtual void Subtract(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
-        public virtual void Subtract(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
-        public virtual void Subtract(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
+        public virtual void Subtract(Span<T> left, T scalar) => throw new NotSupportedException();
+        public virtual void Subtract(T left, Span<T> right) => throw new NotSupportedException();
         public virtual void Multiply(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
-        public virtual void Multiply(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
-        public virtual void Multiply(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
+        public virtual void Multiply(Span<T> left, T scalar) => throw new NotSupportedException();
+        public virtual void Multiply(T left, Span<T> right) => throw new NotSupportedException();
         public virtual void Divide(Span<T> left, Span<byte> leftValidity, ReadOnlySpan<T> right, ReadOnlySpan<byte> rightValidity) => throw new NotSupportedException();
-        public virtual void Divide(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
-        public virtual void Divide(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
+        public virtual void Divide(Span<T> left, T scalar) => throw new NotSupportedException();
+        public virtual void Divide(T left, Span<T> right, Span<byte> rightValidity) => throw new NotSupportedException();
         public virtual void Modulo(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
-        public virtual void Modulo(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
-        public virtual void Modulo(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
+        public virtual void Modulo(Span<T> left, T scalar) => throw new NotSupportedException();
+        public virtual void Modulo(T left, Span<T> right) => throw new NotSupportedException();
         public virtual void And(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
-        public virtual void And(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
-        public virtual void And(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
+        public virtual void And(Span<T> left, T scalar) => throw new NotSupportedException();
+        public virtual void And(T left, Span<T> right) => throw new NotSupportedException();
         public virtual void Or(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
-        public virtual void Or(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
-        public virtual void Or(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
+        public virtual void Or(Span<T> left, T scalar) => throw new NotSupportedException();
+        public virtual void Or(T left, Span<T> right) => throw new NotSupportedException();
         public virtual void Xor(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
-        public virtual void Xor(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
-        public virtual void Xor(T scalar, PrimitiveColumnContainer<T> column) => throw new NotSupportedException();
+        public virtual void Xor(Span<T> left, T scalar) => throw new NotSupportedException();
+        public virtual void Xor(T left, Span<T> right) => throw new NotSupportedException();
         public virtual void LeftShift(PrimitiveColumnContainer<T> column, int value) => throw new NotSupportedException();
         public virtual void RightShift(PrimitiveColumnContainer<T> column, int value) => throw new NotSupportedException();
         public virtual PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right) => throw new NotSupportedException();
@@ -136,165 +155,90 @@ namespace Microsoft.Data.Analysis
             where T : unmanaged
         {
             if (typeof(T) == typeof(bool))
-            {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new BoolArithmetic();
-            }
             else if (typeof(T) == typeof(byte))
-            {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new ByteArithmetic();
-            }
             else if (typeof(T) == typeof(char))
-            {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new CharArithmetic();
-            }
             else if (typeof(T) == typeof(decimal))
-            {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new DecimalArithmetic();
-            }
             else if (typeof(T) == typeof(double))
-            {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new DoubleArithmetic();
-            }
             else if (typeof(T) == typeof(float))
-            {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new FloatArithmetic();
-            }
             else if (typeof(T) == typeof(int))
-            {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new IntArithmetic();
-            }
             else if (typeof(T) == typeof(long))
-            {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new LongArithmetic();
-            }
             else if (typeof(T) == typeof(sbyte))
-            {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new SByteArithmetic();
-            }
             else if (typeof(T) == typeof(short))
-            {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new ShortArithmetic();
-            }
             else if (typeof(T) == typeof(uint))
-            {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new UIntArithmetic();
-            }
             else if (typeof(T) == typeof(ulong))
-            {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new ULongArithmetic();
-            }
             else if (typeof(T) == typeof(ushort))
-            {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new UShortArithmetic();
-            }
             else if (typeof(T) == typeof(DateTime))
-            {
                 return (IPrimitiveDataFrameColumnArithmetic<T>)new DateTimeArithmetic();
-            }
             throw new NotSupportedException();
         }
     }
+
     internal class BoolArithmetic : PrimitiveDataFrameColumnArithmetic<bool>
     {
 
         public override void And(Span<bool> left, ReadOnlySpan<bool> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (bool)(left[i] & right[i]);
-            }
         }
 
-        public override void And(PrimitiveColumnContainer<bool> column, bool scalar)
+        public override void And(Span<bool> left, bool right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (bool)(span[i] & scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (bool)(left[i] & right);
         }
 
-        public override void And(bool scalar, PrimitiveColumnContainer<bool> column)
+        public override void And(bool left, Span<bool> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (bool)(scalar & span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (bool)(left & right[i]);
         }
         public override void Or(Span<bool> left, ReadOnlySpan<bool> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (bool)(left[i] | right[i]);
-            }
         }
 
-        public override void Or(PrimitiveColumnContainer<bool> column, bool scalar)
+        public override void Or(Span<bool> left, bool right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (bool)(span[i] | scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (bool)(left[i] | right);
         }
 
-        public override void Or(bool scalar, PrimitiveColumnContainer<bool> column)
+        public override void Or(bool left, Span<bool> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (bool)(scalar | span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (bool)(left | right[i]);
         }
         public override void Xor(Span<bool> left, ReadOnlySpan<bool> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (bool)(left[i] ^ right[i]);
-            }
         }
 
-        public override void Xor(PrimitiveColumnContainer<bool> column, bool scalar)
+        public override void Xor(Span<bool> left, bool right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (bool)(span[i] ^ scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (bool)(left[i] ^ right);
         }
 
-        public override void Xor(bool scalar, PrimitiveColumnContainer<bool> column)
+        public override void Xor(bool left, Span<bool> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (bool)(scalar ^ span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (bool)(left ^ right[i]);
         }
 
         public override PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<bool> left, PrimitiveColumnContainer<bool> right)
@@ -364,106 +308,58 @@ namespace Microsoft.Data.Analysis
 
         public override void Add(Span<byte> left, ReadOnlySpan<byte> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (byte)(left[i] + right[i]);
-            }
         }
 
-        public override void Add(PrimitiveColumnContainer<byte> column, byte scalar)
+        public override void Add(Span<byte> left, byte right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(span[i] + scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (byte)(left[i] + right);
         }
 
-        public override void Add(byte scalar, PrimitiveColumnContainer<byte> column)
+        public override void Add(byte left, Span<byte> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(scalar + span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (byte)(left + right[i]);
         }
         public override void Subtract(Span<byte> left, ReadOnlySpan<byte> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (byte)(left[i] - right[i]);
-            }
         }
 
-        public override void Subtract(PrimitiveColumnContainer<byte> column, byte scalar)
+        public override void Subtract(Span<byte> left, byte right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(span[i] - scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (byte)(left[i] - right);
         }
 
-        public override void Subtract(byte scalar, PrimitiveColumnContainer<byte> column)
+        public override void Subtract(byte left, Span<byte> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(scalar - span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (byte)(left - right[i]);
         }
         public override void Multiply(Span<byte> left, ReadOnlySpan<byte> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (byte)(left[i] * right[i]);
-            }
         }
 
-        public override void Multiply(PrimitiveColumnContainer<byte> column, byte scalar)
+        public override void Multiply(Span<byte> left, byte right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(span[i] * scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (byte)(left[i] * right);
         }
 
-        public override void Multiply(byte scalar, PrimitiveColumnContainer<byte> column)
+        public override void Multiply(byte left, Span<byte> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(scalar * span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (byte)(left * right[i]);
         }
         public override void Divide(Span<byte> left, Span<byte> leftValidity, ReadOnlySpan<byte> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < left.Length; i++)
+            for (var i = 0; i < left.Length; i++)
             {
                 if (BitmapHelper.IsValid(rightValidity, i))
                     left[i] = (byte)(left[i] / right[i]);
@@ -472,162 +368,87 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public override void Divide(PrimitiveColumnContainer<byte> column, byte scalar)
+        public override void Divide(Span<byte> left, byte right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(span[i] / scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (byte)(left[i] / right);
         }
 
-        public override void Divide(byte scalar, PrimitiveColumnContainer<byte> column)
+        public override void Divide(byte left, Span<byte> right, Span<byte> rightValidity)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
+            for (var i = 0; i < right.Length; i++)
             {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(scalar / span[i]);
-                }
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    right[i] = (byte)(left / right[i]);
             }
         }
         public override void Modulo(Span<byte> left, ReadOnlySpan<byte> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (byte)(left[i] % right[i]);
-            }
         }
 
-        public override void Modulo(PrimitiveColumnContainer<byte> column, byte scalar)
+        public override void Modulo(Span<byte> left, byte right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(span[i] % scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (byte)(left[i] % right);
         }
 
-        public override void Modulo(byte scalar, PrimitiveColumnContainer<byte> column)
+        public override void Modulo(byte left, Span<byte> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(scalar % span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (byte)(left % right[i]);
         }
         public override void And(Span<byte> left, ReadOnlySpan<byte> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (byte)(left[i] & right[i]);
-            }
         }
 
-        public override void And(PrimitiveColumnContainer<byte> column, byte scalar)
+        public override void And(Span<byte> left, byte right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(span[i] & scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (byte)(left[i] & right);
         }
 
-        public override void And(byte scalar, PrimitiveColumnContainer<byte> column)
+        public override void And(byte left, Span<byte> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(scalar & span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (byte)(left & right[i]);
         }
         public override void Or(Span<byte> left, ReadOnlySpan<byte> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (byte)(left[i] | right[i]);
-            }
         }
 
-        public override void Or(PrimitiveColumnContainer<byte> column, byte scalar)
+        public override void Or(Span<byte> left, byte right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(span[i] | scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (byte)(left[i] | right);
         }
 
-        public override void Or(byte scalar, PrimitiveColumnContainer<byte> column)
+        public override void Or(byte left, Span<byte> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(scalar | span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (byte)(left | right[i]);
         }
         public override void Xor(Span<byte> left, ReadOnlySpan<byte> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (byte)(left[i] ^ right[i]);
-            }
         }
 
-        public override void Xor(PrimitiveColumnContainer<byte> column, byte scalar)
+        public override void Xor(Span<byte> left, byte right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(span[i] ^ scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (byte)(left[i] ^ right);
         }
 
-        public override void Xor(byte scalar, PrimitiveColumnContainer<byte> column)
+        public override void Xor(byte left, Span<byte> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(scalar ^ span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (byte)(left ^ right[i]);
         }
 
         public override void LeftShift(PrimitiveColumnContainer<byte> column, int value)
@@ -847,106 +668,58 @@ namespace Microsoft.Data.Analysis
 
         public override void Add(Span<char> left, ReadOnlySpan<char> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (char)(left[i] + right[i]);
-            }
         }
 
-        public override void Add(PrimitiveColumnContainer<char> column, char scalar)
+        public override void Add(Span<char> left, char right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(span[i] + scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (char)(left[i] + right);
         }
 
-        public override void Add(char scalar, PrimitiveColumnContainer<char> column)
+        public override void Add(char left, Span<char> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(scalar + span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (char)(left + right[i]);
         }
         public override void Subtract(Span<char> left, ReadOnlySpan<char> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (char)(left[i] - right[i]);
-            }
         }
 
-        public override void Subtract(PrimitiveColumnContainer<char> column, char scalar)
+        public override void Subtract(Span<char> left, char right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(span[i] - scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (char)(left[i] - right);
         }
 
-        public override void Subtract(char scalar, PrimitiveColumnContainer<char> column)
+        public override void Subtract(char left, Span<char> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(scalar - span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (char)(left - right[i]);
         }
         public override void Multiply(Span<char> left, ReadOnlySpan<char> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (char)(left[i] * right[i]);
-            }
         }
 
-        public override void Multiply(PrimitiveColumnContainer<char> column, char scalar)
+        public override void Multiply(Span<char> left, char right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(span[i] * scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (char)(left[i] * right);
         }
 
-        public override void Multiply(char scalar, PrimitiveColumnContainer<char> column)
+        public override void Multiply(char left, Span<char> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(scalar * span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (char)(left * right[i]);
         }
         public override void Divide(Span<char> left, Span<byte> leftValidity, ReadOnlySpan<char> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < left.Length; i++)
+            for (var i = 0; i < left.Length; i++)
             {
                 if (BitmapHelper.IsValid(rightValidity, i))
                     left[i] = (char)(left[i] / right[i]);
@@ -955,162 +728,87 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public override void Divide(PrimitiveColumnContainer<char> column, char scalar)
+        public override void Divide(Span<char> left, char right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(span[i] / scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (char)(left[i] / right);
         }
 
-        public override void Divide(char scalar, PrimitiveColumnContainer<char> column)
+        public override void Divide(char left, Span<char> right, Span<byte> rightValidity)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
+            for (var i = 0; i < right.Length; i++)
             {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(scalar / span[i]);
-                }
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    right[i] = (char)(left / right[i]);
             }
         }
         public override void Modulo(Span<char> left, ReadOnlySpan<char> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (char)(left[i] % right[i]);
-            }
         }
 
-        public override void Modulo(PrimitiveColumnContainer<char> column, char scalar)
+        public override void Modulo(Span<char> left, char right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(span[i] % scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (char)(left[i] % right);
         }
 
-        public override void Modulo(char scalar, PrimitiveColumnContainer<char> column)
+        public override void Modulo(char left, Span<char> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(scalar % span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (char)(left % right[i]);
         }
         public override void And(Span<char> left, ReadOnlySpan<char> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (char)(left[i] & right[i]);
-            }
         }
 
-        public override void And(PrimitiveColumnContainer<char> column, char scalar)
+        public override void And(Span<char> left, char right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(span[i] & scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (char)(left[i] & right);
         }
 
-        public override void And(char scalar, PrimitiveColumnContainer<char> column)
+        public override void And(char left, Span<char> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(scalar & span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (char)(left & right[i]);
         }
         public override void Or(Span<char> left, ReadOnlySpan<char> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (char)(left[i] | right[i]);
-            }
         }
 
-        public override void Or(PrimitiveColumnContainer<char> column, char scalar)
+        public override void Or(Span<char> left, char right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(span[i] | scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (char)(left[i] | right);
         }
 
-        public override void Or(char scalar, PrimitiveColumnContainer<char> column)
+        public override void Or(char left, Span<char> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(scalar | span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (char)(left | right[i]);
         }
         public override void Xor(Span<char> left, ReadOnlySpan<char> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (char)(left[i] ^ right[i]);
-            }
         }
 
-        public override void Xor(PrimitiveColumnContainer<char> column, char scalar)
+        public override void Xor(Span<char> left, char right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(span[i] ^ scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (char)(left[i] ^ right);
         }
 
-        public override void Xor(char scalar, PrimitiveColumnContainer<char> column)
+        public override void Xor(char left, Span<char> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(scalar ^ span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (char)(left ^ right[i]);
         }
 
         public override void LeftShift(PrimitiveColumnContainer<char> column, int value)
@@ -1330,106 +1028,58 @@ namespace Microsoft.Data.Analysis
 
         public override void Add(Span<decimal> left, ReadOnlySpan<decimal> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (decimal)(left[i] + right[i]);
-            }
         }
 
-        public override void Add(PrimitiveColumnContainer<decimal> column, decimal scalar)
+        public override void Add(Span<decimal> left, decimal right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (decimal)(span[i] + scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (decimal)(left[i] + right);
         }
 
-        public override void Add(decimal scalar, PrimitiveColumnContainer<decimal> column)
+        public override void Add(decimal left, Span<decimal> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (decimal)(scalar + span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (decimal)(left + right[i]);
         }
         public override void Subtract(Span<decimal> left, ReadOnlySpan<decimal> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (decimal)(left[i] - right[i]);
-            }
         }
 
-        public override void Subtract(PrimitiveColumnContainer<decimal> column, decimal scalar)
+        public override void Subtract(Span<decimal> left, decimal right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (decimal)(span[i] - scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (decimal)(left[i] - right);
         }
 
-        public override void Subtract(decimal scalar, PrimitiveColumnContainer<decimal> column)
+        public override void Subtract(decimal left, Span<decimal> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (decimal)(scalar - span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (decimal)(left - right[i]);
         }
         public override void Multiply(Span<decimal> left, ReadOnlySpan<decimal> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (decimal)(left[i] * right[i]);
-            }
         }
 
-        public override void Multiply(PrimitiveColumnContainer<decimal> column, decimal scalar)
+        public override void Multiply(Span<decimal> left, decimal right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (decimal)(span[i] * scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (decimal)(left[i] * right);
         }
 
-        public override void Multiply(decimal scalar, PrimitiveColumnContainer<decimal> column)
+        public override void Multiply(decimal left, Span<decimal> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (decimal)(scalar * span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (decimal)(left * right[i]);
         }
         public override void Divide(Span<decimal> left, Span<byte> leftValidity, ReadOnlySpan<decimal> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < left.Length; i++)
+            for (var i = 0; i < left.Length; i++)
             {
                 if (BitmapHelper.IsValid(rightValidity, i))
                     left[i] = (decimal)(left[i] / right[i]);
@@ -1438,63 +1088,36 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public override void Divide(PrimitiveColumnContainer<decimal> column, decimal scalar)
+        public override void Divide(Span<decimal> left, decimal right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (decimal)(span[i] / scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (decimal)(left[i] / right);
         }
 
-        public override void Divide(decimal scalar, PrimitiveColumnContainer<decimal> column)
+        public override void Divide(decimal left, Span<decimal> right, Span<byte> rightValidity)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
+            for (var i = 0; i < right.Length; i++)
             {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (decimal)(scalar / span[i]);
-                }
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    right[i] = (decimal)(left / right[i]);
             }
         }
         public override void Modulo(Span<decimal> left, ReadOnlySpan<decimal> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (decimal)(left[i] % right[i]);
-            }
         }
 
-        public override void Modulo(PrimitiveColumnContainer<decimal> column, decimal scalar)
+        public override void Modulo(Span<decimal> left, decimal right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (decimal)(span[i] % scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (decimal)(left[i] % right);
         }
 
-        public override void Modulo(decimal scalar, PrimitiveColumnContainer<decimal> column)
+        public override void Modulo(decimal left, Span<decimal> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (decimal)(scalar % span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (decimal)(left % right[i]);
         }
 
         public override PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<decimal> left, PrimitiveColumnContainer<decimal> right)
@@ -1688,106 +1311,58 @@ namespace Microsoft.Data.Analysis
 
         public override void Add(Span<double> left, ReadOnlySpan<double> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (double)(left[i] + right[i]);
-            }
         }
 
-        public override void Add(PrimitiveColumnContainer<double> column, double scalar)
+        public override void Add(Span<double> left, double right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (double)(span[i] + scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (double)(left[i] + right);
         }
 
-        public override void Add(double scalar, PrimitiveColumnContainer<double> column)
+        public override void Add(double left, Span<double> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (double)(scalar + span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (double)(left + right[i]);
         }
         public override void Subtract(Span<double> left, ReadOnlySpan<double> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (double)(left[i] - right[i]);
-            }
         }
 
-        public override void Subtract(PrimitiveColumnContainer<double> column, double scalar)
+        public override void Subtract(Span<double> left, double right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (double)(span[i] - scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (double)(left[i] - right);
         }
 
-        public override void Subtract(double scalar, PrimitiveColumnContainer<double> column)
+        public override void Subtract(double left, Span<double> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (double)(scalar - span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (double)(left - right[i]);
         }
         public override void Multiply(Span<double> left, ReadOnlySpan<double> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (double)(left[i] * right[i]);
-            }
         }
 
-        public override void Multiply(PrimitiveColumnContainer<double> column, double scalar)
+        public override void Multiply(Span<double> left, double right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (double)(span[i] * scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (double)(left[i] * right);
         }
 
-        public override void Multiply(double scalar, PrimitiveColumnContainer<double> column)
+        public override void Multiply(double left, Span<double> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (double)(scalar * span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (double)(left * right[i]);
         }
         public override void Divide(Span<double> left, Span<byte> leftValidity, ReadOnlySpan<double> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < left.Length; i++)
+            for (var i = 0; i < left.Length; i++)
             {
                 if (BitmapHelper.IsValid(rightValidity, i))
                     left[i] = (double)(left[i] / right[i]);
@@ -1796,63 +1371,36 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public override void Divide(PrimitiveColumnContainer<double> column, double scalar)
+        public override void Divide(Span<double> left, double right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (double)(span[i] / scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (double)(left[i] / right);
         }
 
-        public override void Divide(double scalar, PrimitiveColumnContainer<double> column)
+        public override void Divide(double left, Span<double> right, Span<byte> rightValidity)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
+            for (var i = 0; i < right.Length; i++)
             {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (double)(scalar / span[i]);
-                }
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    right[i] = (double)(left / right[i]);
             }
         }
         public override void Modulo(Span<double> left, ReadOnlySpan<double> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (double)(left[i] % right[i]);
-            }
         }
 
-        public override void Modulo(PrimitiveColumnContainer<double> column, double scalar)
+        public override void Modulo(Span<double> left, double right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (double)(span[i] % scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (double)(left[i] % right);
         }
 
-        public override void Modulo(double scalar, PrimitiveColumnContainer<double> column)
+        public override void Modulo(double left, Span<double> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (double)(scalar % span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (double)(left % right[i]);
         }
 
         public override PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<double> left, PrimitiveColumnContainer<double> right)
@@ -2046,106 +1594,58 @@ namespace Microsoft.Data.Analysis
 
         public override void Add(Span<float> left, ReadOnlySpan<float> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (float)(left[i] + right[i]);
-            }
         }
 
-        public override void Add(PrimitiveColumnContainer<float> column, float scalar)
+        public override void Add(Span<float> left, float right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (float)(span[i] + scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (float)(left[i] + right);
         }
 
-        public override void Add(float scalar, PrimitiveColumnContainer<float> column)
+        public override void Add(float left, Span<float> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (float)(scalar + span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (float)(left + right[i]);
         }
         public override void Subtract(Span<float> left, ReadOnlySpan<float> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (float)(left[i] - right[i]);
-            }
         }
 
-        public override void Subtract(PrimitiveColumnContainer<float> column, float scalar)
+        public override void Subtract(Span<float> left, float right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (float)(span[i] - scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (float)(left[i] - right);
         }
 
-        public override void Subtract(float scalar, PrimitiveColumnContainer<float> column)
+        public override void Subtract(float left, Span<float> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (float)(scalar - span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (float)(left - right[i]);
         }
         public override void Multiply(Span<float> left, ReadOnlySpan<float> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (float)(left[i] * right[i]);
-            }
         }
 
-        public override void Multiply(PrimitiveColumnContainer<float> column, float scalar)
+        public override void Multiply(Span<float> left, float right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (float)(span[i] * scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (float)(left[i] * right);
         }
 
-        public override void Multiply(float scalar, PrimitiveColumnContainer<float> column)
+        public override void Multiply(float left, Span<float> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (float)(scalar * span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (float)(left * right[i]);
         }
         public override void Divide(Span<float> left, Span<byte> leftValidity, ReadOnlySpan<float> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < left.Length; i++)
+            for (var i = 0; i < left.Length; i++)
             {
                 if (BitmapHelper.IsValid(rightValidity, i))
                     left[i] = (float)(left[i] / right[i]);
@@ -2154,63 +1654,36 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public override void Divide(PrimitiveColumnContainer<float> column, float scalar)
+        public override void Divide(Span<float> left, float right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (float)(span[i] / scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (float)(left[i] / right);
         }
 
-        public override void Divide(float scalar, PrimitiveColumnContainer<float> column)
+        public override void Divide(float left, Span<float> right, Span<byte> rightValidity)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
+            for (var i = 0; i < right.Length; i++)
             {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (float)(scalar / span[i]);
-                }
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    right[i] = (float)(left / right[i]);
             }
         }
         public override void Modulo(Span<float> left, ReadOnlySpan<float> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (float)(left[i] % right[i]);
-            }
         }
 
-        public override void Modulo(PrimitiveColumnContainer<float> column, float scalar)
+        public override void Modulo(Span<float> left, float right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (float)(span[i] % scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (float)(left[i] % right);
         }
 
-        public override void Modulo(float scalar, PrimitiveColumnContainer<float> column)
+        public override void Modulo(float left, Span<float> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (float)(scalar % span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (float)(left % right[i]);
         }
 
         public override PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<float> left, PrimitiveColumnContainer<float> right)
@@ -2404,106 +1877,58 @@ namespace Microsoft.Data.Analysis
 
         public override void Add(Span<int> left, ReadOnlySpan<int> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (int)(left[i] + right[i]);
-            }
         }
 
-        public override void Add(PrimitiveColumnContainer<int> column, int scalar)
+        public override void Add(Span<int> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(span[i] + scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (int)(left[i] + right);
         }
 
-        public override void Add(int scalar, PrimitiveColumnContainer<int> column)
+        public override void Add(int left, Span<int> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(scalar + span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (int)(left + right[i]);
         }
         public override void Subtract(Span<int> left, ReadOnlySpan<int> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (int)(left[i] - right[i]);
-            }
         }
 
-        public override void Subtract(PrimitiveColumnContainer<int> column, int scalar)
+        public override void Subtract(Span<int> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(span[i] - scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (int)(left[i] - right);
         }
 
-        public override void Subtract(int scalar, PrimitiveColumnContainer<int> column)
+        public override void Subtract(int left, Span<int> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(scalar - span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (int)(left - right[i]);
         }
         public override void Multiply(Span<int> left, ReadOnlySpan<int> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (int)(left[i] * right[i]);
-            }
         }
 
-        public override void Multiply(PrimitiveColumnContainer<int> column, int scalar)
+        public override void Multiply(Span<int> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(span[i] * scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (int)(left[i] * right);
         }
 
-        public override void Multiply(int scalar, PrimitiveColumnContainer<int> column)
+        public override void Multiply(int left, Span<int> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(scalar * span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (int)(left * right[i]);
         }
         public override void Divide(Span<int> left, Span<byte> leftValidity, ReadOnlySpan<int> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < left.Length; i++)
+            for (var i = 0; i < left.Length; i++)
             {
                 if (BitmapHelper.IsValid(rightValidity, i))
                     left[i] = (int)(left[i] / right[i]);
@@ -2512,162 +1937,87 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public override void Divide(PrimitiveColumnContainer<int> column, int scalar)
+        public override void Divide(Span<int> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(span[i] / scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (int)(left[i] / right);
         }
 
-        public override void Divide(int scalar, PrimitiveColumnContainer<int> column)
+        public override void Divide(int left, Span<int> right, Span<byte> rightValidity)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
+            for (var i = 0; i < right.Length; i++)
             {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(scalar / span[i]);
-                }
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    right[i] = (int)(left / right[i]);
             }
         }
         public override void Modulo(Span<int> left, ReadOnlySpan<int> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (int)(left[i] % right[i]);
-            }
         }
 
-        public override void Modulo(PrimitiveColumnContainer<int> column, int scalar)
+        public override void Modulo(Span<int> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(span[i] % scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (int)(left[i] % right);
         }
 
-        public override void Modulo(int scalar, PrimitiveColumnContainer<int> column)
+        public override void Modulo(int left, Span<int> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(scalar % span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (int)(left % right[i]);
         }
         public override void And(Span<int> left, ReadOnlySpan<int> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (int)(left[i] & right[i]);
-            }
         }
 
-        public override void And(PrimitiveColumnContainer<int> column, int scalar)
+        public override void And(Span<int> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(span[i] & scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (int)(left[i] & right);
         }
 
-        public override void And(int scalar, PrimitiveColumnContainer<int> column)
+        public override void And(int left, Span<int> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(scalar & span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (int)(left & right[i]);
         }
         public override void Or(Span<int> left, ReadOnlySpan<int> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (int)(left[i] | right[i]);
-            }
         }
 
-        public override void Or(PrimitiveColumnContainer<int> column, int scalar)
+        public override void Or(Span<int> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(span[i] | scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (int)(left[i] | right);
         }
 
-        public override void Or(int scalar, PrimitiveColumnContainer<int> column)
+        public override void Or(int left, Span<int> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(scalar | span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (int)(left | right[i]);
         }
         public override void Xor(Span<int> left, ReadOnlySpan<int> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (int)(left[i] ^ right[i]);
-            }
         }
 
-        public override void Xor(PrimitiveColumnContainer<int> column, int scalar)
+        public override void Xor(Span<int> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(span[i] ^ scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (int)(left[i] ^ right);
         }
 
-        public override void Xor(int scalar, PrimitiveColumnContainer<int> column)
+        public override void Xor(int left, Span<int> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(scalar ^ span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (int)(left ^ right[i]);
         }
 
         public override void LeftShift(PrimitiveColumnContainer<int> column, int value)
@@ -2887,106 +2237,58 @@ namespace Microsoft.Data.Analysis
 
         public override void Add(Span<long> left, ReadOnlySpan<long> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (long)(left[i] + right[i]);
-            }
         }
 
-        public override void Add(PrimitiveColumnContainer<long> column, long scalar)
+        public override void Add(Span<long> left, long right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(span[i] + scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (long)(left[i] + right);
         }
 
-        public override void Add(long scalar, PrimitiveColumnContainer<long> column)
+        public override void Add(long left, Span<long> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(scalar + span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (long)(left + right[i]);
         }
         public override void Subtract(Span<long> left, ReadOnlySpan<long> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (long)(left[i] - right[i]);
-            }
         }
 
-        public override void Subtract(PrimitiveColumnContainer<long> column, long scalar)
+        public override void Subtract(Span<long> left, long right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(span[i] - scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (long)(left[i] - right);
         }
 
-        public override void Subtract(long scalar, PrimitiveColumnContainer<long> column)
+        public override void Subtract(long left, Span<long> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(scalar - span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (long)(left - right[i]);
         }
         public override void Multiply(Span<long> left, ReadOnlySpan<long> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (long)(left[i] * right[i]);
-            }
         }
 
-        public override void Multiply(PrimitiveColumnContainer<long> column, long scalar)
+        public override void Multiply(Span<long> left, long right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(span[i] * scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (long)(left[i] * right);
         }
 
-        public override void Multiply(long scalar, PrimitiveColumnContainer<long> column)
+        public override void Multiply(long left, Span<long> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(scalar * span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (long)(left * right[i]);
         }
         public override void Divide(Span<long> left, Span<byte> leftValidity, ReadOnlySpan<long> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < left.Length; i++)
+            for (var i = 0; i < left.Length; i++)
             {
                 if (BitmapHelper.IsValid(rightValidity, i))
                     left[i] = (long)(left[i] / right[i]);
@@ -2995,162 +2297,87 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public override void Divide(PrimitiveColumnContainer<long> column, long scalar)
+        public override void Divide(Span<long> left, long right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(span[i] / scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (long)(left[i] / right);
         }
 
-        public override void Divide(long scalar, PrimitiveColumnContainer<long> column)
+        public override void Divide(long left, Span<long> right, Span<byte> rightValidity)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
+            for (var i = 0; i < right.Length; i++)
             {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(scalar / span[i]);
-                }
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    right[i] = (long)(left / right[i]);
             }
         }
         public override void Modulo(Span<long> left, ReadOnlySpan<long> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (long)(left[i] % right[i]);
-            }
         }
 
-        public override void Modulo(PrimitiveColumnContainer<long> column, long scalar)
+        public override void Modulo(Span<long> left, long right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(span[i] % scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (long)(left[i] % right);
         }
 
-        public override void Modulo(long scalar, PrimitiveColumnContainer<long> column)
+        public override void Modulo(long left, Span<long> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(scalar % span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (long)(left % right[i]);
         }
         public override void And(Span<long> left, ReadOnlySpan<long> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (long)(left[i] & right[i]);
-            }
         }
 
-        public override void And(PrimitiveColumnContainer<long> column, long scalar)
+        public override void And(Span<long> left, long right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(span[i] & scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (long)(left[i] & right);
         }
 
-        public override void And(long scalar, PrimitiveColumnContainer<long> column)
+        public override void And(long left, Span<long> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(scalar & span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (long)(left & right[i]);
         }
         public override void Or(Span<long> left, ReadOnlySpan<long> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (long)(left[i] | right[i]);
-            }
         }
 
-        public override void Or(PrimitiveColumnContainer<long> column, long scalar)
+        public override void Or(Span<long> left, long right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(span[i] | scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (long)(left[i] | right);
         }
 
-        public override void Or(long scalar, PrimitiveColumnContainer<long> column)
+        public override void Or(long left, Span<long> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(scalar | span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (long)(left | right[i]);
         }
         public override void Xor(Span<long> left, ReadOnlySpan<long> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (long)(left[i] ^ right[i]);
-            }
         }
 
-        public override void Xor(PrimitiveColumnContainer<long> column, long scalar)
+        public override void Xor(Span<long> left, long right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(span[i] ^ scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (long)(left[i] ^ right);
         }
 
-        public override void Xor(long scalar, PrimitiveColumnContainer<long> column)
+        public override void Xor(long left, Span<long> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(scalar ^ span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (long)(left ^ right[i]);
         }
 
         public override void LeftShift(PrimitiveColumnContainer<long> column, int value)
@@ -3370,106 +2597,58 @@ namespace Microsoft.Data.Analysis
 
         public override void Add(Span<sbyte> left, ReadOnlySpan<sbyte> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (sbyte)(left[i] + right[i]);
-            }
         }
 
-        public override void Add(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
+        public override void Add(Span<sbyte> left, sbyte right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(span[i] + scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (sbyte)(left[i] + right);
         }
 
-        public override void Add(sbyte scalar, PrimitiveColumnContainer<sbyte> column)
+        public override void Add(sbyte left, Span<sbyte> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(scalar + span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (sbyte)(left + right[i]);
         }
         public override void Subtract(Span<sbyte> left, ReadOnlySpan<sbyte> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (sbyte)(left[i] - right[i]);
-            }
         }
 
-        public override void Subtract(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
+        public override void Subtract(Span<sbyte> left, sbyte right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(span[i] - scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (sbyte)(left[i] - right);
         }
 
-        public override void Subtract(sbyte scalar, PrimitiveColumnContainer<sbyte> column)
+        public override void Subtract(sbyte left, Span<sbyte> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(scalar - span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (sbyte)(left - right[i]);
         }
         public override void Multiply(Span<sbyte> left, ReadOnlySpan<sbyte> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (sbyte)(left[i] * right[i]);
-            }
         }
 
-        public override void Multiply(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
+        public override void Multiply(Span<sbyte> left, sbyte right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(span[i] * scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (sbyte)(left[i] * right);
         }
 
-        public override void Multiply(sbyte scalar, PrimitiveColumnContainer<sbyte> column)
+        public override void Multiply(sbyte left, Span<sbyte> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(scalar * span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (sbyte)(left * right[i]);
         }
         public override void Divide(Span<sbyte> left, Span<byte> leftValidity, ReadOnlySpan<sbyte> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < left.Length; i++)
+            for (var i = 0; i < left.Length; i++)
             {
                 if (BitmapHelper.IsValid(rightValidity, i))
                     left[i] = (sbyte)(left[i] / right[i]);
@@ -3478,162 +2657,87 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public override void Divide(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
+        public override void Divide(Span<sbyte> left, sbyte right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(span[i] / scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (sbyte)(left[i] / right);
         }
 
-        public override void Divide(sbyte scalar, PrimitiveColumnContainer<sbyte> column)
+        public override void Divide(sbyte left, Span<sbyte> right, Span<byte> rightValidity)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
+            for (var i = 0; i < right.Length; i++)
             {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(scalar / span[i]);
-                }
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    right[i] = (sbyte)(left / right[i]);
             }
         }
         public override void Modulo(Span<sbyte> left, ReadOnlySpan<sbyte> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (sbyte)(left[i] % right[i]);
-            }
         }
 
-        public override void Modulo(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
+        public override void Modulo(Span<sbyte> left, sbyte right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(span[i] % scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (sbyte)(left[i] % right);
         }
 
-        public override void Modulo(sbyte scalar, PrimitiveColumnContainer<sbyte> column)
+        public override void Modulo(sbyte left, Span<sbyte> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(scalar % span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (sbyte)(left % right[i]);
         }
         public override void And(Span<sbyte> left, ReadOnlySpan<sbyte> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (sbyte)(left[i] & right[i]);
-            }
         }
 
-        public override void And(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
+        public override void And(Span<sbyte> left, sbyte right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(span[i] & scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (sbyte)(left[i] & right);
         }
 
-        public override void And(sbyte scalar, PrimitiveColumnContainer<sbyte> column)
+        public override void And(sbyte left, Span<sbyte> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(scalar & span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (sbyte)(left & right[i]);
         }
         public override void Or(Span<sbyte> left, ReadOnlySpan<sbyte> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (sbyte)(left[i] | right[i]);
-            }
         }
 
-        public override void Or(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
+        public override void Or(Span<sbyte> left, sbyte right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(span[i] | scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (sbyte)(left[i] | right);
         }
 
-        public override void Or(sbyte scalar, PrimitiveColumnContainer<sbyte> column)
+        public override void Or(sbyte left, Span<sbyte> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(scalar | span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (sbyte)(left | right[i]);
         }
         public override void Xor(Span<sbyte> left, ReadOnlySpan<sbyte> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (sbyte)(left[i] ^ right[i]);
-            }
         }
 
-        public override void Xor(PrimitiveColumnContainer<sbyte> column, sbyte scalar)
+        public override void Xor(Span<sbyte> left, sbyte right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(span[i] ^ scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (sbyte)(left[i] ^ right);
         }
 
-        public override void Xor(sbyte scalar, PrimitiveColumnContainer<sbyte> column)
+        public override void Xor(sbyte left, Span<sbyte> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(scalar ^ span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (sbyte)(left ^ right[i]);
         }
 
         public override void LeftShift(PrimitiveColumnContainer<sbyte> column, int value)
@@ -3853,106 +2957,58 @@ namespace Microsoft.Data.Analysis
 
         public override void Add(Span<short> left, ReadOnlySpan<short> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (short)(left[i] + right[i]);
-            }
         }
 
-        public override void Add(PrimitiveColumnContainer<short> column, short scalar)
+        public override void Add(Span<short> left, short right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(span[i] + scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (short)(left[i] + right);
         }
 
-        public override void Add(short scalar, PrimitiveColumnContainer<short> column)
+        public override void Add(short left, Span<short> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(scalar + span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (short)(left + right[i]);
         }
         public override void Subtract(Span<short> left, ReadOnlySpan<short> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (short)(left[i] - right[i]);
-            }
         }
 
-        public override void Subtract(PrimitiveColumnContainer<short> column, short scalar)
+        public override void Subtract(Span<short> left, short right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(span[i] - scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (short)(left[i] - right);
         }
 
-        public override void Subtract(short scalar, PrimitiveColumnContainer<short> column)
+        public override void Subtract(short left, Span<short> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(scalar - span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (short)(left - right[i]);
         }
         public override void Multiply(Span<short> left, ReadOnlySpan<short> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (short)(left[i] * right[i]);
-            }
         }
 
-        public override void Multiply(PrimitiveColumnContainer<short> column, short scalar)
+        public override void Multiply(Span<short> left, short right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(span[i] * scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (short)(left[i] * right);
         }
 
-        public override void Multiply(short scalar, PrimitiveColumnContainer<short> column)
+        public override void Multiply(short left, Span<short> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(scalar * span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (short)(left * right[i]);
         }
         public override void Divide(Span<short> left, Span<byte> leftValidity, ReadOnlySpan<short> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < left.Length; i++)
+            for (var i = 0; i < left.Length; i++)
             {
                 if (BitmapHelper.IsValid(rightValidity, i))
                     left[i] = (short)(left[i] / right[i]);
@@ -3961,162 +3017,87 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public override void Divide(PrimitiveColumnContainer<short> column, short scalar)
+        public override void Divide(Span<short> left, short right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(span[i] / scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (short)(left[i] / right);
         }
 
-        public override void Divide(short scalar, PrimitiveColumnContainer<short> column)
+        public override void Divide(short left, Span<short> right, Span<byte> rightValidity)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
+            for (var i = 0; i < right.Length; i++)
             {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(scalar / span[i]);
-                }
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    right[i] = (short)(left / right[i]);
             }
         }
         public override void Modulo(Span<short> left, ReadOnlySpan<short> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (short)(left[i] % right[i]);
-            }
         }
 
-        public override void Modulo(PrimitiveColumnContainer<short> column, short scalar)
+        public override void Modulo(Span<short> left, short right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(span[i] % scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (short)(left[i] % right);
         }
 
-        public override void Modulo(short scalar, PrimitiveColumnContainer<short> column)
+        public override void Modulo(short left, Span<short> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(scalar % span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (short)(left % right[i]);
         }
         public override void And(Span<short> left, ReadOnlySpan<short> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (short)(left[i] & right[i]);
-            }
         }
 
-        public override void And(PrimitiveColumnContainer<short> column, short scalar)
+        public override void And(Span<short> left, short right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(span[i] & scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (short)(left[i] & right);
         }
 
-        public override void And(short scalar, PrimitiveColumnContainer<short> column)
+        public override void And(short left, Span<short> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(scalar & span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (short)(left & right[i]);
         }
         public override void Or(Span<short> left, ReadOnlySpan<short> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (short)(left[i] | right[i]);
-            }
         }
 
-        public override void Or(PrimitiveColumnContainer<short> column, short scalar)
+        public override void Or(Span<short> left, short right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(span[i] | scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (short)(left[i] | right);
         }
 
-        public override void Or(short scalar, PrimitiveColumnContainer<short> column)
+        public override void Or(short left, Span<short> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(scalar | span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (short)(left | right[i]);
         }
         public override void Xor(Span<short> left, ReadOnlySpan<short> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (short)(left[i] ^ right[i]);
-            }
         }
 
-        public override void Xor(PrimitiveColumnContainer<short> column, short scalar)
+        public override void Xor(Span<short> left, short right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(span[i] ^ scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (short)(left[i] ^ right);
         }
 
-        public override void Xor(short scalar, PrimitiveColumnContainer<short> column)
+        public override void Xor(short left, Span<short> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(scalar ^ span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (short)(left ^ right[i]);
         }
 
         public override void LeftShift(PrimitiveColumnContainer<short> column, int value)
@@ -4336,106 +3317,58 @@ namespace Microsoft.Data.Analysis
 
         public override void Add(Span<uint> left, ReadOnlySpan<uint> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (uint)(left[i] + right[i]);
-            }
         }
 
-        public override void Add(PrimitiveColumnContainer<uint> column, uint scalar)
+        public override void Add(Span<uint> left, uint right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(span[i] + scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (uint)(left[i] + right);
         }
 
-        public override void Add(uint scalar, PrimitiveColumnContainer<uint> column)
+        public override void Add(uint left, Span<uint> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(scalar + span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (uint)(left + right[i]);
         }
         public override void Subtract(Span<uint> left, ReadOnlySpan<uint> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (uint)(left[i] - right[i]);
-            }
         }
 
-        public override void Subtract(PrimitiveColumnContainer<uint> column, uint scalar)
+        public override void Subtract(Span<uint> left, uint right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(span[i] - scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (uint)(left[i] - right);
         }
 
-        public override void Subtract(uint scalar, PrimitiveColumnContainer<uint> column)
+        public override void Subtract(uint left, Span<uint> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(scalar - span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (uint)(left - right[i]);
         }
         public override void Multiply(Span<uint> left, ReadOnlySpan<uint> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (uint)(left[i] * right[i]);
-            }
         }
 
-        public override void Multiply(PrimitiveColumnContainer<uint> column, uint scalar)
+        public override void Multiply(Span<uint> left, uint right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(span[i] * scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (uint)(left[i] * right);
         }
 
-        public override void Multiply(uint scalar, PrimitiveColumnContainer<uint> column)
+        public override void Multiply(uint left, Span<uint> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(scalar * span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (uint)(left * right[i]);
         }
         public override void Divide(Span<uint> left, Span<byte> leftValidity, ReadOnlySpan<uint> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < left.Length; i++)
+            for (var i = 0; i < left.Length; i++)
             {
                 if (BitmapHelper.IsValid(rightValidity, i))
                     left[i] = (uint)(left[i] / right[i]);
@@ -4444,162 +3377,87 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public override void Divide(PrimitiveColumnContainer<uint> column, uint scalar)
+        public override void Divide(Span<uint> left, uint right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(span[i] / scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (uint)(left[i] / right);
         }
 
-        public override void Divide(uint scalar, PrimitiveColumnContainer<uint> column)
+        public override void Divide(uint left, Span<uint> right, Span<byte> rightValidity)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
+            for (var i = 0; i < right.Length; i++)
             {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(scalar / span[i]);
-                }
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    right[i] = (uint)(left / right[i]);
             }
         }
         public override void Modulo(Span<uint> left, ReadOnlySpan<uint> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (uint)(left[i] % right[i]);
-            }
         }
 
-        public override void Modulo(PrimitiveColumnContainer<uint> column, uint scalar)
+        public override void Modulo(Span<uint> left, uint right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(span[i] % scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (uint)(left[i] % right);
         }
 
-        public override void Modulo(uint scalar, PrimitiveColumnContainer<uint> column)
+        public override void Modulo(uint left, Span<uint> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(scalar % span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (uint)(left % right[i]);
         }
         public override void And(Span<uint> left, ReadOnlySpan<uint> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (uint)(left[i] & right[i]);
-            }
         }
 
-        public override void And(PrimitiveColumnContainer<uint> column, uint scalar)
+        public override void And(Span<uint> left, uint right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(span[i] & scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (uint)(left[i] & right);
         }
 
-        public override void And(uint scalar, PrimitiveColumnContainer<uint> column)
+        public override void And(uint left, Span<uint> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(scalar & span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (uint)(left & right[i]);
         }
         public override void Or(Span<uint> left, ReadOnlySpan<uint> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (uint)(left[i] | right[i]);
-            }
         }
 
-        public override void Or(PrimitiveColumnContainer<uint> column, uint scalar)
+        public override void Or(Span<uint> left, uint right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(span[i] | scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (uint)(left[i] | right);
         }
 
-        public override void Or(uint scalar, PrimitiveColumnContainer<uint> column)
+        public override void Or(uint left, Span<uint> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(scalar | span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (uint)(left | right[i]);
         }
         public override void Xor(Span<uint> left, ReadOnlySpan<uint> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (uint)(left[i] ^ right[i]);
-            }
         }
 
-        public override void Xor(PrimitiveColumnContainer<uint> column, uint scalar)
+        public override void Xor(Span<uint> left, uint right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(span[i] ^ scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (uint)(left[i] ^ right);
         }
 
-        public override void Xor(uint scalar, PrimitiveColumnContainer<uint> column)
+        public override void Xor(uint left, Span<uint> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(scalar ^ span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (uint)(left ^ right[i]);
         }
 
         public override void LeftShift(PrimitiveColumnContainer<uint> column, int value)
@@ -4819,106 +3677,58 @@ namespace Microsoft.Data.Analysis
 
         public override void Add(Span<ulong> left, ReadOnlySpan<ulong> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (ulong)(left[i] + right[i]);
-            }
         }
 
-        public override void Add(PrimitiveColumnContainer<ulong> column, ulong scalar)
+        public override void Add(Span<ulong> left, ulong right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(span[i] + scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ulong)(left[i] + right);
         }
 
-        public override void Add(ulong scalar, PrimitiveColumnContainer<ulong> column)
+        public override void Add(ulong left, Span<ulong> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(scalar + span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (ulong)(left + right[i]);
         }
         public override void Subtract(Span<ulong> left, ReadOnlySpan<ulong> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (ulong)(left[i] - right[i]);
-            }
         }
 
-        public override void Subtract(PrimitiveColumnContainer<ulong> column, ulong scalar)
+        public override void Subtract(Span<ulong> left, ulong right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(span[i] - scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ulong)(left[i] - right);
         }
 
-        public override void Subtract(ulong scalar, PrimitiveColumnContainer<ulong> column)
+        public override void Subtract(ulong left, Span<ulong> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(scalar - span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (ulong)(left - right[i]);
         }
         public override void Multiply(Span<ulong> left, ReadOnlySpan<ulong> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (ulong)(left[i] * right[i]);
-            }
         }
 
-        public override void Multiply(PrimitiveColumnContainer<ulong> column, ulong scalar)
+        public override void Multiply(Span<ulong> left, ulong right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(span[i] * scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ulong)(left[i] * right);
         }
 
-        public override void Multiply(ulong scalar, PrimitiveColumnContainer<ulong> column)
+        public override void Multiply(ulong left, Span<ulong> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(scalar * span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (ulong)(left * right[i]);
         }
         public override void Divide(Span<ulong> left, Span<byte> leftValidity, ReadOnlySpan<ulong> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < left.Length; i++)
+            for (var i = 0; i < left.Length; i++)
             {
                 if (BitmapHelper.IsValid(rightValidity, i))
                     left[i] = (ulong)(left[i] / right[i]);
@@ -4927,162 +3737,87 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public override void Divide(PrimitiveColumnContainer<ulong> column, ulong scalar)
+        public override void Divide(Span<ulong> left, ulong right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(span[i] / scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ulong)(left[i] / right);
         }
 
-        public override void Divide(ulong scalar, PrimitiveColumnContainer<ulong> column)
+        public override void Divide(ulong left, Span<ulong> right, Span<byte> rightValidity)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
+            for (var i = 0; i < right.Length; i++)
             {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(scalar / span[i]);
-                }
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    right[i] = (ulong)(left / right[i]);
             }
         }
         public override void Modulo(Span<ulong> left, ReadOnlySpan<ulong> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (ulong)(left[i] % right[i]);
-            }
         }
 
-        public override void Modulo(PrimitiveColumnContainer<ulong> column, ulong scalar)
+        public override void Modulo(Span<ulong> left, ulong right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(span[i] % scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ulong)(left[i] % right);
         }
 
-        public override void Modulo(ulong scalar, PrimitiveColumnContainer<ulong> column)
+        public override void Modulo(ulong left, Span<ulong> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(scalar % span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (ulong)(left % right[i]);
         }
         public override void And(Span<ulong> left, ReadOnlySpan<ulong> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (ulong)(left[i] & right[i]);
-            }
         }
 
-        public override void And(PrimitiveColumnContainer<ulong> column, ulong scalar)
+        public override void And(Span<ulong> left, ulong right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(span[i] & scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ulong)(left[i] & right);
         }
 
-        public override void And(ulong scalar, PrimitiveColumnContainer<ulong> column)
+        public override void And(ulong left, Span<ulong> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(scalar & span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (ulong)(left & right[i]);
         }
         public override void Or(Span<ulong> left, ReadOnlySpan<ulong> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (ulong)(left[i] | right[i]);
-            }
         }
 
-        public override void Or(PrimitiveColumnContainer<ulong> column, ulong scalar)
+        public override void Or(Span<ulong> left, ulong right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(span[i] | scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ulong)(left[i] | right);
         }
 
-        public override void Or(ulong scalar, PrimitiveColumnContainer<ulong> column)
+        public override void Or(ulong left, Span<ulong> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(scalar | span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (ulong)(left | right[i]);
         }
         public override void Xor(Span<ulong> left, ReadOnlySpan<ulong> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (ulong)(left[i] ^ right[i]);
-            }
         }
 
-        public override void Xor(PrimitiveColumnContainer<ulong> column, ulong scalar)
+        public override void Xor(Span<ulong> left, ulong right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(span[i] ^ scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ulong)(left[i] ^ right);
         }
 
-        public override void Xor(ulong scalar, PrimitiveColumnContainer<ulong> column)
+        public override void Xor(ulong left, Span<ulong> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(scalar ^ span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (ulong)(left ^ right[i]);
         }
 
         public override void LeftShift(PrimitiveColumnContainer<ulong> column, int value)
@@ -5302,106 +4037,58 @@ namespace Microsoft.Data.Analysis
 
         public override void Add(Span<ushort> left, ReadOnlySpan<ushort> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (ushort)(left[i] + right[i]);
-            }
         }
 
-        public override void Add(PrimitiveColumnContainer<ushort> column, ushort scalar)
+        public override void Add(Span<ushort> left, ushort right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(span[i] + scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ushort)(left[i] + right);
         }
 
-        public override void Add(ushort scalar, PrimitiveColumnContainer<ushort> column)
+        public override void Add(ushort left, Span<ushort> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(scalar + span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (ushort)(left + right[i]);
         }
         public override void Subtract(Span<ushort> left, ReadOnlySpan<ushort> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (ushort)(left[i] - right[i]);
-            }
         }
 
-        public override void Subtract(PrimitiveColumnContainer<ushort> column, ushort scalar)
+        public override void Subtract(Span<ushort> left, ushort right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(span[i] - scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ushort)(left[i] - right);
         }
 
-        public override void Subtract(ushort scalar, PrimitiveColumnContainer<ushort> column)
+        public override void Subtract(ushort left, Span<ushort> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(scalar - span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (ushort)(left - right[i]);
         }
         public override void Multiply(Span<ushort> left, ReadOnlySpan<ushort> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (ushort)(left[i] * right[i]);
-            }
         }
 
-        public override void Multiply(PrimitiveColumnContainer<ushort> column, ushort scalar)
+        public override void Multiply(Span<ushort> left, ushort right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(span[i] * scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ushort)(left[i] * right);
         }
 
-        public override void Multiply(ushort scalar, PrimitiveColumnContainer<ushort> column)
+        public override void Multiply(ushort left, Span<ushort> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(scalar * span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (ushort)(left * right[i]);
         }
         public override void Divide(Span<ushort> left, Span<byte> leftValidity, ReadOnlySpan<ushort> right, ReadOnlySpan<byte> rightValidity)
         {
-            for (int i = 0; i < left.Length; i++)
+            for (var i = 0; i < left.Length; i++)
             {
                 if (BitmapHelper.IsValid(rightValidity, i))
                     left[i] = (ushort)(left[i] / right[i]);
@@ -5410,162 +4097,87 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public override void Divide(PrimitiveColumnContainer<ushort> column, ushort scalar)
+        public override void Divide(Span<ushort> left, ushort right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(span[i] / scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ushort)(left[i] / right);
         }
 
-        public override void Divide(ushort scalar, PrimitiveColumnContainer<ushort> column)
+        public override void Divide(ushort left, Span<ushort> right, Span<byte> rightValidity)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
+            for (var i = 0; i < right.Length; i++)
             {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(scalar / span[i]);
-                }
+                if (BitmapHelper.IsValid(rightValidity, i))
+                    right[i] = (ushort)(left / right[i]);
             }
         }
         public override void Modulo(Span<ushort> left, ReadOnlySpan<ushort> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (ushort)(left[i] % right[i]);
-            }
         }
 
-        public override void Modulo(PrimitiveColumnContainer<ushort> column, ushort scalar)
+        public override void Modulo(Span<ushort> left, ushort right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(span[i] % scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ushort)(left[i] % right);
         }
 
-        public override void Modulo(ushort scalar, PrimitiveColumnContainer<ushort> column)
+        public override void Modulo(ushort left, Span<ushort> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(scalar % span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (ushort)(left % right[i]);
         }
         public override void And(Span<ushort> left, ReadOnlySpan<ushort> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (ushort)(left[i] & right[i]);
-            }
         }
 
-        public override void And(PrimitiveColumnContainer<ushort> column, ushort scalar)
+        public override void And(Span<ushort> left, ushort right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(span[i] & scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ushort)(left[i] & right);
         }
 
-        public override void And(ushort scalar, PrimitiveColumnContainer<ushort> column)
+        public override void And(ushort left, Span<ushort> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(scalar & span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (ushort)(left & right[i]);
         }
         public override void Or(Span<ushort> left, ReadOnlySpan<ushort> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (ushort)(left[i] | right[i]);
-            }
         }
 
-        public override void Or(PrimitiveColumnContainer<ushort> column, ushort scalar)
+        public override void Or(Span<ushort> left, ushort right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(span[i] | scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ushort)(left[i] | right);
         }
 
-        public override void Or(ushort scalar, PrimitiveColumnContainer<ushort> column)
+        public override void Or(ushort left, Span<ushort> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(scalar | span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (ushort)(left | right[i]);
         }
         public override void Xor(Span<ushort> left, ReadOnlySpan<ushort> right)
         {
-            for (int i = 0; i < left.Length; i++)
-            {
+            for (var i = 0; i < left.Length; i++)
                 left[i] = (ushort)(left[i] ^ right[i]);
-            }
         }
 
-        public override void Xor(PrimitiveColumnContainer<ushort> column, ushort scalar)
+        public override void Xor(Span<ushort> left, ushort right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(span[i] ^ scalar);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ushort)(left[i] ^ right);
         }
 
-        public override void Xor(ushort scalar, PrimitiveColumnContainer<ushort> column)
+        public override void Xor(ushort left, Span<ushort> right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(scalar ^ span[i]);
-                }
-            }
+            for (var i = 0; i < right.Length; i++)
+                right[i] = (ushort)(left ^ right[i]);
         }
 
         public override void LeftShift(PrimitiveColumnContainer<ushort> column, int value)

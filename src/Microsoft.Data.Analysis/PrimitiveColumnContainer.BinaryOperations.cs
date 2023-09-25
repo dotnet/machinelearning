@@ -33,46 +33,33 @@ namespace Microsoft.Data.Analysis
             return this;
         }
 
-        public PrimitiveColumnContainer<T> Add(T scalar)
+        public PrimitiveColumnContainer<T> HandleOperation(BinaryScalarOperation operation, T right)
         {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Add(this, scalar);
+            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+            for (int i = 0; i < this.Buffers.Count; i++)
+            {
+                var leftSpan = this.Buffers.GetOrCreateMutable(i).Span;
+
+                arithmetic.HandleOperation(operation, leftSpan, right);
+            }
+
             return this;
         }
-        public PrimitiveColumnContainer<T> Subtract(T scalar)
+
+        public PrimitiveColumnContainer<T> HandleReverseOperation(BinaryScalarOperation operation, T left)
         {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Subtract(this, scalar);
+            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+            for (int i = 0; i < this.Buffers.Count; i++)
+            {
+                var rightSpan = this.Buffers.GetOrCreateMutable(i).Span;
+                var rightValidity = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
+
+                arithmetic.HandleOperation(operation, left, rightSpan, rightValidity);
+            }
+
             return this;
         }
-        public PrimitiveColumnContainer<T> Multiply(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Multiply(this, scalar);
-            return this;
-        }
-        public PrimitiveColumnContainer<T> Divide(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Divide(this, scalar);
-            return this;
-        }
-        public PrimitiveColumnContainer<T> Modulo(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Modulo(this, scalar);
-            return this;
-        }
-        public PrimitiveColumnContainer<T> And(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.And(this, scalar);
-            return this;
-        }
-        public PrimitiveColumnContainer<T> Or(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Or(this, scalar);
-            return this;
-        }
-        public PrimitiveColumnContainer<T> Xor(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Xor(this, scalar);
-            return this;
-        }
+
         public PrimitiveColumnContainer<T> LeftShift(int value)
         {
             PrimitiveDataFrameColumnArithmetic<T>.Instance.LeftShift(this, value);
@@ -130,54 +117,6 @@ namespace Microsoft.Data.Analysis
         public PrimitiveColumnContainer<bool> ElementwiseLessThan(T scalar)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThan(this, scalar);
-        }
-
-        public PrimitiveColumnContainer<T> ReverseAdd(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Add(scalar, this);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ReverseSubtract(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Subtract(scalar, this);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ReverseMultiply(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Multiply(scalar, this);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ReverseDivide(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Divide(scalar, this);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ReverseModulo(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Modulo(scalar, this);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ReverseAnd(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.And(scalar, this);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ReverseOr(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Or(scalar, this);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ReverseXor(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Xor(scalar, this);
-            return this;
         }
     }
 }

@@ -71,14 +71,14 @@ namespace Microsoft.Data.Analysis
         {
 <# if (method.MethodType == MethodType.BinaryScalar) {#>
 <# if (method.IsBitwise == true) { #>
-            return <#=method.MethodName#>Implementation(value, inPlace);
+            return HandleBitwiseOperationImplementation(BinaryScalarOperation.<#=method.MethodName#>, value, inPlace);
 <# } else { #>
             DataFrameColumn column = value as DataFrameColumn;
             if (column != null)
             {
-                return <#=method.MethodName#>(column, inPlace);
+                return HandleOperationImplementation(BinaryScalarOperation.<#=method.MethodName#>, column, inPlace);
             }
-            return <#=method.MethodName#>Implementation(value, inPlace);
+            return HandleOperationImplementation(BinaryScalarOperation.<#=method.MethodName#>, value, inPlace);
 <# } #>
 <# } else {#>
             DataFrameColumn column = value as DataFrameColumn;
@@ -101,17 +101,9 @@ namespace Microsoft.Data.Analysis
 <# } #>
 
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
-<# if (method.MethodType != MethodType.Binary) { #>
-<# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.ComparisonScalar) {#>
-<# if (method.MethodType == MethodType.BinaryScalar) {#>
-<# if (method.IsBitwise == true) { #>
-        internal PrimitiveDataFrameColumn<bool> <#=method.MethodName#>Implementation<U>(U value, bool inPlace)
-<# } else { #>
-        internal DataFrameColumn <#=method.MethodName#>Implementation<U>(U value, bool inPlace)
-<# } #>
-<# } else {#>
+<# if (method.MethodType != MethodType.Binary && method.MethodType != MethodType.BinaryScalar) { #>
+<# if (method.MethodType == MethodType.ComparisonScalar) {#>
         internal PrimitiveDataFrameColumn<bool> <#=method.MethodName#>Implementation<U>(U value)
-<# } #>
 <# } #>
 <# if (method.MethodType == MethodType.Comparison) {#>
         internal PrimitiveDataFrameColumn<bool> <#=method.MethodName#>Implementation<U>(PrimitiveDataFrameColumn<U> column)

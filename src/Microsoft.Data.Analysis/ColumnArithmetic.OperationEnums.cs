@@ -17,4 +17,16 @@ namespace Microsoft.Data.Analysis
         Or,
         Xor,
     }
+
+    internal enum BinaryScalarOperation
+    {
+        Add,
+        Subtract,
+        Multiply,
+        Divide,
+        Modulo,
+        And,
+        Or,
+        Xor,
+    }
 }

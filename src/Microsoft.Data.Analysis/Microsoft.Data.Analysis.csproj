@@ -54,6 +54,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="ColumnArithmetic.OperationEnums.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ColumnArithmetic.OperationEnums.cs</LastGenOutput>
+    </None>
     <None Update="Converters.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Converters.cs</LastGenOutput>

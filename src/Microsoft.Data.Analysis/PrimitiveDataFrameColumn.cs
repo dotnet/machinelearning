@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Apache.Arrow;
 using Apache.Arrow.Types;
@@ -969,6 +970,115 @@ namespace Microsoft.Data.Analysis
                             return doubleColumn;
                         }
                     }
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        internal DataFrameColumn HandleOperationImplementation<U>(BinaryScalarOperation operation, U value, bool inPlace)
+        {
+            switch (typeof(T))
+            {
+                case Type boolType when boolType == typeof(bool):
+                    throw new NotSupportedException();
+                case Type decimalType when decimalType == typeof(decimal):
+                    if (typeof(U) == typeof(bool))
+                    {
+                        throw new NotSupportedException();
+                    }
+                    if (typeof(U) == typeof(T))
+                    {
+                        // No conversions
+                        PrimitiveDataFrameColumn<T> primitiveColumn = this;
+                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
+                        newColumn._columnContainer.HandleOperation(operation, Unsafe.As<U, T>(ref value));
+                        return newColumn;
+                    }
+                    else
+                    {
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
+                        }
+                        PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
+                        decimalColumn._columnContainer.HandleOperation(operation, DecimalConverter<U>.Instance.GetDecimal(value));
+                        return decimalColumn;
+                    }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
+                case Type byteType when byteType == typeof(byte):
+                case Type charType when charType == typeof(char):
+                case Type doubleType when doubleType == typeof(double):
+                case Type floatType when floatType == typeof(float):
+                case Type intType when intType == typeof(int):
+                case Type longType when longType == typeof(long):
+                case Type sbyteType when sbyteType == typeof(sbyte):
+                case Type shortType when shortType == typeof(short):
+                case Type uintType when uintType == typeof(uint):
+                case Type ulongType when ulongType == typeof(ulong):
+                case Type ushortType when ushortType == typeof(ushort):
+                    if (typeof(U) == typeof(bool))
+                    {
+                        throw new NotSupportedException();
+                    }
+                    if (typeof(U) == typeof(T))
+                    {
+                        // No conversions
+                        PrimitiveDataFrameColumn<T> primitiveColumn = this;
+                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
+                        newColumn._columnContainer.HandleOperation(operation, Unsafe.As<U, T>(ref value));
+                        return newColumn;
+                    }
+                    else
+                    {
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
+                        }
+                        if (typeof(U) == typeof(decimal))
+                        {
+                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
+                            decimalColumn._columnContainer.HandleOperation(operation, DecimalConverter<U>.Instance.GetDecimal(value));
+                            return decimalColumn;
+                        }
+                        else
+                        {
+                            PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
+                            doubleColumn._columnContainer.HandleOperation(operation, DoubleConverter<U>.Instance.GetDouble(value));
+                            return doubleColumn;
+                        }
+                    }
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        internal PrimitiveDataFrameColumn<bool> HandleBitwiseOperationImplementation<U>(BinaryScalarOperation operation, U value, bool inPlace)
+        {
+            switch (typeof(T))
+            {
+                case Type boolType when boolType == typeof(bool):
+                    if (typeof(U) != typeof(bool))
+                    {
+                        throw new NotSupportedException();
+                    }
+                    PrimitiveDataFrameColumn<bool> typedColumn = this as PrimitiveDataFrameColumn<bool>;
+                    PrimitiveDataFrameColumn<bool> retColumn = inPlace ? typedColumn : typedColumn.Clone();
+                    retColumn._columnContainer.HandleOperation(operation, Unsafe.As<U, bool>(ref value));
+                    return retColumn;
+                case Type byteType when byteType == typeof(byte):
+                case Type charType when charType == typeof(char):
+                case Type decimalType when decimalType == typeof(decimal):
+                case Type doubleType when doubleType == typeof(double):
+                case Type floatType when floatType == typeof(float):
+                case Type intType when intType == typeof(int):
+                case Type longType when longType == typeof(long):
+                case Type sbyteType when sbyteType == typeof(sbyte):
+                case Type shortType when shortType == typeof(short):
+                case Type uintType when uintType == typeof(uint):
+                case Type ulongType when ulongType == typeof(ulong):
+                case Type ushortType when ushortType == typeof(ushort):
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
                 default:
                     throw new NotSupportedException();
             }
