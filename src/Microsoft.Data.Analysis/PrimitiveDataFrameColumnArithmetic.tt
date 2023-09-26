@@ -18,10 +18,14 @@ using System;
 namespace Microsoft.Data.Analysis
 {
     internal interface IPrimitiveDataFrameColumnArithmetic<T>
-        where T : struct
+        where T : unmanaged
     {
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
-        <#= method.GetMethodSignature("PrimitiveColumnContainer", "T")#>;
+<# if (method.MethodType == MethodType.Comparison || method.MethodType == MethodType.ComparisonScalar) { #>
+        PrimitiveColumnContainer<bool> <#=method.MethodName#>(<#=method.GetMethodArguments("PrimitiveColumnContainer", "T")#>);
+<#} else {#>
+        void <#=method.MethodName#>(<#=method.GetMethodArguments("PrimitiveColumnContainer", "T")#>);
+<# } #>
 <# if (method.MethodType == MethodType.BinaryScalar) { #>
         <#= method.GetInvertedMethodSignatureForBinaryScalarsOps("PrimitiveColumnContainer", "T")#>;
 <# } #>
@@ -29,7 +33,7 @@ namespace Microsoft.Data.Analysis
     }
 
     internal static class PrimitiveDataFrameColumnArithmetic<T>
-        where T : struct
+        where T : unmanaged
     {
         public static IPrimitiveDataFrameColumnArithmetic<T> Instance { get; } = PrimitiveDataFrameColumnArithmetic.GetArithmetic<T>();
     }
@@ -37,7 +41,7 @@ namespace Microsoft.Data.Analysis
     internal static class PrimitiveDataFrameColumnArithmetic
     {
         public static IPrimitiveDataFrameColumnArithmetic<T> GetArithmetic<T>()
-            where T : struct
+            where T : unmanaged
         {
 <# foreach (TypeConfiguration type in typeConfiguration) { #>
             <#=GenerateIfStatementHeader(type)#>
@@ -48,43 +52,78 @@ namespace Microsoft.Data.Analysis
             throw new NotSupportedException();
         }
     }
-
 <# foreach (TypeConfiguration type in typeConfiguration) { #>
     internal class <#=type.ClassPrefix#>Arithmetic : IPrimitiveDataFrameColumnArithmetic<<#=type.TypeName#>>
     {
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
-        public <#= method.GetMethodSignature("PrimitiveColumnContainer", type.TypeName) #>
+<# if (method.MethodType == MethodType.Comparison || method.MethodType == MethodType.ComparisonScalar) { #>
+
+        public PrimitiveColumnContainer<bool> <#=method.MethodName#>(<#=method.GetMethodArguments("PrimitiveColumnContainer", type.TypeName)#>)
         {
+<#} else {#>
+
+        public void <#=method.MethodName#>(<#=method.GetMethodArguments("PrimitiveColumnContainer", type.TypeName)#>)
+        {
+<# } #>
 <# if ((method.IsNumeric && !type.SupportsNumeric) || (method.IsBitwise && !type.SupportsBitwise) || (type.UnsupportedMethods.Contains(method.MethodName))) { #>
             throw new NotSupportedException();
 <# } else if (method.Operator != null) { #>
+<# if (method.MethodType == MethodType.Binary) { #>
+            long index = 0;
+<# } #>
+<# if (method.MethodType == MethodType.Comparison) { #>
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
+            long index = 0;
+<# } #>
+<# if (method.MethodType == MethodType.ComparisonScalar) { #>
+            PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(column.Length);
+            long index = 0;
+<# } #>
             for (int b = 0; b < <#= method.Op1Name #>.Buffers.Count; b++)
             {
-                var buffer = <#= method.Op1Name #>.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<<#=type.TypeName#>>.GetMutableBuffer(buffer);
-                <#= method.Op1Name #>.Buffers[b] = mutableBuffer;
-                var span = mutableBuffer.Span;
-<# if (method.MethodType == MethodType.Binary || method.MethodType == MethodType.Comparison) { #>
+<# if (method.MethodType == MethodType.Comparison) { #>
+                var span = <#= method.Op1Name #>.Buffers[b].ReadOnlySpan;
                 var otherSpan = <#=method.Op2Name#>.Buffers[b].ReadOnlySpan;
+<# } else if (method.MethodType == MethodType.ComparisonScalar){#>
+                var span = <#= method.Op1Name #>.Buffers[b].ReadOnlySpan;
+<# } else {#>
+                var mutableBuffer = <#= method.Op1Name #>.Buffers.GetOrCreateMutable(b);
+                var span = mutableBuffer.Span;
+<# if (method.MethodType == MethodType.Binary) { #>
+                var otherSpan = <#=method.Op2Name#>.Buffers[b].ReadOnlySpan;
+<# } #>
 <# } #>
                 for (int i = 0; i < span.Length; i++)
                 {
 <# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.BinaryInt) { #>
                     span[i] = (<#=type.TypeName#>)(span[i] <#= method.Operator #> <#= method.Op2Name #>);
 <# } else if (method.MethodType == MethodType.Binary) { #>
-                    span[i] = (<#=type.TypeName#>)(span[i] <#= method.Operator #> otherSpan[i]);
+                    if (BitmapHelper.IsValid(right.NullBitMapBuffers[b].ReadOnlySpan, i))
+                    {
+                        span[i] = (<#=type.TypeName#>)(span[i] <#= method.Operator #> otherSpan[i]);
+                    }
+                    else
+                    {
+                        left[index] = null;
+                    }
+
+                    index++;
 <# } else if (method.MethodType == MethodType.Comparison) { #>
-                    ret[i] = (span[i] <#= method.Operator #> otherSpan[i]);
+                    ret[index++] = (span[i] <#= method.Operator #> otherSpan[i]);
 <# } else if (method.MethodType == MethodType.ComparisonScalar) { #>
-                    ret[i] = (span[i] <#= method.Operator #> <#= method.Op2Name #>);
+                    ret[index++] = (span[i] <#= method.Operator #> <#= method.Op2Name #>);
 <# } else {#>
                     throw new NotImplementedException();
 <# } #>
                 }
             }
+<# if (method.MethodType == MethodType.Comparison || method.MethodType == MethodType.ComparisonScalar) { #>
+            return ret;
+<# } #>
 <# } #>
         }
 <# if (method.MethodType == MethodType.BinaryScalar) { #>
+
         public <#= method.GetInvertedMethodSignatureForBinaryScalarsOps("PrimitiveColumnContainer", type.TypeName) #>
         {
 <# if ((method.IsNumeric && !type.SupportsNumeric) || (method.IsBitwise && !type.SupportsBitwise) || (type.UnsupportedMethods.Contains(method.MethodName))) { #>
@@ -92,9 +131,7 @@ namespace Microsoft.Data.Analysis
 <# } else if (method.Operator != null) { #>
             for (int b = 0; b < <#= method.Op1Name #>.Buffers.Count; b++)
             {
-                var buffer = <#= method.Op1Name #>.Buffers[b];
-                var mutableBuffer = DataFrameBuffer<<#=type.TypeName#>>.GetMutableBuffer(buffer);
-                <#= method.Op1Name #>.Buffers[b] = mutableBuffer;
+                var mutableBuffer = <#= method.Op1Name #>.Buffers.GetOrCreateMutable(b);
                 var span = mutableBuffer.Span;
 <# if (method.MethodType == MethodType.Binary || method.MethodType == MethodType.Comparison) { #>
                 var otherSpan = <#=method.Op2Name#>.Buffers[b].ReadOnlySpan;

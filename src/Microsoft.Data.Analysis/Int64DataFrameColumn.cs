@@ -19,5 +19,15 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn(string name, ReadOnlyMemory<byte> buffer, ReadOnlyMemory<byte> nullBitMap, int length = 0, int nullCount = 0) : base(name, buffer, nullBitMap, length, nullCount) { }
 
         internal Int64DataFrameColumn(string name, PrimitiveColumnContainer<long> values) : base(name, values) { }
+
+        protected override PrimitiveDataFrameColumn<long> CreateNewColumn(string name, long length = 0)
+        {
+            return new Int64DataFrameColumn(name, length);
+        }
+
+        internal override PrimitiveDataFrameColumn<long> CreateNewColumn(string name, PrimitiveColumnContainer<long> container)
+        {
+            return new Int64DataFrameColumn(name, container);
+        }
     }
 }

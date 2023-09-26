@@ -40,11 +40,15 @@ namespace Microsoft.ML.AutoML
             var mlnetPipeline = _pipeline.BuildFromOption(_mLContext, parameter);
             if (_datasetManager is ICrossValidateDatasetManager crossValidateDatasetManager)
             {
-                var datasetSplit = _mLContext!.Data.CrossValidationSplit(crossValidateDatasetManager.Dataset, crossValidateDatasetManager.Fold ?? 5, crossValidateDatasetManager.SamplingKeyColumnName);
+                var datasetSplit = _mLContext!.Data.CrossValidationSplit(crossValidateDatasetManager.Dataset, crossValidateDatasetManager.Fold, crossValidateDatasetManager.SamplingKeyColumnName);
                 var metrics = new List<double>();
                 var models = new List<ITransformer>();
                 foreach (var split in datasetSplit)
                 {
+                    // a work-around to fix issue https://github.com/dotnet/machinelearning-modelbuilder/issues/2718
+                    // where the root cause is the shape of deep learning model is determined by the first time when this model is trained
+                    // therefore, the deep learning model can't be retrained using the same pipeline
+                    mlnetPipeline = _pipeline.BuildFromOption(_mLContext, parameter);
                     var model = mlnetPipeline.Fit(split.TrainSet);
                     var eval = model.Transform(split.TestSet);
                     metrics.Add(_metricManager.Evaluate(_mLContext, eval));
@@ -68,8 +72,8 @@ namespace Microsoft.ML.AutoML
 
             if (_datasetManager is ITrainValidateDatasetManager trainTestDatasetManager)
             {
-                var model = mlnetPipeline.Fit(trainTestDatasetManager.TrainDataset);
-                var eval = model.Transform(trainTestDatasetManager.ValidateDataset);
+                var model = mlnetPipeline.Fit(trainTestDatasetManager.LoadTrainDataset(_mLContext!, settings));
+                var eval = model.Transform(trainTestDatasetManager.LoadValidateDataset(_mLContext!, settings));
                 var metric = _metricManager.Evaluate(_mLContext, eval);
                 stopWatch.Stop();
                 var loss = _metricManager.IsMaximize ? -metric : metric;

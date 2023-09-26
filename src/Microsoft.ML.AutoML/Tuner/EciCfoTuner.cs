@@ -32,7 +32,9 @@ namespace Microsoft.ML.AutoML
             _tuners = pipelineSchemas.ToDictionary(schema => schema, schema =>
             {
                 var searchSpace = sweepablePipeline.BuildSweepableEstimatorPipeline(schema).SearchSpace;
-                return new CostFrugalTuner(searchSpace, searchSpace.SampleFromFeatureSpace(searchSpace.Default), seed: settings.Seed) as ITuner;
+                var aggregateSearchSpace = new SearchSpace.SearchSpace(settings.SearchSpace);
+                aggregateSearchSpace[AutoMLExperiment.PipelineSearchspaceName] = searchSpace;
+                return new CostFrugalTuner(aggregateSearchSpace, aggregateSearchSpace.SampleFromFeatureSpace(aggregateSearchSpace.Default), seed: settings.Seed) as ITuner;
             });
 
             if (trialResultManager != null)
@@ -57,22 +59,18 @@ namespace Microsoft.ML.AutoML
                     parameter[k.Key] = _defaultParameter[k.Key];
                 }
             }
-            settings.Parameter[AutoMLExperiment.PipelineSearchspaceName] = parameter;
+            settings.Parameter = parameter;
 
             return settings.Parameter;
         }
 
         public void Update(TrialResult result)
         {
-            var originalParameter = result.TrialSettings.Parameter;
             var schema = result.TrialSettings.Parameter[AutoMLExperiment.PipelineSearchspaceName]["_SCHEMA_"].AsType<string>();
             _pipelineProposer.Update(result, schema);
             if (_tuners.TryGetValue(schema, out var tuner))
             {
-                var parameter = result.TrialSettings.Parameter[AutoMLExperiment.PipelineSearchspaceName];
-                result.TrialSettings.Parameter = parameter;
                 tuner.Update(result);
-                result.TrialSettings.Parameter = originalParameter;
             }
         }
     }

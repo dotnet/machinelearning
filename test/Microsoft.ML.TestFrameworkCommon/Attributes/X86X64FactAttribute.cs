@@ -4,7 +4,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Microsoft.ML.TestFrameworkCommon.Attributes;
 
 namespace Microsoft.ML.TestFramework.Attributes
 {

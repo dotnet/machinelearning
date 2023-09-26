@@ -15,7 +15,6 @@ class Libomp < Formula
   end
 
   depends_on "cmake" => :build
-  depends_on macos: :yosemite
 
   def install
     system "cmake", ".", *std_cmake_args

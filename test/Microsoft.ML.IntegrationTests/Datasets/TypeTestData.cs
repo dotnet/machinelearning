@@ -123,7 +123,7 @@ namespace Microsoft.ML.IntegrationTests.Datasets
         public static TypeTestData GetRandomInstance(Random rng)
         {
             if (rng == null)
-                throw new ArgumentNullException("rng");
+                throw new ArgumentNullException(nameof(rng));
 
             return new TypeTestData
             {

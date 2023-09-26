@@ -137,7 +137,10 @@ namespace Microsoft.ML.Tokenizers
 
             foreach (int id in ids)
             {
-                tokens.Add(Model.IdToToken(id) ?? "");
+                if (Model.GetType() == typeof(EnglishRoberta))
+                    tokens.Add(Model.IdToString(id) ?? "");
+                else
+                    tokens.Add(Model.IdToToken(id) ?? "");
             }
 
             return Decoder?.Decode(tokens) ?? string.Join("", tokens);
@@ -186,6 +189,11 @@ namespace Microsoft.ML.Tokenizers
 
             // To Do: support added vocabulary in the tokenizer which will include this returned special_tokens.
             // self.add_special_tokens(&special_tokens);
+        }
+
+        public bool IsValidChar(char ch)
+        {
+            return Model.IsValidChar(ch);
         }
     }
 }

@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Microsoft.ML.TorchSharp.Utils;
 using static TorchSharp.torch;
 
 namespace System
@@ -122,7 +125,7 @@ namespace System
 
             if ((uint)end > (uint)length || (uint)start > (uint)end)
             {
-                throw new ArgumentOutOfRangeException("length");
+                throw new ArgumentOutOfRangeException(nameof(length));
             }
 
             return (start, end - start);

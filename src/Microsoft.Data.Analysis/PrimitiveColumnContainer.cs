@@ -12,8 +12,24 @@ using System.Text;
 
 namespace Microsoft.Data.Analysis
 {
+    internal static class BitmapHelper
+    {
+        // Faster to use when we already have a span since it avoids indexing
+        public static bool IsValid(ReadOnlySpan<byte> bitMapBufferSpan, int index)
+        {
+            int nullBitMapSpanIndex = index / 8;
+            byte thisBitMap = bitMapBufferSpan[nullBitMapSpanIndex];
+            return IsBitSet(thisBitMap, index);
+        }
+
+        public static bool IsBitSet(byte curBitMap, int index)
+        {
+            return ((curBitMap >> (index & 7)) & 1) != 0;
+        }
+    }
+
     /// <summary>
-    /// PrimitiveDataFrameColumnContainer is just a store for the column data. APIs that want to change the data must be defined in PrimitiveDataFrameColumn
+    /// PrimitiveColumnContainer is just a store for the column data. APIs that want to change the data must be defined in PrimitiveDataFrameColumn
     /// </summary>
     /// <typeparam name="T"></typeparam>
     internal partial class PrimitiveColumnContainer<T> : IEnumerable<T?>
@@ -28,35 +44,6 @@ namespace Microsoft.Data.Analysis
         // Need a way to differentiate between columns initialized with default values and those with null values in SetValidityBit
         internal bool _modifyNullCountWhileIndexing = true;
 
-        public PrimitiveColumnContainer(T[] values)
-        {
-            values = values ?? throw new ArgumentNullException(nameof(values));
-            long length = values.LongLength;
-            DataFrameBuffer<T> curBuffer;
-            if (Buffers.Count == 0)
-            {
-                curBuffer = new DataFrameBuffer<T>();
-                Buffers.Add(curBuffer);
-                NullBitMapBuffers.Add(new DataFrameBuffer<byte>());
-            }
-            else
-            {
-                curBuffer = (DataFrameBuffer<T>)Buffers[Buffers.Count - 1];
-            }
-            for (long i = 0; i < length; i++)
-            {
-                if (curBuffer.Length == ReadOnlyDataFrameBuffer<T>.MaxCapacity)
-                {
-                    curBuffer = new DataFrameBuffer<T>();
-                    Buffers.Add(curBuffer);
-                    NullBitMapBuffers.Add(new DataFrameBuffer<byte>());
-                }
-                curBuffer.Append(values[i]);
-                SetValidityBit(Length, true);
-                Length++;
-            }
-        }
-
         public PrimitiveColumnContainer(IEnumerable<T> values)
         {
             values = values ?? throw new ArgumentNullException(nameof(values));
@@ -65,6 +52,7 @@ namespace Microsoft.Data.Analysis
                 Append(value);
             }
         }
+
         public PrimitiveColumnContainer(IEnumerable<T?> values)
         {
             values = values ?? throw new ArgumentNullException(nameof(values));
@@ -181,7 +169,9 @@ namespace Microsoft.Data.Analysis
                 }
 
                 DataFrameBuffer<T> mutableLastBuffer = Buffers.GetOrCreateMutable(Buffers.Count - 1);
-                int allocatable = (int)Math.Min(remaining, ReadOnlyDataFrameBuffer<T>.MaxCapacity);
+
+                //Calculate how many values we can additionaly allocate and not exceed the MaxCapacity
+                int allocatable = (int)Math.Min(remaining, ReadOnlyDataFrameBuffer<T>.MaxCapacity - mutableLastBuffer.Length);
                 mutableLastBuffer.EnsureCapacity(allocatable);
 
                 DataFrameBuffer<byte> lastNullBitMapBuffer = NullBitMapBuffers.GetOrCreateMutable(NullBitMapBuffers.Count - 1);
@@ -205,7 +195,6 @@ namespace Microsoft.Data.Analysis
                     _modifyNullCountWhileIndexing = true;
                 }
 
-
                 remaining -= allocatable;
             }
         }
@@ -223,7 +212,7 @@ namespace Microsoft.Data.Analysis
                 for (int i = 0; i < mutableBuffer.Length; i++)
                 {
                     long curIndex = i + prevLength;
-                    bool isValid = IsValid(mutableNullBitMapBuffer, i);
+                    bool isValid = BitmapHelper.IsValid(mutableNullBitMapBuffer, i);
                     T? value = func(isValid ? mutableBuffer[i] : null, curIndex);
                     mutableBuffer[i] = value.GetValueOrDefault();
                     SetValidityBit(mutableNullBitMapBuffer, i, value != null);
@@ -246,20 +235,12 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < sourceBuffer.Length; i++)
                 {
-                    bool isValid = IsValid(sourceNullBitMap, i);
+                    bool isValid = BitmapHelper.IsValid(sourceNullBitMap, i);
                     TResult? value = func(isValid ? sourceBuffer[i] : null);
                     mutableResultBuffer[i] = value.GetValueOrDefault();
                     resultContainer.SetValidityBit(mutableResultNullBitMapBuffers, i, value != null);
                 }
             }
-        }
-
-        // Faster to use when we already have a span since it avoids indexing
-        public bool IsValid(ReadOnlySpan<byte> bitMapBufferSpan, int index)
-        {
-            int nullBitMapSpanIndex = index / 8;
-            byte thisBitMap = bitMapBufferSpan[nullBitMapSpanIndex];
-            return IsBitSet(thisBitMap, index);
         }
 
         public bool IsValid(long index) => NullCount == 0 || GetValidityBit(index);
@@ -329,11 +310,6 @@ namespace Microsoft.Data.Analysis
             SetValidityBit(bitMapBuffer.Span, (int)index, value);
         }
 
-        private bool IsBitSet(byte curBitMap, int index)
-        {
-            return ((curBitMap >> (index & 7)) & 1) != 0;
-        }
-
         private bool GetValidityBit(long index)
         {
             if ((uint)index >= Length)
@@ -350,7 +326,7 @@ namespace Microsoft.Data.Analysis
             int bitMapBufferIndex = (int)((uint)index / 8);
             Debug.Assert(bitMapBuffer.Length > bitMapBufferIndex);
             byte curBitMap = bitMapBuffer[bitMapBufferIndex];
-            return IsBitSet(curBitMap, (int)index);
+            return BitmapHelper.IsBitSet(curBitMap, (int)index);
         }
 
         public long Length;
@@ -372,18 +348,6 @@ namespace Microsoft.Data.Analysis
             int arrayIndex = GetArrayContainingRowIndex(startIndex);
             startIndex = startIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity;
             return Buffers[arrayIndex].Length - (int)startIndex;
-        }
-
-        internal ReadOnlyMemory<byte> GetValueBuffer(long startIndex)
-        {
-            int arrayIndex = GetArrayContainingRowIndex(startIndex);
-            return Buffers[arrayIndex].ReadOnlyBuffer;
-        }
-
-        internal ReadOnlyMemory<byte> GetNullBuffer(long startIndex)
-        {
-            int arrayIndex = GetArrayContainingRowIndex(startIndex);
-            return NullBitMapBuffers[arrayIndex].ReadOnlyBuffer;
         }
 
         public IReadOnlyList<T?> this[long startIndex, int length]
@@ -524,7 +488,7 @@ namespace Microsoft.Data.Analysis
                         spanIndex = buffer.Length - 1 - i;
 
                     long mapRowIndex = mapIndicesIntSpan.IsEmpty ? mapIndicesLongSpan[spanIndex] : mapIndicesIntSpan[spanIndex];
-                    bool mapRowIndexIsValid = mapIndices.IsValid(mapIndicesNullBitMapSpan, spanIndex);
+                    bool mapRowIndexIsValid = BitmapHelper.IsValid(mapIndicesNullBitMapSpan, spanIndex);
                     if (mapRowIndexIsValid && (mapRowIndex < minRange || mapRowIndex >= maxRange))
                     {
                         int bufferIndex = (int)(mapRowIndex / maxCapacity);
@@ -539,7 +503,7 @@ namespace Microsoft.Data.Analysis
                     {
                         mapRowIndex -= minRange;
                         value = thisSpan[(int)mapRowIndex];
-                        isValid = IsValid(thisNullBitMapSpan, (int)mapRowIndex);
+                        isValid = BitmapHelper.IsValid(thisNullBitMapSpan, (int)mapRowIndex);
                     }
 
                     retSpan[i] = isValid ? value : default;
