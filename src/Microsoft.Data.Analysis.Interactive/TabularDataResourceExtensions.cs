@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.Analysis;
 
@@ -22,19 +23,32 @@ namespace Microsoft.DotNet.Interactive.Formatting.TabularData
 
             foreach (var fieldDescriptor in tabularDataResource.Schema.Fields)
             {
+                var fieldName = fieldDescriptor.Name;
+                var column = tabularDataResource.Data.Select(row =>
+                {
+                    if (row is IDictionary<string, object> dictionary)
+                    {
+                        return dictionary[fieldName];
+                    }
+                    else
+                    {
+                        return row.FirstOrDefault(kvp => kvp.Key == fieldName).Value;
+                    }
+                });
+
                 switch (fieldDescriptor.Type)
                 {
                     case TableSchemaFieldType.Number:
-                        dataFrame.Columns.Add(new DoubleDataFrameColumn(fieldDescriptor.Name, tabularDataResource.Data.Select(d => Convert.ToDouble(d[fieldDescriptor.Name]))));
+                        dataFrame.Columns.Add(new DoubleDataFrameColumn(fieldDescriptor.Name, column.Select(Convert.ToDouble)));
                         break;
                     case TableSchemaFieldType.Integer:
-                        dataFrame.Columns.Add(new Int64DataFrameColumn(fieldDescriptor.Name, tabularDataResource.Data.Select(d => Convert.ToInt64(d[fieldDescriptor.Name]))));
+                        dataFrame.Columns.Add(new Int64DataFrameColumn(fieldDescriptor.Name, column.Select(Convert.ToInt64)));
                         break;
                     case TableSchemaFieldType.Boolean:
-                        dataFrame.Columns.Add(new BooleanDataFrameColumn(fieldDescriptor.Name, tabularDataResource.Data.Select(d => Convert.ToBoolean(d[fieldDescriptor.Name]))));
+                        dataFrame.Columns.Add(new BooleanDataFrameColumn(fieldDescriptor.Name, column.Select(Convert.ToBoolean)));
                         break;
                     case TableSchemaFieldType.String:
-                        dataFrame.Columns.Add(new StringDataFrameColumn(fieldDescriptor.Name, tabularDataResource.Data.Select(d => Convert.ToString(d[fieldDescriptor.Name]))));
+                        dataFrame.Columns.Add(new StringDataFrameColumn(fieldDescriptor.Name, column.Select(Convert.ToString)));
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
