@@ -31,6 +31,11 @@ namespace Microsoft.Data.Analysis
             return ((curBitMap >> (index & 7)) & 1) != 0;
         }
 
+        public static bool IsBitClear(byte curBitMap, int index)
+        {
+            return ((curBitMap >> (index & 7)) & 1) == 0;
+        }
+
         public static bool GetBit(byte data, int index) =>
            ((data >> index) & 1) != 0;
 
@@ -334,7 +339,7 @@ namespace Microsoft.Data.Analysis
             if (value)
             {
                 newBitMap = (byte)(curBitMap | (byte)(1 << (index & 7))); //bit hack for index % 8
-                if (((curBitMap >> (index & 7)) & 1) == 0 && index < Length && NullCount > 0)
+                if (BitmapHelper.IsBitClear(curBitMap, index) && index < Length && NullCount > 0)
                 {
                     // Old value was null.
                     NullCount--;
@@ -342,7 +347,7 @@ namespace Microsoft.Data.Analysis
             }
             else
             {
-                if (((curBitMap >> (index & 7)) & 1) == 1 && index < Length)
+                if (BitmapHelper.IsBitSet(curBitMap, index) && index < Length)
                 {
                     // old value was NOT null and new value is null
                     NullCount++;
