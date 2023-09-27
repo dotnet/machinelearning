@@ -79,7 +79,6 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(2, intColumn[3]);
             Assert.Null(intColumn[4]);
             Assert.Equal(3, intColumn[5]);
-
         }
 
         [Fact]
@@ -132,6 +131,20 @@ namespace Microsoft.Data.Analysis.Tests
             intColumn[7] = null;
             Assert.Equal(5, intColumn.NullCount);
             Assert.False(intColumn.IsValid(7));
+        }
+
+        [Fact]
+        public void TestClone()
+        {
+            PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int1", new int?[] { 1, 2, 3, 4, null });
+            var copy = intColumn.Clone();
+
+            Assert.Equal(intColumn.Name, copy.Name);
+            Assert.Equal(intColumn.Length, copy.Length);
+            Assert.Equal(intColumn.DataType, copy.DataType);
+
+            for (int i = 0; i < intColumn.Length; i++)
+                Assert.Equal(intColumn[i], copy[i]);
         }
 
         [Fact]

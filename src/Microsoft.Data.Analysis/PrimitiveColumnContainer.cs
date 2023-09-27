@@ -67,9 +67,8 @@ namespace Microsoft.Data.Analysis
             ReadOnlyDataFrameBuffer<T> dataBuffer;
             if (buffer.IsEmpty)
             {
-                DataFrameBuffer<T> mutableBuffer = new DataFrameBuffer<T>();
-                mutableBuffer.EnsureCapacity(length);
-                mutableBuffer.Length = length;
+                DataFrameBuffer<T> mutableBuffer = new DataFrameBuffer<T>(length);
+                mutableBuffer.IncreaseSize(length);
                 mutableBuffer.RawSpan.Fill(default(T));
                 dataBuffer = mutableBuffer;
             }
@@ -172,15 +171,12 @@ namespace Microsoft.Data.Analysis
 
                 //Calculate how many values we can additionaly allocate and not exceed the MaxCapacity
                 int allocatable = (int)Math.Min(remaining, ReadOnlyDataFrameBuffer<T>.MaxCapacity - mutableLastBuffer.Length);
-                mutableLastBuffer.EnsureCapacity(allocatable);
+                mutableLastBuffer.IncreaseSize(allocatable);
 
                 DataFrameBuffer<byte> lastNullBitMapBuffer = NullBitMapBuffers.GetOrCreateMutable(NullBitMapBuffers.Count - 1);
                 int nullBufferAllocatable = (allocatable + 7) / 8;
-                lastNullBitMapBuffer.EnsureCapacity(nullBufferAllocatable);
+                lastNullBitMapBuffer.IncreaseSize(nullBufferAllocatable);
 
-
-                mutableLastBuffer.Length += allocatable;
-                lastNullBitMapBuffer.Length += nullBufferAllocatable;
                 Length += allocatable;
 
                 if (value.HasValue)
@@ -436,13 +432,8 @@ namespace Microsoft.Data.Analysis
             List<ReadOnlyDataFrameBuffer<byte>> ret = new List<ReadOnlyDataFrameBuffer<byte>>();
             foreach (ReadOnlyDataFrameBuffer<byte> buffer in NullBitMapBuffers)
             {
-                DataFrameBuffer<byte> newBuffer = new DataFrameBuffer<byte>();
+                DataFrameBuffer<byte> newBuffer = new DataFrameBuffer<byte>(buffer.ReadOnlyBuffer, buffer.Length);
                 ret.Add(newBuffer);
-                ReadOnlySpan<byte> span = buffer.ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(span[i]);
-                }
             }
             return ret;
         }
@@ -518,14 +509,9 @@ namespace Microsoft.Data.Analysis
             var ret = new PrimitiveColumnContainer<T>();
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
-                DataFrameBuffer<T> newBuffer = new DataFrameBuffer<T>();
+                DataFrameBuffer<T> newBuffer = new DataFrameBuffer<T>(buffer.ReadOnlyBuffer, buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 ret.Length += buffer.Length;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(span[i]);
-                }
             }
             ret.NullBitMapBuffers = CloneNullBitMapBuffers();
             ret.NullCount = NullCount;
@@ -537,9 +523,10 @@ namespace Microsoft.Data.Analysis
             var ret = new PrimitiveColumnContainer<bool>();
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
-                DataFrameBuffer<bool> newBuffer = new DataFrameBuffer<bool>();
+                DataFrameBuffer<bool> newBuffer = new DataFrameBuffer<bool>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
+                newBuffer.IncreaseSize(buffer.Length);
+
                 if (typeof(T) == typeof(bool))
                 {
                     var localBuffer = buffer;
@@ -550,7 +537,6 @@ namespace Microsoft.Data.Analysis
                 {
                     newBuffer.Span.Fill(false);
                 }
-                newBuffer.Length = buffer.Length;
                 ret.Length += buffer.Length;
             }
             ret.NullBitMapBuffers = CloneNullBitMapBuffers();
@@ -564,9 +550,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<byte> newBuffer = new DataFrameBuffer<byte>();
+                DataFrameBuffer<byte> newBuffer = new DataFrameBuffer<byte>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -584,9 +569,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<sbyte> newBuffer = new DataFrameBuffer<sbyte>();
+                DataFrameBuffer<sbyte> newBuffer = new DataFrameBuffer<sbyte>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -604,9 +588,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<double> newBuffer = new DataFrameBuffer<double>();
+                DataFrameBuffer<double> newBuffer = new DataFrameBuffer<double>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -624,9 +607,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<decimal> newBuffer = new DataFrameBuffer<decimal>();
+                DataFrameBuffer<decimal> newBuffer = new DataFrameBuffer<decimal>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -644,9 +626,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<short> newBuffer = new DataFrameBuffer<short>();
+                DataFrameBuffer<short> newBuffer = new DataFrameBuffer<short>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -664,9 +645,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<ushort> newBuffer = new DataFrameBuffer<ushort>();
+                DataFrameBuffer<ushort> newBuffer = new DataFrameBuffer<ushort>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -684,9 +664,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<int> newBuffer = new DataFrameBuffer<int>();
+                DataFrameBuffer<int> newBuffer = new DataFrameBuffer<int>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -704,9 +683,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<uint> newBuffer = new DataFrameBuffer<uint>();
+                DataFrameBuffer<uint> newBuffer = new DataFrameBuffer<uint>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -724,9 +702,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<long> newBuffer = new DataFrameBuffer<long>();
+                DataFrameBuffer<long> newBuffer = new DataFrameBuffer<long>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -744,9 +721,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<ulong> newBuffer = new DataFrameBuffer<ulong>();
+                DataFrameBuffer<ulong> newBuffer = new DataFrameBuffer<ulong>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -764,9 +740,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<float> newBuffer = new DataFrameBuffer<float>();
+                DataFrameBuffer<float> newBuffer = new DataFrameBuffer<float>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
