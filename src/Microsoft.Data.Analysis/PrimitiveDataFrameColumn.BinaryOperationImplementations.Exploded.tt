@@ -76,7 +76,7 @@ void GenerateAllBinaryCombinationsForMethod(string inputMethodName)
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            <#=fullReturnType#> newColumn = inPlace ? this : CloneAs<#=capitalizedReturnType#>Column();
+            <#=fullReturnType#> newColumn = inPlace ? this : (<#=fullReturnType#>)Clone();
             newColumn.ColumnContainer.<#=inputMethodName#>(column.ColumnContainer);
             return newColumn;
         }

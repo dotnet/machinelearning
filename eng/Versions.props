@@ -35,8 +35,8 @@
     <LightGBMVersion>2.3.1</LightGBMVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.3.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisCSharpVersion>3.9.0</MicrosoftCodeAnalysisCSharpVersion>
-    <MicrosoftDotNetInteractiveFormattingVersion>1.0.0-beta.22504.6</MicrosoftDotNetInteractiveFormattingVersion>
-    <MicrosoftDotNetInteractiveVersion>1.0.0-beta.22504.6</MicrosoftDotNetInteractiveVersion>
+    <MicrosoftDotNetInteractiveFormattingVersion>1.0.0-beta.23461.4</MicrosoftDotNetInteractiveFormattingVersion>
+    <MicrosoftDotNetInteractiveVersion>1.0.0-beta.23461.4</MicrosoftDotNetInteractiveVersion>
     <MicrosoftMLOnnxRuntimeVersion>1.14.0</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
     <!--  
@@ -74,7 +74,7 @@
     <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
     <!-- Test-only Dependencies -->
     <ApprovalTestsVersion>5.4.7</ApprovalTestsVersion>
-    <BenchmarkDotNetVersion>0.12.0</BenchmarkDotNetVersion>
+    <BenchmarkDotNetVersion>0.13.1</BenchmarkDotNetVersion>
     <DotNetRuntime60Version>6.0.9</DotNetRuntime60Version>
     <DotNetRuntime80Version>8.0.0-preview.3.23174.8</DotNetRuntime80Version>
     <FluentAssertionVersion>5.10.2</FluentAssertionVersion>

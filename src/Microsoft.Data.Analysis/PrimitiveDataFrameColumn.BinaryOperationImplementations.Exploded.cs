@@ -19,7 +19,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            DecimalDataFrameColumn newColumn = inPlace ? this : CloneAsDecimalColumn();
+            DecimalDataFrameColumn newColumn = inPlace ? this : (DecimalDataFrameColumn)Clone();
             newColumn.ColumnContainer.Add(column.ColumnContainer);
             return newColumn;
         }
@@ -32,7 +32,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            DoubleDataFrameColumn newColumn = inPlace ? this : CloneAsDoubleColumn();
+            DoubleDataFrameColumn newColumn = inPlace ? this : (DoubleDataFrameColumn)Clone();
             newColumn.ColumnContainer.Add(column.ColumnContainer);
             return newColumn;
         }
@@ -45,7 +45,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            SingleDataFrameColumn newColumn = inPlace ? this : CloneAsSingleColumn();
+            SingleDataFrameColumn newColumn = inPlace ? this : (SingleDataFrameColumn)Clone();
             newColumn.ColumnContainer.Add(column.ColumnContainer);
             return newColumn;
         }
@@ -58,7 +58,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            Int32DataFrameColumn newColumn = inPlace ? this : CloneAsInt32Column();
+            Int32DataFrameColumn newColumn = inPlace ? this : (Int32DataFrameColumn)Clone();
             newColumn.ColumnContainer.Add(column.ColumnContainer);
             return newColumn;
         }
@@ -71,7 +71,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            Int64DataFrameColumn newColumn = inPlace ? this : CloneAsInt64Column();
+            Int64DataFrameColumn newColumn = inPlace ? this : (Int64DataFrameColumn)Clone();
             newColumn.ColumnContainer.Add(column.ColumnContainer);
             return newColumn;
         }
@@ -84,7 +84,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            UInt32DataFrameColumn newColumn = inPlace ? this : CloneAsUInt32Column();
+            UInt32DataFrameColumn newColumn = inPlace ? this : (UInt32DataFrameColumn)Clone();
             newColumn.ColumnContainer.Add(column.ColumnContainer);
             return newColumn;
         }
@@ -97,7 +97,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
+            UInt64DataFrameColumn newColumn = inPlace ? this : (UInt64DataFrameColumn)Clone();
             newColumn.ColumnContainer.Add(column.ColumnContainer);
             return newColumn;
         }
@@ -250,7 +250,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            DecimalDataFrameColumn newColumn = inPlace ? this : CloneAsDecimalColumn();
+            DecimalDataFrameColumn newColumn = inPlace ? this : (DecimalDataFrameColumn)Clone();
             newColumn.ColumnContainer.Subtract(column.ColumnContainer);
             return newColumn;
         }
@@ -263,7 +263,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            DoubleDataFrameColumn newColumn = inPlace ? this : CloneAsDoubleColumn();
+            DoubleDataFrameColumn newColumn = inPlace ? this : (DoubleDataFrameColumn)Clone();
             newColumn.ColumnContainer.Subtract(column.ColumnContainer);
             return newColumn;
         }
@@ -276,7 +276,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            SingleDataFrameColumn newColumn = inPlace ? this : CloneAsSingleColumn();
+            SingleDataFrameColumn newColumn = inPlace ? this : (SingleDataFrameColumn)Clone();
             newColumn.ColumnContainer.Subtract(column.ColumnContainer);
             return newColumn;
         }
@@ -289,7 +289,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            Int32DataFrameColumn newColumn = inPlace ? this : CloneAsInt32Column();
+            Int32DataFrameColumn newColumn = inPlace ? this : (Int32DataFrameColumn)Clone();
             newColumn.ColumnContainer.Subtract(column.ColumnContainer);
             return newColumn;
         }
@@ -302,7 +302,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            Int64DataFrameColumn newColumn = inPlace ? this : CloneAsInt64Column();
+            Int64DataFrameColumn newColumn = inPlace ? this : (Int64DataFrameColumn)Clone();
             newColumn.ColumnContainer.Subtract(column.ColumnContainer);
             return newColumn;
         }
@@ -315,7 +315,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            UInt32DataFrameColumn newColumn = inPlace ? this : CloneAsUInt32Column();
+            UInt32DataFrameColumn newColumn = inPlace ? this : (UInt32DataFrameColumn)Clone();
             newColumn.ColumnContainer.Subtract(column.ColumnContainer);
             return newColumn;
         }
@@ -328,7 +328,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
+            UInt64DataFrameColumn newColumn = inPlace ? this : (UInt64DataFrameColumn)Clone();
             newColumn.ColumnContainer.Subtract(column.ColumnContainer);
             return newColumn;
         }
@@ -481,7 +481,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            DecimalDataFrameColumn newColumn = inPlace ? this : CloneAsDecimalColumn();
+            DecimalDataFrameColumn newColumn = inPlace ? this : (DecimalDataFrameColumn)Clone();
             newColumn.ColumnContainer.Multiply(column.ColumnContainer);
             return newColumn;
         }
@@ -494,7 +494,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            DoubleDataFrameColumn newColumn = inPlace ? this : CloneAsDoubleColumn();
+            DoubleDataFrameColumn newColumn = inPlace ? this : (DoubleDataFrameColumn)Clone();
             newColumn.ColumnContainer.Multiply(column.ColumnContainer);
             return newColumn;
         }
@@ -507,7 +507,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            SingleDataFrameColumn newColumn = inPlace ? this : CloneAsSingleColumn();
+            SingleDataFrameColumn newColumn = inPlace ? this : (SingleDataFrameColumn)Clone();
             newColumn.ColumnContainer.Multiply(column.ColumnContainer);
             return newColumn;
         }
@@ -520,7 +520,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            Int32DataFrameColumn newColumn = inPlace ? this : CloneAsInt32Column();
+            Int32DataFrameColumn newColumn = inPlace ? this : (Int32DataFrameColumn)Clone();
             newColumn.ColumnContainer.Multiply(column.ColumnContainer);
             return newColumn;
         }
@@ -533,7 +533,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            Int64DataFrameColumn newColumn = inPlace ? this : CloneAsInt64Column();
+            Int64DataFrameColumn newColumn = inPlace ? this : (Int64DataFrameColumn)Clone();
             newColumn.ColumnContainer.Multiply(column.ColumnContainer);
             return newColumn;
         }
@@ -546,7 +546,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            UInt32DataFrameColumn newColumn = inPlace ? this : CloneAsUInt32Column();
+            UInt32DataFrameColumn newColumn = inPlace ? this : (UInt32DataFrameColumn)Clone();
             newColumn.ColumnContainer.Multiply(column.ColumnContainer);
             return newColumn;
         }
@@ -559,7 +559,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
+            UInt64DataFrameColumn newColumn = inPlace ? this : (UInt64DataFrameColumn)Clone();
             newColumn.ColumnContainer.Multiply(column.ColumnContainer);
             return newColumn;
         }
@@ -712,7 +712,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            DecimalDataFrameColumn newColumn = inPlace ? this : CloneAsDecimalColumn();
+            DecimalDataFrameColumn newColumn = inPlace ? this : (DecimalDataFrameColumn)Clone();
             newColumn.ColumnContainer.Divide(column.ColumnContainer);
             return newColumn;
         }
@@ -725,7 +725,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            DoubleDataFrameColumn newColumn = inPlace ? this : CloneAsDoubleColumn();
+            DoubleDataFrameColumn newColumn = inPlace ? this : (DoubleDataFrameColumn)Clone();
             newColumn.ColumnContainer.Divide(column.ColumnContainer);
             return newColumn;
         }
@@ -738,7 +738,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            SingleDataFrameColumn newColumn = inPlace ? this : CloneAsSingleColumn();
+            SingleDataFrameColumn newColumn = inPlace ? this : (SingleDataFrameColumn)Clone();
             newColumn.ColumnContainer.Divide(column.ColumnContainer);
             return newColumn;
         }
@@ -751,7 +751,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            Int32DataFrameColumn newColumn = inPlace ? this : CloneAsInt32Column();
+            Int32DataFrameColumn newColumn = inPlace ? this : (Int32DataFrameColumn)Clone();
             newColumn.ColumnContainer.Divide(column.ColumnContainer);
             return newColumn;
         }
@@ -764,7 +764,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            Int64DataFrameColumn newColumn = inPlace ? this : CloneAsInt64Column();
+            Int64DataFrameColumn newColumn = inPlace ? this : (Int64DataFrameColumn)Clone();
             newColumn.ColumnContainer.Divide(column.ColumnContainer);
             return newColumn;
         }
@@ -777,7 +777,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            UInt32DataFrameColumn newColumn = inPlace ? this : CloneAsUInt32Column();
+            UInt32DataFrameColumn newColumn = inPlace ? this : (UInt32DataFrameColumn)Clone();
             newColumn.ColumnContainer.Divide(column.ColumnContainer);
             return newColumn;
         }
@@ -790,7 +790,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
+            UInt64DataFrameColumn newColumn = inPlace ? this : (UInt64DataFrameColumn)Clone();
             newColumn.ColumnContainer.Divide(column.ColumnContainer);
             return newColumn;
         }
@@ -943,7 +943,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            DecimalDataFrameColumn newColumn = inPlace ? this : CloneAsDecimalColumn();
+            DecimalDataFrameColumn newColumn = inPlace ? this : (DecimalDataFrameColumn)Clone();
             newColumn.ColumnContainer.Modulo(column.ColumnContainer);
             return newColumn;
         }
@@ -956,7 +956,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            DoubleDataFrameColumn newColumn = inPlace ? this : CloneAsDoubleColumn();
+            DoubleDataFrameColumn newColumn = inPlace ? this : (DoubleDataFrameColumn)Clone();
             newColumn.ColumnContainer.Modulo(column.ColumnContainer);
             return newColumn;
         }
@@ -969,7 +969,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            SingleDataFrameColumn newColumn = inPlace ? this : CloneAsSingleColumn();
+            SingleDataFrameColumn newColumn = inPlace ? this : (SingleDataFrameColumn)Clone();
             newColumn.ColumnContainer.Modulo(column.ColumnContainer);
             return newColumn;
         }
@@ -982,7 +982,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            Int32DataFrameColumn newColumn = inPlace ? this : CloneAsInt32Column();
+            Int32DataFrameColumn newColumn = inPlace ? this : (Int32DataFrameColumn)Clone();
             newColumn.ColumnContainer.Modulo(column.ColumnContainer);
             return newColumn;
         }
@@ -995,7 +995,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            Int64DataFrameColumn newColumn = inPlace ? this : CloneAsInt64Column();
+            Int64DataFrameColumn newColumn = inPlace ? this : (Int64DataFrameColumn)Clone();
             newColumn.ColumnContainer.Modulo(column.ColumnContainer);
             return newColumn;
         }
@@ -1008,7 +1008,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            UInt32DataFrameColumn newColumn = inPlace ? this : CloneAsUInt32Column();
+            UInt32DataFrameColumn newColumn = inPlace ? this : (UInt32DataFrameColumn)Clone();
             newColumn.ColumnContainer.Modulo(column.ColumnContainer);
             return newColumn;
         }
@@ -1021,7 +1021,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
+            UInt64DataFrameColumn newColumn = inPlace ? this : (UInt64DataFrameColumn)Clone();
             newColumn.ColumnContainer.Modulo(column.ColumnContainer);
             return newColumn;
         }

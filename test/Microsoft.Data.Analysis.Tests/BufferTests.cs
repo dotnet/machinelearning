@@ -241,6 +241,20 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void TestClone()
+        {
+            PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int1", new int?[] { 1, 2, 3, 4, null });
+            var copy = intColumn.Clone();
+
+            Assert.Equal(intColumn.Name, copy.Name);
+            Assert.Equal(intColumn.Length, copy.Length);
+            Assert.Equal(intColumn.DataType, copy.DataType);
+
+            for (int i = 0; i < intColumn.Length; i++)
+                Assert.Equal(intColumn[i], copy[i]);
+        }
+
+        [Fact]
         public void TestNotNullableColumnClone()
         {
             //Arrange
