@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Apache.Arrow;
 using Apache.Arrow.Types;
@@ -473,20 +474,21 @@ namespace Microsoft.Data.Analysis
         public PrimitiveDataFrameColumn<T> Clone(IEnumerable<long> mapIndices)
         {
             IEnumerator<long> rows = mapIndices.GetEnumerator();
-            PrimitiveDataFrameColumn<T> ret = new PrimitiveDataFrameColumn<T>(Name);
-            ret._columnContainer._modifyNullCountWhileIndexing = false;
+            PrimitiveDataFrameColumn<T> ret = CreateNewColumn(Name);
             long numberOfRows = 0;
             while (rows.MoveNext() && numberOfRows < Length)
             {
                 numberOfRows++;
-                long curRow = rows.Current;
-                T? value = _columnContainer[curRow];
-                ret[curRow] = value;
-                if (!value.HasValue)
-                    ret._columnContainer.NullCount++;
+                var curRow = rows.Current;
+                var value = _columnContainer[curRow];
+                ret.Append(value);
             }
-            ret._columnContainer._modifyNullCountWhileIndexing = true;
             return ret;
+        }
+
+        public PrimitiveDataFrameColumn<T> Clone(IEnumerable<int> mapIndices)
+        {
+            return Clone(mapIndices.Select(x => (long)x));
         }
 
         internal BooleanDataFrameColumn CloneAsBooleanColumn()

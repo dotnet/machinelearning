@@ -17,10 +17,6 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestNullCounts()
         {
-            PrimitiveDataFrameColumn<int> dataFrameColumn1 = new PrimitiveDataFrameColumn<int>("Int1", Enumerable.Range(0, 10).Select(x => x));
-            dataFrameColumn1.Append(null);
-            Assert.Equal(1, dataFrameColumn1.NullCount);
-
             PrimitiveDataFrameColumn<int> column2 = new PrimitiveDataFrameColumn<int>("Int2");
             Assert.Equal(0, column2.NullCount);
 
@@ -65,20 +61,6 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(1, strCol.NullCount);
             strCol[0] = null;
             Assert.Equal(1, strCol.NullCount);
-
-            PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int");
-            intColumn.Append(0);
-            intColumn.Append(1);
-            intColumn.Append(null);
-            intColumn.Append(2);
-            intColumn.Append(null);
-            intColumn.Append(3);
-            Assert.Equal(0, intColumn[0]);
-            Assert.Equal(1, intColumn[1]);
-            Assert.Null(intColumn[2]);
-            Assert.Equal(2, intColumn[3]);
-            Assert.Null(intColumn[4]);
-            Assert.Equal(3, intColumn[5]);
         }
 
         [Fact]
@@ -105,9 +87,61 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void TestAppendMany()
+        public void TestAppendNullToEmptyColumn()
         {
             PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int1");
+
+            //Act
+            intColumn.Append(null);
+
+            Assert.Equal(1, intColumn.NullCount);
+            Assert.Equal(1, intColumn.Length);
+
+            for (int i = 0; i < intColumn.Length; i++)
+            {
+                Assert.False(intColumn.IsValid(i));
+            }
+        }
+
+        [Fact]
+        public void TestAppendNullToColumnWithValues()
+        {
+            PrimitiveDataFrameColumn<int> dataFrameColumn1 = new PrimitiveDataFrameColumn<int>("Int1", Enumerable.Range(0, 10));
+            dataFrameColumn1.Append(null);
+            Assert.Equal(1, dataFrameColumn1.NullCount);
+            Assert.Equal(11, dataFrameColumn1.Length);
+            Assert.Null(dataFrameColumn1[10]);
+        }
+
+        [Fact]
+        public void TestAppendToColumnWithValues()
+        {
+            PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int", Enumerable.Range(0, 10));
+
+            intColumn.Append(0);
+            intColumn.Append(1);
+            intColumn.Append(null);
+            intColumn.Append(2);
+            intColumn.Append(null);
+            intColumn.Append(3);
+
+            Assert.Equal(16, intColumn.Length);
+            Assert.Equal(2, intColumn.NullCount);
+
+            Assert.Equal(0, intColumn[10]);
+            Assert.Equal(1, intColumn[11]);
+            Assert.Null(intColumn[12]);
+            Assert.Equal(2, intColumn[13]);
+            Assert.Null(intColumn[14]);
+            Assert.Equal(3, intColumn[15]);
+        }
+
+        [Fact]
+        public void TestAppendManyNullsToEmptyColumn()
+        {
+            PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int1");
+
+            //Act
             intColumn.AppendMany(null, 5);
             Assert.Equal(5, intColumn.NullCount);
             Assert.Equal(5, intColumn.Length);
@@ -115,20 +149,93 @@ namespace Microsoft.Data.Analysis.Tests
             {
                 Assert.False(intColumn.IsValid(i));
             }
+        }
 
-            intColumn.AppendMany(5, 5);
-            Assert.Equal(5, intColumn.NullCount);
+        [Fact]
+        public void TestAppendManyNullsToColumnWithValues()
+        {
+            //Arrange
+            var initialValues = new int?[] { 1, 2, null, 4, 5 };
+            PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int1", initialValues);
+
+            //Act
+            intColumn.AppendMany(null, 5);
+
+            //Assert
+            Assert.Equal(6, intColumn.NullCount);
             Assert.Equal(10, intColumn.Length);
-            for (int i = 5; i < intColumn.Length; i++)
+
+            for (int i = 0; i < 5; i++)
             {
-                Assert.True(intColumn.IsValid(i));
+                Assert.Equal(initialValues[i], intColumn[i]);
             }
 
+            for (int i = 5; i < 10; i++)
+            {
+                Assert.False(intColumn.IsValid(i));
+            }
+        }
+
+        [Fact]
+        public void TestAppendManyValuesToEmptyColumn()
+        {
+            //Arrange
+            PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int1");
+
+            //Act
+            intColumn.AppendMany(5, 5);
+
+            //Assert
+            Assert.Equal(0, intColumn.NullCount);
+            Assert.Equal(5, intColumn.Length);
+
+            for (int i = 0; i < intColumn.Length; i++)
+            {
+                Assert.Equal(5, intColumn[i]);
+            }
+        }
+
+        [Fact]
+        public void TestAppendManyValuesToColumnWithValues()
+        {
+            //Arrange
+            PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int1", new int?[] { 1, 2, 3, null, null });
+
+            //Act
+            intColumn.AppendMany(5, 5);
+
+            //Assert
+            Assert.Equal(2, intColumn.NullCount);
+            Assert.Equal(10, intColumn.Length);
+
+            Assert.Equal(3, intColumn[2]);
+            Assert.Null(intColumn[3]);
+            Assert.Null(intColumn[4]);
+
+            for (int i = 5; i < intColumn.Length; i++)
+            {
+                Assert.Equal(5, intColumn[i]);
+            }
+        }
+
+        [Fact]
+        public void TestNullCountChange()
+        {
+            //Arrange
+            var initialValues = new int?[] { null, null, null, null, null, 5, 5, 5, 5, 5 };
+            PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int1", initialValues);
+
+            //Act
             intColumn[2] = 10;
+
+            //Assert
             Assert.Equal(4, intColumn.NullCount);
             Assert.True(intColumn.IsValid(2));
 
+            //Act
             intColumn[7] = null;
+
+            //Assert
             Assert.Equal(5, intColumn.NullCount);
             Assert.False(intColumn.IsValid(7));
         }
@@ -146,6 +253,143 @@ namespace Microsoft.Data.Analysis.Tests
             for (int i = 0; i < intColumn.Length; i++)
                 Assert.Equal(intColumn[i], copy[i]);
         }
+
+        [Fact]
+        public void TestNotNullableColumnClone()
+        {
+            //Arrange
+            var column = new Int32DataFrameColumn("Int column", values: new[] { -1, 2, 3, 2, 1, -2 });
+
+            //Act
+            var clonedColumn = column.Clone();
+
+            //Assert
+            Assert.NotSame(column, clonedColumn);
+            Assert.Equal(column.Name, clonedColumn.Name);
+            Assert.Equal(column.DataType, clonedColumn.DataType);
+            Assert.Equal(column.NullCount, clonedColumn.NullCount);
+            Assert.Equal(column.Length, clonedColumn.Length);
+
+            for (long i = 0; i < column.Length; i++)
+                Assert.Equal(column[i], clonedColumn[i]);
+        }
+
+        [Fact]
+        public void TestNullableColumnClone()
+        {
+            //Arrange
+            var column = new Int32DataFrameColumn("Int column", values: new int?[] { -1, null, 3, 2, 1, -2 });
+
+            //Act
+            var clonedColumn = column.Clone();
+
+            //Assert
+            Assert.NotSame(column, clonedColumn);
+            Assert.Equal(column.Name, clonedColumn.Name);
+            Assert.Equal(column.DataType, clonedColumn.DataType);
+            Assert.Equal(column.NullCount, clonedColumn.NullCount);
+            Assert.Equal(column.Length, clonedColumn.Length);
+
+            for (long i = 0; i < column.Length; i++)
+                Assert.Equal(column[i], clonedColumn[i]);
+
+        }
+
+        [Fact]
+        public void TestNotNullableColumnCloneWithIndicesMap()
+        {
+            //Arrange
+            var column = new Int32DataFrameColumn("Int column", values: new[] { 0, 5, 2, 4, 1, 3 });
+            var indicesMap = new Int32DataFrameColumn("Indices", new[] { 0, 1, 2, 5, 3, 4 });
+
+            //Act
+            var clonedColumn = column.Clone(indicesMap);
+
+            //Assert
+            Assert.NotSame(column, clonedColumn);
+            Assert.Equal(column.Name, clonedColumn.Name);
+            Assert.Equal(column.DataType, clonedColumn.DataType);
+            Assert.Equal(column.NullCount, clonedColumn.NullCount);
+            Assert.Equal(indicesMap.Length, clonedColumn.Length);
+
+            for (int i = 0; i < indicesMap.Length; i++)
+                Assert.Equal(column[indicesMap[i].Value], clonedColumn[i]);
+        }
+
+        [Fact]
+        public void TestNotNullableColumnCloneWithIndicesMapAsEnumerableLong()
+        {
+            //Arrange
+            var column = new Int32DataFrameColumn("Int column", values: new[] { 0, 5, 2, 4, 1, 3 });
+            var indicesMap = new long[] { 0, 1, 2, 5, 3, 4 };
+
+            //Act
+            var clonedColumn = column.Clone(indicesMap);
+
+            //Assert
+            Assert.NotSame(column, clonedColumn);
+            Assert.Equal(column.Name, clonedColumn.Name);
+            Assert.Equal(column.DataType, clonedColumn.DataType);
+            Assert.Equal(column.NullCount, clonedColumn.NullCount);
+            Assert.Equal(indicesMap.Length, clonedColumn.Length);
+
+            for (int i = 0; i < indicesMap.Length; i++)
+                Assert.Equal(column[indicesMap[i]], clonedColumn[i]);
+        }
+
+        [Fact]
+        public void TestNotNullableColumnCloneWithIndicesMapAsEnumerableInt()
+        {
+            //Arrange
+            var column = new Int32DataFrameColumn("Int column", values: new[] { 0, 5, 2, 4, 1, 3 });
+            var indicesMap = new int[] { 0, 1, 2, 5, 3, 4 };
+
+            //Act
+            var clonedColumn = column.Clone(indicesMap);
+
+            //Assert
+            Assert.NotSame(column, clonedColumn);
+            Assert.Equal(column.Name, clonedColumn.Name);
+            Assert.Equal(column.DataType, clonedColumn.DataType);
+            Assert.Equal(column.NullCount, clonedColumn.NullCount);
+            Assert.Equal(indicesMap.Length, clonedColumn.Length);
+
+            for (int i = 0; i < indicesMap.Length; i++)
+                Assert.Equal(column[indicesMap[i]], clonedColumn[i]);
+        }
+
+
+        [Fact]
+        public void TestNullableColumnCloneWithIndicesMapAndSmallerSize()
+        {
+            //Arrange
+            var column = new Int32DataFrameColumn("Int column", values: new int?[] { null, 5, 2, 4, 1, 3 });
+            var indicesMap = new Int32DataFrameColumn("Indices", new[] { 0, 4, 2, 5, 3 });
+
+            //Act
+            var clonedColumn = column.Clone(indicesMap);
+
+            //Assert
+            Assert.NotSame(column, clonedColumn);
+            Assert.Equal(column.Name, clonedColumn.Name);
+            Assert.Equal(indicesMap.Length, clonedColumn.Length);
+            Assert.Equal(column.DataType, clonedColumn.DataType);
+
+            for (int i = 0; i < indicesMap.Length; i++)
+                Assert.Equal(indicesMap.IsValid(i) ? column[indicesMap[i].Value] : null, clonedColumn[i]);
+        }
+
+        [Fact]
+        public void TestNullableColumnCloneWithIndicesMap_OutOfRange()
+        {
+            //Arrange
+            var column = new Int32DataFrameColumn("Int column", values: new int?[] { null, 1, 1 });
+            var indicesMap = new Int32DataFrameColumn("Indices", new[] { 0, 1, 4 });
+
+            //Act and assert
+            Assert.Throws<IndexOutOfRangeException>(() => column.Clone(indicesMap));
+        }
+
 
         [Fact]
         public void TestBasicArrowStringColumn()
