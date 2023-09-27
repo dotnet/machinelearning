@@ -21,7 +21,7 @@ namespace Microsoft.Data.Analysis
     {
         void HandleOperation(BinaryOperation operation, Span<T> left, Span<byte> leftValidity, ReadOnlySpan<T> right, ReadOnlySpan<byte> rightValidity);
         void HandleOperation(BinaryScalarOperation operation, Span<T> left, T right);
-        void HandleOperation(BinaryScalarOperation operation, T left, Span<T> right, Span<byte> rightValidity);
+        void HandleOperation(BinaryScalarOperation operation, T left, Span<T> right, ReadOnlySpan<byte> rightValidity);
 
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.Comparison) { #>
@@ -77,11 +77,28 @@ namespace Microsoft.Data.Analysis
 <# } #>
         }
 
-        public virtual void HandleOperation(BinaryScalarOperation operation, T left, Span<T> right, Span<byte> rightValidity)
+        public virtual void HandleOperation(BinaryScalarOperation operation, Span<T> left, T right, Span<byte> rightValidity)
         {
             if (operation == BinaryScalarOperation.Divide)
             {
                 Divide(left, right);
+                return;
+            }
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType == MethodType.BinaryScalar) { #>
+<# if (method.MethodName != "Divide") { #>
+            else if (operation == BinaryScalarOperation.<#=method.MethodName#>)
+                <#=method.MethodName#>(left, right);
+<# } #>
+<# } #>
+<# } #>
+        }
+
+        public virtual void HandleOperation(BinaryScalarOperation operation, T left, Span<T> right, ReadOnlySpan<byte> rightValidity)
+        {
+            if (operation == BinaryScalarOperation.Divide)
+            {
+                Divide(left, right, rightValidity);
                 return;
             }
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
@@ -112,7 +129,7 @@ namespace Microsoft.Data.Analysis
 <# else if (method.MethodType == MethodType.BinaryScalar) { #>
         public virtual void <#=method.MethodName#>(Span<T> left, T scalar) => throw new NotSupportedException();
 <# if (method.MethodName == "Divide") { #>
-        public virtual void <#=method.MethodName#>(T left, Span<T> right, Span<byte> rightValidity) => throw new NotSupportedException();
+        public virtual void <#=method.MethodName#>(T left, Span<T> right, ReadOnlySpan<byte> rightValidity) => throw new NotSupportedException();
 <# } #>
 <# else { #>
         public virtual void <#=method.MethodName#>(T left, Span<T> right) => throw new NotSupportedException();
@@ -182,7 +199,7 @@ namespace Microsoft.Data.Analysis
         }
 
 <# if (method.MethodName == "Divide") { #>
-        public override void <#=method.MethodName#>(<#=type.TypeName#> left, Span<<#=type.TypeName#>> right, Span<byte> rightValidity)
+        public override void <#=method.MethodName#>(<#=type.TypeName#> left, Span<<#=type.TypeName#>> right, ReadOnlySpan<byte> rightValidity)
         {
             for (var i = 0; i < right.Length; i++)
             {

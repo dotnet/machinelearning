@@ -13,792 +13,155 @@ namespace Microsoft.Data.Analysis
 {
     public partial class DecimalDataFrameColumn
     {
+        //Binary Operations
         internal DecimalDataFrameColumn HandleOperationImplementation(BinaryOperation operation, DecimalDataFrameColumn column, bool inPlace = false)
         {
             if (column.Length != Length)
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            DecimalDataFrameColumn newColumn = inPlace ? this : (DecimalDataFrameColumn)Clone();
+            var newColumn = inPlace ? this : (DecimalDataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, column.ColumnContainer);
+            return newColumn;
+        }
+
+        //Binary Scalar Operations
+        internal DecimalDataFrameColumn HandleOperationImplementation(BinaryScalarOperation operation, decimal right)
+        {
+            var newColumn = (DecimalDataFrameColumn)Clone();
+            newColumn.ColumnContainer.HandleOperation(operation, right);
             return newColumn;
         }
     }
     public partial class DoubleDataFrameColumn
     {
+        //Binary Operations
         internal DoubleDataFrameColumn HandleOperationImplementation(BinaryOperation operation, DoubleDataFrameColumn column, bool inPlace = false)
         {
             if (column.Length != Length)
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            DoubleDataFrameColumn newColumn = inPlace ? this : (DoubleDataFrameColumn)Clone();
+            var newColumn = inPlace ? this : (DoubleDataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, column.ColumnContainer);
+            return newColumn;
+        }
+
+        //Binary Scalar Operations
+        internal DoubleDataFrameColumn HandleOperationImplementation(BinaryScalarOperation operation, double right)
+        {
+            var newColumn = (DoubleDataFrameColumn)Clone();
+            newColumn.ColumnContainer.HandleOperation(operation, right);
             return newColumn;
         }
     }
     public partial class SingleDataFrameColumn
     {
+        //Binary Operations
         internal SingleDataFrameColumn HandleOperationImplementation(BinaryOperation operation, SingleDataFrameColumn column, bool inPlace = false)
         {
             if (column.Length != Length)
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            SingleDataFrameColumn newColumn = inPlace ? this : (SingleDataFrameColumn)Clone();
+            var newColumn = inPlace ? this : (SingleDataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, column.ColumnContainer);
+            return newColumn;
+        }
+
+        //Binary Scalar Operations
+        internal SingleDataFrameColumn HandleOperationImplementation(BinaryScalarOperation operation, float right)
+        {
+            var newColumn = (SingleDataFrameColumn)Clone();
+            newColumn.ColumnContainer.HandleOperation(operation, right);
             return newColumn;
         }
     }
     public partial class Int32DataFrameColumn
     {
+        //Binary Operations
         internal Int32DataFrameColumn HandleOperationImplementation(BinaryOperation operation, Int32DataFrameColumn column, bool inPlace = false)
         {
             if (column.Length != Length)
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            Int32DataFrameColumn newColumn = inPlace ? this : (Int32DataFrameColumn)Clone();
+            var newColumn = inPlace ? this : (Int32DataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, column.ColumnContainer);
+            return newColumn;
+        }
+
+        //Binary Scalar Operations
+        internal Int32DataFrameColumn HandleOperationImplementation(BinaryScalarOperation operation, int right)
+        {
+            var newColumn = (Int32DataFrameColumn)Clone();
+            newColumn.ColumnContainer.HandleOperation(operation, right);
             return newColumn;
         }
     }
     public partial class Int64DataFrameColumn
     {
+        //Binary Operations
         internal Int64DataFrameColumn HandleOperationImplementation(BinaryOperation operation, Int64DataFrameColumn column, bool inPlace = false)
         {
             if (column.Length != Length)
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            Int64DataFrameColumn newColumn = inPlace ? this : (Int64DataFrameColumn)Clone();
+            var newColumn = inPlace ? this : (Int64DataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, column.ColumnContainer);
+            return newColumn;
+        }
+
+        //Binary Scalar Operations
+        internal Int64DataFrameColumn HandleOperationImplementation(BinaryScalarOperation operation, long right)
+        {
+            var newColumn = (Int64DataFrameColumn)Clone();
+            newColumn.ColumnContainer.HandleOperation(operation, right);
             return newColumn;
         }
     }
     public partial class UInt32DataFrameColumn
     {
+        //Binary Operations
         internal UInt32DataFrameColumn HandleOperationImplementation(BinaryOperation operation, UInt32DataFrameColumn column, bool inPlace = false)
         {
             if (column.Length != Length)
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            UInt32DataFrameColumn newColumn = inPlace ? this : (UInt32DataFrameColumn)Clone();
+            var newColumn = inPlace ? this : (UInt32DataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, column.ColumnContainer);
+            return newColumn;
+        }
+
+        //Binary Scalar Operations
+        internal UInt32DataFrameColumn HandleOperationImplementation(BinaryScalarOperation operation, uint right)
+        {
+            var newColumn = (UInt32DataFrameColumn)Clone();
+            newColumn.ColumnContainer.HandleOperation(operation, right);
             return newColumn;
         }
     }
     public partial class UInt64DataFrameColumn
     {
+        //Binary Operations
         internal UInt64DataFrameColumn HandleOperationImplementation(BinaryOperation operation, UInt64DataFrameColumn column, bool inPlace = false)
         {
             if (column.Length != Length)
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            UInt64DataFrameColumn newColumn = inPlace ? this : (UInt64DataFrameColumn)Clone();
+            var newColumn = inPlace ? this : (UInt64DataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, column.ColumnContainer);
             return newColumn;
         }
-    }
 
-    public partial class DecimalDataFrameColumn
-    {
-        internal DecimalDataFrameColumn AddImplementation(decimal value, bool inPlace = false)
+        //Binary Scalar Operations
+        internal UInt64DataFrameColumn HandleOperationImplementation(BinaryScalarOperation operation, ulong right)
         {
-            DecimalDataFrameColumn newColumn = inPlace ? this : CloneAsDecimalColumn();
-            newColumn.ColumnContainer.Add(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal DoubleDataFrameColumn AddImplementation(double value, bool inPlace = false)
-        {
-            DoubleDataFrameColumn newColumn = inPlace ? this : CloneAsDoubleColumn();
-            newColumn.ColumnContainer.Add(value);
-            return newColumn;
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal SingleDataFrameColumn AddImplementation(float value, bool inPlace = false)
-        {
-            SingleDataFrameColumn newColumn = inPlace ? this : CloneAsSingleColumn();
-            newColumn.ColumnContainer.Add(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal Int32DataFrameColumn AddImplementation(int value, bool inPlace = false)
-        {
-            Int32DataFrameColumn newColumn = inPlace ? this : CloneAsInt32Column();
-            newColumn.ColumnContainer.Add(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal Int64DataFrameColumn AddImplementation(long value, bool inPlace = false)
-        {
-            Int64DataFrameColumn newColumn = inPlace ? this : CloneAsInt64Column();
-            newColumn.ColumnContainer.Add(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal UInt32DataFrameColumn AddImplementation(uint value, bool inPlace = false)
-        {
-            UInt32DataFrameColumn newColumn = inPlace ? this : CloneAsUInt32Column();
-            newColumn.ColumnContainer.Add(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal UInt64DataFrameColumn AddImplementation(ulong value, bool inPlace = false)
-        {
-            UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
-            newColumn.ColumnContainer.Add(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal DecimalDataFrameColumn ReverseAddImplementation(decimal value, bool inPlace = false)
-        {
-            DecimalDataFrameColumn newColumn = inPlace ? this : CloneAsDecimalColumn();
-            newColumn.ColumnContainer.ReverseAdd(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal DoubleDataFrameColumn ReverseAddImplementation(double value, bool inPlace = false)
-        {
-            DoubleDataFrameColumn newColumn = inPlace ? this : CloneAsDoubleColumn();
-            newColumn.ColumnContainer.ReverseAdd(value);
-            return newColumn;
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal SingleDataFrameColumn ReverseAddImplementation(float value, bool inPlace = false)
-        {
-            SingleDataFrameColumn newColumn = inPlace ? this : CloneAsSingleColumn();
-            newColumn.ColumnContainer.ReverseAdd(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal Int32DataFrameColumn ReverseAddImplementation(int value, bool inPlace = false)
-        {
-            Int32DataFrameColumn newColumn = inPlace ? this : CloneAsInt32Column();
-            newColumn.ColumnContainer.ReverseAdd(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal Int64DataFrameColumn ReverseAddImplementation(long value, bool inPlace = false)
-        {
-            Int64DataFrameColumn newColumn = inPlace ? this : CloneAsInt64Column();
-            newColumn.ColumnContainer.ReverseAdd(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal UInt32DataFrameColumn ReverseAddImplementation(uint value, bool inPlace = false)
-        {
-            UInt32DataFrameColumn newColumn = inPlace ? this : CloneAsUInt32Column();
-            newColumn.ColumnContainer.ReverseAdd(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal UInt64DataFrameColumn ReverseAddImplementation(ulong value, bool inPlace = false)
-        {
-            UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
-            newColumn.ColumnContainer.ReverseAdd(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal DecimalDataFrameColumn SubtractImplementation(decimal value, bool inPlace = false)
-        {
-            DecimalDataFrameColumn newColumn = inPlace ? this : CloneAsDecimalColumn();
-            newColumn.ColumnContainer.Subtract(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal DoubleDataFrameColumn SubtractImplementation(double value, bool inPlace = false)
-        {
-            DoubleDataFrameColumn newColumn = inPlace ? this : CloneAsDoubleColumn();
-            newColumn.ColumnContainer.Subtract(value);
-            return newColumn;
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal SingleDataFrameColumn SubtractImplementation(float value, bool inPlace = false)
-        {
-            SingleDataFrameColumn newColumn = inPlace ? this : CloneAsSingleColumn();
-            newColumn.ColumnContainer.Subtract(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal Int32DataFrameColumn SubtractImplementation(int value, bool inPlace = false)
-        {
-            Int32DataFrameColumn newColumn = inPlace ? this : CloneAsInt32Column();
-            newColumn.ColumnContainer.Subtract(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal Int64DataFrameColumn SubtractImplementation(long value, bool inPlace = false)
-        {
-            Int64DataFrameColumn newColumn = inPlace ? this : CloneAsInt64Column();
-            newColumn.ColumnContainer.Subtract(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal UInt32DataFrameColumn SubtractImplementation(uint value, bool inPlace = false)
-        {
-            UInt32DataFrameColumn newColumn = inPlace ? this : CloneAsUInt32Column();
-            newColumn.ColumnContainer.Subtract(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal UInt64DataFrameColumn SubtractImplementation(ulong value, bool inPlace = false)
-        {
-            UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
-            newColumn.ColumnContainer.Subtract(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal DecimalDataFrameColumn ReverseSubtractImplementation(decimal value, bool inPlace = false)
-        {
-            DecimalDataFrameColumn newColumn = inPlace ? this : CloneAsDecimalColumn();
-            newColumn.ColumnContainer.ReverseSubtract(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal DoubleDataFrameColumn ReverseSubtractImplementation(double value, bool inPlace = false)
-        {
-            DoubleDataFrameColumn newColumn = inPlace ? this : CloneAsDoubleColumn();
-            newColumn.ColumnContainer.ReverseSubtract(value);
-            return newColumn;
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal SingleDataFrameColumn ReverseSubtractImplementation(float value, bool inPlace = false)
-        {
-            SingleDataFrameColumn newColumn = inPlace ? this : CloneAsSingleColumn();
-            newColumn.ColumnContainer.ReverseSubtract(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal Int32DataFrameColumn ReverseSubtractImplementation(int value, bool inPlace = false)
-        {
-            Int32DataFrameColumn newColumn = inPlace ? this : CloneAsInt32Column();
-            newColumn.ColumnContainer.ReverseSubtract(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal Int64DataFrameColumn ReverseSubtractImplementation(long value, bool inPlace = false)
-        {
-            Int64DataFrameColumn newColumn = inPlace ? this : CloneAsInt64Column();
-            newColumn.ColumnContainer.ReverseSubtract(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal UInt32DataFrameColumn ReverseSubtractImplementation(uint value, bool inPlace = false)
-        {
-            UInt32DataFrameColumn newColumn = inPlace ? this : CloneAsUInt32Column();
-            newColumn.ColumnContainer.ReverseSubtract(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal UInt64DataFrameColumn ReverseSubtractImplementation(ulong value, bool inPlace = false)
-        {
-            UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
-            newColumn.ColumnContainer.ReverseSubtract(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal DecimalDataFrameColumn MultiplyImplementation(decimal value, bool inPlace = false)
-        {
-            DecimalDataFrameColumn newColumn = inPlace ? this : CloneAsDecimalColumn();
-            newColumn.ColumnContainer.Multiply(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal DoubleDataFrameColumn MultiplyImplementation(double value, bool inPlace = false)
-        {
-            DoubleDataFrameColumn newColumn = inPlace ? this : CloneAsDoubleColumn();
-            newColumn.ColumnContainer.Multiply(value);
-            return newColumn;
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal SingleDataFrameColumn MultiplyImplementation(float value, bool inPlace = false)
-        {
-            SingleDataFrameColumn newColumn = inPlace ? this : CloneAsSingleColumn();
-            newColumn.ColumnContainer.Multiply(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal Int32DataFrameColumn MultiplyImplementation(int value, bool inPlace = false)
-        {
-            Int32DataFrameColumn newColumn = inPlace ? this : CloneAsInt32Column();
-            newColumn.ColumnContainer.Multiply(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal Int64DataFrameColumn MultiplyImplementation(long value, bool inPlace = false)
-        {
-            Int64DataFrameColumn newColumn = inPlace ? this : CloneAsInt64Column();
-            newColumn.ColumnContainer.Multiply(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal UInt32DataFrameColumn MultiplyImplementation(uint value, bool inPlace = false)
-        {
-            UInt32DataFrameColumn newColumn = inPlace ? this : CloneAsUInt32Column();
-            newColumn.ColumnContainer.Multiply(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal UInt64DataFrameColumn MultiplyImplementation(ulong value, bool inPlace = false)
-        {
-            UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
-            newColumn.ColumnContainer.Multiply(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal DecimalDataFrameColumn ReverseMultiplyImplementation(decimal value, bool inPlace = false)
-        {
-            DecimalDataFrameColumn newColumn = inPlace ? this : CloneAsDecimalColumn();
-            newColumn.ColumnContainer.ReverseMultiply(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal DoubleDataFrameColumn ReverseMultiplyImplementation(double value, bool inPlace = false)
-        {
-            DoubleDataFrameColumn newColumn = inPlace ? this : CloneAsDoubleColumn();
-            newColumn.ColumnContainer.ReverseMultiply(value);
-            return newColumn;
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal SingleDataFrameColumn ReverseMultiplyImplementation(float value, bool inPlace = false)
-        {
-            SingleDataFrameColumn newColumn = inPlace ? this : CloneAsSingleColumn();
-            newColumn.ColumnContainer.ReverseMultiply(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal Int32DataFrameColumn ReverseMultiplyImplementation(int value, bool inPlace = false)
-        {
-            Int32DataFrameColumn newColumn = inPlace ? this : CloneAsInt32Column();
-            newColumn.ColumnContainer.ReverseMultiply(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal Int64DataFrameColumn ReverseMultiplyImplementation(long value, bool inPlace = false)
-        {
-            Int64DataFrameColumn newColumn = inPlace ? this : CloneAsInt64Column();
-            newColumn.ColumnContainer.ReverseMultiply(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal UInt32DataFrameColumn ReverseMultiplyImplementation(uint value, bool inPlace = false)
-        {
-            UInt32DataFrameColumn newColumn = inPlace ? this : CloneAsUInt32Column();
-            newColumn.ColumnContainer.ReverseMultiply(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal UInt64DataFrameColumn ReverseMultiplyImplementation(ulong value, bool inPlace = false)
-        {
-            UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
-            newColumn.ColumnContainer.ReverseMultiply(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal DecimalDataFrameColumn DivideImplementation(decimal value, bool inPlace = false)
-        {
-            DecimalDataFrameColumn newColumn = inPlace ? this : CloneAsDecimalColumn();
-            newColumn.ColumnContainer.Divide(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal DoubleDataFrameColumn DivideImplementation(double value, bool inPlace = false)
-        {
-            DoubleDataFrameColumn newColumn = inPlace ? this : CloneAsDoubleColumn();
-            newColumn.ColumnContainer.Divide(value);
-            return newColumn;
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal SingleDataFrameColumn DivideImplementation(float value, bool inPlace = false)
-        {
-            SingleDataFrameColumn newColumn = inPlace ? this : CloneAsSingleColumn();
-            newColumn.ColumnContainer.Divide(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal Int32DataFrameColumn DivideImplementation(int value, bool inPlace = false)
-        {
-            Int32DataFrameColumn newColumn = inPlace ? this : CloneAsInt32Column();
-            newColumn.ColumnContainer.Divide(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal Int64DataFrameColumn DivideImplementation(long value, bool inPlace = false)
-        {
-            Int64DataFrameColumn newColumn = inPlace ? this : CloneAsInt64Column();
-            newColumn.ColumnContainer.Divide(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal UInt32DataFrameColumn DivideImplementation(uint value, bool inPlace = false)
-        {
-            UInt32DataFrameColumn newColumn = inPlace ? this : CloneAsUInt32Column();
-            newColumn.ColumnContainer.Divide(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal UInt64DataFrameColumn DivideImplementation(ulong value, bool inPlace = false)
-        {
-            UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
-            newColumn.ColumnContainer.Divide(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal DecimalDataFrameColumn ReverseDivideImplementation(decimal value, bool inPlace = false)
-        {
-            DecimalDataFrameColumn newColumn = inPlace ? this : CloneAsDecimalColumn();
-            newColumn.ColumnContainer.ReverseDivide(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal DoubleDataFrameColumn ReverseDivideImplementation(double value, bool inPlace = false)
-        {
-            DoubleDataFrameColumn newColumn = inPlace ? this : CloneAsDoubleColumn();
-            newColumn.ColumnContainer.ReverseDivide(value);
-            return newColumn;
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal SingleDataFrameColumn ReverseDivideImplementation(float value, bool inPlace = false)
-        {
-            SingleDataFrameColumn newColumn = inPlace ? this : CloneAsSingleColumn();
-            newColumn.ColumnContainer.ReverseDivide(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal Int32DataFrameColumn ReverseDivideImplementation(int value, bool inPlace = false)
-        {
-            Int32DataFrameColumn newColumn = inPlace ? this : CloneAsInt32Column();
-            newColumn.ColumnContainer.ReverseDivide(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal Int64DataFrameColumn ReverseDivideImplementation(long value, bool inPlace = false)
-        {
-            Int64DataFrameColumn newColumn = inPlace ? this : CloneAsInt64Column();
-            newColumn.ColumnContainer.ReverseDivide(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal UInt32DataFrameColumn ReverseDivideImplementation(uint value, bool inPlace = false)
-        {
-            UInt32DataFrameColumn newColumn = inPlace ? this : CloneAsUInt32Column();
-            newColumn.ColumnContainer.ReverseDivide(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal UInt64DataFrameColumn ReverseDivideImplementation(ulong value, bool inPlace = false)
-        {
-            UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
-            newColumn.ColumnContainer.ReverseDivide(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal DecimalDataFrameColumn ModuloImplementation(decimal value, bool inPlace = false)
-        {
-            DecimalDataFrameColumn newColumn = inPlace ? this : CloneAsDecimalColumn();
-            newColumn.ColumnContainer.Modulo(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal DoubleDataFrameColumn ModuloImplementation(double value, bool inPlace = false)
-        {
-            DoubleDataFrameColumn newColumn = inPlace ? this : CloneAsDoubleColumn();
-            newColumn.ColumnContainer.Modulo(value);
-            return newColumn;
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal SingleDataFrameColumn ModuloImplementation(float value, bool inPlace = false)
-        {
-            SingleDataFrameColumn newColumn = inPlace ? this : CloneAsSingleColumn();
-            newColumn.ColumnContainer.Modulo(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal Int32DataFrameColumn ModuloImplementation(int value, bool inPlace = false)
-        {
-            Int32DataFrameColumn newColumn = inPlace ? this : CloneAsInt32Column();
-            newColumn.ColumnContainer.Modulo(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal Int64DataFrameColumn ModuloImplementation(long value, bool inPlace = false)
-        {
-            Int64DataFrameColumn newColumn = inPlace ? this : CloneAsInt64Column();
-            newColumn.ColumnContainer.Modulo(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal UInt32DataFrameColumn ModuloImplementation(uint value, bool inPlace = false)
-        {
-            UInt32DataFrameColumn newColumn = inPlace ? this : CloneAsUInt32Column();
-            newColumn.ColumnContainer.Modulo(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal UInt64DataFrameColumn ModuloImplementation(ulong value, bool inPlace = false)
-        {
-            UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
-            newColumn.ColumnContainer.Modulo(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal DecimalDataFrameColumn ReverseModuloImplementation(decimal value, bool inPlace = false)
-        {
-            DecimalDataFrameColumn newColumn = inPlace ? this : CloneAsDecimalColumn();
-            newColumn.ColumnContainer.ReverseModulo(value);
-            return newColumn;
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal DoubleDataFrameColumn ReverseModuloImplementation(double value, bool inPlace = false)
-        {
-            DoubleDataFrameColumn newColumn = inPlace ? this : CloneAsDoubleColumn();
-            newColumn.ColumnContainer.ReverseModulo(value);
-            return newColumn;
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal SingleDataFrameColumn ReverseModuloImplementation(float value, bool inPlace = false)
-        {
-            SingleDataFrameColumn newColumn = inPlace ? this : CloneAsSingleColumn();
-            newColumn.ColumnContainer.ReverseModulo(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal Int32DataFrameColumn ReverseModuloImplementation(int value, bool inPlace = false)
-        {
-            Int32DataFrameColumn newColumn = inPlace ? this : CloneAsInt32Column();
-            newColumn.ColumnContainer.ReverseModulo(value);
-            return newColumn;
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal Int64DataFrameColumn ReverseModuloImplementation(long value, bool inPlace = false)
-        {
-            Int64DataFrameColumn newColumn = inPlace ? this : CloneAsInt64Column();
-            newColumn.ColumnContainer.ReverseModulo(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal UInt32DataFrameColumn ReverseModuloImplementation(uint value, bool inPlace = false)
-        {
-            UInt32DataFrameColumn newColumn = inPlace ? this : CloneAsUInt32Column();
-            newColumn.ColumnContainer.ReverseModulo(value);
-            return newColumn;
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal UInt64DataFrameColumn ReverseModuloImplementation(ulong value, bool inPlace = false)
-        {
-            UInt64DataFrameColumn newColumn = inPlace ? this : CloneAsUInt64Column();
-            newColumn.ColumnContainer.ReverseModulo(value);
+            var newColumn = (UInt64DataFrameColumn)Clone();
+            newColumn.ColumnContainer.HandleOperation(operation, right);
             return newColumn;
         }
     }

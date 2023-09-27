@@ -14,7 +14,7 @@ namespace Microsoft.Data.Analysis
     {
         void HandleOperation(BinaryOperation operation, Span<T> left, Span<byte> leftValidity, ReadOnlySpan<T> right, ReadOnlySpan<byte> rightValidity);
         void HandleOperation(BinaryScalarOperation operation, Span<T> left, T right);
-        void HandleOperation(BinaryScalarOperation operation, T left, Span<T> right, Span<byte> rightValidity);
+        void HandleOperation(BinaryScalarOperation operation, T left, Span<T> right, ReadOnlySpan<byte> rightValidity);
 
         void LeftShift(PrimitiveColumnContainer<T> column, int value);
         void RightShift(PrimitiveColumnContainer<T> column, int value);
@@ -85,11 +85,34 @@ namespace Microsoft.Data.Analysis
                 Xor(left, right);
         }
 
-        public virtual void HandleOperation(BinaryScalarOperation operation, T left, Span<T> right, Span<byte> rightValidity)
+        public virtual void HandleOperation(BinaryScalarOperation operation, Span<T> left, T right, Span<byte> rightValidity)
         {
             if (operation == BinaryScalarOperation.Divide)
             {
                 Divide(left, right);
+                return;
+            }
+            else if (operation == BinaryScalarOperation.Add)
+                Add(left, right);
+            else if (operation == BinaryScalarOperation.Subtract)
+                Subtract(left, right);
+            else if (operation == BinaryScalarOperation.Multiply)
+                Multiply(left, right);
+            else if (operation == BinaryScalarOperation.Modulo)
+                Modulo(left, right);
+            else if (operation == BinaryScalarOperation.And)
+                And(left, right);
+            else if (operation == BinaryScalarOperation.Or)
+                Or(left, right);
+            else if (operation == BinaryScalarOperation.Xor)
+                Xor(left, right);
+        }
+
+        public virtual void HandleOperation(BinaryScalarOperation operation, T left, Span<T> right, ReadOnlySpan<byte> rightValidity)
+        {
+            if (operation == BinaryScalarOperation.Divide)
+            {
+                Divide(left, right, rightValidity);
                 return;
             }
             else if (operation == BinaryScalarOperation.Add)
@@ -119,7 +142,7 @@ namespace Microsoft.Data.Analysis
         public virtual void Multiply(T left, Span<T> right) => throw new NotSupportedException();
         public virtual void Divide(Span<T> left, Span<byte> leftValidity, ReadOnlySpan<T> right, ReadOnlySpan<byte> rightValidity) => throw new NotSupportedException();
         public virtual void Divide(Span<T> left, T scalar) => throw new NotSupportedException();
-        public virtual void Divide(T left, Span<T> right, Span<byte> rightValidity) => throw new NotSupportedException();
+        public virtual void Divide(T left, Span<T> right, ReadOnlySpan<byte> rightValidity) => throw new NotSupportedException();
         public virtual void Modulo(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
         public virtual void Modulo(Span<T> left, T scalar) => throw new NotSupportedException();
         public virtual void Modulo(T left, Span<T> right) => throw new NotSupportedException();
@@ -374,7 +397,7 @@ namespace Microsoft.Data.Analysis
                 left[i] = (byte)(left[i] / right);
         }
 
-        public override void Divide(byte left, Span<byte> right, Span<byte> rightValidity)
+        public override void Divide(byte left, Span<byte> right, ReadOnlySpan<byte> rightValidity)
         {
             for (var i = 0; i < right.Length; i++)
             {
@@ -734,7 +757,7 @@ namespace Microsoft.Data.Analysis
                 left[i] = (char)(left[i] / right);
         }
 
-        public override void Divide(char left, Span<char> right, Span<byte> rightValidity)
+        public override void Divide(char left, Span<char> right, ReadOnlySpan<byte> rightValidity)
         {
             for (var i = 0; i < right.Length; i++)
             {
@@ -1094,7 +1117,7 @@ namespace Microsoft.Data.Analysis
                 left[i] = (decimal)(left[i] / right);
         }
 
-        public override void Divide(decimal left, Span<decimal> right, Span<byte> rightValidity)
+        public override void Divide(decimal left, Span<decimal> right, ReadOnlySpan<byte> rightValidity)
         {
             for (var i = 0; i < right.Length; i++)
             {
@@ -1377,7 +1400,7 @@ namespace Microsoft.Data.Analysis
                 left[i] = (double)(left[i] / right);
         }
 
-        public override void Divide(double left, Span<double> right, Span<byte> rightValidity)
+        public override void Divide(double left, Span<double> right, ReadOnlySpan<byte> rightValidity)
         {
             for (var i = 0; i < right.Length; i++)
             {
@@ -1660,7 +1683,7 @@ namespace Microsoft.Data.Analysis
                 left[i] = (float)(left[i] / right);
         }
 
-        public override void Divide(float left, Span<float> right, Span<byte> rightValidity)
+        public override void Divide(float left, Span<float> right, ReadOnlySpan<byte> rightValidity)
         {
             for (var i = 0; i < right.Length; i++)
             {
@@ -1943,7 +1966,7 @@ namespace Microsoft.Data.Analysis
                 left[i] = (int)(left[i] / right);
         }
 
-        public override void Divide(int left, Span<int> right, Span<byte> rightValidity)
+        public override void Divide(int left, Span<int> right, ReadOnlySpan<byte> rightValidity)
         {
             for (var i = 0; i < right.Length; i++)
             {
@@ -2303,7 +2326,7 @@ namespace Microsoft.Data.Analysis
                 left[i] = (long)(left[i] / right);
         }
 
-        public override void Divide(long left, Span<long> right, Span<byte> rightValidity)
+        public override void Divide(long left, Span<long> right, ReadOnlySpan<byte> rightValidity)
         {
             for (var i = 0; i < right.Length; i++)
             {
@@ -2663,7 +2686,7 @@ namespace Microsoft.Data.Analysis
                 left[i] = (sbyte)(left[i] / right);
         }
 
-        public override void Divide(sbyte left, Span<sbyte> right, Span<byte> rightValidity)
+        public override void Divide(sbyte left, Span<sbyte> right, ReadOnlySpan<byte> rightValidity)
         {
             for (var i = 0; i < right.Length; i++)
             {
@@ -3023,7 +3046,7 @@ namespace Microsoft.Data.Analysis
                 left[i] = (short)(left[i] / right);
         }
 
-        public override void Divide(short left, Span<short> right, Span<byte> rightValidity)
+        public override void Divide(short left, Span<short> right, ReadOnlySpan<byte> rightValidity)
         {
             for (var i = 0; i < right.Length; i++)
             {
@@ -3383,7 +3406,7 @@ namespace Microsoft.Data.Analysis
                 left[i] = (uint)(left[i] / right);
         }
 
-        public override void Divide(uint left, Span<uint> right, Span<byte> rightValidity)
+        public override void Divide(uint left, Span<uint> right, ReadOnlySpan<byte> rightValidity)
         {
             for (var i = 0; i < right.Length; i++)
             {
@@ -3743,7 +3766,7 @@ namespace Microsoft.Data.Analysis
                 left[i] = (ulong)(left[i] / right);
         }
 
-        public override void Divide(ulong left, Span<ulong> right, Span<byte> rightValidity)
+        public override void Divide(ulong left, Span<ulong> right, ReadOnlySpan<byte> rightValidity)
         {
             for (var i = 0; i < right.Length; i++)
             {
@@ -4103,7 +4126,7 @@ namespace Microsoft.Data.Analysis
                 left[i] = (ushort)(left[i] / right);
         }
 
-        public override void Divide(ushort left, Span<ushort> right, Span<byte> rightValidity)
+        public override void Divide(ushort left, Span<ushort> right, ReadOnlySpan<byte> rightValidity)
         {
             for (var i = 0; i < right.Length; i++)
             {

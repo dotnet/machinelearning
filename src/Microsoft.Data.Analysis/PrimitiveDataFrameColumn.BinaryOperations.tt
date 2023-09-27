@@ -23,9 +23,11 @@ namespace Microsoft.Data.Analysis
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.Binary || method.MethodType == MethodType.Comparison) {#>
 <# if (method.MethodType == MethodType.Binary) {#>
+
         /// <inheritdoc/>
         public override DataFrameColumn <#=method.MethodName#>(DataFrameColumn column, bool inPlace = false)
 <# } else { #>
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> <#=method.MethodName#>(DataFrameColumn column)
 <# } #>
@@ -53,45 +55,50 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
 <# } #>
-<# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.ComparisonScalar) {#>
 <# if (method.MethodType == MethodType.BinaryScalar) {#>
 <# if (method.IsBitwise == true) { #>
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> <#=method.MethodName#>(bool value, bool inPlace = false)
+        {
+            return HandleBitwiseOperationImplementation(BinaryScalarOperation.<#=method.MethodName#>, value, inPlace);
+        }
 <# } else { #>
+
         /// <inheritdoc/>
         public override DataFrameColumn <#=method.MethodName#><U>(U value, bool inPlace = false)
-<# } #>
-<# } else {#>
-        /// <inheritdoc/>
-        public override PrimitiveDataFrameColumn<bool> <#=method.MethodName#><U>(U value)
-<# } #>
         {
-<# if (method.MethodType == MethodType.BinaryScalar) {#>
-<# if (method.IsBitwise == true) { #>
-            return HandleBitwiseOperationImplementation(BinaryScalarOperation.<#=method.MethodName#>, value, inPlace);
-<# } else { #>
             DataFrameColumn column = value as DataFrameColumn;
             if (column != null)
             {
                 return HandleOperationImplementation(BinaryScalarOperation.<#=method.MethodName#>, column, inPlace);
             }
             return HandleOperationImplementation(BinaryScalarOperation.<#=method.MethodName#>, value, inPlace);
+        }
+
+        /// <inheritdoc/>
+        public override DataFrameColumn Reverse<#=method.MethodName#><U>(U value, bool inPlace = false)
+        {
+            return HandleReverseOperationImplementation(BinaryScalarOperation.<#=method.MethodName#>, value, inPlace);
+        }
 <# } #>
-<# } else {#>
+<# } #>
+<# if (method.MethodType == MethodType.ComparisonScalar) {#>
+
+        /// <inheritdoc/>
+        public override PrimitiveDataFrameColumn<bool> <#=method.MethodName#><U>(U value)
+        {
             DataFrameColumn column = value as DataFrameColumn;
             if (column != null)
             {
                 return <#=method.MethodName#>(column);
             }
             return <#=method.MethodName#>Implementation(value);
-<# } #>
         }
-
 <# } #>
 <# if (method.MethodType == MethodType.BinaryInt ) {#>
+
         /// <inheritdoc/>
         public override DataFrameColumn <#=method.MethodName#>(int value, bool inPlace = false)
         {
@@ -99,17 +106,19 @@ namespace Microsoft.Data.Analysis
         }
 <# } #>
 <# } #>
-
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType != MethodType.Binary && method.MethodType != MethodType.BinaryScalar) { #>
 <# if (method.MethodType == MethodType.ComparisonScalar) {#>
+
         internal PrimitiveDataFrameColumn<bool> <#=method.MethodName#>Implementation<U>(U value)
 <# } #>
 <# if (method.MethodType == MethodType.Comparison) {#>
+
         internal PrimitiveDataFrameColumn<bool> <#=method.MethodName#>Implementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
 <# } #>
 <# if (method.MethodType == MethodType.BinaryInt ) {#>
+
         internal DataFrameColumn <#=method.MethodName#>Implementation(int value, bool inPlace)
 <# } #>
         {

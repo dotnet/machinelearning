@@ -56,6 +56,7 @@ void GenerateAllBinaryCombinationsForMethods()
 #>
     public partial class <#=fullColumnType#>
     {
+        //Binary Operations
 <#
     if (supportedInPlace(columnType, otherColumnType))
     {
@@ -75,62 +76,16 @@ void GenerateAllBinaryCombinationsForMethods()
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            <#=fullReturnType#> newColumn = inPlace ? this : (<#=fullReturnType#>)Clone();
+            var newColumn = inPlace ? this : (<#=fullReturnType#>)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, column.ColumnContainer);
             return newColumn;
         }
-    }
-<# 
-} 
-}
-#>
-<# 
-// This method generates implementations where the arguments are of the same type.
-void GenerateAllBinaryScalarCombinationsForMethod(string inputMethodName)
-{
- foreach (TypeCombination types in BinaryOperationCombinations.binaryOperationCombinations) 
-{ 
-    string returnType = types.ReturnColumnType;
-    string columnType = types.ThisColumnType;
-    string otherColumnType = types.OtherColumnType;
-    if (columnType != otherColumnType)
-    {
-        continue;
-    }
-    if (columnType != returnType)
-    {
-        continue;
-    }
-    Debug.Assert(returnType == otherColumnType);
 
-    string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
-    string fullReturnType = fullColumnType;
-    string fullOtherColumnType = fullColumnType;
-
-    string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
-    string methodName = inputMethodName;
-    methodName += "Implementation";
-#>
-
-    public partial class <#=fullColumnType#>
-    {
-<#
-    if (supportedInPlace(columnType, otherColumnType))
-    {
-#>
-        internal <#=fullReturnType#> <#=methodName#>(<#=otherColumnType#> value, bool inPlace = false)
-<#
-    }
-    else
-    {
-#>
-        internal <#=fullReturnType#> <#=methodName#>(<#=otherColumnType#> value)
-<#
-    }
-#>
+        //Binary Scalar Operations
+        internal <#=fullReturnType#> HandleOperationImplementation(BinaryScalarOperation operation, <#=otherColumnType#> right)
         {
-            <#=fullReturnType#> newColumn = inPlace ? this : CloneAs<#=capitalizedReturnType#>Column();
-            newColumn.ColumnContainer.<#=inputMethodName#>(value);
+            var newColumn = (<#=fullReturnType#>)Clone();
+            newColumn.ColumnContainer.HandleOperation(operation, right);
             return newColumn;
         }
     }
@@ -212,13 +167,8 @@ GenerateAllBinaryCombinationsForMethods();
 
 foreach (MethodConfiguration method in methodConfiguration)
 {
-    // Don't generate method for Comparison, ComparisonScalar and Binary methods here
-    if (method.MethodType == MethodType.BinaryScalar && method.IsNumeric)
-    {
-        GenerateAllBinaryScalarCombinationsForMethod(method.MethodName);
-        GenerateAllBinaryScalarCombinationsForMethod("Reverse" + method.MethodName);
-    }
-    else if (method.MethodType == MethodType.Comparison)
+    // Don't generate Binary and BinaryScalar methods here
+    if (method.MethodType == MethodType.Comparison)
     {
         GenerateAllComparisonCombinationsForMethod(method.MethodName);
     }

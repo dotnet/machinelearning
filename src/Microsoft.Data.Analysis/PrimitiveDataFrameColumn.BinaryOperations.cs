@@ -14,6 +14,7 @@ namespace Microsoft.Data.Analysis
     public partial class PrimitiveDataFrameColumn<T> : DataFrameColumn
         where T : unmanaged
     {
+
         /// <inheritdoc/>
         public override DataFrameColumn Add(DataFrameColumn column, bool inPlace = false)
         {
@@ -62,6 +63,12 @@ namespace Microsoft.Data.Analysis
                 return HandleOperationImplementation(BinaryScalarOperation.Add, column, inPlace);
             }
             return HandleOperationImplementation(BinaryScalarOperation.Add, value, inPlace);
+        }
+
+        /// <inheritdoc/>
+        public override DataFrameColumn ReverseAdd<U>(U value, bool inPlace = false)
+        {
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace);
         }
 
         /// <inheritdoc/>
@@ -115,6 +122,12 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <inheritdoc/>
+        public override DataFrameColumn ReverseSubtract<U>(U value, bool inPlace = false)
+        {
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace);
+        }
+
+        /// <inheritdoc/>
         public override DataFrameColumn Multiply(DataFrameColumn column, bool inPlace = false)
         {
             switch (column)
@@ -162,6 +175,12 @@ namespace Microsoft.Data.Analysis
                 return HandleOperationImplementation(BinaryScalarOperation.Multiply, column, inPlace);
             }
             return HandleOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace);
+        }
+
+        /// <inheritdoc/>
+        public override DataFrameColumn ReverseMultiply<U>(U value, bool inPlace = false)
+        {
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace);
         }
 
         /// <inheritdoc/>
@@ -215,6 +234,12 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <inheritdoc/>
+        public override DataFrameColumn ReverseDivide<U>(U value, bool inPlace = false)
+        {
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace);
+        }
+
+        /// <inheritdoc/>
         public override DataFrameColumn Modulo(DataFrameColumn column, bool inPlace = false)
         {
             switch (column)
@@ -262,6 +287,12 @@ namespace Microsoft.Data.Analysis
                 return HandleOperationImplementation(BinaryScalarOperation.Modulo, column, inPlace);
             }
             return HandleOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace);
+        }
+
+        /// <inheritdoc/>
+        public override DataFrameColumn ReverseModulo<U>(U value, bool inPlace = false)
+        {
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace);
         }
 
         /// <inheritdoc/>
@@ -404,11 +435,13 @@ namespace Microsoft.Data.Analysis
         {
             return LeftShiftImplementation(value, inPlace);
         }
+
         /// <inheritdoc/>
         public override DataFrameColumn RightShift(int value, bool inPlace = false)
         {
             return RightShiftImplementation(value, inPlace);
         }
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> ElementwiseEquals(DataFrameColumn column)
         {
@@ -713,7 +746,6 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(value);
         }
 
-
         internal DataFrameColumn LeftShiftImplementation(int value, bool inPlace)
         {
             switch (typeof(T))
@@ -777,6 +809,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal DataFrameColumn RightShiftImplementation(int value, bool inPlace)
         {
             switch (typeof(T))
@@ -840,6 +873,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseEqualsImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -915,6 +949,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseEqualsImplementation<U>(U value)
         {
             switch (typeof(T))
@@ -985,6 +1020,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseNotEqualsImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -1060,6 +1096,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseNotEqualsImplementation<U>(U value)
         {
             switch (typeof(T))
@@ -1130,6 +1167,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseGreaterThanOrEqualImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -1197,6 +1235,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseGreaterThanOrEqualImplementation<U>(U value)
         {
             switch (typeof(T))
@@ -1259,6 +1298,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseLessThanOrEqualImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -1326,6 +1366,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseLessThanOrEqualImplementation<U>(U value)
         {
             switch (typeof(T))
@@ -1388,6 +1429,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseGreaterThanImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -1455,6 +1497,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseGreaterThanImplementation<U>(U value)
         {
             switch (typeof(T))
@@ -1517,6 +1560,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseLessThanImplementation<U>(PrimitiveDataFrameColumn<U> column)
             where U : unmanaged
         {
@@ -1584,6 +1628,7 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
+
         internal PrimitiveDataFrameColumn<bool> ElementwiseLessThanImplementation<U>(U value)
         {
             switch (typeof(T))

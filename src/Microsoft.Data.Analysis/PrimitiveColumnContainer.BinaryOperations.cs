@@ -52,7 +52,7 @@ namespace Microsoft.Data.Analysis
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 var rightSpan = this.Buffers.GetOrCreateMutable(i).Span;
-                var rightValidity = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
+                var rightValidity = this.NullBitMapBuffers[i].ReadOnlySpan;
 
                 arithmetic.HandleOperation(operation, left, rightSpan, rightValidity);
             }

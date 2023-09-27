@@ -1053,6 +1053,82 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        internal DataFrameColumn HandleReverseOperationImplementation<U>(BinaryScalarOperation operation, U value, bool inPlace = false)
+        {
+            switch (typeof(T))
+            {
+                case Type boolType when boolType == typeof(bool):
+                    throw new NotSupportedException();
+                case Type decimalType when decimalType == typeof(decimal):
+                    if (typeof(U) == typeof(bool))
+                    {
+                        throw new NotSupportedException();
+                    }
+                    if (typeof(U) == typeof(T))
+                    {
+                        // No conversions
+                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? this : Clone();
+                        newColumn._columnContainer.HandleReverseOperation(operation, Unsafe.As<U, T>(ref value));
+                        return newColumn;
+                    }
+                    else
+                    {
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
+                        }
+                        PrimitiveDataFrameColumn<decimal> clonedDecimalColumn = CloneAsDecimalColumn();
+                        clonedDecimalColumn._columnContainer.HandleReverseOperation(operation, DecimalConverter<U>.Instance.GetDecimal(value));
+                        return clonedDecimalColumn;
+                    }
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
+                case Type byteType when byteType == typeof(byte):
+                case Type charType when charType == typeof(char):
+                case Type doubleType when doubleType == typeof(double):
+                case Type floatType when floatType == typeof(float):
+                case Type intType when intType == typeof(int):
+                case Type longType when longType == typeof(long):
+                case Type sbyteType when sbyteType == typeof(sbyte):
+                case Type shortType when shortType == typeof(short):
+                case Type uintType when uintType == typeof(uint):
+                case Type ulongType when ulongType == typeof(ulong):
+                case Type ushortType when ushortType == typeof(ushort):
+                    if (typeof(U) == typeof(bool))
+                    {
+                        throw new NotSupportedException();
+                    }
+                    if (typeof(U) == typeof(T))
+                    {
+                        // No conversions
+                        PrimitiveDataFrameColumn<T> newColumn = inPlace ? this : Clone();
+                        newColumn._columnContainer.HandleReverseOperation(operation, Unsafe.As<U, T>(ref value));
+                        return newColumn;
+                    }
+                    else
+                    {
+                        if (inPlace)
+                        {
+                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
+                        }
+                        if (typeof(U) == typeof(decimal))
+                        {
+                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
+                            decimalColumn._columnContainer.HandleReverseOperation(operation, DecimalConverter<U>.Instance.GetDecimal(value));
+                            return decimalColumn;
+                        }
+                        else
+                        {
+                            PrimitiveDataFrameColumn<double> clonedDoubleColumn = CloneAsDoubleColumn();
+                            clonedDoubleColumn._columnContainer.HandleReverseOperation(operation, DoubleConverter<U>.Instance.GetDouble(value));
+                            return clonedDoubleColumn;
+                        }
+                    }
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
         internal PrimitiveDataFrameColumn<bool> HandleBitwiseOperationImplementation<U>(BinaryScalarOperation operation, U value, bool inPlace)
         {
             switch (typeof(T))

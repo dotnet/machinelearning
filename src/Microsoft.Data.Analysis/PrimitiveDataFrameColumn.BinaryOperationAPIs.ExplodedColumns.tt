@@ -91,8 +91,8 @@ void GenerateAllBinaryCombinations()
         {
             // Cases such as byte + byte resulting in int. Needs 2 clones
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            <#=fullReturnType#> other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            var other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
             return <#=returnType#>Column.HandleOperationImplementation(BinaryOperation.<#=methodName#>, other<#=returnType#>Column, inPlace: true);
 <#
         }
@@ -107,14 +107,14 @@ void GenerateAllBinaryCombinations()
             if (otherColumnTypeLevel > columnTypeLevel)
             {
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
             return <#=returnType#>Column.HandleOperationImplementation(BinaryOperation.<#=methodName#>, column, inPlace: true);
 <#
             }
             else
             {
 #>
-            <#=fullReturnType#> other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
+            var other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
             return HandleOperationImplementation(BinaryOperation.<#=methodName#>, other<#=returnType#>Column, inPlace);
 <#
             }
@@ -123,8 +123,8 @@ void GenerateAllBinaryCombinations()
         {
             // Cases such as byte + short resulting in int. Needs 2 clones
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            <#=fullReturnType#> other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            var other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
             return <#=returnType#>Column.HandleOperationImplementation(BinaryOperation.<#=methodName#>, other<#=returnType#>Column, inPlace: true);
 <#
         }
@@ -197,15 +197,15 @@ void GenerateAllBinaryScalarCombinationsForMethod()
         if (fullReturnType == fullColumnType)
         {
 #>
-            return <#=methodName#>Implementation(value, inPlace);
+            return HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace);
 <#
         }
         else
         {
             // Cases such as byte + byte resulting in int. Needs 2 clones
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace: true);
 <#
         }
     }
@@ -219,15 +219,15 @@ void GenerateAllBinaryScalarCombinationsForMethod()
             if (valueTypeLevel > columnTypeLevel)
             {
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace: true);
 <#
             }
             else
             {
 #>
-            <#=returnType#> convertedValue = (<#=returnType#>)value;
-            return <#=methodName#>Implementation(convertedValue, inPlace);
+            var convertedValue = (<#=returnType#>)value;
+            return HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, convertedValue, inPlace);
 <#
             }
         }
@@ -235,8 +235,8 @@ void GenerateAllBinaryScalarCombinationsForMethod()
         {
             // Cases such as byte + short resulting in int. Needs 2 clones
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace: true);
 <#
         }
     }
@@ -279,15 +279,15 @@ void GenerateAllBinaryScalarCombinationsForMethod()
         if (fullReturnType == fullColumnType)
         {
 #>
-            return <#=methodName#>Implementation(value, inPlace);
+            return HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace);
 <#
         }
         else
         {
             // Cases such as byte + byte resulting in int. Needs 2 clones
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace: true);
 <#
         }
     }
@@ -301,15 +301,15 @@ void GenerateAllBinaryScalarCombinationsForMethod()
             if (valueTypeLevel > columnTypeLevel)
             {
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace: true);
 <#
             }
             else
             {
 #>
-            <#=returnType#> convertedValue = (<#=returnType#>)value;
-            return <#=methodName#>Implementation(convertedValue, inPlace);
+            var convertedValue = (<#=returnType#>)value;
+            return HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, convertedValue, inPlace);
 <#
             }
         }
@@ -317,8 +317,8 @@ void GenerateAllBinaryScalarCombinationsForMethod()
         {
             // Cases such as byte + short resulting in int. Needs 2 clones
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace: true);
 <#
         }
     }
