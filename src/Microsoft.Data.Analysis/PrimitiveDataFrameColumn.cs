@@ -63,7 +63,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int i = 0; i < _columnContainer.Buffers.Count; i++)
             {
-                ReadOnlyDataFrameBuffer<T> buffer = _columnContainer.Buffers[i];
+                var buffer = _columnContainer.Buffers[i];
                 yield return buffer.ReadOnlyMemory;
             }
         }
@@ -75,7 +75,7 @@ namespace Microsoft.Data.Analysis
         /// <returns>IEnumerable<see cref="ReadOnlyMemory{Byte}"/></returns>
         public IEnumerable<ReadOnlyMemory<byte>> GetReadOnlyNullBitMapBuffers()
         {
-            for (int i = 0; i < _columnContainer.NullBitMapBuffers.Count; i++)
+            for (var i = 0; i < _columnContainer.NullBitMapBuffers.Count; i++)
             {
                 ReadOnlyDataFrameBuffer<byte> buffer = _columnContainer.NullBitMapBuffers[i];
                 yield return buffer.RawReadOnlyMemory;
@@ -118,7 +118,7 @@ namespace Microsoft.Data.Analysis
 
         private int GetNullCount(long startIndex, int numberOfRows)
         {
-            int nullCount = 0;
+            var nullCount = 0;
             for (long i = startIndex; i < numberOfRows; i++)
             {
                 if (!IsValid(i))
@@ -129,15 +129,15 @@ namespace Microsoft.Data.Analysis
 
         protected internal override Apache.Arrow.Array ToArrowArray(long startIndex, int numberOfRows)
         {
-            int arrayIndex = numberOfRows == 0 ? 0 : _columnContainer.GetArrayContainingRowIndex(startIndex);
-            int offset = (int)(startIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity);
+            var arrayIndex = numberOfRows == 0 ? 0 : _columnContainer.GetArrayContainingRowIndex(startIndex);
+            var offset = (int)(startIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity);
 
             if (numberOfRows != 0 && numberOfRows > _columnContainer.Buffers[arrayIndex].Length - offset)
             {
                 throw new ArgumentException(Strings.SpansMultipleBuffers, nameof(numberOfRows));
             }
 
-            int nullCount = GetNullCount(startIndex, numberOfRows);
+            var nullCount = GetNullCount(startIndex, numberOfRows);
 
             //DateTime requires convertion
             if (this.DataType == typeof(DateTime))
@@ -151,7 +151,7 @@ namespace Microsoft.Data.Analysis
                 ReadOnlySpan<DateTime> valueSpan = MemoryMarshal.Cast<T, DateTime>(valueBuffer.ReadOnlySpan);
                 Date64Array.Builder builder = new Date64Array.Builder().Reserve(valueBuffer.Length);
 
-                for (int i = 0; i < valueBuffer.Length; i++)
+                for (var i = 0; i < valueBuffer.Length; i++)
                 {
                     if (BitUtility.GetBit(nullBuffer.ReadOnlySpan, i))
                         builder.Append(valueSpan[i]);
@@ -213,8 +213,8 @@ namespace Microsoft.Data.Analysis
             }
 
             var ret = new List<object>(length);
-            long endIndex = Math.Min(Length, startIndex + length);
-            for (long i = startIndex; i < endIndex; i++)
+            var endIndex = Math.Min(Length, startIndex + length);
+            for (var i = startIndex; i < endIndex; i++)
             {
                 ret.Add(this[i]);
             }

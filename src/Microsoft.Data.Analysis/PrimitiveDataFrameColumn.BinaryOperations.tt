@@ -187,7 +187,7 @@ namespace Microsoft.Data.Analysis
                         throw new NotSupportedException();
                     }
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
-                    return new BooleanDataFrameColumn(Name, (this as PrimitiveDataFrameColumn<bool>)._columnContainer.<#=method.MethodName#>(Unsafe.As<U, bool>(ref value)));
+                    return new BooleanDataFrameColumn(Name, (this as PrimitiveDataFrameColumn<<#=type.TypeName#>>)._columnContainer.<#=method.MethodName#>(Unsafe.As<U, <#=type.TypeName#>>(ref value)));
 <# } else if (method.MethodType == MethodType.Comparison) { #>
                     return new BooleanDataFrameColumn(Name, (this as PrimitiveDataFrameColumn<U>)._columnContainer.<#=method.MethodName#>(column._columnContainer));
 <# } else if (method.MethodType == MethodType.BinaryScalar) {#>

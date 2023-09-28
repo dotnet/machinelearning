@@ -42,6 +42,11 @@ namespace Microsoft.Data.Analysis
             return ((curBitMap >> (index & 7)) & 1) != 0;
         }
 
+        public static bool IsBitClear(byte curBitMap, int index)
+        {
+            return ((curBitMap >> (index & 7)) & 1) == 0;
+        }
+
         public static bool GetBit(byte data, int index) =>
            ((data >> index) & 1) != 0;
 
@@ -60,8 +65,8 @@ namespace Microsoft.Data.Analysis
 
         public static void SetBit(Span<byte> data, long index, bool value)
         {
-            var idx = (int)(index / 8);
-            var mod = (int)(index % 8);
+            int idx = (int)(index / 8);
+            int mod = (int)(index % 8);
             data[idx] = value
                 ? (byte)(data[idx] | BitMask[mod])
                 : (byte)(data[idx] & ~BitMask[mod]);
@@ -116,7 +121,7 @@ namespace Microsoft.Data.Analysis
             if (fullByteEndIndex >= fullByteStartIndex)
             {
                 var slice = data.Slice(fullByteStartIndex, fullByteEndIndex - fullByteStartIndex + 1);
-                var fill = (byte)(value ? 0xFF : 0x00);
+                byte fill = (byte)(value ? 0xFF : 0x00);
 
                 slice.Fill(fill);
             }
@@ -124,7 +129,7 @@ namespace Microsoft.Data.Analysis
             if (endBitOffset != 7)
             {
                 var slice = data.Slice(endByteIndex, 1);
-                for (var i = 0; i <= endBitOffset; i++)
+                for (int i = 0; i <= endBitOffset; i++)
                     SetBit(slice, i, value);
             }
         }
@@ -315,6 +320,7 @@ namespace Microsoft.Data.Analysis
                 int allocatable = (int)Math.Min(remaining, ReadOnlyDataFrameBuffer<T>.MaxCapacity - originalBufferLength);
                 mutableLastBuffer.IncreaseSize(allocatable);
                 //Calculate how many bytes we have additionaly allocate to store allocatable number of bits (need to take into account unused bits inside already allocated bytes)
+                //Calculate how many bytes we have additionaly allocate to store allocatable number of bits (need to take into account unused bits inside already allocated bytes)
                 int nullBufferAllocatable = (originalBufferLength + allocatable + 7) / 8 - lastNullBitMapBuffer.Length;
                 lastNullBitMapBuffer.IncreaseSize(nullBufferAllocatable);
                 Length += allocatable;
@@ -381,7 +387,7 @@ namespace Microsoft.Data.Analysis
             if (value)
             {
                 newBitMap = (byte)(curBitMap | (byte)(1 << (index & 7))); //bit hack for index % 8
-                if (((curBitMap >> (index & 7)) & 1) == 0 && index < Length && NullCount > 0)
+                if (BitmapHelper.IsBitClear(curBitMap, index) && index < Length && NullCount > 0)
                 {
                     // Old value was null.
                     NullCount--;
@@ -389,7 +395,7 @@ namespace Microsoft.Data.Analysis
             }
             else
             {
-                if (((curBitMap >> (index & 7)) & 1) == 1 && index < Length)
+                if (BitmapHelper.IsBitSet(curBitMap, index) && index < Length)
                 {
                     // old value was NOT null and new value is null
                     NullCount++;
