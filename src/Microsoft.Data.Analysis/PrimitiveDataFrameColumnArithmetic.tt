@@ -20,18 +20,17 @@ namespace Microsoft.Data.Analysis
         where T : unmanaged
     {
         void HandleOperation(BinaryOperation operation, Span<T> left, Span<byte> leftValidity, ReadOnlySpan<T> right, ReadOnlySpan<byte> rightValidity);
+
         void HandleOperation(BinaryScalarOperation operation, Span<T> left, T right);
         void HandleOperation(BinaryScalarOperation operation, T left, Span<T> right, ReadOnlySpan<byte> rightValidity);
+
+        void HandleOperation(BinaryIntOperation operation, Span<T> left, int right);
 
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.Comparison) { #>
         PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right);
-<# } #>
-<# else if (method.MethodType == MethodType.ComparisonScalar) { #>
+<# } else if (method.MethodType == MethodType.ComparisonScalar) {#>
         PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> column, T scalar);
-<# } #>
-<# else if (method.MethodType == MethodType.BinaryInt) { #>
-        void <#=method.MethodName#>(PrimitiveColumnContainer<T> column, int value);
 <# } #>
 <# } #>
     }
@@ -62,36 +61,16 @@ namespace Microsoft.Data.Analysis
 
         public virtual void HandleOperation(BinaryScalarOperation operation, Span<T> left, T right)
         {
-            if (operation == BinaryScalarOperation.Divide)
+            switch (operation)
             {
-                Divide(left, right);
-                return;
-            }
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.BinaryScalar) { #>
-<# if (method.MethodName != "Divide") { #>
-            else if (operation == BinaryScalarOperation.<#=method.MethodName#>)
-                <#=method.MethodName#>(left, right);
+                case BinaryScalarOperation.<#=method.MethodName#>:
+                    <#=method.MethodName#>(left, right);
+                    break;
 <# } #>
 <# } #>
-<# } #>
-        }
-
-        public virtual void HandleOperation(BinaryScalarOperation operation, Span<T> left, T right, Span<byte> rightValidity)
-        {
-            if (operation == BinaryScalarOperation.Divide)
-            {
-                Divide(left, right);
-                return;
             }
-<# foreach (MethodConfiguration method in methodConfiguration) { #>
-<# if (method.MethodType == MethodType.BinaryScalar) { #>
-<# if (method.MethodName != "Divide") { #>
-            else if (operation == BinaryScalarOperation.<#=method.MethodName#>)
-                <#=method.MethodName#>(left, right);
-<# } #>
-<# } #>
-<# } #>
         }
 
         public virtual void HandleOperation(BinaryScalarOperation operation, T left, Span<T> right, ReadOnlySpan<byte> rightValidity)
@@ -111,6 +90,20 @@ namespace Microsoft.Data.Analysis
 <# } #>
         }
 
+        public virtual void HandleOperation(BinaryIntOperation operation, Span<T> left, int right)
+        {
+            switch (operation)
+            {
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType == MethodType.BinaryInt) { #>
+                case BinaryIntOperation.<#=method.MethodName#>:
+                    <#=method.MethodName#>(left, right);
+                    break;
+<# } #>
+<# } #>
+            }
+        }
+
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.Comparison) { #>
         public virtual PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right) => throw new NotSupportedException();
@@ -121,22 +114,18 @@ namespace Microsoft.Data.Analysis
 <# else if (method.MethodType == MethodType.Binary) { #>
 <# if (method.MethodName == "Divide") { #>
         public virtual void <#=method.MethodName#>(Span<T> left, Span<byte> leftValidity, ReadOnlySpan<T> right, ReadOnlySpan<byte> rightValidity) => throw new NotSupportedException();
-<# } #>
-<# else { #>
+<# } else {#>
         public virtual void <#=method.MethodName#>(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
 <# } #>
-<# } #>
-<# else if (method.MethodType == MethodType.BinaryScalar) { #>
+<# } else if (method.MethodType == MethodType.BinaryScalar) { #>
         public virtual void <#=method.MethodName#>(Span<T> left, T scalar) => throw new NotSupportedException();
 <# if (method.MethodName == "Divide") { #>
         public virtual void <#=method.MethodName#>(T left, Span<T> right, ReadOnlySpan<byte> rightValidity) => throw new NotSupportedException();
-<# } #>
-<# else { #>
+<# } else { #>
         public virtual void <#=method.MethodName#>(T left, Span<T> right) => throw new NotSupportedException();
 <# } #>
-<# } #>
-<# else if (method.MethodType == MethodType.BinaryInt) { #>
-        public virtual void <#=method.MethodName#>(PrimitiveColumnContainer<T> column, int value) => throw new NotSupportedException();
+<# } else if (method.MethodType == MethodType.BinaryInt) { #>
+        public virtual void <#=method.MethodName#>(Span<T> left, int right) => throw new NotSupportedException();
 <# } #>
 <# } #>
 
@@ -164,12 +153,10 @@ namespace Microsoft.Data.Analysis
 <# if (method.MethodType == MethodType.Comparison) { #>
 
         public override PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> left, PrimitiveColumnContainer<<#=type.TypeName#>> right)
-<# } #>
-<# else if (method.MethodType == MethodType.ComparisonScalar) { #>
+<# } else if (method.MethodType == MethodType.ComparisonScalar) {#>
 
         public override PrimitiveColumnContainer<bool> <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, <#=type.TypeName#> scalar)
-<# } #>
-<# else if (method.MethodType == MethodType.Binary) { #>
+<# } else if (method.MethodType == MethodType.Binary) { #>
 <# if (method.MethodName == "Divide") { #>
         public override void <#=method.MethodName#>(Span<<#=type.TypeName#>> left, Span<byte> leftValidity, ReadOnlySpan<<#=type.TypeName#>> right, ReadOnlySpan<byte> rightValidity)
         {
@@ -218,9 +205,13 @@ namespace Microsoft.Data.Analysis
 <# } #>
 <# else if (method.MethodType == MethodType.BinaryInt) { #>
 
-        public override void <#=method.MethodName#>(PrimitiveColumnContainer<<#=type.TypeName#>> column, int value)
+        public override void <#=method.MethodName#>(Span<<#=type.TypeName#>> left, int right)
+        {
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (<#=type.TypeName#>)(left[i] <#= method.Operator #> right);
+        }
 <# } #>
-<# if (method.MethodType != MethodType.Binary && method.MethodType != MethodType.BinaryScalar) { #>
+<# if (method.MethodType != MethodType.Binary && method.MethodType != MethodType.BinaryScalar && method.MethodType != MethodType.BinaryInt) { #>
         {
 <# if (method.MethodType == MethodType.Comparison) { #>
             PrimitiveColumnContainer<bool> ret = new PrimitiveColumnContainer<bool>(left.Length);
@@ -243,9 +234,7 @@ namespace Microsoft.Data.Analysis
 <# } #>
                 for (int i = 0; i < span.Length; i++)
                 {
-<# if (method.MethodType == MethodType.BinaryInt) { #>
-                    span[i] = (<#=type.TypeName#>)(span[i] <#= method.Operator #> <#= method.Op2Name #>);
-<# } else if (method.MethodType == MethodType.Comparison) { #>
+<# if (method.MethodType == MethodType.Comparison) { #>
                     ret[index++] = (span[i] <#= method.Operator #> otherSpan[i]);
 <# } else if (method.MethodType == MethodType.ComparisonScalar) { #>
                     ret[index++] = (span[i] <#= method.Operator #> <#= method.Op2Name #>);

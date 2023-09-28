@@ -13,11 +13,12 @@ namespace Microsoft.Data.Analysis
         where T : unmanaged
     {
         void HandleOperation(BinaryOperation operation, Span<T> left, Span<byte> leftValidity, ReadOnlySpan<T> right, ReadOnlySpan<byte> rightValidity);
+
         void HandleOperation(BinaryScalarOperation operation, Span<T> left, T right);
         void HandleOperation(BinaryScalarOperation operation, T left, Span<T> right, ReadOnlySpan<byte> rightValidity);
 
-        void LeftShift(PrimitiveColumnContainer<T> column, int value);
-        void RightShift(PrimitiveColumnContainer<T> column, int value);
+        void HandleOperation(BinaryIntOperation operation, Span<T> left, int right);
+
         PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right);
         PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<T> column, T scalar);
         PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right);
@@ -64,48 +65,33 @@ namespace Microsoft.Data.Analysis
 
         public virtual void HandleOperation(BinaryScalarOperation operation, Span<T> left, T right)
         {
-            if (operation == BinaryScalarOperation.Divide)
+            switch (operation)
             {
-                Divide(left, right);
-                return;
+                case BinaryScalarOperation.Add:
+                    Add(left, right);
+                    break;
+                case BinaryScalarOperation.Subtract:
+                    Subtract(left, right);
+                    break;
+                case BinaryScalarOperation.Multiply:
+                    Multiply(left, right);
+                    break;
+                case BinaryScalarOperation.Divide:
+                    Divide(left, right);
+                    break;
+                case BinaryScalarOperation.Modulo:
+                    Modulo(left, right);
+                    break;
+                case BinaryScalarOperation.And:
+                    And(left, right);
+                    break;
+                case BinaryScalarOperation.Or:
+                    Or(left, right);
+                    break;
+                case BinaryScalarOperation.Xor:
+                    Xor(left, right);
+                    break;
             }
-            else if (operation == BinaryScalarOperation.Add)
-                Add(left, right);
-            else if (operation == BinaryScalarOperation.Subtract)
-                Subtract(left, right);
-            else if (operation == BinaryScalarOperation.Multiply)
-                Multiply(left, right);
-            else if (operation == BinaryScalarOperation.Modulo)
-                Modulo(left, right);
-            else if (operation == BinaryScalarOperation.And)
-                And(left, right);
-            else if (operation == BinaryScalarOperation.Or)
-                Or(left, right);
-            else if (operation == BinaryScalarOperation.Xor)
-                Xor(left, right);
-        }
-
-        public virtual void HandleOperation(BinaryScalarOperation operation, Span<T> left, T right, Span<byte> rightValidity)
-        {
-            if (operation == BinaryScalarOperation.Divide)
-            {
-                Divide(left, right);
-                return;
-            }
-            else if (operation == BinaryScalarOperation.Add)
-                Add(left, right);
-            else if (operation == BinaryScalarOperation.Subtract)
-                Subtract(left, right);
-            else if (operation == BinaryScalarOperation.Multiply)
-                Multiply(left, right);
-            else if (operation == BinaryScalarOperation.Modulo)
-                Modulo(left, right);
-            else if (operation == BinaryScalarOperation.And)
-                And(left, right);
-            else if (operation == BinaryScalarOperation.Or)
-                Or(left, right);
-            else if (operation == BinaryScalarOperation.Xor)
-                Xor(left, right);
         }
 
         public virtual void HandleOperation(BinaryScalarOperation operation, T left, Span<T> right, ReadOnlySpan<byte> rightValidity)
@@ -129,6 +115,19 @@ namespace Microsoft.Data.Analysis
                 Or(left, right);
             else if (operation == BinaryScalarOperation.Xor)
                 Xor(left, right);
+        }
+
+        public virtual void HandleOperation(BinaryIntOperation operation, Span<T> left, int right)
+        {
+            switch (operation)
+            {
+                case BinaryIntOperation.LeftShift:
+                    LeftShift(left, right);
+                    break;
+                case BinaryIntOperation.RightShift:
+                    RightShift(left, right);
+                    break;
+            }
         }
 
         public virtual void Add(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
@@ -155,8 +154,8 @@ namespace Microsoft.Data.Analysis
         public virtual void Xor(Span<T> left, ReadOnlySpan<T> right) => throw new NotSupportedException();
         public virtual void Xor(Span<T> left, T scalar) => throw new NotSupportedException();
         public virtual void Xor(T left, Span<T> right) => throw new NotSupportedException();
-        public virtual void LeftShift(PrimitiveColumnContainer<T> column, int value) => throw new NotSupportedException();
-        public virtual void RightShift(PrimitiveColumnContainer<T> column, int value) => throw new NotSupportedException();
+        public virtual void LeftShift(Span<T> left, int right) => throw new NotSupportedException();
+        public virtual void RightShift(Span<T> left, int right) => throw new NotSupportedException();
         public virtual PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right) => throw new NotSupportedException();
         public virtual PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<T> column, T scalar) => throw new NotSupportedException();
         public virtual PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<T> left, PrimitiveColumnContainer<T> right) => throw new NotSupportedException();
@@ -474,30 +473,16 @@ namespace Microsoft.Data.Analysis
                 right[i] = (byte)(left ^ right[i]);
         }
 
-        public override void LeftShift(PrimitiveColumnContainer<byte> column, int value)
+        public override void LeftShift(Span<byte> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(span[i] << value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (byte)(left[i] << right);
         }
 
-        public override void RightShift(PrimitiveColumnContainer<byte> column, int value)
+        public override void RightShift(Span<byte> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (byte)(span[i] >> value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (byte)(left[i] >> right);
         }
 
         public override PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<byte> left, PrimitiveColumnContainer<byte> right)
@@ -834,30 +819,16 @@ namespace Microsoft.Data.Analysis
                 right[i] = (char)(left ^ right[i]);
         }
 
-        public override void LeftShift(PrimitiveColumnContainer<char> column, int value)
+        public override void LeftShift(Span<char> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(span[i] << value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (char)(left[i] << right);
         }
 
-        public override void RightShift(PrimitiveColumnContainer<char> column, int value)
+        public override void RightShift(Span<char> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)(span[i] >> value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (char)(left[i] >> right);
         }
 
         public override PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<char> left, PrimitiveColumnContainer<char> right)
@@ -2043,30 +2014,16 @@ namespace Microsoft.Data.Analysis
                 right[i] = (int)(left ^ right[i]);
         }
 
-        public override void LeftShift(PrimitiveColumnContainer<int> column, int value)
+        public override void LeftShift(Span<int> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(span[i] << value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (int)(left[i] << right);
         }
 
-        public override void RightShift(PrimitiveColumnContainer<int> column, int value)
+        public override void RightShift(Span<int> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (int)(span[i] >> value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (int)(left[i] >> right);
         }
 
         public override PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<int> left, PrimitiveColumnContainer<int> right)
@@ -2403,30 +2360,16 @@ namespace Microsoft.Data.Analysis
                 right[i] = (long)(left ^ right[i]);
         }
 
-        public override void LeftShift(PrimitiveColumnContainer<long> column, int value)
+        public override void LeftShift(Span<long> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(span[i] << value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (long)(left[i] << right);
         }
 
-        public override void RightShift(PrimitiveColumnContainer<long> column, int value)
+        public override void RightShift(Span<long> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (long)(span[i] >> value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (long)(left[i] >> right);
         }
 
         public override PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<long> left, PrimitiveColumnContainer<long> right)
@@ -2763,30 +2706,16 @@ namespace Microsoft.Data.Analysis
                 right[i] = (sbyte)(left ^ right[i]);
         }
 
-        public override void LeftShift(PrimitiveColumnContainer<sbyte> column, int value)
+        public override void LeftShift(Span<sbyte> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(span[i] << value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (sbyte)(left[i] << right);
         }
 
-        public override void RightShift(PrimitiveColumnContainer<sbyte> column, int value)
+        public override void RightShift(Span<sbyte> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (sbyte)(span[i] >> value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (sbyte)(left[i] >> right);
         }
 
         public override PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<sbyte> left, PrimitiveColumnContainer<sbyte> right)
@@ -3123,30 +3052,16 @@ namespace Microsoft.Data.Analysis
                 right[i] = (short)(left ^ right[i]);
         }
 
-        public override void LeftShift(PrimitiveColumnContainer<short> column, int value)
+        public override void LeftShift(Span<short> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(span[i] << value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (short)(left[i] << right);
         }
 
-        public override void RightShift(PrimitiveColumnContainer<short> column, int value)
+        public override void RightShift(Span<short> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (short)(span[i] >> value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (short)(left[i] >> right);
         }
 
         public override PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<short> left, PrimitiveColumnContainer<short> right)
@@ -3483,30 +3398,16 @@ namespace Microsoft.Data.Analysis
                 right[i] = (uint)(left ^ right[i]);
         }
 
-        public override void LeftShift(PrimitiveColumnContainer<uint> column, int value)
+        public override void LeftShift(Span<uint> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(span[i] << value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (uint)(left[i] << right);
         }
 
-        public override void RightShift(PrimitiveColumnContainer<uint> column, int value)
+        public override void RightShift(Span<uint> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (uint)(span[i] >> value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (uint)(left[i] >> right);
         }
 
         public override PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<uint> left, PrimitiveColumnContainer<uint> right)
@@ -3843,30 +3744,16 @@ namespace Microsoft.Data.Analysis
                 right[i] = (ulong)(left ^ right[i]);
         }
 
-        public override void LeftShift(PrimitiveColumnContainer<ulong> column, int value)
+        public override void LeftShift(Span<ulong> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(span[i] << value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ulong)(left[i] << right);
         }
 
-        public override void RightShift(PrimitiveColumnContainer<ulong> column, int value)
+        public override void RightShift(Span<ulong> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ulong)(span[i] >> value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ulong)(left[i] >> right);
         }
 
         public override PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<ulong> left, PrimitiveColumnContainer<ulong> right)
@@ -4203,30 +4090,16 @@ namespace Microsoft.Data.Analysis
                 right[i] = (ushort)(left ^ right[i]);
         }
 
-        public override void LeftShift(PrimitiveColumnContainer<ushort> column, int value)
+        public override void LeftShift(Span<ushort> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(span[i] << value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ushort)(left[i] << right);
         }
 
-        public override void RightShift(PrimitiveColumnContainer<ushort> column, int value)
+        public override void RightShift(Span<ushort> left, int right)
         {
-            for (int b = 0; b < column.Buffers.Count; b++)
-            {
-                var mutableBuffer = column.Buffers.GetOrCreateMutable(b);
-                var span = mutableBuffer.Span;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    span[i] = (ushort)(span[i] >> value);
-                }
-            }
+            for (var i = 0; i < left.Length; i++)
+                left[i] = (ushort)(left[i] >> right);
         }
 
         public override PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<ushort> left, PrimitiveColumnContainer<ushort> right)

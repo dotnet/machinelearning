@@ -433,13 +433,13 @@ namespace Microsoft.Data.Analysis
         /// <inheritdoc/>
         public override DataFrameColumn LeftShift(int value, bool inPlace = false)
         {
-            return LeftShiftImplementation(value, inPlace);
+            return HandleOperationImplementation(BinaryIntOperation.LeftShift, value, inPlace);
         }
 
         /// <inheritdoc/>
         public override DataFrameColumn RightShift(int value, bool inPlace = false)
         {
-            return RightShiftImplementation(value, inPlace);
+            return HandleOperationImplementation(BinaryIntOperation.RightShift, value, inPlace);
         }
 
         /// <inheritdoc/>
@@ -744,134 +744,6 @@ namespace Microsoft.Data.Analysis
                 return ElementwiseLessThan(column);
             }
             return ElementwiseLessThanImplementation(value);
-        }
-
-        internal DataFrameColumn LeftShiftImplementation(int value, bool inPlace)
-        {
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    throw new NotSupportedException();
-                case Type byteType when byteType == typeof(byte):
-                    PrimitiveDataFrameColumn<byte> byteColumn = this as PrimitiveDataFrameColumn<byte>;
-                    PrimitiveDataFrameColumn<byte> newbyteColumn = inPlace ? byteColumn : byteColumn.Clone();
-                    newbyteColumn._columnContainer.LeftShift(value);
-                    return newbyteColumn;
-                case Type charType when charType == typeof(char):
-                    PrimitiveDataFrameColumn<char> charColumn = this as PrimitiveDataFrameColumn<char>;
-                    PrimitiveDataFrameColumn<char> newcharColumn = inPlace ? charColumn : charColumn.Clone();
-                    newcharColumn._columnContainer.LeftShift(value);
-                    return newcharColumn;
-                case Type decimalType when decimalType == typeof(decimal):
-                    throw new NotSupportedException();
-                case Type doubleType when doubleType == typeof(double):
-                    throw new NotSupportedException();
-                case Type floatType when floatType == typeof(float):
-                    throw new NotSupportedException();
-                case Type intType when intType == typeof(int):
-                    PrimitiveDataFrameColumn<int> intColumn = this as PrimitiveDataFrameColumn<int>;
-                    PrimitiveDataFrameColumn<int> newintColumn = inPlace ? intColumn : intColumn.Clone();
-                    newintColumn._columnContainer.LeftShift(value);
-                    return newintColumn;
-                case Type longType when longType == typeof(long):
-                    PrimitiveDataFrameColumn<long> longColumn = this as PrimitiveDataFrameColumn<long>;
-                    PrimitiveDataFrameColumn<long> newlongColumn = inPlace ? longColumn : longColumn.Clone();
-                    newlongColumn._columnContainer.LeftShift(value);
-                    return newlongColumn;
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                    PrimitiveDataFrameColumn<sbyte> sbyteColumn = this as PrimitiveDataFrameColumn<sbyte>;
-                    PrimitiveDataFrameColumn<sbyte> newsbyteColumn = inPlace ? sbyteColumn : sbyteColumn.Clone();
-                    newsbyteColumn._columnContainer.LeftShift(value);
-                    return newsbyteColumn;
-                case Type shortType when shortType == typeof(short):
-                    PrimitiveDataFrameColumn<short> shortColumn = this as PrimitiveDataFrameColumn<short>;
-                    PrimitiveDataFrameColumn<short> newshortColumn = inPlace ? shortColumn : shortColumn.Clone();
-                    newshortColumn._columnContainer.LeftShift(value);
-                    return newshortColumn;
-                case Type uintType when uintType == typeof(uint):
-                    PrimitiveDataFrameColumn<uint> uintColumn = this as PrimitiveDataFrameColumn<uint>;
-                    PrimitiveDataFrameColumn<uint> newuintColumn = inPlace ? uintColumn : uintColumn.Clone();
-                    newuintColumn._columnContainer.LeftShift(value);
-                    return newuintColumn;
-                case Type ulongType when ulongType == typeof(ulong):
-                    PrimitiveDataFrameColumn<ulong> ulongColumn = this as PrimitiveDataFrameColumn<ulong>;
-                    PrimitiveDataFrameColumn<ulong> newulongColumn = inPlace ? ulongColumn : ulongColumn.Clone();
-                    newulongColumn._columnContainer.LeftShift(value);
-                    return newulongColumn;
-                case Type ushortType when ushortType == typeof(ushort):
-                    PrimitiveDataFrameColumn<ushort> ushortColumn = this as PrimitiveDataFrameColumn<ushort>;
-                    PrimitiveDataFrameColumn<ushort> newushortColumn = inPlace ? ushortColumn : ushortColumn.Clone();
-                    newushortColumn._columnContainer.LeftShift(value);
-                    return newushortColumn;
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                    throw new NotSupportedException();
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
-        internal DataFrameColumn RightShiftImplementation(int value, bool inPlace)
-        {
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    throw new NotSupportedException();
-                case Type byteType when byteType == typeof(byte):
-                    PrimitiveDataFrameColumn<byte> byteColumn = this as PrimitiveDataFrameColumn<byte>;
-                    PrimitiveDataFrameColumn<byte> newbyteColumn = inPlace ? byteColumn : byteColumn.Clone();
-                    newbyteColumn._columnContainer.RightShift(value);
-                    return newbyteColumn;
-                case Type charType when charType == typeof(char):
-                    PrimitiveDataFrameColumn<char> charColumn = this as PrimitiveDataFrameColumn<char>;
-                    PrimitiveDataFrameColumn<char> newcharColumn = inPlace ? charColumn : charColumn.Clone();
-                    newcharColumn._columnContainer.RightShift(value);
-                    return newcharColumn;
-                case Type decimalType when decimalType == typeof(decimal):
-                    throw new NotSupportedException();
-                case Type doubleType when doubleType == typeof(double):
-                    throw new NotSupportedException();
-                case Type floatType when floatType == typeof(float):
-                    throw new NotSupportedException();
-                case Type intType when intType == typeof(int):
-                    PrimitiveDataFrameColumn<int> intColumn = this as PrimitiveDataFrameColumn<int>;
-                    PrimitiveDataFrameColumn<int> newintColumn = inPlace ? intColumn : intColumn.Clone();
-                    newintColumn._columnContainer.RightShift(value);
-                    return newintColumn;
-                case Type longType when longType == typeof(long):
-                    PrimitiveDataFrameColumn<long> longColumn = this as PrimitiveDataFrameColumn<long>;
-                    PrimitiveDataFrameColumn<long> newlongColumn = inPlace ? longColumn : longColumn.Clone();
-                    newlongColumn._columnContainer.RightShift(value);
-                    return newlongColumn;
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                    PrimitiveDataFrameColumn<sbyte> sbyteColumn = this as PrimitiveDataFrameColumn<sbyte>;
-                    PrimitiveDataFrameColumn<sbyte> newsbyteColumn = inPlace ? sbyteColumn : sbyteColumn.Clone();
-                    newsbyteColumn._columnContainer.RightShift(value);
-                    return newsbyteColumn;
-                case Type shortType when shortType == typeof(short):
-                    PrimitiveDataFrameColumn<short> shortColumn = this as PrimitiveDataFrameColumn<short>;
-                    PrimitiveDataFrameColumn<short> newshortColumn = inPlace ? shortColumn : shortColumn.Clone();
-                    newshortColumn._columnContainer.RightShift(value);
-                    return newshortColumn;
-                case Type uintType when uintType == typeof(uint):
-                    PrimitiveDataFrameColumn<uint> uintColumn = this as PrimitiveDataFrameColumn<uint>;
-                    PrimitiveDataFrameColumn<uint> newuintColumn = inPlace ? uintColumn : uintColumn.Clone();
-                    newuintColumn._columnContainer.RightShift(value);
-                    return newuintColumn;
-                case Type ulongType when ulongType == typeof(ulong):
-                    PrimitiveDataFrameColumn<ulong> ulongColumn = this as PrimitiveDataFrameColumn<ulong>;
-                    PrimitiveDataFrameColumn<ulong> newulongColumn = inPlace ? ulongColumn : ulongColumn.Clone();
-                    newulongColumn._columnContainer.RightShift(value);
-                    return newulongColumn;
-                case Type ushortType when ushortType == typeof(ushort):
-                    PrimitiveDataFrameColumn<ushort> ushortColumn = this as PrimitiveDataFrameColumn<ushort>;
-                    PrimitiveDataFrameColumn<ushort> newushortColumn = inPlace ? ushortColumn : ushortColumn.Clone();
-                    newushortColumn._columnContainer.RightShift(value);
-                    return newushortColumn;
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
-                    throw new NotSupportedException();
-                default:
-                    throw new NotSupportedException();
-            }
         }
 
         internal PrimitiveDataFrameColumn<bool> ElementwiseEqualsImplementation<U>(PrimitiveDataFrameColumn<U> column)

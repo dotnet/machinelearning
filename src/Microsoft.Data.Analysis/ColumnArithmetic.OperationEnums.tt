@@ -29,4 +29,13 @@ namespace Microsoft.Data.Analysis
 <# } #>
 <# } #>
     }
+
+    internal enum BinaryIntOperation
+    {
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType == MethodType.BinaryInt) { #>
+        <#=method.MethodName#>,
+<# } #>
+<# } #>
+    }
 }

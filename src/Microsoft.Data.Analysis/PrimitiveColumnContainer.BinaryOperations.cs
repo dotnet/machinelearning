@@ -60,16 +60,19 @@ namespace Microsoft.Data.Analysis
             return this;
         }
 
-        public PrimitiveColumnContainer<T> LeftShift(int value)
+        public PrimitiveColumnContainer<T> HandleOperation(BinaryIntOperation operation, int right)
         {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.LeftShift(this, value);
+            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+            for (int i = 0; i < this.Buffers.Count; i++)
+            {
+                var leftSpan = this.Buffers.GetOrCreateMutable(i).Span;
+
+                arithmetic.HandleOperation(operation, leftSpan, right);
+            }
+
             return this;
         }
-        public PrimitiveColumnContainer<T> RightShift(int value)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.RightShift(this, value);
-            return this;
-        }
+
         public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<T> right)
         {
             return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseEquals(this, right);

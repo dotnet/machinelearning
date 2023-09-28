@@ -63,7 +63,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int i = 0; i < _columnContainer.Buffers.Count; i++)
             {
-                var buffer = _columnContainer.Buffers[i];
+                ReadOnlyDataFrameBuffer<T> buffer = _columnContainer.Buffers[i];
                 yield return buffer.ReadOnlyMemory;
             }
         }
@@ -75,7 +75,7 @@ namespace Microsoft.Data.Analysis
         /// <returns>IEnumerable<see cref="ReadOnlyMemory{Byte}"/></returns>
         public IEnumerable<ReadOnlyMemory<byte>> GetReadOnlyNullBitMapBuffers()
         {
-            for (var i = 0; i < _columnContainer.NullBitMapBuffers.Count; i++)
+            for (int i = 0; i < _columnContainer.NullBitMapBuffers.Count; i++)
             {
                 ReadOnlyDataFrameBuffer<byte> buffer = _columnContainer.NullBitMapBuffers[i];
                 yield return buffer.RawReadOnlyMemory;
@@ -118,7 +118,7 @@ namespace Microsoft.Data.Analysis
 
         private int GetNullCount(long startIndex, int numberOfRows)
         {
-            var nullCount = 0;
+            int nullCount = 0;
             for (long i = startIndex; i < numberOfRows; i++)
             {
                 if (!IsValid(i))
@@ -129,15 +129,15 @@ namespace Microsoft.Data.Analysis
 
         protected internal override Apache.Arrow.Array ToArrowArray(long startIndex, int numberOfRows)
         {
-            var arrayIndex = numberOfRows == 0 ? 0 : _columnContainer.GetArrayContainingRowIndex(startIndex);
-            var offset = (int)(startIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity);
+            int arrayIndex = numberOfRows == 0 ? 0 : _columnContainer.GetArrayContainingRowIndex(startIndex);
+            int offset = (int)(startIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity);
 
             if (numberOfRows != 0 && numberOfRows > _columnContainer.Buffers[arrayIndex].Length - offset)
             {
                 throw new ArgumentException(Strings.SpansMultipleBuffers, nameof(numberOfRows));
             }
 
-            var nullCount = GetNullCount(startIndex, numberOfRows);
+            int nullCount = GetNullCount(startIndex, numberOfRows);
 
             //DateTime requires convertion
             if (this.DataType == typeof(DateTime))
@@ -151,7 +151,7 @@ namespace Microsoft.Data.Analysis
                 ReadOnlySpan<DateTime> valueSpan = MemoryMarshal.Cast<T, DateTime>(valueBuffer.ReadOnlySpan);
                 Date64Array.Builder builder = new Date64Array.Builder().Reserve(valueBuffer.Length);
 
-                for (var i = 0; i < valueBuffer.Length; i++)
+                for (int i = 0; i < valueBuffer.Length; i++)
                 {
                     if (BitUtility.GetBit(nullBuffer.ReadOnlySpan, i))
                         builder.Append(valueSpan[i]);
@@ -213,8 +213,8 @@ namespace Microsoft.Data.Analysis
             }
 
             var ret = new List<object>(length);
-            var endIndex = Math.Min(Length, startIndex + length);
-            for (var i = startIndex; i < endIndex; i++)
+            long endIndex = Math.Min(Length, startIndex + length);
+            for (long i = startIndex; i < endIndex; i++)
             {
                 ret.Add(this[i]);
             }
@@ -1155,6 +1155,70 @@ namespace Microsoft.Data.Analysis
                 case Type ulongType when ulongType == typeof(ulong):
                 case Type ushortType when ushortType == typeof(ushort):
                 case Type DateTimeType when DateTimeType == typeof(DateTime):
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        internal DataFrameColumn HandleOperationImplementation(BinaryIntOperation operation, int value, bool inPlace)
+        {
+            switch (typeof(T))
+            {
+                case Type boolType when boolType == typeof(bool):
+                    throw new NotSupportedException();
+                case Type byteType when byteType == typeof(byte):
+                    PrimitiveDataFrameColumn<byte> byteColumn = this as PrimitiveDataFrameColumn<byte>;
+                    PrimitiveDataFrameColumn<byte> newbyteColumn = inPlace ? byteColumn : byteColumn.Clone();
+                    newbyteColumn._columnContainer.HandleOperation(operation, value);
+                    return newbyteColumn;
+                case Type charType when charType == typeof(char):
+                    PrimitiveDataFrameColumn<char> charColumn = this as PrimitiveDataFrameColumn<char>;
+                    PrimitiveDataFrameColumn<char> newcharColumn = inPlace ? charColumn : charColumn.Clone();
+                    newcharColumn._columnContainer.HandleOperation(operation, value);
+                    return newcharColumn;
+                case Type decimalType when decimalType == typeof(decimal):
+                    throw new NotSupportedException();
+                case Type doubleType when doubleType == typeof(double):
+                    throw new NotSupportedException();
+                case Type floatType when floatType == typeof(float):
+                    throw new NotSupportedException();
+                case Type intType when intType == typeof(int):
+                    PrimitiveDataFrameColumn<int> intColumn = this as PrimitiveDataFrameColumn<int>;
+                    PrimitiveDataFrameColumn<int> newintColumn = inPlace ? intColumn : intColumn.Clone();
+                    newintColumn._columnContainer.HandleOperation(operation, value);
+                    return newintColumn;
+                case Type longType when longType == typeof(long):
+                    PrimitiveDataFrameColumn<long> longColumn = this as PrimitiveDataFrameColumn<long>;
+                    PrimitiveDataFrameColumn<long> newlongColumn = inPlace ? longColumn : longColumn.Clone();
+                    newlongColumn._columnContainer.HandleOperation(operation, value);
+                    return newlongColumn;
+                case Type sbyteType when sbyteType == typeof(sbyte):
+                    PrimitiveDataFrameColumn<sbyte> sbyteColumn = this as PrimitiveDataFrameColumn<sbyte>;
+                    PrimitiveDataFrameColumn<sbyte> newsbyteColumn = inPlace ? sbyteColumn : sbyteColumn.Clone();
+                    newsbyteColumn._columnContainer.HandleOperation(operation, value);
+                    return newsbyteColumn;
+                case Type shortType when shortType == typeof(short):
+                    PrimitiveDataFrameColumn<short> shortColumn = this as PrimitiveDataFrameColumn<short>;
+                    PrimitiveDataFrameColumn<short> newshortColumn = inPlace ? shortColumn : shortColumn.Clone();
+                    newshortColumn._columnContainer.HandleOperation(operation, value);
+                    return newshortColumn;
+                case Type uintType when uintType == typeof(uint):
+                    PrimitiveDataFrameColumn<uint> uintColumn = this as PrimitiveDataFrameColumn<uint>;
+                    PrimitiveDataFrameColumn<uint> newuintColumn = inPlace ? uintColumn : uintColumn.Clone();
+                    newuintColumn._columnContainer.HandleOperation(operation, value);
+                    return newuintColumn;
+                case Type ulongType when ulongType == typeof(ulong):
+                    PrimitiveDataFrameColumn<ulong> ulongColumn = this as PrimitiveDataFrameColumn<ulong>;
+                    PrimitiveDataFrameColumn<ulong> newulongColumn = inPlace ? ulongColumn : ulongColumn.Clone();
+                    newulongColumn._columnContainer.HandleOperation(operation, value);
+                    return newulongColumn;
+                case Type ushortType when ushortType == typeof(ushort):
+                    PrimitiveDataFrameColumn<ushort> ushortColumn = this as PrimitiveDataFrameColumn<ushort>;
+                    PrimitiveDataFrameColumn<ushort> newushortColumn = inPlace ? ushortColumn : ushortColumn.Clone();
+                    newushortColumn._columnContainer.HandleOperation(operation, value);
+                    return newushortColumn;
+                case Type DateTimeType when DateTimeType == typeof(DateTime):
+                    throw new NotSupportedException();
                 default:
                     throw new NotSupportedException();
             }

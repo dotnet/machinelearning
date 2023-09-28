@@ -319,7 +319,7 @@ namespace Microsoft.Data.Analysis
                 int originalBufferLength = mutableLastBuffer.Length;
                 int allocatable = (int)Math.Min(remaining, ReadOnlyDataFrameBuffer<T>.MaxCapacity - originalBufferLength);
                 mutableLastBuffer.IncreaseSize(allocatable);
-                //Calculate how many bytes we have additionaly allocate to store allocatable number of bits (need to take into account unused bits inside already allocated bytes)
+
                 //Calculate how many bytes we have additionaly allocate to store allocatable number of bits (need to take into account unused bits inside already allocated bytes)
                 int nullBufferAllocatable = (originalBufferLength + allocatable + 7) / 8 - lastNullBitMapBuffer.Length;
                 lastNullBitMapBuffer.IncreaseSize(nullBufferAllocatable);

@@ -29,4 +29,10 @@ namespace Microsoft.Data.Analysis
         Or,
         Xor,
     }
+
+    internal enum BinaryIntOperation
+    {
+        LeftShift,
+        RightShift,
+    }
 }
