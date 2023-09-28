@@ -11,6 +11,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.Data.Analysis
 {
+
     public partial class ByteDataFrameColumn
     {
         public Int32DataFrameColumn Add(ByteDataFrameColumn column)
@@ -309,6 +310,7 @@ namespace Microsoft.Data.Analysis
             return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
     }
+
     public partial class DecimalDataFrameColumn
     {
         public DecimalDataFrameColumn Add(ByteDataFrameColumn column, bool inPlace = false)
@@ -532,6 +534,7 @@ namespace Microsoft.Data.Analysis
             return HandleOperationImplementation(BinaryOperation.Modulo, otherdecimalColumn, inPlace);
         }
     }
+
     public partial class DoubleDataFrameColumn
     {
         public DoubleDataFrameColumn Add(ByteDataFrameColumn column, bool inPlace = false)
@@ -780,6 +783,7 @@ namespace Microsoft.Data.Analysis
             return HandleOperationImplementation(BinaryOperation.Modulo, otherdoubleColumn, inPlace);
         }
     }
+
     public partial class SingleDataFrameColumn
     {
         public SingleDataFrameColumn Add(ByteDataFrameColumn column, bool inPlace = false)
@@ -1028,6 +1032,7 @@ namespace Microsoft.Data.Analysis
             return HandleOperationImplementation(BinaryOperation.Modulo, otherfloatColumn, inPlace);
         }
     }
+
     public partial class Int32DataFrameColumn
     {
         public Int32DataFrameColumn Add(ByteDataFrameColumn column, bool inPlace = false)
@@ -1311,6 +1316,7 @@ namespace Microsoft.Data.Analysis
             return HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace);
         }
     }
+
     public partial class Int64DataFrameColumn
     {
         public Int64DataFrameColumn Add(ByteDataFrameColumn column, bool inPlace = false)
@@ -1559,6 +1565,7 @@ namespace Microsoft.Data.Analysis
             return HandleOperationImplementation(BinaryOperation.Modulo, otherlongColumn, inPlace);
         }
     }
+
     public partial class SByteDataFrameColumn
     {
         public Int32DataFrameColumn Add(ByteDataFrameColumn column)
@@ -1867,6 +1874,7 @@ namespace Microsoft.Data.Analysis
             return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
     }
+
     public partial class Int16DataFrameColumn
     {
         public Int32DataFrameColumn Add(ByteDataFrameColumn column)
@@ -2175,6 +2183,7 @@ namespace Microsoft.Data.Analysis
             return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
     }
+
     public partial class UInt32DataFrameColumn
     {
         public UInt32DataFrameColumn Add(ByteDataFrameColumn column, bool inPlace = false)
@@ -2463,6 +2472,7 @@ namespace Microsoft.Data.Analysis
             return HandleOperationImplementation(BinaryOperation.Modulo, otheruintColumn, inPlace);
         }
     }
+
     public partial class UInt64DataFrameColumn
     {
         public UInt64DataFrameColumn Add(ByteDataFrameColumn column, bool inPlace = false)
@@ -2726,6 +2736,7 @@ namespace Microsoft.Data.Analysis
             return HandleOperationImplementation(BinaryOperation.Modulo, otherulongColumn, inPlace);
         }
     }
+
     public partial class UInt16DataFrameColumn
     {
         public Int32DataFrameColumn Add(ByteDataFrameColumn column)
@@ -3024,6 +3035,7 @@ namespace Microsoft.Data.Analysis
             return intColumn.HandleOperationImplementation(BinaryOperation.Modulo, otherintColumn, inPlace: true);
         }
     }
+
     public partial class ByteDataFrameColumn
     {
         public Int32DataFrameColumn Add(byte value)
@@ -3034,7 +3046,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(byte value)
         {
@@ -3044,7 +3056,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(byte value)
         {
@@ -3054,7 +3066,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(byte value)
         {
@@ -3064,7 +3076,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(byte value)
         {
@@ -3074,7 +3086,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public DecimalDataFrameColumn Add(decimal value)
         {
@@ -3084,7 +3096,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseAdd(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DecimalDataFrameColumn Subtract(decimal value)
         {
@@ -3094,7 +3106,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseSubtract(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DecimalDataFrameColumn Multiply(decimal value)
         {
@@ -3104,7 +3116,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseMultiply(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DecimalDataFrameColumn Divide(decimal value)
         {
@@ -3114,7 +3126,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseDivide(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DecimalDataFrameColumn Modulo(decimal value)
         {
@@ -3124,7 +3136,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseModulo(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public DoubleDataFrameColumn Add(double value)
         {
@@ -3134,7 +3146,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(double value)
         {
@@ -3144,7 +3156,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(double value)
         {
@@ -3154,7 +3166,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(double value)
         {
@@ -3164,7 +3176,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(double value)
         {
@@ -3174,7 +3186,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public SingleDataFrameColumn Add(float value)
         {
@@ -3184,7 +3196,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(float value)
         {
@@ -3194,7 +3206,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(float value)
         {
@@ -3204,7 +3216,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public SingleDataFrameColumn Divide(float value)
         {
@@ -3214,7 +3226,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(float value)
         {
@@ -3224,7 +3236,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(int value)
         {
@@ -3234,7 +3246,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(int value)
         {
@@ -3244,7 +3256,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(int value)
         {
@@ -3254,7 +3266,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(int value)
         {
@@ -3264,7 +3276,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(int value)
         {
@@ -3274,7 +3286,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int64DataFrameColumn Add(long value)
         {
@@ -3284,7 +3296,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(long value)
         {
@@ -3294,7 +3306,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(long value)
         {
@@ -3304,7 +3316,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int64DataFrameColumn Divide(long value)
         {
@@ -3314,7 +3326,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(long value)
         {
@@ -3324,7 +3336,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(sbyte value)
         {
@@ -3334,7 +3346,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(sbyte value)
         {
@@ -3344,7 +3356,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(sbyte value)
         {
@@ -3354,7 +3366,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(sbyte value)
         {
@@ -3364,7 +3376,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(sbyte value)
         {
@@ -3374,7 +3386,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(short value)
         {
@@ -3384,7 +3396,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(short value)
         {
@@ -3394,7 +3406,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(short value)
         {
@@ -3404,7 +3416,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(short value)
         {
@@ -3414,7 +3426,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(short value)
         {
@@ -3424,7 +3436,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public UInt32DataFrameColumn Add(uint value)
         {
@@ -3434,7 +3446,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseAdd(uint value)
         {
             var uintColumn = CloneAsUInt32Column();
-            return uintColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return uintColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public UInt32DataFrameColumn Subtract(uint value)
         {
@@ -3444,7 +3456,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseSubtract(uint value)
         {
             var uintColumn = CloneAsUInt32Column();
-            return uintColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return uintColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public UInt32DataFrameColumn Multiply(uint value)
         {
@@ -3454,7 +3466,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseMultiply(uint value)
         {
             var uintColumn = CloneAsUInt32Column();
-            return uintColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return uintColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public UInt32DataFrameColumn Divide(uint value)
         {
@@ -3464,7 +3476,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseDivide(uint value)
         {
             var uintColumn = CloneAsUInt32Column();
-            return uintColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return uintColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public UInt32DataFrameColumn Modulo(uint value)
         {
@@ -3474,7 +3486,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseModulo(uint value)
         {
             var uintColumn = CloneAsUInt32Column();
-            return uintColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return uintColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public UInt64DataFrameColumn Add(ulong value)
         {
@@ -3484,7 +3496,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseAdd(ulong value)
         {
             var ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return ulongColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public UInt64DataFrameColumn Subtract(ulong value)
         {
@@ -3494,7 +3506,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseSubtract(ulong value)
         {
             var ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return ulongColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public UInt64DataFrameColumn Multiply(ulong value)
         {
@@ -3504,7 +3516,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseMultiply(ulong value)
         {
             var ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return ulongColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public UInt64DataFrameColumn Divide(ulong value)
         {
@@ -3514,7 +3526,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseDivide(ulong value)
         {
             var ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return ulongColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public UInt64DataFrameColumn Modulo(ulong value)
         {
@@ -3524,7 +3536,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseModulo(ulong value)
         {
             var ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return ulongColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(ushort value)
         {
@@ -3534,7 +3546,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(ushort value)
         {
@@ -3544,7 +3556,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(ushort value)
         {
@@ -3554,7 +3566,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(ushort value)
         {
@@ -3564,7 +3576,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(ushort value)
         {
@@ -3574,9 +3586,10 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
     }
+
     public partial class DecimalDataFrameColumn
     {
         public DecimalDataFrameColumn Add(byte value, bool inPlace = false)
@@ -3587,7 +3600,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseAdd(byte value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Subtract(byte value, bool inPlace = false)
         {
@@ -3597,7 +3610,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseSubtract(byte value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Multiply(byte value, bool inPlace = false)
         {
@@ -3607,7 +3620,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseMultiply(byte value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Divide(byte value, bool inPlace = false)
         {
@@ -3617,7 +3630,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseDivide(byte value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Modulo(byte value, bool inPlace = false)
         {
@@ -3627,7 +3640,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseModulo(byte value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Add(decimal value, bool inPlace = false)
         {
@@ -3635,7 +3648,7 @@ namespace Microsoft.Data.Analysis
         }
         public DecimalDataFrameColumn ReverseAdd(decimal value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace);
         }
         public DecimalDataFrameColumn Subtract(decimal value, bool inPlace = false)
         {
@@ -3643,7 +3656,7 @@ namespace Microsoft.Data.Analysis
         }
         public DecimalDataFrameColumn ReverseSubtract(decimal value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace);
         }
         public DecimalDataFrameColumn Multiply(decimal value, bool inPlace = false)
         {
@@ -3651,7 +3664,7 @@ namespace Microsoft.Data.Analysis
         }
         public DecimalDataFrameColumn ReverseMultiply(decimal value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace);
         }
         public DecimalDataFrameColumn Divide(decimal value, bool inPlace = false)
         {
@@ -3659,7 +3672,7 @@ namespace Microsoft.Data.Analysis
         }
         public DecimalDataFrameColumn ReverseDivide(decimal value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace);
         }
         public DecimalDataFrameColumn Modulo(decimal value, bool inPlace = false)
         {
@@ -3667,7 +3680,7 @@ namespace Microsoft.Data.Analysis
         }
         public DecimalDataFrameColumn ReverseModulo(decimal value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace);
         }
         public DecimalDataFrameColumn Add(int value, bool inPlace = false)
         {
@@ -3677,7 +3690,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseAdd(int value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Subtract(int value, bool inPlace = false)
         {
@@ -3687,7 +3700,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseSubtract(int value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Multiply(int value, bool inPlace = false)
         {
@@ -3697,7 +3710,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseMultiply(int value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Divide(int value, bool inPlace = false)
         {
@@ -3707,7 +3720,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseDivide(int value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Modulo(int value, bool inPlace = false)
         {
@@ -3717,7 +3730,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseModulo(int value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Add(long value, bool inPlace = false)
         {
@@ -3727,7 +3740,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseAdd(long value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Subtract(long value, bool inPlace = false)
         {
@@ -3737,7 +3750,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseSubtract(long value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Multiply(long value, bool inPlace = false)
         {
@@ -3747,7 +3760,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseMultiply(long value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Divide(long value, bool inPlace = false)
         {
@@ -3757,7 +3770,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseDivide(long value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Modulo(long value, bool inPlace = false)
         {
@@ -3767,7 +3780,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseModulo(long value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Add(sbyte value, bool inPlace = false)
         {
@@ -3777,7 +3790,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseAdd(sbyte value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Subtract(sbyte value, bool inPlace = false)
         {
@@ -3787,7 +3800,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseSubtract(sbyte value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Multiply(sbyte value, bool inPlace = false)
         {
@@ -3797,7 +3810,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseMultiply(sbyte value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Divide(sbyte value, bool inPlace = false)
         {
@@ -3807,7 +3820,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseDivide(sbyte value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Modulo(sbyte value, bool inPlace = false)
         {
@@ -3817,7 +3830,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseModulo(sbyte value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Add(short value, bool inPlace = false)
         {
@@ -3827,7 +3840,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseAdd(short value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Subtract(short value, bool inPlace = false)
         {
@@ -3837,7 +3850,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseSubtract(short value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Multiply(short value, bool inPlace = false)
         {
@@ -3847,7 +3860,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseMultiply(short value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Divide(short value, bool inPlace = false)
         {
@@ -3857,7 +3870,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseDivide(short value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Modulo(short value, bool inPlace = false)
         {
@@ -3867,7 +3880,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseModulo(short value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Add(uint value, bool inPlace = false)
         {
@@ -3877,7 +3890,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseAdd(uint value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Subtract(uint value, bool inPlace = false)
         {
@@ -3887,7 +3900,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseSubtract(uint value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Multiply(uint value, bool inPlace = false)
         {
@@ -3897,7 +3910,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseMultiply(uint value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Divide(uint value, bool inPlace = false)
         {
@@ -3907,7 +3920,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseDivide(uint value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Modulo(uint value, bool inPlace = false)
         {
@@ -3917,7 +3930,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseModulo(uint value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Add(ulong value, bool inPlace = false)
         {
@@ -3927,7 +3940,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseAdd(ulong value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Subtract(ulong value, bool inPlace = false)
         {
@@ -3937,7 +3950,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseSubtract(ulong value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Multiply(ulong value, bool inPlace = false)
         {
@@ -3947,7 +3960,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseMultiply(ulong value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Divide(ulong value, bool inPlace = false)
         {
@@ -3957,7 +3970,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseDivide(ulong value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Modulo(ulong value, bool inPlace = false)
         {
@@ -3967,7 +3980,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseModulo(ulong value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Add(ushort value, bool inPlace = false)
         {
@@ -3977,7 +3990,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseAdd(ushort value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Subtract(ushort value, bool inPlace = false)
         {
@@ -3987,7 +4000,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseSubtract(ushort value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Multiply(ushort value, bool inPlace = false)
         {
@@ -3997,7 +4010,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseMultiply(ushort value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Divide(ushort value, bool inPlace = false)
         {
@@ -4007,7 +4020,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseDivide(ushort value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Modulo(ushort value, bool inPlace = false)
         {
@@ -4017,9 +4030,10 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseModulo(ushort value, bool inPlace = false)
         {
             var convertedValue = (decimal)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
     }
+
     public partial class DoubleDataFrameColumn
     {
         public DoubleDataFrameColumn Add(byte value, bool inPlace = false)
@@ -4030,7 +4044,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(byte value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Subtract(byte value, bool inPlace = false)
         {
@@ -4040,7 +4054,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(byte value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Multiply(byte value, bool inPlace = false)
         {
@@ -4050,7 +4064,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(byte value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Divide(byte value, bool inPlace = false)
         {
@@ -4060,7 +4074,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(byte value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Modulo(byte value, bool inPlace = false)
         {
@@ -4070,7 +4084,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(byte value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Add(double value, bool inPlace = false)
         {
@@ -4078,7 +4092,7 @@ namespace Microsoft.Data.Analysis
         }
         public DoubleDataFrameColumn ReverseAdd(double value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace);
         }
         public DoubleDataFrameColumn Subtract(double value, bool inPlace = false)
         {
@@ -4086,7 +4100,7 @@ namespace Microsoft.Data.Analysis
         }
         public DoubleDataFrameColumn ReverseSubtract(double value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace);
         }
         public DoubleDataFrameColumn Multiply(double value, bool inPlace = false)
         {
@@ -4094,7 +4108,7 @@ namespace Microsoft.Data.Analysis
         }
         public DoubleDataFrameColumn ReverseMultiply(double value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace);
         }
         public DoubleDataFrameColumn Divide(double value, bool inPlace = false)
         {
@@ -4102,7 +4116,7 @@ namespace Microsoft.Data.Analysis
         }
         public DoubleDataFrameColumn ReverseDivide(double value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace);
         }
         public DoubleDataFrameColumn Modulo(double value, bool inPlace = false)
         {
@@ -4110,7 +4124,7 @@ namespace Microsoft.Data.Analysis
         }
         public DoubleDataFrameColumn ReverseModulo(double value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace);
         }
         public DoubleDataFrameColumn Add(float value, bool inPlace = false)
         {
@@ -4120,7 +4134,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(float value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Subtract(float value, bool inPlace = false)
         {
@@ -4130,7 +4144,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(float value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Multiply(float value, bool inPlace = false)
         {
@@ -4140,7 +4154,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(float value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Divide(float value, bool inPlace = false)
         {
@@ -4150,7 +4164,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(float value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Modulo(float value, bool inPlace = false)
         {
@@ -4160,7 +4174,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(float value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Add(int value, bool inPlace = false)
         {
@@ -4170,7 +4184,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(int value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Subtract(int value, bool inPlace = false)
         {
@@ -4180,7 +4194,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(int value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Multiply(int value, bool inPlace = false)
         {
@@ -4190,7 +4204,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(int value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Divide(int value, bool inPlace = false)
         {
@@ -4200,7 +4214,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(int value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Modulo(int value, bool inPlace = false)
         {
@@ -4210,7 +4224,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(int value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Add(long value, bool inPlace = false)
         {
@@ -4220,7 +4234,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(long value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Subtract(long value, bool inPlace = false)
         {
@@ -4230,7 +4244,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(long value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Multiply(long value, bool inPlace = false)
         {
@@ -4240,7 +4254,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(long value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Divide(long value, bool inPlace = false)
         {
@@ -4250,7 +4264,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(long value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Modulo(long value, bool inPlace = false)
         {
@@ -4260,7 +4274,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(long value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Add(sbyte value, bool inPlace = false)
         {
@@ -4270,7 +4284,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(sbyte value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Subtract(sbyte value, bool inPlace = false)
         {
@@ -4280,7 +4294,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(sbyte value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Multiply(sbyte value, bool inPlace = false)
         {
@@ -4290,7 +4304,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(sbyte value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Divide(sbyte value, bool inPlace = false)
         {
@@ -4300,7 +4314,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(sbyte value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Modulo(sbyte value, bool inPlace = false)
         {
@@ -4310,7 +4324,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(sbyte value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Add(short value, bool inPlace = false)
         {
@@ -4320,7 +4334,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(short value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Subtract(short value, bool inPlace = false)
         {
@@ -4330,7 +4344,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(short value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Multiply(short value, bool inPlace = false)
         {
@@ -4340,7 +4354,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(short value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Divide(short value, bool inPlace = false)
         {
@@ -4350,7 +4364,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(short value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Modulo(short value, bool inPlace = false)
         {
@@ -4360,7 +4374,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(short value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Add(uint value, bool inPlace = false)
         {
@@ -4370,7 +4384,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(uint value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Subtract(uint value, bool inPlace = false)
         {
@@ -4380,7 +4394,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(uint value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Multiply(uint value, bool inPlace = false)
         {
@@ -4390,7 +4404,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(uint value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Divide(uint value, bool inPlace = false)
         {
@@ -4400,7 +4414,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(uint value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Modulo(uint value, bool inPlace = false)
         {
@@ -4410,7 +4424,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(uint value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Add(ulong value, bool inPlace = false)
         {
@@ -4420,7 +4434,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(ulong value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Subtract(ulong value, bool inPlace = false)
         {
@@ -4430,7 +4444,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(ulong value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Multiply(ulong value, bool inPlace = false)
         {
@@ -4440,7 +4454,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(ulong value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Divide(ulong value, bool inPlace = false)
         {
@@ -4450,7 +4464,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(ulong value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Modulo(ulong value, bool inPlace = false)
         {
@@ -4460,7 +4474,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(ulong value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Add(ushort value, bool inPlace = false)
         {
@@ -4470,7 +4484,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(ushort value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Subtract(ushort value, bool inPlace = false)
         {
@@ -4480,7 +4494,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(ushort value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Multiply(ushort value, bool inPlace = false)
         {
@@ -4490,7 +4504,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(ushort value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Divide(ushort value, bool inPlace = false)
         {
@@ -4500,7 +4514,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(ushort value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Modulo(ushort value, bool inPlace = false)
         {
@@ -4510,9 +4524,10 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(ushort value, bool inPlace = false)
         {
             var convertedValue = (double)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
     }
+
     public partial class SingleDataFrameColumn
     {
         public SingleDataFrameColumn Add(byte value, bool inPlace = false)
@@ -4523,7 +4538,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(byte value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Subtract(byte value, bool inPlace = false)
         {
@@ -4533,7 +4548,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(byte value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Multiply(byte value, bool inPlace = false)
         {
@@ -4543,7 +4558,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(byte value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Divide(byte value, bool inPlace = false)
         {
@@ -4553,7 +4568,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(byte value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Modulo(byte value, bool inPlace = false)
         {
@@ -4563,7 +4578,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(byte value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DoubleDataFrameColumn Add(double value)
         {
@@ -4573,7 +4588,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(double value)
         {
@@ -4583,7 +4598,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(double value)
         {
@@ -4593,7 +4608,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(double value)
         {
@@ -4603,7 +4618,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(double value)
         {
@@ -4613,7 +4628,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public SingleDataFrameColumn Add(float value, bool inPlace = false)
         {
@@ -4621,7 +4636,7 @@ namespace Microsoft.Data.Analysis
         }
         public SingleDataFrameColumn ReverseAdd(float value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace);
         }
         public SingleDataFrameColumn Subtract(float value, bool inPlace = false)
         {
@@ -4629,7 +4644,7 @@ namespace Microsoft.Data.Analysis
         }
         public SingleDataFrameColumn ReverseSubtract(float value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace);
         }
         public SingleDataFrameColumn Multiply(float value, bool inPlace = false)
         {
@@ -4637,7 +4652,7 @@ namespace Microsoft.Data.Analysis
         }
         public SingleDataFrameColumn ReverseMultiply(float value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace);
         }
         public SingleDataFrameColumn Divide(float value, bool inPlace = false)
         {
@@ -4645,7 +4660,7 @@ namespace Microsoft.Data.Analysis
         }
         public SingleDataFrameColumn ReverseDivide(float value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace);
         }
         public SingleDataFrameColumn Modulo(float value, bool inPlace = false)
         {
@@ -4653,7 +4668,7 @@ namespace Microsoft.Data.Analysis
         }
         public SingleDataFrameColumn ReverseModulo(float value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace);
         }
         public SingleDataFrameColumn Add(int value, bool inPlace = false)
         {
@@ -4663,7 +4678,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(int value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Subtract(int value, bool inPlace = false)
         {
@@ -4673,7 +4688,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(int value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Multiply(int value, bool inPlace = false)
         {
@@ -4683,7 +4698,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(int value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Divide(int value, bool inPlace = false)
         {
@@ -4693,7 +4708,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(int value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Modulo(int value, bool inPlace = false)
         {
@@ -4703,7 +4718,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(int value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Add(long value, bool inPlace = false)
         {
@@ -4713,7 +4728,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(long value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Subtract(long value, bool inPlace = false)
         {
@@ -4723,7 +4738,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(long value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Multiply(long value, bool inPlace = false)
         {
@@ -4733,7 +4748,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(long value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Divide(long value, bool inPlace = false)
         {
@@ -4743,7 +4758,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(long value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Modulo(long value, bool inPlace = false)
         {
@@ -4753,7 +4768,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(long value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Add(sbyte value, bool inPlace = false)
         {
@@ -4763,7 +4778,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(sbyte value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Subtract(sbyte value, bool inPlace = false)
         {
@@ -4773,7 +4788,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(sbyte value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Multiply(sbyte value, bool inPlace = false)
         {
@@ -4783,7 +4798,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(sbyte value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Divide(sbyte value, bool inPlace = false)
         {
@@ -4793,7 +4808,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(sbyte value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Modulo(sbyte value, bool inPlace = false)
         {
@@ -4803,7 +4818,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(sbyte value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Add(short value, bool inPlace = false)
         {
@@ -4813,7 +4828,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(short value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Subtract(short value, bool inPlace = false)
         {
@@ -4823,7 +4838,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(short value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Multiply(short value, bool inPlace = false)
         {
@@ -4833,7 +4848,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(short value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Divide(short value, bool inPlace = false)
         {
@@ -4843,7 +4858,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(short value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Modulo(short value, bool inPlace = false)
         {
@@ -4853,7 +4868,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(short value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Add(uint value, bool inPlace = false)
         {
@@ -4863,7 +4878,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(uint value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Subtract(uint value, bool inPlace = false)
         {
@@ -4873,7 +4888,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(uint value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Multiply(uint value, bool inPlace = false)
         {
@@ -4883,7 +4898,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(uint value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Divide(uint value, bool inPlace = false)
         {
@@ -4893,7 +4908,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(uint value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Modulo(uint value, bool inPlace = false)
         {
@@ -4903,7 +4918,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(uint value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Add(ulong value, bool inPlace = false)
         {
@@ -4913,7 +4928,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(ulong value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Subtract(ulong value, bool inPlace = false)
         {
@@ -4923,7 +4938,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(ulong value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Multiply(ulong value, bool inPlace = false)
         {
@@ -4933,7 +4948,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(ulong value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Divide(ulong value, bool inPlace = false)
         {
@@ -4943,7 +4958,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(ulong value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Modulo(ulong value, bool inPlace = false)
         {
@@ -4953,7 +4968,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(ulong value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Add(ushort value, bool inPlace = false)
         {
@@ -4963,7 +4978,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(ushort value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Subtract(ushort value, bool inPlace = false)
         {
@@ -4973,7 +4988,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(ushort value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Multiply(ushort value, bool inPlace = false)
         {
@@ -4983,7 +4998,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(ushort value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Divide(ushort value, bool inPlace = false)
         {
@@ -4993,7 +5008,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(ushort value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public SingleDataFrameColumn Modulo(ushort value, bool inPlace = false)
         {
@@ -5003,9 +5018,10 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(ushort value, bool inPlace = false)
         {
             var convertedValue = (float)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
     }
+
     public partial class Int32DataFrameColumn
     {
         public Int32DataFrameColumn Add(byte value, bool inPlace = false)
@@ -5016,7 +5032,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(byte value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Subtract(byte value, bool inPlace = false)
         {
@@ -5026,7 +5042,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(byte value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Multiply(byte value, bool inPlace = false)
         {
@@ -5036,7 +5052,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(byte value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Divide(byte value, bool inPlace = false)
         {
@@ -5046,7 +5062,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(byte value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Modulo(byte value, bool inPlace = false)
         {
@@ -5056,7 +5072,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(byte value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Add(decimal value)
         {
@@ -5066,7 +5082,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseAdd(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DecimalDataFrameColumn Subtract(decimal value)
         {
@@ -5076,7 +5092,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseSubtract(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DecimalDataFrameColumn Multiply(decimal value)
         {
@@ -5086,7 +5102,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseMultiply(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DecimalDataFrameColumn Divide(decimal value)
         {
@@ -5096,7 +5112,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseDivide(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DecimalDataFrameColumn Modulo(decimal value)
         {
@@ -5106,7 +5122,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseModulo(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public DoubleDataFrameColumn Add(double value)
         {
@@ -5116,7 +5132,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(double value)
         {
@@ -5126,7 +5142,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(double value)
         {
@@ -5136,7 +5152,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(double value)
         {
@@ -5146,7 +5162,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(double value)
         {
@@ -5156,7 +5172,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public SingleDataFrameColumn Add(float value)
         {
@@ -5166,7 +5182,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(float value)
         {
@@ -5176,7 +5192,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(float value)
         {
@@ -5186,7 +5202,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public SingleDataFrameColumn Divide(float value)
         {
@@ -5196,7 +5212,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(float value)
         {
@@ -5206,7 +5222,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(int value, bool inPlace = false)
         {
@@ -5214,7 +5230,7 @@ namespace Microsoft.Data.Analysis
         }
         public Int32DataFrameColumn ReverseAdd(int value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace);
         }
         public Int32DataFrameColumn Subtract(int value, bool inPlace = false)
         {
@@ -5222,7 +5238,7 @@ namespace Microsoft.Data.Analysis
         }
         public Int32DataFrameColumn ReverseSubtract(int value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace);
         }
         public Int32DataFrameColumn Multiply(int value, bool inPlace = false)
         {
@@ -5230,7 +5246,7 @@ namespace Microsoft.Data.Analysis
         }
         public Int32DataFrameColumn ReverseMultiply(int value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace);
         }
         public Int32DataFrameColumn Divide(int value, bool inPlace = false)
         {
@@ -5238,7 +5254,7 @@ namespace Microsoft.Data.Analysis
         }
         public Int32DataFrameColumn ReverseDivide(int value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace);
         }
         public Int32DataFrameColumn Modulo(int value, bool inPlace = false)
         {
@@ -5246,7 +5262,7 @@ namespace Microsoft.Data.Analysis
         }
         public Int32DataFrameColumn ReverseModulo(int value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace);
         }
         public Int64DataFrameColumn Add(long value)
         {
@@ -5256,7 +5272,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(long value)
         {
@@ -5266,7 +5282,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(long value)
         {
@@ -5276,7 +5292,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int64DataFrameColumn Divide(long value)
         {
@@ -5286,7 +5302,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(long value)
         {
@@ -5296,7 +5312,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(sbyte value, bool inPlace = false)
         {
@@ -5306,7 +5322,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(sbyte value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Subtract(sbyte value, bool inPlace = false)
         {
@@ -5316,7 +5332,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(sbyte value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Multiply(sbyte value, bool inPlace = false)
         {
@@ -5326,7 +5342,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(sbyte value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Divide(sbyte value, bool inPlace = false)
         {
@@ -5336,7 +5352,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(sbyte value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Modulo(sbyte value, bool inPlace = false)
         {
@@ -5346,7 +5362,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(sbyte value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Add(short value, bool inPlace = false)
         {
@@ -5356,7 +5372,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(short value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Subtract(short value, bool inPlace = false)
         {
@@ -5366,7 +5382,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(short value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Multiply(short value, bool inPlace = false)
         {
@@ -5376,7 +5392,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(short value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Divide(short value, bool inPlace = false)
         {
@@ -5386,7 +5402,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(short value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Modulo(short value, bool inPlace = false)
         {
@@ -5396,7 +5412,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(short value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Add(uint value)
         {
@@ -5406,7 +5422,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(uint value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(uint value)
         {
@@ -5416,7 +5432,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(uint value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(uint value)
         {
@@ -5426,7 +5442,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(uint value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int64DataFrameColumn Divide(uint value)
         {
@@ -5436,7 +5452,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(uint value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(uint value)
         {
@@ -5446,7 +5462,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(uint value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public SingleDataFrameColumn Add(ulong value)
         {
@@ -5456,7 +5472,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(ulong value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(ulong value)
         {
@@ -5466,7 +5482,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(ulong value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(ulong value)
         {
@@ -5476,7 +5492,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(ulong value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public SingleDataFrameColumn Divide(ulong value)
         {
@@ -5486,7 +5502,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(ulong value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(ulong value)
         {
@@ -5496,7 +5512,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(ulong value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(ushort value, bool inPlace = false)
         {
@@ -5506,7 +5522,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(ushort value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Subtract(ushort value, bool inPlace = false)
         {
@@ -5516,7 +5532,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(ushort value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Multiply(ushort value, bool inPlace = false)
         {
@@ -5526,7 +5542,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(ushort value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Divide(ushort value, bool inPlace = false)
         {
@@ -5536,7 +5552,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(ushort value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public Int32DataFrameColumn Modulo(ushort value, bool inPlace = false)
         {
@@ -5546,9 +5562,10 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(ushort value, bool inPlace = false)
         {
             var convertedValue = (int)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
     }
+
     public partial class Int64DataFrameColumn
     {
         public Int64DataFrameColumn Add(byte value, bool inPlace = false)
@@ -5559,7 +5576,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(byte value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Subtract(byte value, bool inPlace = false)
         {
@@ -5569,7 +5586,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(byte value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Multiply(byte value, bool inPlace = false)
         {
@@ -5579,7 +5596,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(byte value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Divide(byte value, bool inPlace = false)
         {
@@ -5589,7 +5606,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(byte value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Modulo(byte value, bool inPlace = false)
         {
@@ -5599,7 +5616,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(byte value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Add(decimal value)
         {
@@ -5609,7 +5626,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseAdd(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DecimalDataFrameColumn Subtract(decimal value)
         {
@@ -5619,7 +5636,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseSubtract(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DecimalDataFrameColumn Multiply(decimal value)
         {
@@ -5629,7 +5646,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseMultiply(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DecimalDataFrameColumn Divide(decimal value)
         {
@@ -5639,7 +5656,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseDivide(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DecimalDataFrameColumn Modulo(decimal value)
         {
@@ -5649,7 +5666,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseModulo(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public DoubleDataFrameColumn Add(double value)
         {
@@ -5659,7 +5676,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(double value)
         {
@@ -5669,7 +5686,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(double value)
         {
@@ -5679,7 +5696,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(double value)
         {
@@ -5689,7 +5706,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(double value)
         {
@@ -5699,7 +5716,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public SingleDataFrameColumn Add(float value)
         {
@@ -5709,7 +5726,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(float value)
         {
@@ -5719,7 +5736,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(float value)
         {
@@ -5729,7 +5746,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public SingleDataFrameColumn Divide(float value)
         {
@@ -5739,7 +5756,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(float value)
         {
@@ -5749,7 +5766,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int64DataFrameColumn Add(int value, bool inPlace = false)
         {
@@ -5759,7 +5776,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(int value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Subtract(int value, bool inPlace = false)
         {
@@ -5769,7 +5786,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(int value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Multiply(int value, bool inPlace = false)
         {
@@ -5779,7 +5796,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(int value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Divide(int value, bool inPlace = false)
         {
@@ -5789,7 +5806,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(int value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Modulo(int value, bool inPlace = false)
         {
@@ -5799,7 +5816,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(int value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Add(long value, bool inPlace = false)
         {
@@ -5807,7 +5824,7 @@ namespace Microsoft.Data.Analysis
         }
         public Int64DataFrameColumn ReverseAdd(long value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace);
         }
         public Int64DataFrameColumn Subtract(long value, bool inPlace = false)
         {
@@ -5815,7 +5832,7 @@ namespace Microsoft.Data.Analysis
         }
         public Int64DataFrameColumn ReverseSubtract(long value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace);
         }
         public Int64DataFrameColumn Multiply(long value, bool inPlace = false)
         {
@@ -5823,7 +5840,7 @@ namespace Microsoft.Data.Analysis
         }
         public Int64DataFrameColumn ReverseMultiply(long value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace);
         }
         public Int64DataFrameColumn Divide(long value, bool inPlace = false)
         {
@@ -5831,7 +5848,7 @@ namespace Microsoft.Data.Analysis
         }
         public Int64DataFrameColumn ReverseDivide(long value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace);
         }
         public Int64DataFrameColumn Modulo(long value, bool inPlace = false)
         {
@@ -5839,7 +5856,7 @@ namespace Microsoft.Data.Analysis
         }
         public Int64DataFrameColumn ReverseModulo(long value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace);
         }
         public Int64DataFrameColumn Add(sbyte value, bool inPlace = false)
         {
@@ -5849,7 +5866,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(sbyte value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Subtract(sbyte value, bool inPlace = false)
         {
@@ -5859,7 +5876,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(sbyte value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Multiply(sbyte value, bool inPlace = false)
         {
@@ -5869,7 +5886,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(sbyte value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Divide(sbyte value, bool inPlace = false)
         {
@@ -5879,7 +5896,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(sbyte value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Modulo(sbyte value, bool inPlace = false)
         {
@@ -5889,7 +5906,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(sbyte value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Add(short value, bool inPlace = false)
         {
@@ -5899,7 +5916,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(short value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Subtract(short value, bool inPlace = false)
         {
@@ -5909,7 +5926,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(short value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Multiply(short value, bool inPlace = false)
         {
@@ -5919,7 +5936,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(short value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Divide(short value, bool inPlace = false)
         {
@@ -5929,7 +5946,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(short value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Modulo(short value, bool inPlace = false)
         {
@@ -5939,7 +5956,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(short value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Add(uint value, bool inPlace = false)
         {
@@ -5949,7 +5966,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(uint value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Subtract(uint value, bool inPlace = false)
         {
@@ -5959,7 +5976,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(uint value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Multiply(uint value, bool inPlace = false)
         {
@@ -5969,7 +5986,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(uint value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Divide(uint value, bool inPlace = false)
         {
@@ -5979,7 +5996,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(uint value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Modulo(uint value, bool inPlace = false)
         {
@@ -5989,7 +6006,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(uint value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Add(ushort value, bool inPlace = false)
         {
@@ -5999,7 +6016,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(ushort value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Subtract(ushort value, bool inPlace = false)
         {
@@ -6009,7 +6026,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(ushort value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Multiply(ushort value, bool inPlace = false)
         {
@@ -6019,7 +6036,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(ushort value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Divide(ushort value, bool inPlace = false)
         {
@@ -6029,7 +6046,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(ushort value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public Int64DataFrameColumn Modulo(ushort value, bool inPlace = false)
         {
@@ -6039,9 +6056,10 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(ushort value, bool inPlace = false)
         {
             var convertedValue = (long)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
     }
+
     public partial class SByteDataFrameColumn
     {
         public Int32DataFrameColumn Add(byte value)
@@ -6052,7 +6070,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(byte value)
         {
@@ -6062,7 +6080,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(byte value)
         {
@@ -6072,7 +6090,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(byte value)
         {
@@ -6082,7 +6100,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(byte value)
         {
@@ -6092,7 +6110,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public DecimalDataFrameColumn Add(decimal value)
         {
@@ -6102,7 +6120,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseAdd(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DecimalDataFrameColumn Subtract(decimal value)
         {
@@ -6112,7 +6130,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseSubtract(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DecimalDataFrameColumn Multiply(decimal value)
         {
@@ -6122,7 +6140,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseMultiply(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DecimalDataFrameColumn Divide(decimal value)
         {
@@ -6132,7 +6150,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseDivide(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DecimalDataFrameColumn Modulo(decimal value)
         {
@@ -6142,7 +6160,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseModulo(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public DoubleDataFrameColumn Add(double value)
         {
@@ -6152,7 +6170,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(double value)
         {
@@ -6162,7 +6180,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(double value)
         {
@@ -6172,7 +6190,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(double value)
         {
@@ -6182,7 +6200,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(double value)
         {
@@ -6192,7 +6210,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public SingleDataFrameColumn Add(float value)
         {
@@ -6202,7 +6220,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(float value)
         {
@@ -6212,7 +6230,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(float value)
         {
@@ -6222,7 +6240,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public SingleDataFrameColumn Divide(float value)
         {
@@ -6232,7 +6250,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(float value)
         {
@@ -6242,7 +6260,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(int value)
         {
@@ -6252,7 +6270,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(int value)
         {
@@ -6262,7 +6280,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(int value)
         {
@@ -6272,7 +6290,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(int value)
         {
@@ -6282,7 +6300,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(int value)
         {
@@ -6292,7 +6310,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int64DataFrameColumn Add(long value)
         {
@@ -6302,7 +6320,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(long value)
         {
@@ -6312,7 +6330,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(long value)
         {
@@ -6322,7 +6340,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int64DataFrameColumn Divide(long value)
         {
@@ -6332,7 +6350,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(long value)
         {
@@ -6342,7 +6360,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(sbyte value)
         {
@@ -6352,7 +6370,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(sbyte value)
         {
@@ -6362,7 +6380,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(sbyte value)
         {
@@ -6372,7 +6390,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(sbyte value)
         {
@@ -6382,7 +6400,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(sbyte value)
         {
@@ -6392,7 +6410,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(short value)
         {
@@ -6402,7 +6420,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(short value)
         {
@@ -6412,7 +6430,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(short value)
         {
@@ -6422,7 +6440,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(short value)
         {
@@ -6432,7 +6450,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(short value)
         {
@@ -6442,7 +6460,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int64DataFrameColumn Add(uint value)
         {
@@ -6452,7 +6470,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(uint value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(uint value)
         {
@@ -6462,7 +6480,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(uint value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(uint value)
         {
@@ -6472,7 +6490,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(uint value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int64DataFrameColumn Divide(uint value)
         {
@@ -6482,7 +6500,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(uint value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(uint value)
         {
@@ -6492,7 +6510,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(uint value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public SingleDataFrameColumn Add(ulong value)
         {
@@ -6502,7 +6520,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(ulong value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(ulong value)
         {
@@ -6512,7 +6530,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(ulong value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(ulong value)
         {
@@ -6522,7 +6540,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(ulong value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public SingleDataFrameColumn Divide(ulong value)
         {
@@ -6532,7 +6550,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(ulong value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(ulong value)
         {
@@ -6542,7 +6560,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(ulong value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(ushort value)
         {
@@ -6552,7 +6570,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(ushort value)
         {
@@ -6562,7 +6580,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(ushort value)
         {
@@ -6572,7 +6590,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(ushort value)
         {
@@ -6582,7 +6600,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(ushort value)
         {
@@ -6592,9 +6610,10 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
     }
+
     public partial class Int16DataFrameColumn
     {
         public Int32DataFrameColumn Add(byte value)
@@ -6605,7 +6624,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(byte value)
         {
@@ -6615,7 +6634,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(byte value)
         {
@@ -6625,7 +6644,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(byte value)
         {
@@ -6635,7 +6654,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(byte value)
         {
@@ -6645,7 +6664,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public DecimalDataFrameColumn Add(decimal value)
         {
@@ -6655,7 +6674,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseAdd(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DecimalDataFrameColumn Subtract(decimal value)
         {
@@ -6665,7 +6684,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseSubtract(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DecimalDataFrameColumn Multiply(decimal value)
         {
@@ -6675,7 +6694,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseMultiply(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DecimalDataFrameColumn Divide(decimal value)
         {
@@ -6685,7 +6704,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseDivide(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DecimalDataFrameColumn Modulo(decimal value)
         {
@@ -6695,7 +6714,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseModulo(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public DoubleDataFrameColumn Add(double value)
         {
@@ -6705,7 +6724,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(double value)
         {
@@ -6715,7 +6734,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(double value)
         {
@@ -6725,7 +6744,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(double value)
         {
@@ -6735,7 +6754,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(double value)
         {
@@ -6745,7 +6764,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public SingleDataFrameColumn Add(float value)
         {
@@ -6755,7 +6774,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(float value)
         {
@@ -6765,7 +6784,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(float value)
         {
@@ -6775,7 +6794,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public SingleDataFrameColumn Divide(float value)
         {
@@ -6785,7 +6804,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(float value)
         {
@@ -6795,7 +6814,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(int value)
         {
@@ -6805,7 +6824,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(int value)
         {
@@ -6815,7 +6834,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(int value)
         {
@@ -6825,7 +6844,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(int value)
         {
@@ -6835,7 +6854,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(int value)
         {
@@ -6845,7 +6864,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int64DataFrameColumn Add(long value)
         {
@@ -6855,7 +6874,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(long value)
         {
@@ -6865,7 +6884,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(long value)
         {
@@ -6875,7 +6894,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int64DataFrameColumn Divide(long value)
         {
@@ -6885,7 +6904,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(long value)
         {
@@ -6895,7 +6914,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(sbyte value)
         {
@@ -6905,7 +6924,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(sbyte value)
         {
@@ -6915,7 +6934,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(sbyte value)
         {
@@ -6925,7 +6944,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(sbyte value)
         {
@@ -6935,7 +6954,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(sbyte value)
         {
@@ -6945,7 +6964,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(short value)
         {
@@ -6955,7 +6974,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(short value)
         {
@@ -6965,7 +6984,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(short value)
         {
@@ -6975,7 +6994,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(short value)
         {
@@ -6985,7 +7004,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(short value)
         {
@@ -6995,7 +7014,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int64DataFrameColumn Add(uint value)
         {
@@ -7005,7 +7024,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(uint value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(uint value)
         {
@@ -7015,7 +7034,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(uint value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(uint value)
         {
@@ -7025,7 +7044,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(uint value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int64DataFrameColumn Divide(uint value)
         {
@@ -7035,7 +7054,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(uint value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(uint value)
         {
@@ -7045,7 +7064,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(uint value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public SingleDataFrameColumn Add(ulong value)
         {
@@ -7055,7 +7074,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(ulong value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(ulong value)
         {
@@ -7065,7 +7084,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(ulong value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(ulong value)
         {
@@ -7075,7 +7094,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(ulong value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public SingleDataFrameColumn Divide(ulong value)
         {
@@ -7085,7 +7104,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(ulong value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(ulong value)
         {
@@ -7095,7 +7114,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(ulong value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(ushort value)
         {
@@ -7105,7 +7124,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(ushort value)
         {
@@ -7115,7 +7134,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(ushort value)
         {
@@ -7125,7 +7144,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(ushort value)
         {
@@ -7135,7 +7154,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(ushort value)
         {
@@ -7145,9 +7164,10 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
     }
+
     public partial class UInt32DataFrameColumn
     {
         public UInt32DataFrameColumn Add(byte value, bool inPlace = false)
@@ -7158,7 +7178,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseAdd(byte value, bool inPlace = false)
         {
             var convertedValue = (uint)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public UInt32DataFrameColumn Subtract(byte value, bool inPlace = false)
         {
@@ -7168,7 +7188,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseSubtract(byte value, bool inPlace = false)
         {
             var convertedValue = (uint)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public UInt32DataFrameColumn Multiply(byte value, bool inPlace = false)
         {
@@ -7178,7 +7198,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseMultiply(byte value, bool inPlace = false)
         {
             var convertedValue = (uint)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public UInt32DataFrameColumn Divide(byte value, bool inPlace = false)
         {
@@ -7188,7 +7208,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseDivide(byte value, bool inPlace = false)
         {
             var convertedValue = (uint)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public UInt32DataFrameColumn Modulo(byte value, bool inPlace = false)
         {
@@ -7198,7 +7218,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseModulo(byte value, bool inPlace = false)
         {
             var convertedValue = (uint)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Add(decimal value)
         {
@@ -7208,7 +7228,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseAdd(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DecimalDataFrameColumn Subtract(decimal value)
         {
@@ -7218,7 +7238,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseSubtract(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DecimalDataFrameColumn Multiply(decimal value)
         {
@@ -7228,7 +7248,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseMultiply(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DecimalDataFrameColumn Divide(decimal value)
         {
@@ -7238,7 +7258,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseDivide(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DecimalDataFrameColumn Modulo(decimal value)
         {
@@ -7248,7 +7268,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseModulo(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public DoubleDataFrameColumn Add(double value)
         {
@@ -7258,7 +7278,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(double value)
         {
@@ -7268,7 +7288,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(double value)
         {
@@ -7278,7 +7298,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(double value)
         {
@@ -7288,7 +7308,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(double value)
         {
@@ -7298,7 +7318,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public SingleDataFrameColumn Add(float value)
         {
@@ -7308,7 +7328,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(float value)
         {
@@ -7318,7 +7338,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(float value)
         {
@@ -7328,7 +7348,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public SingleDataFrameColumn Divide(float value)
         {
@@ -7338,7 +7358,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(float value)
         {
@@ -7348,7 +7368,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int64DataFrameColumn Add(int value)
         {
@@ -7358,7 +7378,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(int value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(int value)
         {
@@ -7368,7 +7388,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(int value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(int value)
         {
@@ -7378,7 +7398,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(int value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int64DataFrameColumn Divide(int value)
         {
@@ -7388,7 +7408,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(int value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(int value)
         {
@@ -7398,7 +7418,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(int value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int64DataFrameColumn Add(long value)
         {
@@ -7408,7 +7428,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(long value)
         {
@@ -7418,7 +7438,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(long value)
         {
@@ -7428,7 +7448,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int64DataFrameColumn Divide(long value)
         {
@@ -7438,7 +7458,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(long value)
         {
@@ -7448,7 +7468,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int64DataFrameColumn Add(sbyte value)
         {
@@ -7458,7 +7478,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(sbyte value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(sbyte value)
         {
@@ -7468,7 +7488,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(sbyte value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(sbyte value)
         {
@@ -7478,7 +7498,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(sbyte value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int64DataFrameColumn Divide(sbyte value)
         {
@@ -7488,7 +7508,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(sbyte value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(sbyte value)
         {
@@ -7498,7 +7518,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(sbyte value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int64DataFrameColumn Add(short value)
         {
@@ -7508,7 +7528,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(short value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(short value)
         {
@@ -7518,7 +7538,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(short value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(short value)
         {
@@ -7528,7 +7548,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(short value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int64DataFrameColumn Divide(short value)
         {
@@ -7538,7 +7558,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(short value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(short value)
         {
@@ -7548,7 +7568,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(short value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public UInt32DataFrameColumn Add(uint value, bool inPlace = false)
         {
@@ -7556,7 +7576,7 @@ namespace Microsoft.Data.Analysis
         }
         public UInt32DataFrameColumn ReverseAdd(uint value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace);
         }
         public UInt32DataFrameColumn Subtract(uint value, bool inPlace = false)
         {
@@ -7564,7 +7584,7 @@ namespace Microsoft.Data.Analysis
         }
         public UInt32DataFrameColumn ReverseSubtract(uint value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace);
         }
         public UInt32DataFrameColumn Multiply(uint value, bool inPlace = false)
         {
@@ -7572,7 +7592,7 @@ namespace Microsoft.Data.Analysis
         }
         public UInt32DataFrameColumn ReverseMultiply(uint value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace);
         }
         public UInt32DataFrameColumn Divide(uint value, bool inPlace = false)
         {
@@ -7580,7 +7600,7 @@ namespace Microsoft.Data.Analysis
         }
         public UInt32DataFrameColumn ReverseDivide(uint value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace);
         }
         public UInt32DataFrameColumn Modulo(uint value, bool inPlace = false)
         {
@@ -7588,7 +7608,7 @@ namespace Microsoft.Data.Analysis
         }
         public UInt32DataFrameColumn ReverseModulo(uint value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace);
         }
         public UInt64DataFrameColumn Add(ulong value)
         {
@@ -7598,7 +7618,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseAdd(ulong value)
         {
             var ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return ulongColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public UInt64DataFrameColumn Subtract(ulong value)
         {
@@ -7608,7 +7628,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseSubtract(ulong value)
         {
             var ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return ulongColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public UInt64DataFrameColumn Multiply(ulong value)
         {
@@ -7618,7 +7638,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseMultiply(ulong value)
         {
             var ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return ulongColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public UInt64DataFrameColumn Divide(ulong value)
         {
@@ -7628,7 +7648,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseDivide(ulong value)
         {
             var ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return ulongColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public UInt64DataFrameColumn Modulo(ulong value)
         {
@@ -7638,7 +7658,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseModulo(ulong value)
         {
             var ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return ulongColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public UInt32DataFrameColumn Add(ushort value, bool inPlace = false)
         {
@@ -7648,7 +7668,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseAdd(ushort value, bool inPlace = false)
         {
             var convertedValue = (uint)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public UInt32DataFrameColumn Subtract(ushort value, bool inPlace = false)
         {
@@ -7658,7 +7678,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseSubtract(ushort value, bool inPlace = false)
         {
             var convertedValue = (uint)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public UInt32DataFrameColumn Multiply(ushort value, bool inPlace = false)
         {
@@ -7668,7 +7688,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseMultiply(ushort value, bool inPlace = false)
         {
             var convertedValue = (uint)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public UInt32DataFrameColumn Divide(ushort value, bool inPlace = false)
         {
@@ -7678,7 +7698,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseDivide(ushort value, bool inPlace = false)
         {
             var convertedValue = (uint)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public UInt32DataFrameColumn Modulo(ushort value, bool inPlace = false)
         {
@@ -7688,9 +7708,10 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseModulo(ushort value, bool inPlace = false)
         {
             var convertedValue = (uint)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
     }
+
     public partial class UInt64DataFrameColumn
     {
         public UInt64DataFrameColumn Add(byte value, bool inPlace = false)
@@ -7701,7 +7722,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseAdd(byte value, bool inPlace = false)
         {
             var convertedValue = (ulong)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public UInt64DataFrameColumn Subtract(byte value, bool inPlace = false)
         {
@@ -7711,7 +7732,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseSubtract(byte value, bool inPlace = false)
         {
             var convertedValue = (ulong)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public UInt64DataFrameColumn Multiply(byte value, bool inPlace = false)
         {
@@ -7721,7 +7742,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseMultiply(byte value, bool inPlace = false)
         {
             var convertedValue = (ulong)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public UInt64DataFrameColumn Divide(byte value, bool inPlace = false)
         {
@@ -7731,7 +7752,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseDivide(byte value, bool inPlace = false)
         {
             var convertedValue = (ulong)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public UInt64DataFrameColumn Modulo(byte value, bool inPlace = false)
         {
@@ -7741,7 +7762,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseModulo(byte value, bool inPlace = false)
         {
             var convertedValue = (ulong)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public DecimalDataFrameColumn Add(decimal value)
         {
@@ -7751,7 +7772,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseAdd(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DecimalDataFrameColumn Subtract(decimal value)
         {
@@ -7761,7 +7782,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseSubtract(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DecimalDataFrameColumn Multiply(decimal value)
         {
@@ -7771,7 +7792,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseMultiply(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DecimalDataFrameColumn Divide(decimal value)
         {
@@ -7781,7 +7802,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseDivide(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DecimalDataFrameColumn Modulo(decimal value)
         {
@@ -7791,7 +7812,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseModulo(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public DoubleDataFrameColumn Add(double value)
         {
@@ -7801,7 +7822,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(double value)
         {
@@ -7811,7 +7832,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(double value)
         {
@@ -7821,7 +7842,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(double value)
         {
@@ -7831,7 +7852,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(double value)
         {
@@ -7841,7 +7862,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public SingleDataFrameColumn Add(float value)
         {
@@ -7851,7 +7872,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(float value)
         {
@@ -7861,7 +7882,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(float value)
         {
@@ -7871,7 +7892,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public SingleDataFrameColumn Divide(float value)
         {
@@ -7881,7 +7902,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(float value)
         {
@@ -7891,7 +7912,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public SingleDataFrameColumn Add(int value)
         {
@@ -7901,7 +7922,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(int value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(int value)
         {
@@ -7911,7 +7932,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(int value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(int value)
         {
@@ -7921,7 +7942,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(int value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public SingleDataFrameColumn Divide(int value)
         {
@@ -7931,7 +7952,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(int value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(int value)
         {
@@ -7941,7 +7962,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(int value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public SingleDataFrameColumn Add(sbyte value)
         {
@@ -7951,7 +7972,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(sbyte value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(sbyte value)
         {
@@ -7961,7 +7982,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(sbyte value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(sbyte value)
         {
@@ -7971,7 +7992,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(sbyte value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public SingleDataFrameColumn Divide(sbyte value)
         {
@@ -7981,7 +8002,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(sbyte value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(sbyte value)
         {
@@ -7991,7 +8012,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(sbyte value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public SingleDataFrameColumn Add(short value)
         {
@@ -8001,7 +8022,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(short value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(short value)
         {
@@ -8011,7 +8032,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(short value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(short value)
         {
@@ -8021,7 +8042,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(short value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public SingleDataFrameColumn Divide(short value)
         {
@@ -8031,7 +8052,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(short value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(short value)
         {
@@ -8041,7 +8062,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(short value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public UInt64DataFrameColumn Add(uint value, bool inPlace = false)
         {
@@ -8051,7 +8072,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseAdd(uint value, bool inPlace = false)
         {
             var convertedValue = (ulong)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public UInt64DataFrameColumn Subtract(uint value, bool inPlace = false)
         {
@@ -8061,7 +8082,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseSubtract(uint value, bool inPlace = false)
         {
             var convertedValue = (ulong)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public UInt64DataFrameColumn Multiply(uint value, bool inPlace = false)
         {
@@ -8071,7 +8092,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseMultiply(uint value, bool inPlace = false)
         {
             var convertedValue = (ulong)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public UInt64DataFrameColumn Divide(uint value, bool inPlace = false)
         {
@@ -8081,7 +8102,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseDivide(uint value, bool inPlace = false)
         {
             var convertedValue = (ulong)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public UInt64DataFrameColumn Modulo(uint value, bool inPlace = false)
         {
@@ -8091,7 +8112,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseModulo(uint value, bool inPlace = false)
         {
             var convertedValue = (ulong)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
         public UInt64DataFrameColumn Add(ulong value, bool inPlace = false)
         {
@@ -8099,7 +8120,7 @@ namespace Microsoft.Data.Analysis
         }
         public UInt64DataFrameColumn ReverseAdd(ulong value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace);
         }
         public UInt64DataFrameColumn Subtract(ulong value, bool inPlace = false)
         {
@@ -8107,7 +8128,7 @@ namespace Microsoft.Data.Analysis
         }
         public UInt64DataFrameColumn ReverseSubtract(ulong value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace);
         }
         public UInt64DataFrameColumn Multiply(ulong value, bool inPlace = false)
         {
@@ -8115,7 +8136,7 @@ namespace Microsoft.Data.Analysis
         }
         public UInt64DataFrameColumn ReverseMultiply(ulong value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace);
         }
         public UInt64DataFrameColumn Divide(ulong value, bool inPlace = false)
         {
@@ -8123,7 +8144,7 @@ namespace Microsoft.Data.Analysis
         }
         public UInt64DataFrameColumn ReverseDivide(ulong value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace);
         }
         public UInt64DataFrameColumn Modulo(ulong value, bool inPlace = false)
         {
@@ -8131,7 +8152,7 @@ namespace Microsoft.Data.Analysis
         }
         public UInt64DataFrameColumn ReverseModulo(ulong value, bool inPlace = false)
         {
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace);
         }
         public UInt64DataFrameColumn Add(ushort value, bool inPlace = false)
         {
@@ -8141,7 +8162,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseAdd(ushort value, bool inPlace = false)
         {
             var convertedValue = (ulong)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, convertedValue, inPlace);
         }
         public UInt64DataFrameColumn Subtract(ushort value, bool inPlace = false)
         {
@@ -8151,7 +8172,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseSubtract(ushort value, bool inPlace = false)
         {
             var convertedValue = (ulong)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, convertedValue, inPlace);
         }
         public UInt64DataFrameColumn Multiply(ushort value, bool inPlace = false)
         {
@@ -8161,7 +8182,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseMultiply(ushort value, bool inPlace = false)
         {
             var convertedValue = (ulong)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, convertedValue, inPlace);
         }
         public UInt64DataFrameColumn Divide(ushort value, bool inPlace = false)
         {
@@ -8171,7 +8192,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseDivide(ushort value, bool inPlace = false)
         {
             var convertedValue = (ulong)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, convertedValue, inPlace);
         }
         public UInt64DataFrameColumn Modulo(ushort value, bool inPlace = false)
         {
@@ -8181,9 +8202,10 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseModulo(ushort value, bool inPlace = false)
         {
             var convertedValue = (ulong)value;
-            return HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, convertedValue, inPlace);
         }
     }
+
     public partial class UInt16DataFrameColumn
     {
         public Int32DataFrameColumn Add(byte value)
@@ -8194,7 +8216,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(byte value)
         {
@@ -8204,7 +8226,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(byte value)
         {
@@ -8214,7 +8236,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(byte value)
         {
@@ -8224,7 +8246,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(byte value)
         {
@@ -8234,7 +8256,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(byte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public DecimalDataFrameColumn Add(decimal value)
         {
@@ -8244,7 +8266,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseAdd(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DecimalDataFrameColumn Subtract(decimal value)
         {
@@ -8254,7 +8276,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseSubtract(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DecimalDataFrameColumn Multiply(decimal value)
         {
@@ -8264,7 +8286,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseMultiply(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DecimalDataFrameColumn Divide(decimal value)
         {
@@ -8274,7 +8296,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseDivide(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DecimalDataFrameColumn Modulo(decimal value)
         {
@@ -8284,7 +8306,7 @@ namespace Microsoft.Data.Analysis
         public DecimalDataFrameColumn ReverseModulo(decimal value)
         {
             var decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return decimalColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public DoubleDataFrameColumn Add(double value)
         {
@@ -8294,7 +8316,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseAdd(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public DoubleDataFrameColumn Subtract(double value)
         {
@@ -8304,7 +8326,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseSubtract(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public DoubleDataFrameColumn Multiply(double value)
         {
@@ -8314,7 +8336,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseMultiply(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public DoubleDataFrameColumn Divide(double value)
         {
@@ -8324,7 +8346,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseDivide(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public DoubleDataFrameColumn Modulo(double value)
         {
@@ -8334,7 +8356,7 @@ namespace Microsoft.Data.Analysis
         public DoubleDataFrameColumn ReverseModulo(double value)
         {
             var doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return doubleColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public SingleDataFrameColumn Add(float value)
         {
@@ -8344,7 +8366,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseAdd(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public SingleDataFrameColumn Subtract(float value)
         {
@@ -8354,7 +8376,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseSubtract(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public SingleDataFrameColumn Multiply(float value)
         {
@@ -8364,7 +8386,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseMultiply(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public SingleDataFrameColumn Divide(float value)
         {
@@ -8374,7 +8396,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseDivide(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public SingleDataFrameColumn Modulo(float value)
         {
@@ -8384,7 +8406,7 @@ namespace Microsoft.Data.Analysis
         public SingleDataFrameColumn ReverseModulo(float value)
         {
             var floatColumn = CloneAsSingleColumn();
-            return floatColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return floatColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(int value)
         {
@@ -8394,7 +8416,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(int value)
         {
@@ -8404,7 +8426,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(int value)
         {
@@ -8414,7 +8436,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(int value)
         {
@@ -8424,7 +8446,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(int value)
         {
@@ -8434,7 +8456,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(int value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int64DataFrameColumn Add(long value)
         {
@@ -8444,7 +8466,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseAdd(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int64DataFrameColumn Subtract(long value)
         {
@@ -8454,7 +8476,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseSubtract(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int64DataFrameColumn Multiply(long value)
         {
@@ -8464,7 +8486,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseMultiply(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int64DataFrameColumn Divide(long value)
         {
@@ -8474,7 +8496,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseDivide(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int64DataFrameColumn Modulo(long value)
         {
@@ -8484,7 +8506,7 @@ namespace Microsoft.Data.Analysis
         public Int64DataFrameColumn ReverseModulo(long value)
         {
             var longColumn = CloneAsInt64Column();
-            return longColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return longColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(sbyte value)
         {
@@ -8494,7 +8516,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(sbyte value)
         {
@@ -8504,7 +8526,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(sbyte value)
         {
@@ -8514,7 +8536,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(sbyte value)
         {
@@ -8524,7 +8546,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(sbyte value)
         {
@@ -8534,7 +8556,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(sbyte value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(short value)
         {
@@ -8544,7 +8566,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(short value)
         {
@@ -8554,7 +8576,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(short value)
         {
@@ -8564,7 +8586,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(short value)
         {
@@ -8574,7 +8596,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(short value)
         {
@@ -8584,7 +8606,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(short value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public UInt32DataFrameColumn Add(uint value)
         {
@@ -8594,7 +8616,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseAdd(uint value)
         {
             var uintColumn = CloneAsUInt32Column();
-            return uintColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return uintColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public UInt32DataFrameColumn Subtract(uint value)
         {
@@ -8604,7 +8626,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseSubtract(uint value)
         {
             var uintColumn = CloneAsUInt32Column();
-            return uintColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return uintColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public UInt32DataFrameColumn Multiply(uint value)
         {
@@ -8614,7 +8636,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseMultiply(uint value)
         {
             var uintColumn = CloneAsUInt32Column();
-            return uintColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return uintColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public UInt32DataFrameColumn Divide(uint value)
         {
@@ -8624,7 +8646,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseDivide(uint value)
         {
             var uintColumn = CloneAsUInt32Column();
-            return uintColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return uintColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public UInt32DataFrameColumn Modulo(uint value)
         {
@@ -8634,7 +8656,7 @@ namespace Microsoft.Data.Analysis
         public UInt32DataFrameColumn ReverseModulo(uint value)
         {
             var uintColumn = CloneAsUInt32Column();
-            return uintColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return uintColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public UInt64DataFrameColumn Add(ulong value)
         {
@@ -8644,7 +8666,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseAdd(ulong value)
         {
             var ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return ulongColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public UInt64DataFrameColumn Subtract(ulong value)
         {
@@ -8654,7 +8676,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseSubtract(ulong value)
         {
             var ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return ulongColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public UInt64DataFrameColumn Multiply(ulong value)
         {
@@ -8664,7 +8686,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseMultiply(ulong value)
         {
             var ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return ulongColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public UInt64DataFrameColumn Divide(ulong value)
         {
@@ -8674,7 +8696,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseDivide(ulong value)
         {
             var ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return ulongColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public UInt64DataFrameColumn Modulo(ulong value)
         {
@@ -8684,7 +8706,7 @@ namespace Microsoft.Data.Analysis
         public UInt64DataFrameColumn ReverseModulo(ulong value)
         {
             var ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return ulongColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
         public Int32DataFrameColumn Add(ushort value)
         {
@@ -8694,7 +8716,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseAdd(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseAdd, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace: true);
         }
         public Int32DataFrameColumn Subtract(ushort value)
         {
@@ -8704,7 +8726,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseSubtract(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseSubtract, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace: true);
         }
         public Int32DataFrameColumn Multiply(ushort value)
         {
@@ -8714,7 +8736,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseMultiply(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseMultiply, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace: true);
         }
         public Int32DataFrameColumn Divide(ushort value)
         {
@@ -8724,7 +8746,7 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseDivide(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseDivide, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace: true);
         }
         public Int32DataFrameColumn Modulo(ushort value)
         {
@@ -8734,9 +8756,10 @@ namespace Microsoft.Data.Analysis
         public Int32DataFrameColumn ReverseModulo(ushort value)
         {
             var intColumn = CloneAsInt32Column();
-            return intColumn.HandleOperationImplementation(BinaryScalarOperation.ReverseModulo, value, inPlace: true);
+            return intColumn.HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace: true);
         }
     }
+
     public partial class BooleanDataFrameColumn
     {
         public BooleanDataFrameColumn And(BooleanDataFrameColumn column, bool inPlace = false)
@@ -8750,15 +8773,17 @@ namespace Microsoft.Data.Analysis
             return retColumn;
         }
     }
+
     public partial class BooleanDataFrameColumn
     {
         public new BooleanDataFrameColumn And(bool value, bool inPlace = false)
         {
             BooleanDataFrameColumn retColumn = inPlace ? this : CloneAsBooleanColumn();
-            retColumn.ColumnContainer.And(value);
+            retColumn.ColumnContainer.HandleOperation(BinaryScalarOperation.And, value);
             return retColumn;
         }
     }
+
     public partial class BooleanDataFrameColumn
     {
         public BooleanDataFrameColumn Or(BooleanDataFrameColumn column, bool inPlace = false)
@@ -8772,15 +8797,17 @@ namespace Microsoft.Data.Analysis
             return retColumn;
         }
     }
+
     public partial class BooleanDataFrameColumn
     {
         public new BooleanDataFrameColumn Or(bool value, bool inPlace = false)
         {
             BooleanDataFrameColumn retColumn = inPlace ? this : CloneAsBooleanColumn();
-            retColumn.ColumnContainer.Or(value);
+            retColumn.ColumnContainer.HandleOperation(BinaryScalarOperation.Or, value);
             return retColumn;
         }
     }
+
     public partial class BooleanDataFrameColumn
     {
         public BooleanDataFrameColumn Xor(BooleanDataFrameColumn column, bool inPlace = false)
@@ -8794,15 +8821,17 @@ namespace Microsoft.Data.Analysis
             return retColumn;
         }
     }
+
     public partial class BooleanDataFrameColumn
     {
         public new BooleanDataFrameColumn Xor(bool value, bool inPlace = false)
         {
             BooleanDataFrameColumn retColumn = inPlace ? this : CloneAsBooleanColumn();
-            retColumn.ColumnContainer.Xor(value);
+            retColumn.ColumnContainer.HandleOperation(BinaryScalarOperation.Xor, value);
             return retColumn;
         }
     }
+
 
     public partial class BooleanDataFrameColumn
     {
@@ -8831,6 +8860,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(column);
         }
     }
+
     public partial class ByteDataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
@@ -9158,6 +9188,7 @@ namespace Microsoft.Data.Analysis
             return ushortColumn.ElementwiseLessThanImplementation(column);
         }
     }
+
     public partial class DecimalDataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
@@ -9425,6 +9456,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(otherdecimalColumn);
         }
     }
+
     public partial class DoubleDataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
@@ -9722,6 +9754,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(otherdoubleColumn);
         }
     }
+
     public partial class SingleDataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
@@ -10019,6 +10052,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(otherfloatColumn);
         }
     }
+
     public partial class Int32DataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
@@ -10346,6 +10380,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(otherintColumn);
         }
     }
+
     public partial class Int64DataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
@@ -10643,6 +10678,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(otherlongColumn);
         }
     }
+
     public partial class SByteDataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
@@ -10970,6 +11006,7 @@ namespace Microsoft.Data.Analysis
             return ushortColumn.ElementwiseLessThanImplementation(column);
         }
     }
+
     public partial class Int16DataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
@@ -11297,6 +11334,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(othershortColumn);
         }
     }
+
     public partial class UInt32DataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
@@ -11624,6 +11662,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(otheruintColumn);
         }
     }
+
     public partial class UInt64DataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
@@ -11921,6 +11960,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(otherulongColumn);
         }
     }
+
     public partial class UInt16DataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
@@ -12248,6 +12288,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(column);
         }
     }
+
     public partial class DateTimeDataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(DateTimeDataFrameColumn column)
@@ -12275,6 +12316,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(column);
         }
     }
+
     public partial class BooleanDataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(bool value)
@@ -12302,6 +12344,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(value);
         }
     }
+
     public partial class ByteDataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
@@ -12629,6 +12672,7 @@ namespace Microsoft.Data.Analysis
             return ushortColumn.ElementwiseLessThanImplementation(value);
         }
     }
+
     public partial class DecimalDataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
@@ -12896,6 +12940,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(otherdecimalValue);
         }
     }
+
     public partial class DoubleDataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
@@ -13193,6 +13238,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(otherdoubleValue);
         }
     }
+
     public partial class SingleDataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
@@ -13490,6 +13536,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(otherfloatValue);
         }
     }
+
     public partial class Int32DataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
@@ -13817,6 +13864,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(otherintValue);
         }
     }
+
     public partial class Int64DataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
@@ -14114,6 +14162,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(otherlongValue);
         }
     }
+
     public partial class SByteDataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
@@ -14441,6 +14490,7 @@ namespace Microsoft.Data.Analysis
             return ushortColumn.ElementwiseLessThanImplementation(value);
         }
     }
+
     public partial class Int16DataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
@@ -14768,6 +14818,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(othershortValue);
         }
     }
+
     public partial class UInt32DataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
@@ -15095,6 +15146,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(otheruintValue);
         }
     }
+
     public partial class UInt64DataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
@@ -15392,6 +15444,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(otherulongValue);
         }
     }
+
     public partial class UInt16DataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
@@ -15719,6 +15772,7 @@ namespace Microsoft.Data.Analysis
             return ElementwiseLessThanImplementation(value);
         }
     }
+
     public partial class DateTimeDataFrameColumn
     {
         public BooleanDataFrameColumn ElementwiseEquals(DateTime value)
@@ -15747,6 +15801,7 @@ namespace Microsoft.Data.Analysis
         }
     }
 
+
     public partial class ByteDataFrameColumn
     {
         public new Int32DataFrameColumn LeftShift(int value, bool inPlace = false)
@@ -15756,6 +15811,7 @@ namespace Microsoft.Data.Analysis
             return new Int32DataFrameColumn(result.Name, result.ColumnContainer);
         }
     }
+
     public partial class Int32DataFrameColumn
     {
         public new Int32DataFrameColumn LeftShift(int value, bool inPlace = false)
@@ -15764,6 +15820,7 @@ namespace Microsoft.Data.Analysis
             return new Int32DataFrameColumn(result.Name, result.ColumnContainer);
         }
     }
+
     public partial class Int64DataFrameColumn
     {
         public new Int64DataFrameColumn LeftShift(int value, bool inPlace = false)
@@ -15772,6 +15829,7 @@ namespace Microsoft.Data.Analysis
             return new Int64DataFrameColumn(result.Name, result.ColumnContainer);
         }
     }
+
     public partial class SByteDataFrameColumn
     {
         public new Int32DataFrameColumn LeftShift(int value, bool inPlace = false)
@@ -15781,6 +15839,7 @@ namespace Microsoft.Data.Analysis
             return new Int32DataFrameColumn(result.Name, result.ColumnContainer);
         }
     }
+
     public partial class Int16DataFrameColumn
     {
         public new Int32DataFrameColumn LeftShift(int value, bool inPlace = false)
@@ -15790,6 +15849,7 @@ namespace Microsoft.Data.Analysis
             return new Int32DataFrameColumn(result.Name, result.ColumnContainer);
         }
     }
+
     public partial class UInt32DataFrameColumn
     {
         public new UInt32DataFrameColumn LeftShift(int value, bool inPlace = false)
@@ -15798,6 +15858,7 @@ namespace Microsoft.Data.Analysis
             return new UInt32DataFrameColumn(result.Name, result.ColumnContainer);
         }
     }
+
     public partial class UInt64DataFrameColumn
     {
         public new UInt64DataFrameColumn LeftShift(int value, bool inPlace = false)
@@ -15806,6 +15867,7 @@ namespace Microsoft.Data.Analysis
             return new UInt64DataFrameColumn(result.Name, result.ColumnContainer);
         }
     }
+
     public partial class UInt16DataFrameColumn
     {
         public new Int32DataFrameColumn LeftShift(int value, bool inPlace = false)
@@ -15815,6 +15877,7 @@ namespace Microsoft.Data.Analysis
             return new Int32DataFrameColumn(result.Name, result.ColumnContainer);
         }
     }
+
     public partial class ByteDataFrameColumn
     {
         public new Int32DataFrameColumn RightShift(int value, bool inPlace = false)
@@ -15824,6 +15887,7 @@ namespace Microsoft.Data.Analysis
             return new Int32DataFrameColumn(result.Name, result.ColumnContainer);
         }
     }
+
     public partial class Int32DataFrameColumn
     {
         public new Int32DataFrameColumn RightShift(int value, bool inPlace = false)
@@ -15832,6 +15896,7 @@ namespace Microsoft.Data.Analysis
             return new Int32DataFrameColumn(result.Name, result.ColumnContainer);
         }
     }
+
     public partial class Int64DataFrameColumn
     {
         public new Int64DataFrameColumn RightShift(int value, bool inPlace = false)
@@ -15840,6 +15905,7 @@ namespace Microsoft.Data.Analysis
             return new Int64DataFrameColumn(result.Name, result.ColumnContainer);
         }
     }
+
     public partial class SByteDataFrameColumn
     {
         public new Int32DataFrameColumn RightShift(int value, bool inPlace = false)
@@ -15849,6 +15915,7 @@ namespace Microsoft.Data.Analysis
             return new Int32DataFrameColumn(result.Name, result.ColumnContainer);
         }
     }
+
     public partial class Int16DataFrameColumn
     {
         public new Int32DataFrameColumn RightShift(int value, bool inPlace = false)
@@ -15858,6 +15925,7 @@ namespace Microsoft.Data.Analysis
             return new Int32DataFrameColumn(result.Name, result.ColumnContainer);
         }
     }
+
     public partial class UInt32DataFrameColumn
     {
         public new UInt32DataFrameColumn RightShift(int value, bool inPlace = false)
@@ -15866,6 +15934,7 @@ namespace Microsoft.Data.Analysis
             return new UInt32DataFrameColumn(result.Name, result.ColumnContainer);
         }
     }
+
     public partial class UInt64DataFrameColumn
     {
         public new UInt64DataFrameColumn RightShift(int value, bool inPlace = false)
@@ -15874,6 +15943,7 @@ namespace Microsoft.Data.Analysis
             return new UInt64DataFrameColumn(result.Name, result.ColumnContainer);
         }
     }
+
     public partial class UInt16DataFrameColumn
     {
         public new Int32DataFrameColumn RightShift(int value, bool inPlace = false)

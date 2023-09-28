@@ -42,6 +42,7 @@ void GenerateAllBinaryCombinations()
     visited.Add(outerColumnType);
     string fullOuterColumnType = GetCapitalizedPrimitiveTypes(outerColumnType) + "DataFrameColumn";
 #>
+
     public partial class <#=fullOuterColumnType#>
     {
 <#
@@ -155,6 +156,7 @@ void GenerateAllBinaryScalarCombinationsForMethod()
     visited.Add(outerColumnType);
     string fullOuterColumnType = GetCapitalizedPrimitiveTypes(outerColumnType) + "DataFrameColumn";
 #>
+
     public partial class <#=fullOuterColumnType#>
     {
 <#
@@ -246,6 +248,7 @@ void GenerateAllBinaryScalarCombinationsForMethod()
         }
         if (method.MethodType == MethodType.BinaryScalar && method.IsNumeric)
         {
+            string operationName = method.MethodName;
             string methodName = "Reverse" + method.MethodName;
             string returnType = types.ReturnColumnType;
             string columnType = types.ThisColumnType;
@@ -279,7 +282,7 @@ void GenerateAllBinaryScalarCombinationsForMethod()
         if (fullReturnType == fullColumnType)
         {
 #>
-            return HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.<#=operationName#>, value, inPlace);
 <#
         }
         else
@@ -287,7 +290,7 @@ void GenerateAllBinaryScalarCombinationsForMethod()
             // Cases such as byte + byte resulting in int. Needs 2 clones
 #>
             var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace: true);
+            return <#=returnType#>Column.HandleReverseOperationImplementation(BinaryScalarOperation.<#=operationName#>, value, inPlace: true);
 <#
         }
     }
@@ -302,14 +305,14 @@ void GenerateAllBinaryScalarCombinationsForMethod()
             {
 #>
             var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace: true);
+            return <#=returnType#>Column.HandleReverseOperationImplementation(BinaryScalarOperation.<#=operationName#>, value, inPlace: true);
 <#
             }
             else
             {
 #>
             var convertedValue = (<#=returnType#>)value;
-            return HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.<#=operationName#>, convertedValue, inPlace);
 <#
             }
         }
@@ -318,7 +321,7 @@ void GenerateAllBinaryScalarCombinationsForMethod()
             // Cases such as byte + short resulting in int. Needs 2 clones
 #>
             var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace: true);
+            return <#=returnType#>Column.HandleReverseOperationImplementation(BinaryScalarOperation.<#=operationName#>, value, inPlace: true);
 <#
         }
     }
@@ -338,6 +341,7 @@ void GenerateAllBinaryScalarCombinationsForMethod()
 void GenerateAllBinaryBitwiseOperationsForMethod(string methodName)
 {
 #>
+
     public partial class BooleanDataFrameColumn
     {
         public BooleanDataFrameColumn <#=methodName#>(BooleanDataFrameColumn column, bool inPlace = false)
@@ -358,12 +362,13 @@ void GenerateAllBinaryBitwiseOperationsForMethod(string methodName)
 void GenerateAllBinaryScalarBitwiseOperationsForMethod(string methodName)
 {
 #>
+
     public partial class BooleanDataFrameColumn
     {
         public new BooleanDataFrameColumn <#=methodName#>(bool value, bool inPlace = false)
         {
             BooleanDataFrameColumn retColumn = inPlace ? this : CloneAsBooleanColumn();
-            retColumn.ColumnContainer.<#=methodName#>(value);
+            retColumn.ColumnContainer.HandleOperation(BinaryScalarOperation.<#=methodName#>, value);
             return retColumn;
         }
     }
@@ -399,6 +404,7 @@ void GenerateAllComparisonCombinationsForMethod()
     visited.Add(outerColumnType);
     string fullOuterColumnType = GetCapitalizedPrimitiveTypes(outerColumnType) + "DataFrameColumn";
 #>
+
     public partial class <#=fullOuterColumnType#>
     {
 <#
@@ -479,6 +485,7 @@ void GenerateAllComparisonScalarCombinationsForMethod()
     visited.Add(outerColumnType);
     string fullOuterColumnType = GetCapitalizedPrimitiveTypes(outerColumnType) + "DataFrameColumn";
 #>
+
     public partial class <#=fullOuterColumnType#>
     {
 <#
@@ -567,6 +574,7 @@ void GenerateAllBinaryShiftCombinationsForMethod(string methodName)
         string fullColumnType = GetCapitalizedPrimitiveTypes(type.TypeName) + "DataFrameColumn";
         string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
 #>
+
     public partial class <#=fullColumnType#>
     {
         public new <#=fullReturnType#> <#=methodName#>(int value, bool inPlace = false)

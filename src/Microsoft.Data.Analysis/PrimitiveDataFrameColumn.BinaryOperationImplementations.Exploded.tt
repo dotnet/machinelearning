@@ -54,6 +54,7 @@ void GenerateAllBinaryCombinationsForMethods()
 
     string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
 #>
+
     public partial class <#=fullColumnType#>
     {
         //Binary Operations
@@ -82,10 +83,17 @@ void GenerateAllBinaryCombinationsForMethods()
         }
 
         //Binary Scalar Operations
-        internal <#=fullReturnType#> HandleOperationImplementation(BinaryScalarOperation operation, <#=otherColumnType#> right)
+        internal <#=fullReturnType#> HandleOperationImplementation(BinaryScalarOperation operation, <#=otherColumnType#> right, bool inPlace = false)
         {
-            var newColumn = (<#=fullReturnType#>)Clone();
+            var newColumn = inPlace ? this : (<#=fullReturnType#>)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, right);
+            return newColumn;
+        }
+
+        internal <#=fullReturnType#> HandleReverseOperationImplementation(BinaryScalarOperation operation, <#=otherColumnType#> right, bool inPlace = false)
+        {
+            var newColumn = inPlace ? this : (<#=fullReturnType#>)Clone();
+            newColumn.ColumnContainer.HandleReverseOperation(operation, right);
             return newColumn;
         }
     }
