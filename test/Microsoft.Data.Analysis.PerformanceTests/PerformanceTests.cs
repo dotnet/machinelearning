@@ -46,7 +46,6 @@ namespace Microsoft.Data.Analysis.PerformanceTests
             _floatColumn2 = new SingleDataFrameColumn("Column2", values.Select(v => (float)v));
         }
 
-        /*
         #region Addition
 
         [Benchmark]
@@ -199,7 +198,6 @@ namespace Microsoft.Data.Analysis.PerformanceTests
             var column = _doubleColumn1 / _floatColumn2;
         }
         #endregion
-        */
 
         #region ElementwiseEquals
         [Benchmark]
