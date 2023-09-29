@@ -51,8 +51,6 @@ void GenerateAllBinaryCombinationsForMethods()
     string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
     string fullReturnType = fullColumnType;
     string fullOtherColumnType = fullColumnType;
-
-    string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
 #>
 
     public partial class <#=fullColumnType#>
@@ -102,68 +100,31 @@ void GenerateAllBinaryCombinationsForMethods()
 }
 #>
 <# 
-void GenerateAllComparisonCombinationsForMethod(string inputMethodName)
+void GenerateAllComparisonCombinationsForMethods()
 {
  foreach (TypeCombination types in ComparisonOperationCombinations.comparisonOperationCombinations) 
  {
-    string returnType = types.ReturnColumnType;
     string columnType = types.ThisColumnType;
     string otherColumnType = types.OtherColumnType;
     if (columnType != otherColumnType)
     {
         continue;
     }
-    Debug.Assert(returnType == otherColumnType);
-
+    
     string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
-    string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
     string fullOtherColumnType = GetCapitalizedPrimitiveTypes(otherColumnType) + "DataFrameColumn";
-
-    string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
-    string methodName = inputMethodName;
-    methodName += "Implementation";
-
 #>
 
     public partial class <#=fullColumnType#>
     {
-        internal <#=fullReturnType#> <#=methodName#>(<#=fullOtherColumnType#> column)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, <#=fullOtherColumnType#> column)
         {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.<#=inputMethodName#>(column.ColumnContainer));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
         }
-    }
-<# 
- }
- }
-#>
-<# 
-void GenerateAllComparisonScalarCombinationsForMethod(string inputMethodName)
-{
- foreach (TypeCombination types in ComparisonOperationCombinations.comparisonOperationCombinations) 
- {
-    string returnType = types.ReturnColumnType;
-    string columnType = types.ThisColumnType;
-    string otherColumnType = types.OtherColumnType;
-    if (columnType != otherColumnType)
-    {
-        continue;
-    }
-    Debug.Assert(returnType == otherColumnType);
 
-    string fullColumnType = GetCapitalizedPrimitiveTypes(columnType) + "DataFrameColumn";
-    string fullReturnType = GetCapitalizedPrimitiveTypes(returnType) + "DataFrameColumn";
-
-    string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
-    string methodName = inputMethodName;
-    methodName += "Implementation";
-
-#>
-
-    public partial class <#=fullColumnType#>
-    {
-        internal <#=fullReturnType#> <#=methodName#>(<#=otherColumnType#> value)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, <#=otherColumnType#> value)
         {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.<#=inputMethodName#>(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
     }
 <# 
@@ -172,18 +133,6 @@ void GenerateAllComparisonScalarCombinationsForMethod(string inputMethodName)
 #>
 <#
 GenerateAllBinaryCombinationsForMethods();
-
-foreach (MethodConfiguration method in methodConfiguration)
-{
-    // Don't generate Binary and BinaryScalar methods here
-    if (method.MethodType == MethodType.Comparison)
-    {
-        GenerateAllComparisonCombinationsForMethod(method.MethodName);
-    }
-    else if (method.MethodType == MethodType.ComparisonScalar)
-    {
-        GenerateAllComparisonScalarCombinationsForMethod(method.MethodName);
-    }
-}
+GenerateAllComparisonCombinationsForMethods();
 #>
 }

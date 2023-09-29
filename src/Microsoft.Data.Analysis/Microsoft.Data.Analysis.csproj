@@ -123,17 +123,9 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PrimitiveDataFrameColumnComputations.cs</LastGenOutput>
     </None>
-    <None Update="PrimitiveColumnContainer.BinaryOperations.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveColumnContainer.BinaryOperations.cs</LastGenOutput>
-    </None>
     <None Update="PrimitiveDataFrameColumnArithmetic.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PrimitiveDataFrameColumnArithmetic.cs</LastGenOutput>
-    </None>
-    <None Update="PrimitiveColumnContainer.BinaryOperations.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveColumnContainer.BinaryOperations.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -217,20 +209,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>PrimitiveDataFrameColumnComputations.tt</DependentUpon>
     </Compile>
-    <Compile Update="PrimitiveColumnContainer.BinaryOperations.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveColumnContainer.BinaryOperations.tt</DependentUpon>
-    </Compile>
     <Compile Update="PrimitiveDataFrameColumnArithmetic.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>PrimitiveDataFrameColumnArithmetic.tt</DependentUpon>
-    </Compile>
-    <Compile Update="PrimitiveColumnContainer.BinaryOperations.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveColumnContainer.BinaryOperations.tt</DependentUpon>
     </Compile>
     <Compile Update="Strings.Designer.cs">
       <DesignTime>True</DesignTime>

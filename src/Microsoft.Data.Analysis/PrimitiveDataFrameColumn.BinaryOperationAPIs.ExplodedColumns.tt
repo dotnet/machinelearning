@@ -434,7 +434,7 @@ foreach (MethodConfiguration method in methodConfiguration)
     if (columnType == otherColumnType)
     {
 #>
-            return <#=methodName#>Implementation(column);
+            return HandleOperationImplementation(ComparisonOperation.<#=methodName#>, column);
 <#
     }
     else
@@ -445,14 +445,14 @@ foreach (MethodConfiguration method in methodConfiguration)
         {
 #>
             <#=fullOtherColumnType#> <#=otherColumnType#>Column = CloneAs<#=capitalizedOtherColumnType#>Column();
-            return <#=otherColumnType#>Column.<#=methodName#>Implementation(column);
+            return <#=otherColumnType#>Column.HandleOperationImplementation(ComparisonOperation.<#=methodName#>, column);
 <#
         }
         else
         {
 #>
             <#=fullColumnType#> other<#=columnType#>Column = column.CloneAs<#=capitalizedColumnType#>Column();
-            return <#=methodName#>Implementation(other<#=columnType#>Column);
+            return HandleOperationImplementation(ComparisonOperation.<#=methodName#>, other<#=columnType#>Column);
 <#
         }
 #>
@@ -514,7 +514,7 @@ foreach (MethodConfiguration method in methodConfiguration)
     if (columnType == otherColumnType)
     {
 #>
-            return <#=methodName#>Implementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.<#=methodName#>, value);
 <#
     }
     else
@@ -525,14 +525,14 @@ foreach (MethodConfiguration method in methodConfiguration)
         {
 #>
             <#=fullOtherColumnType#> <#=otherColumnType#>Column = CloneAs<#=capitalizedOtherColumnType#>Column();
-            return <#=otherColumnType#>Column.<#=methodName#>Implementation(value);
+            return <#=otherColumnType#>Column.HandleOperationImplementation(ComparisonScalarOperation.<#=methodName#>, value);
 <#
         }
         else
         {
 #>
             <#=columnType#> other<#=columnType#>Value = (<#=columnType#>)value;
-            return <#=methodName#>Implementation(other<#=columnType#>Value);
+            return HandleOperationImplementation(ComparisonScalarOperation.<#=methodName#>, other<#=columnType#>Value);
 <#
         }
 #>

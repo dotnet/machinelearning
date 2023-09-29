@@ -1,9 +1,8 @@
-﻿
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// Generated from PrimitiveColumnContainer.BinaryOperations.tt. Do not modify directly
+using System;
 
 namespace Microsoft.Data.Analysis
 {
@@ -73,53 +72,32 @@ namespace Microsoft.Data.Analysis
             return this;
         }
 
-        public PrimitiveColumnContainer<bool> ElementwiseEquals(PrimitiveColumnContainer<T> right)
+        public PrimitiveColumnContainer<bool> HandleOperation(ComparisonOperation operation, PrimitiveColumnContainer<T> right)
         {
-            return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseEquals(this, right);
+            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+            for (int i = 0; i < this.Buffers.Count; i++)
+            {
+                var leftSpan = this.Buffers[i].ReadOnlySpan;
+                var rightSpan = right.Buffers[i].ReadOnlySpan;
+
+                arithmetic.HandleOperation(operation, leftSpan, rightSpan);
+
+            }
+
+            return new PrimitiveColumnContainer<bool>();
         }
-        public PrimitiveColumnContainer<bool> ElementwiseEquals(T scalar)
+
+        public PrimitiveColumnContainer<bool> HandleOperation(ComparisonScalarOperation operation, T right)
         {
-            return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseEquals(this, scalar);
-        }
-        public PrimitiveColumnContainer<bool> ElementwiseNotEquals(PrimitiveColumnContainer<T> right)
-        {
-            return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseNotEquals(this, right);
-        }
-        public PrimitiveColumnContainer<bool> ElementwiseNotEquals(T scalar)
-        {
-            return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseNotEquals(this, scalar);
-        }
-        public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<T> right)
-        {
-            return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseGreaterThanOrEqual(this, right);
-        }
-        public PrimitiveColumnContainer<bool> ElementwiseGreaterThanOrEqual(T scalar)
-        {
-            return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseGreaterThanOrEqual(this, scalar);
-        }
-        public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<T> right)
-        {
-            return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThanOrEqual(this, right);
-        }
-        public PrimitiveColumnContainer<bool> ElementwiseLessThanOrEqual(T scalar)
-        {
-            return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThanOrEqual(this, scalar);
-        }
-        public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(PrimitiveColumnContainer<T> right)
-        {
-            return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseGreaterThan(this, right);
-        }
-        public PrimitiveColumnContainer<bool> ElementwiseGreaterThan(T scalar)
-        {
-            return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseGreaterThan(this, scalar);
-        }
-        public PrimitiveColumnContainer<bool> ElementwiseLessThan(PrimitiveColumnContainer<T> right)
-        {
-            return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThan(this, right);
-        }
-        public PrimitiveColumnContainer<bool> ElementwiseLessThan(T scalar)
-        {
-            return PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThan(this, scalar);
+            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+            for (int i = 0; i < this.Buffers.Count; i++)
+            {
+                var leftSpan = this.Buffers[i].ReadOnlySpan;
+
+                arithmetic.HandleOperation(operation, leftSpan, right);
+            }
+
+            return new PrimitiveColumnContainer<bool>();
         }
     }
 }

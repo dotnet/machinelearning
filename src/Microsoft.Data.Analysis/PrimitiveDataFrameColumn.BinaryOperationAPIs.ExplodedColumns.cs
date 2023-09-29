@@ -8837,27 +8837,27 @@ namespace Microsoft.Data.Analysis
     {
         public BooleanDataFrameColumn ElementwiseEquals(BooleanDataFrameColumn column)
         {
-            return ElementwiseEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(BooleanDataFrameColumn column)
         {
-            return ElementwiseNotEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(BooleanDataFrameColumn column)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(BooleanDataFrameColumn column)
         {
-            return ElementwiseLessThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(BooleanDataFrameColumn column)
         {
-            return ElementwiseGreaterThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(BooleanDataFrameColumn column)
         {
-            return ElementwiseLessThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
     }
 
@@ -8865,327 +8865,327 @@ namespace Microsoft.Data.Analysis
     {
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
         {
-            return ElementwiseEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ByteDataFrameColumn column)
         {
-            return ElementwiseNotEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ByteDataFrameColumn column)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ByteDataFrameColumn column)
         {
-            return ElementwiseLessThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ByteDataFrameColumn column)
         {
-            return ElementwiseGreaterThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ByteDataFrameColumn column)
         {
-            return ElementwiseLessThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseEqualsImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseNotEqualsImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseEqualsImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseNotEqualsImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseEqualsImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseNotEqualsImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseGreaterThanImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseLessThanImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseEqualsImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseNotEqualsImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SByteDataFrameColumn column)
         {
             ByteDataFrameColumn otherbyteColumn = column.CloneAsByteColumn();
-            return ElementwiseEqualsImplementation(otherbyteColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherbyteColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SByteDataFrameColumn column)
         {
             ByteDataFrameColumn otherbyteColumn = column.CloneAsByteColumn();
-            return ElementwiseNotEqualsImplementation(otherbyteColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherbyteColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SByteDataFrameColumn column)
         {
             ByteDataFrameColumn otherbyteColumn = column.CloneAsByteColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherbyteColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherbyteColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SByteDataFrameColumn column)
         {
             ByteDataFrameColumn otherbyteColumn = column.CloneAsByteColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherbyteColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherbyteColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SByteDataFrameColumn column)
         {
             ByteDataFrameColumn otherbyteColumn = column.CloneAsByteColumn();
-            return ElementwiseGreaterThanImplementation(otherbyteColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherbyteColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SByteDataFrameColumn column)
         {
             ByteDataFrameColumn otherbyteColumn = column.CloneAsByteColumn();
-            return ElementwiseLessThanImplementation(otherbyteColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherbyteColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int16DataFrameColumn column)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseEqualsImplementation(column);
+            return shortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int16DataFrameColumn column)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseNotEqualsImplementation(column);
+            return shortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int16DataFrameColumn column)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return shortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int16DataFrameColumn column)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return shortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int16DataFrameColumn column)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseGreaterThanImplementation(column);
+            return shortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int16DataFrameColumn column)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseLessThanImplementation(column);
+            return shortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseEqualsImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseNotEqualsImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseGreaterThanImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseLessThanImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseEqualsImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseNotEqualsImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt16DataFrameColumn column)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseEqualsImplementation(column);
+            return ushortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt16DataFrameColumn column)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseNotEqualsImplementation(column);
+            return ushortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt16DataFrameColumn column)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return ushortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt16DataFrameColumn column)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return ushortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt16DataFrameColumn column)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseGreaterThanImplementation(column);
+            return ushortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt16DataFrameColumn column)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseLessThanImplementation(column);
+            return ushortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
     }
 
@@ -9194,266 +9194,266 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseEqualsImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ByteDataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseNotEqualsImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ByteDataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ByteDataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ByteDataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseGreaterThanImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ByteDataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseLessThanImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DecimalDataFrameColumn column)
         {
-            return ElementwiseEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DecimalDataFrameColumn column)
         {
-            return ElementwiseNotEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DecimalDataFrameColumn column)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DecimalDataFrameColumn column)
         {
-            return ElementwiseLessThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DecimalDataFrameColumn column)
         {
-            return ElementwiseGreaterThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DecimalDataFrameColumn column)
         {
-            return ElementwiseLessThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int32DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseEqualsImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int32DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseNotEqualsImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int32DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int32DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int32DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseGreaterThanImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int32DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseLessThanImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int64DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseEqualsImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int64DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseNotEqualsImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int64DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int64DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int64DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseGreaterThanImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int64DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseLessThanImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SByteDataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseEqualsImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SByteDataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseNotEqualsImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SByteDataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SByteDataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SByteDataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseGreaterThanImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SByteDataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseLessThanImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int16DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseEqualsImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int16DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseNotEqualsImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int16DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int16DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int16DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseGreaterThanImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int16DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseLessThanImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt32DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseEqualsImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt32DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseNotEqualsImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt32DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt32DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt32DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseGreaterThanImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt32DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseLessThanImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt64DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseEqualsImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt64DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseNotEqualsImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt64DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt64DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt64DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseGreaterThanImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt64DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseLessThanImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt16DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseEqualsImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt16DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseNotEqualsImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt16DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt16DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt16DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseGreaterThanImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdecimalColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt16DataFrameColumn column)
         {
             DecimalDataFrameColumn otherdecimalColumn = column.CloneAsDecimalColumn();
-            return ElementwiseLessThanImplementation(otherdecimalColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdecimalColumn);
         }
     }
 
@@ -9462,296 +9462,296 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ByteDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseNotEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ByteDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ByteDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ByteDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ByteDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DoubleDataFrameColumn column)
         {
-            return ElementwiseEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DoubleDataFrameColumn column)
         {
-            return ElementwiseNotEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DoubleDataFrameColumn column)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DoubleDataFrameColumn column)
         {
-            return ElementwiseLessThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DoubleDataFrameColumn column)
         {
-            return ElementwiseGreaterThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DoubleDataFrameColumn column)
         {
-            return ElementwiseLessThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SingleDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SingleDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseNotEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SingleDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SingleDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SingleDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SingleDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int32DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int32DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseNotEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int32DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int32DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int32DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int32DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int64DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int64DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseNotEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int64DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int64DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int64DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int64DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SByteDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SByteDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseNotEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SByteDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SByteDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SByteDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SByteDataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int16DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int16DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseNotEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int16DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int16DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int16DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int16DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt32DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt32DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseNotEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt32DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt32DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt32DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt32DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt64DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt64DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseNotEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt64DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt64DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt64DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt64DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt16DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt16DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseNotEqualsImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt16DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt16DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt16DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseGreaterThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherdoubleColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt16DataFrameColumn column)
         {
             DoubleDataFrameColumn otherdoubleColumn = column.CloneAsDoubleColumn();
-            return ElementwiseLessThanImplementation(otherdoubleColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherdoubleColumn);
         }
     }
 
@@ -9760,296 +9760,296 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseEqualsImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ByteDataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseNotEqualsImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ByteDataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ByteDataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ByteDataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseGreaterThanImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ByteDataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseLessThanImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SingleDataFrameColumn column)
         {
-            return ElementwiseEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SingleDataFrameColumn column)
         {
-            return ElementwiseNotEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SingleDataFrameColumn column)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SingleDataFrameColumn column)
         {
-            return ElementwiseLessThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SingleDataFrameColumn column)
         {
-            return ElementwiseGreaterThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SingleDataFrameColumn column)
         {
-            return ElementwiseLessThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int32DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseEqualsImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int32DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseNotEqualsImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int32DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int32DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int32DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseGreaterThanImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int32DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseLessThanImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int64DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseEqualsImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int64DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseNotEqualsImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int64DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int64DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int64DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseGreaterThanImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int64DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseLessThanImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SByteDataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseEqualsImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SByteDataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseNotEqualsImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SByteDataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SByteDataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SByteDataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseGreaterThanImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SByteDataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseLessThanImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int16DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseEqualsImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int16DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseNotEqualsImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int16DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int16DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int16DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseGreaterThanImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int16DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseLessThanImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt32DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseEqualsImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt32DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseNotEqualsImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt32DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt32DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt32DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseGreaterThanImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt32DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseLessThanImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseEqualsImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseNotEqualsImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseGreaterThanImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt64DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseLessThanImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt16DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseEqualsImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt16DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseNotEqualsImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt16DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt16DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseLessThanOrEqualImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt16DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseGreaterThanImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherfloatColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt16DataFrameColumn column)
         {
             SingleDataFrameColumn otherfloatColumn = column.CloneAsSingleColumn();
-            return ElementwiseLessThanImplementation(otherfloatColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherfloatColumn);
         }
     }
 
@@ -10058,326 +10058,326 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseEqualsImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseNotEqualsImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseLessThanOrEqualImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseGreaterThanImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ByteDataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseLessThanImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseEqualsImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseNotEqualsImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseEqualsImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseNotEqualsImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int32DataFrameColumn column)
         {
-            return ElementwiseEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int32DataFrameColumn column)
         {
-            return ElementwiseNotEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int32DataFrameColumn column)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int32DataFrameColumn column)
         {
-            return ElementwiseLessThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int32DataFrameColumn column)
         {
-            return ElementwiseGreaterThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int32DataFrameColumn column)
         {
-            return ElementwiseLessThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseEqualsImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseNotEqualsImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseEqualsImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseNotEqualsImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseLessThanOrEqualImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseGreaterThanImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SByteDataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseLessThanImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseEqualsImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseNotEqualsImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseLessThanOrEqualImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseGreaterThanImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int16DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseLessThanImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt32DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseEqualsImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt32DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseNotEqualsImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt32DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt32DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseLessThanOrEqualImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt32DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseGreaterThanImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt32DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseLessThanImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseEqualsImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseNotEqualsImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseEqualsImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseNotEqualsImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseLessThanOrEqualImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseGreaterThanImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt16DataFrameColumn column)
         {
             Int32DataFrameColumn otherintColumn = column.CloneAsInt32Column();
-            return ElementwiseLessThanImplementation(otherintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherintColumn);
         }
     }
 
@@ -10386,296 +10386,296 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseEqualsImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ByteDataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseNotEqualsImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ByteDataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ByteDataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseLessThanOrEqualImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ByteDataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseGreaterThanImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ByteDataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseLessThanImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseEqualsImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseNotEqualsImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseEqualsImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseNotEqualsImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int32DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseEqualsImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int32DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseNotEqualsImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int32DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int32DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseLessThanOrEqualImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int32DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseGreaterThanImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int32DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseLessThanImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int64DataFrameColumn column)
         {
-            return ElementwiseEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int64DataFrameColumn column)
         {
-            return ElementwiseNotEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int64DataFrameColumn column)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int64DataFrameColumn column)
         {
-            return ElementwiseLessThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int64DataFrameColumn column)
         {
-            return ElementwiseGreaterThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int64DataFrameColumn column)
         {
-            return ElementwiseLessThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SByteDataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseEqualsImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SByteDataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseNotEqualsImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SByteDataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SByteDataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseLessThanOrEqualImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SByteDataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseGreaterThanImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SByteDataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseLessThanImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int16DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseEqualsImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int16DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseNotEqualsImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int16DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int16DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseLessThanOrEqualImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int16DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseGreaterThanImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int16DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseLessThanImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseEqualsImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseNotEqualsImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseLessThanOrEqualImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseGreaterThanImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt32DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseLessThanImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt16DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseEqualsImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt16DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseNotEqualsImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt16DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt16DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseLessThanOrEqualImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt16DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseGreaterThanImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherlongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt16DataFrameColumn column)
         {
             Int64DataFrameColumn otherlongColumn = column.CloneAsInt64Column();
-            return ElementwiseLessThanImplementation(otherlongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherlongColumn);
         }
     }
 
@@ -10684,326 +10684,326 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
         {
             SByteDataFrameColumn othersbyteColumn = column.CloneAsSByteColumn();
-            return ElementwiseEqualsImplementation(othersbyteColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, othersbyteColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ByteDataFrameColumn column)
         {
             SByteDataFrameColumn othersbyteColumn = column.CloneAsSByteColumn();
-            return ElementwiseNotEqualsImplementation(othersbyteColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, othersbyteColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ByteDataFrameColumn column)
         {
             SByteDataFrameColumn othersbyteColumn = column.CloneAsSByteColumn();
-            return ElementwiseGreaterThanOrEqualImplementation(othersbyteColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, othersbyteColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ByteDataFrameColumn column)
         {
             SByteDataFrameColumn othersbyteColumn = column.CloneAsSByteColumn();
-            return ElementwiseLessThanOrEqualImplementation(othersbyteColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, othersbyteColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ByteDataFrameColumn column)
         {
             SByteDataFrameColumn othersbyteColumn = column.CloneAsSByteColumn();
-            return ElementwiseGreaterThanImplementation(othersbyteColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, othersbyteColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ByteDataFrameColumn column)
         {
             SByteDataFrameColumn othersbyteColumn = column.CloneAsSByteColumn();
-            return ElementwiseLessThanImplementation(othersbyteColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, othersbyteColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseEqualsImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseNotEqualsImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseEqualsImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseNotEqualsImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseEqualsImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseNotEqualsImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseGreaterThanImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseLessThanImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseEqualsImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseNotEqualsImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SByteDataFrameColumn column)
         {
-            return ElementwiseEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SByteDataFrameColumn column)
         {
-            return ElementwiseNotEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SByteDataFrameColumn column)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SByteDataFrameColumn column)
         {
-            return ElementwiseLessThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SByteDataFrameColumn column)
         {
-            return ElementwiseGreaterThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SByteDataFrameColumn column)
         {
-            return ElementwiseLessThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int16DataFrameColumn column)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseEqualsImplementation(column);
+            return shortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int16DataFrameColumn column)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseNotEqualsImplementation(column);
+            return shortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int16DataFrameColumn column)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return shortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int16DataFrameColumn column)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return shortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int16DataFrameColumn column)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseGreaterThanImplementation(column);
+            return shortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int16DataFrameColumn column)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseLessThanImplementation(column);
+            return shortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseEqualsImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseNotEqualsImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseGreaterThanImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseLessThanImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseEqualsImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseNotEqualsImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt16DataFrameColumn column)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseEqualsImplementation(column);
+            return ushortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt16DataFrameColumn column)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseNotEqualsImplementation(column);
+            return ushortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt16DataFrameColumn column)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return ushortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt16DataFrameColumn column)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return ushortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt16DataFrameColumn column)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseGreaterThanImplementation(column);
+            return ushortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt16DataFrameColumn column)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseLessThanImplementation(column);
+            return ushortColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
     }
 
@@ -11012,326 +11012,326 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseEqualsImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ByteDataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseNotEqualsImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ByteDataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseGreaterThanOrEqualImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ByteDataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseLessThanOrEqualImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ByteDataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseGreaterThanImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ByteDataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseLessThanImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseEqualsImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseNotEqualsImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseEqualsImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseNotEqualsImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseEqualsImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseNotEqualsImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseGreaterThanImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseLessThanImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseEqualsImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseNotEqualsImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SByteDataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseEqualsImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SByteDataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseNotEqualsImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SByteDataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseGreaterThanOrEqualImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SByteDataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseLessThanOrEqualImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SByteDataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseGreaterThanImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SByteDataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseLessThanImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int16DataFrameColumn column)
         {
-            return ElementwiseEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int16DataFrameColumn column)
         {
-            return ElementwiseNotEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int16DataFrameColumn column)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int16DataFrameColumn column)
         {
-            return ElementwiseLessThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int16DataFrameColumn column)
         {
-            return ElementwiseGreaterThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int16DataFrameColumn column)
         {
-            return ElementwiseLessThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseEqualsImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseNotEqualsImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseGreaterThanImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseLessThanImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseEqualsImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseNotEqualsImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt16DataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseEqualsImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt16DataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseNotEqualsImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt16DataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseGreaterThanOrEqualImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt16DataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseLessThanOrEqualImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt16DataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseGreaterThanImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, othershortColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt16DataFrameColumn column)
         {
             Int16DataFrameColumn othershortColumn = column.CloneAsInt16Column();
-            return ElementwiseLessThanImplementation(othershortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, othershortColumn);
         }
     }
 
@@ -11340,326 +11340,326 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseEqualsImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ByteDataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseNotEqualsImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ByteDataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ByteDataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseLessThanOrEqualImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ByteDataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseGreaterThanImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ByteDataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseLessThanImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseEqualsImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseNotEqualsImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseEqualsImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseNotEqualsImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int32DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseEqualsImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int32DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseNotEqualsImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int32DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int32DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseLessThanOrEqualImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int32DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseGreaterThanImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int32DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseLessThanImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseEqualsImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseNotEqualsImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SByteDataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseEqualsImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SByteDataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseNotEqualsImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SByteDataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SByteDataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseLessThanOrEqualImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SByteDataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseGreaterThanImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SByteDataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseLessThanImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int16DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseEqualsImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int16DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseNotEqualsImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int16DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int16DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseLessThanOrEqualImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int16DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseGreaterThanImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int16DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseLessThanImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt32DataFrameColumn column)
         {
-            return ElementwiseEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt32DataFrameColumn column)
         {
-            return ElementwiseNotEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt32DataFrameColumn column)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt32DataFrameColumn column)
         {
-            return ElementwiseLessThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt32DataFrameColumn column)
         {
-            return ElementwiseGreaterThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt32DataFrameColumn column)
         {
-            return ElementwiseLessThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseEqualsImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseNotEqualsImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt16DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseEqualsImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt16DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseNotEqualsImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt16DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt16DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseLessThanOrEqualImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt16DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseGreaterThanImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otheruintColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt16DataFrameColumn column)
         {
             UInt32DataFrameColumn otheruintColumn = column.CloneAsUInt32Column();
-            return ElementwiseLessThanImplementation(otheruintColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otheruintColumn);
         }
     }
 
@@ -11668,296 +11668,296 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseEqualsImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ByteDataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseNotEqualsImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ByteDataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ByteDataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseLessThanOrEqualImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ByteDataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseGreaterThanImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ByteDataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseLessThanImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseEqualsImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseNotEqualsImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseEqualsImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseNotEqualsImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int32DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseEqualsImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int32DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseNotEqualsImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int32DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int32DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseLessThanOrEqualImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int32DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseGreaterThanImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int32DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseLessThanImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SByteDataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseEqualsImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SByteDataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseNotEqualsImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SByteDataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SByteDataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseLessThanOrEqualImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SByteDataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseGreaterThanImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SByteDataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseLessThanImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int16DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseEqualsImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int16DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseNotEqualsImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int16DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int16DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseLessThanOrEqualImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int16DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseGreaterThanImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int16DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseLessThanImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt32DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseEqualsImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt32DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseNotEqualsImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt32DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt32DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseLessThanOrEqualImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt32DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseGreaterThanImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt32DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseLessThanImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt64DataFrameColumn column)
         {
-            return ElementwiseEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt64DataFrameColumn column)
         {
-            return ElementwiseNotEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt64DataFrameColumn column)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt64DataFrameColumn column)
         {
-            return ElementwiseLessThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt64DataFrameColumn column)
         {
-            return ElementwiseGreaterThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt64DataFrameColumn column)
         {
-            return ElementwiseLessThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt16DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseEqualsImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt16DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseNotEqualsImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt16DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt16DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseLessThanOrEqualImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt16DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseGreaterThanImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherulongColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt16DataFrameColumn column)
         {
             UInt64DataFrameColumn otherulongColumn = column.CloneAsUInt64Column();
-            return ElementwiseLessThanImplementation(otherulongColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherulongColumn);
         }
     }
 
@@ -11966,326 +11966,326 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(ByteDataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseEqualsImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ByteDataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseNotEqualsImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ByteDataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ByteDataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseLessThanOrEqualImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ByteDataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseGreaterThanImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ByteDataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseLessThanImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseEqualsImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseNotEqualsImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DecimalDataFrameColumn column)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanImplementation(column);
+            return decimalColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DoubleDataFrameColumn column)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(column);
+            return doubleColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseEqualsImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseNotEqualsImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SingleDataFrameColumn column)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanImplementation(column);
+            return floatColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseEqualsImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseNotEqualsImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseGreaterThanImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int32DataFrameColumn column)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseLessThanImplementation(column);
+            return intColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseEqualsImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseNotEqualsImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int64DataFrameColumn column)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanImplementation(column);
+            return longColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(SByteDataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseEqualsImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(SByteDataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseNotEqualsImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(SByteDataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(SByteDataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseLessThanOrEqualImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(SByteDataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseGreaterThanImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(SByteDataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseLessThanImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(Int16DataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseEqualsImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(Int16DataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseNotEqualsImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(Int16DataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseGreaterThanOrEqualImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(Int16DataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseLessThanOrEqualImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(Int16DataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseGreaterThanImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(Int16DataFrameColumn column)
         {
             UInt16DataFrameColumn otherushortColumn = column.CloneAsUInt16Column();
-            return ElementwiseLessThanImplementation(otherushortColumn);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, otherushortColumn);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseEqualsImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseNotEqualsImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseGreaterThanImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt32DataFrameColumn column)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseLessThanImplementation(column);
+            return uintColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseEqualsImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseNotEqualsImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanOrEqualImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanOrEqualImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt64DataFrameColumn column)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanImplementation(column);
+            return ulongColumn.HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
         public BooleanDataFrameColumn ElementwiseEquals(UInt16DataFrameColumn column)
         {
-            return ElementwiseEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(UInt16DataFrameColumn column)
         {
-            return ElementwiseNotEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(UInt16DataFrameColumn column)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(UInt16DataFrameColumn column)
         {
-            return ElementwiseLessThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(UInt16DataFrameColumn column)
         {
-            return ElementwiseGreaterThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(UInt16DataFrameColumn column)
         {
-            return ElementwiseLessThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
     }
 
@@ -12293,27 +12293,27 @@ namespace Microsoft.Data.Analysis
     {
         public BooleanDataFrameColumn ElementwiseEquals(DateTimeDataFrameColumn column)
         {
-            return ElementwiseEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DateTimeDataFrameColumn column)
         {
-            return ElementwiseNotEqualsImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DateTimeDataFrameColumn column)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DateTimeDataFrameColumn column)
         {
-            return ElementwiseLessThanOrEqualImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, column);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DateTimeDataFrameColumn column)
         {
-            return ElementwiseGreaterThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, column);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DateTimeDataFrameColumn column)
         {
-            return ElementwiseLessThanImplementation(column);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, column);
         }
     }
 
@@ -12321,27 +12321,27 @@ namespace Microsoft.Data.Analysis
     {
         public BooleanDataFrameColumn ElementwiseEquals(bool value)
         {
-            return ElementwiseEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(bool value)
         {
-            return ElementwiseNotEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(bool value)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(bool value)
         {
-            return ElementwiseLessThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(bool value)
         {
-            return ElementwiseGreaterThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(bool value)
         {
-            return ElementwiseLessThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
     }
 
@@ -12349,327 +12349,327 @@ namespace Microsoft.Data.Analysis
     {
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
         {
-            return ElementwiseEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(byte value)
         {
-            return ElementwiseNotEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(byte value)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(byte value)
         {
-            return ElementwiseLessThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(byte value)
         {
-            return ElementwiseGreaterThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(byte value)
         {
-            return ElementwiseLessThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseEqualsImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseNotEqualsImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseEqualsImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseNotEqualsImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseEqualsImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseNotEqualsImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseGreaterThanImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseLessThanImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseEqualsImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseNotEqualsImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(sbyte value)
         {
             byte otherbyteValue = (byte)value;
-            return ElementwiseEqualsImplementation(otherbyteValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherbyteValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(sbyte value)
         {
             byte otherbyteValue = (byte)value;
-            return ElementwiseNotEqualsImplementation(otherbyteValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherbyteValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(sbyte value)
         {
             byte otherbyteValue = (byte)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherbyteValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherbyteValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(sbyte value)
         {
             byte otherbyteValue = (byte)value;
-            return ElementwiseLessThanOrEqualImplementation(otherbyteValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherbyteValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(sbyte value)
         {
             byte otherbyteValue = (byte)value;
-            return ElementwiseGreaterThanImplementation(otherbyteValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherbyteValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(sbyte value)
         {
             byte otherbyteValue = (byte)value;
-            return ElementwiseLessThanImplementation(otherbyteValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherbyteValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(short value)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseEqualsImplementation(value);
+            return shortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(short value)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseNotEqualsImplementation(value);
+            return shortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(short value)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return shortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(short value)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return shortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(short value)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseGreaterThanImplementation(value);
+            return shortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(short value)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseLessThanImplementation(value);
+            return shortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseEqualsImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseNotEqualsImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseGreaterThanImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseLessThanImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseEqualsImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseNotEqualsImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ushort value)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseEqualsImplementation(value);
+            return ushortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ushort value)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseNotEqualsImplementation(value);
+            return ushortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ushort value)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return ushortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ushort value)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return ushortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ushort value)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseGreaterThanImplementation(value);
+            return ushortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ushort value)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseLessThanImplementation(value);
+            return ushortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
     }
 
@@ -12678,266 +12678,266 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseEqualsImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(byte value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseNotEqualsImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(byte value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(byte value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(byte value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseGreaterThanImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(byte value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseLessThanImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(decimal value)
         {
-            return ElementwiseEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(decimal value)
         {
-            return ElementwiseNotEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(decimal value)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(decimal value)
         {
-            return ElementwiseLessThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(decimal value)
         {
-            return ElementwiseGreaterThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(decimal value)
         {
-            return ElementwiseLessThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(int value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseEqualsImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(int value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseNotEqualsImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(int value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(int value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(int value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseGreaterThanImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(int value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseLessThanImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(long value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseEqualsImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(long value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseNotEqualsImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(long value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(long value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(long value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseGreaterThanImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(long value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseLessThanImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(sbyte value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseEqualsImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(sbyte value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseNotEqualsImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(sbyte value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(sbyte value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(sbyte value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseGreaterThanImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(sbyte value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseLessThanImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(short value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseEqualsImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(short value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseNotEqualsImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(short value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(short value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(short value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseGreaterThanImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(short value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseLessThanImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(uint value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseEqualsImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(uint value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseNotEqualsImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(uint value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(uint value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(uint value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseGreaterThanImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(uint value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseLessThanImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ulong value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseEqualsImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ulong value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseNotEqualsImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ulong value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ulong value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ulong value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseGreaterThanImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ulong value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseLessThanImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ushort value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseEqualsImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ushort value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseNotEqualsImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ushort value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ushort value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ushort value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseGreaterThanImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdecimalValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ushort value)
         {
             decimal otherdecimalValue = (decimal)value;
-            return ElementwiseLessThanImplementation(otherdecimalValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdecimalValue);
         }
     }
 
@@ -12946,296 +12946,296 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(byte value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseNotEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(byte value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(byte value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(byte value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(byte value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(double value)
         {
-            return ElementwiseEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(double value)
         {
-            return ElementwiseNotEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(double value)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(double value)
         {
-            return ElementwiseLessThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(double value)
         {
-            return ElementwiseGreaterThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(double value)
         {
-            return ElementwiseLessThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(float value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(float value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseNotEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(float value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(float value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(float value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(float value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(int value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(int value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseNotEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(int value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(int value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(int value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(int value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(long value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(long value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseNotEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(long value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(long value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(long value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(long value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(sbyte value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(sbyte value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseNotEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(sbyte value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(sbyte value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(sbyte value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(sbyte value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(short value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(short value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseNotEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(short value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(short value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(short value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(short value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(uint value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(uint value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseNotEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(uint value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(uint value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(uint value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(uint value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ulong value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ulong value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseNotEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ulong value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ulong value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ulong value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ulong value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ushort value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ushort value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseNotEqualsImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ushort value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ushort value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanOrEqualImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ushort value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseGreaterThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherdoubleValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ushort value)
         {
             double otherdoubleValue = (double)value;
-            return ElementwiseLessThanImplementation(otherdoubleValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherdoubleValue);
         }
     }
 
@@ -13244,296 +13244,296 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseEqualsImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(byte value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseNotEqualsImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(byte value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(byte value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseLessThanOrEqualImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(byte value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseGreaterThanImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(byte value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseLessThanImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(float value)
         {
-            return ElementwiseEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(float value)
         {
-            return ElementwiseNotEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(float value)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(float value)
         {
-            return ElementwiseLessThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(float value)
         {
-            return ElementwiseGreaterThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(float value)
         {
-            return ElementwiseLessThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(int value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseEqualsImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(int value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseNotEqualsImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(int value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(int value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseLessThanOrEqualImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(int value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseGreaterThanImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(int value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseLessThanImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(long value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseEqualsImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(long value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseNotEqualsImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(long value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(long value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseLessThanOrEqualImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(long value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseGreaterThanImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(long value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseLessThanImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(sbyte value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseEqualsImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(sbyte value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseNotEqualsImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(sbyte value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(sbyte value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseLessThanOrEqualImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(sbyte value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseGreaterThanImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(sbyte value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseLessThanImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(short value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseEqualsImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(short value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseNotEqualsImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(short value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(short value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseLessThanOrEqualImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(short value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseGreaterThanImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(short value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseLessThanImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(uint value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseEqualsImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(uint value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseNotEqualsImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(uint value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(uint value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseLessThanOrEqualImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(uint value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseGreaterThanImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(uint value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseLessThanImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ulong value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseEqualsImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ulong value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseNotEqualsImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ulong value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ulong value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseLessThanOrEqualImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ulong value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseGreaterThanImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ulong value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseLessThanImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ushort value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseEqualsImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ushort value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseNotEqualsImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ushort value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ushort value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseLessThanOrEqualImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ushort value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseGreaterThanImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherfloatValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ushort value)
         {
             float otherfloatValue = (float)value;
-            return ElementwiseLessThanImplementation(otherfloatValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherfloatValue);
         }
     }
 
@@ -13542,326 +13542,326 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
         {
             int otherintValue = (int)value;
-            return ElementwiseEqualsImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(byte value)
         {
             int otherintValue = (int)value;
-            return ElementwiseNotEqualsImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(byte value)
         {
             int otherintValue = (int)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(byte value)
         {
             int otherintValue = (int)value;
-            return ElementwiseLessThanOrEqualImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(byte value)
         {
             int otherintValue = (int)value;
-            return ElementwiseGreaterThanImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(byte value)
         {
             int otherintValue = (int)value;
-            return ElementwiseLessThanImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseEqualsImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseNotEqualsImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseEqualsImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseNotEqualsImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(int value)
         {
-            return ElementwiseEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(int value)
         {
-            return ElementwiseNotEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(int value)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(int value)
         {
-            return ElementwiseLessThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(int value)
         {
-            return ElementwiseGreaterThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(int value)
         {
-            return ElementwiseLessThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseEqualsImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseNotEqualsImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(sbyte value)
         {
             int otherintValue = (int)value;
-            return ElementwiseEqualsImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(sbyte value)
         {
             int otherintValue = (int)value;
-            return ElementwiseNotEqualsImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(sbyte value)
         {
             int otherintValue = (int)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(sbyte value)
         {
             int otherintValue = (int)value;
-            return ElementwiseLessThanOrEqualImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(sbyte value)
         {
             int otherintValue = (int)value;
-            return ElementwiseGreaterThanImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(sbyte value)
         {
             int otherintValue = (int)value;
-            return ElementwiseLessThanImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(short value)
         {
             int otherintValue = (int)value;
-            return ElementwiseEqualsImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(short value)
         {
             int otherintValue = (int)value;
-            return ElementwiseNotEqualsImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(short value)
         {
             int otherintValue = (int)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(short value)
         {
             int otherintValue = (int)value;
-            return ElementwiseLessThanOrEqualImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(short value)
         {
             int otherintValue = (int)value;
-            return ElementwiseGreaterThanImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(short value)
         {
             int otherintValue = (int)value;
-            return ElementwiseLessThanImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(uint value)
         {
             int otherintValue = (int)value;
-            return ElementwiseEqualsImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(uint value)
         {
             int otherintValue = (int)value;
-            return ElementwiseNotEqualsImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(uint value)
         {
             int otherintValue = (int)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(uint value)
         {
             int otherintValue = (int)value;
-            return ElementwiseLessThanOrEqualImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(uint value)
         {
             int otherintValue = (int)value;
-            return ElementwiseGreaterThanImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(uint value)
         {
             int otherintValue = (int)value;
-            return ElementwiseLessThanImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseEqualsImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseNotEqualsImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ushort value)
         {
             int otherintValue = (int)value;
-            return ElementwiseEqualsImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ushort value)
         {
             int otherintValue = (int)value;
-            return ElementwiseNotEqualsImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ushort value)
         {
             int otherintValue = (int)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ushort value)
         {
             int otherintValue = (int)value;
-            return ElementwiseLessThanOrEqualImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ushort value)
         {
             int otherintValue = (int)value;
-            return ElementwiseGreaterThanImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ushort value)
         {
             int otherintValue = (int)value;
-            return ElementwiseLessThanImplementation(otherintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherintValue);
         }
     }
 
@@ -13870,296 +13870,296 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseEqualsImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(byte value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseNotEqualsImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(byte value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(byte value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseLessThanOrEqualImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(byte value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseGreaterThanImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(byte value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseLessThanImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseEqualsImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseNotEqualsImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseEqualsImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseNotEqualsImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(int value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseEqualsImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(int value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseNotEqualsImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(int value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(int value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseLessThanOrEqualImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(int value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseGreaterThanImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(int value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseLessThanImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(long value)
         {
-            return ElementwiseEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(long value)
         {
-            return ElementwiseNotEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(long value)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(long value)
         {
-            return ElementwiseLessThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(long value)
         {
-            return ElementwiseGreaterThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(long value)
         {
-            return ElementwiseLessThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(sbyte value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseEqualsImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(sbyte value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseNotEqualsImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(sbyte value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(sbyte value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseLessThanOrEqualImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(sbyte value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseGreaterThanImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(sbyte value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseLessThanImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(short value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseEqualsImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(short value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseNotEqualsImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(short value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(short value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseLessThanOrEqualImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(short value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseGreaterThanImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(short value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseLessThanImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(uint value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseEqualsImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(uint value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseNotEqualsImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(uint value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(uint value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseLessThanOrEqualImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(uint value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseGreaterThanImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(uint value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseLessThanImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ushort value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseEqualsImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ushort value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseNotEqualsImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ushort value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ushort value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseLessThanOrEqualImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ushort value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseGreaterThanImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherlongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ushort value)
         {
             long otherlongValue = (long)value;
-            return ElementwiseLessThanImplementation(otherlongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherlongValue);
         }
     }
 
@@ -14168,326 +14168,326 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
         {
             sbyte othersbyteValue = (sbyte)value;
-            return ElementwiseEqualsImplementation(othersbyteValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, othersbyteValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(byte value)
         {
             sbyte othersbyteValue = (sbyte)value;
-            return ElementwiseNotEqualsImplementation(othersbyteValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, othersbyteValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(byte value)
         {
             sbyte othersbyteValue = (sbyte)value;
-            return ElementwiseGreaterThanOrEqualImplementation(othersbyteValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, othersbyteValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(byte value)
         {
             sbyte othersbyteValue = (sbyte)value;
-            return ElementwiseLessThanOrEqualImplementation(othersbyteValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, othersbyteValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(byte value)
         {
             sbyte othersbyteValue = (sbyte)value;
-            return ElementwiseGreaterThanImplementation(othersbyteValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, othersbyteValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(byte value)
         {
             sbyte othersbyteValue = (sbyte)value;
-            return ElementwiseLessThanImplementation(othersbyteValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, othersbyteValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseEqualsImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseNotEqualsImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseEqualsImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseNotEqualsImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseEqualsImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseNotEqualsImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseGreaterThanImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseLessThanImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseEqualsImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseNotEqualsImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(sbyte value)
         {
-            return ElementwiseEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(sbyte value)
         {
-            return ElementwiseNotEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(sbyte value)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(sbyte value)
         {
-            return ElementwiseLessThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(sbyte value)
         {
-            return ElementwiseGreaterThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(sbyte value)
         {
-            return ElementwiseLessThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(short value)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseEqualsImplementation(value);
+            return shortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(short value)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseNotEqualsImplementation(value);
+            return shortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(short value)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return shortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(short value)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return shortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(short value)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseGreaterThanImplementation(value);
+            return shortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(short value)
         {
             Int16DataFrameColumn shortColumn = CloneAsInt16Column();
-            return shortColumn.ElementwiseLessThanImplementation(value);
+            return shortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseEqualsImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseNotEqualsImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseGreaterThanImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseLessThanImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseEqualsImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseNotEqualsImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ushort value)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseEqualsImplementation(value);
+            return ushortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ushort value)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseNotEqualsImplementation(value);
+            return ushortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ushort value)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return ushortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ushort value)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return ushortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ushort value)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseGreaterThanImplementation(value);
+            return ushortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ushort value)
         {
             UInt16DataFrameColumn ushortColumn = CloneAsUInt16Column();
-            return ushortColumn.ElementwiseLessThanImplementation(value);
+            return ushortColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
     }
 
@@ -14496,326 +14496,326 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
         {
             short othershortValue = (short)value;
-            return ElementwiseEqualsImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(byte value)
         {
             short othershortValue = (short)value;
-            return ElementwiseNotEqualsImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(byte value)
         {
             short othershortValue = (short)value;
-            return ElementwiseGreaterThanOrEqualImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(byte value)
         {
             short othershortValue = (short)value;
-            return ElementwiseLessThanOrEqualImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(byte value)
         {
             short othershortValue = (short)value;
-            return ElementwiseGreaterThanImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(byte value)
         {
             short othershortValue = (short)value;
-            return ElementwiseLessThanImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseEqualsImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseNotEqualsImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseEqualsImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseNotEqualsImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseEqualsImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseNotEqualsImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseGreaterThanImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseLessThanImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseEqualsImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseNotEqualsImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(sbyte value)
         {
             short othershortValue = (short)value;
-            return ElementwiseEqualsImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(sbyte value)
         {
             short othershortValue = (short)value;
-            return ElementwiseNotEqualsImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(sbyte value)
         {
             short othershortValue = (short)value;
-            return ElementwiseGreaterThanOrEqualImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(sbyte value)
         {
             short othershortValue = (short)value;
-            return ElementwiseLessThanOrEqualImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(sbyte value)
         {
             short othershortValue = (short)value;
-            return ElementwiseGreaterThanImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(sbyte value)
         {
             short othershortValue = (short)value;
-            return ElementwiseLessThanImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(short value)
         {
-            return ElementwiseEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(short value)
         {
-            return ElementwiseNotEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(short value)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(short value)
         {
-            return ElementwiseLessThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(short value)
         {
-            return ElementwiseGreaterThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(short value)
         {
-            return ElementwiseLessThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseEqualsImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseNotEqualsImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseGreaterThanImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseLessThanImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseEqualsImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseNotEqualsImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ushort value)
         {
             short othershortValue = (short)value;
-            return ElementwiseEqualsImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ushort value)
         {
             short othershortValue = (short)value;
-            return ElementwiseNotEqualsImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ushort value)
         {
             short othershortValue = (short)value;
-            return ElementwiseGreaterThanOrEqualImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ushort value)
         {
             short othershortValue = (short)value;
-            return ElementwiseLessThanOrEqualImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ushort value)
         {
             short othershortValue = (short)value;
-            return ElementwiseGreaterThanImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, othershortValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ushort value)
         {
             short othershortValue = (short)value;
-            return ElementwiseLessThanImplementation(othershortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, othershortValue);
         }
     }
 
@@ -14824,326 +14824,326 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseEqualsImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(byte value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseNotEqualsImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(byte value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(byte value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseLessThanOrEqualImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(byte value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseGreaterThanImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(byte value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseLessThanImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseEqualsImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseNotEqualsImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseEqualsImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseNotEqualsImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(int value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseEqualsImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(int value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseNotEqualsImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(int value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(int value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseLessThanOrEqualImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(int value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseGreaterThanImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(int value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseLessThanImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseEqualsImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseNotEqualsImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(sbyte value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseEqualsImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(sbyte value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseNotEqualsImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(sbyte value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(sbyte value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseLessThanOrEqualImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(sbyte value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseGreaterThanImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(sbyte value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseLessThanImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(short value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseEqualsImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(short value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseNotEqualsImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(short value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(short value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseLessThanOrEqualImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(short value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseGreaterThanImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(short value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseLessThanImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(uint value)
         {
-            return ElementwiseEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(uint value)
         {
-            return ElementwiseNotEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(uint value)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(uint value)
         {
-            return ElementwiseLessThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(uint value)
         {
-            return ElementwiseGreaterThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(uint value)
         {
-            return ElementwiseLessThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseEqualsImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseNotEqualsImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ushort value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseEqualsImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ushort value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseNotEqualsImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ushort value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ushort value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseLessThanOrEqualImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ushort value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseGreaterThanImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otheruintValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ushort value)
         {
             uint otheruintValue = (uint)value;
-            return ElementwiseLessThanImplementation(otheruintValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otheruintValue);
         }
     }
 
@@ -15152,296 +15152,296 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseEqualsImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(byte value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseNotEqualsImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(byte value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(byte value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseLessThanOrEqualImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(byte value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseGreaterThanImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(byte value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseLessThanImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseEqualsImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseNotEqualsImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseEqualsImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseNotEqualsImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(int value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseEqualsImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(int value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseNotEqualsImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(int value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(int value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseLessThanOrEqualImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(int value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseGreaterThanImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(int value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseLessThanImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(sbyte value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseEqualsImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(sbyte value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseNotEqualsImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(sbyte value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(sbyte value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseLessThanOrEqualImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(sbyte value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseGreaterThanImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(sbyte value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseLessThanImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(short value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseEqualsImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(short value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseNotEqualsImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(short value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(short value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseLessThanOrEqualImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(short value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseGreaterThanImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(short value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseLessThanImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(uint value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseEqualsImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(uint value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseNotEqualsImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(uint value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(uint value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseLessThanOrEqualImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(uint value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseGreaterThanImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(uint value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseLessThanImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ulong value)
         {
-            return ElementwiseEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ulong value)
         {
-            return ElementwiseNotEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ulong value)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ulong value)
         {
-            return ElementwiseLessThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ulong value)
         {
-            return ElementwiseGreaterThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ulong value)
         {
-            return ElementwiseLessThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ushort value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseEqualsImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ushort value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseNotEqualsImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ushort value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ushort value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseLessThanOrEqualImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ushort value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseGreaterThanImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherulongValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ushort value)
         {
             ulong otherulongValue = (ulong)value;
-            return ElementwiseLessThanImplementation(otherulongValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherulongValue);
         }
     }
 
@@ -15450,326 +15450,326 @@ namespace Microsoft.Data.Analysis
         public BooleanDataFrameColumn ElementwiseEquals(byte value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseEqualsImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(byte value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseNotEqualsImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(byte value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(byte value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseLessThanOrEqualImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(byte value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseGreaterThanImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(byte value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseLessThanImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseEqualsImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseNotEqualsImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseGreaterThanImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(decimal value)
         {
             DecimalDataFrameColumn decimalColumn = CloneAsDecimalColumn();
-            return decimalColumn.ElementwiseLessThanImplementation(value);
+            return decimalColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseNotEqualsImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseGreaterThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(double value)
         {
             DoubleDataFrameColumn doubleColumn = CloneAsDoubleColumn();
-            return doubleColumn.ElementwiseLessThanImplementation(value);
+            return doubleColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseEqualsImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseNotEqualsImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseGreaterThanImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(float value)
         {
             SingleDataFrameColumn floatColumn = CloneAsSingleColumn();
-            return floatColumn.ElementwiseLessThanImplementation(value);
+            return floatColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseEqualsImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseNotEqualsImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseGreaterThanImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(int value)
         {
             Int32DataFrameColumn intColumn = CloneAsInt32Column();
-            return intColumn.ElementwiseLessThanImplementation(value);
+            return intColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseEqualsImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseNotEqualsImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseGreaterThanImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(long value)
         {
             Int64DataFrameColumn longColumn = CloneAsInt64Column();
-            return longColumn.ElementwiseLessThanImplementation(value);
+            return longColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(sbyte value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseEqualsImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(sbyte value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseNotEqualsImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(sbyte value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(sbyte value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseLessThanOrEqualImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(sbyte value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseGreaterThanImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(sbyte value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseLessThanImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(short value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseEqualsImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(short value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseNotEqualsImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(short value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseGreaterThanOrEqualImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(short value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseLessThanOrEqualImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(short value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseGreaterThanImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(short value)
         {
             ushort otherushortValue = (ushort)value;
-            return ElementwiseLessThanImplementation(otherushortValue);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, otherushortValue);
         }
         public BooleanDataFrameColumn ElementwiseEquals(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseEqualsImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseNotEqualsImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseGreaterThanImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(uint value)
         {
             UInt32DataFrameColumn uintColumn = CloneAsUInt32Column();
-            return uintColumn.ElementwiseLessThanImplementation(value);
+            return uintColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseEqualsImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseNotEqualsImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanOrEqualImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanOrEqualImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseGreaterThanImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ulong value)
         {
             UInt64DataFrameColumn ulongColumn = CloneAsUInt64Column();
-            return ulongColumn.ElementwiseLessThanImplementation(value);
+            return ulongColumn.HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
         public BooleanDataFrameColumn ElementwiseEquals(ushort value)
         {
-            return ElementwiseEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(ushort value)
         {
-            return ElementwiseNotEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(ushort value)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(ushort value)
         {
-            return ElementwiseLessThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(ushort value)
         {
-            return ElementwiseGreaterThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(ushort value)
         {
-            return ElementwiseLessThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
     }
 
@@ -15777,27 +15777,27 @@ namespace Microsoft.Data.Analysis
     {
         public BooleanDataFrameColumn ElementwiseEquals(DateTime value)
         {
-            return ElementwiseEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseNotEquals(DateTime value)
         {
-            return ElementwiseNotEqualsImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThanOrEqual(DateTime value)
         {
-            return ElementwiseGreaterThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThanOrEqual(DateTime value)
         {
-            return ElementwiseLessThanOrEqualImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
         }
         public BooleanDataFrameColumn ElementwiseGreaterThan(DateTime value)
         {
-            return ElementwiseGreaterThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
         }
         public BooleanDataFrameColumn ElementwiseLessThan(DateTime value)
         {
-            return ElementwiseLessThanImplementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
         }
     }
 

@@ -38,4 +38,22 @@ namespace Microsoft.Data.Analysis
 <# } #>
 <# } #>
     }
+
+    internal enum ComparisonOperation
+    {
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType == MethodType.Comparison) { #>
+        <#=method.MethodName#>,
+<# } #>
+<# } #>
+    }
+
+    internal enum ComparisonScalarOperation
+    {
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType == MethodType.ComparisonScalar) { #>
+        <#=method.MethodName#>,
+<# } #>
+<# } #>
+    }
 }

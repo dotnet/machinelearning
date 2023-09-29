@@ -224,1249 +224,170 @@ namespace Microsoft.Data.Analysis
 
     public partial class BooleanDataFrameColumn
     {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(BooleanDataFrameColumn column)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, BooleanDataFrameColumn column)
         {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(column.ColumnContainer));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
+        }
+
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, bool value)
+        {
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
     }
 
     public partial class ByteDataFrameColumn
     {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(ByteDataFrameColumn column)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, ByteDataFrameColumn column)
         {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(column.ColumnContainer));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
+        }
+
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, byte value)
+        {
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
     }
 
     public partial class DecimalDataFrameColumn
     {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(DecimalDataFrameColumn column)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, DecimalDataFrameColumn column)
         {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(column.ColumnContainer));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
+        }
+
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, decimal value)
+        {
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
     }
 
     public partial class DoubleDataFrameColumn
     {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(DoubleDataFrameColumn column)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, DoubleDataFrameColumn column)
         {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(column.ColumnContainer));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
+        }
+
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, double value)
+        {
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
     }
 
     public partial class SingleDataFrameColumn
     {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(SingleDataFrameColumn column)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, SingleDataFrameColumn column)
         {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(column.ColumnContainer));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
+        }
+
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, float value)
+        {
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
     }
 
     public partial class Int32DataFrameColumn
     {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(Int32DataFrameColumn column)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, Int32DataFrameColumn column)
         {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(column.ColumnContainer));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
+        }
+
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, int value)
+        {
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
     }
 
     public partial class Int64DataFrameColumn
     {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(Int64DataFrameColumn column)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, Int64DataFrameColumn column)
         {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(column.ColumnContainer));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
+        }
+
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, long value)
+        {
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
     }
 
     public partial class SByteDataFrameColumn
     {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(SByteDataFrameColumn column)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, SByteDataFrameColumn column)
         {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(column.ColumnContainer));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
+        }
+
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, sbyte value)
+        {
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
     }
 
     public partial class Int16DataFrameColumn
     {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(Int16DataFrameColumn column)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, Int16DataFrameColumn column)
         {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(column.ColumnContainer));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
+        }
+
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, short value)
+        {
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
     }
 
     public partial class UInt32DataFrameColumn
     {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(UInt32DataFrameColumn column)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, UInt32DataFrameColumn column)
         {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(column.ColumnContainer));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
+        }
+
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, uint value)
+        {
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
     }
 
     public partial class UInt64DataFrameColumn
     {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(UInt64DataFrameColumn column)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, UInt64DataFrameColumn column)
         {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(column.ColumnContainer));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
+        }
+
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, ulong value)
+        {
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
     }
 
     public partial class UInt16DataFrameColumn
     {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(UInt16DataFrameColumn column)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, UInt16DataFrameColumn column)
         {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(column.ColumnContainer));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
+        }
+
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, ushort value)
+        {
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
     }
 
     public partial class DateTimeDataFrameColumn
     {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(DateTimeDataFrameColumn column)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, DateTimeDataFrameColumn column)
         {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(column.ColumnContainer));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
         }
-    }
 
-    public partial class BooleanDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(bool value)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, DateTime value)
         {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
-        }
-    }
-
-    public partial class ByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(byte value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(decimal value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(double value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(float value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(int value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(long value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
-        }
-    }
-
-    public partial class SByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(sbyte value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
-        }
-    }
-
-    public partial class Int16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(short value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(uint value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(ulong value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
-        }
-    }
-
-    public partial class UInt16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(ushort value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
-        }
-    }
-
-    public partial class DateTimeDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseEqualsImplementation(DateTime value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseEquals(value));
-        }
-    }
-
-    public partial class BooleanDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(BooleanDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(column.ColumnContainer));
-        }
-    }
-
-    public partial class ByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(ByteDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(column.ColumnContainer));
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(DecimalDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(column.ColumnContainer));
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(DoubleDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(column.ColumnContainer));
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(SingleDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(column.ColumnContainer));
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(Int32DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(column.ColumnContainer));
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(Int64DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(column.ColumnContainer));
-        }
-    }
-
-    public partial class SByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(SByteDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(column.ColumnContainer));
-        }
-    }
-
-    public partial class Int16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(Int16DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(column.ColumnContainer));
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(UInt32DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(column.ColumnContainer));
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(UInt64DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(column.ColumnContainer));
-        }
-    }
-
-    public partial class UInt16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(UInt16DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(column.ColumnContainer));
-        }
-    }
-
-    public partial class DateTimeDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(DateTimeDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(column.ColumnContainer));
-        }
-    }
-
-    public partial class BooleanDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(bool value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
-        }
-    }
-
-    public partial class ByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(byte value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(decimal value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(double value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(float value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(int value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(long value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
-        }
-    }
-
-    public partial class SByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(sbyte value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
-        }
-    }
-
-    public partial class Int16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(short value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(uint value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(ulong value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
-        }
-    }
-
-    public partial class UInt16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(ushort value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
-        }
-    }
-
-    public partial class DateTimeDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseNotEqualsImplementation(DateTime value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseNotEquals(value));
-        }
-    }
-
-    public partial class BooleanDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(BooleanDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class ByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(ByteDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(DecimalDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(DoubleDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(SingleDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(Int32DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(Int64DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class SByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(SByteDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class Int16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(Int16DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(UInt32DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(UInt64DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class UInt16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(UInt16DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class DateTimeDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(DateTimeDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class BooleanDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(bool value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
-        }
-    }
-
-    public partial class ByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(byte value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(decimal value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(double value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(float value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(int value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(long value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
-        }
-    }
-
-    public partial class SByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(sbyte value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
-        }
-    }
-
-    public partial class Int16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(short value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(uint value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(ulong value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
-        }
-    }
-
-    public partial class UInt16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(ushort value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
-        }
-    }
-
-    public partial class DateTimeDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanOrEqualImplementation(DateTime value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThanOrEqual(value));
-        }
-    }
-
-    public partial class BooleanDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(BooleanDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class ByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(ByteDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(DecimalDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(DoubleDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(SingleDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(Int32DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(Int64DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class SByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(SByteDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class Int16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(Int16DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(UInt32DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(UInt64DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class UInt16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(UInt16DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class DateTimeDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(DateTimeDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(column.ColumnContainer));
-        }
-    }
-
-    public partial class BooleanDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(bool value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
-        }
-    }
-
-    public partial class ByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(byte value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(decimal value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(double value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(float value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(int value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(long value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
-        }
-    }
-
-    public partial class SByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(sbyte value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
-        }
-    }
-
-    public partial class Int16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(short value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(uint value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(ulong value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
-        }
-    }
-
-    public partial class UInt16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(ushort value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
-        }
-    }
-
-    public partial class DateTimeDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanOrEqualImplementation(DateTime value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThanOrEqual(value));
-        }
-    }
-
-    public partial class BooleanDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(BooleanDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class ByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(ByteDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(DecimalDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(DoubleDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(SingleDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(Int32DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(Int64DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class SByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(SByteDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class Int16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(Int16DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(UInt32DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(UInt64DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class UInt16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(UInt16DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class DateTimeDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(DateTimeDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class BooleanDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(bool value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
-        }
-    }
-
-    public partial class ByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(byte value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(decimal value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(double value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(float value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(int value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(long value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
-        }
-    }
-
-    public partial class SByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(sbyte value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
-        }
-    }
-
-    public partial class Int16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(short value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(uint value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(ulong value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
-        }
-    }
-
-    public partial class UInt16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(ushort value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
-        }
-    }
-
-    public partial class DateTimeDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseGreaterThanImplementation(DateTime value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseGreaterThan(value));
-        }
-    }
-
-    public partial class BooleanDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(BooleanDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class ByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(ByteDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(DecimalDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(DoubleDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(SingleDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(Int32DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(Int64DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class SByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(SByteDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class Int16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(Int16DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(UInt32DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(UInt64DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class UInt16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(UInt16DataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class DateTimeDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(DateTimeDataFrameColumn column)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(column.ColumnContainer));
-        }
-    }
-
-    public partial class BooleanDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(bool value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
-        }
-    }
-
-    public partial class ByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(byte value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
-        }
-    }
-
-    public partial class DecimalDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(decimal value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
-        }
-    }
-
-    public partial class DoubleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(double value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
-        }
-    }
-
-    public partial class SingleDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(float value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
-        }
-    }
-
-    public partial class Int32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(int value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
-        }
-    }
-
-    public partial class Int64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(long value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
-        }
-    }
-
-    public partial class SByteDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(sbyte value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
-        }
-    }
-
-    public partial class Int16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(short value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
-        }
-    }
-
-    public partial class UInt32DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(uint value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
-        }
-    }
-
-    public partial class UInt64DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(ulong value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
-        }
-    }
-
-    public partial class UInt16DataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(ushort value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
-        }
-    }
-
-    public partial class DateTimeDataFrameColumn
-    {
-        internal BooleanDataFrameColumn ElementwiseLessThanImplementation(DateTime value)
-        {
-            return new BooleanDataFrameColumn(Name, ColumnContainer.ElementwiseLessThan(value));
+            return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
     }
 }

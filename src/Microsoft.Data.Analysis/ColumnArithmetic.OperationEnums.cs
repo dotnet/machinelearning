@@ -35,4 +35,24 @@ namespace Microsoft.Data.Analysis
         LeftShift,
         RightShift,
     }
+
+    internal enum ComparisonOperation
+    {
+        ElementwiseEquals,
+        ElementwiseNotEquals,
+        ElementwiseGreaterThanOrEqual,
+        ElementwiseLessThanOrEqual,
+        ElementwiseGreaterThan,
+        ElementwiseLessThan,
+    }
+
+    internal enum ComparisonScalarOperation
+    {
+        ElementwiseEquals,
+        ElementwiseNotEquals,
+        ElementwiseGreaterThanOrEqual,
+        ElementwiseLessThanOrEqual,
+        ElementwiseGreaterThan,
+        ElementwiseLessThan,
+    }
 }
