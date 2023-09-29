@@ -13,8 +13,8 @@ namespace Microsoft.Data.Analysis
     {
         void HandleOperation(BinaryOperation operation, Span<T> left, Span<byte> leftValidity, ReadOnlySpan<T> right, ReadOnlySpan<byte> rightValidity);
 
-        Span<bool> HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> left, ReadOnlySpan<T> right);
-        Span<bool> HandleOperation(ComparisonScalarOperation operation, ReadOnlySpan<T> left, T right);
+        void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> left, ReadOnlySpan<T> right, PrimitiveColumnContainer<bool> container, long offset);
+        void HandleOperation(ComparisonScalarOperation operation, ReadOnlySpan<T> left, T right, PrimitiveColumnContainer<bool> container, long offset);
 
         void HandleOperation(BinaryScalarOperation operation, Span<T> left, T right);
         void HandleOperation(BinaryScalarOperation operation, T left, Span<T> right, ReadOnlySpan<byte> rightValidity);

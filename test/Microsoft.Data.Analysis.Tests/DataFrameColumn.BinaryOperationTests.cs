@@ -22,7 +22,7 @@ namespace Microsoft.Data.Analysis.Tests
             ByteDataFrameColumn column = new ByteDataFrameColumn("Byte", columnEnumerable);
             var otherColumnEnumerable = Enumerable.Range(1, 10).Select(x => (byte)x);
             ByteDataFrameColumn otherColumn = new ByteDataFrameColumn("Byte", otherColumnEnumerable);
-            Int32DataFrameColumn columnResult = column + otherColumn;
+            Int32DataFrameColumn columnResult = column.Add(otherColumn);
             var verify = Enumerable.Range(1, 10).Select(x => (int)(2 * x));
             var verifyColumn = new Int32DataFrameColumn("Verify", verify);
             Assert.Equal(columnResult.Length, verify.Count());

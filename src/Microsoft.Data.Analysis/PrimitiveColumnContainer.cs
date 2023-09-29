@@ -465,9 +465,10 @@ namespace Microsoft.Data.Analysis
             return BitmapHelper.IsBitSet(curBitMap, (int)index);
         }
 
-        public long Length;
+        public long Length { get; private set; }
 
-        public long NullCount;
+        public long NullCount { get; private set; }
+
         public int GetArrayContainingRowIndex(long rowIndex)
         {
             if (rowIndex >= Length)

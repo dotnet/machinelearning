@@ -75,29 +75,34 @@ namespace Microsoft.Data.Analysis
         public PrimitiveColumnContainer<bool> HandleOperation(ComparisonOperation operation, PrimitiveColumnContainer<T> right)
         {
             var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+
+            var ret = new PrimitiveColumnContainer<bool>(Length);
+            long offset = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 var leftSpan = this.Buffers[i].ReadOnlySpan;
                 var rightSpan = right.Buffers[i].ReadOnlySpan;
 
-                arithmetic.HandleOperation(operation, leftSpan, rightSpan);
-
+                arithmetic.HandleOperation(operation, leftSpan, rightSpan, ret, offset);
+                offset += leftSpan.Length;
             }
 
-            return new PrimitiveColumnContainer<bool>();
+            return ret;
         }
 
         public PrimitiveColumnContainer<bool> HandleOperation(ComparisonScalarOperation operation, T right)
         {
+            var ret = new PrimitiveColumnContainer<bool>(Length);
+            long offset = 0;
             var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 var leftSpan = this.Buffers[i].ReadOnlySpan;
 
-                arithmetic.HandleOperation(operation, leftSpan, right);
+                arithmetic.HandleOperation(operation, leftSpan, right, ret, offset);
             }
 
-            return new PrimitiveColumnContainer<bool>();
+            return ret;
         }
     }
 }
