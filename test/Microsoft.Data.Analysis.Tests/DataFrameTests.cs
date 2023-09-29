@@ -3685,7 +3685,7 @@ namespace Microsoft.Data.Analysis.Tests
             var right_column = new Int32DataFrameColumn("Right", new int?[] { 1, null, 1, null });
 
             // Act
-            var diff = left_column.Subtract(right_column);
+            var diff = left_column - (right_column);
 
             // Assert
             Assert.Equal(3, diff.NullCount);
