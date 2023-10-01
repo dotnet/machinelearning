@@ -9,6 +9,7 @@ using System.Text;
 using Apache.Arrow;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 
 namespace Microsoft.Data.Analysis.Tests
@@ -252,7 +253,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(0, vBufferColumn[0].GetValues()[4]);
         }
 
-        [Fact]
+        [X64Fact("32-bit doesn't allow to allocate more than 2 Gb")]
         public void TestVBufferColumn_Indexer_MoreThanMaxInt()
         {
             var originalValues = new[] { 4, 3, 2, 1, 0 };
