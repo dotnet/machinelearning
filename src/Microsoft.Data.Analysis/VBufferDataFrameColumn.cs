@@ -6,11 +6,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using Apache.Arrow;
-using Apache.Arrow.Types;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 
@@ -83,7 +78,7 @@ namespace Microsoft.Data.Analysis
             Length++;
         }
 
-        private int GetBufferIndexContainingRowIndex(ref long rowIndex)
+        private int GetBufferIndexContainingRowIndex(long rowIndex)
         {
             if (rowIndex >= Length)
             {
@@ -95,22 +90,23 @@ namespace Microsoft.Data.Analysis
 
         protected override object GetValue(long rowIndex)
         {
-            int bufferIndex = GetBufferIndexContainingRowIndex(ref rowIndex);
-            return _vBuffers[bufferIndex][(int)rowIndex];
+            int bufferIndex = GetBufferIndexContainingRowIndex(rowIndex);
+            return _vBuffers[bufferIndex][(int)(rowIndex % int.MaxValue)];
         }
 
         protected override IReadOnlyList<object> GetValues(long startIndex, int length)
         {
             var ret = new List<object>();
-            int bufferIndex = GetBufferIndexContainingRowIndex(ref startIndex);
+            int bufferIndex = GetBufferIndexContainingRowIndex(startIndex);
+            int bufferOffset = (int)(startIndex % int.MaxValue);
             while (ret.Count < length && bufferIndex < _vBuffers.Count)
             {
-                for (int i = (int)startIndex; ret.Count < length && i < _vBuffers[bufferIndex].Count; i++)
+                for (int i = bufferOffset; ret.Count < length && i < _vBuffers[bufferIndex].Count; i++)
                 {
                     ret.Add(_vBuffers[bufferIndex][i]);
                 }
                 bufferIndex++;
-                startIndex = 0;
+                bufferOffset = 0;
             }
             return ret;
         }
@@ -119,9 +115,10 @@ namespace Microsoft.Data.Analysis
         {
             if (value == null || value is VBuffer<T>)
             {
-                int bufferIndex = GetBufferIndexContainingRowIndex(ref rowIndex);
-                var oldValue = this[rowIndex];
-                _vBuffers[bufferIndex][(int)rowIndex] = (VBuffer<T>)value;
+                int bufferIndex = GetBufferIndexContainingRowIndex(rowIndex);
+                int bufferOffset = (int)(rowIndex % int.MaxValue);
+                var oldValue = _vBuffers[bufferIndex][bufferOffset];
+                _vBuffers[bufferIndex][bufferOffset] = (VBuffer<T>)value;
                 if (!oldValue.Equals((VBuffer<T>)value))
                 {
                     if (value == null)
