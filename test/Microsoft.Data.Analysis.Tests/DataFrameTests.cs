@@ -253,6 +253,22 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void TestVBufferColumn_Indexer_MoreThanMaxInt()
+        {
+            var buffer = new VBuffer<int>(5, new[] { 4, 3, 2, 1, 0 });
+
+            var vBufferColumn = new VBufferDataFrameColumn<int>("VBuffer", VBufferDataFrameColumn<int>.MaxCapacity + 3);
+
+            long index = (long)int.MaxValue + 1;
+
+            vBufferColumn[index] = buffer;
+
+            Assert.Equal(1, vBufferColumn.Length);
+            Assert.Equal(5, vBufferColumn[index].GetValues().Length);
+            Assert.Equal(0, vBufferColumn[index].GetValues()[4]);
+        }
+
+        [Fact]
         public void TestIndexer()
         {
             DataFrame dataFrame = MakeDataFrameWithTwoColumns(length: 10);
