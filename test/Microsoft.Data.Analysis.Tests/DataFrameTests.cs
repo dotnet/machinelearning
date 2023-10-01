@@ -255,17 +255,24 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestVBufferColumn_Indexer_MoreThanMaxInt()
         {
-            var buffer = new VBuffer<int>(5, new[] { 4, 3, 2, 1, 0 });
+            var originalValues = new[] { 4, 3, 2, 1, 0 };
 
-            var vBufferColumn = new VBufferDataFrameColumn<int>("VBuffer", VBufferDataFrameColumn<int>.MaxCapacity + 3);
+            var length = VBufferDataFrameColumn<int>.MaxCapacity + 3;
 
-            long index = (long)int.MaxValue + 1;
+            var vBufferColumn = new VBufferDataFrameColumn<int>("VBuffer", length);
+            long index = length - 2;
 
-            vBufferColumn[index] = buffer;
+            vBufferColumn[index] = new VBuffer<int>(5, originalValues);
 
-            Assert.Equal(1, vBufferColumn.Length);
-            Assert.Equal(5, vBufferColumn[index].GetValues().Length);
-            Assert.Equal(0, vBufferColumn[index].GetValues()[4]);
+            var values = vBufferColumn[index].GetValues();
+
+            Assert.Equal(length, vBufferColumn.Length);
+            Assert.Equal(5, values.Length);
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                Assert.Equal(originalValues[i], values[i]);
+            }
         }
 
         [Fact]
