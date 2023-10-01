@@ -8,12 +8,27 @@ using System.Linq;
 using System.Text;
 using Apache.Arrow;
 using Microsoft.ML.TestFramework.Attributes;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Microsoft.Data.Analysis.Tests
 {
     public class BufferTests
     {
+        [X64Fact("32-bit doesn't allow to allocate more than 2 Gb")]
+        public void TestGetterAndSetterForColumnsGreaterThanMaxCapacity()
+        {
+            const int MaxCapacityInBytes = 2147483591;
+
+            var length = MaxCapacityInBytes + 5;
+            var column = new PrimitiveDataFrameColumn<byte>("LargeColumn", length);
+            var index = length - 1;
+            column[index] = 33;
+
+            Assert.Equal((byte)33, column[index]);
+            Assert.Null(column[index % MaxCapacityInBytes]);
+        }
+
         [Fact]
         public void TestNullCounts()
         {
@@ -446,7 +461,7 @@ namespace Microsoft.Data.Analysis.Tests
                 Assert.Null(clone[i]);
         }
 
-        [X64Fact("32-bit dosn't allow to allocate more than 2 Gb")]
+        [X64Fact("32-bit doesn't allow to allocate more than 2 Gb")]
         public void TestAppend_SizeMoreThanMaxBufferCapacity()
         {
             //Check appending value, than can increase buffer size over MaxCapacity (default strategy is to double buffer capacity)
@@ -454,7 +469,7 @@ namespace Microsoft.Data.Analysis.Tests
             intColumn.Append(10);
         }
 
-        [X64Fact("32-bit dosn't allow to allocate more than 2 Gb")]
+        [X64Fact("32-bit doesn't allow to allocate more than 2 Gb")]
         public void TestAppendMany_SizeMoreThanMaxBufferCapacity()
         {
             const int MaxCapacityInBytes = 2147483591;

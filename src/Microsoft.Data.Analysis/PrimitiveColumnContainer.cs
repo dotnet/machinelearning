@@ -359,13 +359,13 @@ namespace Microsoft.Data.Analysis
         }
 
         // private function. Faster to use when we already have a span since it avoids indexing
-        private void SetValidityBit(Span<byte> bitMapBufferSpan, int index, bool value)
+        private void SetValidityBit(Span<byte> validitySpan, int index, bool value)
         {
             int bitMapBufferIndex = (int)((uint)index / 8);
-            Debug.Assert(bitMapBufferSpan.Length >= bitMapBufferIndex);
-            byte curBitMap = bitMapBufferSpan[bitMapBufferIndex];
+            Debug.Assert(validitySpan.Length >= bitMapBufferIndex);
+            byte curBitMap = validitySpan[bitMapBufferIndex];
             byte newBitMap = SetBit(curBitMap, index, value);
-            bitMapBufferSpan[bitMapBufferIndex] = newBitMap;
+            validitySpan[bitMapBufferIndex] = newBitMap;
         }
 
         /// <summary>
@@ -457,25 +457,25 @@ namespace Microsoft.Data.Analysis
                     return null;
                 }
                 int arrayIndex = GetArrayContainingRowIndex(rowIndex);
-                rowIndex = rowIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity;
-                return Buffers[arrayIndex][(int)rowIndex];
+                var bufferOffset = (int)(rowIndex % ReadOnlyDataFrameBuffer<T>.MaxCapacity);
+                return Buffers[arrayIndex][bufferOffset];
             }
             set
             {
                 int arrayIndex = GetArrayContainingRowIndex(rowIndex);
-                rowIndex = rowIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity;
+                var bufferOffset = (int)(rowIndex % ReadOnlyDataFrameBuffer<T>.MaxCapacity);
 
                 Buffers.GetOrCreateMutable(arrayIndex);
                 NullBitMapBuffers.GetOrCreateMutable(arrayIndex);
 
                 if (value.HasValue)
                 {
-                    Buffers[arrayIndex][(int)rowIndex] = value.Value;
+                    Buffers[arrayIndex][bufferOffset] = value.Value;
                     SetValidityBit(rowIndex, true);
                 }
                 else
                 {
-                    Buffers[arrayIndex][(int)rowIndex] = default;
+                    Buffers[arrayIndex][bufferOffset] = default;
                     SetValidityBit(rowIndex, false);
                 }
             }
