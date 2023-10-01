@@ -359,13 +359,13 @@ namespace Microsoft.Data.Analysis
         }
 
         // private function. Faster to use when we already have a span since it avoids indexing
-        private void SetValidityBit(Span<byte> validitySpan, int index, bool value)
+        private void SetValidityBit(Span<byte> bitMapBufferSpan, int index, bool value)
         {
             int bitMapBufferIndex = (int)((uint)index / 8);
-            Debug.Assert(validitySpan.Length >= bitMapBufferIndex);
-            byte curBitMap = validitySpan[bitMapBufferIndex];
+            Debug.Assert(bitMapBufferSpan.Length >= bitMapBufferIndex);
+            byte curBitMap = bitMapBufferSpan[bitMapBufferIndex];
             byte newBitMap = SetBit(curBitMap, index, value);
-            validitySpan[bitMapBufferIndex] = newBitMap;
+            bitMapBufferSpan[bitMapBufferIndex] = newBitMap;
         }
 
         /// <summary>
