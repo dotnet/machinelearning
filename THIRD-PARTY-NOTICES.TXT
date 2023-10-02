@@ -87,10 +87,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 
-License notice for Apache Arrow
+License notice for BitUtility
 ------------------------------------------
 
-https://github.com/apache/arrow/blob/main/LICENSE.txt
+https://github.com/apache/arrow/blob/main/csharp/src/Apache.Arrow/BitUtility.cs
 
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements. See the NOTICE file distributed with

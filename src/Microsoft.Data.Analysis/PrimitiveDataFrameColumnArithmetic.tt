@@ -37,7 +37,7 @@ namespace Microsoft.Data.Analysis
 <# } #>
 <# } #>
 
-            BitmapHelper.ElementwiseAnd(leftValidity, rightValidity, leftValidity);
+            BitUtility.ElementwiseAnd(leftValidity, rightValidity, leftValidity);
         }
 
         public void HandleOperation(BinaryScalarOperation operation, Span<T> left, T right)
@@ -183,10 +183,10 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     left[i] = (<#=type.TypeName#>)(left[i] <#= method.Operator #> right[i]);
                 else
-                    BitmapHelper.ClearBit(leftValidity, i);
+                    BitUtility.ClearBit(leftValidity, i);
             }
         }
 <# } else { #>
@@ -211,7 +211,7 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < right.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     right[i] = (<#=type.TypeName#>)(left <#= method.Operator #> right[i]);
             }
         }

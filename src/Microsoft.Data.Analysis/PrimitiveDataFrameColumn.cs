@@ -587,7 +587,7 @@ namespace Microsoft.Data.Analysis
                     for (int i = 0; i < readOnlySpan.Length; i++)
                     {
                         long currentLength = i + previousLength;
-                        if (BitmapHelper.IsValid(nullBitMapSpan, i))
+                        if (BitUtility.IsValid(nullBitMapSpan, i))
                         {
                             bool containsKey = multimap.TryGetValue(readOnlySpan[i], out ICollection<long> values);
                             if (containsKey)

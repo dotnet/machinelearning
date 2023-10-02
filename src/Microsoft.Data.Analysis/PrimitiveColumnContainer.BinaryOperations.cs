@@ -25,7 +25,7 @@ namespace Microsoft.Data.Analysis
                 arithmetic.HandleOperation(operation, leftSpan, leftValidity, rightSpan, rightValidity);
 
                 //Calculate NullCount
-                nullCount += BitmapHelper.GetBitCount(leftValidity, mutableBuffer.Length);
+                nullCount += BitUtility.GetBitCount(leftValidity, mutableBuffer.Length);
             }
 
             NullCount = nullCount;

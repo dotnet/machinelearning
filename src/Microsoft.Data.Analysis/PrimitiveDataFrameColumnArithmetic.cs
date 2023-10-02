@@ -36,7 +36,7 @@ namespace Microsoft.Data.Analysis
             else if (operation == BinaryOperation.Xor)
                 Xor(left, right);
 
-            BitmapHelper.ElementwiseAnd(leftValidity, rightValidity, leftValidity);
+            BitUtility.ElementwiseAnd(leftValidity, rightValidity, leftValidity);
         }
 
         public void HandleOperation(BinaryScalarOperation operation, Span<T> left, T right)
@@ -384,10 +384,10 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     left[i] = (byte)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(leftValidity, i);
+                    BitUtility.ClearBit(leftValidity, i);
             }
         }
 
@@ -401,7 +401,7 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < right.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     right[i] = (byte)(left / right[i]);
             }
         }
@@ -647,10 +647,10 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     left[i] = (char)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(leftValidity, i);
+                    BitUtility.ClearBit(leftValidity, i);
             }
         }
 
@@ -664,7 +664,7 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < right.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     right[i] = (char)(left / right[i]);
             }
         }
@@ -910,10 +910,10 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     left[i] = (decimal)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(leftValidity, i);
+                    BitUtility.ClearBit(leftValidity, i);
             }
         }
 
@@ -927,7 +927,7 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < right.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     right[i] = (decimal)(left / right[i]);
             }
         }
@@ -1107,10 +1107,10 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     left[i] = (double)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(leftValidity, i);
+                    BitUtility.ClearBit(leftValidity, i);
             }
         }
 
@@ -1124,7 +1124,7 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < right.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     right[i] = (double)(left / right[i]);
             }
         }
@@ -1304,10 +1304,10 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     left[i] = (float)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(leftValidity, i);
+                    BitUtility.ClearBit(leftValidity, i);
             }
         }
 
@@ -1321,7 +1321,7 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < right.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     right[i] = (float)(left / right[i]);
             }
         }
@@ -1501,10 +1501,10 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     left[i] = (int)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(leftValidity, i);
+                    BitUtility.ClearBit(leftValidity, i);
             }
         }
 
@@ -1518,7 +1518,7 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < right.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     right[i] = (int)(left / right[i]);
             }
         }
@@ -1764,10 +1764,10 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     left[i] = (long)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(leftValidity, i);
+                    BitUtility.ClearBit(leftValidity, i);
             }
         }
 
@@ -1781,7 +1781,7 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < right.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     right[i] = (long)(left / right[i]);
             }
         }
@@ -2027,10 +2027,10 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     left[i] = (sbyte)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(leftValidity, i);
+                    BitUtility.ClearBit(leftValidity, i);
             }
         }
 
@@ -2044,7 +2044,7 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < right.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     right[i] = (sbyte)(left / right[i]);
             }
         }
@@ -2290,10 +2290,10 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     left[i] = (short)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(leftValidity, i);
+                    BitUtility.ClearBit(leftValidity, i);
             }
         }
 
@@ -2307,7 +2307,7 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < right.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     right[i] = (short)(left / right[i]);
             }
         }
@@ -2553,10 +2553,10 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     left[i] = (uint)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(leftValidity, i);
+                    BitUtility.ClearBit(leftValidity, i);
             }
         }
 
@@ -2570,7 +2570,7 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < right.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     right[i] = (uint)(left / right[i]);
             }
         }
@@ -2816,10 +2816,10 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     left[i] = (ulong)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(leftValidity, i);
+                    BitUtility.ClearBit(leftValidity, i);
             }
         }
 
@@ -2833,7 +2833,7 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < right.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     right[i] = (ulong)(left / right[i]);
             }
         }
@@ -3079,10 +3079,10 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < left.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     left[i] = (ushort)(left[i] / right[i]);
                 else
-                    BitmapHelper.ClearBit(leftValidity, i);
+                    BitUtility.ClearBit(leftValidity, i);
             }
         }
 
@@ -3096,7 +3096,7 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < right.Length; i++)
             {
-                if (BitmapHelper.IsValid(rightValidity, i))
+                if (BitUtility.IsValid(rightValidity, i))
                     right[i] = (ushort)(left / right[i]);
             }
         }
