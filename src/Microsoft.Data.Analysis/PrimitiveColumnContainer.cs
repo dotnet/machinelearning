@@ -457,25 +457,25 @@ namespace Microsoft.Data.Analysis
                     return null;
                 }
                 int arrayIndex = GetArrayContainingRowIndex(rowIndex);
-                rowIndex = rowIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity;
-                return Buffers[arrayIndex][(int)rowIndex];
+                var bufferOffset = (int)(rowIndex % ReadOnlyDataFrameBuffer<T>.MaxCapacity);
+                return Buffers[arrayIndex][bufferOffset];
             }
             set
             {
                 int arrayIndex = GetArrayContainingRowIndex(rowIndex);
-                rowIndex = rowIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity;
+                var bufferOffset = (int)(rowIndex % ReadOnlyDataFrameBuffer<T>.MaxCapacity);
 
                 Buffers.GetOrCreateMutable(arrayIndex);
                 NullBitMapBuffers.GetOrCreateMutable(arrayIndex);
 
                 if (value.HasValue)
                 {
-                    Buffers[arrayIndex][(int)rowIndex] = value.Value;
+                    Buffers[arrayIndex][bufferOffset] = value.Value;
                     SetValidityBit(rowIndex, true);
                 }
                 else
                 {
-                    Buffers[arrayIndex][(int)rowIndex] = default;
+                    Buffers[arrayIndex][bufferOffset] = default;
                     SetValidityBit(rowIndex, false);
                 }
             }
