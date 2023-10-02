@@ -26,7 +26,7 @@ namespace Microsoft.Data.Analysis
 
         public StringDataFrameColumn(string name, long length = 0) : base(name, length, typeof(string))
         {
-            int numberOfBuffersRequired = Math.Max((int)(length / MaxCapacity), 1);
+            int numberOfBuffersRequired = (int)(length / MaxCapacity + 1);
             for (int i = 0; i < numberOfBuffersRequired; i++)
             {
                 long bufferLen = length - _stringBuffers.Count * MaxCapacity;
