@@ -18,9 +18,8 @@ namespace Microsoft.Data.Analysis
     /// </summary>
     public partial class VBufferDataFrameColumn<T> : DataFrameColumn, IEnumerable<VBuffer<T>>
     {
-        //The maximum size in any single dimension for array containing other types than byte or single byte structure is 0X7FEFFFFF - 2146435071
-        //See https://learn.microsoft.com/en-us/dotnet/framework/configure-apps/file-schema/runtime/gcallowverylargeobjects-element
-        public static int MaxCapacity = 2146435071 / Unsafe.SizeOf<VBuffer<T>>();
+
+        public static int MaxCapacity = ArrayUtility.ArrayMaxSize / Unsafe.SizeOf<VBuffer<T>>();
 
         private readonly List<List<VBuffer<T>>> _vBuffers = new List<List<VBuffer<T>>>(); // To store more than intMax number of vbuffers
 

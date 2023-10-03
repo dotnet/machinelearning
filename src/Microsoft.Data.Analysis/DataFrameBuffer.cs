@@ -80,7 +80,7 @@ namespace Microsoft.Data.Analysis
             if (newLength > Capacity)
             {
                 //Double buffer size, but not higher than MaxByteCapacity
-                var doubledSize = (int)Math.Min((long)ReadOnlyBuffer.Length * 2, MaxCapacityInBytes);
+                var doubledSize = (int)Math.Min((long)ReadOnlyBuffer.Length * 2, ArrayUtility.ArrayMaxSize);
                 var newCapacity = Math.Max(newLength * Size, doubledSize);
 
                 var memory = new Memory<byte>(new byte[newCapacity]);

@@ -36,11 +36,7 @@ namespace Microsoft.Data.Analysis
 
         protected int Capacity => ReadOnlyBuffer.Length / Size;
 
-        //The maximum size in any single dimension for byte array is 0x7FFFFFc7 - 2147483591
-        //See https://learn.microsoft.com/en-us/dotnet/framework/configure-apps/file-schema/runtime/gcallowverylargeobjects-element
-        public const int MaxCapacityInBytes = 2147483591;
-
-        public static int MaxCapacity => MaxCapacityInBytes / Size;
+        public static int MaxCapacity => ArrayUtility.ArrayMaxSize / Size;
 
         public ReadOnlySpan<T> ReadOnlySpan
         {

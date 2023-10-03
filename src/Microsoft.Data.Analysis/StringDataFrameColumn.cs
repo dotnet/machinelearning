@@ -18,9 +18,7 @@ namespace Microsoft.Data.Analysis
     /// <remarks> Is NOT Arrow compatible </remarks>
     public partial class StringDataFrameColumn : DataFrameColumn, IEnumerable<string>
     {
-        //The maximum size in any single dimension for array containing other types than byte or single byte structure is 0X7FEFFFFF - 2146435071
-        //See https://learn.microsoft.com/en-us/dotnet/framework/configure-apps/file-schema/runtime/gcallowverylargeobjects-element
-        public static int MaxCapacity = 2146435071 / Unsafe.SizeOf<IntPtr>(); // Size of pointer
+        public static int MaxCapacity = ArrayUtility.ArrayMaxSize / Unsafe.SizeOf<IntPtr>(); // Max Size in bytes / size of pointer (8 bytes on x64)
 
         private readonly List<List<string>> _stringBuffers = new List<List<string>>(); // To store more than intMax number of strings
 
