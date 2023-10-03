@@ -198,5 +198,31 @@ namespace Microsoft.Data.Analysis.PerformanceTests
             var column = _doubleColumn1 / _floatColumn2;
         }
         #endregion
+
+        #region ElementwiseEquals
+        [Benchmark]
+        public void ElementwiseEquals_Int32_Int32()
+        {
+            var column = _int32Column1.ElementwiseEquals(_int32Column2);
+        }
+
+        [Benchmark]
+        public void ElementwiseEquals_Int16_Int16()
+        {
+            var column = _int32Column1.ElementwiseEquals(_int16Column2);
+        }
+
+        [Benchmark]
+        public void ElementwiseEquals_Double_Double()
+        {
+            var column = _doubleColumn1.ElementwiseEquals(_doubleColumn2);
+        }
+
+        [Benchmark]
+        public void ElementwiseEquals_Float_Float()
+        {
+            var column = _floatColumn1.ElementwiseEquals(_floatColumn2);
+        }
+        #endregion
     }
 }

@@ -21,24 +21,32 @@ namespace Microsoft.Data.Analysis
         where T : unmanaged
     {
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
-<# if (method.MethodType == MethodType.Binary || method.MethodType == MethodType.Comparison) {#>
 <# if (method.MethodType == MethodType.Binary) {#>
         /// <inheritdoc/>
         public override DataFrameColumn <#=method.MethodName#>(DataFrameColumn column, bool inPlace = false)
-<# } else { #>
-        /// <inheritdoc/>
-        public override PrimitiveDataFrameColumn<bool> <#=method.MethodName#>(DataFrameColumn column)
-<# } #>
         {
             switch (column)
             {
 <# foreach (TypeConfiguration type in typeConfiguration) { #>
                 case PrimitiveDataFrameColumn<<#=type.TypeName#>> <#=type.TypeName#>Column:
-<# if (method.MethodType == MethodType.Binary) {#>
-                    return <#=method.MethodName#>Implementation(<#=type.TypeName#>Column, inPlace);
-<# } else { #>
-                    return <#=method.MethodName#>Implementation(<#=type.TypeName#>Column);
+                    return HandleOperationImplementation(BinaryOperation.<#=method.MethodName#>, <#=type.TypeName#>Column, inPlace);
 <# } #>
+
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+<# } #>
+<# if (method.MethodType == MethodType.Comparison) {#>
+
+        /// <inheritdoc/>
+        public override PrimitiveDataFrameColumn<bool> <#=method.MethodName#>(DataFrameColumn column)
+        {
+            switch (column)
+            {
+<# foreach (TypeConfiguration type in typeConfiguration) { #>
+                case PrimitiveDataFrameColumn<<#=type.TypeName#>> <#=type.TypeName#>Column:
+                    return HandleOperationImplementation(ComparisonOperation.<#=method.MethodName#>, <#=type.TypeName#>Column);
 <# } #>
 <# if (method.MethodName == "ElementwiseEquals") {#>
                 case null:
@@ -53,316 +61,57 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
 <# } #>
-<# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.ComparisonScalar) {#>
 <# if (method.MethodType == MethodType.BinaryScalar) {#>
 <# if (method.IsBitwise == true) { #>
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> <#=method.MethodName#>(bool value, bool inPlace = false)
+        {
+            return HandleBitwiseOperationImplementation(BinaryScalarOperation.<#=method.MethodName#>, value, inPlace);
+        }
 <# } else { #>
+
         /// <inheritdoc/>
         public override DataFrameColumn <#=method.MethodName#><U>(U value, bool inPlace = false)
-<# } #>
-<# } else {#>
-        /// <inheritdoc/>
-        public override PrimitiveDataFrameColumn<bool> <#=method.MethodName#><U>(U value)
-<# } #>
         {
-<# if (method.MethodType == MethodType.BinaryScalar) {#>
-<# if (method.IsBitwise == true) { #>
-            return <#=method.MethodName#>Implementation(value, inPlace);
-<# } else { #>
             DataFrameColumn column = value as DataFrameColumn;
             if (column != null)
             {
                 return <#=method.MethodName#>(column, inPlace);
             }
-            return <#=method.MethodName#>Implementation(value, inPlace);
+            return HandleOperationImplementation(BinaryScalarOperation.<#=method.MethodName#>, value, inPlace);
+        }
+
+        /// <inheritdoc/>
+        public override DataFrameColumn Reverse<#=method.MethodName#><U>(U value, bool inPlace = false)
+        {
+            return HandleReverseOperationImplementation(BinaryScalarOperation.<#=method.MethodName#>, value, inPlace);
+        }
 <# } #>
-<# } else {#>
+<# } #>
+<# if (method.MethodType == MethodType.ComparisonScalar) {#>
+
+        /// <inheritdoc/>
+        public override PrimitiveDataFrameColumn<bool> <#=method.MethodName#><U>(U value)
+        {
             DataFrameColumn column = value as DataFrameColumn;
             if (column != null)
             {
                 return <#=method.MethodName#>(column);
             }
-            return <#=method.MethodName#>Implementation(value);
-<# } #>
+            return HandleOperationImplementation(ComparisonScalarOperation.<#=method.MethodName#>, value);
         }
-
 <# } #>
 <# if (method.MethodType == MethodType.BinaryInt ) {#>
+
         /// <inheritdoc/>
         public override DataFrameColumn <#=method.MethodName#>(int value, bool inPlace = false)
         {
-            return <#=method.MethodName#>Implementation(value, inPlace);
+            return HandleOperationImplementation(BinaryIntOperation.<#=method.MethodName#>, value, inPlace);
         }
 <# } #>
 <# } #>
-<# foreach (MethodConfiguration method in methodConfiguration) { #>
 
-<# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.ComparisonScalar) {#>
-<# if (method.MethodType == MethodType.BinaryScalar) {#>
-<# if (method.IsBitwise == true) { #>
-        internal PrimitiveDataFrameColumn<bool> <#=method.MethodName#>Implementation<U>(U value, bool inPlace)
-<# } else { #>
-        internal DataFrameColumn <#=method.MethodName#>Implementation<U>(U value, bool inPlace)
-<# } #>
-<# } else {#>
-        internal PrimitiveDataFrameColumn<bool> <#=method.MethodName#>Implementation<U>(U value)
-<# } #>
-<# } #>
-<# if (method.MethodType == MethodType.Binary || method.MethodType == MethodType.Comparison) {#>
-<# if (method.MethodType == MethodType.Binary) {#>
-        internal DataFrameColumn <#=method.MethodName#>Implementation<U>(PrimitiveDataFrameColumn<U> column, bool inPlace)
-<# } else { #>
-        internal PrimitiveDataFrameColumn<bool> <#=method.MethodName#>Implementation<U>(PrimitiveDataFrameColumn<U> column)
-<# } #>
-            where U : unmanaged
-<# } #>
-<# if (method.MethodType == MethodType.BinaryInt ) {#>
-        internal DataFrameColumn <#=method.MethodName#>Implementation(int value, bool inPlace)
-<# } #>
-        {
-<# if (method.MethodType == MethodType.BinaryScalar || method.MethodType == MethodType.ComparisonScalar || method.MethodType == MethodType.BinaryInt) {#>
-<# } else { #>
-            if (column.Length != Length)
-            {
-                throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
-            }
-<# } #>
-<# if (method.MethodType == MethodType.BinaryInt ) {#>
-            switch (typeof(T))
-            {
-<# foreach (TypeConfiguration type in typeConfiguration) { #>
-                case Type <#=type.TypeName#>Type when <#=type.TypeName#>Type == typeof(<#=type.TypeName#>):
-<# if (type.TypeName == "bool" || type.SupportsBitwise == false) { #>
-                    throw new NotSupportedException();
-<# } else { #>
-                    PrimitiveDataFrameColumn<<#=type.TypeName#>> <#=type.TypeName#>Column = this as PrimitiveDataFrameColumn<<#=type.TypeName#>>;
-                    PrimitiveDataFrameColumn<<#=type.TypeName#>> new<#=type.TypeName#>Column = inPlace ? <#=type.TypeName#>Column : <#=type.TypeName#>Column.Clone();
-                    new<#=type.TypeName#>Column._columnContainer.<#=method.MethodName#>(value);
-                    return new<#=type.TypeName#>Column;
-<# } #>
-<# } #>
-                default:
-                    throw new NotSupportedException();
-            }
-<# } else if (method.IsBitwise == true && method.IsNumeric == false) { #>
-            switch (typeof(T))
-            {
-                case Type boolType when boolType == typeof(bool):
-                    if (typeof(U) != typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-<# if (method.MethodType == MethodType.BinaryScalar) {#>
-                    PrimitiveDataFrameColumn<bool> typedColumn = this as PrimitiveDataFrameColumn<bool>;
-                    PrimitiveDataFrameColumn<bool> retColumn = <#=GenerateInPlaceStatement("typedColumn", "typedColumn.Clone()")#>;
-                    retColumn._columnContainer.<#=method.MethodName#>(Unsafe.As<U, bool>(ref value));
-                    return retColumn as PrimitiveDataFrameColumn<bool>;
-<# } else { #>
-                    PrimitiveDataFrameColumn<U> typedColumn = this as PrimitiveDataFrameColumn<U>;
-                    PrimitiveDataFrameColumn<U> retColumn = <#=GenerateInPlaceStatement("typedColumn", "typedColumn.Clone()")#>;
-                    retColumn._columnContainer.<#=method.MethodName#>(column._columnContainer);
-                    return retColumn;
-<# } #>
-<# foreach (TypeConfiguration type in typeConfiguration) { #>
-<# if (type.TypeName == "bool") { #>
-<# } else { #>
-                case Type <#=type.TypeName#>Type when <#=type.TypeName#>Type == typeof(<#=type.TypeName#>):
-<# } #>
-<# } #>
-                default:
-                    throw new NotSupportedException();
-            }
-<# } else { #>
-            switch (typeof(T))
-            {
-<# foreach (TypeConfiguration type in typeConfiguration) { #>
-<# if (type.TypeName == "bool" || type.TypeName == "DateTime") { #>
-                case Type <#=type.TypeName#>Type when <#=type.TypeName#>Type == typeof(<#=type.TypeName#>):
-<# if (method.IsNumeric == true) { #>
-                    throw new NotSupportedException();
-<# } else { #>
-                    if (typeof(U) != typeof(<#=type.TypeName#>))
-                    {
-                        throw new NotSupportedException();
-                    }
-<# if (method.MethodType == MethodType.ComparisonScalar) { #>
-                    return new BooleanDataFrameColumn(Name, (this as PrimitiveDataFrameColumn<<#=type.TypeName#>>)._columnContainer.<#=method.MethodName#>(Unsafe.As<U, <#=type.TypeName#>>(ref value)));
-<# } else if (method.MethodType == MethodType.Comparison) { #>
-                    return new BooleanDataFrameColumn(Name, (this as PrimitiveDataFrameColumn<U>)._columnContainer.<#=method.MethodName#>(column._columnContainer));
-<# } else if (method.MethodType == MethodType.BinaryScalar) {#>
-                    PrimitiveDataFrameColumn<U> column = this as PrimitiveDataFrameColumn<U>;
-                    PrimitiveDataFrameColumn<U> ret<#=type.TypeName#>Column = <#=GenerateInPlaceStatement("column", "column.Clone()")#>;
-                    ret<#=type.TypeName#>Column._columnContainer.<#=method.MethodName#>(value);
-<# } else { #>
-                    PrimitiveDataFrameColumn<U> column = this as PrimitiveDataFrameColumn<U>;
-                    PrimitiveDataFrameColumn<U> ret<#=type.TypeName#>Column = <#=GenerateInPlaceStatement("column", "column.Clone()")#>;
-                    ret<#=type.TypeName#>Column._columnContainer.<#=method.MethodName#>(column._columnContainer);
-<# } #>
-<# } #>
-<# } else if (type.TypeName == "decimal") { #>
-                case Type <#=type.TypeName#>Type when <#=type.TypeName#>Type == typeof(<#=type.TypeName#>):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-<# if (method.MethodType == MethodType.ComparisonScalar) { #>
-                        PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.<#=method.MethodName#>(Unsafe.As<U, T>(ref value)));
-<# } else if (method.MethodType == MethodType.Comparison){ #>
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.<#=method.MethodName#>(column._columnContainer));
-<# } else if (method.IsBitwise == true ) { #>
-                        throw new NotSupportedException();
-<# } else if (method.MethodType == MethodType.BinaryScalar ) { #>
-                        PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<T> newColumn = <#=GenerateInPlaceStatement("primitiveColumn", "primitiveColumn.Clone()")#>;
-                        newColumn._columnContainer.<#=method.MethodName#>(Unsafe.As<U, T>(ref value));
-                        return newColumn;
-<# } else { #>
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = <#=GenerateInPlaceStatement("primitiveColumn", "primitiveColumn.Clone()")#>;
-                        newColumn._columnContainer.<#=method.MethodName#>(column._columnContainer);
-                        return newColumn;
-<# } #>
-                    }
-                    else
-                    {
-<# if (method.MethodType == MethodType.BinaryScalar) { #>
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
-                        }
-<# } else if (method.MethodType == MethodType.Binary) { #>
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
-                        }
-<# } #>
-<# if (method.MethodType == MethodType.ComparisonScalar) { #>
-                        PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.<#=method.MethodName#>(DecimalConverter<U>.Instance.GetDecimal(value)));
-<# } else if (method.MethodType == MethodType.Comparison){ #>
-                        PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.<#=method.MethodName#>(column.CloneAsDecimalColumn()._columnContainer));
-<# } else if (method.IsBitwise == true) { #>
-                        throw new NotSupportedException();
-<# } else if (method.MethodType == MethodType.BinaryScalar) { #>
-                        PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.<#=method.MethodName#>(DecimalConverter<U>.Instance.GetDecimal(value));
-                        return decimalColumn;
-<# } else { #>
-                        PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                        decimalColumn._columnContainer.<#=method.MethodName#>(column.CloneAsDecimalColumn()._columnContainer);
-                        return decimalColumn;
-<# } #>
-                    }
-<# } else { #>
-<# } #>
-<# } #>
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                    if (typeof(U) == typeof(bool))
-                    {
-                        throw new NotSupportedException();
-                    }
-                    if (typeof(U) == typeof(T))
-                    {
-                        // No conversions
-<# if (method.MethodType == MethodType.ComparisonScalar) { #>
-                        PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.<#=method.MethodName#>(Unsafe.As<U, T>(ref value)));
-<# } else if (method.MethodType == MethodType.Comparison) { #>
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        return new BooleanDataFrameColumn(Name, primitiveColumn._columnContainer.<#=method.MethodName#>(column._columnContainer));
-<# } else if (method.IsBitwise == true ) { #>
-                        throw new NotSupportedException();
-<# } else if (method.MethodType == MethodType.BinaryScalar ) { #>
-                        PrimitiveDataFrameColumn<T> primitiveColumn = this;
-                        PrimitiveDataFrameColumn<T> newColumn = <#=GenerateInPlaceStatement("primitiveColumn", "primitiveColumn.Clone()")#>;
-                        newColumn._columnContainer.<#=method.MethodName#>(Unsafe.As<U, T>(ref value));
-                        return newColumn;
-<# } else { #>
-                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
-                        PrimitiveDataFrameColumn<U> newColumn = <#=GenerateInPlaceStatement("primitiveColumn", "primitiveColumn.Clone()")#>;
-                        newColumn._columnContainer.<#=method.MethodName#>(column._columnContainer);
-                        return newColumn;
-<# } #>
-                    }
-                    else
-                    {
-<# if (method.MethodType == MethodType.BinaryScalar) { #>
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedValueType, typeof(T)), nameof(value));
-                        }
-<# } else if (method.MethodType == MethodType.Binary) { #>
-                        if (inPlace)
-                        {
-                            throw new ArgumentException(string.Format(Strings.MismatchedColumnValueType, typeof(T)), nameof(column));
-                        }
-<# } #>
-                        if (typeof(U) == typeof(decimal))
-                        {
-<# if (method.MethodType == MethodType.ComparisonScalar) { #>
-                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.<#=method.MethodName#>(DecimalConverter<U>.Instance.GetDecimal(value)));
-<# } else if (method.MethodType == MethodType.Comparison) { #>
-                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            return new BooleanDataFrameColumn(Name, decimalColumn._columnContainer.<#=method.MethodName#>((column as PrimitiveDataFrameColumn<decimal>)._columnContainer));
-<# } else if (method.IsBitwise == true) { #>
-                            throw new NotSupportedException();
-<# } else if (method.MethodType == MethodType.BinaryScalar) { #>
-                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.<#=method.MethodName#>(DecimalConverter<U>.Instance.GetDecimal(value));
-                            return decimalColumn;
-<# } else { #>
-                            PrimitiveDataFrameColumn<decimal> decimalColumn = CloneAsDecimalColumn();
-                            decimalColumn._columnContainer.<#=method.MethodName#>((column as PrimitiveDataFrameColumn<decimal>)._columnContainer);
-                            return decimalColumn;
-<# } #>
-                        }
-                        else
-                        {
-<# if (method.MethodType == MethodType.ComparisonScalar) { #>
-                            PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            return new BooleanDataFrameColumn(Name, doubleColumn._columnContainer.<#=method.MethodName#>(DoubleConverter<U>.Instance.GetDouble(value)));
-<# } else if (method.MethodType == MethodType.Comparison) { #>
-                            PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            return new BooleanDataFrameColumn(Name, doubleColumn._columnContainer.<#=method.MethodName#>(column.CloneAsDoubleColumn()._columnContainer));
-<# } else if (method.IsBitwise == true) { #>
-                            throw new NotSupportedException();
-<# } else if (method.MethodType == MethodType.BinaryScalar ) { #>
-                            PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.<#=method.MethodName#>(DoubleConverter<U>.Instance.GetDouble(value));
-                            return doubleColumn;
-<# } else { #>
-                            PrimitiveDataFrameColumn<double> doubleColumn = CloneAsDoubleColumn();
-                            doubleColumn._columnContainer.<#=method.MethodName#>(column.CloneAsDoubleColumn()._columnContainer);
-                            return doubleColumn;
-<# } #>
-                        }
-                    }
-                default:
-                    throw new NotSupportedException();
-            }
-<# } #>
-        }
-<# } #>
     }
 }

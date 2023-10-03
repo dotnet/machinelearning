@@ -12,118 +12,6 @@ using System.Text;
 
 namespace Microsoft.Data.Analysis
 {
-    internal static class BitmapHelper
-    {
-        private static ReadOnlySpan<byte> BitMask => new byte[] {
-            1, 2, 4, 8, 16, 32, 64, 128
-        };
-
-        // Faster to use when we already have a span since it avoids indexing
-        public static bool IsValid(ReadOnlySpan<byte> bitMapBufferSpan, int index)
-        {
-            int nullBitMapSpanIndex = index / 8;
-            byte thisBitMap = bitMapBufferSpan[nullBitMapSpanIndex];
-            return IsBitSet(thisBitMap, index);
-        }
-
-        public static bool IsBitSet(byte curBitMap, int index)
-        {
-            return ((curBitMap >> (index & 7)) & 1) != 0;
-        }
-
-        public static bool IsBitClear(byte curBitMap, int index)
-        {
-            return ((curBitMap >> (index & 7)) & 1) == 0;
-        }
-
-        public static bool GetBit(byte data, int index) =>
-           ((data >> index) & 1) != 0;
-
-        public static bool GetBit(ReadOnlySpan<byte> data, int index) =>
-            (data[index / 8] & BitMask[index % 8]) != 0;
-
-        public static void ClearBit(Span<byte> data, int index)
-        {
-            data[index / 8] &= (byte)~BitMask[index % 8];
-        }
-
-        public static void SetBit(Span<byte> data, int index)
-        {
-            data[index / 8] |= BitMask[index % 8];
-        }
-
-        public static void SetBit(Span<byte> data, int index, bool value)
-        {
-            int idx = index / 8;
-            int mod = index % 8;
-            data[idx] = value
-                ? (byte)(data[idx] | BitMask[mod])
-                : (byte)(data[idx] & ~BitMask[mod]);
-        }
-
-        /// <summary>
-        /// Set the number of bits in a span of bytes starting
-        /// at a specific index, and limiting to length.
-        /// </summary>
-        /// <param name="data">Span to set bits value.</param>
-        /// <param name="index">Bit index to start counting from.</param>
-        /// <param name="length">Maximum of bits in the span to consider.</param>
-        /// <param name="value">Bit value.</param>
-        internal static void SetBits(Span<byte> data, int index, int length, bool value)
-        {
-            if (length == 0)
-                return;
-
-            int endBitIndex = checked(index + length - 1);
-
-            // Use simpler method if there aren't many values
-            if (length < 20)
-            {
-                for (int i = index; i <= endBitIndex; i++)
-                {
-                    SetBit(data, i, value);
-                }
-                return;
-            }
-
-            // Otherwise do the work to figure out how to copy whole bytes
-            int startByteIndex = index / 8;
-            int startBitOffset = index % 8;
-            int endByteIndex = endBitIndex / 8;
-            int endBitOffset = endBitIndex % 8;
-
-            // If the starting index and ending index are not byte-aligned,
-            // we'll need to set bits the slow way. If they are
-            // byte-aligned, and for all other bytes in the 'middle', we
-            // can use a faster byte-aligned set.
-            int fullByteStartIndex = startBitOffset == 0 ? startByteIndex : startByteIndex + 1;
-            int fullByteEndIndex = endBitOffset == 7 ? endByteIndex : endByteIndex - 1;
-
-            // Bits we will be using to finish up the first byte
-            if (startBitOffset != 0)
-            {
-                Span<byte> slice = data.Slice(startByteIndex, 1);
-                for (int i = startBitOffset; i <= 7; i++)
-                    SetBit(slice, i, value);
-            }
-
-            if (fullByteEndIndex >= fullByteStartIndex)
-            {
-                Span<byte> slice = data.Slice(fullByteStartIndex, fullByteEndIndex - fullByteStartIndex + 1);
-                byte fill = (byte)(value ? 0xFF : 0x00);
-
-                slice.Fill(fill);
-            }
-
-            if (endBitOffset != 7)
-            {
-                Span<byte> slice = data.Slice(endByteIndex, 1);
-                for (int i = 0; i <= endBitOffset; i++)
-                    SetBit(slice, i, value);
-            }
-        }
-    }
-
     /// <summary>
     /// PrimitiveColumnContainer is just a store for the column data. APIs that want to change the data must be defined in PrimitiveDataFrameColumn
     /// </summary>
@@ -182,11 +70,15 @@ namespace Microsoft.Data.Analysis
                 if (!buffer.IsEmpty)
                 {
                     // Create a new bitMap with all the bits up to length set
-                    var bitMap = new byte[bitMapBufferLength];
-                    bitMap.AsSpan().Fill(255);
+                    var bitMap = new DataFrameBuffer<byte>(bitMapBufferLength);
+                    bitMap.IncreaseSize(bitMapBufferLength);
+
+                    var span = bitMap.Span;
+                    span.Fill(255);
                     int lastByte = 1 << (length - (bitMapBufferLength - 1) * 8);
-                    bitMap[bitMapBufferLength - 1] = (byte)(lastByte - 1);
-                    nullDataFrameBuffer = new DataFrameBuffer<byte>(bitMap, bitMapBufferLength);
+                    span[bitMapBufferLength - 1] = (byte)(lastByte - 1);
+
+                    nullDataFrameBuffer = bitMap;
                 }
                 else
                 {
@@ -276,7 +168,7 @@ namespace Microsoft.Data.Analysis
                 if (value.HasValue)
                 {
                     mutableLastBuffer.RawSpan.Slice(mutableLastBuffer.Length - allocatable, allocatable).Fill(value.Value);
-                    BitmapHelper.SetBits(lastNullBitMapBuffer.RawSpan, originalBufferLength, allocatable, true);
+                    BitUtility.SetBits(lastNullBitMapBuffer.RawSpan, originalBufferLength, allocatable, true);
                 }
 
                 remaining -= allocatable;
@@ -296,7 +188,7 @@ namespace Microsoft.Data.Analysis
                 for (int i = 0; i < mutableBuffer.Length; i++)
                 {
                     long curIndex = i + prevLength;
-                    bool isValid = BitmapHelper.IsValid(mutableNullBitMapBuffer, i);
+                    bool isValid = BitUtility.IsValid(mutableNullBitMapBuffer, i);
                     T? value = func(isValid ? mutableBuffer[i] : null, curIndex);
                     mutableBuffer[i] = value.GetValueOrDefault();
                     SetValidityBit(mutableNullBitMapBuffer, i, value != null);
@@ -319,7 +211,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < sourceBuffer.Length; i++)
                 {
-                    bool isValid = BitmapHelper.IsValid(sourceNullBitMap, i);
+                    bool isValid = BitUtility.IsValid(sourceNullBitMap, i);
                     TResult? value = func(isValid ? sourceBuffer[i] : null);
                     mutableResultBuffer[i] = value.GetValueOrDefault();
                     resultContainer.SetValidityBit(mutableResultNullBitMapBuffers, i, value != null);
@@ -335,7 +227,7 @@ namespace Microsoft.Data.Analysis
             if (value)
             {
                 newBitMap = (byte)(curBitMap | (byte)(1 << (index & 7))); //bit hack for index % 8
-                if (BitmapHelper.IsBitClear(curBitMap, index) && index < Length && NullCount > 0)
+                if (BitUtility.IsBitClear(curBitMap, index) && index < Length && NullCount > 0)
                 {
                     // Old value was null.
                     NullCount--;
@@ -343,7 +235,7 @@ namespace Microsoft.Data.Analysis
             }
             else
             {
-                if (BitmapHelper.IsBitSet(curBitMap, index) && index < Length)
+                if (BitUtility.IsBitSet(curBitMap, index) && index < Length)
                 {
                     // old value was NOT null and new value is null
                     NullCount++;
@@ -410,12 +302,13 @@ namespace Microsoft.Data.Analysis
             int bitMapBufferIndex = (int)((uint)index / 8);
             Debug.Assert(bitMapBuffer.Length > bitMapBufferIndex);
             byte curBitMap = bitMapBuffer[bitMapBufferIndex];
-            return BitmapHelper.IsBitSet(curBitMap, (int)index);
+            return BitUtility.IsBitSet(curBitMap, (int)index);
         }
 
-        public long Length;
+        public long Length { get; private set; }
 
-        public long NullCount;
+        public long NullCount { get; private set; }
+
         public int GetArrayContainingRowIndex(long rowIndex)
         {
             if (rowIndex >= Length)
@@ -567,7 +460,7 @@ namespace Microsoft.Data.Analysis
                         spanIndex = buffer.Length - 1 - i;
 
                     long mapRowIndex = mapIndicesIntSpan.IsEmpty ? mapIndicesLongSpan[spanIndex] : mapIndicesIntSpan[spanIndex];
-                    bool mapRowIndexIsValid = BitmapHelper.IsValid(mapIndicesNullBitMapSpan, spanIndex);
+                    bool mapRowIndexIsValid = BitUtility.IsValid(mapIndicesNullBitMapSpan, spanIndex);
                     if (mapRowIndexIsValid && (mapRowIndex < minRange || mapRowIndex >= maxRange))
                     {
                         int bufferIndex = (int)(mapRowIndex / maxCapacity);
@@ -582,7 +475,7 @@ namespace Microsoft.Data.Analysis
                     {
                         mapRowIndex -= minRange;
                         value = thisSpan[(int)mapRowIndex];
-                        isValid = BitmapHelper.IsValid(thisNullBitMapSpan, (int)mapRowIndex);
+                        isValid = BitUtility.IsValid(thisNullBitMapSpan, (int)mapRowIndex);
                     }
 
                     retSpan[i] = isValid ? value : default;
