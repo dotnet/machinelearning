@@ -523,8 +523,12 @@ namespace Microsoft.ML.Trainers
                             {
                                 featuresList.Add(0);
                             }
-                            featuresList.Add(values[indices[j]]);
+                            featuresList.Add(values[j]);
                             i = indices[j] + 1;
+                        }
+                        for (int j = i; j < nFeatures; ++j)
+                        {
+                            featuresList.Add(0);
                         }
                     }
                 }

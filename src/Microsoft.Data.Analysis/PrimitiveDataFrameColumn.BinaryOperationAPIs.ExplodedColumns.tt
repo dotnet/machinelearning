@@ -29,7 +29,7 @@ bool supportedInPlace(string type1, string type2)
 }
 #>
 <# 
-void GenerateAllBinaryCombinationsForMethod()
+void GenerateAllBinaryCombinations()
 {
     HashSet<string> visited = new HashSet<string> { };
  foreach (TypeCombination outer in BinaryOperationCombinations.binaryOperationCombinations) 
@@ -42,6 +42,7 @@ void GenerateAllBinaryCombinationsForMethod()
     visited.Add(outerColumnType);
     string fullOuterColumnType = GetCapitalizedPrimitiveTypes(outerColumnType) + "DataFrameColumn";
 #>
+
     public partial class <#=fullOuterColumnType#>
     {
 <#
@@ -84,16 +85,16 @@ void GenerateAllBinaryCombinationsForMethod()
         if (fullReturnType == fullColumnType || fullReturnType == fullOtherColumnType)
         {
 #>
-            return <#=methodName#>Implementation(column, inPlace);
+            return HandleOperationImplementation(BinaryOperation.<#=methodName#>, column, inPlace);
 <#
         }
         else
         {
             // Cases such as byte + byte resulting in int. Needs 2 clones
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            <#=fullReturnType#> other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(other<#=returnType#>Column, inPlace: true);
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            var other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryOperation.<#=methodName#>, other<#=returnType#>Column, inPlace: true);
 <#
         }
     }
@@ -107,15 +108,15 @@ void GenerateAllBinaryCombinationsForMethod()
             if (otherColumnTypeLevel > columnTypeLevel)
             {
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(column, inPlace: true);
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryOperation.<#=methodName#>, column, inPlace: true);
 <#
             }
             else
             {
 #>
-            <#=fullReturnType#> other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
-            return <#=methodName#>Implementation(other<#=returnType#>Column, inPlace);
+            var other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
+            return HandleOperationImplementation(BinaryOperation.<#=methodName#>, other<#=returnType#>Column, inPlace);
 <#
             }
         }
@@ -123,9 +124,9 @@ void GenerateAllBinaryCombinationsForMethod()
         {
             // Cases such as byte + short resulting in int. Needs 2 clones
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            <#=fullReturnType#> other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(other<#=returnType#>Column, inPlace: true);
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            var other<#=returnType#>Column = column.CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryOperation.<#=methodName#>, other<#=returnType#>Column, inPlace: true);
 <#
         }
     }
@@ -155,6 +156,7 @@ void GenerateAllBinaryScalarCombinationsForMethod()
     visited.Add(outerColumnType);
     string fullOuterColumnType = GetCapitalizedPrimitiveTypes(outerColumnType) + "DataFrameColumn";
 #>
+
     public partial class <#=fullOuterColumnType#>
     {
 <#
@@ -197,15 +199,15 @@ void GenerateAllBinaryScalarCombinationsForMethod()
         if (fullReturnType == fullColumnType)
         {
 #>
-            return <#=methodName#>Implementation(value, inPlace);
+            return HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace);
 <#
         }
         else
         {
             // Cases such as byte + byte resulting in int. Needs 2 clones
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace: true);
 <#
         }
     }
@@ -219,15 +221,15 @@ void GenerateAllBinaryScalarCombinationsForMethod()
             if (valueTypeLevel > columnTypeLevel)
             {
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace: true);
 <#
             }
             else
             {
 #>
-            <#=returnType#> convertedValue = (<#=returnType#>)value;
-            return <#=methodName#>Implementation(convertedValue, inPlace);
+            var convertedValue = (<#=returnType#>)value;
+            return HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, convertedValue, inPlace);
 <#
             }
         }
@@ -235,8 +237,8 @@ void GenerateAllBinaryScalarCombinationsForMethod()
         {
             // Cases such as byte + short resulting in int. Needs 2 clones
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace: true);
 <#
         }
     }
@@ -246,6 +248,7 @@ void GenerateAllBinaryScalarCombinationsForMethod()
         }
         if (method.MethodType == MethodType.BinaryScalar && method.IsNumeric)
         {
+            string operationName = method.MethodName;
             string methodName = "Reverse" + method.MethodName;
             string returnType = types.ReturnColumnType;
             string columnType = types.ThisColumnType;
@@ -279,15 +282,15 @@ void GenerateAllBinaryScalarCombinationsForMethod()
         if (fullReturnType == fullColumnType)
         {
 #>
-            return <#=methodName#>Implementation(value, inPlace);
+            return HandleReverseOperationImplementation(BinaryScalarOperation.<#=operationName#>, value, inPlace);
 <#
         }
         else
         {
             // Cases such as byte + byte resulting in int. Needs 2 clones
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.HandleReverseOperationImplementation(BinaryScalarOperation.<#=operationName#>, value, inPlace: true);
 <#
         }
     }
@@ -301,15 +304,15 @@ void GenerateAllBinaryScalarCombinationsForMethod()
             if (valueTypeLevel > columnTypeLevel)
             {
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.HandleReverseOperationImplementation(BinaryScalarOperation.<#=operationName#>, value, inPlace: true);
 <#
             }
             else
             {
 #>
-            <#=returnType#> convertedValue = (<#=returnType#>)value;
-            return <#=methodName#>Implementation(convertedValue, inPlace);
+            var convertedValue = (<#=returnType#>)value;
+            return HandleReverseOperationImplementation(BinaryScalarOperation.<#=operationName#>, convertedValue, inPlace);
 <#
             }
         }
@@ -317,8 +320,8 @@ void GenerateAllBinaryScalarCombinationsForMethod()
         {
             // Cases such as byte + short resulting in int. Needs 2 clones
 #>
-            <#=fullReturnType#> <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.<#=methodName#>Implementation(value, inPlace: true);
+            var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
+            return <#=returnType#>Column.HandleReverseOperationImplementation(BinaryScalarOperation.<#=operationName#>, value, inPlace: true);
 <#
         }
     }
@@ -338,6 +341,7 @@ void GenerateAllBinaryScalarCombinationsForMethod()
 void GenerateAllBinaryBitwiseOperationsForMethod(string methodName)
 {
 #>
+
     public partial class BooleanDataFrameColumn
     {
         public BooleanDataFrameColumn <#=methodName#>(BooleanDataFrameColumn column, bool inPlace = false)
@@ -347,7 +351,7 @@ void GenerateAllBinaryBitwiseOperationsForMethod(string methodName)
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
             BooleanDataFrameColumn retColumn = inPlace ? this : CloneAsBooleanColumn();
-            retColumn.ColumnContainer.<#=methodName#>(column.ColumnContainer);
+            retColumn.ColumnContainer.HandleOperation(BinaryOperation.<#=methodName#>, column.ColumnContainer);
             return retColumn;
         }
     }
@@ -358,12 +362,13 @@ void GenerateAllBinaryBitwiseOperationsForMethod(string methodName)
 void GenerateAllBinaryScalarBitwiseOperationsForMethod(string methodName)
 {
 #>
+
     public partial class BooleanDataFrameColumn
     {
         public new BooleanDataFrameColumn <#=methodName#>(bool value, bool inPlace = false)
         {
             BooleanDataFrameColumn retColumn = inPlace ? this : CloneAsBooleanColumn();
-            retColumn.ColumnContainer.<#=methodName#>(value);
+            retColumn.ColumnContainer.HandleOperation(BinaryScalarOperation.<#=methodName#>, value);
             return retColumn;
         }
     }
@@ -371,7 +376,7 @@ void GenerateAllBinaryScalarBitwiseOperationsForMethod(string methodName)
 }
 #>
 <#
-        GenerateAllBinaryCombinationsForMethod();
+        GenerateAllBinaryCombinations();
         GenerateAllBinaryScalarCombinationsForMethod();
 foreach (MethodConfiguration method in methodConfiguration)
 {
@@ -399,6 +404,7 @@ void GenerateAllComparisonCombinationsForMethod()
     visited.Add(outerColumnType);
     string fullOuterColumnType = GetCapitalizedPrimitiveTypes(outerColumnType) + "DataFrameColumn";
 #>
+
     public partial class <#=fullOuterColumnType#>
     {
 <#
@@ -428,7 +434,7 @@ foreach (MethodConfiguration method in methodConfiguration)
     if (columnType == otherColumnType)
     {
 #>
-            return <#=methodName#>Implementation(column);
+            return HandleOperationImplementation(ComparisonOperation.<#=methodName#>, column);
 <#
     }
     else
@@ -439,14 +445,14 @@ foreach (MethodConfiguration method in methodConfiguration)
         {
 #>
             <#=fullOtherColumnType#> <#=otherColumnType#>Column = CloneAs<#=capitalizedOtherColumnType#>Column();
-            return <#=otherColumnType#>Column.<#=methodName#>Implementation(column);
+            return <#=otherColumnType#>Column.HandleOperationImplementation(ComparisonOperation.<#=methodName#>, column);
 <#
         }
         else
         {
 #>
             <#=fullColumnType#> other<#=columnType#>Column = column.CloneAs<#=capitalizedColumnType#>Column();
-            return <#=methodName#>Implementation(other<#=columnType#>Column);
+            return HandleOperationImplementation(ComparisonOperation.<#=methodName#>, other<#=columnType#>Column);
 <#
         }
 #>
@@ -479,6 +485,7 @@ void GenerateAllComparisonScalarCombinationsForMethod()
     visited.Add(outerColumnType);
     string fullOuterColumnType = GetCapitalizedPrimitiveTypes(outerColumnType) + "DataFrameColumn";
 #>
+
     public partial class <#=fullOuterColumnType#>
     {
 <#
@@ -507,7 +514,7 @@ foreach (MethodConfiguration method in methodConfiguration)
     if (columnType == otherColumnType)
     {
 #>
-            return <#=methodName#>Implementation(value);
+            return HandleOperationImplementation(ComparisonScalarOperation.<#=methodName#>, value);
 <#
     }
     else
@@ -518,14 +525,14 @@ foreach (MethodConfiguration method in methodConfiguration)
         {
 #>
             <#=fullOtherColumnType#> <#=otherColumnType#>Column = CloneAs<#=capitalizedOtherColumnType#>Column();
-            return <#=otherColumnType#>Column.<#=methodName#>Implementation(value);
+            return <#=otherColumnType#>Column.HandleOperationImplementation(ComparisonScalarOperation.<#=methodName#>, value);
 <#
         }
         else
         {
 #>
             <#=columnType#> other<#=columnType#>Value = (<#=columnType#>)value;
-            return <#=methodName#>Implementation(other<#=columnType#>Value);
+            return HandleOperationImplementation(ComparisonScalarOperation.<#=methodName#>, other<#=columnType#>Value);
 <#
         }
 #>
@@ -567,6 +574,7 @@ void GenerateAllBinaryShiftCombinationsForMethod(string methodName)
         string fullColumnType = GetCapitalizedPrimitiveTypes(type.TypeName) + "DataFrameColumn";
         string capitalizedReturnType = GetCapitalizedPrimitiveTypes(returnType);
 #>
+
     public partial class <#=fullColumnType#>
     {
         public new <#=fullReturnType#> <#=methodName#>(int value, bool inPlace = false)
