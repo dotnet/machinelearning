@@ -472,7 +472,7 @@ namespace Microsoft.Data.Analysis.Tests
         [X64Fact("32-bit doesn't allow to allocate more than 2 Gb")]
         public void TestAppendMany_SizeMoreThanMaxBufferCapacity()
         {
-            const int MaxCapacityInBytes = 2147483591;
+            const int MaxCapacityInBytes = 0X7FEFFFFF;
 
             //Check appending values with extending column size over MaxCapacity of ReadOnlyDataFrameBuffer
             PrimitiveDataFrameColumn<byte> intColumn = new PrimitiveDataFrameColumn<byte>("Byte1", MaxCapacityInBytes - 5);
