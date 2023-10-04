@@ -52,7 +52,7 @@ namespace Microsoft.ML.PerformanceTests.Tests
         [MemberData(nameof(GetBenchmarks))]
         public void BenchmarksProjectIsNotBroken(Type type)
         {
-            var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(output)));
+            var summary = BenchmarkRunner.Run(type, new TestConfig().AddLogger(new OutputLogger(output)));
 
             Assert.False(summary.HasCriticalValidationErrors, "The \"Summary\" should have NOT \"HasCriticalValidationErrors\"");
 

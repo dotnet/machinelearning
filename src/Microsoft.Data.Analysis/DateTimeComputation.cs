@@ -203,7 +203,7 @@ namespace Microsoft.Data.Analysis
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
                     //Check if bit is not set (value is null) - skip
-                    if (!BitmapHelper.IsValid(bitmapSpan, i))
+                    if (!BitUtility.IsValid(bitmapSpan, i))
                         continue;
 
                     var val = readOnlySpan[i];
@@ -261,7 +261,7 @@ namespace Microsoft.Data.Analysis
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
                     //Check if bit is not set (value is null) - skip
-                    if (!BitmapHelper.IsValid(bitmapSpan, i))
+                    if (!BitUtility.IsValid(bitmapSpan, i))
                         continue;
 
                     var val = readOnlySpan[i];

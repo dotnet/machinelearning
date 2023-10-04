@@ -16,8 +16,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 .Run(args, CreateCustomConfig());
 
         private static IConfig CreateCustomConfig()
-            => DefaultConfig.Instance
-                .With(Job.Default
-                    .With(InProcessEmitToolchain.Instance));
+            => DefaultConfig.Instance.AddJob(Job.Default
+                    .WithToolchain(InProcessEmitToolchain.Instance));
     }
 }
