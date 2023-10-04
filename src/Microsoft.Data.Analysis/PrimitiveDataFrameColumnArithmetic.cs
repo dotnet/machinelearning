@@ -39,57 +39,57 @@ namespace Microsoft.Data.Analysis
             BitUtility.ElementwiseAnd(leftValidity, rightValidity, leftValidity);
         }
 
-        public void HandleOperation(BinaryScalarOperation operation, Span<T> left, T right)
+        public void HandleOperation(BinaryOperation operation, Span<T> left, T right)
         {
             switch (operation)
             {
-                case BinaryScalarOperation.Add:
+                case BinaryOperation.Add:
                     Add(left, right);
                     break;
-                case BinaryScalarOperation.Subtract:
+                case BinaryOperation.Subtract:
                     Subtract(left, right);
                     break;
-                case BinaryScalarOperation.Multiply:
+                case BinaryOperation.Multiply:
                     Multiply(left, right);
                     break;
-                case BinaryScalarOperation.Divide:
+                case BinaryOperation.Divide:
                     Divide(left, right);
                     break;
-                case BinaryScalarOperation.Modulo:
+                case BinaryOperation.Modulo:
                     Modulo(left, right);
                     break;
-                case BinaryScalarOperation.And:
+                case BinaryOperation.And:
                     And(left, right);
                     break;
-                case BinaryScalarOperation.Or:
+                case BinaryOperation.Or:
                     Or(left, right);
                     break;
-                case BinaryScalarOperation.Xor:
+                case BinaryOperation.Xor:
                     Xor(left, right);
                     break;
             }
         }
 
-        public void HandleOperation(BinaryScalarOperation operation, T left, Span<T> right, ReadOnlySpan<byte> rightValidity)
+        public void HandleOperation(BinaryOperation operation, T left, Span<T> right, ReadOnlySpan<byte> rightValidity)
         {
-            if (operation == BinaryScalarOperation.Divide)
+            if (operation == BinaryOperation.Divide)
             {
                 Divide(left, right, rightValidity);
                 return;
             }
-            else if (operation == BinaryScalarOperation.Add)
+            else if (operation == BinaryOperation.Add)
                 Add(left, right);
-            else if (operation == BinaryScalarOperation.Subtract)
+            else if (operation == BinaryOperation.Subtract)
                 Subtract(left, right);
-            else if (operation == BinaryScalarOperation.Multiply)
+            else if (operation == BinaryOperation.Multiply)
                 Multiply(left, right);
-            else if (operation == BinaryScalarOperation.Modulo)
+            else if (operation == BinaryOperation.Modulo)
                 Modulo(left, right);
-            else if (operation == BinaryScalarOperation.And)
+            else if (operation == BinaryOperation.And)
                 And(left, right);
-            else if (operation == BinaryScalarOperation.Or)
+            else if (operation == BinaryOperation.Or)
                 Or(left, right);
-            else if (operation == BinaryScalarOperation.Xor)
+            else if (operation == BinaryOperation.Xor)
                 Xor(left, right);
         }
 
@@ -131,26 +131,26 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public void HandleOperation(ComparisonScalarOperation operation, ReadOnlySpan<T> left, T right, PrimitiveColumnContainer<bool> result, long offset)
+        public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> left, T right, PrimitiveColumnContainer<bool> result, long offset)
         {
             switch (operation)
             {
-                case ComparisonScalarOperation.ElementwiseEquals:
+                case ComparisonOperation.ElementwiseEquals:
                     ElementwiseEquals(left, right, result, offset);
                     break;
-                case ComparisonScalarOperation.ElementwiseNotEquals:
+                case ComparisonOperation.ElementwiseNotEquals:
                     ElementwiseNotEquals(left, right, result, offset);
                     break;
-                case ComparisonScalarOperation.ElementwiseGreaterThanOrEqual:
+                case ComparisonOperation.ElementwiseGreaterThanOrEqual:
                     ElementwiseGreaterThanOrEqual(left, right, result, offset);
                     break;
-                case ComparisonScalarOperation.ElementwiseLessThanOrEqual:
+                case ComparisonOperation.ElementwiseLessThanOrEqual:
                     ElementwiseLessThanOrEqual(left, right, result, offset);
                     break;
-                case ComparisonScalarOperation.ElementwiseGreaterThan:
+                case ComparisonOperation.ElementwiseGreaterThan:
                     ElementwiseGreaterThan(left, right, result, offset);
                     break;
-                case ComparisonScalarOperation.ElementwiseLessThan:
+                case ComparisonOperation.ElementwiseLessThan:
                     ElementwiseLessThan(left, right, result, offset);
                     break;
             }

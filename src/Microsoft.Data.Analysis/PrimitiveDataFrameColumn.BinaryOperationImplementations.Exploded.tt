@@ -81,14 +81,14 @@ void GenerateAllBinaryCombinationsForMethods()
         }
 
         //Binary Scalar Operations
-        internal <#=fullReturnType#> HandleOperationImplementation(BinaryScalarOperation operation, <#=otherColumnType#> right, bool inPlace = false)
+        internal <#=fullReturnType#> HandleOperationImplementation(BinaryOperation operation, <#=otherColumnType#> right, bool inPlace = false)
         {
             var newColumn = inPlace ? this : (<#=fullReturnType#>)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, right);
             return newColumn;
         }
 
-        internal <#=fullReturnType#> HandleReverseOperationImplementation(BinaryScalarOperation operation, <#=otherColumnType#> right, bool inPlace = false)
+        internal <#=fullReturnType#> HandleReverseOperationImplementation(BinaryOperation operation, <#=otherColumnType#> right, bool inPlace = false)
         {
             var newColumn = inPlace ? this : (<#=fullReturnType#>)Clone();
             newColumn.ColumnContainer.HandleReverseOperation(operation, right);
@@ -122,7 +122,7 @@ void GenerateAllComparisonCombinationsForMethods()
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
         }
 
-        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, <#=otherColumnType#> value)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, <#=otherColumnType#> value)
         {
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }

@@ -27,14 +27,14 @@ namespace Microsoft.Data.Analysis
         }
 
         //Binary Scalar Operations
-        internal DecimalDataFrameColumn HandleOperationImplementation(BinaryScalarOperation operation, decimal right, bool inPlace = false)
+        internal DecimalDataFrameColumn HandleOperationImplementation(BinaryOperation operation, decimal right, bool inPlace = false)
         {
             var newColumn = inPlace ? this : (DecimalDataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, right);
             return newColumn;
         }
 
-        internal DecimalDataFrameColumn HandleReverseOperationImplementation(BinaryScalarOperation operation, decimal right, bool inPlace = false)
+        internal DecimalDataFrameColumn HandleReverseOperationImplementation(BinaryOperation operation, decimal right, bool inPlace = false)
         {
             var newColumn = inPlace ? this : (DecimalDataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleReverseOperation(operation, right);
@@ -57,14 +57,14 @@ namespace Microsoft.Data.Analysis
         }
 
         //Binary Scalar Operations
-        internal DoubleDataFrameColumn HandleOperationImplementation(BinaryScalarOperation operation, double right, bool inPlace = false)
+        internal DoubleDataFrameColumn HandleOperationImplementation(BinaryOperation operation, double right, bool inPlace = false)
         {
             var newColumn = inPlace ? this : (DoubleDataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, right);
             return newColumn;
         }
 
-        internal DoubleDataFrameColumn HandleReverseOperationImplementation(BinaryScalarOperation operation, double right, bool inPlace = false)
+        internal DoubleDataFrameColumn HandleReverseOperationImplementation(BinaryOperation operation, double right, bool inPlace = false)
         {
             var newColumn = inPlace ? this : (DoubleDataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleReverseOperation(operation, right);
@@ -87,14 +87,14 @@ namespace Microsoft.Data.Analysis
         }
 
         //Binary Scalar Operations
-        internal SingleDataFrameColumn HandleOperationImplementation(BinaryScalarOperation operation, float right, bool inPlace = false)
+        internal SingleDataFrameColumn HandleOperationImplementation(BinaryOperation operation, float right, bool inPlace = false)
         {
             var newColumn = inPlace ? this : (SingleDataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, right);
             return newColumn;
         }
 
-        internal SingleDataFrameColumn HandleReverseOperationImplementation(BinaryScalarOperation operation, float right, bool inPlace = false)
+        internal SingleDataFrameColumn HandleReverseOperationImplementation(BinaryOperation operation, float right, bool inPlace = false)
         {
             var newColumn = inPlace ? this : (SingleDataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleReverseOperation(operation, right);
@@ -117,14 +117,14 @@ namespace Microsoft.Data.Analysis
         }
 
         //Binary Scalar Operations
-        internal Int32DataFrameColumn HandleOperationImplementation(BinaryScalarOperation operation, int right, bool inPlace = false)
+        internal Int32DataFrameColumn HandleOperationImplementation(BinaryOperation operation, int right, bool inPlace = false)
         {
             var newColumn = inPlace ? this : (Int32DataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, right);
             return newColumn;
         }
 
-        internal Int32DataFrameColumn HandleReverseOperationImplementation(BinaryScalarOperation operation, int right, bool inPlace = false)
+        internal Int32DataFrameColumn HandleReverseOperationImplementation(BinaryOperation operation, int right, bool inPlace = false)
         {
             var newColumn = inPlace ? this : (Int32DataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleReverseOperation(operation, right);
@@ -147,14 +147,14 @@ namespace Microsoft.Data.Analysis
         }
 
         //Binary Scalar Operations
-        internal Int64DataFrameColumn HandleOperationImplementation(BinaryScalarOperation operation, long right, bool inPlace = false)
+        internal Int64DataFrameColumn HandleOperationImplementation(BinaryOperation operation, long right, bool inPlace = false)
         {
             var newColumn = inPlace ? this : (Int64DataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, right);
             return newColumn;
         }
 
-        internal Int64DataFrameColumn HandleReverseOperationImplementation(BinaryScalarOperation operation, long right, bool inPlace = false)
+        internal Int64DataFrameColumn HandleReverseOperationImplementation(BinaryOperation operation, long right, bool inPlace = false)
         {
             var newColumn = inPlace ? this : (Int64DataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleReverseOperation(operation, right);
@@ -177,14 +177,14 @@ namespace Microsoft.Data.Analysis
         }
 
         //Binary Scalar Operations
-        internal UInt32DataFrameColumn HandleOperationImplementation(BinaryScalarOperation operation, uint right, bool inPlace = false)
+        internal UInt32DataFrameColumn HandleOperationImplementation(BinaryOperation operation, uint right, bool inPlace = false)
         {
             var newColumn = inPlace ? this : (UInt32DataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, right);
             return newColumn;
         }
 
-        internal UInt32DataFrameColumn HandleReverseOperationImplementation(BinaryScalarOperation operation, uint right, bool inPlace = false)
+        internal UInt32DataFrameColumn HandleReverseOperationImplementation(BinaryOperation operation, uint right, bool inPlace = false)
         {
             var newColumn = inPlace ? this : (UInt32DataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleReverseOperation(operation, right);
@@ -207,14 +207,14 @@ namespace Microsoft.Data.Analysis
         }
 
         //Binary Scalar Operations
-        internal UInt64DataFrameColumn HandleOperationImplementation(BinaryScalarOperation operation, ulong right, bool inPlace = false)
+        internal UInt64DataFrameColumn HandleOperationImplementation(BinaryOperation operation, ulong right, bool inPlace = false)
         {
             var newColumn = inPlace ? this : (UInt64DataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleOperation(operation, right);
             return newColumn;
         }
 
-        internal UInt64DataFrameColumn HandleReverseOperationImplementation(BinaryScalarOperation operation, ulong right, bool inPlace = false)
+        internal UInt64DataFrameColumn HandleReverseOperationImplementation(BinaryOperation operation, ulong right, bool inPlace = false)
         {
             var newColumn = inPlace ? this : (UInt64DataFrameColumn)Clone();
             newColumn.ColumnContainer.HandleReverseOperation(operation, right);
@@ -229,7 +229,7 @@ namespace Microsoft.Data.Analysis
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
         }
 
-        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, bool value)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, bool value)
         {
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
@@ -242,7 +242,7 @@ namespace Microsoft.Data.Analysis
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
         }
 
-        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, byte value)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, byte value)
         {
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
@@ -255,7 +255,7 @@ namespace Microsoft.Data.Analysis
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
         }
 
-        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, decimal value)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, decimal value)
         {
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
@@ -268,7 +268,7 @@ namespace Microsoft.Data.Analysis
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
         }
 
-        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, double value)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, double value)
         {
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
@@ -281,7 +281,7 @@ namespace Microsoft.Data.Analysis
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
         }
 
-        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, float value)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, float value)
         {
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
@@ -294,7 +294,7 @@ namespace Microsoft.Data.Analysis
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
         }
 
-        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, int value)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, int value)
         {
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
@@ -307,7 +307,7 @@ namespace Microsoft.Data.Analysis
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
         }
 
-        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, long value)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, long value)
         {
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
@@ -320,7 +320,7 @@ namespace Microsoft.Data.Analysis
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
         }
 
-        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, sbyte value)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, sbyte value)
         {
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
@@ -333,7 +333,7 @@ namespace Microsoft.Data.Analysis
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
         }
 
-        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, short value)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, short value)
         {
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
@@ -346,7 +346,7 @@ namespace Microsoft.Data.Analysis
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
         }
 
-        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, uint value)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, uint value)
         {
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
@@ -359,7 +359,7 @@ namespace Microsoft.Data.Analysis
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
         }
 
-        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, ulong value)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, ulong value)
         {
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
@@ -372,7 +372,7 @@ namespace Microsoft.Data.Analysis
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
         }
 
-        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, ushort value)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, ushort value)
         {
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }
@@ -385,7 +385,7 @@ namespace Microsoft.Data.Analysis
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, column.ColumnContainer));
         }
 
-        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonScalarOperation operation, DateTime value)
+        internal BooleanDataFrameColumn HandleOperationImplementation(ComparisonOperation operation, DateTime value)
         {
             return new BooleanDataFrameColumn(Name, ColumnContainer.HandleOperation(operation, value));
         }

@@ -68,7 +68,7 @@ namespace Microsoft.Data.Analysis
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> <#=method.MethodName#>(bool value, bool inPlace = false)
         {
-            return HandleBitwiseOperationImplementation(BinaryScalarOperation.<#=method.MethodName#>, value, inPlace);
+            return HandleBitwiseOperationImplementation(BinaryOperation.<#=method.MethodName#>, value, inPlace);
         }
 <# } else { #>
 
@@ -80,13 +80,13 @@ namespace Microsoft.Data.Analysis
             {
                 return <#=method.MethodName#>(column, inPlace);
             }
-            return HandleOperationImplementation(BinaryScalarOperation.<#=method.MethodName#>, value, inPlace);
+            return HandleOperationImplementation(BinaryOperation.<#=method.MethodName#>, value, inPlace);
         }
 
         /// <inheritdoc/>
         public override DataFrameColumn Reverse<#=method.MethodName#><U>(U value, bool inPlace = false)
         {
-            return HandleReverseOperationImplementation(BinaryScalarOperation.<#=method.MethodName#>, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryOperation.<#=method.MethodName#>, value, inPlace);
         }
 <# } #>
 <# } #>
@@ -100,7 +100,7 @@ namespace Microsoft.Data.Analysis
             {
                 return <#=method.MethodName#>(column);
             }
-            return HandleOperationImplementation(ComparisonScalarOperation.<#=method.MethodName#>, value);
+            return HandleOperationImplementation(ComparisonOperation.<#=method.MethodName#>, value);
         }
 <# } #>
 <# if (method.MethodType == MethodType.BinaryInt ) {#>

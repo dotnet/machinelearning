@@ -975,7 +975,7 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        internal DataFrameColumn HandleOperationImplementation<U>(BinaryScalarOperation operation, U value, bool inPlace)
+        internal DataFrameColumn HandleOperationImplementation<U>(BinaryOperation operation, U value, bool inPlace)
         {
             switch (typeof(T))
             {
@@ -1053,7 +1053,7 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        internal DataFrameColumn HandleReverseOperationImplementation<U>(BinaryScalarOperation operation, U value, bool inPlace = false)
+        internal DataFrameColumn HandleReverseOperationImplementation<U>(BinaryOperation operation, U value, bool inPlace = false)
         {
             switch (typeof(T))
             {
@@ -1129,7 +1129,7 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        internal PrimitiveDataFrameColumn<bool> HandleBitwiseOperationImplementation<U>(BinaryScalarOperation operation, U value, bool inPlace)
+        internal PrimitiveDataFrameColumn<bool> HandleBitwiseOperationImplementation<U>(BinaryOperation operation, U value, bool inPlace)
         {
             switch (typeof(T))
             {
@@ -1142,19 +1142,7 @@ namespace Microsoft.Data.Analysis
                     PrimitiveDataFrameColumn<bool> retColumn = inPlace ? typedColumn : typedColumn.Clone();
                     retColumn._columnContainer.HandleOperation(operation, Unsafe.As<U, bool>(ref value));
                     return retColumn;
-                case Type byteType when byteType == typeof(byte):
-                case Type charType when charType == typeof(char):
-                case Type decimalType when decimalType == typeof(decimal):
-                case Type doubleType when doubleType == typeof(double):
-                case Type floatType when floatType == typeof(float):
-                case Type intType when intType == typeof(int):
-                case Type longType when longType == typeof(long):
-                case Type sbyteType when sbyteType == typeof(sbyte):
-                case Type shortType when shortType == typeof(short):
-                case Type uintType when uintType == typeof(uint):
-                case Type ulongType when ulongType == typeof(ulong):
-                case Type ushortType when ushortType == typeof(ushort):
-                case Type DateTimeType when DateTimeType == typeof(DateTime):
+
                 default:
                     throw new NotSupportedException();
             }
@@ -1300,7 +1288,7 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        internal PrimitiveDataFrameColumn<bool> HandleOperationImplementation<U>(ComparisonScalarOperation operation, U value)
+        internal PrimitiveDataFrameColumn<bool> HandleOperationImplementation<U>(ComparisonOperation operation, U value)
         {
             switch (typeof(T))
             {

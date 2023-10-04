@@ -32,7 +32,7 @@ namespace Microsoft.Data.Analysis
             return this;
         }
 
-        public PrimitiveColumnContainer<T> HandleOperation(BinaryScalarOperation operation, T right)
+        public PrimitiveColumnContainer<T> HandleOperation(BinaryOperation operation, T right)
         {
             var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
             for (int i = 0; i < this.Buffers.Count; i++)
@@ -45,7 +45,7 @@ namespace Microsoft.Data.Analysis
             return this;
         }
 
-        public PrimitiveColumnContainer<T> HandleReverseOperation(BinaryScalarOperation operation, T left)
+        public PrimitiveColumnContainer<T> HandleReverseOperation(BinaryOperation operation, T left)
         {
             var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
             for (int i = 0; i < this.Buffers.Count; i++)
@@ -90,7 +90,7 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        public PrimitiveColumnContainer<bool> HandleOperation(ComparisonScalarOperation operation, T right)
+        public PrimitiveColumnContainer<bool> HandleOperation(ComparisonOperation operation, T right)
         {
             var ret = new PrimitiveColumnContainer<bool>(Length);
             long offset = 0;

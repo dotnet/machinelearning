@@ -26,12 +26,7 @@
         public bool SupportsBitwise { get; }
         public ISet<string> UnsupportedMethods { get; }
     }
-
-    public string GenerateInPlaceStatement(string trueCondition, string falseCondition)
-    {
-        return $"inPlace ? {trueCondition} : {falseCondition}";
-    }
-
+        
     public string GenerateIfStatementHeader(TypeConfiguration type)
     {
         string keyword = (type == typeConfiguration[0]) ? "if" : "else if";
@@ -227,7 +222,7 @@
         new MethodConfiguration("Sum", MethodType.Reduction, "+", isNumeric:true, hasReturnValue:true, supportsRowSubsets: true, methodComments: "Returns the sum of the values at the rowIndices"),
         new MethodConfiguration("Round", MethodType.ElementwiseComputation, "Math.Round", isNumeric:true, methodComments: "Calls Math.Round on each value in a column"),
     };
-
+        
     public MethodConfiguration[] methodConfiguration = new [] 
     {
         new MethodConfiguration("Add", MethodType.Binary, "+", isNumeric:true, methodComments: "Performs element-wise addition"),
