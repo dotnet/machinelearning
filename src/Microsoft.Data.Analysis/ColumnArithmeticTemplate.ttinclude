@@ -354,13 +354,7 @@
         {
             return GetColumnSpecificMethodComments().Replace(" an", " a reversed");
         }
-
-        public string GetMethodSignature(string columnType, string genericType)
-        {
-            var arguments = GetMethodArguments(columnType, genericType);
-            return $"void {MethodName}({arguments})";
-        }
-
+                
         public string GetInvertedMethodSignatureForBinaryScalarsOps(string columnType, string genericType)
         {
             var arguments = GetInvertedMethodArguments(columnType, genericType);
@@ -406,15 +400,13 @@
                 case MethodType.UnaryInPlace:
                     return $"{dataFrameType}<{genericType}> {Op1Name}";
                 case MethodType.BinaryScalar:
-                    return $"{dataFrameType}<{genericType}> {Op1Name}, {genericType} {Op2Name}";
                 case MethodType.ComparisonScalar:
-                    return $"{dataFrameType}<{genericType}> {Op1Name}, {genericType} {Op2Name}, {dataFrameType}<bool> ret";
+                    return $"{dataFrameType}<{genericType}> {Op1Name}, {genericType} {Op2Name}";
                 case MethodType.BinaryInt:
                     return $"{dataFrameType}<{genericType}> {Op1Name}, int {Op2Name}";
                 case MethodType.Binary:
-                    return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}";
                 case MethodType.Comparison:
-                    return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}, {dataFrameType}<bool> ret";
+                    return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}";
                 case MethodType.Contraction:
                     return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}, int[] leftAxes, int[] rightAxes";
                 case MethodType.ElementwiseComputation:
@@ -432,20 +424,16 @@
                 case MethodType.Unary:
                 case MethodType.UnaryInPlace:
                     throw new ArgumentException();
-                    return $"{dataFrameType}<{genericType}> {Op1Name}";
                 case MethodType.BinaryScalar:
-                    return $"{genericType} {Op2Name}";
                 case MethodType.ComparisonScalar:
-                    return $"{genericType} {Op2Name}, {dataFrameType}<bool> ret";
+                    return $"{genericType} {Op2Name}";
                 case MethodType.BinaryInt:
                     return $"int {Op2Name}";
                 case MethodType.Binary:
-                    return $"{dataFrameType}<{genericType}> {Op2Name}";
                 case MethodType.Comparison:
-                    return $"{dataFrameType}<{genericType}> {Op2Name}, {dataFrameType}<bool> ret";
+                    return $"{dataFrameType}<{genericType}> {Op2Name}";
                 case MethodType.Contraction:
                     throw new ArgumentException();
-                    return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}, int[] leftAxes, int[] rightAxes";
                 default:
                     throw new ArgumentException();
             }

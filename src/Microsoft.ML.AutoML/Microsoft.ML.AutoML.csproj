@@ -69,7 +69,7 @@
     <AdditionalFiles Include="CodeGen\code_gen_flag.json" />
     <AdditionalFiles Include="CodeGen\*-estimators.json" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <EmbeddedResource Include="Tuner\Portfolios.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

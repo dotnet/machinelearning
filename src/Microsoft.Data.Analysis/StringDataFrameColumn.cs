@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 
@@ -17,15 +18,17 @@ namespace Microsoft.Data.Analysis
     /// <remarks> Is NOT Arrow compatible </remarks>
     public partial class StringDataFrameColumn : DataFrameColumn, IEnumerable<string>
     {
+        public static int MaxCapacity = ArrayUtility.ArrayMaxSize / Unsafe.SizeOf<IntPtr>(); // Max Size in bytes / size of pointer (8 bytes on x64)
+
         private readonly List<List<string>> _stringBuffers = new List<List<string>>(); // To store more than intMax number of strings
 
         public StringDataFrameColumn(string name, long length = 0) : base(name, length, typeof(string))
         {
-            int numberOfBuffersRequired = Math.Max((int)(length / int.MaxValue), 1);
+            int numberOfBuffersRequired = (int)(length / MaxCapacity + 1);
             for (int i = 0; i < numberOfBuffersRequired; i++)
             {
-                long bufferLen = length - _stringBuffers.Count * int.MaxValue;
-                List<string> buffer = new List<string>((int)Math.Min(int.MaxValue, bufferLen));
+                long bufferLen = length - _stringBuffers.Count * MaxCapacity;
+                List<string> buffer = new List<string>((int)Math.Min(MaxCapacity, bufferLen));
                 _stringBuffers.Add(buffer);
                 for (int j = 0; j < bufferLen; j++)
                 {
@@ -64,7 +67,7 @@ namespace Microsoft.Data.Analysis
         public void Append(string value)
         {
             List<string> lastBuffer = _stringBuffers[_stringBuffers.Count - 1];
-            if (lastBuffer.Count == int.MaxValue)
+            if (lastBuffer.Count == MaxCapacity)
             {
                 lastBuffer = new List<string>();
                 _stringBuffers.Add(lastBuffer);
@@ -75,33 +78,34 @@ namespace Microsoft.Data.Analysis
             Length++;
         }
 
-        private int GetBufferIndexContainingRowIndex(ref long rowIndex)
+        private int GetBufferIndexContainingRowIndex(long rowIndex)
         {
             if (rowIndex >= Length)
             {
                 throw new ArgumentOutOfRangeException(Strings.ColumnIndexOutOfRange, nameof(rowIndex));
             }
-            return (int)(rowIndex / int.MaxValue);
+            return (int)(rowIndex / MaxCapacity);
         }
 
         protected override object GetValue(long rowIndex)
         {
-            int bufferIndex = GetBufferIndexContainingRowIndex(ref rowIndex);
-            return _stringBuffers[bufferIndex][(int)rowIndex];
+            int bufferIndex = GetBufferIndexContainingRowIndex(rowIndex);
+            return _stringBuffers[bufferIndex][(int)(rowIndex % MaxCapacity)];
         }
 
         protected override IReadOnlyList<object> GetValues(long startIndex, int length)
         {
             var ret = new List<object>();
-            int bufferIndex = GetBufferIndexContainingRowIndex(ref startIndex);
+            int bufferIndex = GetBufferIndexContainingRowIndex(startIndex);
+            int bufferOffset = (int)(startIndex % MaxCapacity);
             while (ret.Count < length && bufferIndex < _stringBuffers.Count)
             {
-                for (int i = (int)startIndex; ret.Count < length && i < _stringBuffers[bufferIndex].Count; i++)
+                for (int i = bufferOffset; ret.Count < length && i < _stringBuffers[bufferIndex].Count; i++)
                 {
                     ret.Add(_stringBuffers[bufferIndex][i]);
                 }
                 bufferIndex++;
-                startIndex = 0;
+                bufferOffset = 0;
             }
             return ret;
         }
@@ -110,9 +114,10 @@ namespace Microsoft.Data.Analysis
         {
             if (value == null || value is string)
             {
-                int bufferIndex = GetBufferIndexContainingRowIndex(ref rowIndex);
+                int bufferIndex = GetBufferIndexContainingRowIndex(rowIndex);
+                int bufferOffset = (int)(rowIndex % MaxCapacity);
                 var oldValue = this[rowIndex];
-                _stringBuffers[bufferIndex][(int)rowIndex] = (string)value;
+                _stringBuffers[bufferIndex][bufferOffset] = (string)value;
                 if (oldValue != (string)value)
                 {
                     if (value == null)
@@ -138,15 +143,16 @@ namespace Microsoft.Data.Analysis
             get
             {
                 var ret = new List<string>();
-                int bufferIndex = GetBufferIndexContainingRowIndex(ref startIndex);
+                int bufferIndex = GetBufferIndexContainingRowIndex(startIndex);
+                int bufferOffset = (int)(startIndex % MaxCapacity);
                 while (ret.Count < length && bufferIndex < _stringBuffers.Count)
                 {
-                    for (int i = (int)startIndex; ret.Count < length && i < _stringBuffers[bufferIndex].Count; i++)
+                    for (int i = bufferOffset; ret.Count < length && i < _stringBuffers[bufferIndex].Count; i++)
                     {
                         ret.Add(_stringBuffers[bufferIndex][i]);
                     }
                     bufferIndex++;
-                    startIndex = 0;
+                    bufferOffset = 0;
                 }
                 return ret;
             }
@@ -194,7 +200,7 @@ namespace Microsoft.Data.Analysis
                     sortIndices[i] = i;
                     if (buffer[i] == null)
                     {
-                        columnNullIndices[nullIndicesSlot] = i + bufferSortIndices.Count * int.MaxValue;
+                        columnNullIndices[nullIndicesSlot] = i + bufferSortIndices.Count * MaxCapacity;
                         nullIndicesSlot++;
                     }
                 }
@@ -295,11 +301,11 @@ namespace Microsoft.Data.Analysis
 
             List<string> setBuffer = ret._stringBuffers[0];
             long setBufferMinRange = 0;
-            long setBufferMaxRange = int.MaxValue;
+            long setBufferMaxRange = MaxCapacity;
             List<string> getBuffer = _stringBuffers[0];
             long getBufferMinRange = 0;
-            long getBufferMaxRange = int.MaxValue;
-            long maxCapacity = int.MaxValue;
+            long getBufferMaxRange = MaxCapacity;
+            long maxCapacity = MaxCapacity;
             if (mapIndices.DataType == typeof(long))
             {
                 PrimitiveDataFrameColumn<long> longMapIndices = mapIndices as PrimitiveDataFrameColumn<long>;

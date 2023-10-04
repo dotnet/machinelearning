@@ -56,6 +56,7 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                         "dnnModelFactory" => "string",
                         "bertArchitecture" => "BertArchitecture",
                         "imageClassificationArchType" => "Microsoft.ML.Vision.ImageClassificationTrainer.Architecture",
+                        "dataKind" => "Microsoft.ML.Data.DataKind",
                         _ => throw new ArgumentException("unknown type"),
                     };
 
@@ -74,6 +75,7 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                         (_, "ColorsOrder") => defaultToken.GetValue<string>(),
                         (_, "BertArchitecture") => defaultToken.GetValue<string>(),
                         (_, "Microsoft.ML.Vision.ImageClassificationTrainer.Architecture") => defaultToken.GetValue<string>(),
+                        (_, "Microsoft.ML.Data.DataKind") => defaultToken.GetValue<string>(),
                         (_, _) => throw new ArgumentException("unknown"),
                     };
 

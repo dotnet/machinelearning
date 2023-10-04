@@ -91,7 +91,6 @@ namespace Microsoft.ML.TorchSharp
             Contracts.Assert(options.MaxEpoch > 0);
             Contracts.AssertValue(options.LabelColumnName);
             Contracts.AssertValue(options.PredictionColumnName);
-            Contracts.AssertValue(options.ScoreColumnName);
             Option = options;
         }
 
@@ -140,12 +139,15 @@ namespace Microsoft.ML.TorchSharp
             public float Accuracy;
             public readonly int TrainingRowCount;
 
-            public TrainerBase(TorchSharpBaseTrainer<TLabelCol, TTargetsCol> parent, IChannel ch, IDataView input)
+            protected string ModelUrl;
+
+            public TrainerBase(TorchSharpBaseTrainer<TLabelCol, TTargetsCol> parent, IChannel ch, IDataView input, string modelUrl)
             {
                 Parent = parent;
                 Updates = 0;
                 Accuracy = 0;
 
+                ModelUrl = modelUrl;
                 // Get row count and figure out num of unique labels
                 TrainingRowCount = GetRowCountAndSetLabelCount(input);
 
@@ -329,10 +331,9 @@ namespace Microsoft.ML.TorchSharp
                 Model.train();
                 Optimizer.zero_grad();
 
-                var inputTensor = PrepareBatchTensor(ref inputTensors, device: Device);
                 var targetsTensor = CreateTargetsTensor(ref targets, device: Device);
 
-                RunModelAndBackPropagate(ref inputTensor, ref targetsTensor);
+                RunModelAndBackPropagate(ref inputTensors, ref targetsTensor);
                 host.CheckAlive();
 
                 OptimizeStep();
@@ -340,7 +341,7 @@ namespace Microsoft.ML.TorchSharp
                 return cursorValid;
             }
 
-            private protected abstract void RunModelAndBackPropagate(ref Tensor inputTensorm, ref Tensor targetsTensor);
+            private protected abstract void RunModelAndBackPropagate(ref List<Tensor> inputTensorm, ref Tensor targetsTensor);
 
             private protected abstract torch.Tensor PrepareRowTensor();
             private protected abstract torch.Tensor PrepareBatchTensor(ref List<Tensor> inputTensors, Device device);
@@ -364,11 +365,13 @@ namespace Microsoft.ML.TorchSharp
     }
 
 
-    public abstract class TorchSharpBaseTransformer : RowToRowTransformerBase
+    public abstract class TorchSharpBaseTransformer : RowToRowTransformerBase, IDisposable
     {
         private protected TorchSharpBaseTransformer(IHost host) : base(host)
         {
         }
+
+        public abstract void Dispose();
     }
 
     public abstract class TorchSharpBaseTransformer<TLabelCol, TTargetsCol> : TorchSharpBaseTransformer
@@ -379,6 +382,7 @@ namespace Microsoft.ML.TorchSharp
 
         private protected readonly string ScoreColumnName;
         public readonly DataViewSchema.DetachedColumn LabelColumn;
+        private bool _disposedValue;
 
         internal TorchSharpBaseTransformer(IHostEnvironment env, TorchSharpBaseTrainer.Options options, Module model, DataViewSchema.DetachedColumn labelColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TorchSharpBaseTransformer)))
@@ -421,7 +425,7 @@ namespace Microsoft.ML.TorchSharp
             // int: number of classes
             // BinaryStream: TS Model
             ctx.SaveNonEmptyString(Options.LabelColumnName);
-            ctx.SaveNonEmptyString(Options.ScoreColumnName);
+            ctx.SaveStringOrNull(Options.ScoreColumnName);
             ctx.SaveNonEmptyString(Options.PredictionColumnName);
             ctx.Writer.Write(Options.NumberOfClasses);
 
@@ -545,6 +549,33 @@ namespace Microsoft.ML.TorchSharp
 
             private protected override void SaveModel(ModelSaveContext ctx) => Parent.SaveModel(ctx);
 
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                }
+
+                Model.Dispose();
+                _disposedValue = true;
+            }
+        }
+
+        ~TorchSharpBaseTransformer()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
+        }
+
+        public override void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

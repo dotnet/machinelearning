@@ -14,6 +14,7 @@ using System.Data.SQLite;
 using System.Data.SQLite.EF6;
 using Xunit;
 using Microsoft.ML.TestFramework.Attributes;
+using System.Threading;
 
 namespace Microsoft.Data.Analysis.Tests
 {
@@ -102,7 +103,7 @@ namespace Microsoft.Data.Analysis.Tests
                 }
                 else if (dataType == typeof(DateTime))
                 {
-                    Assert.IsType<PrimitiveDataFrameColumn<DateTime>>(column);
+                    Assert.IsType<DateTimeDataFrameColumn>(column);
                 }
                 else
                 {
@@ -152,6 +153,82 @@ namespace Microsoft.Data.Analysis.Tests
             ReducedRowsTest(reducedRows);
             csvDf = DataFrame.LoadCsvFromString(data, numberOfRowsToRead: 3);
             ReducedRowsTest(csvDf);
+        }
+
+        [Fact]
+        public void TestReadCsvWithHeaderCultureInfoAndSeparator()
+        {
+            string data = @$"vendor_id;rate_code;passenger_count;trip_time_in_secs;trip_distance;payment_type;fare_amount
+CMT;1;1;1271;3,8;CRD;17,5
+CMT;1;1;474;1,5;CRD;8
+CMT;1;1;637;1,4;CRD;8,5
+CMT;1;1;181;0,6;CSH;4,5";
+
+            void RegularTest(DataFrame df)
+            {
+                Assert.Equal(4, df.Rows.Count);
+                Assert.Equal(7, df.Columns.Count);
+
+                Assert.Equal(3.8f, (float)df["trip_distance"][0]);
+                Assert.Equal(17.5f, (float)df["fare_amount"][0]);
+
+                Assert.Equal(1.5f, (float)df["trip_distance"][1]);
+                Assert.Equal(8f, (float)df["fare_amount"][1]);
+
+                Assert.Equal(1.4f, (float)df["trip_distance"][2]);
+                Assert.Equal(8.5f, (float)df["fare_amount"][2]);
+
+                VerifyColumnTypes(df);
+            }
+
+            // de-DE has ',' as decimal separator
+            var cultureInfo = new CultureInfo("de-DE");
+            DataFrame df = DataFrame.LoadCsv(GetStream(data), separator: ';', cultureInfo: cultureInfo);
+
+            RegularTest(df);
+
+            DataFrame csvDf = DataFrame.LoadCsvFromString(data, separator: ';', cultureInfo: cultureInfo);
+            RegularTest(csvDf);
+        }
+
+        [Fact]
+        public void TestReadCsvWithHeaderAndDuplicatedColumns_WithoutRenaming()
+        {
+
+            string data = @$"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,payment_type,fare_amount
+CMT,1,1,1271,3.8,CRD,CRD,17.5
+CMT,1,1,474,1.5,CRD,CRD,8
+CMT,1,1,637,1.4,CRD,CRD,8.5
+CMT,1,1,181,0.6,CSH,CSH,4.5";
+
+            Assert.Throws<System.ArgumentException>(() => DataFrame.LoadCsv(GetStream(data)));
+        }
+
+        [Fact]
+        public void TestReadCsvWithHeaderAndDuplicatedColumns_WithDuplicateColumnRenaming()
+        {
+
+            string data = @$"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,payment_type,payment_type,fare_amount
+CMT,1,1,1271,3.8,CRD,CRD_1,Test,17.5
+CMT,1,1,474,1.5,CRD,CRD,Test,8
+CMT,1,1,637,1.4,CRD,CRD,Test,8.5
+CMT,1,1,181,0.6,CSH,CSH,Test,4.5";
+
+            DataFrame df = DataFrame.LoadCsv(GetStream(data), renameDuplicatedColumns: true);
+
+            Assert.Equal(4, df.Rows.Count);
+            Assert.Equal(9, df.Columns.Count);
+            Assert.Equal("CMT", df.Columns["vendor_id"][3]);
+
+            Assert.Equal("payment_type", df.Columns[5].Name);
+            Assert.Equal("payment_type.1", df.Columns[6].Name);
+            Assert.Equal("payment_type.2", df.Columns[7].Name);
+
+            Assert.Equal("CRD", df.Columns["payment_type"][0]);
+            Assert.Equal("CRD_1", df.Columns["payment_type.1"][0]);
+            Assert.Equal("Test", df.Columns["payment_type.2"][0]);
+
+            VerifyColumnTypes(df);
         }
 
         [Fact]
@@ -623,6 +700,19 @@ CMT,1,1,181,0.6,CSH,4.5,0";
         }
 
         [Fact]
+        public void TestLoadCsvWithAddIndexColumn()
+        {
+            var dataFrame = DataFrame.LoadCsvFromString("11\r\n22\r\n33", header: false, addIndexColumn: true);
+
+            Assert.Equal(2, dataFrame.Columns.Count);
+            Assert.Equal("IndexColumn", dataFrame.Columns[0].Name);
+            Assert.Equal(3, dataFrame.Columns[0].Length);
+
+            for (long i = 0; i < dataFrame.Columns[0].Length; i++)
+                Assert.Equal(i, dataFrame.Columns[0][i]);
+        }
+
+        [Fact]
         public void TestReadCsvWithExtraColumnInRow()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount
@@ -1049,7 +1139,7 @@ CMT,";
             Assert.Equal(vals, resVals);
         }
 
-        [X86X64FactAttribute("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
+        [X86X64Fact("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
         public async void TestSQLite()
         {
             var (columns, vals) = GetTestData();

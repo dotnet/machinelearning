@@ -213,9 +213,9 @@ namespace Microsoft.Data.Analysis
                     _offsetsBuffers.Add(mutableOffsetsBuffer);
                     mutableOffsetsBuffer.Append(0);
                 }
-                mutableDataBuffer.EnsureCapacity(value.Length);
-                value.CopyTo(mutableDataBuffer.RawSpan.Slice(mutableDataBuffer.Length));
-                mutableDataBuffer.Length += value.Length;
+                var startIndex = mutableDataBuffer.Length;
+                mutableDataBuffer.IncreaseSize(value.Length);
+                value.CopyTo(mutableDataBuffer.RawSpan.Slice(startIndex));
                 mutableOffsetsBuffer.Append(mutableOffsetsBuffer[mutableOffsetsBuffer.Length - 1] + value.Length);
             }
             SetValidityBit(Length - 1, value != default);
