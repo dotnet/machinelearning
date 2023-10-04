@@ -213,7 +213,7 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < readOnlySpan.Length; i++)
                 {
-                    if (BitmapHelper.IsValid(readOnlyBitMapSpan, i))
+                    if (BitUtility.IsValid(readOnlyBitMapSpan, i))
                     {
 <# if (method.MethodName == "CumulativeMax") { #>
                         ret = (<#=type.TypeName#>)(Math.Max(readOnlySpan[i], ret));

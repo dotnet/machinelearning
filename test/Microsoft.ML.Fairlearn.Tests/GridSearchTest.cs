@@ -45,7 +45,7 @@ namespace Microsoft.ML.Fairlearn.Tests
         }
 
         // Data generated so it is identical from Binary_Classification.ipynb from Fairlearn.github on Github
-        private DataFrame CreateGridScearhDataset()
+        private DataFrame CreateGridSearchDataset()
         {
             float[] score_feature = new float[52];
             int index = 0;
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Fairlearn.Tests
                 }
             };
             var experiment = context.Auto().CreateExperiment();
-            var df = CreateGridScearhDataset();
+            var df = CreateGridSearchDataset();
             var shuffledDataset = context.Data.ShuffleRows(df);
             var trainTestSplit = context.Data.TrainTestSplit(shuffledDataset, 0.2);
             var pipeline = context.Transforms.Categorical.OneHotHashEncoding("sensitiveFeature_encode", "sensitiveFeature")

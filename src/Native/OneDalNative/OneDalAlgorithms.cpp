@@ -570,7 +570,7 @@ void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, int * labelsPt
     SharedPtr<optimization_solver::lbfgs::Batch<FPType>> lbfgsAlgorithm(new optimization_solver::lbfgs::Batch<FPType>());
     lbfgsAlgorithm->parameter.batchSize = featuresTable->getNumberOfRows();
     lbfgsAlgorithm->parameter.correctionPairBatchSize = featuresTable->getNumberOfRows();
-    lbfgsAlgorithm->parameter.L = 1;
+    lbfgsAlgorithm->parameter.L = 10;
     lbfgsAlgorithm->parameter.m = m;
     lbfgsAlgorithm->parameter.accuracyThreshold = accuracyThreshold;
     lbfgsAlgorithm->parameter.nIterations = nIterations;
@@ -642,6 +642,15 @@ void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, int * labelsPt
 
     if (verbose)
     {
+        printf("Intercepts and coefficients:\n");
+        for (size_t i = 0; i < nClasses; ++i)
+        {
+            for (size_t j = 0; j < nColumns + 1; ++j)
+            {
+                printf("%f ", betaPtr[i * (nColumns + 1) + j]);
+            }
+            printf("\n");
+        }
         optimization_solver::iterative_solver::ResultPtr solverResult = lbfgsAlgorithm->getResult();
         NumericTablePtr nIterationsTable = solverResult->get(optimization_solver::iterative_solver::nIterations);
         BlockDescriptor<int> nIterationsBlock;
