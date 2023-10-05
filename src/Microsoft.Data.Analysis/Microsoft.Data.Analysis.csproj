@@ -58,6 +58,10 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ColumnArithmetic.OperationEnums.cs</LastGenOutput>
     </None>
+    <None Update="Computations\Arithmetic.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Arithmetic.cs</LastGenOutput>
+    </None>
     <None Update="Converters.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Converters.cs</LastGenOutput>
@@ -115,7 +119,7 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PrimitiveDataFrameColumn.Computations.cs</LastGenOutput>
     </None>
-    <None Update="PrimitiveDataFrameColumnArithmetic.tt">
+    <None Update="Computations\Arithmetics.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PrimitiveColumnArithmetic.cs</LastGenOutput>
     </None>
@@ -123,9 +127,9 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PrimitiveDataFrameColumnComputations.cs</LastGenOutput>
     </None>
-    <None Update="PrimitiveDataFrameColumnArithmetic.tt">
+    <None Update="Computations\Arithmetics.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveDataFrameColumnArithmetic.cs</LastGenOutput>
+      <LastGenOutput>Arithmetics.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -134,6 +138,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Computations\Arithmetic.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Arithmetic.tt</DependentUpon>
+    </Compile>
     <Compile Update="Converters.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -199,7 +208,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>PrimitiveDataFrameColumn.Computations.tt</DependentUpon>
     </Compile>
-    <Compile Update="PrimitiveDataFrameColumnArithmetic.cs">
+    <Compile Update="Computations\Arithmetics.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>PrimitiveColumnArithmetic.tt</DependentUpon>
@@ -209,10 +218,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>PrimitiveDataFrameColumnComputations.tt</DependentUpon>
     </Compile>
-    <Compile Update="PrimitiveDataFrameColumnArithmetic.cs">
+    <Compile Update="Computations\Arithmetics.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveDataFrameColumnArithmetic.tt</DependentUpon>
+      <DependentUpon>Arithmetics.tt</DependentUpon>
     </Compile>
     <Compile Update="Strings.Designer.cs">
       <DesignTime>True</DesignTime>

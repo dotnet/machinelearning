@@ -137,12 +137,6 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public static void ElementwiseAnd(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right, Span<byte> result)
-        {
-            for (var i = 0; i < left.Length; i++)
-                result[i] = (byte)(left[i] & right[i]);
-        }
-
         /// <summary>
         /// Returns the population count (number of bits set) in a span of bytes starting
         /// at 0 bit and limiting to length of bits.
