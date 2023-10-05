@@ -9,6 +9,7 @@ using System.Text;
 using Apache.Arrow;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 
 namespace Microsoft.Data.Analysis.Tests
@@ -75,7 +76,7 @@ namespace Microsoft.Data.Analysis.Tests
             return new ArrowStringDataFrameColumn("ArrowString", dataMemory, offsetMemory, nullMemory, length, nullCount);
         }
 
-        public static VBufferDataFrameColumn<int> CreateVBufferDataFrame(int length)
+        public static VBufferDataFrameColumn<int> CreateVBufferDataFrameColumn(int length)
         {
             var buffers = Enumerable.Repeat(new VBuffer<int>(5, new[] { 0, 1, 2, 3, 4 }), length).ToArray();
             return new VBufferDataFrameColumn<int>("VBuffer", buffers);
@@ -85,7 +86,7 @@ namespace Microsoft.Data.Analysis.Tests
         {
             DataFrame df = MakeDataFrameWithAllMutableAndArrowColumnTypes(length, withNulls);
 
-            var vBufferColumn = CreateVBufferDataFrame(length);
+            var vBufferColumn = CreateVBufferDataFrameColumn(length);
             df.Columns.Insert(df.Columns.Count, vBufferColumn);
 
             return df;
@@ -230,13 +231,49 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void TestVBufferColumn()
+        public void TestVBufferColumn_Creation()
         {
-            var vBufferColumn = CreateVBufferDataFrame(10);
+            var vBufferColumn = CreateVBufferDataFrameColumn(10);
 
             Assert.Equal(10, vBufferColumn.Length);
             Assert.Equal(5, vBufferColumn[0].GetValues().Length);
             Assert.Equal(0, vBufferColumn[0].GetValues()[0]);
+        }
+
+        [Fact]
+        public void TestVBufferColumn_Indexer()
+        {
+            var buffer = new VBuffer<int>(5, new[] { 4, 3, 2, 1, 0 });
+
+            var vBufferColumn = new VBufferDataFrameColumn<int>("VBuffer", 1);
+            vBufferColumn[0] = buffer;
+
+            Assert.Equal(1, vBufferColumn.Length);
+            Assert.Equal(5, vBufferColumn[0].GetValues().Length);
+            Assert.Equal(0, vBufferColumn[0].GetValues()[4]);
+        }
+
+        [X64Fact("32-bit doesn't allow to allocate more than 2 Gb")]
+        public void TestVBufferColumn_Indexer_MoreThanMaxInt()
+        {
+            var originalValues = new[] { 4, 3, 2, 1, 0 };
+
+            var length = VBufferDataFrameColumn<int>.MaxCapacity + 3;
+
+            var vBufferColumn = new VBufferDataFrameColumn<int>("VBuffer", length);
+            long index = length - 2;
+
+            vBufferColumn[index] = new VBuffer<int>(5, originalValues);
+
+            var values = vBufferColumn[index].GetValues();
+
+            Assert.Equal(length, vBufferColumn.Length);
+            Assert.Equal(5, values.Length);
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                Assert.Equal(originalValues[i], values[i]);
+            }
         }
 
         [Fact]
