@@ -12,7 +12,11 @@ namespace Microsoft.Data.Analysis
         public PrimitiveColumnContainer<T> HandleOperation(BinaryOperation operation, PrimitiveColumnContainer<T> right)
         {
             var arithmetic = Arithmetic<T>.Instance;
-            long nullCount = 0;
+
+            //Divisions are special cases
+            var specialCase = (operation == BinaryOperation.Divide || operation == BinaryOperation.Modulo);
+
+            long nullCount = specialCase ? NullCount : 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 var mutableBuffer = this.Buffers.GetOrCreateMutable(i);
@@ -22,27 +26,28 @@ namespace Microsoft.Data.Analysis
                 var leftValidity = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
                 var rightValidity = right.NullBitMapBuffers[i].ReadOnlySpan;
 
-                if (operation != BinaryOperation.Divide)
+                if (specialCase)
+                {
+                    for (var j = 0; j < leftSpan.Length; j++)
+                    {
+                        if (BitUtility.GetBit(rightValidity, j))
+                            leftSpan[j] = arithmetic.HandleOperation(operation, leftSpan[j], rightSpan[j]);
+                        else if (BitUtility.GetBit(leftValidity, j))
+                        {
+                            BitUtility.ClearBit(leftValidity, j);
+
+                            //Increase NullCount
+                            nullCount++;
+                        }
+                    }
+                }
+                else
                 {
                     arithmetic.HandleOperation(operation, leftSpan, rightSpan, leftSpan);
                     ValidityElementwiseAnd(leftValidity, rightValidity, leftValidity);
 
                     //Calculate NullCount
                     nullCount += BitUtility.GetBitCount(leftValidity, mutableBuffer.Length);
-                }
-                else
-                {
-                    //Division is a special case
-                    for (var j = 0; j < leftSpan.Length; j++)
-                    {
-                        if (BitUtility.GetBit(leftValidity, j) && BitUtility.GetBit(rightValidity, j))
-                            leftSpan[j] = arithmetic.HandleOperation(operation, leftSpan[j], rightSpan[j]);
-                        else
-                        {
-                            BitUtility.ClearBit(leftValidity, j);
-                            nullCount++;
-                        }
-                    }
                 }
             }
 

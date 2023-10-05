@@ -178,6 +178,11 @@ namespace Microsoft.Data.Analysis
                 destination[i] = (byte)(x / y[i]);
         }
 
+        protected override byte Modulo(byte x, byte y)
+        {
+            return (byte)(x % y);
+        }
+
         protected override void Modulo(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
             for (var i = 0; i < x.Length; i++)
@@ -436,6 +441,11 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < y.Length; i++)
                 destination[i] = (char)(x / y[i]);
+        }
+
+        protected override char Modulo(char x, char y)
+        {
+            return (char)(x % y);
         }
 
         protected override void Modulo(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<char> destination)
@@ -698,6 +708,11 @@ namespace Microsoft.Data.Analysis
                 destination[i] = (decimal)(x / y[i]);
         }
 
+        protected override decimal Modulo(decimal x, decimal y)
+        {
+            return (decimal)(x % y);
+        }
+
         protected override void Modulo(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, Span<decimal> destination)
         {
             for (var i = 0; i < x.Length; i++)
@@ -890,6 +905,11 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < y.Length; i++)
                 destination[i] = (double)(x / y[i]);
+        }
+
+        protected override double Modulo(double x, double y)
+        {
+            return (double)(x % y);
         }
 
         protected override void Modulo(ReadOnlySpan<double> x, ReadOnlySpan<double> y, Span<double> destination)
@@ -1086,6 +1106,11 @@ namespace Microsoft.Data.Analysis
                 destination[i] = (float)(x / y[i]);
         }
 
+        protected override float Modulo(float x, float y)
+        {
+            return (float)(x % y);
+        }
+
         protected override void Modulo(ReadOnlySpan<float> x, ReadOnlySpan<float> y, Span<float> destination)
         {
             for (var i = 0; i < x.Length; i++)
@@ -1278,6 +1303,11 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < y.Length; i++)
                 destination[i] = (int)(x / y[i]);
+        }
+
+        protected override int Modulo(int x, int y)
+        {
+            return (int)(x % y);
         }
 
         protected override void Modulo(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<int> destination)
@@ -1540,6 +1570,11 @@ namespace Microsoft.Data.Analysis
                 destination[i] = (long)(x / y[i]);
         }
 
+        protected override long Modulo(long x, long y)
+        {
+            return (long)(x % y);
+        }
+
         protected override void Modulo(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> destination)
         {
             for (var i = 0; i < x.Length; i++)
@@ -1798,6 +1833,11 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < y.Length; i++)
                 destination[i] = (sbyte)(x / y[i]);
+        }
+
+        protected override sbyte Modulo(sbyte x, sbyte y)
+        {
+            return (sbyte)(x % y);
         }
 
         protected override void Modulo(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
@@ -2060,6 +2100,11 @@ namespace Microsoft.Data.Analysis
                 destination[i] = (short)(x / y[i]);
         }
 
+        protected override short Modulo(short x, short y)
+        {
+            return (short)(x % y);
+        }
+
         protected override void Modulo(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<short> destination)
         {
             for (var i = 0; i < x.Length; i++)
@@ -2318,6 +2363,11 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < y.Length; i++)
                 destination[i] = (uint)(x / y[i]);
+        }
+
+        protected override uint Modulo(uint x, uint y)
+        {
+            return (uint)(x % y);
         }
 
         protected override void Modulo(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> destination)
@@ -2580,6 +2630,11 @@ namespace Microsoft.Data.Analysis
                 destination[i] = (ulong)(x / y[i]);
         }
 
+        protected override ulong Modulo(ulong x, ulong y)
+        {
+            return (ulong)(x % y);
+        }
+
         protected override void Modulo(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
             for (var i = 0; i < x.Length; i++)
@@ -2838,6 +2893,11 @@ namespace Microsoft.Data.Analysis
         {
             for (var i = 0; i < y.Length; i++)
                 destination[i] = (ushort)(x / y[i]);
+        }
+
+        protected override ushort Modulo(ushort x, ushort y)
+        {
+            return (ushort)(x % y);
         }
 
         protected override void Modulo(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<ushort> destination)

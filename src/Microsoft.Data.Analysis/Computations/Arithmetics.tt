@@ -40,7 +40,7 @@ namespace Microsoft.Data.Analysis
             }
         }
 <# } else if (method.MethodType == MethodType.Binary) { #>
-<# if (method.MethodName == "Divide") { #>
+<# if (method.MethodName == "Divide" || method.MethodName == "Modulo") { #>
 
         protected override <#=type.TypeName#> <#=method.MethodName#>(<#=type.TypeName#> x, <#=type.TypeName#> y)
         {

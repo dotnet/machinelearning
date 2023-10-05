@@ -161,6 +161,9 @@ namespace Microsoft.Data.Analysis
             if (operation == BinaryOperation.Divide)
                 return Divide(x, y);
 
+            if (operation == BinaryOperation.Modulo)
+                return Modulo(x, y);
+
             throw new NotSupportedException();
         }
 
@@ -313,5 +316,7 @@ namespace Microsoft.Data.Analysis
         protected virtual void ElementwiseLessThan(ReadOnlySpan<T> x, T y, PrimitiveColumnContainer<bool> result, long offset) => throw new NotSupportedException();
 
         protected virtual T Divide(T x, T y) => throw new NotSupportedException();
+
+        protected virtual T Modulo(T x, T y) => throw new NotSupportedException();
     }
 }
