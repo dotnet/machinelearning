@@ -4,20 +4,19 @@
 
 using System;
 
-namespace Microsoft.ML
-{
-    /// <summary>
-    /// The base attribute type for all attributes used for extensibility purposes.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Class)]
-    public abstract class ExtensionBaseAttribute : Attribute
-    {
-        public string ContractName { get; }
+namespace Microsoft.ML;
 
-        [BestFriend]
-        private protected ExtensionBaseAttribute(string contractName)
-        {
-            ContractName = contractName;
-        }
+/// <summary>
+/// The base attribute type for all attributes used for extensibility purposes.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+public abstract class ExtensionBaseAttribute : Attribute
+{
+    public string ContractName { get; }
+
+    [BestFriend]
+    private protected ExtensionBaseAttribute(string contractName)
+    {
+        ContractName = contractName;
     }
 }

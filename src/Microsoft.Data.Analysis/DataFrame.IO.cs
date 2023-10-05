@@ -8,6 +8,7 @@ using System.Data;
 using System.Data.Common;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -97,18 +98,21 @@ namespace Microsoft.Data.Analysis
         /// <param name="guessRows">number of rows used to guess types</param>
         /// <param name="addIndexColumn">add one column with the row index</param>
         /// <param name="encoding">The character encoding. Defaults to UTF8 if not specified</param>
+        /// <param name="renameDuplicatedColumns">If set to true, columns with repeated names are auto-renamed.</param>
+        /// <param name="cultureInfo">culture info for formatting values</param>
         /// <returns>DataFrame</returns>
         public static DataFrame LoadCsv(string filename,
                                 char separator = ',', bool header = true,
                                 string[] columnNames = null, Type[] dataTypes = null,
                                 int numRows = -1, int guessRows = 10,
-                                bool addIndexColumn = false, Encoding encoding = null)
+                                bool addIndexColumn = false, Encoding encoding = null,
+                                bool renameDuplicatedColumns = false, CultureInfo cultureInfo = null)
         {
             using (Stream fileStream = new FileStream(filename, FileMode.Open))
             {
                 return LoadCsv(fileStream,
                                   separator: separator, header: header, columnNames: columnNames, dataTypes: dataTypes, numberOfRowsToRead: numRows,
-                                  guessRows: guessRows, addIndexColumn: addIndexColumn, encoding: encoding);
+                                  guessRows: guessRows, addIndexColumn: addIndexColumn, encoding: encoding, renameDuplicatedColumns: renameDuplicatedColumns, cultureInfo: cultureInfo);
             }
         }
 
@@ -127,10 +131,6 @@ namespace Microsoft.Data.Analysis
 
             foreach (var items in vals)
             {
-                for (var c = 0; c < items.Count; c++)
-                {
-                    items[c] = items[c];
-                }
                 res.Append(items, inPlace: true);
             }
 
@@ -336,7 +336,7 @@ namespace Microsoft.Data.Analysis
             }
             else if (kind == typeof(DateTime))
             {
-                ret = new PrimitiveDataFrameColumn<DateTime>(columnName);
+                ret = new DateTimeDataFrameColumn(columnName);
             }
             else
             {
@@ -353,9 +353,15 @@ namespace Microsoft.Data.Analysis
         private static DataFrame ReadCsvLinesIntoDataFrame(WrappedStreamReaderOrStringReader wrappedReader,
                                 char separator = ',', bool header = true,
                                 string[] columnNames = null, Type[] dataTypes = null,
-                                long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false
-                                )
+                                long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false,
+                                bool renameDuplicatedColumns = false,
+                                CultureInfo cultureInfo = null)
         {
+            if (cultureInfo == null)
+            {
+                cultureInfo = CultureInfo.CurrentCulture;
+            }
+
             if (dataTypes == null && guessRows <= 0)
             {
                 throw new ArgumentException(string.Format(Strings.ExpectedEitherGuessRowsOrDataTypes, nameof(guessRows), nameof(dataTypes)));
@@ -380,6 +386,25 @@ namespace Microsoft.Data.Analysis
                 // First pass: schema and number of rows.
                 while ((fields = parser.ReadFields()) != null)
                 {
+                    if (renameDuplicatedColumns)
+                    {
+                        var names = new Dictionary<string, int>();
+
+                        for (int i = 0; i < fields.Length; i++)
+                        {
+                            if (names.TryGetValue(fields[i], out int index))
+                            {
+                                var newName = String.Format("{0}.{1}", fields[i], index);
+                                names[fields[i]] = ++index;
+                                fields[i] = newName;
+                            }
+                            else
+                            {
+                                names.Add(fields[i], 1);
+                            }
+                        }
+                    }
+
                     if ((numberOfRowsToRead == -1) || rowline < numberOfRowsToRead)
                     {
                         if (linesForGuessType.Count < guessRows || (header && rowline == 0))
@@ -436,21 +461,20 @@ namespace Microsoft.Data.Analysis
                     }
                     else
                     {
-                        ret.Append(fields, inPlace: true);
+                        ret.Append(fields, inPlace: true, cultureInfo: cultureInfo);
                     }
                     ++rowline;
                 }
 
                 if (addIndexColumn)
                 {
-                    PrimitiveDataFrameColumn<int> indexColumn = new PrimitiveDataFrameColumn<int>("IndexColumn", columns[0].Length);
-                    for (int i = 0; i < columns[0].Length; i++)
+                    Int64DataFrameColumn indexColumn = new Int64DataFrameColumn("IndexColumn", columns[0].Length);
+                    for (long i = 0; i < columns[0].Length; i++)
                     {
                         indexColumn[i] = i;
                     }
-                    columns.Insert(0, indexColumn);
+                    ret.Columns.Insert(0, indexColumn);
                 }
-
             }
 
             return ret;
@@ -493,7 +517,6 @@ namespace Microsoft.Data.Analysis
                 }
 
             }
-
         }
 
         /// <summary>
@@ -507,14 +530,18 @@ namespace Microsoft.Data.Analysis
         /// <param name="numberOfRowsToRead">number of rows to read not including the header(if present)</param>
         /// <param name="guessRows">number of rows used to guess types</param>
         /// <param name="addIndexColumn">add one column with the row index</param>
+        /// <param name="renameDuplicatedColumns">If set to true, columns with repeated names are auto-renamed.</param>
+        /// <param name="cultureInfo">culture info for formatting values</param>
         /// <returns><see cref="DataFrame"/></returns>
         public static DataFrame LoadCsvFromString(string csvString,
                                 char separator = ',', bool header = true,
                                 string[] columnNames = null, Type[] dataTypes = null,
-                                long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false)
+                                long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false,
+                                bool renameDuplicatedColumns = false,
+                                CultureInfo cultureInfo = null)
         {
             WrappedStreamReaderOrStringReader wrappedStreamReaderOrStringReader = new WrappedStreamReaderOrStringReader(csvString);
-            return ReadCsvLinesIntoDataFrame(wrappedStreamReaderOrStringReader, separator, header, columnNames, dataTypes, numberOfRowsToRead, guessRows, addIndexColumn);
+            return ReadCsvLinesIntoDataFrame(wrappedStreamReaderOrStringReader, separator, header, columnNames, dataTypes, numberOfRowsToRead, guessRows, addIndexColumn, renameDuplicatedColumns, cultureInfo);
         }
 
         /// <summary>
@@ -529,12 +556,14 @@ namespace Microsoft.Data.Analysis
         /// <param name="guessRows">number of rows used to guess types</param>
         /// <param name="addIndexColumn">add one column with the row index</param>
         /// <param name="encoding">The character encoding. Defaults to UTF8 if not specified</param>
+        /// <param name="renameDuplicatedColumns">If set to true, columns with repeated names are auto-renamed.</param>
+        /// <param name="cultureInfo">culture info for formatting values</param>
         /// <returns><see cref="DataFrame"/></returns>
         public static DataFrame LoadCsv(Stream csvStream,
                                 char separator = ',', bool header = true,
                                 string[] columnNames = null, Type[] dataTypes = null,
                                 long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false,
-                                Encoding encoding = null)
+                                Encoding encoding = null, bool renameDuplicatedColumns = false, CultureInfo cultureInfo = null)
         {
             if (!csvStream.CanSeek)
             {
@@ -547,7 +576,7 @@ namespace Microsoft.Data.Analysis
             }
 
             WrappedStreamReaderOrStringReader wrappedStreamReaderOrStringReader = new WrappedStreamReaderOrStringReader(csvStream, encoding ?? Encoding.UTF8);
-            return ReadCsvLinesIntoDataFrame(wrappedStreamReaderOrStringReader, separator, header, columnNames, dataTypes, numberOfRowsToRead, guessRows, addIndexColumn);
+            return ReadCsvLinesIntoDataFrame(wrappedStreamReaderOrStringReader, separator, header, columnNames, dataTypes, numberOfRowsToRead, guessRows, addIndexColumn, renameDuplicatedColumns, cultureInfo);
         }
 
         /// <summary>

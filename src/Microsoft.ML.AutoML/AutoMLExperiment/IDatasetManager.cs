@@ -78,7 +78,15 @@ namespace Microsoft.ML.AutoML
                 var subSampleRatio = parameter.ContainsKey(_subSamplingKey) ? parameter[_subSamplingKey].AsType<double>() : 1;
                 if (subSampleRatio < 1.0)
                 {
-                    var subSampledTrainDataset = context.Data.TakeRows(_trainDataset, (long)(subSampleRatio * _rowCount));
+                    var count = (long)(subSampleRatio * _rowCount);
+                    if (count <= 10)
+                    {
+                        // fix issue https://github.com/dotnet/machinelearning-modelbuilder/issues/2734
+                        // take at least 10 rows to avoid empty dataset
+                        count = 10;
+                    }
+
+                    var subSampledTrainDataset = context.Data.TakeRows(_trainDataset, count);
                     return subSampledTrainDataset;
                 }
             }

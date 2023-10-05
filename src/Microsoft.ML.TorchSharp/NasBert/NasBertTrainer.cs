@@ -22,13 +22,14 @@ using System.IO;
 using System.CodeDom;
 using System.Runtime.CompilerServices;
 using TorchSharp.Modules;
+using System.Diagnostics;
 
 namespace Microsoft.ML.TorchSharp.NasBert
 {
 
     public class NasBertTrainer
     {
-        public sealed class NasBertOptions : TorchSharpBaseTrainer.Options
+        public class NasBertOptions : TorchSharpBaseTrainer.Options
         {
             /// <summary>
             /// The first sentence column.
@@ -155,13 +156,14 @@ namespace Microsoft.ML.TorchSharp.NasBert
             /// Reduction of criterion loss function. Set by the TorchSharp model.
             /// </summary>
             internal torch.nn.Reduction Reduction = Reduction.Sum;
+
+            internal BertModelType ModelType = BertModelType.NasBert;
         }
     }
 
     public abstract class NasBertTrainer<TLabelCol, TTargetsCol> : TorchSharpBaseTrainer<TLabelCol, TTargetsCol>
     {
 
-        private const string ModelUrl = "models/NasBert2000000.tsm";
         internal readonly NasBertTrainer.NasBertOptions BertOptions;
 
         internal NasBertTrainer(IHostEnvironment env, Options options) : base(env, options)
@@ -180,7 +182,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             private protected ValueGetter<ReadOnlyMemory<char>> Sentence1Getter;
             private protected ValueGetter<ReadOnlyMemory<char>> Sentence2Getter;
 
-            public NasBertTrainerBase(TorchSharpBaseTrainer<TLabelCol, TTargetsCol> parent, IChannel ch, IDataView input) : base(parent, ch, input)
+            public NasBertTrainerBase(TorchSharpBaseTrainer<TLabelCol, TTargetsCol> parent, IChannel ch, IDataView input, string modelUrl) : base(parent, ch, input, modelUrl)
             {
                 // Get the parameters that need optimization and set up the optimizer
                 var parameters = Model.parameters().Where(p => p.requires_grad);
@@ -201,7 +203,11 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 Tokenizer = TokenizerExtensions.GetInstance(ch);
                 EnglishRoberta tokenizerModel = Tokenizer.RobertaModel();
 
-                var model = new NasBertModel(Parent.BertOptions, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, Parent.Option.NumberOfClasses);
+                NasBertModel model;
+                if (Parent.BertOptions.TaskType == BertTaskType.NameEntityRecognition)
+                    model = new NerModel(Parent.BertOptions, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, Parent.Option.NumberOfClasses);
+                else
+                    model = new ModelForPrediction(Parent.BertOptions, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, Parent.Option.NumberOfClasses);
                 model.GetEncoder().load(GetModelPath(ModelUrl));
                 Model = model;
                 return model;
@@ -259,13 +265,40 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 return t;
             }
 
-            private protected override void RunModelAndBackPropagate(ref Tensor inputTensor, ref Tensor targetsTensor)
+            private protected override void RunModelAndBackPropagate(ref List<Tensor> inputTensors, ref Tensor targetsTensor)
             {
-                var logits = Model.forward(inputTensor);
+                Tensor logits = default;
+                if (Parent.BertOptions.TaskType == BertTaskType.NameEntityRecognition)
+                {
+                    int[,] lengthArray = new int[inputTensors.Count, 1];
+                    for (int i = 0; i < inputTensors.Count; i++)
+                    {
+                        lengthArray[i, 0] = (int)inputTensors[i].shape[0];
+                    }
+                    Tensor lengths = torch.tensor(lengthArray, device: Device);
+
+                    var inputTensor = PrepareBatchTensor(ref inputTensors, device: Device);
+                    var tokenMask = torch.arange(512).expand(lengths.numel(), 512).to(lengths.device) < lengths;
+
+                    logits = Model.forward(inputTensor, tokenMask: tokenMask);
+
+                }
+                else
+                {
+                    var inputTensor = PrepareBatchTensor(ref inputTensors, device: Device);
+
+                    logits = Model.forward(inputTensor);
+                }
 
                 torch.Tensor loss;
                 if (Parent.BertOptions.TaskType == BertTaskType.TextClassification)
                     loss = torch.nn.CrossEntropyLoss(reduction: Parent.BertOptions.Reduction).forward(logits, targetsTensor);
+                else if (Parent.BertOptions.TaskType == BertTaskType.NameEntityRecognition)
+                {
+                    targetsTensor = targetsTensor.@long().view(-1);
+                    logits = logits.view(-1, logits.size(-1));
+                    loss = torch.nn.CrossEntropyLoss(reduction: Parent.BertOptions.Reduction).forward(logits, targetsTensor);
+                }
                 else
                 {
                     loss = torch.nn.MSELoss(reduction: Parent.BertOptions.Reduction).forward(logits.squeeze(), targetsTensor);
@@ -305,6 +338,18 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 outColumns[Option.ScoreColumnName] = new SchemaShape.Column(Option.ScoreColumnName, SchemaShape.Column.VectorKind.Vector,
                     NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.AnnotationsForMulticlassScoreColumn(labelCol)));
             }
+            else if (BertOptions.TaskType == BertTaskType.NameEntityRecognition)
+            {
+                var metadata = new List<SchemaShape.Column>();
+                metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
+                    TextDataViewType.Instance, false));
+
+                // Get label column for score column annotations. Already verified it exists.
+                inputSchema.TryFindColumn(Option.LabelColumnName, out var labelCol);
+
+                outColumns[Option.PredictionColumnName] = new SchemaShape.Column(Option.PredictionColumnName, SchemaShape.Column.VectorKind.VariableVector,
+                        NumberDataViewType.UInt32, true, new SchemaShape(metadata.ToArray()));
+            }
             else
             {
                 outColumns[Option.ScoreColumnName] = new SchemaShape.Column(Option.ScoreColumnName, SchemaShape.Column.VectorKind.Scalar,
@@ -341,6 +386,12 @@ namespace Microsoft.ML.TorchSharp.NasBert
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "sentence2", BertOptions.Sentence2ColumnName,
                             TextDataViewType.Instance.ToString(), sentenceCol2.GetTypeString());
                 }
+            }
+            else if (BertOptions.TaskType == BertTaskType.NameEntityRecognition)
+            {
+                if (labelCol.ItemType != NumberDataViewType.UInt32)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "label", Option.LabelColumnName,
+                        NumberDataViewType.UInt32.ToString(), labelCol.GetTypeString());
             }
             else
             {
@@ -482,6 +533,19 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     info[0] = new DataViewSchema.DetachedColumn(Parent.Options.PredictionColumnName, new KeyDataViewType(typeof(uint), Parent.Options.NumberOfClasses), labelBuilder.ToAnnotations());
 
                     info[1] = new DataViewSchema.DetachedColumn(Parent.Options.ScoreColumnName, new VectorDataViewType(NumberDataViewType.Single, Parent.Options.NumberOfClasses), meta.ToAnnotations());
+                    return info;
+                }
+                else if (Parent.BertOptions.TaskType == BertTaskType.NameEntityRecognition)
+                {
+                    var info = new DataViewSchema.DetachedColumn[1];
+                    var keyType = Parent.LabelColumn.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
+                    var getter = Microsoft.ML.Internal.Utilities.Utils.MarshalInvoke(_makeLabelAnnotationGetter, this, keyType.ItemType.RawType, Parent.LabelColumn);
+
+                    var labelBuilder = new DataViewSchema.Annotations.Builder();
+                    labelBuilder.Add(AnnotationUtils.Kinds.KeyValues, keyType, getter);
+
+                    info[0] = new DataViewSchema.DetachedColumn(Parent.Options.PredictionColumnName, new VectorDataViewType(new KeyDataViewType(typeof(uint), Parent.Options.NumberOfClasses - 1)), labelBuilder.ToAnnotations());
+
                     return info;
                 }
                 else

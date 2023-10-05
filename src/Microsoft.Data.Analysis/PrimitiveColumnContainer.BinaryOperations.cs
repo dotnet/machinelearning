@@ -1,234 +1,108 @@
-﻿
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// Generated from PrimitiveColumnContainer.BinaryOperations.tt. Do not modify directly
+using System;
 
 namespace Microsoft.Data.Analysis
 {
     internal partial class PrimitiveColumnContainer<T>
         where T : unmanaged
     {
-        public PrimitiveColumnContainer<T> Add(PrimitiveColumnContainer<T> right)
+        public PrimitiveColumnContainer<T> HandleOperation(BinaryOperation operation, PrimitiveColumnContainer<T> right)
         {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Add(this, right);
+            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+            long nullCount = 0;
+            for (int i = 0; i < this.Buffers.Count; i++)
+            {
+                var mutableBuffer = this.Buffers.GetOrCreateMutable(i);
+                var leftSpan = mutableBuffer.Span;
+                var rightSpan = right.Buffers[i].ReadOnlySpan;
+
+                var leftValidity = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
+                var rightValidity = right.NullBitMapBuffers[i].ReadOnlySpan;
+
+                arithmetic.HandleOperation(operation, leftSpan, leftValidity, rightSpan, rightValidity);
+
+                //Calculate NullCount
+                nullCount += BitUtility.GetBitCount(leftValidity, mutableBuffer.Length);
+            }
+
+            NullCount = nullCount;
             return this;
         }
 
-        public PrimitiveColumnContainer<T> Add(T scalar)
+        public PrimitiveColumnContainer<T> HandleOperation(BinaryScalarOperation operation, T right)
         {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Add(this, scalar);
+            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+            for (int i = 0; i < this.Buffers.Count; i++)
+            {
+                var leftSpan = this.Buffers.GetOrCreateMutable(i).Span;
+
+                arithmetic.HandleOperation(operation, leftSpan, right);
+            }
+
             return this;
         }
 
-        public PrimitiveColumnContainer<T> Subtract(PrimitiveColumnContainer<T> right)
+        public PrimitiveColumnContainer<T> HandleReverseOperation(BinaryScalarOperation operation, T left)
         {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Subtract(this, right);
+            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+            for (int i = 0; i < this.Buffers.Count; i++)
+            {
+                var rightSpan = this.Buffers.GetOrCreateMutable(i).Span;
+                var rightValidity = this.NullBitMapBuffers[i].ReadOnlySpan;
+
+                arithmetic.HandleOperation(operation, left, rightSpan, rightValidity);
+            }
+
             return this;
         }
 
-        public PrimitiveColumnContainer<T> Subtract(T scalar)
+        public PrimitiveColumnContainer<T> HandleOperation(BinaryIntOperation operation, int right)
         {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Subtract(this, scalar);
+            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+            for (int i = 0; i < this.Buffers.Count; i++)
+            {
+                var leftSpan = this.Buffers.GetOrCreateMutable(i).Span;
+
+                arithmetic.HandleOperation(operation, leftSpan, right);
+            }
+
             return this;
         }
 
-        public PrimitiveColumnContainer<T> Multiply(PrimitiveColumnContainer<T> right)
+        public PrimitiveColumnContainer<bool> HandleOperation(ComparisonOperation operation, PrimitiveColumnContainer<T> right)
         {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Multiply(this, right);
-            return this;
+            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+
+            var ret = new PrimitiveColumnContainer<bool>(Length);
+            long offset = 0;
+            for (int i = 0; i < this.Buffers.Count; i++)
+            {
+                var leftSpan = this.Buffers[i].ReadOnlySpan;
+                var rightSpan = right.Buffers[i].ReadOnlySpan;
+
+                arithmetic.HandleOperation(operation, leftSpan, rightSpan, ret, offset);
+                offset += leftSpan.Length;
+            }
+
+            return ret;
         }
 
-        public PrimitiveColumnContainer<T> Multiply(T scalar)
+        public PrimitiveColumnContainer<bool> HandleOperation(ComparisonScalarOperation operation, T right)
         {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Multiply(this, scalar);
-            return this;
-        }
+            var ret = new PrimitiveColumnContainer<bool>(Length);
+            long offset = 0;
+            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+            for (int i = 0; i < this.Buffers.Count; i++)
+            {
+                var leftSpan = this.Buffers[i].ReadOnlySpan;
 
-        public PrimitiveColumnContainer<T> Divide(PrimitiveColumnContainer<T> right)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Divide(this, right);
-            return this;
-        }
+                arithmetic.HandleOperation(operation, leftSpan, right, ret, offset);
+            }
 
-        public PrimitiveColumnContainer<T> Divide(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Divide(this, scalar);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> Modulo(PrimitiveColumnContainer<T> right)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Modulo(this, right);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> Modulo(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Modulo(this, scalar);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> And(PrimitiveColumnContainer<T> right)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.And(this, right);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> And(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.And(this, scalar);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> Or(PrimitiveColumnContainer<T> right)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Or(this, right);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> Or(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Or(this, scalar);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> Xor(PrimitiveColumnContainer<T> right)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Xor(this, right);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> Xor(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Xor(this, scalar);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> LeftShift(int value)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.LeftShift(this, value);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> RightShift(int value)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.RightShift(this, value);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ElementwiseEquals(PrimitiveColumnContainer<T> right, PrimitiveColumnContainer<bool> ret)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseEquals(this, right, ret);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ElementwiseEquals(T scalar, PrimitiveColumnContainer<bool> ret)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseEquals(this, scalar, ret);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ElementwiseNotEquals(PrimitiveColumnContainer<T> right, PrimitiveColumnContainer<bool> ret)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseNotEquals(this, right, ret);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ElementwiseNotEquals(T scalar, PrimitiveColumnContainer<bool> ret)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseNotEquals(this, scalar, ret);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ElementwiseGreaterThanOrEqual(PrimitiveColumnContainer<T> right, PrimitiveColumnContainer<bool> ret)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseGreaterThanOrEqual(this, right, ret);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ElementwiseGreaterThanOrEqual(T scalar, PrimitiveColumnContainer<bool> ret)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseGreaterThanOrEqual(this, scalar, ret);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ElementwiseLessThanOrEqual(PrimitiveColumnContainer<T> right, PrimitiveColumnContainer<bool> ret)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThanOrEqual(this, right, ret);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ElementwiseLessThanOrEqual(T scalar, PrimitiveColumnContainer<bool> ret)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThanOrEqual(this, scalar, ret);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ElementwiseGreaterThan(PrimitiveColumnContainer<T> right, PrimitiveColumnContainer<bool> ret)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseGreaterThan(this, right, ret);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ElementwiseGreaterThan(T scalar, PrimitiveColumnContainer<bool> ret)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseGreaterThan(this, scalar, ret);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ElementwiseLessThan(PrimitiveColumnContainer<T> right, PrimitiveColumnContainer<bool> ret)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThan(this, right, ret);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ElementwiseLessThan(T scalar, PrimitiveColumnContainer<bool> ret)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.ElementwiseLessThan(this, scalar, ret);
-            return this;
-        }
-
-        public PrimitiveColumnContainer<T> ReverseAdd(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Add(scalar, this);
-            return this;
-        }
-        public PrimitiveColumnContainer<T> ReverseSubtract(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Subtract(scalar, this);
-            return this;
-        }
-        public PrimitiveColumnContainer<T> ReverseMultiply(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Multiply(scalar, this);
-            return this;
-        }
-        public PrimitiveColumnContainer<T> ReverseDivide(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Divide(scalar, this);
-            return this;
-        }
-        public PrimitiveColumnContainer<T> ReverseModulo(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Modulo(scalar, this);
-            return this;
-        }
-        public PrimitiveColumnContainer<T> ReverseAnd(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.And(scalar, this);
-            return this;
-        }
-        public PrimitiveColumnContainer<T> ReverseOr(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Or(scalar, this);
-            return this;
-        }
-        public PrimitiveColumnContainer<T> ReverseXor(T scalar)
-        {
-            PrimitiveDataFrameColumnArithmetic<T>.Instance.Xor(scalar, this);
-            return this;
+            return ret;
         }
     }
 }

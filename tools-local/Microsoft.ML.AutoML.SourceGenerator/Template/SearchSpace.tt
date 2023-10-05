@@ -12,6 +12,7 @@ using ResizingKind = Microsoft.ML.Transforms.Image.ImageResizingEstimator.Resizi
 using Anchor = Microsoft.ML.Transforms.Image.ImageResizingEstimator.Anchor;
 using BertArchitecture = Microsoft.ML.TorchSharp.NasBert.BertArchitecture;
 using static Microsoft.ML.Vision.ImageClassificationTrainer.Architecture;
+using DataKind = Microsoft.ML.Data.DataKind;
 #nullable enable
 
 namespace <#=NameSpace#>

@@ -101,10 +101,18 @@ namespace Microsoft.Data.Analysis
                         AppendDataFrameColumnFromArrowArray(fieldsEnumerator.Current, structArrayEnumerator.Current, ret, field.Name + "_");
                     }
                     break;
-                case ArrowTypeId.Decimal:
+                case ArrowTypeId.Date64:
+                    Date64Array arrowDate64Array = (Date64Array)arrowArray;
+                    dataFrameColumn = new DateTimeDataFrameColumn(fieldName, arrowDate64Array.Data.Length);
+                    for (int i = 0; i < arrowDate64Array.Data.Length; i++)
+                    {
+                        dataFrameColumn[i] = arrowDate64Array.GetDateTime(i);
+                    }
+                    break;
+                case ArrowTypeId.Decimal128:
+                case ArrowTypeId.Decimal256:
                 case ArrowTypeId.Binary:
                 case ArrowTypeId.Date32:
-                case ArrowTypeId.Date64:
                 case ArrowTypeId.Dictionary:
                 case ArrowTypeId.FixedSizedBinary:
                 case ArrowTypeId.HalfFloat:
@@ -114,6 +122,7 @@ namespace Microsoft.Data.Analysis
                 case ArrowTypeId.Null:
                 case ArrowTypeId.Time32:
                 case ArrowTypeId.Time64:
+                case ArrowTypeId.Timestamp:
                 default:
                     throw new NotImplementedException($"{fieldType.Name}");
             }
@@ -145,7 +154,7 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Returns an <see cref="IEnumerable{RecordBatch}"/> without copying data
+        /// Returns an <see cref="IEnumerable{RecordBatch}"/> mostly without copying data
         /// </summary>
         public IEnumerable<RecordBatch> ToArrowRecordBatches()
         {

@@ -13,7 +13,7 @@ using System.Text;
 namespace Microsoft.Data.Analysis
 {
     /// <summary>
-    /// PrimitiveDataFrameColumnContainer is just a store for the column data. APIs that want to change the data must be defined in PrimitiveDataFrameColumn
+    /// PrimitiveColumnContainer is just a store for the column data. APIs that want to change the data must be defined in PrimitiveDataFrameColumn
     /// </summary>
     /// <typeparam name="T"></typeparam>
     internal partial class PrimitiveColumnContainer<T> : IEnumerable<T?>
@@ -25,38 +25,6 @@ namespace Microsoft.Data.Analysis
         // A set bit implies a valid value. An unset bit => null value
         public IList<ReadOnlyDataFrameBuffer<byte>> NullBitMapBuffers = new List<ReadOnlyDataFrameBuffer<byte>>();
 
-        // Need a way to differentiate between columns initialized with default values and those with null values in SetValidityBit
-        internal bool _modifyNullCountWhileIndexing = true;
-
-        public PrimitiveColumnContainer(T[] values)
-        {
-            values = values ?? throw new ArgumentNullException(nameof(values));
-            long length = values.LongLength;
-            DataFrameBuffer<T> curBuffer;
-            if (Buffers.Count == 0)
-            {
-                curBuffer = new DataFrameBuffer<T>();
-                Buffers.Add(curBuffer);
-                NullBitMapBuffers.Add(new DataFrameBuffer<byte>());
-            }
-            else
-            {
-                curBuffer = (DataFrameBuffer<T>)Buffers[Buffers.Count - 1];
-            }
-            for (long i = 0; i < length; i++)
-            {
-                if (curBuffer.Length == ReadOnlyDataFrameBuffer<T>.MaxCapacity)
-                {
-                    curBuffer = new DataFrameBuffer<T>();
-                    Buffers.Add(curBuffer);
-                    NullBitMapBuffers.Add(new DataFrameBuffer<byte>());
-                }
-                curBuffer.Append(values[i]);
-                SetValidityBit(Length, true);
-                Length++;
-            }
-        }
-
         public PrimitiveColumnContainer(IEnumerable<T> values)
         {
             values = values ?? throw new ArgumentNullException(nameof(values));
@@ -65,6 +33,7 @@ namespace Microsoft.Data.Analysis
                 Append(value);
             }
         }
+
         public PrimitiveColumnContainer(IEnumerable<T?> values)
         {
             values = values ?? throw new ArgumentNullException(nameof(values));
@@ -79,9 +48,8 @@ namespace Microsoft.Data.Analysis
             ReadOnlyDataFrameBuffer<T> dataBuffer;
             if (buffer.IsEmpty)
             {
-                DataFrameBuffer<T> mutableBuffer = new DataFrameBuffer<T>();
-                mutableBuffer.EnsureCapacity(length);
-                mutableBuffer.Length = length;
+                DataFrameBuffer<T> mutableBuffer = new DataFrameBuffer<T>(length);
+                mutableBuffer.IncreaseSize(length);
                 mutableBuffer.RawSpan.Fill(default(T));
                 dataBuffer = mutableBuffer;
             }
@@ -102,11 +70,15 @@ namespace Microsoft.Data.Analysis
                 if (!buffer.IsEmpty)
                 {
                     // Create a new bitMap with all the bits up to length set
-                    var bitMap = new byte[bitMapBufferLength];
-                    bitMap.AsSpan().Fill(255);
+                    var bitMap = new DataFrameBuffer<byte>(bitMapBufferLength);
+                    bitMap.IncreaseSize(bitMapBufferLength);
+
+                    var span = bitMap.Span;
+                    span.Fill(255);
                     int lastByte = 1 << (length - (bitMapBufferLength - 1) * 8);
-                    bitMap[bitMapBufferLength - 1] = (byte)(lastByte - 1);
-                    nullDataFrameBuffer = new DataFrameBuffer<byte>(bitMap, bitMapBufferLength);
+                    span[bitMapBufferLength - 1] = (byte)(lastByte - 1);
+
+                    nullDataFrameBuffer = bitMap;
                 }
                 else
                 {
@@ -181,30 +153,23 @@ namespace Microsoft.Data.Analysis
                 }
 
                 DataFrameBuffer<T> mutableLastBuffer = Buffers.GetOrCreateMutable(Buffers.Count - 1);
-                int allocatable = (int)Math.Min(remaining, ReadOnlyDataFrameBuffer<T>.MaxCapacity);
-                mutableLastBuffer.EnsureCapacity(allocatable);
-
                 DataFrameBuffer<byte> lastNullBitMapBuffer = NullBitMapBuffers.GetOrCreateMutable(NullBitMapBuffers.Count - 1);
-                int nullBufferAllocatable = (allocatable + 7) / 8;
-                lastNullBitMapBuffer.EnsureCapacity(nullBufferAllocatable);
 
+                //Calculate how many values we can additionaly allocate and not exceed the MaxCapacity
+                int originalBufferLength = mutableLastBuffer.Length;
+                int allocatable = (int)Math.Min(remaining, ReadOnlyDataFrameBuffer<T>.MaxCapacity - originalBufferLength);
+                mutableLastBuffer.IncreaseSize(allocatable);
 
-                mutableLastBuffer.Length += allocatable;
-                lastNullBitMapBuffer.Length += nullBufferAllocatable;
+                //Calculate how many bytes we have additionaly allocate to store allocatable number of bits (need to take into account unused bits inside already allocated bytes)
+                int nullBufferAllocatable = (originalBufferLength + allocatable + 7) / 8 - lastNullBitMapBuffer.Length;
+                lastNullBitMapBuffer.IncreaseSize(nullBufferAllocatable);
                 Length += allocatable;
 
                 if (value.HasValue)
                 {
-                    mutableLastBuffer.RawSpan.Slice(mutableLastBuffer.Length - allocatable, allocatable).Fill(value ?? default);
-
-                    _modifyNullCountWhileIndexing = false;
-                    for (long i = Length - allocatable; i < Length; i++)
-                    {
-                        SetValidityBit(i, value.HasValue);
-                    }
-                    _modifyNullCountWhileIndexing = true;
+                    mutableLastBuffer.RawSpan.Slice(mutableLastBuffer.Length - allocatable, allocatable).Fill(value.Value);
+                    BitUtility.SetBits(lastNullBitMapBuffer.RawSpan, originalBufferLength, allocatable, true);
                 }
-
 
                 remaining -= allocatable;
             }
@@ -223,7 +188,7 @@ namespace Microsoft.Data.Analysis
                 for (int i = 0; i < mutableBuffer.Length; i++)
                 {
                     long curIndex = i + prevLength;
-                    bool isValid = IsValid(mutableNullBitMapBuffer, i);
+                    bool isValid = BitUtility.IsValid(mutableNullBitMapBuffer, i);
                     T? value = func(isValid ? mutableBuffer[i] : null, curIndex);
                     mutableBuffer[i] = value.GetValueOrDefault();
                     SetValidityBit(mutableNullBitMapBuffer, i, value != null);
@@ -246,20 +211,12 @@ namespace Microsoft.Data.Analysis
 
                 for (int i = 0; i < sourceBuffer.Length; i++)
                 {
-                    bool isValid = IsValid(sourceNullBitMap, i);
+                    bool isValid = BitUtility.IsValid(sourceNullBitMap, i);
                     TResult? value = func(isValid ? sourceBuffer[i] : null);
                     mutableResultBuffer[i] = value.GetValueOrDefault();
                     resultContainer.SetValidityBit(mutableResultNullBitMapBuffers, i, value != null);
                 }
             }
-        }
-
-        // Faster to use when we already have a span since it avoids indexing
-        public bool IsValid(ReadOnlySpan<byte> bitMapBufferSpan, int index)
-        {
-            int nullBitMapSpanIndex = index / 8;
-            byte thisBitMap = bitMapBufferSpan[nullBitMapSpanIndex];
-            return IsBitSet(thisBitMap, index);
         }
 
         public bool IsValid(long index) => NullCount == 0 || GetValidityBit(index);
@@ -270,7 +227,7 @@ namespace Microsoft.Data.Analysis
             if (value)
             {
                 newBitMap = (byte)(curBitMap | (byte)(1 << (index & 7))); //bit hack for index % 8
-                if (_modifyNullCountWhileIndexing && ((curBitMap >> (index & 7)) & 1) == 0 && index < Length && NullCount > 0)
+                if (BitUtility.IsBitClear(curBitMap, index) && index < Length && NullCount > 0)
                 {
                     // Old value was null.
                     NullCount--;
@@ -278,12 +235,12 @@ namespace Microsoft.Data.Analysis
             }
             else
             {
-                if (_modifyNullCountWhileIndexing && ((curBitMap >> (index & 7)) & 1) == 1 && index < Length)
+                if (BitUtility.IsBitSet(curBitMap, index) && index < Length)
                 {
                     // old value was NOT null and new value is null
                     NullCount++;
                 }
-                else if (_modifyNullCountWhileIndexing && index == Length)
+                else if (index == Length)
                 {
                     // New entry from an append
                     NullCount++;
@@ -329,11 +286,6 @@ namespace Microsoft.Data.Analysis
             SetValidityBit(bitMapBuffer.Span, (int)index, value);
         }
 
-        private bool IsBitSet(byte curBitMap, int index)
-        {
-            return ((curBitMap >> (index & 7)) & 1) != 0;
-        }
-
         private bool GetValidityBit(long index)
         {
             if ((uint)index >= Length)
@@ -350,12 +302,13 @@ namespace Microsoft.Data.Analysis
             int bitMapBufferIndex = (int)((uint)index / 8);
             Debug.Assert(bitMapBuffer.Length > bitMapBufferIndex);
             byte curBitMap = bitMapBuffer[bitMapBufferIndex];
-            return IsBitSet(curBitMap, (int)index);
+            return BitUtility.IsBitSet(curBitMap, (int)index);
         }
 
-        public long Length;
+        public long Length { get; private set; }
 
-        public long NullCount;
+        public long NullCount { get; private set; }
+
         public int GetArrayContainingRowIndex(long rowIndex)
         {
             if (rowIndex >= Length)
@@ -372,18 +325,6 @@ namespace Microsoft.Data.Analysis
             int arrayIndex = GetArrayContainingRowIndex(startIndex);
             startIndex = startIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity;
             return Buffers[arrayIndex].Length - (int)startIndex;
-        }
-
-        internal ReadOnlyMemory<byte> GetValueBuffer(long startIndex)
-        {
-            int arrayIndex = GetArrayContainingRowIndex(startIndex);
-            return Buffers[arrayIndex].ReadOnlyBuffer;
-        }
-
-        internal ReadOnlyMemory<byte> GetNullBuffer(long startIndex)
-        {
-            int arrayIndex = GetArrayContainingRowIndex(startIndex);
-            return NullBitMapBuffers[arrayIndex].ReadOnlyBuffer;
         }
 
         public IReadOnlyList<T?> this[long startIndex, int length]
@@ -409,25 +350,25 @@ namespace Microsoft.Data.Analysis
                     return null;
                 }
                 int arrayIndex = GetArrayContainingRowIndex(rowIndex);
-                rowIndex = rowIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity;
-                return Buffers[arrayIndex][(int)rowIndex];
+                var bufferOffset = (int)(rowIndex % ReadOnlyDataFrameBuffer<T>.MaxCapacity);
+                return Buffers[arrayIndex][bufferOffset];
             }
             set
             {
                 int arrayIndex = GetArrayContainingRowIndex(rowIndex);
-                rowIndex = rowIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity;
+                var bufferOffset = (int)(rowIndex % ReadOnlyDataFrameBuffer<T>.MaxCapacity);
 
                 Buffers.GetOrCreateMutable(arrayIndex);
                 NullBitMapBuffers.GetOrCreateMutable(arrayIndex);
 
                 if (value.HasValue)
                 {
-                    Buffers[arrayIndex][(int)rowIndex] = value.Value;
+                    Buffers[arrayIndex][bufferOffset] = value.Value;
                     SetValidityBit(rowIndex, true);
                 }
                 else
                 {
-                    Buffers[arrayIndex][(int)rowIndex] = default;
+                    Buffers[arrayIndex][bufferOffset] = default;
                     SetValidityBit(rowIndex, false);
                 }
             }
@@ -472,13 +413,8 @@ namespace Microsoft.Data.Analysis
             List<ReadOnlyDataFrameBuffer<byte>> ret = new List<ReadOnlyDataFrameBuffer<byte>>();
             foreach (ReadOnlyDataFrameBuffer<byte> buffer in NullBitMapBuffers)
             {
-                DataFrameBuffer<byte> newBuffer = new DataFrameBuffer<byte>();
+                DataFrameBuffer<byte> newBuffer = new DataFrameBuffer<byte>(buffer.ReadOnlyBuffer, buffer.Length);
                 ret.Add(newBuffer);
-                ReadOnlySpan<byte> span = buffer.ReadOnlySpan;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(span[i]);
-                }
             }
             return ret;
         }
@@ -524,7 +460,7 @@ namespace Microsoft.Data.Analysis
                         spanIndex = buffer.Length - 1 - i;
 
                     long mapRowIndex = mapIndicesIntSpan.IsEmpty ? mapIndicesLongSpan[spanIndex] : mapIndicesIntSpan[spanIndex];
-                    bool mapRowIndexIsValid = mapIndices.IsValid(mapIndicesNullBitMapSpan, spanIndex);
+                    bool mapRowIndexIsValid = BitUtility.IsValid(mapIndicesNullBitMapSpan, spanIndex);
                     if (mapRowIndexIsValid && (mapRowIndex < minRange || mapRowIndex >= maxRange))
                     {
                         int bufferIndex = (int)(mapRowIndex / maxCapacity);
@@ -539,7 +475,7 @@ namespace Microsoft.Data.Analysis
                     {
                         mapRowIndex -= minRange;
                         value = thisSpan[(int)mapRowIndex];
-                        isValid = IsValid(thisNullBitMapSpan, (int)mapRowIndex);
+                        isValid = BitUtility.IsValid(thisNullBitMapSpan, (int)mapRowIndex);
                     }
 
                     retSpan[i] = isValid ? value : default;
@@ -554,14 +490,9 @@ namespace Microsoft.Data.Analysis
             var ret = new PrimitiveColumnContainer<T>();
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
-                DataFrameBuffer<T> newBuffer = new DataFrameBuffer<T>();
+                DataFrameBuffer<T> newBuffer = new DataFrameBuffer<T>(buffer.ReadOnlyBuffer, buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 ret.Length += buffer.Length;
-                for (int i = 0; i < span.Length; i++)
-                {
-                    newBuffer.Append(span[i]);
-                }
             }
             ret.NullBitMapBuffers = CloneNullBitMapBuffers();
             ret.NullCount = NullCount;
@@ -573,9 +504,10 @@ namespace Microsoft.Data.Analysis
             var ret = new PrimitiveColumnContainer<bool>();
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
-                DataFrameBuffer<bool> newBuffer = new DataFrameBuffer<bool>();
+                DataFrameBuffer<bool> newBuffer = new DataFrameBuffer<bool>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
+                newBuffer.IncreaseSize(buffer.Length);
+
                 if (typeof(T) == typeof(bool))
                 {
                     var localBuffer = buffer;
@@ -586,7 +518,6 @@ namespace Microsoft.Data.Analysis
                 {
                     newBuffer.Span.Fill(false);
                 }
-                newBuffer.Length = buffer.Length;
                 ret.Length += buffer.Length;
             }
             ret.NullBitMapBuffers = CloneNullBitMapBuffers();
@@ -600,9 +531,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<byte> newBuffer = new DataFrameBuffer<byte>();
+                DataFrameBuffer<byte> newBuffer = new DataFrameBuffer<byte>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -620,9 +550,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<sbyte> newBuffer = new DataFrameBuffer<sbyte>();
+                DataFrameBuffer<sbyte> newBuffer = new DataFrameBuffer<sbyte>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -640,9 +569,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<double> newBuffer = new DataFrameBuffer<double>();
+                DataFrameBuffer<double> newBuffer = new DataFrameBuffer<double>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -660,9 +588,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<decimal> newBuffer = new DataFrameBuffer<decimal>();
+                DataFrameBuffer<decimal> newBuffer = new DataFrameBuffer<decimal>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -680,9 +607,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<short> newBuffer = new DataFrameBuffer<short>();
+                DataFrameBuffer<short> newBuffer = new DataFrameBuffer<short>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -700,9 +626,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<ushort> newBuffer = new DataFrameBuffer<ushort>();
+                DataFrameBuffer<ushort> newBuffer = new DataFrameBuffer<ushort>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -720,9 +645,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<int> newBuffer = new DataFrameBuffer<int>();
+                DataFrameBuffer<int> newBuffer = new DataFrameBuffer<int>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -740,9 +664,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<uint> newBuffer = new DataFrameBuffer<uint>();
+                DataFrameBuffer<uint> newBuffer = new DataFrameBuffer<uint>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -760,9 +683,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<long> newBuffer = new DataFrameBuffer<long>();
+                DataFrameBuffer<long> newBuffer = new DataFrameBuffer<long>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -780,9 +702,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<ulong> newBuffer = new DataFrameBuffer<ulong>();
+                DataFrameBuffer<ulong> newBuffer = new DataFrameBuffer<ulong>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {
@@ -800,9 +721,8 @@ namespace Microsoft.Data.Analysis
             foreach (ReadOnlyDataFrameBuffer<T> buffer in Buffers)
             {
                 ret.Length += buffer.Length;
-                DataFrameBuffer<float> newBuffer = new DataFrameBuffer<float>();
+                DataFrameBuffer<float> newBuffer = new DataFrameBuffer<float>(buffer.Length);
                 ret.Buffers.Add(newBuffer);
-                newBuffer.EnsureCapacity(buffer.Length);
                 ReadOnlySpan<T> span = buffer.ReadOnlySpan;
                 for (int i = 0; i < span.Length; i++)
                 {

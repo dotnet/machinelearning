@@ -9,7 +9,7 @@ namespace Microsoft.ML.AutoML.CodeGen
         public override IEstimator<ITransformer> BuildFromOption(MLContext context, ConvertTypeOption param)
         {
             var inputOutputPairs = AutoMlUtils.CreateInputOutputColumnPairsFromStrings(param.InputColumnNames, param.OutputColumnNames);
-            return context.Transforms.Conversion.ConvertType(inputOutputPairs);
+            return context.Transforms.Conversion.ConvertType(inputOutputPairs, param.TargetType);
         }
     }
 }
