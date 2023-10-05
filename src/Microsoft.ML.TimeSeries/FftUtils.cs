@@ -248,8 +248,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
             finally
             {
-                if (descriptor != null)
-                    FreeDescriptor(ref descriptor);
+                FreeDescriptor(ref descriptor);
             }
         }
 
@@ -294,8 +293,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
             finally
             {
-                if (descriptor != null)
-                    FreeDescriptor(ref descriptor);
+                FreeDescriptor(ref descriptor);
             }
 
             // REVIEW: for some reason the native backward scaling for DFTI in MKL does not work.
@@ -350,8 +348,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
             finally
             {
-                if (descriptor != null)
-                    FreeDescriptor(ref descriptor);
+                FreeDescriptor(ref descriptor);
             }
         }
 
@@ -396,8 +393,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
             finally
             {
-                if (descriptor != null)
-                    FreeDescriptor(ref descriptor);
+                FreeDescriptor(ref descriptor);
             }
 
             // REVIEW: for some reason the native backward scaling for DFTI in MKL does not work.

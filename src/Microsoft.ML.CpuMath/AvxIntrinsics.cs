@@ -15,7 +15,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using Microsoft.ML.Internal.CpuMath.Core;
-using nuint = System.UInt64;
+using nUInt = System.UInt64;
 
 namespace Microsoft.ML.Internal.CpuMath
 {
@@ -202,8 +202,8 @@ namespace Microsoft.ML.Internal.CpuMath
                     while (pSrcCurrent < pSrcEnd)
                     {
                         float* pMatTemp = pMatCurrent;
-                        Contracts.Assert(((nuint)(pMatTemp) % 32) == 0);
-                        Contracts.Assert(((nuint)(pSrcCurrent) % 32) == 0);
+                        Contracts.Assert(((nUInt)(pMatTemp) % 32) == 0);
+                        Contracts.Assert(((nUInt)(pSrcCurrent) % 32) == 0);
 
                         // The JIT will only fold away unaligned loads due to the semantics behind
                         // the VEX-encoding of the memory operand for `ins xmm, xmm, [mem]`. Since
@@ -333,7 +333,7 @@ namespace Microsoft.ML.Internal.CpuMath
                 while (pDstCurrent < pDstEnd)
                 {
                     float* pMatTemp = pMatCurrent;
-                    Contracts.Assert(((nuint)(pMatTemp) % 32) == 0);
+                    Contracts.Assert(((nUInt)(pMatTemp) % 32) == 0);
 
                     // The JIT will only fold away unaligned loads due to the semantics behind
                     // the VEX-encoding of the memory operand for `ins xmm, xmm, [mem]`. Since
@@ -380,8 +380,8 @@ namespace Microsoft.ML.Internal.CpuMath
                     {
                         float* pMatTemp = pMatCurrent;
 
-                        Contracts.Assert(((nuint)(pMatTemp) % 32) == 0);
-                        Contracts.Assert(((nuint)(pDstCurrent) % 32) == 0);
+                        Contracts.Assert(((nUInt)(pMatTemp) % 32) == 0);
+                        Contracts.Assert(((nUInt)(pDstCurrent) % 32) == 0);
 
                         // The JIT will only fold away unaligned loads due to the semantics behind
                         // the VEX-encoding of the memory operand for `ins xmm, xmm, [mem]`. Since
@@ -466,7 +466,7 @@ namespace Microsoft.ML.Internal.CpuMath
                 int length = dst.Length;
                 Vector256<float> scaleVector256 = Vector256.Create(scale);
 
-                nuint address = (nuint)(pd);
+                nUInt address = (nUInt)(pd);
                 int misalignment = (int)(address % 32);
                 int remainder = 0;
 
@@ -524,7 +524,7 @@ namespace Microsoft.ML.Internal.CpuMath
                             // when it doesn't cross a cache-line/page boundary, we will just assert
                             // that the alignment is correct and allow for the more-efficient codegen.
 
-                            Contracts.Assert(((nuint)(pDstCurrent) % 32) == 0);
+                            Contracts.Assert(((nUInt)(pDstCurrent) % 32) == 0);
                             Vector256<float> temp = Avx.LoadVector256(pDstCurrent);
                             temp = Avx.Multiply(scaleVector256, temp);
                             Avx.Store(pDstCurrent, temp);
@@ -979,7 +979,7 @@ namespace Microsoft.ML.Internal.CpuMath
                 int length = src.Length;
                 Vector256<float> result = Vector256<float>.Zero;
 
-                nuint address = (nuint)(pValues);
+                nUInt address = (nUInt)(pValues);
                 int misalignment = (int)(address % 32);
                 int remainder = 0;
 
@@ -1026,7 +1026,7 @@ namespace Microsoft.ML.Internal.CpuMath
                             // when it doesn't cross a cache-line/page boundary, we will just assert
                             // that the alignment is correct and allow for the more-efficient codegen.
 
-                            Contracts.Assert(((nuint)(pValues) % 32) == 0);
+                            Contracts.Assert(((nUInt)(pValues) % 32) == 0);
                             result = Avx.Add(result, Avx.LoadVector256(pValues));
                         }
                     }

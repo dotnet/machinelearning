@@ -83,7 +83,7 @@ namespace Microsoft.ML.Tokenizers
             MinFrequency = minFrequency;
             VocabSize = vocabSize;
             Progress = progress;
-            SpecialTokens = new List<AddedToken>(specialTokens);
+            SpecialTokens = specialTokens != null ? new List<AddedToken>(specialTokens) : new List<AddedToken>();
             LimitAlphabet = limitAlphabet;
             InitialAlphabet = initialAlphabet;
             ContinuingSubwordPrefix = continuingSubwordPrefix;
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Tokenizers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal string CharToString(char c)
         {
-            if (_charToString.TryGetValue(c, out string v))
+            if (_charToString.TryGetValue(c, out string? v))
             {
                 return v;
             }
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Tokenizers
                     // Then update counts
                     int count = counts[i];
 
-                    if (!whereToUpdate.TryGetValue(curPair, out HashSet<int> h))
+                    if (!whereToUpdate.TryGetValue(curPair, out HashSet<int>? h))
                     {
                         h = new HashSet<int>();
                         whereToUpdate[curPair] = h;
@@ -398,7 +398,7 @@ namespace Microsoft.ML.Tokenizers
 
                     if (change > 0)
                     {
-                        if (!whereToUpdate.TryGetValue(p, out HashSet<int> h))
+                        if (!whereToUpdate.TryGetValue(p, out HashSet<int>? h))
                         {
                             h = new();
                             whereToUpdate[p] = h;

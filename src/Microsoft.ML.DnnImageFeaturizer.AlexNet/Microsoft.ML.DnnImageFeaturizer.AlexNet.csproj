@@ -2,7 +2,7 @@
   <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.DnnImageFeaturizer.AlexNet</IncludeInPackage>
     <PackageDescription>ML.NET component for pretrained AlexNet image featurization</PackageDescription>
   </PropertyGroup>

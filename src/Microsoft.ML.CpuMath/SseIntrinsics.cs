@@ -19,7 +19,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using Microsoft.ML.Internal.CpuMath.Core;
-using nuint = System.UInt64;
+using nUInt = System.UInt64;
 
 namespace Microsoft.ML.Internal.CpuMath
 {
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Internal.CpuMath
                 int length = dst.Length;
                 Vector128<float> scaleVector128 = Vector128.Create(scale);
 
-                nuint address = (nuint)(pd);
+                nUInt address = (nUInt)(pd);
                 int misalignment = (int)(address % 16);
                 int remainder = 0;
 
@@ -799,7 +799,7 @@ namespace Microsoft.ML.Internal.CpuMath
                 int length = src.Length;
                 Vector128<float> result = Vector128<float>.Zero;
 
-                nuint address = (nuint)(pValues);
+                nUInt address = (nUInt)(pValues);
                 int misalignment = (int)(address % 16);
                 int remainder = 0;
 

@@ -5,6 +5,8 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using Microsoft.ML.Data;
@@ -290,20 +292,20 @@ namespace Microsoft.ML.TensorFlow
             if (Directory.Exists(folder))
                 return;
 
-            WindowsIdentity currentIdentity = null;
-            try
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                currentIdentity = WindowsIdentity.GetCurrent();
-            }
-            catch (PlatformNotSupportedException)
-            { }
+                WindowsIdentity currentIdentity = WindowsIdentity.GetCurrent();
 
-            if (currentIdentity != null && new WindowsPrincipal(currentIdentity).IsInRole(WindowsBuiltInRole.Administrator))
-            {
-                // Create high integrity dir and set no delete policy for all files under the directory.
-                // In case of failure, throw exception.
-                CreateTempDirectoryWithAcl(folder, currentIdentity.User.ToString());
+                if (currentIdentity != null && new WindowsPrincipal(currentIdentity).IsInRole(WindowsBuiltInRole.Administrator))
+                {
+                    // Create high integrity dir and set no delete policy for all files under the directory.
+                    // In case of failure, throw exception.
+                    CreateTempDirectoryWithAcl(folder, currentIdentity.User.ToString());
+                }
             }
+
+            if (Directory.Exists(folder))
+                return;
             else
             {
                 try
@@ -342,6 +344,7 @@ namespace Microsoft.ML.TensorFlow
             }
         }
 
+        [SupportedOSPlatform("windows")]
         private static void CreateTempDirectoryWithAcl(string folder, string identity)
         {
             // Dacl Sddl string:

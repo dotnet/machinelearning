@@ -36,7 +36,7 @@ namespace Microsoft.ML.Tokenizers
 
                 if (value is null)
                 {
-                    if (VocabReverse.TryGetValue(0, out string v))
+                    if (VocabReverse.TryGetValue(0, out string? v))
                     {
                         VocabReverse.Remove(0);
                         if (Vocab.TryGetValue(v, out int id))
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Tokenizers
                 VocabReverse.Add(kvp.Value, kvp.Key);
             }
 
-            if (unknownToken is null && VocabReverse.TryGetValue(0, out string unkToken))
+            if (unknownToken is null && VocabReverse.TryGetValue(0, out string? unkToken))
             {
                 unknownToken = unkToken;
             }
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Tokenizers
         /// <returns>The mapped token of the Id.</returns>
         public override string? IdToToken(int id, bool skipSpecialTokens = false)
         {
-            if (VocabReverse.TryGetValue(id, out string value))
+            if (VocabReverse.TryGetValue(id, out string? value))
             {
                 return value;
             }
@@ -256,9 +256,17 @@ namespace Microsoft.ML.Tokenizers
         internal static (Dictionary<string, int>?, Vec<(string, string)>) ReadFile(string? vocab, string? merges)
         {
             Dictionary<string, int>? dic;
-            using (Stream stream = File.OpenRead(vocab))
+
+            if (vocab != null)
             {
-                dic = JsonSerializer.Deserialize<Dictionary<string, int>>(stream) as Dictionary<string, int>;
+                using (Stream stream = File.OpenRead(vocab))
+                {
+                    dic = JsonSerializer.Deserialize<Dictionary<string, int>>(stream) as Dictionary<string, int>;
+                }
+            }
+            else
+            {
+                dic = new Dictionary<string, int>();
             }
 
             return (dic, ConvertMergesToHashmap(merges));
@@ -320,7 +328,7 @@ namespace Microsoft.ML.Tokenizers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal string CharToString(char c)
         {
-            if (_charToString.TryGetValue(c, out string v))
+            if (_charToString.TryGetValue(c, out string? v))
             {
                 return v;
             }

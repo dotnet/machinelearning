@@ -2,7 +2,7 @@
   <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <IncludeInPackage>Microsoft.Extensions.ML</IncludeInPackage>
     <PackageDescription>An integration package for ML.NET models on scalable web apps and services.</PackageDescription>
   </PropertyGroup>

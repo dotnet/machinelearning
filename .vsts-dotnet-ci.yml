@@ -34,7 +34,7 @@ jobs:
 - template: /build/ci/job-template.yml
   parameters:
     architecture: arm
-    name: Ubuntu_x64_cross_arm_Net60
+    name: Ubuntu_x64_cross_arm_Net80
     buildScript: ./build.sh
     container: UbuntuCrossArmContainer
     customMatrixes:
@@ -42,12 +42,12 @@ jobs:
         _configuration: Debug
         _config_short: DI
         _includeBenchmarkData: false
-        _targetFramework: net6.0
+        _targetFramework: net8.0
       Release_Build:
         _configuration: Release
         _config_short: RI
         _includeBenchmarkData: true
-        _targetFramework: net6.0
+        _targetFramework: net8.0
     innerLoop: true
     pool:
       name: NetCore-Public
@@ -57,7 +57,7 @@ jobs:
 - template: /build/ci/job-template.yml
   parameters:
     architecture: arm64
-    name: Ubuntu_x64_cross_arm64_Net60
+    name: Ubuntu_x64_cross_arm64_Net80
     buildScript: ./build.sh
     container: UbuntuCrossArm64Container
     customMatrixes:
@@ -65,12 +65,12 @@ jobs:
         _configuration: Debug
         _config_short: DI
         _includeBenchmarkData: false
-        _targetFramework: net6.0
+        _targetFramework: net8.0
       Release_Build:
         _configuration: Release
         _config_short: RI
         _includeBenchmarkData: true
-        _targetFramework: net6.0
+        _targetFramework: net8.0
     innerLoop: true
     pool:
       name: NetCore-Public
@@ -79,7 +79,7 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Centos_x64_Net60
+    name: Centos_x64_Net80
     buildScript: ./build.sh
     container: CentosContainer
     innerLoop: true
@@ -90,7 +90,7 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Ubuntu_x64_Net60
+    name: Ubuntu_x64_Net80
     buildScript: ./build.sh
     container: UbuntuContainer
     innerLoop: true
@@ -101,7 +101,7 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: MacOS_x64_Net60
+    name: MacOS_x64_Net80
     buildScript: ./build.sh
     innerLoop: true
     pool:
@@ -111,19 +111,19 @@ jobs:
 - template: /build/ci/job-template.yml
   parameters:
     architecture: arm64
-    name: MacOS_cross_arm64_Net6
+    name: MacOS_cross_arm64_Net80
     buildScript: ./build.sh
     customMatrixes:
       Debug_Build:
         _configuration: Debug
         _config_short: DI
         _includeBenchmarkData: false
-        _targetFramework: net6.0
+        _targetFramework: net8.0
       Release_Build:
         _configuration: Release
         _config_short: RI
         _includeBenchmarkData: true
-        _targetFramework: net6.0
+        _targetFramework: net8.0
     innerLoop: true
     pool:
       vmImage: macOS-12
@@ -131,10 +131,10 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Windows_x64_Net60
+    name: Windows_x64_Net80
     buildScript: build.cmd
     innerLoop: true
-    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.1"
+    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v8.0"
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals 1es-windows-2019-open
@@ -142,33 +142,11 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Windows_x64_NetFx461
-    buildScript: build.cmd
-    customMatrixes:
-      Debug_Build:
-        _configuration: Debug
-        _config_short: DFX
-        _includeBenchmarkData: false
-        _targetFramework: net461
-      Release_Build:
-        _configuration: Release
-        _config_short: RFX
-        _includeBenchmarkData: false
-        _targetFramework: net461
-    innerLoop: true
-    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v4.0"
-    pool:
-      name: NetCore-Public
-      demands: ImageOverride -equals 1es-windows-2019-open
-    helixQueue: Windows.10.Amd64.Open
-
-- template: /build/ci/job-template.yml
-  parameters:
-    name: Windows_x86_Net60
+    name: Windows_x86_Net80
     architecture: x86
     buildScript: build.cmd
     innerLoop: true
-    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v3.1"
+    vsTestConfiguration: "/Framework:.NETCoreApp,Version=v8.0"
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals 1es-windows-2019-open

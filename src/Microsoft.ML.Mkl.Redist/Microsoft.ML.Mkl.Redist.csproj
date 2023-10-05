@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <IncludeBuildOutput Condition="'$(TargetFramework)' == 'netstandard2.0'">false</IncludeBuildOutput>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageLicenseExpression></PackageLicenseExpression>
@@ -27,10 +27,10 @@
   <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
     <ItemGroup>
       <!--Include native PDBs-->
-      <TfmSpecificDebugSymbolsFile Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklProxyNative.pdb')" TargetFramework="netstandard2.0" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklProxyNative.pdb" TargetPath="/runtimes/win-x86/native"/>
-      <TfmSpecificDebugSymbolsFile Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MklProxyNative.pdb')" TargetFramework="netstandard2.0" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MklProxyNative.pdb" TargetPath="/runtimes/win-x64/native"/>
-      <TfmSpecificDebugSymbolsFile Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklImports.pdb')" TargetFramework="netstandard2.0" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklImports.pdb" TargetPath="/runtimes/win-x86/native/MklImports.pdb"/>
-      <TfmSpecificDebugSymbolsFile Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MklImports.pdb')" TargetFramework="netstandard2.0" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MklImports.pdb" TargetPath="/runtimes/win-x64/native/MklImports.pdb"/>
+      <TfmSpecificDebugSymbolsFile Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklProxyNative.pdb')" TargetFramework="netstandard2.0" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklProxyNative.pdb" TargetPath="/runtimes/win-x86/native" />
+      <TfmSpecificDebugSymbolsFile Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MklProxyNative.pdb')" TargetFramework="netstandard2.0" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MklProxyNative.pdb" TargetPath="/runtimes/win-x64/native" />
+      <TfmSpecificDebugSymbolsFile Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklImports.pdb')" TargetFramework="netstandard2.0" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\native\MklImports.pdb" TargetPath="/runtimes/win-x86/native/MklImports.pdb" />
+      <TfmSpecificDebugSymbolsFile Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MklImports.pdb')" TargetFramework="netstandard2.0" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\native\MklImports.pdb" TargetPath="/runtimes/win-x64/native/MklImports.pdb" />
     </ItemGroup>
   </Target>
 </Project>

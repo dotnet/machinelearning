@@ -272,7 +272,7 @@ namespace Microsoft.ML.Internal.Utilities
                     response.EnsureSuccessStatusCode();
                     IEnumerable<string> headers;
                     var hasHeader = response.Headers.TryGetValues("content-length", out headers);
-                    if (uri.Host == "aka.ms" && IsRedirectToDefaultPage(uri.AbsoluteUri))
+                    if (uri.Host == "aka.ms" && await IsRedirectToDefaultPage(uri.AbsoluteUri))
                         throw new NotSupportedException($"The provided url ({uri}) redirects to the default url ({DefaultUrl})");
                     if (!hasHeader || !long.TryParse(headers.First(), out var size))
                         size = 10000000;
@@ -306,31 +306,19 @@ namespace Microsoft.ML.Internal.Utilities
         /// <summary>This method checks whether or not the provided aka.ms url redirects to
         /// Microsoft's homepage, as the default faulty aka.ms URLs redirect to https://www.microsoft.com/?ref=aka .</summary>
         /// <param name="url"> The provided url to check </param>
-        public bool IsRedirectToDefaultPage(string url)
+        public async Task<bool> IsRedirectToDefaultPage(string url)
         {
-            try
+            var httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+            var response = await httpClient.GetAsync(url);
+
+            if (response.StatusCode == HttpStatusCode.Redirect && response.Headers.Location.AbsolutePath == "https://www.microsoft.com/?ref=aka")
             {
-                var request = WebRequest.Create(url);
-                // FileWebRequests cannot be redirected to default aka.ms webpage
-                if (request.GetType() == typeof(FileWebRequest))
-                    return false;
-                HttpWebRequest httpWebRequest = (HttpWebRequest)request;
-                httpWebRequest.AllowAutoRedirect = false;
-                HttpWebResponse httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                return true;
             }
-            catch (WebException e)
+            else
             {
-                HttpWebResponse webResponse = (HttpWebResponse)e.Response;
-                // Redirects to default url
-                if (webResponse.StatusCode == HttpStatusCode.Redirect && webResponse.Headers["Location"] == "https://www.microsoft.com/?ref=aka")
-                    return true;
-                // Redirects to another url
-                else if (webResponse.StatusCode == HttpStatusCode.MovedPermanently)
-                    return false;
-                else
-                    return false;
+                return false;
             }
-            return false;
         }
 
         public static ResourceDownloadResults GetErrorMessage(out string errorMessage, params ResourceDownloadResults[] result)

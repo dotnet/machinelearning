@@ -2,7 +2,7 @@
   <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.EntryPoints</IncludeInPackage>
     <PackageDescription>Microsoft.ML.EntryPoints contains the ML.NET entry point API catalog.</PackageDescription>
   </PropertyGroup>

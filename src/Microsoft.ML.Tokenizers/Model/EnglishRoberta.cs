@@ -422,7 +422,7 @@ namespace Microsoft.ML.Tokenizers
 
         private Dictionary<(string, string), int> GetMergeRanks(Stream mergeStream)
         {
-            List<string> splitContents = new();
+            List<string?> splitContents = new();
 
             try
             {
@@ -442,8 +442,8 @@ namespace Microsoft.ML.Tokenizers
             // We ignore the first and last line in the file
             for (int i = 1; i < splitContents.Count - 1; i++)
             {
-                var split = splitContents[i].Split(' ');
-                if (split.Length != 2 || string.IsNullOrEmpty(split[0]) || string.IsNullOrEmpty(split[1]))
+                var split = splitContents[i]?.Split(' ');
+                if (split?.Length != 2 || string.IsNullOrEmpty(split[0]) || string.IsNullOrEmpty(split[1]))
                 {
                     throw new Exception($"Invalid format of merge file: \"{splitContents[i]}\"");
                 }
@@ -761,10 +761,10 @@ namespace Microsoft.ML.Tokenizers
 
             while (reader.Peek() >= 0)
             {
-                string line = reader.ReadLine();
+                string? line = reader.ReadLine();
 
-                var splitLine = line.Trim().Split(' ');
-                if (splitLine.Length != 2)
+                var splitLine = line?.Trim().Split(' ');
+                if (splitLine?.Length != 2)
                 {
                     throw new ArgumentException("Incorrect vocabulary format, expected \"<token> <cnt>\"");
                 }

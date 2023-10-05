@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.FastTree</IncludeInPackage>
     <PackageDescription>ML.NET component for FastTree</PackageDescription>
     <DefineConstants>$(DefineConstants);NO_STORE;CORECLR</DefineConstants>
