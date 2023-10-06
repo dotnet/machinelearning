@@ -6,6 +6,8 @@
 // Generated from Arithmetics.tt. Do not modify directly
 
 using System;
+using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.Data.Analysis
 {
@@ -14,8 +16,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<bool> x, ReadOnlySpan<bool> y, Span<bool> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (bool)(x[i] & y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<bool> x, bool y, Span<bool> destination)
@@ -32,8 +39,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<bool> x, ReadOnlySpan<bool> y, Span<bool> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (bool)(x[i] | y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<bool> x, bool y, Span<bool> destination)
@@ -50,8 +62,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<bool> x, ReadOnlySpan<bool> y, Span<bool> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (bool)(x[i] ^ y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<bool> x, bool y, Span<bool> destination)
@@ -103,8 +120,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref byte xRef = ref MemoryMarshal.GetReference(x);
+                ref byte yRef = ref MemoryMarshal.GetReference(y);
+                ref byte dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<byte>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) + Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (byte)(x[i] + y[i]);
+                i++;
+            }
         }
 
         protected override void Add(ReadOnlySpan<byte> x, byte y, Span<byte> destination)
@@ -121,8 +164,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref byte xRef = ref MemoryMarshal.GetReference(x);
+                ref byte yRef = ref MemoryMarshal.GetReference(y);
+                ref byte dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<byte>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) - Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (byte)(x[i] - y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<byte> x, byte y, Span<byte> destination)
@@ -139,8 +208,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref byte xRef = ref MemoryMarshal.GetReference(x);
+                ref byte yRef = ref MemoryMarshal.GetReference(y);
+                ref byte dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<byte>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) * Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (byte)(x[i] * y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<byte> x, byte y, Span<byte> destination)
@@ -162,8 +257,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref byte xRef = ref MemoryMarshal.GetReference(x);
+                ref byte yRef = ref MemoryMarshal.GetReference(y);
+                ref byte dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<byte>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) / Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (byte)(x[i] / y[i]);
+                i++;
+            }
         }
 
         protected override void Divide(ReadOnlySpan<byte> x, byte y, Span<byte> destination)
@@ -185,8 +306,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (byte)(x[i] % y[i]);
+                i++;
+            }
         }
 
         protected override void Modulo(ReadOnlySpan<byte> x, byte y, Span<byte> destination)
@@ -203,8 +329,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (byte)(x[i] & y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<byte> x, byte y, Span<byte> destination)
@@ -221,8 +352,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (byte)(x[i] | y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<byte> x, byte y, Span<byte> destination)
@@ -239,8 +375,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (byte)(x[i] ^ y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<byte> x, byte y, Span<byte> destination)
@@ -368,8 +509,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<char> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref char xRef = ref MemoryMarshal.GetReference(x);
+                ref char yRef = ref MemoryMarshal.GetReference(y);
+                ref char dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<char>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) + Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (char)(x[i] + y[i]);
+                i++;
+            }
         }
 
         protected override void Add(ReadOnlySpan<char> x, char y, Span<char> destination)
@@ -386,8 +553,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<char> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref char xRef = ref MemoryMarshal.GetReference(x);
+                ref char yRef = ref MemoryMarshal.GetReference(y);
+                ref char dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<char>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) - Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (char)(x[i] - y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<char> x, char y, Span<char> destination)
@@ -404,8 +597,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<char> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref char xRef = ref MemoryMarshal.GetReference(x);
+                ref char yRef = ref MemoryMarshal.GetReference(y);
+                ref char dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<char>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) * Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (char)(x[i] * y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<char> x, char y, Span<char> destination)
@@ -427,8 +646,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<char> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref char xRef = ref MemoryMarshal.GetReference(x);
+                ref char yRef = ref MemoryMarshal.GetReference(y);
+                ref char dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<char>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) / Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (char)(x[i] / y[i]);
+                i++;
+            }
         }
 
         protected override void Divide(ReadOnlySpan<char> x, char y, Span<char> destination)
@@ -450,8 +695,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<char> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (char)(x[i] % y[i]);
+                i++;
+            }
         }
 
         protected override void Modulo(ReadOnlySpan<char> x, char y, Span<char> destination)
@@ -468,8 +718,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<char> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (char)(x[i] & y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<char> x, char y, Span<char> destination)
@@ -486,8 +741,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<char> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (char)(x[i] | y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<char> x, char y, Span<char> destination)
@@ -504,8 +764,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<char> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (char)(x[i] ^ y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<char> x, char y, Span<char> destination)
@@ -633,8 +898,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, Span<decimal> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (decimal)(x[i] + y[i]);
+                i++;
+            }
         }
 
         protected override void Add(ReadOnlySpan<decimal> x, decimal y, Span<decimal> destination)
@@ -651,8 +921,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, Span<decimal> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (decimal)(x[i] - y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<decimal> x, decimal y, Span<decimal> destination)
@@ -669,8 +944,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, Span<decimal> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (decimal)(x[i] * y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<decimal> x, decimal y, Span<decimal> destination)
@@ -692,8 +972,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, Span<decimal> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (decimal)(x[i] / y[i]);
+                i++;
+            }
         }
 
         protected override void Divide(ReadOnlySpan<decimal> x, decimal y, Span<decimal> destination)
@@ -715,8 +1000,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, Span<decimal> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (decimal)(x[i] % y[i]);
+                i++;
+            }
         }
 
         protected override void Modulo(ReadOnlySpan<decimal> x, decimal y, Span<decimal> destination)
@@ -832,8 +1122,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<double> x, ReadOnlySpan<double> y, Span<double> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref double xRef = ref MemoryMarshal.GetReference(x);
+                ref double yRef = ref MemoryMarshal.GetReference(y);
+                ref double dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<double>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) + Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (double)(x[i] + y[i]);
+                i++;
+            }
         }
 
         protected override void Add(ReadOnlySpan<double> x, double y, Span<double> destination)
@@ -850,8 +1166,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<double> x, ReadOnlySpan<double> y, Span<double> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref double xRef = ref MemoryMarshal.GetReference(x);
+                ref double yRef = ref MemoryMarshal.GetReference(y);
+                ref double dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<double>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) - Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (double)(x[i] - y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<double> x, double y, Span<double> destination)
@@ -868,8 +1210,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<double> x, ReadOnlySpan<double> y, Span<double> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref double xRef = ref MemoryMarshal.GetReference(x);
+                ref double yRef = ref MemoryMarshal.GetReference(y);
+                ref double dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<double>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) * Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (double)(x[i] * y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<double> x, double y, Span<double> destination)
@@ -891,8 +1259,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<double> x, ReadOnlySpan<double> y, Span<double> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref double xRef = ref MemoryMarshal.GetReference(x);
+                ref double yRef = ref MemoryMarshal.GetReference(y);
+                ref double dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<double>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) / Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (double)(x[i] / y[i]);
+                i++;
+            }
         }
 
         protected override void Divide(ReadOnlySpan<double> x, double y, Span<double> destination)
@@ -914,8 +1308,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<double> x, ReadOnlySpan<double> y, Span<double> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (double)(x[i] % y[i]);
+                i++;
+            }
         }
 
         protected override void Modulo(ReadOnlySpan<double> x, double y, Span<double> destination)
@@ -1031,8 +1430,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<float> x, ReadOnlySpan<float> y, Span<float> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref float xRef = ref MemoryMarshal.GetReference(x);
+                ref float yRef = ref MemoryMarshal.GetReference(y);
+                ref float dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<float>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) + Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (float)(x[i] + y[i]);
+                i++;
+            }
         }
 
         protected override void Add(ReadOnlySpan<float> x, float y, Span<float> destination)
@@ -1049,8 +1474,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<float> x, ReadOnlySpan<float> y, Span<float> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref float xRef = ref MemoryMarshal.GetReference(x);
+                ref float yRef = ref MemoryMarshal.GetReference(y);
+                ref float dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<float>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) - Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (float)(x[i] - y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<float> x, float y, Span<float> destination)
@@ -1067,8 +1518,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<float> x, ReadOnlySpan<float> y, Span<float> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref float xRef = ref MemoryMarshal.GetReference(x);
+                ref float yRef = ref MemoryMarshal.GetReference(y);
+                ref float dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<float>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) * Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (float)(x[i] * y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<float> x, float y, Span<float> destination)
@@ -1090,8 +1567,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<float> x, ReadOnlySpan<float> y, Span<float> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref float xRef = ref MemoryMarshal.GetReference(x);
+                ref float yRef = ref MemoryMarshal.GetReference(y);
+                ref float dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<float>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) / Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (float)(x[i] / y[i]);
+                i++;
+            }
         }
 
         protected override void Divide(ReadOnlySpan<float> x, float y, Span<float> destination)
@@ -1113,8 +1616,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<float> x, ReadOnlySpan<float> y, Span<float> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (float)(x[i] % y[i]);
+                i++;
+            }
         }
 
         protected override void Modulo(ReadOnlySpan<float> x, float y, Span<float> destination)
@@ -1230,8 +1738,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<int> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref int xRef = ref MemoryMarshal.GetReference(x);
+                ref int yRef = ref MemoryMarshal.GetReference(y);
+                ref int dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<int>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) + Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (int)(x[i] + y[i]);
+                i++;
+            }
         }
 
         protected override void Add(ReadOnlySpan<int> x, int y, Span<int> destination)
@@ -1248,8 +1782,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<int> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref int xRef = ref MemoryMarshal.GetReference(x);
+                ref int yRef = ref MemoryMarshal.GetReference(y);
+                ref int dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<int>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) - Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (int)(x[i] - y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<int> x, int y, Span<int> destination)
@@ -1266,8 +1826,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<int> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref int xRef = ref MemoryMarshal.GetReference(x);
+                ref int yRef = ref MemoryMarshal.GetReference(y);
+                ref int dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<int>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) * Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (int)(x[i] * y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<int> x, int y, Span<int> destination)
@@ -1289,8 +1875,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<int> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref int xRef = ref MemoryMarshal.GetReference(x);
+                ref int yRef = ref MemoryMarshal.GetReference(y);
+                ref int dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<int>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) / Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (int)(x[i] / y[i]);
+                i++;
+            }
         }
 
         protected override void Divide(ReadOnlySpan<int> x, int y, Span<int> destination)
@@ -1312,8 +1924,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<int> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (int)(x[i] % y[i]);
+                i++;
+            }
         }
 
         protected override void Modulo(ReadOnlySpan<int> x, int y, Span<int> destination)
@@ -1330,8 +1947,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<int> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (int)(x[i] & y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<int> x, int y, Span<int> destination)
@@ -1348,8 +1970,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<int> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (int)(x[i] | y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<int> x, int y, Span<int> destination)
@@ -1366,8 +1993,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<int> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (int)(x[i] ^ y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<int> x, int y, Span<int> destination)
@@ -1495,8 +2127,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref long xRef = ref MemoryMarshal.GetReference(x);
+                ref long yRef = ref MemoryMarshal.GetReference(y);
+                ref long dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<long>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) + Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (long)(x[i] + y[i]);
+                i++;
+            }
         }
 
         protected override void Add(ReadOnlySpan<long> x, long y, Span<long> destination)
@@ -1513,8 +2171,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref long xRef = ref MemoryMarshal.GetReference(x);
+                ref long yRef = ref MemoryMarshal.GetReference(y);
+                ref long dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<long>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) - Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (long)(x[i] - y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<long> x, long y, Span<long> destination)
@@ -1531,8 +2215,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref long xRef = ref MemoryMarshal.GetReference(x);
+                ref long yRef = ref MemoryMarshal.GetReference(y);
+                ref long dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<long>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) * Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (long)(x[i] * y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<long> x, long y, Span<long> destination)
@@ -1554,8 +2264,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref long xRef = ref MemoryMarshal.GetReference(x);
+                ref long yRef = ref MemoryMarshal.GetReference(y);
+                ref long dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<long>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) / Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (long)(x[i] / y[i]);
+                i++;
+            }
         }
 
         protected override void Divide(ReadOnlySpan<long> x, long y, Span<long> destination)
@@ -1577,8 +2313,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (long)(x[i] % y[i]);
+                i++;
+            }
         }
 
         protected override void Modulo(ReadOnlySpan<long> x, long y, Span<long> destination)
@@ -1595,8 +2336,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (long)(x[i] & y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<long> x, long y, Span<long> destination)
@@ -1613,8 +2359,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (long)(x[i] | y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<long> x, long y, Span<long> destination)
@@ -1631,8 +2382,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (long)(x[i] ^ y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<long> x, long y, Span<long> destination)
@@ -1760,8 +2516,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref sbyte xRef = ref MemoryMarshal.GetReference(x);
+                ref sbyte yRef = ref MemoryMarshal.GetReference(y);
+                ref sbyte dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<sbyte>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) + Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (sbyte)(x[i] + y[i]);
+                i++;
+            }
         }
 
         protected override void Add(ReadOnlySpan<sbyte> x, sbyte y, Span<sbyte> destination)
@@ -1778,8 +2560,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref sbyte xRef = ref MemoryMarshal.GetReference(x);
+                ref sbyte yRef = ref MemoryMarshal.GetReference(y);
+                ref sbyte dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<sbyte>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) - Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (sbyte)(x[i] - y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<sbyte> x, sbyte y, Span<sbyte> destination)
@@ -1796,8 +2604,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref sbyte xRef = ref MemoryMarshal.GetReference(x);
+                ref sbyte yRef = ref MemoryMarshal.GetReference(y);
+                ref sbyte dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<sbyte>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) * Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (sbyte)(x[i] * y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<sbyte> x, sbyte y, Span<sbyte> destination)
@@ -1819,8 +2653,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref sbyte xRef = ref MemoryMarshal.GetReference(x);
+                ref sbyte yRef = ref MemoryMarshal.GetReference(y);
+                ref sbyte dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<sbyte>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) / Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (sbyte)(x[i] / y[i]);
+                i++;
+            }
         }
 
         protected override void Divide(ReadOnlySpan<sbyte> x, sbyte y, Span<sbyte> destination)
@@ -1842,8 +2702,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (sbyte)(x[i] % y[i]);
+                i++;
+            }
         }
 
         protected override void Modulo(ReadOnlySpan<sbyte> x, sbyte y, Span<sbyte> destination)
@@ -1860,8 +2725,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (sbyte)(x[i] & y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<sbyte> x, sbyte y, Span<sbyte> destination)
@@ -1878,8 +2748,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (sbyte)(x[i] | y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<sbyte> x, sbyte y, Span<sbyte> destination)
@@ -1896,8 +2771,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (sbyte)(x[i] ^ y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<sbyte> x, sbyte y, Span<sbyte> destination)
@@ -2025,8 +2905,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<short> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref short xRef = ref MemoryMarshal.GetReference(x);
+                ref short yRef = ref MemoryMarshal.GetReference(y);
+                ref short dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<short>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) + Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (short)(x[i] + y[i]);
+                i++;
+            }
         }
 
         protected override void Add(ReadOnlySpan<short> x, short y, Span<short> destination)
@@ -2043,8 +2949,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<short> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref short xRef = ref MemoryMarshal.GetReference(x);
+                ref short yRef = ref MemoryMarshal.GetReference(y);
+                ref short dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<short>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) - Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (short)(x[i] - y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<short> x, short y, Span<short> destination)
@@ -2061,8 +2993,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<short> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref short xRef = ref MemoryMarshal.GetReference(x);
+                ref short yRef = ref MemoryMarshal.GetReference(y);
+                ref short dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<short>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) * Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (short)(x[i] * y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<short> x, short y, Span<short> destination)
@@ -2084,8 +3042,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<short> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref short xRef = ref MemoryMarshal.GetReference(x);
+                ref short yRef = ref MemoryMarshal.GetReference(y);
+                ref short dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<short>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) / Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (short)(x[i] / y[i]);
+                i++;
+            }
         }
 
         protected override void Divide(ReadOnlySpan<short> x, short y, Span<short> destination)
@@ -2107,8 +3091,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<short> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (short)(x[i] % y[i]);
+                i++;
+            }
         }
 
         protected override void Modulo(ReadOnlySpan<short> x, short y, Span<short> destination)
@@ -2125,8 +3114,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<short> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (short)(x[i] & y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<short> x, short y, Span<short> destination)
@@ -2143,8 +3137,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<short> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (short)(x[i] | y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<short> x, short y, Span<short> destination)
@@ -2161,8 +3160,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<short> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (short)(x[i] ^ y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<short> x, short y, Span<short> destination)
@@ -2290,8 +3294,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref uint xRef = ref MemoryMarshal.GetReference(x);
+                ref uint yRef = ref MemoryMarshal.GetReference(y);
+                ref uint dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<uint>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) + Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (uint)(x[i] + y[i]);
+                i++;
+            }
         }
 
         protected override void Add(ReadOnlySpan<uint> x, uint y, Span<uint> destination)
@@ -2308,8 +3338,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref uint xRef = ref MemoryMarshal.GetReference(x);
+                ref uint yRef = ref MemoryMarshal.GetReference(y);
+                ref uint dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<uint>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) - Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (uint)(x[i] - y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<uint> x, uint y, Span<uint> destination)
@@ -2326,8 +3382,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref uint xRef = ref MemoryMarshal.GetReference(x);
+                ref uint yRef = ref MemoryMarshal.GetReference(y);
+                ref uint dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<uint>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) * Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (uint)(x[i] * y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<uint> x, uint y, Span<uint> destination)
@@ -2349,8 +3431,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref uint xRef = ref MemoryMarshal.GetReference(x);
+                ref uint yRef = ref MemoryMarshal.GetReference(y);
+                ref uint dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<uint>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) / Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (uint)(x[i] / y[i]);
+                i++;
+            }
         }
 
         protected override void Divide(ReadOnlySpan<uint> x, uint y, Span<uint> destination)
@@ -2372,8 +3480,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (uint)(x[i] % y[i]);
+                i++;
+            }
         }
 
         protected override void Modulo(ReadOnlySpan<uint> x, uint y, Span<uint> destination)
@@ -2390,8 +3503,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (uint)(x[i] & y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<uint> x, uint y, Span<uint> destination)
@@ -2408,8 +3526,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (uint)(x[i] | y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<uint> x, uint y, Span<uint> destination)
@@ -2426,8 +3549,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (uint)(x[i] ^ y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<uint> x, uint y, Span<uint> destination)
@@ -2555,8 +3683,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref ulong xRef = ref MemoryMarshal.GetReference(x);
+                ref ulong yRef = ref MemoryMarshal.GetReference(y);
+                ref ulong dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<ulong>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) + Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (ulong)(x[i] + y[i]);
+                i++;
+            }
         }
 
         protected override void Add(ReadOnlySpan<ulong> x, ulong y, Span<ulong> destination)
@@ -2573,8 +3727,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref ulong xRef = ref MemoryMarshal.GetReference(x);
+                ref ulong yRef = ref MemoryMarshal.GetReference(y);
+                ref ulong dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<ulong>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) - Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (ulong)(x[i] - y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<ulong> x, ulong y, Span<ulong> destination)
@@ -2591,8 +3771,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref ulong xRef = ref MemoryMarshal.GetReference(x);
+                ref ulong yRef = ref MemoryMarshal.GetReference(y);
+                ref ulong dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<ulong>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) * Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (ulong)(x[i] * y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<ulong> x, ulong y, Span<ulong> destination)
@@ -2614,8 +3820,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref ulong xRef = ref MemoryMarshal.GetReference(x);
+                ref ulong yRef = ref MemoryMarshal.GetReference(y);
+                ref ulong dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<ulong>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) / Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (ulong)(x[i] / y[i]);
+                i++;
+            }
         }
 
         protected override void Divide(ReadOnlySpan<ulong> x, ulong y, Span<ulong> destination)
@@ -2637,8 +3869,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ulong)(x[i] % y[i]);
+                i++;
+            }
         }
 
         protected override void Modulo(ReadOnlySpan<ulong> x, ulong y, Span<ulong> destination)
@@ -2655,8 +3892,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ulong)(x[i] & y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<ulong> x, ulong y, Span<ulong> destination)
@@ -2673,8 +3915,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ulong)(x[i] | y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<ulong> x, ulong y, Span<ulong> destination)
@@ -2691,8 +3938,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ulong)(x[i] ^ y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<ulong> x, ulong y, Span<ulong> destination)
@@ -2820,8 +4072,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<ushort> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref ushort xRef = ref MemoryMarshal.GetReference(x);
+                ref ushort yRef = ref MemoryMarshal.GetReference(y);
+                ref ushort dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<ushort>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) + Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (ushort)(x[i] + y[i]);
+                i++;
+            }
         }
 
         protected override void Add(ReadOnlySpan<ushort> x, ushort y, Span<ushort> destination)
@@ -2838,8 +4116,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<ushort> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref ushort xRef = ref MemoryMarshal.GetReference(x);
+                ref ushort yRef = ref MemoryMarshal.GetReference(y);
+                ref ushort dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<ushort>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) - Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (ushort)(x[i] - y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<ushort> x, ushort y, Span<ushort> destination)
@@ -2856,8 +4160,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<ushort> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref ushort xRef = ref MemoryMarshal.GetReference(x);
+                ref ushort yRef = ref MemoryMarshal.GetReference(y);
+                ref ushort dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<ushort>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) * Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (ushort)(x[i] * y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<ushort> x, ushort y, Span<ushort> destination)
@@ -2879,8 +4209,34 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<ushort> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref ushort xRef = ref MemoryMarshal.GetReference(x);
+                ref ushort yRef = ref MemoryMarshal.GetReference(y);
+                ref ushort dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<ushort>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) / Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+
+            while (i < x.Length)
+            {
                 destination[i] = (ushort)(x[i] / y[i]);
+                i++;
+            }
         }
 
         protected override void Divide(ReadOnlySpan<ushort> x, ushort y, Span<ushort> destination)
@@ -2902,8 +4258,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<ushort> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ushort)(x[i] % y[i]);
+                i++;
+            }
         }
 
         protected override void Modulo(ReadOnlySpan<ushort> x, ushort y, Span<ushort> destination)
@@ -2920,8 +4281,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<ushort> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ushort)(x[i] & y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<ushort> x, ushort y, Span<ushort> destination)
@@ -2938,8 +4304,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<ushort> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ushort)(x[i] | y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<ushort> x, ushort y, Span<ushort> destination)
@@ -2956,8 +4327,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<ushort> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ushort)(x[i] ^ y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<ushort> x, ushort y, Span<ushort> destination)

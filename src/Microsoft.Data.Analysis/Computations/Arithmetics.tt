@@ -13,6 +13,8 @@
 // Generated from Arithmetics.tt. Do not modify directly
 
 using System;
+using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.Data.Analysis
 {
@@ -50,8 +52,36 @@ namespace Microsoft.Data.Analysis
 
         protected override void <#=method.MethodName#>(ReadOnlySpan<<#=type.TypeName#>> x, ReadOnlySpan<<#=type.TypeName#>> y, Span<<#=type.TypeName#>> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+<# if (method.SupportsVectorization && type.SupportsVectorization) { #>
+            if (Vector.IsHardwareAccelerated)
+            {
+                ref <#=type.TypeName#> xRef = ref MemoryMarshal.GetReference(x);
+                ref <#=type.TypeName#> yRef = ref MemoryMarshal.GetReference(y);
+                ref <#=type.TypeName#> dRef = ref MemoryMarshal.GetReference(destination);
+
+                var vectorSize = Vector<<#=type.TypeName#>>.Count;
+                var oneVectorFromEnd = x.Length - vectorSize;
+
+                if (oneVectorFromEnd >= 0)
+                {
+                    // Loop handling one vector at a time.
+                    do
+                    {
+                        Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) <#= method.Operator #> Arithmetic.AsVector(ref yRef, i));
+
+                        i += vectorSize;
+                    }
+                    while (i <= oneVectorFromEnd);
+                }
+            }
+<# } #>
+
+            while (i < x.Length)
+            {
                 destination[i] = (<#=type.TypeName#>)(x[i] <#= method.Operator #> y[i]);
+                i++;
+            }
         }
 <# } #>
 <# else if (method.MethodType == MethodType.BinaryScalar) { #>

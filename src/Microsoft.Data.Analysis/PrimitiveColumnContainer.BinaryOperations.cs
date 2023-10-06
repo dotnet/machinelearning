@@ -47,7 +47,7 @@ namespace Microsoft.Data.Analysis
                     ValidityElementwiseAnd(leftValidity, rightValidity, leftValidity);
 
                     //Calculate NullCount
-                    nullCount += BitUtility.GetBitCount(leftValidity, mutableBuffer.Length);
+                    nullCount += mutableBuffer.Length - BitUtility.GetBitCount(leftValidity, mutableBuffer.Length);
                 }
             }
 
@@ -76,17 +76,17 @@ namespace Microsoft.Data.Analysis
                 var rightSpan = this.Buffers.GetOrCreateMutable(i).Span;
                 var rightValidity = this.NullBitMapBuffers[i].ReadOnlySpan;
 
-                if (operation != BinaryOperation.Divide)
-                    arithmetic.HandleOperation(operation, left, rightSpan, rightSpan);
-                else
+                if (operation == BinaryOperation.Divide || operation == BinaryOperation.Modulo)
                 {
-                    //Division is a special case
+                    //Divisions are special cases
                     for (var j = 0; j < rightSpan.Length; j++)
                     {
                         if (BitUtility.GetBit(rightValidity, j))
                             rightSpan[j] = arithmetic.HandleOperation(operation, left, rightSpan[j]);
                     }
                 }
+                else
+                    arithmetic.HandleOperation(operation, left, rightSpan, rightSpan);
             }
 
             return this;

@@ -6,6 +6,8 @@
 // Generated from Arithmetic.tt. Do not modify directly
 
 using System;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.Data.Analysis
 {
@@ -48,6 +50,10 @@ namespace Microsoft.Data.Analysis
                 return (IArithmetic<T>)new DateTimeArithmetic();
             throw new NotSupportedException();
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref Vector<T> AsVector<T>(ref T start, int offset)
+            where T : struct => ref Unsafe.As<T, Vector<T>>(ref Unsafe.Add(ref start, offset));
     }
 
 

@@ -161,7 +161,7 @@ namespace Microsoft.Data.Analysis
                 var partialByte = span[endByteIndex];
                 for (var j = 0; j < endBitOffset; j++)
                 {
-                    count += GetBit(partialByte, j) ? 0 : 1;
+                    count += GetBit(partialByte, j) ? 1 : 0;
                 }
             }
 

@@ -3696,11 +3696,12 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void Test_ArithmeticsSumWithNull()
+        public void Test_ArithmeticsAddWithNull()
         {
             // Arrange
-            var left_column = new Int32DataFrameColumn("Left", new int?[] { 1, 1, null, null });
-            var right_column = new Int32DataFrameColumn("Right", new int?[] { 1, null, 1, null });
+            //Number of elements shoult be higher than 8 to test SIMD
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 1, 1, null, null, 4, 5, 6, 7, 8, 9 });
+            var right_column = new Int32DataFrameColumn("Right", new int?[] { 1, null, 1, null, 4, 5, 6, 7, 8, 9 });
 
             // Act
             var sum = left_column + right_column;
@@ -3712,6 +3713,12 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Null(sum[1]); // null + 1
             Assert.Null(sum[2]); // 1 + null
             Assert.Null(sum[3]); // null + null
+            Assert.Equal(8, sum[4]);
+            Assert.Equal(10, sum[5]);
+            Assert.Equal(12, sum[6]);
+            Assert.Equal(14, sum[7]);
+            Assert.Equal(16, sum[8]);
+            Assert.Equal(18, sum[9]);
         }
 
         [Fact]
