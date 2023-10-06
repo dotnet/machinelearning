@@ -27,14 +27,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<bool> x, bool y, Span<bool> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (bool)(x[i] & y);
+                i++;
+            }
         }
 
         protected override void And(bool x, ReadOnlySpan<bool> y, Span<bool> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (bool)(x & y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<bool> x, ReadOnlySpan<bool> y, Span<bool> destination)
@@ -50,14 +60,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<bool> x, bool y, Span<bool> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (bool)(x[i] | y);
+                i++;
+            }
         }
 
         protected override void Or(bool x, ReadOnlySpan<bool> y, Span<bool> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (bool)(x | y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<bool> x, ReadOnlySpan<bool> y, Span<bool> destination)
@@ -73,14 +93,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<bool> x, bool y, Span<bool> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (bool)(x[i] ^ y);
+                i++;
+            }
         }
 
         protected override void Xor(bool x, ReadOnlySpan<bool> y, Span<bool> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (bool)(x ^ y[i]);
+                i++;
+            }
         }
 
         protected override void ElementwiseEquals(ReadOnlySpan<bool> x, ReadOnlySpan<bool> y, PrimitiveColumnContainer<bool> result, long offset)
@@ -152,14 +182,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<byte> x, byte y, Span<byte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (byte)(x[i] + y);
+                i++;
+            }
         }
 
         protected override void Add(byte x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (byte)(x + y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> destination)
@@ -196,14 +236,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<byte> x, byte y, Span<byte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (byte)(x[i] - y);
+                i++;
+            }
         }
 
         protected override void Subtract(byte x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (byte)(x - y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> destination)
@@ -240,14 +290,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<byte> x, byte y, Span<byte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (byte)(x[i] * y);
+                i++;
+            }
         }
 
         protected override void Multiply(byte x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (byte)(x * y[i]);
+                i++;
+            }
         }
 
         protected override byte Divide(byte x, byte y)
@@ -289,14 +349,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<byte> x, byte y, Span<byte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (byte)(x[i] / y);
+                i++;
+            }
         }
 
         protected override void Divide(byte x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (byte)(x / y[i]);
+                i++;
+            }
         }
 
         protected override byte Modulo(byte x, byte y)
@@ -317,14 +387,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<byte> x, byte y, Span<byte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (byte)(x[i] % y);
+                i++;
+            }
         }
 
         protected override void Modulo(byte x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (byte)(x % y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> destination)
@@ -340,14 +420,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<byte> x, byte y, Span<byte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (byte)(x[i] & y);
+                i++;
+            }
         }
 
         protected override void And(byte x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (byte)(x & y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> destination)
@@ -363,14 +453,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<byte> x, byte y, Span<byte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (byte)(x[i] | y);
+                i++;
+            }
         }
 
         protected override void Or(byte x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (byte)(x | y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> destination)
@@ -386,14 +486,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<byte> x, byte y, Span<byte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (byte)(x[i] ^ y);
+                i++;
+            }
         }
 
         protected override void Xor(byte x, ReadOnlySpan<byte> y, Span<byte> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (byte)(x ^ y[i]);
+                i++;
+            }
         }
 
         protected override void LeftShift(ReadOnlySpan<byte> x, int y, Span<byte> destination)
@@ -541,14 +651,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<char> x, char y, Span<char> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (char)(x[i] + y);
+                i++;
+            }
         }
 
         protected override void Add(char x, ReadOnlySpan<char> y, Span<char> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (char)(x + y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<char> destination)
@@ -585,14 +705,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<char> x, char y, Span<char> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (char)(x[i] - y);
+                i++;
+            }
         }
 
         protected override void Subtract(char x, ReadOnlySpan<char> y, Span<char> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (char)(x - y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<char> destination)
@@ -629,14 +759,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<char> x, char y, Span<char> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (char)(x[i] * y);
+                i++;
+            }
         }
 
         protected override void Multiply(char x, ReadOnlySpan<char> y, Span<char> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (char)(x * y[i]);
+                i++;
+            }
         }
 
         protected override char Divide(char x, char y)
@@ -678,14 +818,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<char> x, char y, Span<char> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (char)(x[i] / y);
+                i++;
+            }
         }
 
         protected override void Divide(char x, ReadOnlySpan<char> y, Span<char> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (char)(x / y[i]);
+                i++;
+            }
         }
 
         protected override char Modulo(char x, char y)
@@ -706,14 +856,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<char> x, char y, Span<char> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (char)(x[i] % y);
+                i++;
+            }
         }
 
         protected override void Modulo(char x, ReadOnlySpan<char> y, Span<char> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (char)(x % y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<char> destination)
@@ -729,14 +889,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<char> x, char y, Span<char> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (char)(x[i] & y);
+                i++;
+            }
         }
 
         protected override void And(char x, ReadOnlySpan<char> y, Span<char> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (char)(x & y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<char> destination)
@@ -752,14 +922,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<char> x, char y, Span<char> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (char)(x[i] | y);
+                i++;
+            }
         }
 
         protected override void Or(char x, ReadOnlySpan<char> y, Span<char> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (char)(x | y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<char> destination)
@@ -775,14 +955,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<char> x, char y, Span<char> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (char)(x[i] ^ y);
+                i++;
+            }
         }
 
         protected override void Xor(char x, ReadOnlySpan<char> y, Span<char> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (char)(x ^ y[i]);
+                i++;
+            }
         }
 
         protected override void LeftShift(ReadOnlySpan<char> x, int y, Span<char> destination)
@@ -909,14 +1099,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<decimal> x, decimal y, Span<decimal> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (decimal)(x[i] + y);
+                i++;
+            }
         }
 
         protected override void Add(decimal x, ReadOnlySpan<decimal> y, Span<decimal> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (decimal)(x + y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, Span<decimal> destination)
@@ -932,14 +1132,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<decimal> x, decimal y, Span<decimal> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (decimal)(x[i] - y);
+                i++;
+            }
         }
 
         protected override void Subtract(decimal x, ReadOnlySpan<decimal> y, Span<decimal> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (decimal)(x - y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, Span<decimal> destination)
@@ -955,14 +1165,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<decimal> x, decimal y, Span<decimal> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (decimal)(x[i] * y);
+                i++;
+            }
         }
 
         protected override void Multiply(decimal x, ReadOnlySpan<decimal> y, Span<decimal> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (decimal)(x * y[i]);
+                i++;
+            }
         }
 
         protected override decimal Divide(decimal x, decimal y)
@@ -983,14 +1203,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<decimal> x, decimal y, Span<decimal> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (decimal)(x[i] / y);
+                i++;
+            }
         }
 
         protected override void Divide(decimal x, ReadOnlySpan<decimal> y, Span<decimal> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (decimal)(x / y[i]);
+                i++;
+            }
         }
 
         protected override decimal Modulo(decimal x, decimal y)
@@ -1011,14 +1241,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<decimal> x, decimal y, Span<decimal> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (decimal)(x[i] % y);
+                i++;
+            }
         }
 
         protected override void Modulo(decimal x, ReadOnlySpan<decimal> y, Span<decimal> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (decimal)(x % y[i]);
+                i++;
+            }
         }
 
         protected override void ElementwiseEquals(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, PrimitiveColumnContainer<bool> result, long offset)
@@ -1154,14 +1394,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<double> x, double y, Span<double> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (double)(x[i] + y);
+                i++;
+            }
         }
 
         protected override void Add(double x, ReadOnlySpan<double> y, Span<double> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (double)(x + y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<double> x, ReadOnlySpan<double> y, Span<double> destination)
@@ -1198,14 +1448,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<double> x, double y, Span<double> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (double)(x[i] - y);
+                i++;
+            }
         }
 
         protected override void Subtract(double x, ReadOnlySpan<double> y, Span<double> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (double)(x - y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<double> x, ReadOnlySpan<double> y, Span<double> destination)
@@ -1242,14 +1502,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<double> x, double y, Span<double> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (double)(x[i] * y);
+                i++;
+            }
         }
 
         protected override void Multiply(double x, ReadOnlySpan<double> y, Span<double> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (double)(x * y[i]);
+                i++;
+            }
         }
 
         protected override double Divide(double x, double y)
@@ -1291,14 +1561,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<double> x, double y, Span<double> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (double)(x[i] / y);
+                i++;
+            }
         }
 
         protected override void Divide(double x, ReadOnlySpan<double> y, Span<double> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (double)(x / y[i]);
+                i++;
+            }
         }
 
         protected override double Modulo(double x, double y)
@@ -1319,14 +1599,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<double> x, double y, Span<double> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (double)(x[i] % y);
+                i++;
+            }
         }
 
         protected override void Modulo(double x, ReadOnlySpan<double> y, Span<double> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (double)(x % y[i]);
+                i++;
+            }
         }
 
         protected override void ElementwiseEquals(ReadOnlySpan<double> x, ReadOnlySpan<double> y, PrimitiveColumnContainer<bool> result, long offset)
@@ -1462,14 +1752,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<float> x, float y, Span<float> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (float)(x[i] + y);
+                i++;
+            }
         }
 
         protected override void Add(float x, ReadOnlySpan<float> y, Span<float> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (float)(x + y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<float> x, ReadOnlySpan<float> y, Span<float> destination)
@@ -1506,14 +1806,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<float> x, float y, Span<float> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (float)(x[i] - y);
+                i++;
+            }
         }
 
         protected override void Subtract(float x, ReadOnlySpan<float> y, Span<float> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (float)(x - y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<float> x, ReadOnlySpan<float> y, Span<float> destination)
@@ -1550,14 +1860,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<float> x, float y, Span<float> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (float)(x[i] * y);
+                i++;
+            }
         }
 
         protected override void Multiply(float x, ReadOnlySpan<float> y, Span<float> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (float)(x * y[i]);
+                i++;
+            }
         }
 
         protected override float Divide(float x, float y)
@@ -1599,14 +1919,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<float> x, float y, Span<float> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (float)(x[i] / y);
+                i++;
+            }
         }
 
         protected override void Divide(float x, ReadOnlySpan<float> y, Span<float> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (float)(x / y[i]);
+                i++;
+            }
         }
 
         protected override float Modulo(float x, float y)
@@ -1627,14 +1957,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<float> x, float y, Span<float> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (float)(x[i] % y);
+                i++;
+            }
         }
 
         protected override void Modulo(float x, ReadOnlySpan<float> y, Span<float> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (float)(x % y[i]);
+                i++;
+            }
         }
 
         protected override void ElementwiseEquals(ReadOnlySpan<float> x, ReadOnlySpan<float> y, PrimitiveColumnContainer<bool> result, long offset)
@@ -1770,14 +2110,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<int> x, int y, Span<int> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (int)(x[i] + y);
+                i++;
+            }
         }
 
         protected override void Add(int x, ReadOnlySpan<int> y, Span<int> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (int)(x + y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<int> destination)
@@ -1814,14 +2164,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<int> x, int y, Span<int> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (int)(x[i] - y);
+                i++;
+            }
         }
 
         protected override void Subtract(int x, ReadOnlySpan<int> y, Span<int> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (int)(x - y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<int> destination)
@@ -1858,14 +2218,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<int> x, int y, Span<int> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (int)(x[i] * y);
+                i++;
+            }
         }
 
         protected override void Multiply(int x, ReadOnlySpan<int> y, Span<int> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (int)(x * y[i]);
+                i++;
+            }
         }
 
         protected override int Divide(int x, int y)
@@ -1907,14 +2277,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<int> x, int y, Span<int> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (int)(x[i] / y);
+                i++;
+            }
         }
 
         protected override void Divide(int x, ReadOnlySpan<int> y, Span<int> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (int)(x / y[i]);
+                i++;
+            }
         }
 
         protected override int Modulo(int x, int y)
@@ -1935,14 +2315,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<int> x, int y, Span<int> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (int)(x[i] % y);
+                i++;
+            }
         }
 
         protected override void Modulo(int x, ReadOnlySpan<int> y, Span<int> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (int)(x % y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<int> destination)
@@ -1958,14 +2348,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<int> x, int y, Span<int> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (int)(x[i] & y);
+                i++;
+            }
         }
 
         protected override void And(int x, ReadOnlySpan<int> y, Span<int> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (int)(x & y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<int> destination)
@@ -1981,14 +2381,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<int> x, int y, Span<int> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (int)(x[i] | y);
+                i++;
+            }
         }
 
         protected override void Or(int x, ReadOnlySpan<int> y, Span<int> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (int)(x | y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<int> destination)
@@ -2004,14 +2414,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<int> x, int y, Span<int> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (int)(x[i] ^ y);
+                i++;
+            }
         }
 
         protected override void Xor(int x, ReadOnlySpan<int> y, Span<int> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (int)(x ^ y[i]);
+                i++;
+            }
         }
 
         protected override void LeftShift(ReadOnlySpan<int> x, int y, Span<int> destination)
@@ -2159,14 +2579,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<long> x, long y, Span<long> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (long)(x[i] + y);
+                i++;
+            }
         }
 
         protected override void Add(long x, ReadOnlySpan<long> y, Span<long> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (long)(x + y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> destination)
@@ -2203,14 +2633,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<long> x, long y, Span<long> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (long)(x[i] - y);
+                i++;
+            }
         }
 
         protected override void Subtract(long x, ReadOnlySpan<long> y, Span<long> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (long)(x - y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> destination)
@@ -2247,14 +2687,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<long> x, long y, Span<long> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (long)(x[i] * y);
+                i++;
+            }
         }
 
         protected override void Multiply(long x, ReadOnlySpan<long> y, Span<long> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (long)(x * y[i]);
+                i++;
+            }
         }
 
         protected override long Divide(long x, long y)
@@ -2296,14 +2746,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<long> x, long y, Span<long> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (long)(x[i] / y);
+                i++;
+            }
         }
 
         protected override void Divide(long x, ReadOnlySpan<long> y, Span<long> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (long)(x / y[i]);
+                i++;
+            }
         }
 
         protected override long Modulo(long x, long y)
@@ -2324,14 +2784,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<long> x, long y, Span<long> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (long)(x[i] % y);
+                i++;
+            }
         }
 
         protected override void Modulo(long x, ReadOnlySpan<long> y, Span<long> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (long)(x % y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> destination)
@@ -2347,14 +2817,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<long> x, long y, Span<long> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (long)(x[i] & y);
+                i++;
+            }
         }
 
         protected override void And(long x, ReadOnlySpan<long> y, Span<long> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (long)(x & y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> destination)
@@ -2370,14 +2850,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<long> x, long y, Span<long> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (long)(x[i] | y);
+                i++;
+            }
         }
 
         protected override void Or(long x, ReadOnlySpan<long> y, Span<long> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (long)(x | y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> destination)
@@ -2393,14 +2883,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<long> x, long y, Span<long> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (long)(x[i] ^ y);
+                i++;
+            }
         }
 
         protected override void Xor(long x, ReadOnlySpan<long> y, Span<long> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (long)(x ^ y[i]);
+                i++;
+            }
         }
 
         protected override void LeftShift(ReadOnlySpan<long> x, int y, Span<long> destination)
@@ -2548,14 +3048,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<sbyte> x, sbyte y, Span<sbyte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (sbyte)(x[i] + y);
+                i++;
+            }
         }
 
         protected override void Add(sbyte x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (sbyte)(x + y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
@@ -2592,14 +3102,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<sbyte> x, sbyte y, Span<sbyte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (sbyte)(x[i] - y);
+                i++;
+            }
         }
 
         protected override void Subtract(sbyte x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (sbyte)(x - y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
@@ -2636,14 +3156,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<sbyte> x, sbyte y, Span<sbyte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (sbyte)(x[i] * y);
+                i++;
+            }
         }
 
         protected override void Multiply(sbyte x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (sbyte)(x * y[i]);
+                i++;
+            }
         }
 
         protected override sbyte Divide(sbyte x, sbyte y)
@@ -2685,14 +3215,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<sbyte> x, sbyte y, Span<sbyte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (sbyte)(x[i] / y);
+                i++;
+            }
         }
 
         protected override void Divide(sbyte x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (sbyte)(x / y[i]);
+                i++;
+            }
         }
 
         protected override sbyte Modulo(sbyte x, sbyte y)
@@ -2713,14 +3253,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<sbyte> x, sbyte y, Span<sbyte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (sbyte)(x[i] % y);
+                i++;
+            }
         }
 
         protected override void Modulo(sbyte x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (sbyte)(x % y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
@@ -2736,14 +3286,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<sbyte> x, sbyte y, Span<sbyte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (sbyte)(x[i] & y);
+                i++;
+            }
         }
 
         protected override void And(sbyte x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (sbyte)(x & y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
@@ -2759,14 +3319,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<sbyte> x, sbyte y, Span<sbyte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (sbyte)(x[i] | y);
+                i++;
+            }
         }
 
         protected override void Or(sbyte x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (sbyte)(x | y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
@@ -2782,14 +3352,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<sbyte> x, sbyte y, Span<sbyte> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (sbyte)(x[i] ^ y);
+                i++;
+            }
         }
 
         protected override void Xor(sbyte x, ReadOnlySpan<sbyte> y, Span<sbyte> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (sbyte)(x ^ y[i]);
+                i++;
+            }
         }
 
         protected override void LeftShift(ReadOnlySpan<sbyte> x, int y, Span<sbyte> destination)
@@ -2937,14 +3517,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<short> x, short y, Span<short> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (short)(x[i] + y);
+                i++;
+            }
         }
 
         protected override void Add(short x, ReadOnlySpan<short> y, Span<short> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (short)(x + y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<short> destination)
@@ -2981,14 +3571,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<short> x, short y, Span<short> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (short)(x[i] - y);
+                i++;
+            }
         }
 
         protected override void Subtract(short x, ReadOnlySpan<short> y, Span<short> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (short)(x - y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<short> destination)
@@ -3025,14 +3625,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<short> x, short y, Span<short> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (short)(x[i] * y);
+                i++;
+            }
         }
 
         protected override void Multiply(short x, ReadOnlySpan<short> y, Span<short> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (short)(x * y[i]);
+                i++;
+            }
         }
 
         protected override short Divide(short x, short y)
@@ -3074,14 +3684,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<short> x, short y, Span<short> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (short)(x[i] / y);
+                i++;
+            }
         }
 
         protected override void Divide(short x, ReadOnlySpan<short> y, Span<short> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (short)(x / y[i]);
+                i++;
+            }
         }
 
         protected override short Modulo(short x, short y)
@@ -3102,14 +3722,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<short> x, short y, Span<short> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (short)(x[i] % y);
+                i++;
+            }
         }
 
         protected override void Modulo(short x, ReadOnlySpan<short> y, Span<short> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (short)(x % y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<short> destination)
@@ -3125,14 +3755,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<short> x, short y, Span<short> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (short)(x[i] & y);
+                i++;
+            }
         }
 
         protected override void And(short x, ReadOnlySpan<short> y, Span<short> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (short)(x & y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<short> destination)
@@ -3148,14 +3788,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<short> x, short y, Span<short> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (short)(x[i] | y);
+                i++;
+            }
         }
 
         protected override void Or(short x, ReadOnlySpan<short> y, Span<short> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (short)(x | y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<short> destination)
@@ -3171,14 +3821,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<short> x, short y, Span<short> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (short)(x[i] ^ y);
+                i++;
+            }
         }
 
         protected override void Xor(short x, ReadOnlySpan<short> y, Span<short> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (short)(x ^ y[i]);
+                i++;
+            }
         }
 
         protected override void LeftShift(ReadOnlySpan<short> x, int y, Span<short> destination)
@@ -3326,14 +3986,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<uint> x, uint y, Span<uint> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (uint)(x[i] + y);
+                i++;
+            }
         }
 
         protected override void Add(uint x, ReadOnlySpan<uint> y, Span<uint> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (uint)(x + y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> destination)
@@ -3370,14 +4040,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<uint> x, uint y, Span<uint> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (uint)(x[i] - y);
+                i++;
+            }
         }
 
         protected override void Subtract(uint x, ReadOnlySpan<uint> y, Span<uint> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (uint)(x - y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> destination)
@@ -3414,14 +4094,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<uint> x, uint y, Span<uint> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (uint)(x[i] * y);
+                i++;
+            }
         }
 
         protected override void Multiply(uint x, ReadOnlySpan<uint> y, Span<uint> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (uint)(x * y[i]);
+                i++;
+            }
         }
 
         protected override uint Divide(uint x, uint y)
@@ -3463,14 +4153,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<uint> x, uint y, Span<uint> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (uint)(x[i] / y);
+                i++;
+            }
         }
 
         protected override void Divide(uint x, ReadOnlySpan<uint> y, Span<uint> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (uint)(x / y[i]);
+                i++;
+            }
         }
 
         protected override uint Modulo(uint x, uint y)
@@ -3491,14 +4191,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<uint> x, uint y, Span<uint> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (uint)(x[i] % y);
+                i++;
+            }
         }
 
         protected override void Modulo(uint x, ReadOnlySpan<uint> y, Span<uint> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (uint)(x % y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> destination)
@@ -3514,14 +4224,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<uint> x, uint y, Span<uint> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (uint)(x[i] & y);
+                i++;
+            }
         }
 
         protected override void And(uint x, ReadOnlySpan<uint> y, Span<uint> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (uint)(x & y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> destination)
@@ -3537,14 +4257,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<uint> x, uint y, Span<uint> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (uint)(x[i] | y);
+                i++;
+            }
         }
 
         protected override void Or(uint x, ReadOnlySpan<uint> y, Span<uint> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (uint)(x | y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> destination)
@@ -3560,14 +4290,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<uint> x, uint y, Span<uint> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (uint)(x[i] ^ y);
+                i++;
+            }
         }
 
         protected override void Xor(uint x, ReadOnlySpan<uint> y, Span<uint> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (uint)(x ^ y[i]);
+                i++;
+            }
         }
 
         protected override void LeftShift(ReadOnlySpan<uint> x, int y, Span<uint> destination)
@@ -3715,14 +4455,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<ulong> x, ulong y, Span<ulong> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ulong)(x[i] + y);
+                i++;
+            }
         }
 
         protected override void Add(ulong x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (ulong)(x + y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> destination)
@@ -3759,14 +4509,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<ulong> x, ulong y, Span<ulong> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ulong)(x[i] - y);
+                i++;
+            }
         }
 
         protected override void Subtract(ulong x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (ulong)(x - y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> destination)
@@ -3803,14 +4563,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<ulong> x, ulong y, Span<ulong> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ulong)(x[i] * y);
+                i++;
+            }
         }
 
         protected override void Multiply(ulong x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (ulong)(x * y[i]);
+                i++;
+            }
         }
 
         protected override ulong Divide(ulong x, ulong y)
@@ -3852,14 +4622,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<ulong> x, ulong y, Span<ulong> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ulong)(x[i] / y);
+                i++;
+            }
         }
 
         protected override void Divide(ulong x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (ulong)(x / y[i]);
+                i++;
+            }
         }
 
         protected override ulong Modulo(ulong x, ulong y)
@@ -3880,14 +4660,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<ulong> x, ulong y, Span<ulong> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ulong)(x[i] % y);
+                i++;
+            }
         }
 
         protected override void Modulo(ulong x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (ulong)(x % y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> destination)
@@ -3903,14 +4693,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<ulong> x, ulong y, Span<ulong> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ulong)(x[i] & y);
+                i++;
+            }
         }
 
         protected override void And(ulong x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (ulong)(x & y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> destination)
@@ -3926,14 +4726,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<ulong> x, ulong y, Span<ulong> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ulong)(x[i] | y);
+                i++;
+            }
         }
 
         protected override void Or(ulong x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (ulong)(x | y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> destination)
@@ -3949,14 +4759,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<ulong> x, ulong y, Span<ulong> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ulong)(x[i] ^ y);
+                i++;
+            }
         }
 
         protected override void Xor(ulong x, ReadOnlySpan<ulong> y, Span<ulong> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (ulong)(x ^ y[i]);
+                i++;
+            }
         }
 
         protected override void LeftShift(ReadOnlySpan<ulong> x, int y, Span<ulong> destination)
@@ -4104,14 +4924,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Add(ReadOnlySpan<ushort> x, ushort y, Span<ushort> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ushort)(x[i] + y);
+                i++;
+            }
         }
 
         protected override void Add(ushort x, ReadOnlySpan<ushort> y, Span<ushort> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (ushort)(x + y[i]);
+                i++;
+            }
         }
 
         protected override void Subtract(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<ushort> destination)
@@ -4148,14 +4978,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Subtract(ReadOnlySpan<ushort> x, ushort y, Span<ushort> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ushort)(x[i] - y);
+                i++;
+            }
         }
 
         protected override void Subtract(ushort x, ReadOnlySpan<ushort> y, Span<ushort> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (ushort)(x - y[i]);
+                i++;
+            }
         }
 
         protected override void Multiply(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<ushort> destination)
@@ -4192,14 +5032,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Multiply(ReadOnlySpan<ushort> x, ushort y, Span<ushort> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ushort)(x[i] * y);
+                i++;
+            }
         }
 
         protected override void Multiply(ushort x, ReadOnlySpan<ushort> y, Span<ushort> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (ushort)(x * y[i]);
+                i++;
+            }
         }
 
         protected override ushort Divide(ushort x, ushort y)
@@ -4241,14 +5091,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Divide(ReadOnlySpan<ushort> x, ushort y, Span<ushort> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ushort)(x[i] / y);
+                i++;
+            }
         }
 
         protected override void Divide(ushort x, ReadOnlySpan<ushort> y, Span<ushort> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (ushort)(x / y[i]);
+                i++;
+            }
         }
 
         protected override ushort Modulo(ushort x, ushort y)
@@ -4269,14 +5129,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Modulo(ReadOnlySpan<ushort> x, ushort y, Span<ushort> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ushort)(x[i] % y);
+                i++;
+            }
         }
 
         protected override void Modulo(ushort x, ReadOnlySpan<ushort> y, Span<ushort> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (ushort)(x % y[i]);
+                i++;
+            }
         }
 
         protected override void And(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<ushort> destination)
@@ -4292,14 +5162,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void And(ReadOnlySpan<ushort> x, ushort y, Span<ushort> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ushort)(x[i] & y);
+                i++;
+            }
         }
 
         protected override void And(ushort x, ReadOnlySpan<ushort> y, Span<ushort> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (ushort)(x & y[i]);
+                i++;
+            }
         }
 
         protected override void Or(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<ushort> destination)
@@ -4315,14 +5195,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Or(ReadOnlySpan<ushort> x, ushort y, Span<ushort> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ushort)(x[i] | y);
+                i++;
+            }
         }
 
         protected override void Or(ushort x, ReadOnlySpan<ushort> y, Span<ushort> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (ushort)(x | y[i]);
+                i++;
+            }
         }
 
         protected override void Xor(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<ushort> destination)
@@ -4338,14 +5228,24 @@ namespace Microsoft.Data.Analysis
 
         protected override void Xor(ReadOnlySpan<ushort> x, ushort y, Span<ushort> destination)
         {
-            for (var i = 0; i < x.Length; i++)
+            int i = 0;
+
+            while (i < x.Length)
+            {
                 destination[i] = (ushort)(x[i] ^ y);
+                i++;
+            }
         }
 
         protected override void Xor(ushort x, ReadOnlySpan<ushort> y, Span<ushort> destination)
         {
-            for (var i = 0; i < y.Length; i++)
+            int i = 0;
+
+            while (i < y.Length)
+            {
                 destination[i] = (ushort)(x ^ y[i]);
+                i++;
+            }
         }
 
         protected override void LeftShift(ReadOnlySpan<ushort> x, int y, Span<ushort> destination)
