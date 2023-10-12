@@ -231,7 +231,7 @@ namespace Microsoft.Data.Analysis
             return new PrimitiveDataFrameColumn<T>(name, length);
         }
 
-        internal T? GetTypedValue(long rowIndex) => _columnContainer[rowIndex];
+        protected T? GetTypedValue(long rowIndex) => _columnContainer[rowIndex];
 
         protected override object GetValue(long rowIndex) => GetTypedValue(rowIndex);
 
