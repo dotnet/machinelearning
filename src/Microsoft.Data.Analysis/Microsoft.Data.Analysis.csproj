@@ -131,6 +131,10 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Arithmetics.cs</LastGenOutput>
     </None>
+    <None Update="PrimitiveColumnContainer.BinaryOperations.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveColumnContainer.BinaryOperations.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -147,11 +151,6 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Converters.tt</DependentUpon>
-    </Compile>
-    <Compile Update="ColumnArithmetic.OperationEnums.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ColumnArithmetic.OperationEnums.tt</DependentUpon>
     </Compile>
     <Compile Update="PrimitiveDataFrameColumn.BinaryOperationImplementations.Exploded.cs">
       <DesignTime>True</DesignTime>

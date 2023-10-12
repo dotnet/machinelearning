@@ -32,4 +32,8 @@
     <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' != 'net461'">
+    <PackageReference Include="Microsoft.DotNet.RemoteExecutor" Version="9.0.0-beta.23504.4" />
+  </ItemGroup>
+
 </Project>

@@ -5,7 +5,9 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
+using System.Numerics.Tensors;
 using Microsoft.ML.Internal.CpuMath.Core;
+using System.ComponentModel.DataAnnotations;
 
 namespace Microsoft.ML.Internal.CpuMath
 {
@@ -163,22 +165,7 @@ namespace Microsoft.ML.Internal.CpuMath
         public static void Add(float value, Span<float> destination)
         {
             Contracts.AssertNonEmpty(destination);
-
-            if (destination.Length < MinInputSize || !Sse.IsSupported)
-            {
-                for (int i = 0; i < destination.Length; i++)
-                {
-                    destination[i] += value;
-                }
-            }
-            else if (Avx.IsSupported)
-            {
-                AvxIntrinsics.AddScalarU(value, destination);
-            }
-            else
-            {
-                SseIntrinsics.AddScalarU(value, destination);
-            }
+            TensorPrimitives.Add(destination, value, destination);
         }
 
         /// <summary>
@@ -190,22 +177,7 @@ namespace Microsoft.ML.Internal.CpuMath
         public static void Scale(float value, Span<float> destination)
         {
             Contracts.AssertNonEmpty(destination);
-
-            if (destination.Length < MinInputSize || !Sse.IsSupported)
-            {
-                for (int i = 0; i < destination.Length; i++)
-                {
-                    destination[i] *= value;
-                }
-            }
-            else if (Avx.IsSupported)
-            {
-                AvxIntrinsics.Scale(value, destination);
-            }
-            else
-            {
-                SseIntrinsics.Scale(value, destination);
-            }
+            TensorPrimitives.Multiply(destination, value, destination);
         }
 
         /// <summary>
@@ -225,21 +197,8 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= destination.Length);
 
-            if (destination.Length < MinInputSize || !Sse.IsSupported)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    destination[i] = value * source[i];
-                }
-            }
-            else if (Avx.IsSupported)
-            {
-                AvxIntrinsics.ScaleSrcU(value, source, destination, count);
-            }
-            else
-            {
-                SseIntrinsics.ScaleSrcU(value, source, destination, count);
-            }
+            TensorPrimitives.Multiply(source.Slice(0, count), value, destination);
+
         }
 
         /// <summary>
@@ -255,22 +214,9 @@ namespace Microsoft.ML.Internal.CpuMath
         public static void ScaleAdd(float scale, float addend, Span<float> destination)
         {
             Contracts.AssertNonEmpty(destination);
-
-            if (destination.Length < MinInputSize || !Sse.IsSupported)
-            {
-                for (int i = 0; i < destination.Length; i++)
-                {
-                    destination[i] = scale * (destination[i] + addend);
-                }
-            }
-            else if (Avx.IsSupported)
-            {
-                AvxIntrinsics.ScaleAddU(scale, addend, destination);
-            }
-            else
-            {
-                SseIntrinsics.ScaleAddU(scale, addend, destination);
-            }
+            var scaleSpan = new Span<float>(new float[destination.Length]);
+            scaleSpan.Fill(scale);
+            TensorPrimitives.AddMultiply(destination, addend, scaleSpan, destination);
         }
 
         /// <summary>
@@ -289,21 +235,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= destination.Length);
 
-            if (destination.Length < MinInputSize || !Sse.IsSupported)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    destination[i] += scale * source[i];
-                }
-            }
-            else if (Avx.IsSupported)
-            {
-                AvxIntrinsics.AddScaleU(scale, source, destination, count);
-            }
-            else
-            {
-                SseIntrinsics.AddScaleU(scale, source, destination, count);
-            }
+            TensorPrimitives.MultiplyAdd(source.Slice(0, count), scale, destination.Slice(0, count), destination);
         }
 
         /// <summary>
@@ -362,21 +294,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= destination.Length);
             Contracts.Assert(count <= result.Length);
 
-            if (count < MinInputSize || !Sse.IsSupported)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    result[i] = scale * source[i] + destination[i];
-                }
-            }
-            else if (Avx.IsSupported)
-            {
-                AvxIntrinsics.AddScaleCopyU(scale, source, destination, result, count);
-            }
-            else
-            {
-                SseIntrinsics.AddScaleCopyU(scale, source, destination, result, count);
-            }
+            TensorPrimitives.MultiplyAdd(source.Slice(0, count), scale, destination.Slice(0, count), result.Slice(0, count));
         }
 
         /// <summary>
@@ -394,21 +312,9 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= destination.Length);
 
-            if (count < MinInputSize || !Sse.IsSupported)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    destination[i] += source[i];
-                }
-            }
-            else if (Avx.IsSupported)
-            {
-                AvxIntrinsics.AddU(source, destination, count);
-            }
-            else
-            {
-                SseIntrinsics.AddU(source, destination, count);
-            }
+            System.IO.File.AppendAllLines(@"C:\Temp\AddKMeansAdult.txt", new string[] { count.ToString() });
+
+            TensorPrimitives.Add(source.Slice(0, count), destination.Slice(0, count), destination.Slice(0, count));
         }
 
         /// <summary>
@@ -465,21 +371,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= right.Length);
             Contracts.Assert(count <= destination.Length);
 
-            if (count < MinInputSize || !Sse.IsSupported)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    destination[i] = left[i] * right[i];
-                }
-            }
-            else if (Avx.IsSupported)
-            {
-                AvxIntrinsics.MulElementWiseU(left, right, destination, count);
-            }
-            else
-            {
-                SseIntrinsics.MulElementWiseU(left, right, destination, count);
-            }
+            TensorPrimitives.Multiply(left.Slice(0, count), right.Slice(0, count), destination.Slice(0, count));
         }
 
         /// <summary>
@@ -492,23 +384,7 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (source.Length < MinInputSize || !Sse.IsSupported)
-            {
-                float sum = 0;
-                for (int i = 0; i < source.Length; i++)
-                {
-                    sum += source[i];
-                }
-                return sum;
-            }
-            else if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.Sum(source);
-            }
-            else
-            {
-                return SseIntrinsics.Sum(source);
-            }
+            return TensorPrimitives.Sum(source);
         }
 
         /// <summary>
@@ -521,23 +397,7 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (source.Length < MinInputSize || !Sse.IsSupported)
-            {
-                float result = 0;
-                for (int i = 0; i < source.Length; i++)
-                {
-                    result += source[i] * source[i];
-                }
-                return result;
-            }
-            else if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.SumSqU(source);
-            }
-            else
-            {
-                return SseIntrinsics.SumSqU(source);
-            }
+            return TensorPrimitives.SumOfSquares(source);
         }
 
         /// <summary>
@@ -551,23 +411,9 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (source.Length < MinInputSize || !Sse.IsSupported)
-            {
-                float result = 0;
-                for (int i = 0; i < source.Length; i++)
-                {
-                    result += (source[i] - mean) * (source[i] - mean);
-                }
-                return result;
-            }
-            else if (Avx.IsSupported)
-            {
-                return (mean == 0) ? AvxIntrinsics.SumSqU(source) : AvxIntrinsics.SumSqDiffU(mean, source);
-            }
-            else
-            {
-                return (mean == 0) ? SseIntrinsics.SumSqU(source) : SseIntrinsics.SumSqDiffU(mean, source);
-            }
+            Span<float> dest = new Span<float>(new float[source.Length]);
+            TensorPrimitives.Subtract(source, mean, dest);
+            return TensorPrimitives.SumOfSquares(dest);
         }
 
         /// <summary>
@@ -580,23 +426,7 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (source.Length < MinInputSize || !Sse.IsSupported)
-            {
-                float sum = 0;
-                for (int i = 0; i < source.Length; i++)
-                {
-                    sum += Math.Abs(source[i]);
-                }
-                return sum;
-            }
-            else if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.SumAbsU(source);
-            }
-            else
-            {
-                return SseIntrinsics.SumAbsU(source);
-            }
+            return TensorPrimitives.SumOfMagnitudes(source);
         }
 
         /// <summary>
@@ -609,24 +439,9 @@ namespace Microsoft.ML.Internal.CpuMath
         public static float SumAbs(float mean, ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
-
-            if (source.Length < MinInputSize || !Sse.IsSupported)
-            {
-                float sum = 0;
-                for (int i = 0; i < source.Length; i++)
-                {
-                    sum += Math.Abs(source[i] - mean);
-                }
-                return sum;
-            }
-            else if (Avx.IsSupported)
-            {
-                return (mean == 0) ? AvxIntrinsics.SumAbsU(source) : AvxIntrinsics.SumAbsDiffU(mean, source);
-            }
-            else
-            {
-                return (mean == 0) ? SseIntrinsics.SumAbsU(source) : SseIntrinsics.SumAbsDiffU(mean, source);
-            }
+            Span<float> dest = new Span<float>(new float[source.Length]);
+            TensorPrimitives.Subtract(source, mean, dest);
+            return TensorPrimitives.SumOfMagnitudes(dest);
         }
 
         /// <summary>
@@ -639,27 +454,8 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (source.Length < MinInputSize || !Sse.IsSupported)
-            {
-                float max = 0;
-                for (int i = 0; i < source.Length; i++)
-                {
-                    float abs = Math.Abs(source[i]);
-                    if (abs > max)
-                    {
-                        max = abs;
-                    }
-                }
-                return max;
-            }
-            else if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.MaxAbsU(source);
-            }
-            else
-            {
-                return SseIntrinsics.MaxAbsU(source);
-            }
+            var result = TensorPrimitives.MaxMagnitude(source);
+            return result < 0 ? -result : result;
         }
 
         /// <summary>
@@ -672,28 +468,10 @@ namespace Microsoft.ML.Internal.CpuMath
         public static float MaxAbsDiff(float mean, ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
-
-            if (source.Length < MinInputSize || !Sse.IsSupported)
-            {
-                float max = 0;
-                for (int i = 0; i < source.Length; i++)
-                {
-                    float abs = Math.Abs(source[i] - mean);
-                    if (abs > max)
-                    {
-                        max = abs;
-                    }
-                }
-                return max;
-            }
-            else if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.MaxAbsDiffU(mean, source);
-            }
-            else
-            {
-                return SseIntrinsics.MaxAbsDiffU(mean, source);
-            }
+            Span<float> temp = new Span<float>(new float[source.Length]);
+            TensorPrimitives.Subtract(source, mean, temp);
+            var result = TensorPrimitives.MaxMagnitude(temp);
+            return result < 0 ? -result : result;
         }
 
         /// <summary>
@@ -712,23 +490,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(left.Length >= count);
             Contracts.Assert(right.Length >= count);
 
-            if (count < MinInputSize || !Sse.IsSupported)
-            {
-                float result = 0;
-                for (int i = 0; i < count; i++)
-                {
-                    result += left[i] * right[i];
-                }
-                return result;
-            }
-            else if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.DotU(left, right, count);
-            }
-            else
-            {
-                return SseIntrinsics.DotU(left, right, count);
-            }
+            return TensorPrimitives.Dot(left.Slice(0, count), right.Slice(0, count));
         }
 
         /// <summary>
@@ -786,24 +548,8 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= left.Length);
             Contracts.Assert(count <= right.Length);
 
-            if (count < MinInputSize || !Sse.IsSupported)
-            {
-                float norm = 0;
-                for (int i = 0; i < count; i++)
-                {
-                    float distance = left[i] - right[i];
-                    norm += distance * distance;
-                }
-                return norm;
-            }
-            else if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.Dist2(left, right, count);
-            }
-            else
-            {
-                return SseIntrinsics.Dist2(left, right, count);
-            }
+            var value = TensorPrimitives.Distance(left.Slice(0, count), right.Slice(0, count));
+            return value * value;
         }
 
         /// <summary>
