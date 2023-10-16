@@ -43,11 +43,11 @@ namespace Microsoft.Data.Analysis
 <# } #>
         {
 <# if (compMethod.MethodType == MethodType.ElementwiseComputation && compMethod.HasReturnValue == false && compMethod.SupportsRowSubsets == true) {#>
-            PrimitiveDataFrameColumn<T> ret = <#=GenerateInPlaceStatement("this", "Clone()")#>;
+            PrimitiveDataFrameColumn<T> ret = inPlace ? this : Clone();
             PrimitiveColumnComputation<T>.Instance.<#=compMethod.MethodName#>(ret._columnContainer, rowIndices);
             return ret;
 <# } else if (compMethod.MethodType == MethodType.ElementwiseComputation && compMethod.HasReturnValue == false) {#>
-            PrimitiveDataFrameColumn<T> ret = <#=GenerateInPlaceStatement("this", "Clone()")#>;
+            PrimitiveDataFrameColumn<T> ret = inPlace ? this : Clone();
             PrimitiveColumnComputation<T>.Instance.<#=compMethod.MethodName#>(ret._columnContainer);
             return ret;
 <# } else if (compMethod.MethodType == MethodType.ElementwiseComputation && compMethod.HasReturnValue == true) {#>

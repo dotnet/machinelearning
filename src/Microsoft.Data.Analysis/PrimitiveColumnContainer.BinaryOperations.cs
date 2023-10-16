@@ -11,8 +11,12 @@ namespace Microsoft.Data.Analysis
     {
         public PrimitiveColumnContainer<T> HandleOperation(BinaryOperation operation, PrimitiveColumnContainer<T> right)
         {
-            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
-            long nullCount = 0;
+            var arithmetic = Arithmetic<T>.Instance;
+
+            //Divisions are special cases
+            var specialCase = (operation == BinaryOperation.Divide || operation == BinaryOperation.Modulo);
+
+            long nullCount = specialCase ? NullCount : 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 var mutableBuffer = this.Buffers.GetOrCreateMutable(i);
@@ -22,38 +26,67 @@ namespace Microsoft.Data.Analysis
                 var leftValidity = this.NullBitMapBuffers.GetOrCreateMutable(i).Span;
                 var rightValidity = right.NullBitMapBuffers[i].ReadOnlySpan;
 
-                arithmetic.HandleOperation(operation, leftSpan, leftValidity, rightSpan, rightValidity);
+                if (specialCase)
+                {
+                    for (var j = 0; j < leftSpan.Length; j++)
+                    {
+                        if (BitUtility.GetBit(rightValidity, j))
+                            leftSpan[j] = arithmetic.HandleOperation(operation, leftSpan[j], rightSpan[j]);
+                        else if (BitUtility.GetBit(leftValidity, j))
+                        {
+                            BitUtility.ClearBit(leftValidity, j);
 
-                //Calculate NullCount
-                nullCount += BitUtility.GetBitCount(leftValidity, mutableBuffer.Length);
+                            //Increase NullCount
+                            nullCount++;
+                        }
+                    }
+                }
+                else
+                {
+                    arithmetic.HandleOperation(operation, leftSpan, rightSpan, leftSpan);
+                    ValidityElementwiseAnd(leftValidity, rightValidity, leftValidity);
+
+                    //Calculate NullCount
+                    nullCount += mutableBuffer.Length - BitUtility.GetBitCount(leftValidity, mutableBuffer.Length);
+                }
             }
 
             NullCount = nullCount;
             return this;
         }
 
-        public PrimitiveColumnContainer<T> HandleOperation(BinaryScalarOperation operation, T right)
+        public PrimitiveColumnContainer<T> HandleOperation(BinaryOperation operation, T right)
         {
-            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+            var arithmetic = Arithmetic<T>.Instance;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 var leftSpan = this.Buffers.GetOrCreateMutable(i).Span;
 
-                arithmetic.HandleOperation(operation, leftSpan, right);
+                arithmetic.HandleOperation(operation, leftSpan, right, leftSpan);
             }
 
             return this;
         }
 
-        public PrimitiveColumnContainer<T> HandleReverseOperation(BinaryScalarOperation operation, T left)
+        public PrimitiveColumnContainer<T> HandleReverseOperation(BinaryOperation operation, T left)
         {
-            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+            var arithmetic = Arithmetic<T>.Instance;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 var rightSpan = this.Buffers.GetOrCreateMutable(i).Span;
                 var rightValidity = this.NullBitMapBuffers[i].ReadOnlySpan;
 
-                arithmetic.HandleOperation(operation, left, rightSpan, rightValidity);
+                if (operation == BinaryOperation.Divide || operation == BinaryOperation.Modulo)
+                {
+                    //Divisions are special cases
+                    for (var j = 0; j < rightSpan.Length; j++)
+                    {
+                        if (BitUtility.GetBit(rightValidity, j))
+                            rightSpan[j] = arithmetic.HandleOperation(operation, left, rightSpan[j]);
+                    }
+                }
+                else
+                    arithmetic.HandleOperation(operation, left, rightSpan, rightSpan);
             }
 
             return this;
@@ -61,12 +94,12 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<T> HandleOperation(BinaryIntOperation operation, int right)
         {
-            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+            var arithmetic = Arithmetic<T>.Instance;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 var leftSpan = this.Buffers.GetOrCreateMutable(i).Span;
 
-                arithmetic.HandleOperation(operation, leftSpan, right);
+                arithmetic.HandleOperation(operation, leftSpan, right, leftSpan);
             }
 
             return this;
@@ -74,7 +107,7 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> HandleOperation(ComparisonOperation operation, PrimitiveColumnContainer<T> right)
         {
-            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+            var arithmetic = Arithmetic<T>.Instance;
 
             var ret = new PrimitiveColumnContainer<bool>(Length);
             long offset = 0;
@@ -90,11 +123,11 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        public PrimitiveColumnContainer<bool> HandleOperation(ComparisonScalarOperation operation, T right)
+        public PrimitiveColumnContainer<bool> HandleOperation(ComparisonOperation operation, T right)
         {
             var ret = new PrimitiveColumnContainer<bool>(Length);
             long offset = 0;
-            var arithmetic = PrimitiveDataFrameColumnArithmetic<T>.Instance;
+            var arithmetic = Arithmetic<T>.Instance;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 var leftSpan = this.Buffers[i].ReadOnlySpan;
@@ -103,6 +136,12 @@ namespace Microsoft.Data.Analysis
             }
 
             return ret;
+        }
+
+        private static void ValidityElementwiseAnd(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right, Span<byte> destination)
+        {
+            for (var i = 0; i < left.Length; i++)
+                destination[i] = (byte)(left[i] & right[i]);
         }
     }
 }

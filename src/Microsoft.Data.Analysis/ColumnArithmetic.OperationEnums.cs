@@ -18,18 +18,6 @@ namespace Microsoft.Data.Analysis
         Xor,
     }
 
-    internal enum BinaryScalarOperation
-    {
-        Add,
-        Subtract,
-        Multiply,
-        Divide,
-        Modulo,
-        And,
-        Or,
-        Xor,
-    }
-
     internal enum BinaryIntOperation
     {
         LeftShift,
@@ -37,16 +25,6 @@ namespace Microsoft.Data.Analysis
     }
 
     internal enum ComparisonOperation
-    {
-        ElementwiseEquals,
-        ElementwiseNotEquals,
-        ElementwiseGreaterThanOrEqual,
-        ElementwiseLessThanOrEqual,
-        ElementwiseGreaterThan,
-        ElementwiseLessThan,
-    }
-
-    internal enum ComparisonScalarOperation
     {
         ElementwiseEquals,
         ElementwiseNotEquals,
