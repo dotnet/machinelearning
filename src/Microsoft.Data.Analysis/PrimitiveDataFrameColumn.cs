@@ -250,17 +250,7 @@ namespace Microsoft.Data.Analysis
         public new T? this[long rowIndex]
         {
             get => GetTypedValue(rowIndex);
-            set
-            {
-                if (value == null || value.GetType() == typeof(T))
-                {
-                    _columnContainer[rowIndex] = value;
-                }
-                else
-                {
-                    throw new ArgumentException(string.Format(Strings.MismatchedValueType, DataType), nameof(value));
-                }
-            }
+            set => _columnContainer[rowIndex] = value;
         }
 
         public override double Median()
