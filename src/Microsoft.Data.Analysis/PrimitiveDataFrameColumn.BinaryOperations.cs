@@ -52,23 +52,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
-        /// <inheritdoc/>
-        public override DataFrameColumn Add<U>(U value, bool inPlace = false)
-        {
-            DataFrameColumn column = value as DataFrameColumn;
-            if (column != null)
-            {
-                return Add(column, inPlace);
-            }
-            return HandleOperationImplementation(BinaryScalarOperation.Add, value, inPlace);
-        }
-
-        /// <inheritdoc/>
-        public override DataFrameColumn ReverseAdd<U>(U value, bool inPlace = false)
-        {
-            return HandleReverseOperationImplementation(BinaryScalarOperation.Add, value, inPlace);
-        }
         /// <inheritdoc/>
         public override DataFrameColumn Subtract(DataFrameColumn column, bool inPlace = false)
         {
@@ -106,23 +89,6 @@ namespace Microsoft.Data.Analysis
                 default:
                     throw new NotSupportedException();
             }
-        }
-
-        /// <inheritdoc/>
-        public override DataFrameColumn Subtract<U>(U value, bool inPlace = false)
-        {
-            DataFrameColumn column = value as DataFrameColumn;
-            if (column != null)
-            {
-                return Subtract(column, inPlace);
-            }
-            return HandleOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace);
-        }
-
-        /// <inheritdoc/>
-        public override DataFrameColumn ReverseSubtract<U>(U value, bool inPlace = false)
-        {
-            return HandleReverseOperationImplementation(BinaryScalarOperation.Subtract, value, inPlace);
         }
         /// <inheritdoc/>
         public override DataFrameColumn Multiply(DataFrameColumn column, bool inPlace = false)
@@ -162,23 +128,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
-        /// <inheritdoc/>
-        public override DataFrameColumn Multiply<U>(U value, bool inPlace = false)
-        {
-            DataFrameColumn column = value as DataFrameColumn;
-            if (column != null)
-            {
-                return Multiply(column, inPlace);
-            }
-            return HandleOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace);
-        }
-
-        /// <inheritdoc/>
-        public override DataFrameColumn ReverseMultiply<U>(U value, bool inPlace = false)
-        {
-            return HandleReverseOperationImplementation(BinaryScalarOperation.Multiply, value, inPlace);
-        }
         /// <inheritdoc/>
         public override DataFrameColumn Divide(DataFrameColumn column, bool inPlace = false)
         {
@@ -216,23 +165,6 @@ namespace Microsoft.Data.Analysis
                 default:
                     throw new NotSupportedException();
             }
-        }
-
-        /// <inheritdoc/>
-        public override DataFrameColumn Divide<U>(U value, bool inPlace = false)
-        {
-            DataFrameColumn column = value as DataFrameColumn;
-            if (column != null)
-            {
-                return Divide(column, inPlace);
-            }
-            return HandleOperationImplementation(BinaryScalarOperation.Divide, value, inPlace);
-        }
-
-        /// <inheritdoc/>
-        public override DataFrameColumn ReverseDivide<U>(U value, bool inPlace = false)
-        {
-            return HandleReverseOperationImplementation(BinaryScalarOperation.Divide, value, inPlace);
         }
         /// <inheritdoc/>
         public override DataFrameColumn Modulo(DataFrameColumn column, bool inPlace = false)
@@ -272,23 +204,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
-        /// <inheritdoc/>
-        public override DataFrameColumn Modulo<U>(U value, bool inPlace = false)
-        {
-            DataFrameColumn column = value as DataFrameColumn;
-            if (column != null)
-            {
-                return Modulo(column, inPlace);
-            }
-            return HandleOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace);
-        }
-
-        /// <inheritdoc/>
-        public override DataFrameColumn ReverseModulo<U>(U value, bool inPlace = false)
-        {
-            return HandleReverseOperationImplementation(BinaryScalarOperation.Modulo, value, inPlace);
-        }
         /// <inheritdoc/>
         public override DataFrameColumn And(DataFrameColumn column, bool inPlace = false)
         {
@@ -327,12 +242,6 @@ namespace Microsoft.Data.Analysis
                     throw new NotSupportedException();
             }
         }
-
-        /// <inheritdoc/>
-        public override PrimitiveDataFrameColumn<bool> And(bool value, bool inPlace = false)
-        {
-            return HandleBitwiseOperationImplementation(BinaryScalarOperation.And, value, inPlace);
-        }
         /// <inheritdoc/>
         public override DataFrameColumn Or(DataFrameColumn column, bool inPlace = false)
         {
@@ -370,12 +279,6 @@ namespace Microsoft.Data.Analysis
                 default:
                     throw new NotSupportedException();
             }
-        }
-
-        /// <inheritdoc/>
-        public override PrimitiveDataFrameColumn<bool> Or(bool value, bool inPlace = false)
-        {
-            return HandleBitwiseOperationImplementation(BinaryScalarOperation.Or, value, inPlace);
         }
         /// <inheritdoc/>
         public override DataFrameColumn Xor(DataFrameColumn column, bool inPlace = false)
@@ -416,10 +319,108 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+
+        /// <inheritdoc/>
+        public override DataFrameColumn Add<U>(U value, bool inPlace = false)
+        {
+            DataFrameColumn column = value as DataFrameColumn;
+            if (column != null)
+            {
+                return Add(column, inPlace);
+            }
+            return HandleOperationImplementation(BinaryOperation.Add, value, inPlace);
+        }
+
+        /// <inheritdoc/>
+        public override DataFrameColumn ReverseAdd<U>(U value, bool inPlace = false)
+        {
+            return HandleReverseOperationImplementation(BinaryOperation.Add, value, inPlace);
+        }
+
+        /// <inheritdoc/>
+        public override DataFrameColumn Subtract<U>(U value, bool inPlace = false)
+        {
+            DataFrameColumn column = value as DataFrameColumn;
+            if (column != null)
+            {
+                return Subtract(column, inPlace);
+            }
+            return HandleOperationImplementation(BinaryOperation.Subtract, value, inPlace);
+        }
+
+        /// <inheritdoc/>
+        public override DataFrameColumn ReverseSubtract<U>(U value, bool inPlace = false)
+        {
+            return HandleReverseOperationImplementation(BinaryOperation.Subtract, value, inPlace);
+        }
+
+        /// <inheritdoc/>
+        public override DataFrameColumn Multiply<U>(U value, bool inPlace = false)
+        {
+            DataFrameColumn column = value as DataFrameColumn;
+            if (column != null)
+            {
+                return Multiply(column, inPlace);
+            }
+            return HandleOperationImplementation(BinaryOperation.Multiply, value, inPlace);
+        }
+
+        /// <inheritdoc/>
+        public override DataFrameColumn ReverseMultiply<U>(U value, bool inPlace = false)
+        {
+            return HandleReverseOperationImplementation(BinaryOperation.Multiply, value, inPlace);
+        }
+
+        /// <inheritdoc/>
+        public override DataFrameColumn Divide<U>(U value, bool inPlace = false)
+        {
+            DataFrameColumn column = value as DataFrameColumn;
+            if (column != null)
+            {
+                return Divide(column, inPlace);
+            }
+            return HandleOperationImplementation(BinaryOperation.Divide, value, inPlace);
+        }
+
+        /// <inheritdoc/>
+        public override DataFrameColumn ReverseDivide<U>(U value, bool inPlace = false)
+        {
+            return HandleReverseOperationImplementation(BinaryOperation.Divide, value, inPlace);
+        }
+
+        /// <inheritdoc/>
+        public override DataFrameColumn Modulo<U>(U value, bool inPlace = false)
+        {
+            DataFrameColumn column = value as DataFrameColumn;
+            if (column != null)
+            {
+                return Modulo(column, inPlace);
+            }
+            return HandleOperationImplementation(BinaryOperation.Modulo, value, inPlace);
+        }
+
+        /// <inheritdoc/>
+        public override DataFrameColumn ReverseModulo<U>(U value, bool inPlace = false)
+        {
+            return HandleReverseOperationImplementation(BinaryOperation.Modulo, value, inPlace);
+        }
+
+        /// <inheritdoc/>
+        public override PrimitiveDataFrameColumn<bool> And(bool value, bool inPlace = false)
+        {
+            return HandleBitwiseOperationImplementation(BinaryOperation.And, value, inPlace);
+        }
+
+        /// <inheritdoc/>
+        public override PrimitiveDataFrameColumn<bool> Or(bool value, bool inPlace = false)
+        {
+            return HandleBitwiseOperationImplementation(BinaryOperation.Or, value, inPlace);
+        }
+
         /// <inheritdoc/>
         public override PrimitiveDataFrameColumn<bool> Xor(bool value, bool inPlace = false)
         {
-            return HandleBitwiseOperationImplementation(BinaryScalarOperation.Xor, value, inPlace);
+            return HandleBitwiseOperationImplementation(BinaryOperation.Xor, value, inPlace);
         }
 
         /// <inheritdoc/>
@@ -483,7 +484,7 @@ namespace Microsoft.Data.Analysis
             {
                 return ElementwiseEquals(column);
             }
-            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseEquals, value);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseEquals, value);
         }
 
         /// <inheritdoc/>
@@ -535,7 +536,7 @@ namespace Microsoft.Data.Analysis
             {
                 return ElementwiseNotEquals(column);
             }
-            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseNotEquals, value);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseNotEquals, value);
         }
 
         /// <inheritdoc/>
@@ -585,7 +586,7 @@ namespace Microsoft.Data.Analysis
             {
                 return ElementwiseGreaterThanOrEqual(column);
             }
-            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThanOrEqual, value);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThanOrEqual, value);
         }
 
         /// <inheritdoc/>
@@ -635,7 +636,7 @@ namespace Microsoft.Data.Analysis
             {
                 return ElementwiseLessThanOrEqual(column);
             }
-            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThanOrEqual, value);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThanOrEqual, value);
         }
 
         /// <inheritdoc/>
@@ -685,7 +686,7 @@ namespace Microsoft.Data.Analysis
             {
                 return ElementwiseGreaterThan(column);
             }
-            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseGreaterThan, value);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseGreaterThan, value);
         }
 
         /// <inheritdoc/>
@@ -735,7 +736,7 @@ namespace Microsoft.Data.Analysis
             {
                 return ElementwiseLessThan(column);
             }
-            return HandleOperationImplementation(ComparisonScalarOperation.ElementwiseLessThan, value);
+            return HandleOperationImplementation(ComparisonOperation.ElementwiseLessThan, value);
         }
 
     }
