@@ -1,6 +1,6 @@
 ﻿# `DataViewRowCursor` Notes
 
-This document includes some more in depth notes on some expert topics for
+This document includes some more in-depth notes on some expert topics for
 `DataViewRow` and `DataViewRowCursor` derived classes.
 
 ## `Batch`
@@ -8,26 +8,26 @@ This document includes some more in depth notes on some expert topics for
 Multiple cursors can be returned through a method like
 `IDataView.GetRowCursorSet`. Operations can happen on top of these cursors --
 most commonly, transforms creating new cursors on top of them for  parallel
-evaluation of a data pipeline. But the question is, if you need to "recombine"
-them into a sequence again, how do to it? The `Batch` property is the
-mechanism by which the data from these multiple cursors returned by
+evaluation of a data pipeline. But the question is if you need to "recombine"
+them into a sequence again, how to do it? The `Batch` property is the
+mechanism by which the data from these multiple cursors, returned by
 `IDataView.GetRowCursorSet` can be reconciled into a single, cohesive,
 sequence.
 
-The question might be, why recombine. This can be done for several reasons: we
+The question might be, why recombine? This can be done for several reasons: we
 may want repeatability and determinism in such a way that requires we view the
 rows in a simple sequence, or the cursor may be stateful in some way that
 precludes partitioning it, or some other consideration. And, since a core
-`IDataView` design principle is repeatability, we now have a problem of how to
-reconcile those separate partitioning.
+`IDataView` design principle is repeatability, we now have a problem with how to
+reconcile those separate partitions.
 
 Incidentally, for those working on the ML.NET codebase, there is an internal
 method `DataViewUtils.ConsolidateGeneric` utility method to perform this
-function. It may be helpful to understand how it works intuitively, so that we
+function. It may be helpful to understand how it works intuitively so that we
 can understand `Batch`'s requirements: when we reconcile the outputs of
 multiple cursors, the consolidator will take the set of cursors. It will find
-the one with the "lowest" `Batch` ID. (This must be uniquely determined: that
-is, no two cursors should ever return the same `Batch` value.) It will iterate
+the one with the "lowest" `Batch` ID. (This must be uniquely determined: 
+no two cursors should ever return the same `Batch` value.) It will iterate
 on that cursor until the `Batch` ID changes. Whereupon, the consolidator will
 find the next cursor with the next lowest batch ID (which should be greater,
 of course, than the `Batch` value we were just iterating on).
@@ -60,7 +60,7 @@ typical and perfectly fine for `Batch` to just be `0`.
 
 ## `MoveNext`
 
-Once `MoveNext` returns `false`, naturally all subsequent calls to either of
+Once `MoveNext` returns `false`, naturally, all subsequent calls to either of
 that method should return `false`. It is important that they not throw, return
 `true`, or have any other behavior.
 
@@ -73,7 +73,7 @@ over what is supposed to be the same data, for example, in an `IDataView` a
 cursor set will produce the same data as a serial cursor, just partitioned,
 and a shuffled cursor will produce the same data as a serial cursor or any
 other shuffled cursor, only shuffled. The ID exists for applications that need
-to reconcile which entry is actually which. Ideally this ID should be unique,
+to reconcile which entry is actually which. Ideally, this ID should be unique,
 but for practical reasons, it suffices if collisions are simply extremely
 improbable.
 
@@ -104,10 +104,10 @@ follow, in order to ensure that downstream components have a fair shake at
 producing unique IDs themselves, which I will here attempt to do:
 
 Duplicate IDs being improbable is practically accomplished with a
-hashing-derived mechanism. For this we have the `DataViewRowId` methods
+hashing-derived mechanism. For this, we have the `DataViewRowId` methods
 `Fork`, `Next`, and `Combine`. See their documentation for specifics, but they
 all have in common that they treat the `DataViewRowId` as some sort of
-intermediate hash state, then return a new hash state based on hashing of a
+intermediate hash state, then return a new hash state based on the hashing of a
 block of additional bits. (Since the additional bits hashed in `Fork` and
 `Next` are specific, that is, effectively `0`, and `1`, this can be very
 efficient.) The basic assumption underlying all of this is that collisions
@@ -115,7 +115,7 @@ between two different hash states on the same data, or hashes on the same hash
 state on different data, are unlikely to collide.
 
 Note that this is also the reason why `DataViewRowId` was introduced;
-collisions become likely when we have the number of elements on the order of
+collisions become likely when we have the number of elements in the order of
 the square root of the hash space. The square root of `UInt64.MaxValue` is
 only several billion, a totally reasonable number of instances in a dataset,
 whereas a collision in a 128-bit space is less likely.
@@ -142,10 +142,10 @@ operate on acceptable sets.
 
 4. As a generalization of the above, if for each element of an acceptable set,
    you built the set comprised of the single application of `Fork` on that ID
-   followed by the set of any number of application of `Next`, the union of
+   followed by the set of any number of applications of `Next`, the union of
    all such sets would itself be an acceptable set. (This is useful, for
    example, for operations that produce multiple items per input item. So, if
-   you produced two rows based on every single input row, if the input ID were
+   you produced two rows based on every single input row and if the input ID were
    _id_, then, the ID of the first row could be `Fork` of _id_, and the second
    row could have ID of `Fork` then `Next` of the same _id_.)
 
@@ -153,13 +153,13 @@ operate on acceptable sets.
    obviously might not be acceptable, if you were to form a mapping from each
    set, to a different ID of some other acceptable set (each such ID should be
    different), and then for each such set/ID pairing, create the set created
-   from `Combine` of the items of that set with that ID, and then union of
+   from `Combine` of the items of that set with that ID, and then the union of
    those sets will be acceptable. (This is useful, for example, if you had
    something like a join, or a Cartesian product transform, or something like
    that.)
 
 6. Moreover, similar to the note about the use of `Fork`, and `Next`, if
-   during the creation of one of those sets describe above, you were to form
+   during the creation of one of those sets described above, you were to form
    for each item of that set, a set resulting from multiple applications of
    `Next`, the union of all those would also be an acceptable set.
 
@@ -193,12 +193,12 @@ transformations, or other such things like this, in which case the details
 above become important.
 
 One common thought that comes up is the idea that we can have some "global
-position" instead of ID.  This was actually the first idea by the original
-implementor, and if if it *were* possible it would definitely make for a
+position" instead of ID.  This was actually the first idea of the original
+implementor, and if it *were* possible it would definitely make for a
 cleaner, simpler solution, and multiple people have asked the question to the
 point where it would probably be best to have a ready answer about where it
-broke down, to undersatnd how it fails. It runs afoul of the earlier desire
-with regard to data view cursor sets, that is, that `IDataView` cursors
+broke down, to understand how it fails. It runs afoul of the earlier desire
+with regard to data view cursor sets, that is, `IDataView` cursors
 should, if possible, present split cursors that can run independently on
 "batches" of the data. But, let's imagine something like the operation for
 filtering; if I have a batch `0` comprised of 64 rows, and a batch `1` with
