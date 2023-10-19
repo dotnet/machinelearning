@@ -22,7 +22,7 @@ namespace Microsoft.Data.Analysis
         void HandleOperation(BinaryIntOperation operation, ReadOnlySpan<T> x, int y, Span<T> destination);
 
         //Comparison operations
-        void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, ReadOnlySpan<T> y, PrimitiveColumnContainer<bool> destination, long offset);
-        void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, T y, PrimitiveColumnContainer<bool> destination, long offset);
+        void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination);
+        void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, T y, Span<bool> destination);
     }
 }

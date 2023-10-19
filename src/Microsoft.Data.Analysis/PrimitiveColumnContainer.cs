@@ -98,9 +98,9 @@ namespace Microsoft.Data.Analysis
             NullCount = nullCount;
         }
 
-        public PrimitiveColumnContainer(long length = 0)
+        public PrimitiveColumnContainer(long length = 0, T? defaulValue = null)
         {
-            AppendMany(null, length);
+            AppendMany(defaulValue, length);
         }
 
         public void Resize(long length)
@@ -309,11 +309,11 @@ namespace Microsoft.Data.Analysis
 
         public long NullCount { get; private set; }
 
-        public int GetArrayContainingRowIndex(long rowIndex)
+        public int GetIndexOfBufferContainingRowIndex(long rowIndex)
         {
             if (rowIndex >= Length)
             {
-                throw new ArgumentOutOfRangeException(Strings.ColumnIndexOutOfRange, nameof(rowIndex));
+                throw new ArgumentOutOfRangeException(Strings.RowIndexOutOfRange, nameof(rowIndex));
             }
             return (int)(rowIndex / ReadOnlyDataFrameBuffer<T>.MaxCapacity);
         }
@@ -322,9 +322,9 @@ namespace Microsoft.Data.Analysis
         {
             if (Length == 0)
                 return 0;
-            int arrayIndex = GetArrayContainingRowIndex(startIndex);
-            startIndex = startIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity;
-            return Buffers[arrayIndex].Length - (int)startIndex;
+            int bufferIndex = GetIndexOfBufferContainingRowIndex(startIndex);
+            startIndex = startIndex - bufferIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity;
+            return Buffers[bufferIndex].Length - (int)startIndex;
         }
 
         public IReadOnlyList<T?> this[long startIndex, int length]
@@ -349,26 +349,26 @@ namespace Microsoft.Data.Analysis
                 {
                     return null;
                 }
-                int arrayIndex = GetArrayContainingRowIndex(rowIndex);
+                int bufferIndex = GetIndexOfBufferContainingRowIndex(rowIndex);
                 var bufferOffset = (int)(rowIndex % ReadOnlyDataFrameBuffer<T>.MaxCapacity);
-                return Buffers[arrayIndex][bufferOffset];
+                return Buffers[bufferIndex][bufferOffset];
             }
             set
             {
-                int arrayIndex = GetArrayContainingRowIndex(rowIndex);
+                int bufferIndex = GetIndexOfBufferContainingRowIndex(rowIndex);
                 var bufferOffset = (int)(rowIndex % ReadOnlyDataFrameBuffer<T>.MaxCapacity);
 
-                Buffers.GetOrCreateMutable(arrayIndex);
-                NullBitMapBuffers.GetOrCreateMutable(arrayIndex);
+                Buffers.GetOrCreateMutable(bufferIndex);
+                NullBitMapBuffers.GetOrCreateMutable(bufferIndex);
 
                 if (value.HasValue)
                 {
-                    Buffers[arrayIndex][bufferOffset] = value.Value;
+                    Buffers[bufferIndex][bufferOffset] = value.Value;
                     SetValidityBit(rowIndex, true);
                 }
                 else
                 {
-                    Buffers[arrayIndex][bufferOffset] = default;
+                    Buffers[bufferIndex][bufferOffset] = default;
                     SetValidityBit(rowIndex, false);
                 }
             }

@@ -132,9 +132,6 @@
   <data name="CannotResizeDown" xml:space="preserve">
     <value>Cannot resize down</value>
   </data>
-  <data name="ColumnIndexOutOfRange" xml:space="preserve">
-    <value>Index cannot be greater than the Column's Length</value>
-  </data>
   <data name="CommentTokenCannotContainWhitespace" xml:space="preserve">
     <value>Comment token cannot contain whitespace</value>
   </data>
@@ -236,6 +233,9 @@
   </data>
   <data name="PositiveNumberOfCharacters" xml:space="preserve">
     <value>{0} must be greater than 0</value>
+  </data>
+  <data name="RowIndexOutOfRange" xml:space="preserve">
+    <value>Index cannot be greater than the Column's Length</value>
   </data>
   <data name="SpansMultipleBuffers" xml:space="preserve">
     <value>Cannot span multiple buffers</value>

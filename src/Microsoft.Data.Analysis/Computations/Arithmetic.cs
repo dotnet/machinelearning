@@ -192,52 +192,52 @@ namespace Microsoft.Data.Analysis
 
         //Comparison operations
 
-        public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, ReadOnlySpan<T> y, PrimitiveColumnContainer<bool> result, long offset)
+        public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination)
         {
             switch (operation)
             {
                 case ComparisonOperation.ElementwiseEquals:
-                    ElementwiseEquals(x, y, result, offset);
+                    ElementwiseEquals(x, y, destination);
                     break;
                 case ComparisonOperation.ElementwiseNotEquals:
-                    ElementwiseNotEquals(x, y, result, offset);
+                    ElementwiseNotEquals(x, y, destination);
                     break;
                 case ComparisonOperation.ElementwiseGreaterThanOrEqual:
-                    ElementwiseGreaterThanOrEqual(x, y, result, offset);
+                    ElementwiseGreaterThanOrEqual(x, y, destination);
                     break;
                 case ComparisonOperation.ElementwiseLessThanOrEqual:
-                    ElementwiseLessThanOrEqual(x, y, result, offset);
+                    ElementwiseLessThanOrEqual(x, y, destination);
                     break;
                 case ComparisonOperation.ElementwiseGreaterThan:
-                    ElementwiseGreaterThan(x, y, result, offset);
+                    ElementwiseGreaterThan(x, y, destination);
                     break;
                 case ComparisonOperation.ElementwiseLessThan:
-                    ElementwiseLessThan(x, y, result, offset);
+                    ElementwiseLessThan(x, y, destination);
                     break;
             }
         }
 
-        public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, T y, PrimitiveColumnContainer<bool> result, long offset)
+        public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, T y, Span<bool> destination)
         {
             switch (operation)
             {
                 case ComparisonOperation.ElementwiseEquals:
-                    ElementwiseEquals(x, y, result, offset);
+                    ElementwiseEquals(x, y, destination);
                     break;
                 case ComparisonOperation.ElementwiseNotEquals:
-                    ElementwiseNotEquals(x, y, result, offset);
+                    ElementwiseNotEquals(x, y, destination);
                     break;
                 case ComparisonOperation.ElementwiseGreaterThanOrEqual:
-                    ElementwiseGreaterThanOrEqual(x, y, result, offset);
+                    ElementwiseGreaterThanOrEqual(x, y, destination);
                     break;
                 case ComparisonOperation.ElementwiseLessThanOrEqual:
-                    ElementwiseLessThanOrEqual(x, y, result, offset);
+                    ElementwiseLessThanOrEqual(x, y, destination);
                     break;
                 case ComparisonOperation.ElementwiseGreaterThan:
-                    ElementwiseGreaterThan(x, y, result, offset);
+                    ElementwiseGreaterThan(x, y, destination);
                     break;
                 case ComparisonOperation.ElementwiseLessThan:
-                    ElementwiseLessThan(x, y, result, offset);
+                    ElementwiseLessThan(x, y, destination);
                     break;
             }
         }
@@ -297,29 +297,29 @@ namespace Microsoft.Data.Analysis
 
         protected virtual void RightShift(ReadOnlySpan<T> x, int y, Span<T> destination) => throw new NotSupportedException();
 
-        protected virtual void ElementwiseEquals(ReadOnlySpan<T> x, ReadOnlySpan<T> y, PrimitiveColumnContainer<bool> result, long offset) => throw new NotSupportedException();
+        protected virtual void ElementwiseEquals(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination) => throw new NotSupportedException();
 
-        protected virtual void ElementwiseEquals(ReadOnlySpan<T> x, T y, PrimitiveColumnContainer<bool> result, long offset) => throw new NotSupportedException();
+        protected virtual void ElementwiseEquals(ReadOnlySpan<T> x, T y, Span<bool> destination) => throw new NotSupportedException();
 
-        protected virtual void ElementwiseNotEquals(ReadOnlySpan<T> x, ReadOnlySpan<T> y, PrimitiveColumnContainer<bool> result, long offset) => throw new NotSupportedException();
+        protected virtual void ElementwiseNotEquals(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination) => throw new NotSupportedException();
 
-        protected virtual void ElementwiseNotEquals(ReadOnlySpan<T> x, T y, PrimitiveColumnContainer<bool> result, long offset) => throw new NotSupportedException();
+        protected virtual void ElementwiseNotEquals(ReadOnlySpan<T> x, T y, Span<bool> destination) => throw new NotSupportedException();
 
-        protected virtual void ElementwiseGreaterThanOrEqual(ReadOnlySpan<T> x, ReadOnlySpan<T> y, PrimitiveColumnContainer<bool> result, long offset) => throw new NotSupportedException();
+        protected virtual void ElementwiseGreaterThanOrEqual(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination) => throw new NotSupportedException();
 
-        protected virtual void ElementwiseGreaterThanOrEqual(ReadOnlySpan<T> x, T y, PrimitiveColumnContainer<bool> result, long offset) => throw new NotSupportedException();
+        protected virtual void ElementwiseGreaterThanOrEqual(ReadOnlySpan<T> x, T y, Span<bool> destination) => throw new NotSupportedException();
 
-        protected virtual void ElementwiseLessThanOrEqual(ReadOnlySpan<T> x, ReadOnlySpan<T> y, PrimitiveColumnContainer<bool> result, long offset) => throw new NotSupportedException();
+        protected virtual void ElementwiseLessThanOrEqual(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination) => throw new NotSupportedException();
 
-        protected virtual void ElementwiseLessThanOrEqual(ReadOnlySpan<T> x, T y, PrimitiveColumnContainer<bool> result, long offset) => throw new NotSupportedException();
+        protected virtual void ElementwiseLessThanOrEqual(ReadOnlySpan<T> x, T y, Span<bool> destination) => throw new NotSupportedException();
 
-        protected virtual void ElementwiseGreaterThan(ReadOnlySpan<T> x, ReadOnlySpan<T> y, PrimitiveColumnContainer<bool> result, long offset) => throw new NotSupportedException();
+        protected virtual void ElementwiseGreaterThan(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination) => throw new NotSupportedException();
 
-        protected virtual void ElementwiseGreaterThan(ReadOnlySpan<T> x, T y, PrimitiveColumnContainer<bool> result, long offset) => throw new NotSupportedException();
+        protected virtual void ElementwiseGreaterThan(ReadOnlySpan<T> x, T y, Span<bool> destination) => throw new NotSupportedException();
 
-        protected virtual void ElementwiseLessThan(ReadOnlySpan<T> x, ReadOnlySpan<T> y, PrimitiveColumnContainer<bool> result, long offset) => throw new NotSupportedException();
+        protected virtual void ElementwiseLessThan(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination) => throw new NotSupportedException();
 
-        protected virtual void ElementwiseLessThan(ReadOnlySpan<T> x, T y, PrimitiveColumnContainer<bool> result, long offset) => throw new NotSupportedException();
+        protected virtual void ElementwiseLessThan(ReadOnlySpan<T> x, T y, Span<bool> destination) => throw new NotSupportedException();
 
         protected virtual T Divide(T x, T y) => throw new NotSupportedException();
 

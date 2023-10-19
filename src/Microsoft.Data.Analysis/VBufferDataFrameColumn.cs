@@ -84,7 +84,7 @@ namespace Microsoft.Data.Analysis
         {
             if (rowIndex >= Length)
             {
-                throw new ArgumentOutOfRangeException(Strings.ColumnIndexOutOfRange, nameof(rowIndex));
+                throw new ArgumentOutOfRangeException(Strings.RowIndexOutOfRange, nameof(rowIndex));
             }
 
             return (int)(rowIndex / MaxCapacity);

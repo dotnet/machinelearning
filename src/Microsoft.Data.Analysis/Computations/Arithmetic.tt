@@ -125,28 +125,28 @@ namespace Microsoft.Data.Analysis
 
         //Comparison operations
 
-        public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, ReadOnlySpan<T> y, PrimitiveColumnContainer<bool> result, long offset)
+        public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination)
         {
             switch (operation)
             {
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.Comparison) { #>
                 case ComparisonOperation.<#=method.MethodName#>:
-                    <#=method.MethodName#>(x, y, result, offset);
+                    <#=method.MethodName#>(x, y, destination);
                     break;
 <# } #>
 <# } #>
             }
         }
 
-        public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, T y, PrimitiveColumnContainer<bool> result, long offset)
+        public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, T y, Span<bool> destination)
         {
             switch (operation)
             {
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.ComparisonScalar) { #>
                 case ComparisonOperation.<#=method.MethodName#>:
-                    <#=method.MethodName#>(x, y, result, offset);
+                    <#=method.MethodName#>(x, y, destination);
                     break;
 <# } #>
 <# } #>
@@ -158,11 +158,11 @@ namespace Microsoft.Data.Analysis
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.Comparison) { #>
 
-        protected virtual void <#=method.MethodName#>(ReadOnlySpan<T> x, ReadOnlySpan<T> y, PrimitiveColumnContainer<bool> result, long offset) => throw new NotSupportedException();
+        protected virtual void <#=method.MethodName#>(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination) => throw new NotSupportedException();
 <# } #>
 <# else if (method.MethodType == MethodType.ComparisonScalar) { #>
 
-        protected virtual void <#=method.MethodName#>(ReadOnlySpan<T> x, T y, PrimitiveColumnContainer<bool> result, long offset) => throw new NotSupportedException();
+        protected virtual void <#=method.MethodName#>(ReadOnlySpan<T> x, T y, Span<bool> destination) => throw new NotSupportedException();
 <# } #>
 <# else if (method.MethodType == MethodType.Binary) { #>
 
