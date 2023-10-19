@@ -26,7 +26,8 @@ method `DataViewUtils.ConsolidateGeneric` utility method to perform this
 function. It may be helpful to understand how it works intuitively so that we
 can understand `Batch`'s requirements: when we reconcile the outputs of
 multiple cursors, the consolidator will take the set of cursors. It will find
-the one with the "lowest" `Batch` ID. (This must be uniquely determined: i.e. no two cursors should ever return the same `Batch` value.) It will iterate
+the one with the "lowest" `Batch` ID. (This must be uniquely determined: 
+no two cursors should ever return the same `Batch` value.) It will iterate
 on that cursor until the `Batch` ID changes. Whereupon, the consolidator will
 find the next cursor with the next lowest batch ID (which should be greater,
 of course, than the `Batch` value we were just iterating on).
