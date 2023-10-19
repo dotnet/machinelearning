@@ -8,12 +8,11 @@ using System.Linq;
 using System.Text;
 using Apache.Arrow;
 using Microsoft.ML.TestFramework.Attributes;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public class BufferTests
+    public class PrimitiveDataFrameColumnTests
     {
         [X64Fact("32-bit doesn't allow to allocate more than 2 Gb")]
         public void TestGetterAndSetterForColumnsGreaterThanMaxCapacity()
@@ -373,7 +372,6 @@ namespace Microsoft.Data.Analysis.Tests
                 Assert.Equal(column[indicesMap[i]], clonedColumn[i]);
         }
 
-
         [Fact]
         public void TestNullableColumnCloneWithIndicesMapAndSmallerSize()
         {
@@ -406,60 +404,6 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
 
-        [Fact]
-        public void TestBasicArrowStringColumn()
-        {
-            StringArray strArray = new StringArray.Builder().Append("foo").Append("bar").Build();
-            Memory<byte> dataMemory = new byte[] { 102, 111, 111, 98, 97, 114 };
-            Memory<byte> nullMemory = new byte[] { 0, 0, 0, 0 };
-            Memory<byte> offsetMemory = new byte[] { 0, 0, 0, 0, 3, 0, 0, 0, 6, 0, 0, 0 };
-
-            ArrowStringDataFrameColumn stringColumn = new ArrowStringDataFrameColumn("String", dataMemory, offsetMemory, nullMemory, strArray.Length, strArray.NullCount);
-            Assert.Equal(2, stringColumn.Length);
-            Assert.Equal("foo", stringColumn[0]);
-            Assert.Equal("bar", stringColumn[1]);
-        }
-
-        [Fact]
-        public void TestArrowStringColumnWithNulls()
-        {
-            string data = "joemark";
-            byte[] bytes = Encoding.UTF8.GetBytes(data);
-            Memory<byte> dataMemory = new Memory<byte>(bytes);
-            Memory<byte> nullMemory = new byte[] { 0b1101 };
-            Memory<byte> offsetMemory = new byte[] { 0, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 7, 0, 0, 0, 7, 0, 0, 0 };
-            ArrowStringDataFrameColumn stringColumn = new ArrowStringDataFrameColumn("String", dataMemory, offsetMemory, nullMemory, 4, 1);
-
-            Assert.Equal(4, stringColumn.Length);
-            Assert.Equal("joe", stringColumn[0]);
-            Assert.Null(stringColumn[1]);
-            Assert.Equal("mark", stringColumn[2]);
-            Assert.Equal("", stringColumn[3]);
-
-            List<string> ret = stringColumn[0, 4];
-            Assert.Equal("joe", ret[0]);
-            Assert.Null(ret[1]);
-            Assert.Equal("mark", ret[2]);
-            Assert.Equal("", ret[3]);
-        }
-
-        [Fact]
-        public void TestArrowStringColumnClone()
-        {
-            StringArray strArray = new StringArray.Builder().Append("foo").Append("bar").Build();
-            Memory<byte> dataMemory = new byte[] { 102, 111, 111, 98, 97, 114 };
-            Memory<byte> nullMemory = new byte[] { 0, 0, 0, 0 };
-            Memory<byte> offsetMemory = new byte[] { 0, 0, 0, 0, 3, 0, 0, 0, 6, 0, 0, 0 };
-
-            ArrowStringDataFrameColumn stringColumn = new ArrowStringDataFrameColumn("String", dataMemory, offsetMemory, nullMemory, strArray.Length, strArray.NullCount);
-
-            DataFrameColumn clone = stringColumn.Clone(numberOfNullsToAppend: 5);
-            Assert.Equal(7, clone.Length);
-            Assert.Equal(stringColumn[0], clone[0]);
-            Assert.Equal(stringColumn[1], clone[1]);
-            for (int i = 2; i < 7; i++)
-                Assert.Null(clone[i]);
-        }
 
         [X64Fact("32-bit doesn't allow to allocate more than 2 Gb")]
         public void TestAppend_SizeMoreThanMaxBufferCapacity()
@@ -479,6 +423,145 @@ namespace Microsoft.Data.Analysis.Tests
             intColumn.AppendMany(5, 10);
 
             Assert.Equal(MaxCapacityInBytes + 5, intColumn.Length);
+        }
+
+        [Fact]
+        public void Test_PrimitiveColumnNotEqualsNull()
+        {
+            var col = new DoubleDataFrameColumn("col", new double?[] { 1.23, null, 2, 3 });
+            var dfTest = new DataFrame(col);
+
+            var filteredNullDf = dfTest.Filter(dfTest["col"].ElementwiseNotEquals(null));
+
+            Assert.True(filteredNullDf.Columns.IndexOf("col") >= 0);
+            Assert.Equal(3, filteredNullDf.Columns["col"].Length);
+
+            Assert.Equal(1.23, filteredNullDf.Columns["col"][0]);
+            Assert.Equal(2.0, filteredNullDf.Columns["col"][1]);
+            Assert.Equal(3.0, filteredNullDf.Columns["col"][2]);
+        }
+
+        [Fact]
+        public void Test_PrimitiveColumnEqualsNull()
+        {
+            var index = new Int32DataFrameColumn("index", new int[] { 1, 2, 3, 4, 5 });
+            var col = new DoubleDataFrameColumn("col", new double?[] { 1.23, null, 2, 3, null }); ;
+            var dfTest = new DataFrame(index, col);
+
+            var filteredNullDf = dfTest.Filter(dfTest["col"].ElementwiseEquals(null));
+
+            Assert.True(filteredNullDf.Columns.IndexOf("col") >= 0);
+            Assert.True(filteredNullDf.Columns.IndexOf("index") >= 0);
+
+            Assert.Equal(2, filteredNullDf.Rows.Count);
+
+            Assert.Equal(2, filteredNullDf.Columns["index"][0]);
+            Assert.Equal(5, filteredNullDf.Columns["index"][1]);
+        }
+
+        [Fact]
+        public void Test_ArithmeticsAddWithNull()
+        {
+            // Arrange
+            //Number of elements shoult be higher than 8 to test SIMD
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 1, 1, null, null, 4, 5, 6, 7, 8, 9 });
+            var right_column = new Int32DataFrameColumn("Right", new int?[] { 1, null, 1, null, 4, 5, 6, 7, 8, 9 });
+
+            // Act
+            var sum = left_column + right_column;
+
+            // Assert
+            Assert.Equal(3, sum.NullCount);
+
+            Assert.Equal(2, sum[0]);  // 1 + 1
+            Assert.Null(sum[1]); // null + 1
+            Assert.Null(sum[2]); // 1 + null
+            Assert.Null(sum[3]); // null + null
+            Assert.Equal(8, sum[4]);
+            Assert.Equal(10, sum[5]);
+            Assert.Equal(12, sum[6]);
+            Assert.Equal(14, sum[7]);
+            Assert.Equal(16, sum[8]);
+            Assert.Equal(18, sum[9]);
+        }
+
+        [Fact]
+        public void Test_ArithmeticsAddScalarWithNull()
+        {
+            // Arrange
+            //Number of elements shoult be higher than 8 to test SIMD
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 0, 1, null, null, 4, 5, 6, 7, 8, null });
+
+            // Act
+            var sum = left_column + 5;
+
+            // Assert
+            Assert.Equal(3, sum.NullCount);
+
+            Assert.Equal(5, sum[0]);  // 1 + 1
+            Assert.Equal(6, sum[1]);  // 1 + 1
+            Assert.Null(sum[2]); // 1 + null
+            Assert.Null(sum[3]); // null + null
+            Assert.Equal(9, sum[4]);
+            Assert.Equal(10, sum[5]);
+            Assert.Equal(11, sum[6]);
+            Assert.Equal(12, sum[7]);
+            Assert.Equal(13, sum[8]);
+            Assert.Null(sum[9]);
+        }
+
+        [Fact]
+        public void Test_ArithmeticsDiffWithNull()
+        {
+            // Arrange
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 1, 1, null, null });
+            var right_column = new Int32DataFrameColumn("Right", new int?[] { 1, null, 1, null });
+
+            // Act
+            var diff = left_column - (right_column);
+
+            // Assert
+            Assert.Equal(3, diff.NullCount);
+            Assert.Equal(0, diff[0]);  // 1 - 1
+            Assert.Null(diff[1]); // null - 1
+            Assert.Null(diff[2]); // 1 - null
+            Assert.Null(diff[3]); // null - null
+        }
+
+        [Fact]
+        public void Test_ArithmeticsMultWithNull()
+        {
+            // Arrange
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 4, 1, null, null });
+            var right_column = new Int32DataFrameColumn("Right", new int?[] { 2, null, 1, null });
+
+            // Act
+            var mult = left_column * right_column;
+
+            // Assert
+            Assert.Equal(3, mult.NullCount);
+            Assert.Equal(8, mult[0]);  // 1 * 1
+            Assert.Null(mult[1]); // null * 1
+            Assert.Null(mult[2]); // 1 * null
+            Assert.Null(mult[3]); // null * null
+        }
+
+        [Fact]
+        public void Test_ArithmeticsDivWithNull()
+        {
+            // Arrange
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 4, 1, null, null });
+            var right_column = new Int32DataFrameColumn("Right", new int?[] { 2, null, 1, null });
+
+            // Act
+            var div = left_column / right_column;
+
+            // Assert
+            Assert.Equal(3, div.NullCount);
+            Assert.Equal(2, div[0]);  // 1 / 1
+            Assert.Null(div[1]); // null / 1
+            Assert.Null(div[2]); // 1 / null
+            Assert.Null(div[3]); // null / null
         }
 
         //#if !NETFRAMEWORK // https://github.com/dotnet/corefxlab/issues/2796

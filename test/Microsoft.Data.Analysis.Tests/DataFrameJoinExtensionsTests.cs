@@ -8,10 +8,10 @@ using Xunit;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public class DataFrameJoinTests
+    public class DataFrameJoinExtensionsTests
     {
         [Fact]
-        public void DataFrameJoinTests_GetSortedListsIntersection_EmptyCollections_EmptyResult()
+        public void GetSortedListsIntersection_EmptyCollections_EmptyResult()
         {
             // Arrange
 
@@ -28,7 +28,7 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void DataFrameJoinTests_GetSortedListsIntersection_EmptyCollections_FirstIsNotEmpty_EmptyResult()
+        public void GetSortedListsIntersection_EmptyCollections_FirstIsNotEmpty_EmptyResult()
         {
             // Arrange
 
@@ -51,7 +51,7 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void DataFrameJoinTests_GetSortedListsIntersection_EmptyCollections_SecondIsNotEmpty_EmptyResult()
+        public void GetSortedListsIntersection_EmptyCollections_SecondIsNotEmpty_EmptyResult()
         {
             // Arrange
 
@@ -74,7 +74,7 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void DataFrameJoinTests_GetSortedListsIntersection_SortedCollections_WithoutIntersection_Success()
+        public void GetSortedListsIntersection_SortedCollections_WithoutIntersection_Success()
         {
             // Arrange
 
@@ -105,7 +105,7 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void DataFrameJoinTests_GetSortedListsIntersection_SortedCollections_WithIntersection_Success()
+        public void GetSortedListsIntersection_SortedCollections_WithIntersection_Success()
         {
             // Arrange
 
