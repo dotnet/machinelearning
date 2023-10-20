@@ -259,6 +259,15 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Index cannot be greater than the Column&apos;s Length.
+        /// </summary>
+        internal static string IndexIsGreaterThanColumnLength {
+            get {
+                return ResourceManager.GetString("IndexIsGreaterThanColumnLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Column &apos;{0}&apos; does not exist.
         /// </summary>
         internal static string InvalidColumnName {
@@ -408,15 +417,6 @@ namespace Microsoft.Data {
         internal static string PositiveNumberOfCharacters {
             get {
                 return ResourceManager.GetString("PositiveNumberOfCharacters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Index cannot be greater than the Column&apos;s Length.
-        /// </summary>
-        internal static string RowIndexOutOfRange {
-            get {
-                return ResourceManager.GetString("RowIndexOutOfRange", resourceCulture);
             }
         }
         

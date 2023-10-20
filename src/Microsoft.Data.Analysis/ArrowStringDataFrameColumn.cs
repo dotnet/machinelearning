@@ -226,7 +226,7 @@ namespace Microsoft.Data.Analysis
         {
             if (rowIndex >= Length)
             {
-                throw new ArgumentOutOfRangeException(Strings.RowIndexOutOfRange, nameof(rowIndex));
+                throw new ArgumentOutOfRangeException(Strings.IndexIsGreaterThanColumnLength, nameof(rowIndex));
             }
 
             // Since the strings here could be of variable length, scan linearly
