@@ -113,35 +113,35 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<bool> x, ReadOnlySpan<bool> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<bool> x, ReadOnlySpan<bool> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y[i]);
+                destination[i] = (x[i] == y[i]);
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<bool> x, bool y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<bool> x, bool y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y);
+                destination[i] = (x[i] == y);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<bool> x, ReadOnlySpan<bool> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<bool> x, ReadOnlySpan<bool> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y[i]);
+                destination[i] = (x[i] != y[i]);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<bool> x, bool y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<bool> x, bool y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y);
+                destination[i] = (x[i] != y);
             }
         }
     }
@@ -518,99 +518,99 @@ namespace Microsoft.Data.Analysis
                 destination[i] = (byte)(x[i] >> y);
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y[i]);
+                destination[i] = (x[i] == y[i]);
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<byte> x, byte y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<byte> x, byte y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y);
+                destination[i] = (x[i] == y);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y[i]);
+                destination[i] = (x[i] != y[i]);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<byte> x, byte y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<byte> x, byte y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y);
+                destination[i] = (x[i] != y);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y[i]);
+                destination[i] = (x[i] >= y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<byte> x, byte y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<byte> x, byte y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y);
+                destination[i] = (x[i] >= y);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y[i]);
+                destination[i] = (x[i] <= y[i]);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<byte> x, byte y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<byte> x, byte y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y);
+                destination[i] = (x[i] <= y);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y[i]);
+                destination[i] = (x[i] > y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<byte> x, byte y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<byte> x, byte y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y);
+                destination[i] = (x[i] > y);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y[i]);
+                destination[i] = (x[i] < y[i]);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<byte> x, byte y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<byte> x, byte y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y);
+                destination[i] = (x[i] < y);
             }
         }
     }
@@ -987,99 +987,99 @@ namespace Microsoft.Data.Analysis
                 destination[i] = (char)(x[i] >> y);
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<char> x, ReadOnlySpan<char> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y[i]);
+                destination[i] = (x[i] == y[i]);
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<char> x, char y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<char> x, char y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y);
+                destination[i] = (x[i] == y);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<char> x, ReadOnlySpan<char> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y[i]);
+                destination[i] = (x[i] != y[i]);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<char> x, char y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<char> x, char y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y);
+                destination[i] = (x[i] != y);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<char> x, ReadOnlySpan<char> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y[i]);
+                destination[i] = (x[i] >= y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<char> x, char y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<char> x, char y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y);
+                destination[i] = (x[i] >= y);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<char> x, ReadOnlySpan<char> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y[i]);
+                destination[i] = (x[i] <= y[i]);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<char> x, char y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<char> x, char y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y);
+                destination[i] = (x[i] <= y);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<char> x, ReadOnlySpan<char> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y[i]);
+                destination[i] = (x[i] > y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<char> x, char y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<char> x, char y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y);
+                destination[i] = (x[i] > y);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<char> x, ReadOnlySpan<char> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<char> x, ReadOnlySpan<char> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y[i]);
+                destination[i] = (x[i] < y[i]);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<char> x, char y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<char> x, char y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y);
+                destination[i] = (x[i] < y);
             }
         }
     }
@@ -1261,99 +1261,99 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y[i]);
+                destination[i] = (x[i] == y[i]);
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<decimal> x, decimal y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<decimal> x, decimal y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y);
+                destination[i] = (x[i] == y);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y[i]);
+                destination[i] = (x[i] != y[i]);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<decimal> x, decimal y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<decimal> x, decimal y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y);
+                destination[i] = (x[i] != y);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y[i]);
+                destination[i] = (x[i] >= y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<decimal> x, decimal y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<decimal> x, decimal y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y);
+                destination[i] = (x[i] >= y);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y[i]);
+                destination[i] = (x[i] <= y[i]);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<decimal> x, decimal y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<decimal> x, decimal y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y);
+                destination[i] = (x[i] <= y);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y[i]);
+                destination[i] = (x[i] > y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<decimal> x, decimal y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<decimal> x, decimal y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y);
+                destination[i] = (x[i] > y);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<decimal> x, ReadOnlySpan<decimal> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y[i]);
+                destination[i] = (x[i] < y[i]);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<decimal> x, decimal y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<decimal> x, decimal y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y);
+                destination[i] = (x[i] < y);
             }
         }
     }
@@ -1619,99 +1619,99 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<double> x, ReadOnlySpan<double> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<double> x, ReadOnlySpan<double> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y[i]);
+                destination[i] = (x[i] == y[i]);
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<double> x, double y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<double> x, double y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y);
+                destination[i] = (x[i] == y);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<double> x, ReadOnlySpan<double> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<double> x, ReadOnlySpan<double> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y[i]);
+                destination[i] = (x[i] != y[i]);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<double> x, double y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<double> x, double y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y);
+                destination[i] = (x[i] != y);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<double> x, ReadOnlySpan<double> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<double> x, ReadOnlySpan<double> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y[i]);
+                destination[i] = (x[i] >= y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<double> x, double y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<double> x, double y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y);
+                destination[i] = (x[i] >= y);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<double> x, ReadOnlySpan<double> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<double> x, ReadOnlySpan<double> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y[i]);
+                destination[i] = (x[i] <= y[i]);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<double> x, double y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<double> x, double y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y);
+                destination[i] = (x[i] <= y);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<double> x, ReadOnlySpan<double> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<double> x, ReadOnlySpan<double> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y[i]);
+                destination[i] = (x[i] > y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<double> x, double y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<double> x, double y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y);
+                destination[i] = (x[i] > y);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<double> x, ReadOnlySpan<double> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<double> x, ReadOnlySpan<double> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y[i]);
+                destination[i] = (x[i] < y[i]);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<double> x, double y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<double> x, double y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y);
+                destination[i] = (x[i] < y);
             }
         }
     }
@@ -1977,99 +1977,99 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<float> x, ReadOnlySpan<float> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<float> x, ReadOnlySpan<float> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y[i]);
+                destination[i] = (x[i] == y[i]);
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<float> x, float y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<float> x, float y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y);
+                destination[i] = (x[i] == y);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<float> x, ReadOnlySpan<float> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<float> x, ReadOnlySpan<float> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y[i]);
+                destination[i] = (x[i] != y[i]);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<float> x, float y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<float> x, float y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y);
+                destination[i] = (x[i] != y);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<float> x, ReadOnlySpan<float> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<float> x, ReadOnlySpan<float> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y[i]);
+                destination[i] = (x[i] >= y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<float> x, float y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<float> x, float y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y);
+                destination[i] = (x[i] >= y);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<float> x, ReadOnlySpan<float> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<float> x, ReadOnlySpan<float> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y[i]);
+                destination[i] = (x[i] <= y[i]);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<float> x, float y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<float> x, float y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y);
+                destination[i] = (x[i] <= y);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<float> x, ReadOnlySpan<float> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<float> x, ReadOnlySpan<float> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y[i]);
+                destination[i] = (x[i] > y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<float> x, float y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<float> x, float y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y);
+                destination[i] = (x[i] > y);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<float> x, ReadOnlySpan<float> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<float> x, ReadOnlySpan<float> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y[i]);
+                destination[i] = (x[i] < y[i]);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<float> x, float y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<float> x, float y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y);
+                destination[i] = (x[i] < y);
             }
         }
     }
@@ -2446,99 +2446,99 @@ namespace Microsoft.Data.Analysis
                 destination[i] = (int)(x[i] >> y);
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<int> x, ReadOnlySpan<int> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y[i]);
+                destination[i] = (x[i] == y[i]);
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<int> x, int y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<int> x, int y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y);
+                destination[i] = (x[i] == y);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<int> x, ReadOnlySpan<int> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y[i]);
+                destination[i] = (x[i] != y[i]);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<int> x, int y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<int> x, int y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y);
+                destination[i] = (x[i] != y);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<int> x, ReadOnlySpan<int> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y[i]);
+                destination[i] = (x[i] >= y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<int> x, int y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<int> x, int y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y);
+                destination[i] = (x[i] >= y);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<int> x, ReadOnlySpan<int> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y[i]);
+                destination[i] = (x[i] <= y[i]);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<int> x, int y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<int> x, int y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y);
+                destination[i] = (x[i] <= y);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<int> x, ReadOnlySpan<int> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y[i]);
+                destination[i] = (x[i] > y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<int> x, int y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<int> x, int y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y);
+                destination[i] = (x[i] > y);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<int> x, ReadOnlySpan<int> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<int> x, ReadOnlySpan<int> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y[i]);
+                destination[i] = (x[i] < y[i]);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<int> x, int y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<int> x, int y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y);
+                destination[i] = (x[i] < y);
             }
         }
     }
@@ -2915,99 +2915,99 @@ namespace Microsoft.Data.Analysis
                 destination[i] = (long)(x[i] >> y);
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<long> x, ReadOnlySpan<long> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y[i]);
+                destination[i] = (x[i] == y[i]);
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<long> x, long y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<long> x, long y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y);
+                destination[i] = (x[i] == y);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<long> x, ReadOnlySpan<long> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y[i]);
+                destination[i] = (x[i] != y[i]);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<long> x, long y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<long> x, long y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y);
+                destination[i] = (x[i] != y);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<long> x, ReadOnlySpan<long> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y[i]);
+                destination[i] = (x[i] >= y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<long> x, long y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<long> x, long y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y);
+                destination[i] = (x[i] >= y);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<long> x, ReadOnlySpan<long> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y[i]);
+                destination[i] = (x[i] <= y[i]);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<long> x, long y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<long> x, long y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y);
+                destination[i] = (x[i] <= y);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<long> x, ReadOnlySpan<long> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y[i]);
+                destination[i] = (x[i] > y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<long> x, long y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<long> x, long y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y);
+                destination[i] = (x[i] > y);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<long> x, ReadOnlySpan<long> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y[i]);
+                destination[i] = (x[i] < y[i]);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<long> x, long y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<long> x, long y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y);
+                destination[i] = (x[i] < y);
             }
         }
     }
@@ -3384,99 +3384,99 @@ namespace Microsoft.Data.Analysis
                 destination[i] = (sbyte)(x[i] >> y);
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y[i]);
+                destination[i] = (x[i] == y[i]);
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<sbyte> x, sbyte y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<sbyte> x, sbyte y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y);
+                destination[i] = (x[i] == y);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y[i]);
+                destination[i] = (x[i] != y[i]);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<sbyte> x, sbyte y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<sbyte> x, sbyte y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y);
+                destination[i] = (x[i] != y);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y[i]);
+                destination[i] = (x[i] >= y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<sbyte> x, sbyte y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<sbyte> x, sbyte y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y);
+                destination[i] = (x[i] >= y);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y[i]);
+                destination[i] = (x[i] <= y[i]);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<sbyte> x, sbyte y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<sbyte> x, sbyte y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y);
+                destination[i] = (x[i] <= y);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y[i]);
+                destination[i] = (x[i] > y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<sbyte> x, sbyte y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<sbyte> x, sbyte y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y);
+                destination[i] = (x[i] > y);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<sbyte> x, ReadOnlySpan<sbyte> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y[i]);
+                destination[i] = (x[i] < y[i]);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<sbyte> x, sbyte y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<sbyte> x, sbyte y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y);
+                destination[i] = (x[i] < y);
             }
         }
     }
@@ -3853,99 +3853,99 @@ namespace Microsoft.Data.Analysis
                 destination[i] = (short)(x[i] >> y);
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<short> x, ReadOnlySpan<short> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y[i]);
+                destination[i] = (x[i] == y[i]);
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<short> x, short y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<short> x, short y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y);
+                destination[i] = (x[i] == y);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<short> x, ReadOnlySpan<short> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y[i]);
+                destination[i] = (x[i] != y[i]);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<short> x, short y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<short> x, short y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y);
+                destination[i] = (x[i] != y);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<short> x, ReadOnlySpan<short> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y[i]);
+                destination[i] = (x[i] >= y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<short> x, short y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<short> x, short y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y);
+                destination[i] = (x[i] >= y);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<short> x, ReadOnlySpan<short> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y[i]);
+                destination[i] = (x[i] <= y[i]);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<short> x, short y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<short> x, short y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y);
+                destination[i] = (x[i] <= y);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<short> x, ReadOnlySpan<short> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y[i]);
+                destination[i] = (x[i] > y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<short> x, short y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<short> x, short y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y);
+                destination[i] = (x[i] > y);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<short> x, ReadOnlySpan<short> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<short> x, ReadOnlySpan<short> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y[i]);
+                destination[i] = (x[i] < y[i]);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<short> x, short y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<short> x, short y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y);
+                destination[i] = (x[i] < y);
             }
         }
     }
@@ -4322,99 +4322,99 @@ namespace Microsoft.Data.Analysis
                 destination[i] = (uint)(x[i] >> y);
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y[i]);
+                destination[i] = (x[i] == y[i]);
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<uint> x, uint y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<uint> x, uint y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y);
+                destination[i] = (x[i] == y);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y[i]);
+                destination[i] = (x[i] != y[i]);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<uint> x, uint y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<uint> x, uint y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y);
+                destination[i] = (x[i] != y);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y[i]);
+                destination[i] = (x[i] >= y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<uint> x, uint y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<uint> x, uint y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y);
+                destination[i] = (x[i] >= y);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y[i]);
+                destination[i] = (x[i] <= y[i]);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<uint> x, uint y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<uint> x, uint y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y);
+                destination[i] = (x[i] <= y);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y[i]);
+                destination[i] = (x[i] > y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<uint> x, uint y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<uint> x, uint y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y);
+                destination[i] = (x[i] > y);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y[i]);
+                destination[i] = (x[i] < y[i]);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<uint> x, uint y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<uint> x, uint y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y);
+                destination[i] = (x[i] < y);
             }
         }
     }
@@ -4791,99 +4791,99 @@ namespace Microsoft.Data.Analysis
                 destination[i] = (ulong)(x[i] >> y);
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y[i]);
+                destination[i] = (x[i] == y[i]);
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<ulong> x, ulong y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<ulong> x, ulong y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y);
+                destination[i] = (x[i] == y);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y[i]);
+                destination[i] = (x[i] != y[i]);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<ulong> x, ulong y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<ulong> x, ulong y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y);
+                destination[i] = (x[i] != y);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y[i]);
+                destination[i] = (x[i] >= y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<ulong> x, ulong y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<ulong> x, ulong y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y);
+                destination[i] = (x[i] >= y);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y[i]);
+                destination[i] = (x[i] <= y[i]);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<ulong> x, ulong y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<ulong> x, ulong y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y);
+                destination[i] = (x[i] <= y);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y[i]);
+                destination[i] = (x[i] > y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<ulong> x, ulong y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<ulong> x, ulong y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y);
+                destination[i] = (x[i] > y);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y[i]);
+                destination[i] = (x[i] < y[i]);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<ulong> x, ulong y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<ulong> x, ulong y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y);
+                destination[i] = (x[i] < y);
             }
         }
     }
@@ -5260,134 +5260,134 @@ namespace Microsoft.Data.Analysis
                 destination[i] = (ushort)(x[i] >> y);
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y[i]);
+                destination[i] = (x[i] == y[i]);
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<ushort> x, ushort y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<ushort> x, ushort y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y);
+                destination[i] = (x[i] == y);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y[i]);
+                destination[i] = (x[i] != y[i]);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<ushort> x, ushort y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<ushort> x, ushort y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y);
+                destination[i] = (x[i] != y);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y[i]);
+                destination[i] = (x[i] >= y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<ushort> x, ushort y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<ushort> x, ushort y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] >= y);
+                destination[i] = (x[i] >= y);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y[i]);
+                destination[i] = (x[i] <= y[i]);
             }
         }
 
-        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<ushort> x, ushort y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<ushort> x, ushort y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <= y);
+                destination[i] = (x[i] <= y);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y[i]);
+                destination[i] = (x[i] > y[i]);
             }
         }
 
-        protected override void ElementwiseGreaterThan(ReadOnlySpan<ushort> x, ushort y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseGreaterThan(ReadOnlySpan<ushort> x, ushort y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] > y);
+                destination[i] = (x[i] > y);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<ushort> x, ReadOnlySpan<ushort> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y[i]);
+                destination[i] = (x[i] < y[i]);
             }
         }
 
-        protected override void ElementwiseLessThan(ReadOnlySpan<ushort> x, ushort y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseLessThan(ReadOnlySpan<ushort> x, ushort y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] < y);
+                destination[i] = (x[i] < y);
             }
         }
     }
     internal class DateTimeArithmetic : Arithmetic<DateTime>
     {
 
-        protected override void ElementwiseEquals(ReadOnlySpan<DateTime> x, ReadOnlySpan<DateTime> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<DateTime> x, ReadOnlySpan<DateTime> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y[i]);
+                destination[i] = (x[i] == y[i]);
             }
         }
 
-        protected override void ElementwiseEquals(ReadOnlySpan<DateTime> x, DateTime y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseEquals(ReadOnlySpan<DateTime> x, DateTime y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] == y);
+                destination[i] = (x[i] == y);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<DateTime> x, ReadOnlySpan<DateTime> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<DateTime> x, ReadOnlySpan<DateTime> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y[i]);
+                destination[i] = (x[i] != y[i]);
             }
         }
 
-        protected override void ElementwiseNotEquals(ReadOnlySpan<DateTime> x, DateTime y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void ElementwiseNotEquals(ReadOnlySpan<DateTime> x, DateTime y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] != y);
+                destination[i] = (x[i] != y);
             }
         }
     }

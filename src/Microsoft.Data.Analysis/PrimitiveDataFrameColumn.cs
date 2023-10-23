@@ -27,9 +27,9 @@ namespace Microsoft.Data.Analysis
 
         internal PrimitiveColumnContainer<T> ColumnContainer => _columnContainer;
 
-        internal PrimitiveDataFrameColumn(string name, PrimitiveColumnContainer<T> column) : base(name, column.Length, typeof(T))
+        internal PrimitiveDataFrameColumn(string name, PrimitiveColumnContainer<T> columnContainer) : base(name, columnContainer.Length, typeof(T))
         {
-            _columnContainer = column;
+            _columnContainer = columnContainer;
         }
 
         public PrimitiveDataFrameColumn(string name, IEnumerable<T?> values) : base(name, 0, typeof(T))
@@ -129,10 +129,10 @@ namespace Microsoft.Data.Analysis
 
         protected internal override Apache.Arrow.Array ToArrowArray(long startIndex, int numberOfRows)
         {
-            int arrayIndex = numberOfRows == 0 ? 0 : _columnContainer.GetArrayContainingRowIndex(startIndex);
-            int offset = (int)(startIndex - arrayIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity);
+            int bufferIndex = numberOfRows == 0 ? 0 : _columnContainer.GetIndexOfBufferContainingRowIndex(startIndex);
+            int offset = (int)(startIndex - bufferIndex * ReadOnlyDataFrameBuffer<T>.MaxCapacity);
 
-            if (numberOfRows != 0 && numberOfRows > _columnContainer.Buffers[arrayIndex].Length - offset)
+            if (numberOfRows != 0 && numberOfRows > _columnContainer.Buffers[bufferIndex].Length - offset)
             {
                 throw new ArgumentException(Strings.SpansMultipleBuffers, nameof(numberOfRows));
             }
@@ -145,8 +145,8 @@ namespace Microsoft.Data.Analysis
                 if (numberOfRows == 0)
                     return new Date64Array(ArrowBuffer.Empty, ArrowBuffer.Empty, numberOfRows, nullCount, offset);
 
-                ReadOnlyDataFrameBuffer<T> valueBuffer = (numberOfRows == 0) ? null : _columnContainer.Buffers[arrayIndex];
-                ReadOnlyDataFrameBuffer<byte> nullBuffer = (numberOfRows == 0) ? null : _columnContainer.NullBitMapBuffers[arrayIndex];
+                ReadOnlyDataFrameBuffer<T> valueBuffer = (numberOfRows == 0) ? null : _columnContainer.Buffers[bufferIndex];
+                ReadOnlyDataFrameBuffer<byte> nullBuffer = (numberOfRows == 0) ? null : _columnContainer.NullBitMapBuffers[bufferIndex];
 
                 ReadOnlySpan<DateTime> valueSpan = MemoryMarshal.Cast<T, DateTime>(valueBuffer.ReadOnlySpan);
                 Date64Array.Builder builder = new Date64Array.Builder().Reserve(valueBuffer.Length);
@@ -163,8 +163,8 @@ namespace Microsoft.Data.Analysis
             }
 
             //No convertion
-            ArrowBuffer arrowValueBuffer = numberOfRows == 0 ? ArrowBuffer.Empty : new ArrowBuffer(_columnContainer.Buffers[arrayIndex].ReadOnlyBuffer);
-            ArrowBuffer arrowNullBuffer = numberOfRows == 0 ? ArrowBuffer.Empty : new ArrowBuffer(_columnContainer.NullBitMapBuffers[arrayIndex].ReadOnlyBuffer);
+            ArrowBuffer arrowValueBuffer = numberOfRows == 0 ? ArrowBuffer.Empty : new ArrowBuffer(_columnContainer.Buffers[bufferIndex].ReadOnlyBuffer);
+            ArrowBuffer arrowNullBuffer = numberOfRows == 0 ? ArrowBuffer.Empty : new ArrowBuffer(_columnContainer.NullBitMapBuffers[bufferIndex].ReadOnlyBuffer);
 
             Type type = this.DataType;
             if (type == typeof(bool))

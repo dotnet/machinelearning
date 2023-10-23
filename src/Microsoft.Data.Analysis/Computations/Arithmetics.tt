@@ -25,20 +25,20 @@ namespace Microsoft.Data.Analysis
 <# if (!((method.IsNumeric && !type.SupportsNumeric) || (method.IsBitwise && !type.SupportsBitwise) || (type.UnsupportedMethods.Contains(method.MethodName))) && method.Operator != null) { #>
 <# if (method.MethodType == MethodType.Comparison) { #>
 
-        protected override void <#=method.MethodName#>(ReadOnlySpan<<#=type.TypeName#>> x, ReadOnlySpan<<#=type.TypeName#>> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void <#=method.MethodName#>(ReadOnlySpan<<#=type.TypeName#>> x, ReadOnlySpan<<#=type.TypeName#>> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <#= method.Operator #> y[i]);
+                destination[i] = (x[i] <#= method.Operator #> y[i]);
             }
         }
 <# } else if (method.MethodType == MethodType.ComparisonScalar) {#>
 
-        protected override void <#=method.MethodName#>(ReadOnlySpan<<#=type.TypeName#>> x, <#=type.TypeName#> y, PrimitiveColumnContainer<bool> result, long offset)
+        protected override void <#=method.MethodName#>(ReadOnlySpan<<#=type.TypeName#>> x, <#=type.TypeName#> y, Span<bool> destination)
         {
             for (var i = 0; i < x.Length; i++)
             {
-                result[i + offset] = (x[i] <#= method.Operator #> y);
+                destination[i] = (x[i] <#= method.Operator #> y);
             }
         }
 <# } else if (method.MethodType == MethodType.Binary) { #>

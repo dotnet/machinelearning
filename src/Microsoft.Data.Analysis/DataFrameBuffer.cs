@@ -40,12 +40,12 @@ namespace Microsoft.Data.Analysis
 
         public DataFrameBuffer(int capacity = 0)
         {
-            if ((long)capacity * Size > MaxCapacity)
+            if ((long)capacity > MaxCapacity)
             {
                 throw new ArgumentException($"{capacity} exceeds buffer capacity", nameof(capacity));
             }
 
-            _memory = new byte[Math.Max(capacity, MinCapacity)];
+            _memory = new byte[Math.Max(capacity, MinCapacity) * Size];
         }
 
         internal DataFrameBuffer(ReadOnlyMemory<byte> buffer, int length)

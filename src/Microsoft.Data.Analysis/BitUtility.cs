@@ -148,7 +148,7 @@ namespace Microsoft.Data.Analysis
         {
             var endByteIndex = (int)(length / 8);
 
-            Debug.Assert(span.Length > endByteIndex);
+            Debug.Assert(span.Length >= endByteIndex);
 
             long count = 0;
             for (var i = 0; i < endByteIndex; i++)

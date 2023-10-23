@@ -107,17 +107,41 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> HandleOperation(ComparisonOperation operation, PrimitiveColumnContainer<T> right)
         {
+            var ret = new PrimitiveColumnContainer<bool>(Length, false);
             var arithmetic = Arithmetic<T>.Instance;
 
-            var ret = new PrimitiveColumnContainer<bool>(Length);
-            long offset = 0;
+            //Size of any buffer in PrimitiveColumnContainer<bool> is larger (or equal) than size of the buffers for other types
+            long index = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 var leftSpan = this.Buffers[i].ReadOnlySpan;
                 var rightSpan = right.Buffers[i].ReadOnlySpan;
 
-                arithmetic.HandleOperation(operation, leftSpan, rightSpan, ret, offset);
-                offset += leftSpan.Length;
+                // Get correct ret Span for storing results
+                var retSpanIndex = ret.GetIndexOfBufferContainingRowIndex(index);
+                var retSpan = ret.Buffers.GetOrCreateMutable(retSpanIndex).Span;
+
+                //Get offset in the buffer to store new data
+                var retOffset = (int)(index % DataFrameBuffer<bool>.MaxCapacity);
+
+                //Check if there is enought space in the current ret buffer
+                var availableInRetSpan = DataFrameBuffer<bool>.MaxCapacity - retOffset;
+                if (availableInRetSpan < leftSpan.Length)
+                {
+                    //We are not able to place all results into remaining space into our ret buffer, have to split the results
+
+                    //This will be simplified when the size of buffers of different types are done equal
+                    //(not supported by classic .Net framework due to the 2 Gb limitation on array size)
+
+                    arithmetic.HandleOperation(operation, leftSpan.Slice(0, availableInRetSpan), rightSpan.Slice(0, availableInRetSpan), retSpan.Slice(retOffset));
+
+                    var nextRetSpan = ret.Buffers.GetOrCreateMutable(retSpanIndex + 1).Span;
+                    arithmetic.HandleOperation(operation, leftSpan.Slice(availableInRetSpan), rightSpan.Slice(availableInRetSpan), nextRetSpan);
+                }
+                else
+                    arithmetic.HandleOperation(operation, leftSpan, rightSpan, retSpan.Slice(retOffset));
+
+                index += leftSpan.Length;
             }
 
             return ret;
@@ -125,14 +149,41 @@ namespace Microsoft.Data.Analysis
 
         public PrimitiveColumnContainer<bool> HandleOperation(ComparisonOperation operation, T right)
         {
-            var ret = new PrimitiveColumnContainer<bool>(Length);
-            long offset = 0;
+            var ret = new PrimitiveColumnContainer<bool>(Length, false);
             var arithmetic = Arithmetic<T>.Instance;
+
+            //Size of any buffer in PrimitiveColumnContainer<bool> is larger (or equal) than size of the buffers for other types
+            long index = 0;
             for (int i = 0; i < this.Buffers.Count; i++)
             {
                 var leftSpan = this.Buffers[i].ReadOnlySpan;
 
-                arithmetic.HandleOperation(operation, leftSpan, right, ret, offset);
+                //Get correct ret Span for storing results
+                var retSpanIndex = ret.GetIndexOfBufferContainingRowIndex(index);
+                var retSpan = ret.Buffers.GetOrCreateMutable(retSpanIndex).Span;
+
+                //Get offset in the buffer to store new data
+                var retOffset = (int)(index % DataFrameBuffer<bool>.MaxCapacity);
+
+                //Check if there is enought space in the current ret buffer
+                var availableInRetSpan = DataFrameBuffer<bool>.MaxCapacity - retOffset;
+
+                if (availableInRetSpan < leftSpan.Length)
+                {
+                    //We are not able to place all results into remaining space into our ret buffer, have to split the results
+
+                    //This will be simplified when the size of buffers of different types are done equal
+                    //(not supported by classic .Net framework due to the 2 Gb limitation on array size)
+
+                    arithmetic.HandleOperation(operation, leftSpan.Slice(0, availableInRetSpan), right, retSpan.Slice(retOffset));
+
+                    var nextRetSpan = ret.Buffers.GetOrCreateMutable(retSpanIndex + 1).Span;
+                    arithmetic.HandleOperation(operation, leftSpan.Slice(availableInRetSpan), right, nextRetSpan);
+                }
+                else
+                    arithmetic.HandleOperation(operation, leftSpan, right, retSpan.Slice(retOffset));
+
+                index += leftSpan.Length;
             }
 
             return ret;
