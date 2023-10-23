@@ -421,15 +421,6 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Index cannot be greater than the Column&apos;s Length.
-        /// </summary>
-        internal static string RowIndexOutOfRange {
-            get {
-                return ResourceManager.GetString("RowIndexOutOfRange", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot span multiple buffers.
         /// </summary>
         internal static string SpansMultipleBuffers {

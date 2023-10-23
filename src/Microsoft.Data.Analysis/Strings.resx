@@ -237,9 +237,6 @@
   <data name="PositiveNumberOfCharacters" xml:space="preserve">
     <value>{0} must be greater than 0</value>
   </data>
-  <data name="RowIndexOutOfRange" xml:space="preserve">
-    <value>Index cannot be greater than the Column's Length</value>
-  </data>
   <data name="SpansMultipleBuffers" xml:space="preserve">
     <value>Cannot span multiple buffers</value>
   </data>
