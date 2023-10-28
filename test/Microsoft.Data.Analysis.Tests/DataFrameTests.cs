@@ -3696,11 +3696,12 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void Test_ArithmeticsSumWithNull()
+        public void Test_ArithmeticsAddWithNull()
         {
             // Arrange
-            var left_column = new Int32DataFrameColumn("Left", new int?[] { 1, 1, null, null });
-            var right_column = new Int32DataFrameColumn("Right", new int?[] { 1, null, 1, null });
+            //Number of elements shoult be higher than 8 to test SIMD
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 1, 1, null, null, 4, 5, 6, 7, 8, 9 });
+            var right_column = new Int32DataFrameColumn("Right", new int?[] { 1, null, 1, null, 4, 5, 6, 7, 8, 9 });
 
             // Act
             var sum = left_column + right_column;
@@ -3712,6 +3713,37 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Null(sum[1]); // null + 1
             Assert.Null(sum[2]); // 1 + null
             Assert.Null(sum[3]); // null + null
+            Assert.Equal(8, sum[4]);
+            Assert.Equal(10, sum[5]);
+            Assert.Equal(12, sum[6]);
+            Assert.Equal(14, sum[7]);
+            Assert.Equal(16, sum[8]);
+            Assert.Equal(18, sum[9]);
+        }
+
+        [Fact]
+        public void Test_ArithmeticsAddScalarWithNull()
+        {
+            // Arrange
+            //Number of elements shoult be higher than 8 to test SIMD
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 0, 1, null, null, 4, 5, 6, 7, 8, null });
+
+            // Act
+            var sum = left_column + 5;
+
+            // Assert
+            Assert.Equal(3, sum.NullCount);
+
+            Assert.Equal(5, sum[0]);  // 1 + 1
+            Assert.Equal(6, sum[1]);  // 1 + 1
+            Assert.Null(sum[2]); // 1 + null
+            Assert.Null(sum[3]); // null + null
+            Assert.Equal(9, sum[4]);
+            Assert.Equal(10, sum[5]);
+            Assert.Equal(11, sum[6]);
+            Assert.Equal(12, sum[7]);
+            Assert.Equal(13, sum[8]);
+            Assert.Null(sum[9]);
         }
 
         [Fact]

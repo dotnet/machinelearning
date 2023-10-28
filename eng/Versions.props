@@ -37,8 +37,7 @@
     <LightGBMVersion>2.3.1</LightGBMVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.3.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisCSharpVersion>3.9.0</MicrosoftCodeAnalysisCSharpVersion>
-    <MicrosoftDotNetInteractiveFormattingVersion>1.0.0-beta.23461.4</MicrosoftDotNetInteractiveFormattingVersion>
-    <MicrosoftDotNetInteractiveVersion>1.0.0-beta.23461.4</MicrosoftDotNetInteractiveVersion>
+    <MicrosoftDotNetInteractiveVersion>1.0.0-beta.23509.3</MicrosoftDotNetInteractiveVersion>
     <MicrosoftMLOnnxRuntimeVersion>1.14.0</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
     <!--  

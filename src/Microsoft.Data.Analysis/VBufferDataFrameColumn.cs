@@ -18,7 +18,6 @@ namespace Microsoft.Data.Analysis
     /// </summary>
     public partial class VBufferDataFrameColumn<T> : DataFrameColumn, IEnumerable<VBuffer<T>>
     {
-
         public static int MaxCapacity = ArrayUtility.ArrayMaxSize / Unsafe.SizeOf<VBuffer<T>>();
 
         private readonly List<List<VBuffer<T>>> _vBuffers = new List<List<VBuffer<T>>>(); // To store more than intMax number of vbuffers
@@ -56,9 +55,7 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        private long _nullCount;
-
-        public override long NullCount => _nullCount;
+        public override long NullCount => 0;
 
         protected internal override void Resize(long length)
         {
@@ -87,13 +84,18 @@ namespace Microsoft.Data.Analysis
         {
             if (rowIndex >= Length)
             {
-                throw new ArgumentOutOfRangeException(Strings.ColumnIndexOutOfRange, nameof(rowIndex));
+                throw new ArgumentOutOfRangeException(Strings.IndexIsGreaterThanColumnLength, nameof(rowIndex));
             }
 
             return (int)(rowIndex / MaxCapacity);
         }
 
         protected override object GetValue(long rowIndex)
+        {
+            return GetTypedValue(rowIndex);
+        }
+
+        protected VBuffer<T> GetTypedValue(long rowIndex)
         {
             int bufferIndex = GetBufferIndexContainingRowIndex(rowIndex);
             return _vBuffers[bufferIndex][(int)(rowIndex % MaxCapacity)];
@@ -118,19 +120,13 @@ namespace Microsoft.Data.Analysis
 
         protected override void SetValue(long rowIndex, object value)
         {
-            if (value == null || value is VBuffer<T>)
+            if (value == null)
             {
-                int bufferIndex = GetBufferIndexContainingRowIndex(rowIndex);
-                int bufferOffset = (int)(rowIndex % MaxCapacity);
-                var oldValue = _vBuffers[bufferIndex][bufferOffset];
-                _vBuffers[bufferIndex][bufferOffset] = (VBuffer<T>)value;
-                if (!oldValue.Equals((VBuffer<T>)value))
-                {
-                    if (value == null)
-                        _nullCount++;
-                    if (oldValue.Length == 0 && _nullCount > 0)
-                        _nullCount--;
-                }
+                throw new NotSupportedException("Null values are not supported by VBufferDataFrameColumn");
+            }
+            else if (value is VBuffer<T> vbuffer)
+            {
+                SetTypedValue(rowIndex, vbuffer);
             }
             else
             {
@@ -138,10 +134,16 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        protected void SetTypedValue(long rowIndex, VBuffer<T> value)
+        {
+            int bufferIndex = GetBufferIndexContainingRowIndex(rowIndex);
+            _vBuffers[bufferIndex][(int)(rowIndex % MaxCapacity)] = value;
+        }
+
         public new VBuffer<T> this[long rowIndex]
         {
-            get => (VBuffer<T>)GetValue(rowIndex);
-            set => SetValue(rowIndex, value);
+            get => GetTypedValue(rowIndex);
+            set => SetTypedValue(rowIndex, value);
         }
 
         /// <summary>
