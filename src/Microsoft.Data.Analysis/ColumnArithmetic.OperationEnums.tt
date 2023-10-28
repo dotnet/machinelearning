@@ -21,15 +21,6 @@ namespace Microsoft.Data.Analysis
 <# } #>
     }
 
-    internal enum BinaryScalarOperation
-    {
-<# foreach (MethodConfiguration method in methodConfiguration) { #>
-<# if (method.MethodType == MethodType.BinaryScalar) { #>
-        <#=method.MethodName#>,
-<# } #>
-<# } #>
-    }
-
     internal enum BinaryIntOperation
     {
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
@@ -43,15 +34,6 @@ namespace Microsoft.Data.Analysis
     {
 <# foreach (MethodConfiguration method in methodConfiguration) { #>
 <# if (method.MethodType == MethodType.Comparison) { #>
-        <#=method.MethodName#>,
-<# } #>
-<# } #>
-    }
-
-    internal enum ComparisonScalarOperation
-    {
-<# foreach (MethodConfiguration method in methodConfiguration) { #>
-<# if (method.MethodType == MethodType.ComparisonScalar) { #>
         <#=method.MethodName#>,
 <# } #>
 <# } #>

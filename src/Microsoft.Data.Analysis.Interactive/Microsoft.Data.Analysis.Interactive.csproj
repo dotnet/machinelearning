@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.Interactive" Version="$(MicrosoftDotNetInteractiveVersion)" />
-    <PackageReference Include="Microsoft.DotNet.Interactive.Formatting" Version="$(MicrosoftDotNetInteractiveFormattingVersion)" />
+    <PackageReference Include="Microsoft.DotNet.Interactive.Formatting" Version="$(MicrosoftDotNetInteractiveVersion)" />
   </ItemGroup>
 
   <ItemGroup>

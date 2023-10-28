@@ -209,8 +209,9 @@ namespace Microsoft.Data.Analysis.PerformanceTests
         [Benchmark]
         public void ElementwiseEquals_Int16_Int16()
         {
-            var column = _int32Column1.ElementwiseEquals(_int16Column2);
+            var column = _int16Column1.ElementwiseEquals(_int16Column2);
         }
+
 
         [Benchmark]
         public void ElementwiseEquals_Double_Double()
