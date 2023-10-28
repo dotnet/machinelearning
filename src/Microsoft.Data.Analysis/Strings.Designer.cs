@@ -106,15 +106,6 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Index cannot be greater than the Column&apos;s Length.
-        /// </summary>
-        internal static string ColumnIndexOutOfRange {
-            get {
-                return ResourceManager.GetString("ColumnIndexOutOfRange", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Comment token cannot contain whitespace.
         /// </summary>
         internal static string CommentTokenCannotContainWhitespace {
@@ -264,6 +255,15 @@ namespace Microsoft.Data {
         internal static string InconsistentNullBitMapAndNullCount {
             get {
                 return ResourceManager.GetString("InconsistentNullBitMapAndNullCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Index cannot be greater than the Column&apos;s Length.
+        /// </summary>
+        internal static string IndexIsGreaterThanColumnLength {
+            get {
+                return ResourceManager.GetString("IndexIsGreaterThanColumnLength", resourceCulture);
             }
         }
         

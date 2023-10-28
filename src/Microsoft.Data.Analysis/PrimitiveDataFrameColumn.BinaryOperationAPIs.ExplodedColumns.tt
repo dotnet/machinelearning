@@ -199,7 +199,7 @@ void GenerateAllBinaryScalarCombinationsForMethod()
         if (fullReturnType == fullColumnType)
         {
 #>
-            return HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace);
+            return HandleOperationImplementation(BinaryOperation.<#=methodName#>, value, inPlace);
 <#
         }
         else
@@ -207,7 +207,7 @@ void GenerateAllBinaryScalarCombinationsForMethod()
             // Cases such as byte + byte resulting in int. Needs 2 clones
 #>
             var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace: true);
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryOperation.<#=methodName#>, value, inPlace: true);
 <#
         }
     }
@@ -222,14 +222,14 @@ void GenerateAllBinaryScalarCombinationsForMethod()
             {
 #>
             var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace: true);
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryOperation.<#=methodName#>, value, inPlace: true);
 <#
             }
             else
             {
 #>
             var convertedValue = (<#=returnType#>)value;
-            return HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, convertedValue, inPlace);
+            return HandleOperationImplementation(BinaryOperation.<#=methodName#>, convertedValue, inPlace);
 <#
             }
         }
@@ -238,7 +238,7 @@ void GenerateAllBinaryScalarCombinationsForMethod()
             // Cases such as byte + short resulting in int. Needs 2 clones
 #>
             var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.HandleOperationImplementation(BinaryScalarOperation.<#=methodName#>, value, inPlace: true);
+            return <#=returnType#>Column.HandleOperationImplementation(BinaryOperation.<#=methodName#>, value, inPlace: true);
 <#
         }
     }
@@ -282,7 +282,7 @@ void GenerateAllBinaryScalarCombinationsForMethod()
         if (fullReturnType == fullColumnType)
         {
 #>
-            return HandleReverseOperationImplementation(BinaryScalarOperation.<#=operationName#>, value, inPlace);
+            return HandleReverseOperationImplementation(BinaryOperation.<#=operationName#>, value, inPlace);
 <#
         }
         else
@@ -290,7 +290,7 @@ void GenerateAllBinaryScalarCombinationsForMethod()
             // Cases such as byte + byte resulting in int. Needs 2 clones
 #>
             var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.HandleReverseOperationImplementation(BinaryScalarOperation.<#=operationName#>, value, inPlace: true);
+            return <#=returnType#>Column.HandleReverseOperationImplementation(BinaryOperation.<#=operationName#>, value, inPlace: true);
 <#
         }
     }
@@ -305,14 +305,14 @@ void GenerateAllBinaryScalarCombinationsForMethod()
             {
 #>
             var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.HandleReverseOperationImplementation(BinaryScalarOperation.<#=operationName#>, value, inPlace: true);
+            return <#=returnType#>Column.HandleReverseOperationImplementation(BinaryOperation.<#=operationName#>, value, inPlace: true);
 <#
             }
             else
             {
 #>
             var convertedValue = (<#=returnType#>)value;
-            return HandleReverseOperationImplementation(BinaryScalarOperation.<#=operationName#>, convertedValue, inPlace);
+            return HandleReverseOperationImplementation(BinaryOperation.<#=operationName#>, convertedValue, inPlace);
 <#
             }
         }
@@ -321,7 +321,7 @@ void GenerateAllBinaryScalarCombinationsForMethod()
             // Cases such as byte + short resulting in int. Needs 2 clones
 #>
             var <#=returnType#>Column = CloneAs<#=capitalizedReturnType#>Column();
-            return <#=returnType#>Column.HandleReverseOperationImplementation(BinaryScalarOperation.<#=operationName#>, value, inPlace: true);
+            return <#=returnType#>Column.HandleReverseOperationImplementation(BinaryOperation.<#=operationName#>, value, inPlace: true);
 <#
         }
     }
@@ -368,7 +368,7 @@ void GenerateAllBinaryScalarBitwiseOperationsForMethod(string methodName)
         public new BooleanDataFrameColumn <#=methodName#>(bool value, bool inPlace = false)
         {
             BooleanDataFrameColumn retColumn = inPlace ? this : CloneAsBooleanColumn();
-            retColumn.ColumnContainer.HandleOperation(BinaryScalarOperation.<#=methodName#>, value);
+            retColumn.ColumnContainer.HandleOperation(BinaryOperation.<#=methodName#>, value);
             return retColumn;
         }
     }
@@ -514,7 +514,7 @@ foreach (MethodConfiguration method in methodConfiguration)
     if (columnType == otherColumnType)
     {
 #>
-            return HandleOperationImplementation(ComparisonScalarOperation.<#=methodName#>, value);
+            return HandleOperationImplementation(ComparisonOperation.<#=methodName#>, value);
 <#
     }
     else
@@ -525,14 +525,14 @@ foreach (MethodConfiguration method in methodConfiguration)
         {
 #>
             <#=fullOtherColumnType#> <#=otherColumnType#>Column = CloneAs<#=capitalizedOtherColumnType#>Column();
-            return <#=otherColumnType#>Column.HandleOperationImplementation(ComparisonScalarOperation.<#=methodName#>, value);
+            return <#=otherColumnType#>Column.HandleOperationImplementation(ComparisonOperation.<#=methodName#>, value);
 <#
         }
         else
         {
 #>
             <#=columnType#> other<#=columnType#>Value = (<#=columnType#>)value;
-            return HandleOperationImplementation(ComparisonScalarOperation.<#=methodName#>, other<#=columnType#>Value);
+            return HandleOperationImplementation(ComparisonOperation.<#=methodName#>, other<#=columnType#>Value);
 <#
         }
 #>
