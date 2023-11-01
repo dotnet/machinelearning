@@ -214,9 +214,11 @@ namespace Microsoft.ML.Internal.CpuMath
         public static void ScaleAdd(float scale, float addend, Span<float> destination)
         {
             Contracts.AssertNonEmpty(destination);
-            var scaleSpan = new Span<float>(new float[destination.Length]);
-            scaleSpan.Fill(scale);
-            TensorPrimitives.AddMultiply(destination, addend, scaleSpan, destination);
+            //var scaleSpan = new Span<float>(new float[destination.Length]);
+            //scaleSpan.Fill(scale);
+            TensorPrimitives.Add(destination, addend, destination);
+            TensorPrimitives.Multiply(destination, scale, destination);
+            //TensorPrimitives.AddMultiply(destination, addend, scaleSpan, destination);
         }
 
         /// <summary>
@@ -256,6 +258,8 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= indices.Length);
             Contracts.Assert(count < destination.Length);
+
+
 
             if (count < MinInputSize || !Sse.IsSupported)
             {
@@ -312,8 +316,6 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= destination.Length);
 
-            System.IO.File.AppendAllLines(@"C:\Temp\AddKMeansAdult.txt", new string[] { count.ToString() });
-
             TensorPrimitives.Add(source.Slice(0, count), destination.Slice(0, count), destination.Slice(0, count));
         }
 
@@ -335,22 +337,34 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= indices.Length);
             Contracts.Assert(count < destination.Length);
 
-            if (count < MinInputSize || !Sse.IsSupported)
+            var temp = new Span<float>(new float[count]);
+
+            for (int i = 0; i < count; i++)
             {
-                for (int i = 0; i < count; i++)
-                {
-                    int index = indices[i];
-                    destination[index] += source[i];
-                }
+                temp[i] = destination[indices[i]];
             }
-            else if (Avx.IsSupported)
+            TensorPrimitives.Add(temp, source.Slice(0, count), temp);
+            for (int i = 0; i < count; i++)
             {
-                AvxIntrinsics.AddSU(source, indices, destination, count);
+                destination[indices[i]] = temp[i];
             }
-            else
-            {
-                SseIntrinsics.AddSU(source, indices, destination, count);
-            }
+
+            //if (count < MinInputSize || !Sse.IsSupported)
+            //{
+            //    for (int i = 0; i < count; i++)
+            //    {
+            //        int index = indices[i];
+            //        destination[index] += source[i];
+            //    }
+            //}
+            //else if (Avx.IsSupported)
+            //{
+            //    AvxIntrinsics.AddSU(source, indices, destination, count);
+            //}
+            //else
+            //{
+            //    SseIntrinsics.AddSU(source, indices, destination, count);
+            //}
         }
 
         /// <summary>
@@ -468,7 +482,7 @@ namespace Microsoft.ML.Internal.CpuMath
         public static float MaxAbsDiff(float mean, ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
-            Span<float> temp = new Span<float>(new float[source.Length]);
+            var temp = new Span<float>(new float[source.Length]);
             TensorPrimitives.Subtract(source, mean, temp);
             var result = TensorPrimitives.MaxMagnitude(temp);
             return result < 0 ? -result : result;
@@ -512,24 +526,33 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= right.Length);
             Contracts.Assert(count <= indices.Length);
 
-            if (count < MinInputSize || !Sse.IsSupported)
+            var temp = new Span<float>(new float[count]);
+
+            for (int i = 0; i < count; i++)
             {
-                float result = 0;
-                for (int i = 0; i < count; i++)
-                {
-                    int index = indices[i];
-                    result += left[index] * right[i];
-                }
-                return result;
+                temp[i] = left[indices[i]];
             }
-            else if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.DotSU(left, right, indices, count);
-            }
-            else
-            {
-                return SseIntrinsics.DotSU(left, right, indices, count);
-            }
+
+            return TensorPrimitives.Dot(temp, right.Slice(0, count));
+
+            //if (count < MinInputSize || !Sse.IsSupported)
+            //{
+            //    float result = 0;
+            //    for (int i = 0; i < count; i++)
+            //    {
+            //        int index = indices[i];
+            //        result += left[index] * right[i];
+            //    }
+            //    return result;
+            //}
+            //else if (Avx.IsSupported)
+            //{
+            //    return AvxIntrinsics.DotSU(left, right, indices, count);
+            //}
+            //else
+            //{
+            //    return SseIntrinsics.DotSU(left, right, indices, count);
+            //}
         }
 
         /// <summary>

@@ -13,84 +13,84 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
     {
         //private int _smallInputLength = 32768;
 
-        [Params(1, 8, 64, 256, 32768)]
+        [Params(512)]
         public int arrayLength;
 
-        [Benchmark]
-        public void AddScalarU()
-            => CpuMathUtils.Add(DefaultScale, dst.AsSpan(0, arrayLength));
+        //[Benchmark]
+        //public void AddScalarU()
+        //    => CpuMathUtils.Add(DefaultScale, dst.AsSpan(0, arrayLength));
 
-        [Benchmark]
-        public void Scale()
-            => CpuMathUtils.Scale(DefaultScale, dst.AsSpan(0, arrayLength));
+        //[Benchmark]
+        //public void Scale()
+        //    => CpuMathUtils.Scale(DefaultScale, dst.AsSpan(0, arrayLength));
 
-        [Benchmark]
-        public void ScaleSrcU()
-            => CpuMathUtils.Scale(DefaultScale, src, dst, arrayLength);
+        //[Benchmark]
+        //public void ScaleSrcU()
+        //    => CpuMathUtils.Scale(DefaultScale, src, dst, arrayLength);
 
-        [Benchmark]
-        public void ScaleAddU()
-            => CpuMathUtils.ScaleAdd(DefaultScale, DefaultScale, dst.AsSpan(0, arrayLength));
+        //[Benchmark]
+        //public void ScaleAddU()
+        //    => CpuMathUtils.ScaleAdd(DefaultScale, DefaultScale, dst.AsSpan(0, arrayLength));
 
-        [Benchmark]
-        public void AddScaleU()
-            => CpuMathUtils.AddScale(DefaultScale, src, dst, arrayLength);
+        //[Benchmark]
+        //public void AddScaleU()
+        //    => CpuMathUtils.AddScale(DefaultScale, src, dst, arrayLength);
 
         //[Benchmark]
         //public void AddScaleSU()
-        //    => CpuMathUtils.AddScale(DefaultScale, src, idx, dst, _smallInputLength);
-
-        [Benchmark]
-        public void AddScaleCopyU()
-            => CpuMathUtils.AddScaleCopy(DefaultScale, src, dst, result, arrayLength);
-
-        [Benchmark]
-        public void AddU()
-            => CpuMathUtils.Add(src, dst, arrayLength);
+        //    => CpuMathUtils.AddScale(DefaultScale, src, idx, dst, arrayLength);
 
         //[Benchmark]
-        //public void AddSU()
-        //    => CpuMathUtils.Add(src, idx, dst, _smallInputLength);
+        //public void AddScaleCopyU()
+        //    => CpuMathUtils.AddScaleCopy(DefaultScale, src, dst, result, arrayLength);
+
+        //[Benchmark]
+        //public void AddU()
+        //    => CpuMathUtils.Add(src, dst, arrayLength);
 
         [Benchmark]
-        public void MulElementWiseU()
-            => CpuMathUtils.MulElementWise(src1, src2, dst, arrayLength);
+        public void AddSU()
+            => CpuMathUtils.Add(src, idx, dst, arrayLength);
 
-        [Benchmark]
-        public float Sum()
-            => CpuMathUtils.Sum(new Span<float>(src, 0, arrayLength));
+        //[Benchmark]
+        //public void MulElementWiseU()
+        //    => CpuMathUtils.MulElementWise(src1, src2, dst, arrayLength);
 
-        [Benchmark]
-        public float SumSqU()
-            => CpuMathUtils.SumSq(new Span<float>(src, 0, arrayLength));
+        //[Benchmark]
+        //public float Sum()
+        //    => CpuMathUtils.Sum(new Span<float>(src, 0, arrayLength));
 
-        [Benchmark]
-        public float SumSqDiffU()
-            => CpuMathUtils.SumSq(DefaultScale, src.AsSpan(0, arrayLength));
+        //[Benchmark]
+        //public float SumSqU()
+        //    => CpuMathUtils.SumSq(new Span<float>(src, 0, arrayLength));
 
-        [Benchmark]
-        public float SumAbsU()
-             => CpuMathUtils.SumAbs(src.AsSpan(0, arrayLength));
+        //[Benchmark]
+        //public float SumSqDiffU()
+        //    => CpuMathUtils.SumSq(DefaultScale, src.AsSpan(0, arrayLength));
 
-        [Benchmark]
-        public float SumAbsDiffU()
-            => CpuMathUtils.SumAbs(DefaultScale, src.AsSpan(0, arrayLength));
+        //[Benchmark]
+        //public float SumAbsU()
+        //     => CpuMathUtils.SumAbs(src.AsSpan(0, arrayLength));
 
-        [Benchmark]
-        public float MaxAbsU()
-            => CpuMathUtils.MaxAbs(src.AsSpan(0, arrayLength));
+        //[Benchmark]
+        //public float SumAbsDiffU()
+        //    => CpuMathUtils.SumAbs(DefaultScale, src.AsSpan(0, arrayLength));
 
-        [Benchmark]
-        public float MaxAbsDiffU()
-            => CpuMathUtils.MaxAbsDiff(DefaultScale, src.AsSpan(0, arrayLength));
+        //[Benchmark]
+        //public float MaxAbsU()
+        //    => CpuMathUtils.MaxAbs(src.AsSpan(0, arrayLength));
 
-        [Benchmark]
-        public float DotU()
-            => CpuMathUtils.DotProductDense(src, dst, arrayLength);
+        //[Benchmark]
+        //public float MaxAbsDiffU()
+        //    => CpuMathUtils.MaxAbsDiff(DefaultScale, src.AsSpan(0, arrayLength));
+
+        //[Benchmark]
+        //public float DotU()
+        //    => CpuMathUtils.DotProductDense(src, dst, arrayLength);
 
         //[Benchmark]
         //public float DotSU()
-        //    => CpuMathUtils.DotProductSparse(src, dst, idx, _smallInputLength);
+        //    => CpuMathUtils.DotProductSparse(src, dst, idx, arrayLength);
 
         //[Benchmark]
         //public float Dist2()
@@ -98,10 +98,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         //[Benchmark]
         //public void SdcaL1UpdateU()
-        //    => CpuMathUtils.SdcaL1UpdateDense(DefaultScale, _smallInputLength, src, DefaultScale, dst, result);
+        //    => CpuMathUtils.SdcaL1UpdateDense(DefaultScale, arrayLength, src, DefaultScale, dst, result);
 
         //[Benchmark]
         //public void SdcaL1UpdateSU()
-        //    => CpuMathUtils.SdcaL1UpdateSparse(DefaultScale, _smallInputLength, src, idx, DefaultScale, dst, result);
+        //    => CpuMathUtils.SdcaL1UpdateSparse(DefaultScale, arrayLength, src, idx, DefaultScale, dst, result);
     }
 }

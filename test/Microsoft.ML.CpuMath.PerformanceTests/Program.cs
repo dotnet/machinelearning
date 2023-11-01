@@ -11,10 +11,12 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
     class Program
     {
         public static void Main(string[] args)
-            => BenchmarkSwitcher
-                .FromAssembly(typeof(Program).Assembly)
-                .Run(args, CreateCustomConfig());
-
+        {
+            //=> BenchmarkSwitcher
+            //    .FromAssembly(typeof(Program).Assembly)
+            //    .Run(args, CreateCustomConfig());
+            BenchmarkRunner.Run<SmallInputCpuMathPerformanceTests>();
+        }
         private static IConfig CreateCustomConfig()
             => DefaultConfig.Instance.AddJob(Job.Default
                     .WithToolchain(InProcessEmitToolchain.Instance));
