@@ -7,8 +7,6 @@ using Microsoft.ML.Internal.CpuMath;
 
 namespace Microsoft.ML.CpuMath.PerformanceTests
 {
-    [CsvExporter]
-    [CsvMeasurementsExporter]
     public class SmallInputCpuMathPerformanceTests : PerformanceTests
     {
         [Params(256)]

@@ -32,7 +32,6 @@
     <Compile Remove="AvxPerformanceTests.cs"/>
     <Compile Remove="SsePerformanceTests.cs"/>
   </ItemGroup>
-  
 
   <ItemGroup>
     <NativeAssemblyReference Include="CpuMathNative" />
