@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <GenerateProgramFile>false</GenerateProgramFile>
-    <TargetFrameworks>net8.0;net462</TargetFrameworks>
+    <TargetFrameworks>net6.0;net462</TargetFrameworks>
     <!--
     work around https://github.com/dotnet/sdk/issues/3044
     The netfx configuration will set the RuntimeIdentifier, but this causes restore issues on 3.0.
