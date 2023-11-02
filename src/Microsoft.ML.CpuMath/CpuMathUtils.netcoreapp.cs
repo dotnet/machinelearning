@@ -7,7 +7,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 using System.Numerics.Tensors;
 using Microsoft.ML.Internal.CpuMath.Core;
-using System.ComponentModel.DataAnnotations;
 
 namespace Microsoft.ML.Internal.CpuMath
 {

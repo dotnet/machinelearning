@@ -6,7 +6,6 @@ using System;
 using System.Numerics.Tensors;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using Microsoft.ML.Internal.CpuMath.Core;
 
 namespace Microsoft.ML.Internal.CpuMath
