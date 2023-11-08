@@ -169,6 +169,17 @@ namespace Microsoft.ML.Internal.CpuMath
             }
         }
 
+        public static float SumAbs(float mean, ReadOnlySpan<float> src)
+        {
+            Contracts.AssertNonEmpty(src);
+
+            unsafe
+            {
+                fixed (float* psrc = &MemoryMarshal.GetReference(src))
+                    return (mean == 0 ? Thunk.SumAbsU(psrc, src.Length) : Thunk.SumAbsDiffU(mean, psrc, src.Length));
+            }
+        }
+
         public static float MaxAbs(ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);

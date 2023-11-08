@@ -289,6 +289,36 @@ namespace Microsoft.ML.Internal.CpuMath
         }
 
         /// <summary>
+        /// Sum the absolute value of each item in the source and subtract the mean.
+        /// </summary>
+        /// <param name="mean">The mean value.</param>
+        /// <param name="source">The source values.</param>
+        /// <returns>The sum of all items by absolute value in <paramref name="source"/> subtracted by <paramref name="mean"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float SumAbs(float mean, ReadOnlySpan<float> source)
+        {
+            Contracts.AssertNonEmpty(source);
+
+            if (source.Length < MinInputSize || !Sse.IsSupported)
+            {
+                float sum = 0;
+                for (int i = 0; i < source.Length; i++)
+                {
+                    sum += Math.Abs(source[i] - mean);
+                }
+                return sum;
+            }
+            else if (Avx.IsSupported)
+            {
+                return (mean == 0) ? AvxIntrinsics.SumAbsU(source) : AvxIntrinsics.SumAbsDiffU(mean, source);
+            }
+            else
+            {
+                return (mean == 0) ? SseIntrinsics.SumAbsU(source) : SseIntrinsics.SumAbsDiffU(mean, source);
+            }
+        }
+
+        /// <summary>
         /// Take the maximum absolute value within the source.
         /// </summary>
         /// <param name="source">The source values.</param>

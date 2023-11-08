@@ -176,20 +176,6 @@ namespace Microsoft.ML.Internal.CpuMath
         }
 
         /// <summary>
-        /// Sum the absolute value of each item in the source and subtract the mean.
-        /// </summary>
-        /// <param name="mean">The mean value.</param>
-        /// <param name="source">The source values.</param>
-        /// <returns>The sum of all items by absolute value in <paramref name="source"/> subtracted by <paramref name="mean"/>.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float SumAbs(float mean, ReadOnlySpan<float> source)
-        {
-            Contracts.AssertNonEmpty(source);
-
-            return TensorPrimitives.SumOfMagnitudes(source) - (mean * source.Length);
-        }
-
-        /// <summary>
         /// Returns the dot product of each item in the left and right spans.
         /// </summary>
         /// <param name="left">The left span.</param>
