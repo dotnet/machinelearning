@@ -10,7 +10,6 @@ using Microsoft.ML.Internal.CpuMath.Core;
 
 namespace Microsoft.ML.Internal.CpuMath
 {
-    [BestFriend]
     internal static partial class CpuMathUtils
     {
         // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
@@ -111,29 +110,6 @@ namespace Microsoft.ML.Internal.CpuMath
             }
         }
 
-        // dst += a
-        public static void Add(float a, Span<float> dst)
-        {
-            Contracts.AssertNonEmpty(dst);
-            TensorPrimitives.Add(dst, a, dst);
-        }
-
-        public static void Scale(float a, Span<float> dst)
-        {
-            Contracts.AssertNonEmpty(dst);
-            TensorPrimitives.Multiply(dst, a, dst);
-        }
-
-        // dst = a * src
-        public static void Scale(float a, ReadOnlySpan<float> src, Span<float> dst, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count && count <= src.Length);
-            Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(count <= dst.Length);
-            TensorPrimitives.Multiply(src.Slice(0, count), a, dst);
-        }
-
         // dst[i] = a * (dst[i] + b)
         public static void ScaleAdd(float a, float b, Span<float> dst)
         {
@@ -144,16 +120,6 @@ namespace Microsoft.ML.Internal.CpuMath
                 fixed (float* pdst = &MemoryMarshal.GetReference(dst))
                     Thunk.ScaleAddU(a, b, pdst, dst.Length);
             }
-        }
-
-        public static void AddScale(float a, ReadOnlySpan<float> src, Span<float> dst, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count && count <= src.Length);
-            Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(count <= dst.Length);
-
-            TensorPrimitives.MultiplyAdd(src.Slice(0, count), a, dst.Slice(0, count), dst);
         }
 
         public static void AddScale(float a, ReadOnlySpan<float> src, ReadOnlySpan<int> indices, Span<float> dst, int count)
@@ -174,28 +140,6 @@ namespace Microsoft.ML.Internal.CpuMath
             }
         }
 
-        public static void AddScaleCopy(float a, ReadOnlySpan<float> src, ReadOnlySpan<float> dst, Span<float> res, int count)
-        {
-            Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(0 < count && count <= dst.Length);
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(count <= src.Length);
-            Contracts.AssertNonEmpty(res);
-            Contracts.Assert(count <= res.Length);
-
-            TensorPrimitives.MultiplyAdd(src.Slice(0, count), a, dst.Slice(0, count), res.Slice(0, count));
-        }
-
-        public static void Add(ReadOnlySpan<float> src, Span<float> dst, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count && count <= src.Length);
-            Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(count <= dst.Length);
-
-            TensorPrimitives.Add(src.Slice(0, count), dst.Slice(0, count), dst.Slice(0, count));
-        }
-
         public static void Add(ReadOnlySpan<float> src, ReadOnlySpan<int> indices, Span<float> dst, int count)
         {
             Contracts.AssertNonEmpty(src);
@@ -214,30 +158,6 @@ namespace Microsoft.ML.Internal.CpuMath
             }
         }
 
-        public static void MulElementWise(ReadOnlySpan<float> src1, ReadOnlySpan<float> src2, Span<float> dst, int count)
-        {
-            Contracts.AssertNonEmpty(src1);
-            Contracts.Assert(0 < count && count <= src1.Length);
-            Contracts.AssertNonEmpty(src2);
-            Contracts.Assert(0 < count && count <= src2.Length);
-            Contracts.AssertNonEmpty(dst);
-
-            TensorPrimitives.Multiply(src1.Slice(0, count), src2.Slice(0, count), dst.Slice(0, count));
-        }
-
-        public static float Sum(ReadOnlySpan<float> src)
-        {
-            Contracts.AssertNonEmpty(src);
-            return TensorPrimitives.Sum(src);
-        }
-
-        public static float SumSq(ReadOnlySpan<float> src)
-        {
-            Contracts.AssertNonEmpty(src);
-
-            return TensorPrimitives.SumOfSquares(src);
-        }
-
         public static float SumSq(float mean, ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);
@@ -247,24 +167,6 @@ namespace Microsoft.ML.Internal.CpuMath
                 fixed (float* psrc = &MemoryMarshal.GetReference(src))
                     return (mean == 0 ? Thunk.SumSqU(psrc, src.Length) : Thunk.SumSqDiffU(mean, psrc, src.Length));
             }
-        }
-
-        public static float SumAbs(ReadOnlySpan<float> src)
-        {
-            Contracts.AssertNonEmpty(src);
-
-            return TensorPrimitives.SumOfMagnitudes(src);
-        }
-
-        public static float SumAbs(float mean, ReadOnlySpan<float> src)
-        {
-            Contracts.AssertNonEmpty(src);
-
-            if (mean == 0)
-                return TensorPrimitives.SumOfMagnitudes(src);
-
-            return TensorPrimitives.SumOfMagnitudes(src) - (mean * src.Length);
-
         }
 
         public static float MaxAbs(ReadOnlySpan<float> src)
@@ -287,17 +189,6 @@ namespace Microsoft.ML.Internal.CpuMath
                 fixed (float* psrc = &MemoryMarshal.GetReference(src))
                     return Thunk.MaxAbsDiffU(mean, psrc, src.Length);
             }
-        }
-
-        public static float DotProductDense(ReadOnlySpan<float> a, ReadOnlySpan<float> b, int count)
-        {
-            Contracts.AssertNonEmpty(a);
-            Contracts.AssertNonEmpty(b);
-            Contracts.Assert(0 < count);
-            Contracts.Assert(a.Length >= count);
-            Contracts.Assert(b.Length >= count);
-
-            return TensorPrimitives.Dot(a.Slice(0, count), b.Slice(0, count));
         }
 
         public static float DotProductSparse(ReadOnlySpan<float> a, ReadOnlySpan<float> b, ReadOnlySpan<int> indices, int count)
