@@ -190,6 +190,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         public static extern unsafe int BoosterSaveModelToString(SafeBoosterHandle handle,
             int startIteration,
             int numIteration,
+            int featureImportanceType,
             int bufferLen,
             ref int outLen,
             byte* outStr);
