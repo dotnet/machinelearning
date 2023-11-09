@@ -118,7 +118,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(result.BestRun.TrainerName);
         }
 
-        [Fact]
+        [X64Fact("Only x64 is supported.")]
         public void AutoFit_UCI_Adult_CrossValidation_10_Test()
         {
             var context = new MLContext(1);
@@ -146,7 +146,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.NotNull(model);
         }
 
-        [Fact]
+        [X64Fact("Only x64 is supported.")]
         public void AutoFit_Taxi_Fare_Train_Test_Split_Test()
         {
             var context = new MLContext(1);
@@ -326,7 +326,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [OnnxFact(Skip = "save space on ci runs")]
+        [X64Fact("save space on ci runs")]
         public void AutoFitMultiClassification_Image_TrainTest()
         {
             var context = new MLContext(seed: 1);
@@ -353,7 +353,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
-        [OnnxFact(Skip = "save space on ci runs")]
+        [X64Fact("save space on ci runs")]
         public void AutoFitMultiClassification_Image_CV()
         {
             var context = new MLContext(seed: 1);
@@ -376,7 +376,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
-        [OnnxFact(Skip = "save space on ci runs")]
+        [X64Fact("save space on ci runs")]
         public void AutoFitMultiClassification_Image()
         {
             var context = new MLContext(1);
