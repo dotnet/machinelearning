@@ -11,20 +11,20 @@ PREDICTED ||     0 |     1 |     2 | Recall
 TRUTH     ||========================
         0 ||    50 |     0 |     0 | 1.0000
         1 ||     0 |    47 |     3 | 0.9400
-        2 ||     0 |     1 |    49 | 0.9800
+        2 ||     0 |     0 |    50 | 1.0000
           ||========================
-Precision ||1.0000 |0.9792 |0.9423 |
-Accuracy(micro-avg): 0.973333
-Accuracy(macro-avg): 0.973333
-Log-loss:           0.161048
-Log-loss reduction: 0.853408
+Precision ||1.0000 |1.0000 |0.9434 |
+Accuracy(micro-avg): 0.980000
+Accuracy(macro-avg): 0.980000
+Log-loss:           0.150322
+Log-loss reduction: 0.863171
 
 OVERALL RESULTS
 ---------------------------------------
-Accuracy(micro-avg): 0.973333 (0.0000)
-Accuracy(macro-avg): 0.973333 (0.0000)
-Log-loss:           0.161048 (0.0000)
-Log-loss reduction: 0.853408 (0.0000)
+Accuracy(micro-avg): 0.980000 (0.0000)
+Accuracy(macro-avg): 0.980000 (0.0000)
+Log-loss:           0.150322 (0.0000)
+Log-loss reduction: 0.863171 (0.0000)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%
