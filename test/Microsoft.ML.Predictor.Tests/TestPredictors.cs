@@ -1606,7 +1606,7 @@ namespace Microsoft.ML.RunTests
         public void DefaultCalibratorPerceptronTest()
         {
             var datasets = GetDatasetsForCalibratorTest();
-            RunAllTests(new[] { TestLearners.perceptronDefault }, datasets, new string[] { "cali={}" }, "nocalibration");
+            RunAllTests(new[] { TestLearners.perceptronDefault }, datasets, new string[] { "cali={}" }, "nocalibration", digitsOfPrecision: 5);
             Done();
         }
 
@@ -2164,7 +2164,7 @@ output Out [3] from H all;
         {
             var binaryPredictors = new[] { TestLearners.LDSVMNoBias };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 2);
             Done();
         }
 

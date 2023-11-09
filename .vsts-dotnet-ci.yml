@@ -149,12 +149,12 @@ jobs:
         _configuration: Debug
         _config_short: DFX
         _includeBenchmarkData: false
-        _targetFramework: net461
+        _targetFramework: net462
       Release_Build:
         _configuration: Release
         _config_short: RFX
         _includeBenchmarkData: false
-        _targetFramework: net461
+        _targetFramework: net462
     innerLoop: true
     vsTestConfiguration: "/Framework:.NETCoreApp,Version=v4.0"
     pool:
