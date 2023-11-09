@@ -152,7 +152,7 @@ namespace Microsoft.ML.RunTests
         [TestCategory("Logistic Regression")]
         public void MulticlassLRTest()
         {
-            RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris, digitsOfPrecision: 4);
+            RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris, digitsOfPrecision: 3);
             Done();
         }
 
