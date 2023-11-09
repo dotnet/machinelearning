@@ -326,7 +326,7 @@ namespace Microsoft.ML.AutoML.Test
             }
         }
 
-        [X64Fact("save space on ci runs")]
+        [OnnxFact(Skip = "save space on ci runs")]
         public void AutoFitMultiClassification_Image_TrainTest()
         {
             var context = new MLContext(seed: 1);
@@ -353,7 +353,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
-        [X64Fact("save space on ci runs")]
+        [OnnxFact(Skip = "save space on ci runs")]
         public void AutoFitMultiClassification_Image_CV()
         {
             var context = new MLContext(seed: 1);
@@ -376,7 +376,7 @@ namespace Microsoft.ML.AutoML.Test
             Assert.Equal(TextDataViewType.Instance, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
-        [X64Fact("save space on ci runs")]
+        [OnnxFact(Skip = "save space on ci runs")]
         public void AutoFitMultiClassification_Image()
         {
             var context = new MLContext(1);
