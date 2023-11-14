@@ -51,12 +51,12 @@ Virtual memory usage(MB): %Number%
 [3] (%Time%)	1 iterations	Loss: 0.477002263069153	Improvement: 0.2161
 [3] (%Time%)	2 iterations	Loss: 0.188543751835823	Improvement: 0.274
 [3] (%Time%)	3 iterations	Loss: 0.141727969050407	Improvement: 0.1009
-[3] (%Time%)	4 iterations	Loss: 0.124061115086079	Improvement: 0.03823
-[3] (%Time%)	5 iterations	Loss: 0.113580599427223	Improvement: 0.0174
+[3] (%Time%)	4 iterations	Loss: 0.124061107635498	Improvement: 0.03823
+[3] (%Time%)	5 iterations	Loss: 0.113580591976643	Improvement: 0.0174
 [3] (%Time%)	6 iterations	Loss: 0.107943221926689	Improvement: 0.008575
-[3] (%Time%)	7 iterations	Loss: 0.105579644441605	Improvement: 0.003916
+[3] (%Time%)	7 iterations	Loss: 0.105579651892185	Improvement: 0.003916
 [3] (%Time%)	8 iterations	Loss: 0.105318680405617	Improvement: 0.001175
-[3] (%Time%)	9 iterations	Loss: 0.105102367699146	Improvement: 0.0004559
+[3] (%Time%)	9 iterations	Loss: 0.105102375149727	Improvement: 0.0004559
 [3] 'LBFGS Optimizer' finished in %Time%.
 [4] 'Saving model' started.
 [4] 'Saving model' finished in %Time%.

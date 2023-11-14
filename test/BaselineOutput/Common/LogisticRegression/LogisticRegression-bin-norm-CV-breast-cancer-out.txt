@@ -71,15 +71,15 @@ Virtual memory usage(MB): %Number%
 [3] 'LBFGS Optimizer' started.
 [3] (%Time%)	0 iterations	Loss: 0.6931471824646
 [3] (%Time%)	1 iterations	Loss: 0.467728018760681	Improvement: 0.2254
-[3] (%Time%)	2 iterations	Loss: 0.293551027774811	Improvement: 0.1844
-[3] (%Time%)	3 iterations	Loss: 0.137355804443359	Improvement: 0.1629
+[3] (%Time%)	2 iterations	Loss: 0.293551087379456	Improvement: 0.1844
+[3] (%Time%)	3 iterations	Loss: 0.137355819344521	Improvement: 0.1629
 [3] (%Time%)	4 iterations	Loss: 0.130445763468742	Improvement: 0.04545
-[3] (%Time%)	5 iterations	Loss: 0.122297786176205	Improvement: 0.01745
-[3] (%Time%)	6 iterations	Loss: 0.119612097740173	Improvement: 0.006373
-[3] (%Time%)	7 iterations	Loss: 0.116940438747406	Improvement: 0.003597
-[3] (%Time%)	8 iterations	Loss: 0.114320486783981	Improvement: 0.002864
+[3] (%Time%)	5 iterations	Loss: 0.122297808527946	Improvement: 0.01745
+[3] (%Time%)	6 iterations	Loss: 0.119612105190754	Improvement: 0.006373
+[3] (%Time%)	7 iterations	Loss: 0.116940431296825	Improvement: 0.003597
+[3] (%Time%)	8 iterations	Loss: 0.114320479333401	Improvement: 0.002864
 [3] (%Time%)	9 iterations	Loss: 0.113646432757378	Improvement: 0.001222
-[3] (%Time%)	10 iterations	Loss: 0.113493546843529	Improvement: 0.0004201
+[3] (%Time%)	10 iterations	Loss: 0.113493576645851	Improvement: 0.00042
 [3] 'LBFGS Optimizer' finished in %Time%.
 [4] 'Normalize #2' started.
 [4] (%Time%)	362 examples
@@ -89,11 +89,11 @@ Virtual memory usage(MB): %Number%
 [6] 'LBFGS Optimizer #2' started.
 [6] (%Time%)	0 iterations	Loss: 0.6931471824646
 [6] (%Time%)	1 iterations	Loss: 0.494365900754929	Improvement: 0.1988
-[6] (%Time%)	2 iterations	Loss: 0.246488586068153	Improvement: 0.2381
+[6] (%Time%)	2 iterations	Loss: 0.246488600969315	Improvement: 0.2381
 [6] (%Time%)	3 iterations	Loss: 0.181603386998177	Improvement: 0.1061
 [6] (%Time%)	4 iterations	Loss: 0.154900223016739	Improvement: 0.04632
 [6] (%Time%)	5 iterations	Loss: 0.144099593162537	Improvement: 0.01966
 [6] (%Time%)	6 iterations	Loss: 0.139975056052208	Improvement: 0.008004
-[6] (%Time%)	7 iterations	Loss: 0.138676881790161	Improvement: 0.002974
-[6] (%Time%)	8 iterations	Loss: 0.138382107019424	Improvement: 0.0009647
+[6] (%Time%)	7 iterations	Loss: 0.138676866889	Improvement: 0.002974
+[6] (%Time%)	8 iterations	Loss: 0.138382151722908	Improvement: 0.0009646
 [6] 'LBFGS Optimizer #2' finished in %Time%.
