@@ -1,1 +1,0 @@
-Wrote 506 rows across 3 columns in %Time%
