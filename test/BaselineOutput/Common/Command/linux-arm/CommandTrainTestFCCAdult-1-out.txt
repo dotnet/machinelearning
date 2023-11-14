@@ -1,0 +1,36 @@
+maml.exe TrainTest test=%Data% tr=AP{shuf-} scorer=fcc{top=3 bottom=3 str+} feat=Feat lab=Lab norm=Warn dout=%Output% loader=text{header+ col=Lab:0 col=Cat:TX:1-8 col=Num:9-14 col=Name:TX:9} data=%Data% out=%Output% xf=Cat{col=Cat} xf=MinMax{col=Num} xf=Concat{col=Feat:Cat,Num} xf=Take{c=5}
+Not adding a normalizer.
+Training calibrator.
+TEST POSITIVE RATIO:	0.4000 (2.0/(2.0+3.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||        2 |        0 | 1.0000
+ negative ||        0 |        3 | 1.0000
+          ||======================
+Precision ||   1.0000 |   1.0000 |
+OVERALL 0/1 ACCURACY: 1.000000
+LOG LOSS/instance:  0.377711
+Test-set entropy (prior Log-Loss/instance): 0.970951
+LOG-LOSS REDUCTION (RIG): 0.610989
+AUC:                1.000000
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                1.000000 (0.0000)
+Accuracy:           1.000000 (0.0000)
+Positive precision: 1.000000 (0.0000)
+Positive recall:    1.000000 (0.0000)
+Negative precision: 1.000000 (0.0000)
+Negative recall:    1.000000 (0.0000)
+Log-loss:           0.377711 (0.0000)
+Log-loss reduction: 0.610989 (0.0000)
+F1 Score:           1.000000 (0.0000)
+AUPRC:              1.000000 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

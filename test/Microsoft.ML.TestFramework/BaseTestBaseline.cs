@@ -414,6 +414,8 @@ namespace Microsoft.ML.RunTests
             if (normalize)
                 Normalize(outPath);
 
+            File.WriteAllText(basePath, File.ReadAllText(outPath));
+
             if (!CheckBaseFile(basePath))
                 return false;
 

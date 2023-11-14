@@ -1,0 +1,4 @@
+AveragedPerceptron
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.996028	0.972305	0.95666	0.964996	0.981961	0.975122	0.12985	0.860569	0.960623	0.99228	AveragedPerceptron	%Data%		%Output%	99	0	0	maml.exe CV tr=AveragedPerceptron threads=- numcali=200 dout=%Output% data=%Data% seed=1		
+
