@@ -47,7 +47,7 @@ Instance    Anomaly Score     Labeled
 47              0.5233           0
 23              0.5228           0
 114             0.5201           0
-110               0.52           0
+110             0.5201           0
 82              0.5188           0
 111             0.5146           0
 101             0.5131           0
@@ -58,8 +58,8 @@ Detection rate at 10 false positives: 1.000000
 Detection rate at 0.01 false positive rate: 0.900000
 Detection rate at 10 positive predictions: 0.900000
 Threshold @K FP:    0.558688
-Threshold @P FPR:   0.655884
-Threshold @NumPos:  0.662916
+Threshold @P FPR:   0.655883
+Threshold @NumPos:  0.662917
 AUC:                0.989524
 
 OVERALL RESULTS

@@ -133,12 +133,16 @@ namespace Microsoft.ML.RunTests
                     configurationDirs.Add("osx-arm64");
             }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                configurationDirs.Add("linux-x64");
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                if (Environment.Is64BitProcess)
-                    configurationDirs.Add("win-x64");
-                else
-                    configurationDirs.Add("win-x86");
+            {
+                if (RuntimeInformation.ProcessArchitecture == Architecture.X64)
+                    configurationDirs.Add("linux-x64");
+                else if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+                    configurationDirs.Add("linux-arm64");
+                else if (RuntimeInformation.ProcessArchitecture == Architecture.Arm)
+                    configurationDirs.Add("linux-arm");
+
+            }
+
 
 #if NETCOREAPP
             // Use netcoreapp result file if necessary.
@@ -148,6 +152,14 @@ namespace Microsoft.ML.RunTests
             // There were further differences in floating point calculations introduced in .NET 6.0.
             configurationDirs.Add("netcoreapp");
 #endif
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (Environment.Is64BitProcess)
+                    configurationDirs.Add("win-x64");
+                else
+                    configurationDirs.Add("win-x86");
+            }
 
             return configurationDirs;
         }
@@ -401,8 +413,6 @@ namespace Microsoft.ML.RunTests
             // Normalize the output file.
             if (normalize)
                 Normalize(outPath);
-
-            //File.WriteAllText(basePath, File.ReadAllText(outPath));
 
             if (!CheckBaseFile(basePath))
                 return false;

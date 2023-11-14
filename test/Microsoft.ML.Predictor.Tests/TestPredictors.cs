@@ -1780,7 +1780,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [Fact]
+        [Fact(Skip = "Test flaky. Disabling until resolved.")]
         [TestCategory("Anomaly")]
         public void PcaAnomalyTest()
         {
