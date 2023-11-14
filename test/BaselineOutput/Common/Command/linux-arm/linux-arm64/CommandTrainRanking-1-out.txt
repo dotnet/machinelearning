@@ -1,1 +1,0 @@
-Wrote 500 rows across 7 columns in %Time%
