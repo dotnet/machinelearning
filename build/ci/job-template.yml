@@ -207,7 +207,7 @@ jobs:
       inputs:
         sourceFolder: $(Build.SourcesDirectory)
         contents: |
-          artifacts/bin/**/*.txt
+          artifacts/bin/**/TestOutput/**
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: CopyFiles@2
       displayName: Stage process dump and pdb if any
