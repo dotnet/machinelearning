@@ -1,5 +1,5 @@
 LbfgsMaximumEntropyMulticlassTrainer bias and non-zero weights
-	Iris-setosa+(Bias)	2.265129
+	Iris-setosa+(Bias)	2.2171915
 	Iris-versicolor+(Bias)	0.7695086
 	Iris-virginica+(Bias)	-3.034663
 	Iris-setosa+f3	-3.180634

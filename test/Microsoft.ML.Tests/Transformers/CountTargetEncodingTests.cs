@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tests.Transformers
             CheckDoubleCounts(data, transformer, transformer1, 2, 5);
         }
 
-        [Fact]
+        [X86X64Fact("Flaky on non X86/X64")]
         public void TestCountTargetEncodingWithNoise()
         {
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);

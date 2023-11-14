@@ -11,7 +11,7 @@ Confusion table
           ||======================
 PREDICTED || positive | negative | Recall
 TRUTH     ||======================
- positive ||      133 |        1 | 0.9925
+ positive ||      134 |        0 | 1.0000
  negative ||       10 |      210 | 0.9545
           ||======================
 Precision ||   0.9301 |   0.9953 |

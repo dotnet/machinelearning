@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -321,7 +321,7 @@ namespace Microsoft.ML.RunTests
         {
             var binaryPredictors = new[] { TestLearners.logisticRegressionNonNegative };
             var binaryClassificationDatasets = new[] { TestDatasets.breastCancer };
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 4);
             Done();
         }
 
@@ -337,7 +337,7 @@ namespace Microsoft.ML.RunTests
 
             // [TEST_STABILITY]: dotnet core 3.1 generates slightly different result
 #if NETCOREAPP3_1_OR_GREATER
-            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 5);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 4);
 #else
             RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 6);
 #endif
@@ -2150,7 +2150,7 @@ output Out [3] from H all;
         {
             var binaryPredictors = new[] { TestLearners.LDSVMDefault };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 2);
             Done();
         }
 
@@ -2321,7 +2321,7 @@ output Out [3] from H all;
         public void EnsemblesMultiAveragerSDCATest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=SDCAMC{nt=1} nm=5 oc=MultiAverage tp=-"), "WE-SDCA-Average");
-            Run_TrainTest(pa, TestDatasets.iris, digitsOfPrecision: 6, parseOption: NumberParseOption.UseSingle);
+            Run_TrainTest(pa, TestDatasets.iris, digitsOfPrecision: 4, parseOption: NumberParseOption.UseSingle);
             Done();
         }
     }

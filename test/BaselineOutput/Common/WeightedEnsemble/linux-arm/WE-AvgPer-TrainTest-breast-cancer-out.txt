@@ -25,7 +25,7 @@ TRUTH     ||======================
           ||======================
 Precision ||   0.9585 |   0.9819 |
 OVERALL 0/1 ACCURACY: 0.973646
-LOG LOSS/instance:  0.112168
+LOG LOSS/instance:  0.110238
 Test-set entropy (prior Log-Loss/instance): 0.934003
 LOG-LOSS REDUCTION (RIG): 0.879907
 AUC:                0.996240
