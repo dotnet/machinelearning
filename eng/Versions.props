@@ -35,7 +35,7 @@
     <!-- Other product dependencies -->
     <ApacheArrowVersion>11.0.0</ApacheArrowVersion>
     <GoogleProtobufVersion>3.19.6</GoogleProtobufVersion>
-    <LightGBMVersion>3.3.5</LightGBMVersion>
+    <LightGBMVersion>4.1.0</LightGBMVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.3.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisCSharpVersion>3.9.0</MicrosoftCodeAnalysisCSharpVersion>
     <MicrosoftDotNetInteractiveVersion>1.0.0-beta.23509.3</MicrosoftDotNetInteractiveVersion>
