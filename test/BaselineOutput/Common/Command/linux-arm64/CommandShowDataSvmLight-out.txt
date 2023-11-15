@@ -1,0 +1,15 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=Label:R4:0
+#@   col=Weight:R4:1
+#@   col=GroupId:U8[18446744073709551614]:2
+#@   col=Comment:TX:3
+#@   col=Features:R4:4-8
+#@ }
+Label	Weight	GroupId	Comment	5	0:""
+1	1	7	2:3	5:6
+-1	5	7	3:4	5:7
+1	1		" A comment! 2:3"	5	4:-2
+1	0.5	7	3:3.14159
+Wrote 4 rows of length 9

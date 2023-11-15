@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$(RepoRoot)eng/pkg/Pack.props"/>
+  <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
     <IncludeInPackage>Microsoft.ML.CpuMath</IncludeInPackage>
@@ -29,6 +29,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="build\**\*" Pack="true" PackagePath="build" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Numerics.Tensors" Version="$(SystemNumericsTensorsVersion)" />
   </ItemGroup>
   <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
     <ItemGroup Condition="'$(TargetFramework)' != 'net6.0'">

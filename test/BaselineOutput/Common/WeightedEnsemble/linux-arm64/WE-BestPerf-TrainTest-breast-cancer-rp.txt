@@ -1,0 +1,4 @@
+WeightedEnsemble
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/pt	/bp	/nm	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.996042	0.972182	0.962185	0.958159	0.977528	0.97973	0.117306	0.874405	0.960168	0.99196	BestPerformanceSelector	Microsoft.ML.Runtime.ComponentFactoryUtils+SimpleComponentFactory`1[Microsoft.ML.Trainers.LinearSvmTrainer]	20	WeightedEnsemble	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=WeightedEnsemble{nm=20 pt=BestPerformanceSelector tp=-} dout=%Output% loader=Text{col=Label:BL:0 col=Features:R4:1-9} data=%Data% out=%Output% seed=1	/pt:BestPerformanceSelector;/bp:Microsoft.ML.Runtime.ComponentFactoryUtils+SimpleComponentFactory`1[Microsoft.ML.Trainers.LinearSvmTrainer];/nm:20	
+

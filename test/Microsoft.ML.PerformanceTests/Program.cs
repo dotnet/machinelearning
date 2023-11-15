@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Globalization;
 using System.Threading;
 using BenchmarkDotNet.Running;
@@ -46,7 +45,7 @@ namespace Microsoft.ML.PerformanceTests
             //     https://github.com/dotnet/arcade/blob/4873d157a8f34f8cc7e28b3f9938b32c642ef542/src/Microsoft.DotNet.Arcade.Sdk/tools/Performance.targets#L16-L19
             BenchmarkSwitcher
                .FromAssembly(typeof(Program).Assembly)
-               .RunAll(new RecommendedConfig());
+               .Run(args, new RecommendedConfig());
 
         }
     }
