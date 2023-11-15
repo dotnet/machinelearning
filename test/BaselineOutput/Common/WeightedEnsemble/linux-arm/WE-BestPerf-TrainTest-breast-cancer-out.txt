@@ -83,26 +83,26 @@ Warning: Skipped 15 instances with missing features during training (over 1 iter
 Trainer 20 of 20 finished in %Time%
 List of models and the metrics after sorted
 | AUC(Sorted) || Name of Model |
-| 0.996916752312436 |LinearBinaryModelParameters
-| 0.996659815005139 |LinearBinaryModelParameters
-| 0.996659815005139 |LinearBinaryModelParameters
-| 0.996659815005139 |LinearBinaryModelParameters
-| 0.99653134635149 |LinearBinaryModelParameters
-| 0.996402877697842 |LinearBinaryModelParameters
-| 0.996402877697842 |LinearBinaryModelParameters
-| 0.996274409044193 |LinearBinaryModelParameters
-| 0.996274409044193 |LinearBinaryModelParameters
-| 0.996145940390545 |LinearBinaryModelParameters
-| 0.996145940390545 |LinearBinaryModelParameters
-| 0.996145940390545 |LinearBinaryModelParameters
-| 0.995889003083248 |LinearBinaryModelParameters
-| 0.995760534429599 |LinearBinaryModelParameters
-| 0.995632065775951 |LinearBinaryModelParameters
-| 0.995503597122302 |LinearBinaryModelParameters
-| 0.995246659815005 |LinearBinaryModelParameters
-| 0.994732785200411 |LinearBinaryModelParameters
+| 0.9969167523124358 |LinearBinaryModelParameters
+| 0.9966598150051388 |LinearBinaryModelParameters
+| 0.9966598150051388 |LinearBinaryModelParameters
+| 0.9966598150051388 |LinearBinaryModelParameters
+| 0.9965313463514902 |LinearBinaryModelParameters
+| 0.9964028776978417 |LinearBinaryModelParameters
+| 0.9964028776978417 |LinearBinaryModelParameters
+| 0.9962744090441932 |LinearBinaryModelParameters
+| 0.9962744090441932 |LinearBinaryModelParameters
+| 0.9961459403905447 |LinearBinaryModelParameters
+| 0.9961459403905447 |LinearBinaryModelParameters
+| 0.9961459403905447 |LinearBinaryModelParameters
+| 0.9958890030832477 |LinearBinaryModelParameters
+| 0.9957605344295992 |LinearBinaryModelParameters
+| 0.9956320657759506 |LinearBinaryModelParameters
+| 0.9955035971223022 |LinearBinaryModelParameters
+| 0.9952466598150052 |LinearBinaryModelParameters
+| 0.9947327852004111 |LinearBinaryModelParameters
 | 0.994218910585817 |LinearBinaryModelParameters
-| 0.994026207605344 |LinearBinaryModelParameters
+| 0.9939619732785201 |LinearBinaryModelParameters
 Warning: 10 of 20 trainings failed.
 Training calibrator.
 Warning: The predictor produced non-finite prediction values on 16 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.

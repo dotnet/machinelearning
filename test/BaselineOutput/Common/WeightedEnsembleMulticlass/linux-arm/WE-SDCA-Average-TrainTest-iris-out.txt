@@ -5,7 +5,7 @@ Beginning training model 1 of 5
 Using 1 thread to train.
 Automatically choosing a check frequency of 1.
 Auto-tuning parameters: maxIterations = 10563.
-Auto-tuning parameters: L2 = 2.667015E-05.
+Auto-tuning parameters: L2 = 2.6670152E-05.
 Auto-tuning parameters: L1Threshold (L1/L2) = 0.
 Using best model from iteration 958.
 Trainer 1 of 5 finished in %Time%
@@ -13,7 +13,7 @@ Beginning training model 2 of 5
 Using 1 thread to train.
 Automatically choosing a check frequency of 1.
 Auto-tuning parameters: maxIterations = 8928.
-Auto-tuning parameters: L2 = 2.666837E-05.
+Auto-tuning parameters: L2 = 2.6668373E-05.
 Auto-tuning parameters: L1Threshold (L1/L2) = 0.
 Using best model from iteration 874.
 Trainer 2 of 5 finished in %Time%
@@ -21,7 +21,7 @@ Beginning training model 3 of 5
 Using 1 thread to train.
 Automatically choosing a check frequency of 1.
 Auto-tuning parameters: maxIterations = 9201.
-Auto-tuning parameters: L2 = 2.667378E-05.
+Auto-tuning parameters: L2 = 2.6673779E-05.
 Auto-tuning parameters: L1Threshold (L1/L2) = 0.
 Using best model from iteration 754.
 Trainer 3 of 5 finished in %Time%
@@ -37,7 +37,7 @@ Beginning training model 5 of 5
 Using 1 thread to train.
 Automatically choosing a check frequency of 1.
 Auto-tuning parameters: maxIterations = 9315.
-Auto-tuning parameters: L2 = 2.66746E-05.
+Auto-tuning parameters: L2 = 2.6674597E-05.
 Auto-tuning parameters: L1Threshold (L1/L2) = 0.
 Using best model from iteration 1058.
 Trainer 5 of 5 finished in %Time%

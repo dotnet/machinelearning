@@ -47,16 +47,16 @@ Virtual memory usage(MB): %Number%
 [2] 'LBFGS data prep' started.
 [2] 'LBFGS data prep' finished in %Time%.
 [3] 'LBFGS Optimizer' started.
-[3] (%Time%)	0 iterations	Loss: 0.6931471824646
-[3] (%Time%)	1 iterations	Loss: 0.477002263069153	Improvement: 0.2161
-[3] (%Time%)	2 iterations	Loss: 0.188543751835823	Improvement: 0.274
-[3] (%Time%)	3 iterations	Loss: 0.141727969050407	Improvement: 0.1009
-[3] (%Time%)	4 iterations	Loss: 0.124061107635498	Improvement: 0.03823
-[3] (%Time%)	5 iterations	Loss: 0.113580591976643	Improvement: 0.0174
-[3] (%Time%)	6 iterations	Loss: 0.107943221926689	Improvement: 0.008575
-[3] (%Time%)	7 iterations	Loss: 0.105579651892185	Improvement: 0.003916
-[3] (%Time%)	8 iterations	Loss: 0.105318680405617	Improvement: 0.001175
-[3] (%Time%)	9 iterations	Loss: 0.105102375149727	Improvement: 0.0004559
+[3] (%Time%)	0 iterations	Loss: 0.6931471824645996
+[3] (%Time%)	1 iterations	Loss: 0.47700226306915283	Improvement: 0.2161
+[3] (%Time%)	2 iterations	Loss: 0.18854373693466187	Improvement: 0.274
+[3] (%Time%)	3 iterations	Loss: 0.1417279690504074	Improvement: 0.1009
+[3] (%Time%)	4 iterations	Loss: 0.12406110763549805	Improvement: 0.03823
+[3] (%Time%)	5 iterations	Loss: 0.1135805994272232	Improvement: 0.0174
+[3] (%Time%)	6 iterations	Loss: 0.10794321447610855	Improvement: 0.008575
+[3] (%Time%)	7 iterations	Loss: 0.10557964444160461	Improvement: 0.003916
+[3] (%Time%)	8 iterations	Loss: 0.10531868040561676	Improvement: 0.001175
+[3] (%Time%)	9 iterations	Loss: 0.10510236024856567	Improvement: 0.0004559
 [3] 'LBFGS Optimizer' finished in %Time%.
 [4] 'Saving model' started.
 [4] 'Saving model' finished in %Time%.

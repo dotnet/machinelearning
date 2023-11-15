@@ -29,7 +29,7 @@ Beginning training model 5 of 5
 Beginning optimization
 num vars: 15
 improvement criterion: Mean Improvement
-L1 regularization selected 11 of 15 weights.
+L1 regularization selected 12 of 15 weights.
 Trainer 5 of 5 finished in %Time%
 Not training a calibrator because it is not needed.
 
@@ -39,20 +39,20 @@ PREDICTED ||     0 |     1 |     2 | Recall
 TRUTH     ||========================
         0 ||    50 |     0 |     0 | 1.0000
         1 ||     0 |    45 |     5 | 0.9000
-        2 ||     0 |     3 |    47 | 0.9400
+        2 ||     0 |     4 |    46 | 0.9200
           ||========================
-Precision ||1.0000 |0.9375 |0.9038 |
-Accuracy(micro-avg): 0.946667
-Accuracy(macro-avg): 0.946667
-Log-loss:           0.433392
-Log-loss reduction: 0.605510
+Precision ||1.0000 |0.9184 |0.9020 |
+Accuracy(micro-avg): 0.940000
+Accuracy(macro-avg): 0.940000
+Log-loss:           0.433907
+Log-loss reduction: 0.605040
 
 OVERALL RESULTS
 ---------------------------------------
-Accuracy(micro-avg): 0.946667 (0.0000)
-Accuracy(macro-avg): 0.946667 (0.0000)
-Log-loss:           0.433392 (0.0000)
-Log-loss reduction: 0.605510 (0.0000)
+Accuracy(micro-avg): 0.940000 (0.0000)
+Accuracy(macro-avg): 0.940000 (0.0000)
+Log-loss:           0.433907 (0.0000)
+Log-loss reduction: 0.605040 (0.0000)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

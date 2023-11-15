@@ -69,17 +69,17 @@ Virtual memory usage(MB): %Number%
 [2] 'LBFGS data prep' started.
 [2] 'LBFGS data prep' finished in %Time%.
 [3] 'LBFGS Optimizer' started.
-[3] (%Time%)	0 iterations	Loss: 0.6931471824646
-[3] (%Time%)	1 iterations	Loss: 0.467728018760681	Improvement: 0.2254
-[3] (%Time%)	2 iterations	Loss: 0.293551087379456	Improvement: 0.1844
-[3] (%Time%)	3 iterations	Loss: 0.137355819344521	Improvement: 0.1629
-[3] (%Time%)	4 iterations	Loss: 0.130445763468742	Improvement: 0.04545
-[3] (%Time%)	5 iterations	Loss: 0.122297808527946	Improvement: 0.01745
-[3] (%Time%)	6 iterations	Loss: 0.119612105190754	Improvement: 0.006373
-[3] (%Time%)	7 iterations	Loss: 0.116940431296825	Improvement: 0.003597
-[3] (%Time%)	8 iterations	Loss: 0.114320479333401	Improvement: 0.002864
-[3] (%Time%)	9 iterations	Loss: 0.113646432757378	Improvement: 0.001222
-[3] (%Time%)	10 iterations	Loss: 0.113493576645851	Improvement: 0.00042
+[3] (%Time%)	0 iterations	Loss: 0.6931471824645996
+[3] (%Time%)	1 iterations	Loss: 0.46772801876068115	Improvement: 0.2254
+[3] (%Time%)	2 iterations	Loss: 0.2935510277748108	Improvement: 0.1844
+[3] (%Time%)	3 iterations	Loss: 0.137355774641037	Improvement: 0.1629
+[3] (%Time%)	4 iterations	Loss: 0.13044576346874237	Improvement: 0.04545
+[3] (%Time%)	5 iterations	Loss: 0.12229778617620468	Improvement: 0.01745
+[3] (%Time%)	6 iterations	Loss: 0.11961209774017334	Improvement: 0.006373
+[3] (%Time%)	7 iterations	Loss: 0.11694042384624481	Improvement: 0.003597
+[3] (%Time%)	8 iterations	Loss: 0.11432047188282013	Improvement: 0.002864
+[3] (%Time%)	9 iterations	Loss: 0.11364643275737762	Improvement: 0.001222
+[3] (%Time%)	10 iterations	Loss: 0.11349353194236755	Improvement: 0.0004201
 [3] 'LBFGS Optimizer' finished in %Time%.
 [4] 'Normalize #2' started.
 [4] (%Time%)	362 examples
@@ -87,13 +87,13 @@ Virtual memory usage(MB): %Number%
 [5] 'LBFGS data prep #2' started.
 [5] 'LBFGS data prep #2' finished in %Time%.
 [6] 'LBFGS Optimizer #2' started.
-[6] (%Time%)	0 iterations	Loss: 0.6931471824646
-[6] (%Time%)	1 iterations	Loss: 0.494365900754929	Improvement: 0.1988
-[6] (%Time%)	2 iterations	Loss: 0.246488600969315	Improvement: 0.2381
-[6] (%Time%)	3 iterations	Loss: 0.181603386998177	Improvement: 0.1061
-[6] (%Time%)	4 iterations	Loss: 0.154900223016739	Improvement: 0.04632
-[6] (%Time%)	5 iterations	Loss: 0.144099593162537	Improvement: 0.01966
-[6] (%Time%)	6 iterations	Loss: 0.139975056052208	Improvement: 0.008004
-[6] (%Time%)	7 iterations	Loss: 0.138676866889	Improvement: 0.002974
-[6] (%Time%)	8 iterations	Loss: 0.138382151722908	Improvement: 0.0009646
+[6] (%Time%)	0 iterations	Loss: 0.6931471824645996
+[6] (%Time%)	1 iterations	Loss: 0.4943659007549286	Improvement: 0.1988
+[6] (%Time%)	2 iterations	Loss: 0.24648860096931458	Improvement: 0.2381
+[6] (%Time%)	3 iterations	Loss: 0.18160340189933777	Improvement: 0.1061
+[6] (%Time%)	4 iterations	Loss: 0.1549002230167389	Improvement: 0.04632
+[6] (%Time%)	5 iterations	Loss: 0.14409959316253662	Improvement: 0.01966
+[6] (%Time%)	6 iterations	Loss: 0.13997505605220795	Improvement: 0.008004
+[6] (%Time%)	7 iterations	Loss: 0.13867686688899994	Improvement: 0.002974
+[6] (%Time%)	8 iterations	Loss: 0.13838210701942444	Improvement: 0.0009646
 [6] 'LBFGS Optimizer #2' finished in %Time%.
