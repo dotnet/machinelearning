@@ -214,7 +214,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         #region API predict
         [DllImport(DllName, EntryPoint = "LGBM_BoosterPredictForMat", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe int BoosterPredictForMat(SafeBoosterHandle handle, IntPtr data, CApiDType dataType, int nRow, int nCol, int isRowMajor,
-            int predictType, int numIteration, [MarshalAs(UnmanagedType.LPStr)] string parameters, ref int outLen, double* outResult);
+            int predictType, int startIteration, int numIteration, [MarshalAs(UnmanagedType.LPStr)] string parameters, ref int outLen, double* outResult);
         #endregion
 
         #region API parallel
