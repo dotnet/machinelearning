@@ -529,9 +529,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                         fixed (double* result1 = lgbmRawScores)
                         {
                             WrappedLightGbmInterface.BoosterPredictForMat(gbmNative.Handle, (IntPtr)data, WrappedLightGbmInterface.CApiDType.Float32,
-                                _rowNumber, _columnNumber, 1, (int)WrappedLightGbmInterface.CApiPredictType.Normal, numberOfTrainingIterations, "", ref nativeLength, result0);
+                                _rowNumber, _columnNumber, 1, (int)WrappedLightGbmInterface.CApiPredictType.Normal, 0, numberOfTrainingIterations, "", ref nativeLength, result0);
                             WrappedLightGbmInterface.BoosterPredictForMat(gbmNative.Handle, (IntPtr)data, WrappedLightGbmInterface.CApiDType.Float32,
-                                _rowNumber, _columnNumber, 1, (int)WrappedLightGbmInterface.CApiPredictType.Raw, numberOfTrainingIterations, "", ref nativeLength, result1);
+                                _rowNumber, _columnNumber, 1, (int)WrappedLightGbmInterface.CApiPredictType.Raw, 0, numberOfTrainingIterations, "", ref nativeLength, result1);
                         }
                         modelString = gbmNative.GetModelString();
                     }

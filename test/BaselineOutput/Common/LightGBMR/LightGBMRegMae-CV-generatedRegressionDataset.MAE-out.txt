@@ -12,19 +12,19 @@ L2(avg):            1,445.214986
 RMS(avg):           38.015983
 Loss-fn(avg):       1,445.214986
 R Squared:          0.919579
-L1(avg):            25.716714
-L2(avg):            1,341.437580
-RMS(avg):           36.625641
-Loss-fn(avg):       1,341.437567
-R Squared:          0.927226
+L1(avg):            25.712503
+L2(avg):            1,341.270608
+RMS(avg):           36.623362
+Loss-fn(avg):       1,341.270595
+R Squared:          0.927235
 
 OVERALL RESULTS
 ---------------------------------------
-L1(avg):            26.599784 (0.8831)
-L2(avg):            1,393.326283 (51.8887)
-RMS(avg):           37.320812 (0.6952)
-Loss-fn(avg):       1,393.326277 (51.8887)
-R Squared:          0.923402 (0.0038)
+L1(avg):            26.597679 (0.8852)
+L2(avg):            1,393.242797 (51.9722)
+RMS(avg):           37.319672 (0.6963)
+Loss-fn(avg):       1,393.242791 (51.9722)
+R Squared:          0.923407 (0.0038)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%
@@ -35,10 +35,10 @@ Virtual memory usage(MB): %Number%
 [1] 'Loading data for LightGBM' started.
 [1] 'Loading data for LightGBM' finished in %Time%.
 [2] 'Training with LightGBM' started.
-[2] (%Time%)	Iteration: 50	Training-mae: 2.72125878362794
+[2] (%Time%)	Iteration: 50	Training-mae: 2.7212587836279383
 [2] 'Training with LightGBM' finished in %Time%.
 [3] 'Loading data for LightGBM #2' started.
 [3] 'Loading data for LightGBM #2' finished in %Time%.
 [4] 'Training with LightGBM #2' started.
-[4] (%Time%)	Iteration: 50	Training-mae: 2.24116204430926
+[4] (%Time%)	Iteration: 50	Training-mae: 2.2411620443092595
 [4] 'Training with LightGBM #2' finished in %Time%.
