@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -133,12 +133,16 @@ namespace Microsoft.ML.RunTests
                     configurationDirs.Add("osx-arm64");
             }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                configurationDirs.Add("linux-x64");
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                if (Environment.Is64BitProcess)
-                    configurationDirs.Add("win-x64");
-                else
-                    configurationDirs.Add("win-x86");
+            {
+                if (RuntimeInformation.ProcessArchitecture == Architecture.X64)
+                    configurationDirs.Add("linux-x64");
+                else if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+                    configurationDirs.Add("linux-arm64");
+                else if (RuntimeInformation.ProcessArchitecture == Architecture.Arm)
+                    configurationDirs.Add("linux-arm");
+
+            }
+
 
 #if NETCOREAPP
             // Use netcoreapp result file if necessary.
@@ -148,6 +152,14 @@ namespace Microsoft.ML.RunTests
             // There were further differences in floating point calculations introduced in .NET 6.0.
             configurationDirs.Add("netcoreapp");
 #endif
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (Environment.Is64BitProcess)
+                    configurationDirs.Add("win-x64");
+                else
+                    configurationDirs.Add("win-x86");
+            }
 
             return configurationDirs;
         }

@@ -1,0 +1,41 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#@ include file="ColumnArithmeticTemplate.ttinclude" #>
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// Generated from ColumnArithmetic.OperationEnums.tt. Do not modify directly
+namespace Microsoft.Data.Analysis
+{
+    internal enum BinaryOperation
+    {
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType == MethodType.Binary) { #>
+        <#=method.MethodName#>,
+<# } #>
+<# } #>
+    }
+
+    internal enum BinaryIntOperation
+    {
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType == MethodType.BinaryInt) { #>
+        <#=method.MethodName#>,
+<# } #>
+<# } #>
+    }
+
+    internal enum ComparisonOperation
+    {
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (method.MethodType == MethodType.Comparison) { #>
+        <#=method.MethodName#>,
+<# } #>
+<# } #>
+    }
+}

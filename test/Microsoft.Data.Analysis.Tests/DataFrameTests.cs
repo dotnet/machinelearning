@@ -9,6 +9,7 @@ using System.Text;
 using Apache.Arrow;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 
 namespace Microsoft.Data.Analysis.Tests
@@ -75,7 +76,7 @@ namespace Microsoft.Data.Analysis.Tests
             return new ArrowStringDataFrameColumn("ArrowString", dataMemory, offsetMemory, nullMemory, length, nullCount);
         }
 
-        public static VBufferDataFrameColumn<int> CreateVBufferDataFrame(int length)
+        public static VBufferDataFrameColumn<int> CreateVBufferDataFrameColumn(int length)
         {
             var buffers = Enumerable.Repeat(new VBuffer<int>(5, new[] { 0, 1, 2, 3, 4 }), length).ToArray();
             return new VBufferDataFrameColumn<int>("VBuffer", buffers);
@@ -85,7 +86,7 @@ namespace Microsoft.Data.Analysis.Tests
         {
             DataFrame df = MakeDataFrameWithAllMutableAndArrowColumnTypes(length, withNulls);
 
-            var vBufferColumn = CreateVBufferDataFrame(length);
+            var vBufferColumn = CreateVBufferDataFrameColumn(length);
             df.Columns.Insert(df.Columns.Count, vBufferColumn);
 
             return df;
@@ -230,13 +231,49 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void TestVBufferColumn()
+        public void TestVBufferColumn_Creation()
         {
-            var vBufferColumn = CreateVBufferDataFrame(10);
+            var vBufferColumn = CreateVBufferDataFrameColumn(10);
 
             Assert.Equal(10, vBufferColumn.Length);
             Assert.Equal(5, vBufferColumn[0].GetValues().Length);
             Assert.Equal(0, vBufferColumn[0].GetValues()[0]);
+        }
+
+        [Fact]
+        public void TestVBufferColumn_Indexer()
+        {
+            var buffer = new VBuffer<int>(5, new[] { 4, 3, 2, 1, 0 });
+
+            var vBufferColumn = new VBufferDataFrameColumn<int>("VBuffer", 1);
+            vBufferColumn[0] = buffer;
+
+            Assert.Equal(1, vBufferColumn.Length);
+            Assert.Equal(5, vBufferColumn[0].GetValues().Length);
+            Assert.Equal(0, vBufferColumn[0].GetValues()[4]);
+        }
+
+        [X64Fact("32-bit doesn't allow to allocate more than 2 Gb")]
+        public void TestVBufferColumn_Indexer_MoreThanMaxInt()
+        {
+            var originalValues = new[] { 4, 3, 2, 1, 0 };
+
+            var length = VBufferDataFrameColumn<int>.MaxCapacity + 3;
+
+            var vBufferColumn = new VBufferDataFrameColumn<int>("VBuffer", length);
+            long index = length - 2;
+
+            vBufferColumn[index] = new VBuffer<int>(5, originalValues);
+
+            var values = vBufferColumn[index].GetValues();
+
+            Assert.Equal(length, vBufferColumn.Length);
+            Assert.Equal(5, values.Length);
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                Assert.Equal(originalValues[i], values[i]);
+            }
         }
 
         [Fact]
@@ -625,9 +662,17 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.True(equalsResult[0]);
             Assert.False(equalsResult[4]);
 
+            var equalsToScalarResult = df["DateTime1"].ElementwiseEquals(SampleDateTime);
+            Assert.True(equalsToScalarResult[0]);
+            Assert.False(equalsToScalarResult[1]);
+
             var notEqualsResult = dataFrameColumn1.ElementwiseNotEquals(dataFrameColumn2);
             Assert.False(notEqualsResult[0]);
             Assert.True(notEqualsResult[4]);
+
+            var notEqualsToScalarResult = df["DateTime1"].ElementwiseNotEquals(SampleDateTime);
+            Assert.False(notEqualsToScalarResult[0]);
+            Assert.True(notEqualsToScalarResult[1]);
         }
 
         [Fact]
@@ -3651,11 +3696,12 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void Test_ArithmeticsSumWithNull()
+        public void Test_ArithmeticsAddWithNull()
         {
             // Arrange
-            var left_column = new PrimitiveDataFrameColumn<int>("Left", new int?[] { 1, 1, null, null });
-            var right_column = new PrimitiveDataFrameColumn<int>("Right", new int?[] { 1, null, 1, null });
+            //Number of elements shoult be higher than 8 to test SIMD
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 1, 1, null, null, 4, 5, 6, 7, 8, 9 });
+            var right_column = new Int32DataFrameColumn("Right", new int?[] { 1, null, 1, null, 4, 5, 6, 7, 8, 9 });
 
             // Act
             var sum = left_column + right_column;
@@ -3667,17 +3713,48 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Null(sum[1]); // null + 1
             Assert.Null(sum[2]); // 1 + null
             Assert.Null(sum[3]); // null + null
+            Assert.Equal(8, sum[4]);
+            Assert.Equal(10, sum[5]);
+            Assert.Equal(12, sum[6]);
+            Assert.Equal(14, sum[7]);
+            Assert.Equal(16, sum[8]);
+            Assert.Equal(18, sum[9]);
+        }
+
+        [Fact]
+        public void Test_ArithmeticsAddScalarWithNull()
+        {
+            // Arrange
+            //Number of elements shoult be higher than 8 to test SIMD
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 0, 1, null, null, 4, 5, 6, 7, 8, null });
+
+            // Act
+            var sum = left_column + 5;
+
+            // Assert
+            Assert.Equal(3, sum.NullCount);
+
+            Assert.Equal(5, sum[0]);  // 1 + 1
+            Assert.Equal(6, sum[1]);  // 1 + 1
+            Assert.Null(sum[2]); // 1 + null
+            Assert.Null(sum[3]); // null + null
+            Assert.Equal(9, sum[4]);
+            Assert.Equal(10, sum[5]);
+            Assert.Equal(11, sum[6]);
+            Assert.Equal(12, sum[7]);
+            Assert.Equal(13, sum[8]);
+            Assert.Null(sum[9]);
         }
 
         [Fact]
         public void Test_ArithmeticsDiffWithNull()
         {
             // Arrange
-            var left_column = new PrimitiveDataFrameColumn<int>("Left", new int?[] { 1, 1, null, null });
-            var right_column = new PrimitiveDataFrameColumn<int>("Right", new int?[] { 1, null, 1, null });
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 1, 1, null, null });
+            var right_column = new Int32DataFrameColumn("Right", new int?[] { 1, null, 1, null });
 
             // Act
-            var diff = left_column - right_column;
+            var diff = left_column - (right_column);
 
             // Assert
             Assert.Equal(3, diff.NullCount);
@@ -3691,15 +3768,15 @@ namespace Microsoft.Data.Analysis.Tests
         public void Test_ArithmeticsMultWithNull()
         {
             // Arrange
-            var left_column = new PrimitiveDataFrameColumn<int>("Left", new int?[] { 1, 1, null, null });
-            var right_column = new PrimitiveDataFrameColumn<int>("Right", new int?[] { 1, null, 1, null });
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 4, 1, null, null });
+            var right_column = new Int32DataFrameColumn("Right", new int?[] { 2, null, 1, null });
 
             // Act
             var mult = left_column * right_column;
 
             // Assert
             Assert.Equal(3, mult.NullCount);
-            Assert.Equal(1, mult[0]);  // 1 * 1
+            Assert.Equal(8, mult[0]);  // 1 * 1
             Assert.Null(mult[1]); // null * 1
             Assert.Null(mult[2]); // 1 * null
             Assert.Null(mult[3]); // null * null
@@ -3709,18 +3786,18 @@ namespace Microsoft.Data.Analysis.Tests
         public void Test_ArithmeticsDivWithNull()
         {
             // Arrange
-            var left_column = new PrimitiveDataFrameColumn<int>("Left", new int?[] { 1, 1, null, null });
-            var right_column = new PrimitiveDataFrameColumn<int>("Right", new int?[] { 1, null, 1, null });
+            var left_column = new Int32DataFrameColumn("Left", new int?[] { 4, 1, null, null });
+            var right_column = new Int32DataFrameColumn("Right", new int?[] { 2, null, 1, null });
 
             // Act
-            var mult = left_column / right_column;
+            var div = left_column / right_column;
 
             // Assert
-            Assert.Equal(3, mult.NullCount);
-            Assert.Equal(1, mult[0]);  // 1 / 1
-            Assert.Null(mult[1]); // null / 1
-            Assert.Null(mult[2]); // 1 / null
-            Assert.Null(mult[3]); // null / null
+            Assert.Equal(3, div.NullCount);
+            Assert.Equal(2, div[0]);  // 1 / 1
+            Assert.Null(div[1]); // null / 1
+            Assert.Null(div[2]); // 1 / null
+            Assert.Null(div[3]); // null / null
         }
     }
 }

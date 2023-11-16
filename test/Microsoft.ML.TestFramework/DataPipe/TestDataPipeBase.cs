@@ -900,7 +900,12 @@ namespace Microsoft.ML.RunTests
                 else if (rawType == typeof(ulong))
                     return GetComparerOne<ulong>(r1, r2, col, (x, y) => x == y);
                 else if (rawType == typeof(float))
-                    return GetComparerOne<float>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                {
+                    if (exactDoubles)
+                        return GetComparerOne<float>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                    else
+                        return GetComparerOne<float>(r1, r2, col, EqualWithEpsSingle);
+                }
                 else if (rawType == typeof(double))
                 {
                     if (exactDoubles)

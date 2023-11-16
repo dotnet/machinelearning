@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -11,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.ML.Data;
 
 namespace Microsoft.Data.Analysis
 {
@@ -675,64 +677,61 @@ namespace Microsoft.Data.Analysis
 
                     foreach (var row in dataFrame.Rows)
                     {
-                        bool firstCell = true;
-                        foreach (var cell in row)
-                        {
-                            if (!firstCell)
-                            {
-                                record.Append(separator);
-                            }
-                            else
-                            {
-                                firstCell = false;
-                            }
-
-                            Type t = cell?.GetType();
-
-                            if (t == typeof(bool))
-                            {
-                                record.AppendFormat(cultureInfo, "{0}", cell);
-                                continue;
-                            }
-
-                            if (t == typeof(float))
-                            {
-                                record.AppendFormat(cultureInfo, "{0:G9}", cell);
-                                continue;
-                            }
-
-                            if (t == typeof(double))
-                            {
-                                record.AppendFormat(cultureInfo, "{0:G17}", cell);
-                                continue;
-                            }
-
-                            if (t == typeof(decimal))
-                            {
-                                record.AppendFormat(cultureInfo, "{0:G31}", cell);
-                                continue;
-                            }
-
-                            if (t == typeof(string))
-                            {
-                                string stringCell = (string)cell;
-                                if (NeedsQuotes(stringCell, separator))
-                                {
-                                    record.Append('\"');
-                                    record.Append(stringCell.Replace("\"", "\"\"")); // Quotations in CSV data must be escaped with another quotation
-                                    record.Append('\"');
-                                    continue;
-                                }
-                            }
-
-                            record.Append(cell);
-                        }
+                        AppendValuesToRecord(record, row, separator, cultureInfo);
 
                         csvFile.WriteLine(record);
 
                         record.Clear();
                     }
                 }
+            }
+        }
+
+        private static void AppendValuesToRecord(StringBuilder record, IEnumerable values, char separator, CultureInfo cultureInfo)
+        {
+            bool firstCell = true;
+            foreach (var value in values)
+            {
+                if (!firstCell)
+                {
+                    record.Append(separator);
+                }
+                else
+                {
+                    firstCell = false;
+                }
+
+                switch (value)
+                {
+                    case bool:
+                        record.AppendFormat(cultureInfo, "{0}", value);
+                        continue;
+                    case float:
+                        record.AppendFormat(cultureInfo, "{0:G9}", value);
+                        continue;
+                    case double:
+                        record.AppendFormat(cultureInfo, "{0:G17}", value);
+                        continue;
+                    case decimal:
+                        record.AppendFormat(cultureInfo, "{0:G31}", value);
+                        continue;
+                    case string stringCell:
+                        if (NeedsQuotes(stringCell, separator))
+                        {
+                            record.Append('\"');
+                            record.Append(stringCell.Replace("\"", "\"\"")); // Quotations in CSV data must be escaped with another quotation
+                            record.Append('\"');
+                            continue;
+                        }
+                        break;
+                    case IEnumerable nestedValues:
+                        record.Append("(");
+                        AppendValuesToRecord(record, nestedValues, ' ', cultureInfo);
+                        record.Append(")");
+                        continue;
+                }
+
+                record.Append(value);
             }
         }
 

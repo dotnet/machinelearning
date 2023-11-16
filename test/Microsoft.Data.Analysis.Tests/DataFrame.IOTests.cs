@@ -15,6 +15,7 @@ using System.Data.SQLite.EF6;
 using Xunit;
 using Microsoft.ML.TestFramework.Attributes;
 using System.Threading;
+using Microsoft.ML.Data;
 
 namespace Microsoft.Data.Analysis.Tests
 {
@@ -273,7 +274,7 @@ MT";
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void TestReadCsvNoHeader(bool useQuotes)
+        public void TestLoadCsvNoHeader(bool useQuotes)
         {
             string CMT = useQuotes ? @"""C,MT""" : "CMT";
             string verifyCMT = useQuotes ? "C,MT" : "CMT";
@@ -349,7 +350,7 @@ MT";
         [InlineData(false, 0)]
         [InlineData(true, 10)]
         [InlineData(false, 10)]
-        public void TestReadCsvWithTypesAndGuessRows(bool header, int guessRows)
+        public void TestLoadCsvWithTypesAndGuessRows(bool header, int guessRows)
         {
             /* Tests this matrix
              * 
@@ -472,7 +473,7 @@ CMT,1,1,181,0.6,CSH,4.5";
         }
 
         [Fact]
-        public void TestReadCsvWithTypesDateTime()
+        public void TestLoadCsvWithTypesDateTime()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount,date
 CMT,1,1,1271,3.8,CRD,17.5,1-june-2020
@@ -549,7 +550,7 @@ CMT,1,1,181,0.6,CSH,4.5,4-june-2020";
         }
 
         [Fact]
-        public void TestReadCsvWithPipeSeparator()
+        public void TestLoadCsvWithPipeSeparator()
         {
             string data = @"vendor_id|rate_code|passenger_count|trip_time_in_secs|trip_distance|payment_type|fare_amount
 CMT|1|1|1271|3.8|CRD|17.5
@@ -588,7 +589,7 @@ CMT|1|1|181|0.6|CSH|4.5";
         }
 
         [Fact]
-        public void TestReadCsvWithSemicolonSeparator()
+        public void TestLoadCsvWithSemicolonSeparator()
         {
             string data = @"vendor_id;rate_code;passenger_count;trip_time_in_secs;trip_distance;payment_type;fare_amount
 CMT;1;1;1271;3.8;CRD;17.5
@@ -627,7 +628,7 @@ CMT;1;1;181;0.6;CSH;4.5";
         }
 
         [Fact]
-        public void TestReadCsvWithExtraColumnInHeader()
+        public void TestLoadCsvWithExtraColumnInHeader()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount,extra
 CMT,1,1,1271,3.8,CRD,17.5
@@ -656,7 +657,7 @@ CMT,1,1,181,0.6,CSH,4.5";
         }
 
         [Fact]
-        public void TestReadCsvWithMultipleEmptyColumnNameInHeaderWithoutGivenColumn()
+        public void TestLoadCsvWithMultipleEmptyColumnNameInHeaderWithoutGivenColumn()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,,,,
 CMT,1,1,1271,3.8,CRD,17.5,0
@@ -671,7 +672,7 @@ CMT,1,1,181,0.6,CSH,4.5,0";
         }
 
         [Fact]
-        public void TestReadCsvWithMultipleEmptyColumnNameInHeaderWithGivenColumn()
+        public void TestLoadCsvWithMultipleEmptyColumnNameInHeaderWithGivenColumn()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,,,,
 CMT,1,1,1271,3.8,CRD,17.5,0
@@ -713,7 +714,7 @@ CMT,1,1,181,0.6,CSH,4.5,0";
         }
 
         [Fact]
-        public void TestReadCsvWithExtraColumnInRow()
+        public void TestLoadCsvWithExtraColumnInRow()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount
 CMT,1,1,1271,3.8,CRD,17.5,0
@@ -726,7 +727,7 @@ CMT,1,1,181,0.6,CSH,4.5,0";
         }
 
         [Fact]
-        public void TestReadCsvWithLessColumnsInRow()
+        public void TestLoadCsvWithLessColumnsInRow()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount
 CMT,1,1,1271,3.8,CRD
@@ -755,7 +756,7 @@ CMT,1,1,181,0.6,CSH";
         }
 
         [Fact]
-        public void TestReadCsvWithAllNulls()
+        public void TestLoadCsvWithAllNulls()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs
 null,null,null,null
@@ -798,7 +799,7 @@ null,null,null,null";
         }
 
         [Fact]
-        public void TestReadCsvWithNullsAndDataTypes()
+        public void TestLoadCsvWithNullsAndDataTypes()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs
 null,1,1,1271
@@ -860,7 +861,7 @@ CMT,1,1,null";
         }
 
         [Fact]
-        public void TestReadCsvWithNulls()
+        public void TestLoadCsvWithNulls()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs
 null,1,1,1271
@@ -922,7 +923,36 @@ CMT,1,1,null";
         }
 
         [Fact]
-        public void TestWriteCsvWithHeader()
+        public void TestSaveCsvVBufferColumn()
+        {
+            var vBuffers = new[]
+            {
+                new VBuffer<int> (3, new int[] { 1, 2, 3 }),
+                new VBuffer<int> (3, new int[] { 2, 3, 4 }),
+                new VBuffer<int> (3, new int[] { 3, 4, 5 }),
+            };
+
+            var vBufferColumn = new VBufferDataFrameColumn<int>("VBuffer", vBuffers);
+            DataFrame dataFrame = new DataFrame(vBufferColumn);
+
+            using MemoryStream csvStream = new MemoryStream();
+
+            DataFrame.SaveCsv(dataFrame, csvStream);
+
+            csvStream.Seek(0, SeekOrigin.Begin);
+            DataFrame readIn = DataFrame.LoadCsv(csvStream);
+
+            Assert.Equal(dataFrame.Rows.Count, readIn.Rows.Count);
+            Assert.Equal(dataFrame.Columns.Count, readIn.Columns.Count);
+
+            Assert.Equal(typeof(string), readIn.Columns[0].DataType);
+            Assert.Equal("(1 2 3)", readIn[0, 0]);
+            Assert.Equal("(2 3 4)", readIn[1, 0]);
+            Assert.Equal("(3 4 5)", readIn[2, 0]);
+        }
+
+        [Fact]
+        public void TestSaveCsvWithHeader()
         {
             using MemoryStream csvStream = new MemoryStream();
             DataFrame dataFrame = DataFrameTests.MakeDataFrameWithAllColumnTypes(10, true);

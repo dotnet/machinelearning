@@ -1,0 +1,60 @@
+maml.exe CV tr=lr{l1=1.0 l2=0.1 ot=1e-3 nt=1} strat=Strat threads=- norm=Warn loader=text{col=Features:R4:9-14 col=Label:R4:0 col=Strat:TX:1 header+} data=%Data% out=%Output%
+Warning: A normalizer is needed for this trainer. Either add a normalizing transform or use the 'norm=Auto', 'norm=Yes' or 'norm=No' options.
+Beginning optimization
+num vars: 7
+improvement criterion: Mean Improvement
+L1 regularization selected 7 of 7 weights.
+Not training a calibrator because it is not needed.
+Warning: A normalizer is needed for this trainer. Either add a normalizing transform or use the 'norm=Auto', 'norm=Yes' or 'norm=No' options.
+Beginning optimization
+num vars: 7
+improvement criterion: Mean Improvement
+L1 regularization selected 7 of 7 weights.
+Not training a calibrator because it is not needed.
+TEST POSITIVE RATIO:	0.3366 (34.0/(34.0+67.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||        0 |       34 | 0.0000
+ negative ||        0 |       67 | 1.0000
+          ||======================
+Precision ||   0.0000 |   0.6634 |
+OVERALL 0/1 ACCURACY: 0.663366
+LOG LOSS/instance:  1.041008
+Test-set entropy (prior Log-Loss/instance): 0.921561
+LOG-LOSS REDUCTION (RIG): -0.129614
+AUC:                0.476734
+TEST POSITIVE RATIO:	0.2030 (81.0/(81.0+318.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||       16 |       65 | 0.1975
+ negative ||       14 |      304 | 0.9560
+          ||======================
+Precision ||   0.5333 |   0.8238 |
+OVERALL 0/1 ACCURACY: 0.802005
+LOG LOSS/instance:  0.811899
+Test-set entropy (prior Log-Loss/instance): 0.727903
+LOG-LOSS REDUCTION (RIG): -0.115395
+AUC:                0.559205
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.517969 (0.0412)
+Accuracy:           0.732686 (0.0693)
+Positive precision: 0.266667 (0.2667)
+Positive recall:    0.098765 (0.0988)
+Negative precision: 0.743607 (0.0802)
+Negative recall:    0.977987 (0.0220)
+Log-loss:           0.926454 (0.1146)
+Log-loss reduction: -0.122505 (0.0071)
+F1 Score:           0.144144 (0.1441)
+AUPRC:              0.348230 (0.0216)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

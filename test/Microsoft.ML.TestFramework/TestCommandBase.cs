@@ -1241,7 +1241,7 @@ namespace Microsoft.ML.RunTests
             string pathTrain = GetDataPath("iris.data");
             OutputPath trainModel = ModelPath();
             const string trainArgs = "tr=MultiClassLogisticRegression{maxiter=100 t=- stat=+} xf=Term{col=Label} seed=1";
-            TestCore("train", pathTrain, loaderCmdline, trainArgs);
+            TestCore("train", pathTrain, loaderCmdline, trainArgs, 4);
 
             _step++;
             // Save model summary.

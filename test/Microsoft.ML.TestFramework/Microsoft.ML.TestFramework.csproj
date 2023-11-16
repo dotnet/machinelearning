@@ -32,4 +32,9 @@
     <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' != 'net462'">
+  <!-- This reference will be updated to use DARC in a subsequent PR so we can leave the version here as is -->
+  <PackageReference Include="Microsoft.DotNet.RemoteExecutor" Version="7.0.0-beta.21456.1" />
+  </ItemGroup>
+
 </Project>

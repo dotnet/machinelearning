@@ -3,11 +3,11 @@ Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=
 Beginning optimization
 num vars: 15
 improvement criterion: Mean Improvement
-L1 regularization selected 10 of 15 weights.
+L1 regularization selected 11 of 15 weights.
 Model trained with 150 training examples.
-Residual Deviance: 	132.4371
+Residual Deviance: 	132.25266
 Null Deviance:    	329.58368
-AIC:              	152.4371
+AIC:              	154.25266
 Not training a calibrator because it is not needed.
 Physical memory usage(MB): %Number%
 Virtual memory usage(MB): %Number%

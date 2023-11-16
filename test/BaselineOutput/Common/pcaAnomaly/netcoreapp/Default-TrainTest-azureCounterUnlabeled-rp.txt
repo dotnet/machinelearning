@@ -1,0 +1,4 @@
+pcaAnomaly
+AUC	DR @K FP	DR @P FPR	DR @NumPos	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+NaN	NaN	NaN	NaN	pcaAnomaly	%Data%\azure-train-unlabeled.txt	%Data%\azure-test-unlabeled.txt	%Output%\pcaAnomaly\Default-TrainTest-azureCounterUnlabeled-out.txt	99	0	0	maml.exe TrainTest test=%Data%\azure-test-unlabeled.txt tr=pcaAnomaly dout=%Output%\pcaAnomaly\Default-TrainTest-azureCounterUnlabeled.txt loader=Text{sep=space col=Name:TX:0 col=Features:~} data=%Data%\azure-train-unlabeled.txt out=%Output%\pcaAnomaly\Default-TrainTest-azureCounterUnlabeled-model.zip seed=1 xf=Expr{col=Label:Name expr={x : na(float(0))}}		
+

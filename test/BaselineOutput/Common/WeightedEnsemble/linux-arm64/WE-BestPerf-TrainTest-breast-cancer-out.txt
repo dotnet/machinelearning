@@ -1,0 +1,141 @@
+maml.exe TrainTest test=%Data% tr=WeightedEnsemble{nm=20 pt=BestPerformanceSelector tp=-} dout=%Output% loader=Text{col=Label:BL:0 col=Features:R4:1-9} data=%Data% out=%Output% seed=1
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Training 20 learners for the batch 1
+Beginning training model 1 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 12 instances with missing features during training (over 1 iterations; 12 inst/iter)
+Trainer 1 of 20 finished in %Time%
+Beginning training model 2 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 18 instances with missing features during training (over 1 iterations; 18 inst/iter)
+Trainer 2 of 20 finished in %Time%
+Beginning training model 3 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 15 instances with missing features during training (over 1 iterations; 15 inst/iter)
+Trainer 3 of 20 finished in %Time%
+Beginning training model 4 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 24 instances with missing features during training (over 1 iterations; 24 inst/iter)
+Trainer 4 of 20 finished in %Time%
+Beginning training model 5 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 18 instances with missing features during training (over 1 iterations; 18 inst/iter)
+Trainer 5 of 20 finished in %Time%
+Beginning training model 6 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 15 instances with missing features during training (over 1 iterations; 15 inst/iter)
+Trainer 6 of 20 finished in %Time%
+Beginning training model 7 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 18 instances with missing features during training (over 1 iterations; 18 inst/iter)
+Trainer 7 of 20 finished in %Time%
+Beginning training model 8 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 14 instances with missing features during training (over 1 iterations; 14 inst/iter)
+Trainer 8 of 20 finished in %Time%
+Beginning training model 9 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 13 instances with missing features during training (over 1 iterations; 13 inst/iter)
+Trainer 9 of 20 finished in %Time%
+Beginning training model 10 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 14 instances with missing features during training (over 1 iterations; 14 inst/iter)
+Trainer 10 of 20 finished in %Time%
+Beginning training model 11 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 17 instances with missing features during training (over 1 iterations; 17 inst/iter)
+Trainer 11 of 20 finished in %Time%
+Beginning training model 12 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 24 instances with missing features during training (over 1 iterations; 24 inst/iter)
+Trainer 12 of 20 finished in %Time%
+Beginning training model 13 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 12 instances with missing features during training (over 1 iterations; 12 inst/iter)
+Trainer 13 of 20 finished in %Time%
+Beginning training model 14 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 12 instances with missing features during training (over 1 iterations; 12 inst/iter)
+Trainer 14 of 20 finished in %Time%
+Beginning training model 15 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 19 instances with missing features during training (over 1 iterations; 19 inst/iter)
+Trainer 15 of 20 finished in %Time%
+Beginning training model 16 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 23 instances with missing features during training (over 1 iterations; 23 inst/iter)
+Trainer 16 of 20 finished in %Time%
+Beginning training model 17 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 18 instances with missing features during training (over 1 iterations; 18 inst/iter)
+Trainer 17 of 20 finished in %Time%
+Beginning training model 18 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 20 instances with missing features during training (over 1 iterations; 20 inst/iter)
+Trainer 18 of 20 finished in %Time%
+Beginning training model 19 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 13 instances with missing features during training (over 1 iterations; 13 inst/iter)
+Trainer 19 of 20 finished in %Time%
+Beginning training model 20 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 15 instances with missing features during training (over 1 iterations; 15 inst/iter)
+Trainer 20 of 20 finished in %Time%
+List of models and the metrics after sorted
+| AUC(Sorted) || Name of Model |
+| 0.996916752312436 |LinearBinaryModelParameters
+| 0.996659815005139 |LinearBinaryModelParameters
+| 0.996659815005139 |LinearBinaryModelParameters
+| 0.996659815005139 |LinearBinaryModelParameters
+| 0.99653134635149 |LinearBinaryModelParameters
+| 0.996402877697842 |LinearBinaryModelParameters
+| 0.996402877697842 |LinearBinaryModelParameters
+| 0.996274409044193 |LinearBinaryModelParameters
+| 0.996274409044193 |LinearBinaryModelParameters
+| 0.996145940390545 |LinearBinaryModelParameters
+| 0.996145940390545 |LinearBinaryModelParameters
+| 0.996145940390545 |LinearBinaryModelParameters
+| 0.995889003083248 |LinearBinaryModelParameters
+| 0.995760534429599 |LinearBinaryModelParameters
+| 0.995632065775951 |LinearBinaryModelParameters
+| 0.995503597122302 |LinearBinaryModelParameters
+| 0.995246659815005 |LinearBinaryModelParameters
+| 0.994732785200411 |LinearBinaryModelParameters
+| 0.994218910585817 |LinearBinaryModelParameters
+| 0.994026207605344 |LinearBinaryModelParameters
+Warning: 10 of 20 trainings failed.
+Training calibrator.
+Warning: The predictor produced non-finite prediction values on 16 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3499 (239.0/(239.0+444.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      229 |       10 | 0.9582
+ negative ||        9 |      435 | 0.9797
+          ||======================
+Precision ||   0.9622 |   0.9775 |
+OVERALL 0/1 ACCURACY: 0.972182
+LOG LOSS/instance:  0.117306
+Test-set entropy (prior Log-Loss/instance): 0.934003
+LOG-LOSS REDUCTION (RIG): 0.874405
+AUC:                0.996042
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.996042 (0.0000)
+Accuracy:           0.972182 (0.0000)
+Positive precision: 0.962185 (0.0000)
+Positive recall:    0.958159 (0.0000)
+Negative precision: 0.977528 (0.0000)
+Negative recall:    0.979730 (0.0000)
+Log-loss:           0.117306 (0.0000)
+Log-loss reduction: 0.874405 (0.0000)
+F1 Score:           0.960168 (0.0000)
+AUPRC:              0.991960 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

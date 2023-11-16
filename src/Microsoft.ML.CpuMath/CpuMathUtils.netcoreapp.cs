@@ -5,11 +5,11 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
+using System.Numerics.Tensors;
 using Microsoft.ML.Internal.CpuMath.Core;
 
 namespace Microsoft.ML.Internal.CpuMath
 {
-    [BestFriend]
     internal static partial class CpuMathUtils
     {
         // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
@@ -155,94 +155,6 @@ namespace Microsoft.ML.Internal.CpuMath
         }
 
         /// <summary>
-        /// Adds a value to a destination.
-        /// </summary>
-        /// <param name="value">The value to add.</param>
-        /// <param name="destination">The destination to add the value to.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Add(float value, Span<float> destination)
-        {
-            Contracts.AssertNonEmpty(destination);
-
-            if (destination.Length < MinInputSize || !Sse.IsSupported)
-            {
-                for (int i = 0; i < destination.Length; i++)
-                {
-                    destination[i] += value;
-                }
-            }
-            else if (Avx.IsSupported)
-            {
-                AvxIntrinsics.AddScalarU(value, destination);
-            }
-            else
-            {
-                SseIntrinsics.AddScalarU(value, destination);
-            }
-        }
-
-        /// <summary>
-        /// Scales a value to a destination.
-        /// </summary>
-        /// <param name="value">The value to add.</param>
-        /// <param name="destination">The destination to add the value to.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Scale(float value, Span<float> destination)
-        {
-            Contracts.AssertNonEmpty(destination);
-
-            if (destination.Length < MinInputSize || !Sse.IsSupported)
-            {
-                for (int i = 0; i < destination.Length; i++)
-                {
-                    destination[i] *= value;
-                }
-            }
-            else if (Avx.IsSupported)
-            {
-                AvxIntrinsics.Scale(value, destination);
-            }
-            else
-            {
-                SseIntrinsics.Scale(value, destination);
-            }
-        }
-
-        /// <summary>
-        /// Scales a values by a source to a destination.
-        /// destination = value * source
-        /// </summary>
-        /// <param name="value">The value to scale by.</param>
-        /// <param name="source">The source values.</param>
-        /// <param name="destination">The destination.</param>
-        /// <param name="count">The count of items.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Scale(float value, ReadOnlySpan<float> source, Span<float> destination, int count)
-        {
-            Contracts.AssertNonEmpty(source);
-            Contracts.AssertNonEmpty(destination);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= source.Length);
-            Contracts.Assert(count <= destination.Length);
-
-            if (destination.Length < MinInputSize || !Sse.IsSupported)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    destination[i] = value * source[i];
-                }
-            }
-            else if (Avx.IsSupported)
-            {
-                AvxIntrinsics.ScaleSrcU(value, source, destination, count);
-            }
-            else
-            {
-                SseIntrinsics.ScaleSrcU(value, source, destination, count);
-            }
-        }
-
-        /// <summary>
         /// Add to the destination by scale with an addend value.
         /// </summary>
         /// <code>
@@ -270,39 +182,6 @@ namespace Microsoft.ML.Internal.CpuMath
             else
             {
                 SseIntrinsics.ScaleAddU(scale, addend, destination);
-            }
-        }
-
-        /// <summary>
-        /// Add to the destination from the source by scale.
-        /// </summary>
-        /// <param name="scale">The scale to add by.</param>
-        /// <param name="source">The source values.</param>
-        /// <param name="destination">The destination values.</param>
-        /// <param name="count">The count of items.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AddScale(float scale, ReadOnlySpan<float> source, Span<float> destination, int count)
-        {
-            Contracts.AssertNonEmpty(source);
-            Contracts.AssertNonEmpty(destination);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= source.Length);
-            Contracts.Assert(count <= destination.Length);
-
-            if (destination.Length < MinInputSize || !Sse.IsSupported)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    destination[i] += scale * source[i];
-                }
-            }
-            else if (Avx.IsSupported)
-            {
-                AvxIntrinsics.AddScaleU(scale, source, destination, count);
-            }
-            else
-            {
-                SseIntrinsics.AddScaleU(scale, source, destination, count);
             }
         }
 
@@ -344,74 +223,6 @@ namespace Microsoft.ML.Internal.CpuMath
         }
 
         /// <summary>
-        /// Add to the destination by scale and source into a new result.
-        /// </summary>
-        /// <param name="scale">The scale to add by.</param>
-        /// <param name="source">The source values.</param>
-        /// <param name="destination">The destination values.</param>
-        /// <param name="result">A new collection of values to be returned.</param>
-        /// <param name="count">The count of items.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AddScaleCopy(float scale, ReadOnlySpan<float> source, ReadOnlySpan<float> destination, Span<float> result, int count)
-        {
-            Contracts.AssertNonEmpty(source);
-            Contracts.AssertNonEmpty(destination);
-            Contracts.AssertNonEmpty(result);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= source.Length);
-            Contracts.Assert(count <= destination.Length);
-            Contracts.Assert(count <= result.Length);
-
-            if (count < MinInputSize || !Sse.IsSupported)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    result[i] = scale * source[i] + destination[i];
-                }
-            }
-            else if (Avx.IsSupported)
-            {
-                AvxIntrinsics.AddScaleCopyU(scale, source, destination, result, count);
-            }
-            else
-            {
-                SseIntrinsics.AddScaleCopyU(scale, source, destination, result, count);
-            }
-        }
-
-        /// <summary>
-        /// Add from a source to a destination.
-        /// </summary>
-        /// <param name="source">The source values.</param>
-        /// <param name="destination">The destination values.</param>
-        /// <param name="count">The count of items.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Add(ReadOnlySpan<float> source, Span<float> destination, int count)
-        {
-            Contracts.AssertNonEmpty(source);
-            Contracts.AssertNonEmpty(destination);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= source.Length);
-            Contracts.Assert(count <= destination.Length);
-
-            if (count < MinInputSize || !Sse.IsSupported)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    destination[i] += source[i];
-                }
-            }
-            else if (Avx.IsSupported)
-            {
-                AvxIntrinsics.AddU(source, destination, count);
-            }
-            else
-            {
-                SseIntrinsics.AddU(source, destination, count);
-            }
-        }
-
-        /// <summary>
         /// Add from a source to a destination with indices.
         /// </summary>
         /// <param name="source">The source values.</param>
@@ -448,99 +259,6 @@ namespace Microsoft.ML.Internal.CpuMath
         }
 
         /// <summary>
-        /// Multiply each element with left and right elements.
-        /// </summary>
-        /// <param name="left">The left element.</param>
-        /// <param name="right">The right element.</param>
-        /// <param name="destination">The destination values.</param>
-        /// <param name="count">The count of items.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void MulElementWise(ReadOnlySpan<float> left, ReadOnlySpan<float> right, Span<float> destination, int count)
-        {
-            Contracts.AssertNonEmpty(left);
-            Contracts.AssertNonEmpty(right);
-            Contracts.AssertNonEmpty(destination);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= left.Length);
-            Contracts.Assert(count <= right.Length);
-            Contracts.Assert(count <= destination.Length);
-
-            if (count < MinInputSize || !Sse.IsSupported)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    destination[i] = left[i] * right[i];
-                }
-            }
-            else if (Avx.IsSupported)
-            {
-                AvxIntrinsics.MulElementWiseU(left, right, destination, count);
-            }
-            else
-            {
-                SseIntrinsics.MulElementWiseU(left, right, destination, count);
-            }
-        }
-
-        /// <summary>
-        /// Sum the values in the source.
-        /// </summary>
-        /// <param name="source">The source values.</param>
-        /// <returns>The sum of all items in <paramref name="source"/>.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Sum(ReadOnlySpan<float> source)
-        {
-            Contracts.AssertNonEmpty(source);
-
-            if (source.Length < MinInputSize || !Sse.IsSupported)
-            {
-                float sum = 0;
-                for (int i = 0; i < source.Length; i++)
-                {
-                    sum += source[i];
-                }
-                return sum;
-            }
-            else if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.Sum(source);
-            }
-            else
-            {
-                return SseIntrinsics.Sum(source);
-            }
-        }
-
-        /// <summary>
-        /// Sum the squares of each item in the source.
-        /// </summary>
-        /// <param name="source">The source values.</param>
-        /// <returns>The sum of the squares of all items in <paramref name="source"/>.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float SumSq(ReadOnlySpan<float> source)
-        {
-            Contracts.AssertNonEmpty(source);
-
-            if (source.Length < MinInputSize || !Sse.IsSupported)
-            {
-                float result = 0;
-                for (int i = 0; i < source.Length; i++)
-                {
-                    result += source[i] * source[i];
-                }
-                return result;
-            }
-            else if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.SumSqU(source);
-            }
-            else
-            {
-                return SseIntrinsics.SumSqU(source);
-            }
-        }
-
-        /// <summary>
         /// Sum the square of each item in the source and subtract the mean.
         /// </summary>
         /// <param name="mean">The mean value.</param>
@@ -567,35 +285,6 @@ namespace Microsoft.ML.Internal.CpuMath
             else
             {
                 return (mean == 0) ? SseIntrinsics.SumSqU(source) : SseIntrinsics.SumSqDiffU(mean, source);
-            }
-        }
-
-        /// <summary>
-        /// Sum the absolute value of each item in the source.
-        /// </summary>
-        /// <param name="source">The source values.</param>
-        /// <returns>The sum of all absolute value of the items in <paramref name="source"/>.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float SumAbs(ReadOnlySpan<float> source)
-        {
-            Contracts.AssertNonEmpty(source);
-
-            if (source.Length < MinInputSize || !Sse.IsSupported)
-            {
-                float sum = 0;
-                for (int i = 0; i < source.Length; i++)
-                {
-                    sum += Math.Abs(source[i]);
-                }
-                return sum;
-            }
-            else if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.SumAbsU(source);
-            }
-            else
-            {
-                return SseIntrinsics.SumAbsU(source);
             }
         }
 
@@ -697,41 +386,6 @@ namespace Microsoft.ML.Internal.CpuMath
         }
 
         /// <summary>
-        /// Returns the dot product of each item in the left and right spans.
-        /// </summary>
-        /// <param name="left">The left span.</param>
-        /// <param name="right">The right span.</param>
-        /// <param name="count">The count of items.</param>
-        /// <returns>The dot product.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float DotProductDense(ReadOnlySpan<float> left, ReadOnlySpan<float> right, int count)
-        {
-            Contracts.AssertNonEmpty(left);
-            Contracts.AssertNonEmpty(right);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(left.Length >= count);
-            Contracts.Assert(right.Length >= count);
-
-            if (count < MinInputSize || !Sse.IsSupported)
-            {
-                float result = 0;
-                for (int i = 0; i < count; i++)
-                {
-                    result += left[i] * right[i];
-                }
-                return result;
-            }
-            else if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.DotU(left, right, count);
-            }
-            else
-            {
-                return SseIntrinsics.DotU(left, right, count);
-            }
-        }
-
-        /// <summary>
         /// Returns the dot product of each item by index in the left and right spans.
         /// </summary>
         /// <param name="left">The left span.</param>
@@ -786,24 +440,8 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= left.Length);
             Contracts.Assert(count <= right.Length);
 
-            if (count < MinInputSize || !Sse.IsSupported)
-            {
-                float norm = 0;
-                for (int i = 0; i < count; i++)
-                {
-                    float distance = left[i] - right[i];
-                    norm += distance * distance;
-                }
-                return norm;
-            }
-            else if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.Dist2(left, right, count);
-            }
-            else
-            {
-                return SseIntrinsics.Dist2(left, right, count);
-            }
+            var value = TensorPrimitives.Distance(left.Slice(0, count), right.Slice(0, count));
+            return value * value;
         }
 
         /// <summary>

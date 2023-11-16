@@ -5,12 +5,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using Apache.Arrow;
-using Apache.Arrow.Types;
+using System.Runtime.CompilerServices;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 
@@ -21,6 +18,8 @@ namespace Microsoft.Data.Analysis
     /// </summary>
     public partial class VBufferDataFrameColumn<T> : DataFrameColumn, IEnumerable<VBuffer<T>>
     {
+        public static int MaxCapacity = ArrayUtility.ArrayMaxSize / Unsafe.SizeOf<VBuffer<T>>();
+
         private readonly List<List<VBuffer<T>>> _vBuffers = new List<List<VBuffer<T>>>(); // To store more than intMax number of vbuffers
 
         /// <summary>
@@ -30,11 +29,11 @@ namespace Microsoft.Data.Analysis
         /// <param name="length">Length of values</param>
         public VBufferDataFrameColumn(string name, long length = 0) : base(name, length, typeof(VBuffer<T>))
         {
-            int numberOfBuffersRequired = Math.Max((int)(length / int.MaxValue), 1);
+            int numberOfBuffersRequired = (int)(length / MaxCapacity + 1);
             for (int i = 0; i < numberOfBuffersRequired; i++)
             {
-                long bufferLen = length - _vBuffers.Count * int.MaxValue;
-                List<VBuffer<T>> buffer = new List<VBuffer<T>>((int)Math.Min(int.MaxValue, bufferLen));
+                int bufferLen = (int)Math.Min(MaxCapacity, length - _vBuffers.Count * MaxCapacity);
+                List<VBuffer<T>> buffer = new List<VBuffer<T>>(bufferLen);
                 _vBuffers.Add(buffer);
                 for (int j = 0; j < bufferLen; j++)
                 {
@@ -56,9 +55,7 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        private long _nullCount;
-
-        public override long NullCount => _nullCount;
+        public override long NullCount => 0;
 
         protected internal override void Resize(long length)
         {
@@ -74,7 +71,7 @@ namespace Microsoft.Data.Analysis
         public void Append(VBuffer<T> value)
         {
             List<VBuffer<T>> lastBuffer = _vBuffers[_vBuffers.Count - 1];
-            if (lastBuffer.Count == int.MaxValue)
+            if (lastBuffer.Count == MaxCapacity)
             {
                 lastBuffer = new List<VBuffer<T>>();
                 _vBuffers.Add(lastBuffer);
@@ -83,52 +80,53 @@ namespace Microsoft.Data.Analysis
             Length++;
         }
 
-        private int GetBufferIndexContainingRowIndex(ref long rowIndex)
+        private int GetBufferIndexContainingRowIndex(long rowIndex)
         {
             if (rowIndex >= Length)
             {
-                throw new ArgumentOutOfRangeException(Strings.ColumnIndexOutOfRange, nameof(rowIndex));
+                throw new ArgumentOutOfRangeException(Strings.IndexIsGreaterThanColumnLength, nameof(rowIndex));
             }
 
-            return (int)(rowIndex / int.MaxValue);
+            return (int)(rowIndex / MaxCapacity);
         }
 
         protected override object GetValue(long rowIndex)
         {
-            int bufferIndex = GetBufferIndexContainingRowIndex(ref rowIndex);
-            return _vBuffers[bufferIndex][(int)rowIndex];
+            return GetTypedValue(rowIndex);
+        }
+
+        protected VBuffer<T> GetTypedValue(long rowIndex)
+        {
+            int bufferIndex = GetBufferIndexContainingRowIndex(rowIndex);
+            return _vBuffers[bufferIndex][(int)(rowIndex % MaxCapacity)];
         }
 
         protected override IReadOnlyList<object> GetValues(long startIndex, int length)
         {
             var ret = new List<object>();
-            int bufferIndex = GetBufferIndexContainingRowIndex(ref startIndex);
+            int bufferIndex = GetBufferIndexContainingRowIndex(startIndex);
+            int bufferOffset = (int)(startIndex % MaxCapacity);
             while (ret.Count < length && bufferIndex < _vBuffers.Count)
             {
-                for (int i = (int)startIndex; ret.Count < length && i < _vBuffers[bufferIndex].Count; i++)
+                for (int i = bufferOffset; ret.Count < length && i < _vBuffers[bufferIndex].Count; i++)
                 {
                     ret.Add(_vBuffers[bufferIndex][i]);
                 }
                 bufferIndex++;
-                startIndex = 0;
+                bufferOffset = 0;
             }
             return ret;
         }
 
         protected override void SetValue(long rowIndex, object value)
         {
-            if (value == null || value is VBuffer<T>)
+            if (value == null)
             {
-                int bufferIndex = GetBufferIndexContainingRowIndex(ref rowIndex);
-                var oldValue = this[rowIndex];
-                _vBuffers[bufferIndex][(int)rowIndex] = (VBuffer<T>)value;
-                if (!oldValue.Equals((VBuffer<T>)value))
-                {
-                    if (value == null)
-                        _nullCount++;
-                    if (oldValue.Length == 0 && _nullCount > 0)
-                        _nullCount--;
-                }
+                throw new NotSupportedException("Null values are not supported by VBufferDataFrameColumn");
+            }
+            else if (value is VBuffer<T> vbuffer)
+            {
+                SetTypedValue(rowIndex, vbuffer);
             }
             else
             {
@@ -136,10 +134,16 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        protected void SetTypedValue(long rowIndex, VBuffer<T> value)
+        {
+            int bufferIndex = GetBufferIndexContainingRowIndex(rowIndex);
+            _vBuffers[bufferIndex][(int)(rowIndex % MaxCapacity)] = value;
+        }
+
         public new VBuffer<T> this[long rowIndex]
         {
-            get => (VBuffer<T>)GetValue(rowIndex);
-            set => SetValue(rowIndex, value);
+            get => GetTypedValue(rowIndex);
+            set => SetTypedValue(rowIndex, value);
         }
 
         /// <summary>
@@ -250,11 +254,11 @@ namespace Microsoft.Data.Analysis
 
             List<VBuffer<T>> setBuffer = ret._vBuffers[0];
             long setBufferMinRange = 0;
-            long setBufferMaxRange = int.MaxValue;
+            long setBufferMaxRange = MaxCapacity;
             List<VBuffer<T>> getBuffer = _vBuffers[0];
             long getBufferMinRange = 0;
-            long getBufferMaxRange = int.MaxValue;
-            long maxCapacity = int.MaxValue;
+            long getBufferMaxRange = MaxCapacity;
+            long maxCapacity = MaxCapacity;
             if (mapIndices.DataType == typeof(long))
             {
                 PrimitiveDataFrameColumn<long> longMapIndices = mapIndices as PrimitiveDataFrameColumn<long>;
