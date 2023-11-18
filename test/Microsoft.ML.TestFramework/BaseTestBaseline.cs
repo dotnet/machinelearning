@@ -147,17 +147,20 @@ namespace Microsoft.ML.RunTests
             {
                 if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
                     configurationDirs.Add("win-arm");
+            }
 
-                // This needs to come after win-arm but before win-x64 and win-x86
+            // This needs to come after win-arm but before win-x64 and win-x86
 #if NETCOREAPP
-                // Use netcoreapp result file if necessary.
-                // The small difference comes from CPUMath using different instruction SSE (in CpuMathNative) vs
-                // AVX, SSE or direct floating point calculation depending on hardware availability 
-                // (in later versions that use compiler intrinsics).  
-                // There were further differences in floating point calculations introduced in .NET 6.0.
-                configurationDirs.Add("netcoreapp");
+            // Use netcoreapp result file if necessary.
+            // The small difference comes from CPUMath using different instruction SSE (in CpuMathNative) vs
+            // AVX, SSE or direct floating point calculation depending on hardware availability 
+            // (in later versions that use compiler intrinsics).  
+            // There were further differences in floating point calculations introduced in .NET 6.0.
+            configurationDirs.Add("netcoreapp");
 #endif
 
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
                 if (Environment.Is64BitProcess)
                     configurationDirs.Add("win-x64");
                 else
