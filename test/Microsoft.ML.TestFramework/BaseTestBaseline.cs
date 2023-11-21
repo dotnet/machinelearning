@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -143,7 +143,13 @@ namespace Microsoft.ML.RunTests
 
             }
 
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+                    configurationDirs.Add("win-arm");
+            }
 
+            // This needs to come after win-arm but before win-x64 and win-x86
 #if NETCOREAPP
             // Use netcoreapp result file if necessary.
             // The small difference comes from CPUMath using different instruction SSE (in CpuMathNative) vs
@@ -160,6 +166,8 @@ namespace Microsoft.ML.RunTests
                 else
                     configurationDirs.Add("win-x86");
             }
+
+
 
             return configurationDirs;
         }
