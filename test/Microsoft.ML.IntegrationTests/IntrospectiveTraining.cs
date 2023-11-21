@@ -59,8 +59,8 @@ namespace Microsoft.ML.IntegrationTests
                 Assert.Equal(tree.SplitGains.Count, tree.NumberOfNodes);
                 Assert.Equal(tree.NumericalSplitThresholds.Count, tree.NumberOfNodes);
                 Assert.All(tree.CategoricalSplitFlags, flag => Assert.False(flag));
-                Assert.Equal(0, tree.GetCategoricalSplitFeaturesAt(0).Count);
-                Assert.Equal(0, tree.GetCategoricalCategoricalSplitFeatureRangeAt(0).Count);
+                Assert.Empty(tree.GetCategoricalSplitFeaturesAt(0));
+                Assert.Empty(tree.GetCategoricalCategoricalSplitFeatureRangeAt(0));
             });
         }
 
@@ -103,8 +103,8 @@ namespace Microsoft.ML.IntegrationTests
                 Assert.Equal(tree.SplitGains.Count, tree.NumberOfNodes);
                 Assert.Equal(tree.NumericalSplitThresholds.Count, tree.NumberOfNodes);
                 Assert.All(tree.CategoricalSplitFlags, flag => Assert.False(flag));
-                Assert.Equal(0, tree.GetCategoricalSplitFeaturesAt(0).Count);
-                Assert.Equal(0, tree.GetCategoricalCategoricalSplitFeatureRangeAt(0).Count);
+                Assert.Empty(tree.GetCategoricalSplitFeaturesAt(0));
+                Assert.Empty(tree.GetCategoricalCategoricalSplitFeatureRangeAt(0));
             });
 
             // Add baselines for the model.
