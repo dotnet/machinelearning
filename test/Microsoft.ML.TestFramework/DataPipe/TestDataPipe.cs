@@ -1611,7 +1611,7 @@ namespace Microsoft.ML.RunTests
                 return;
             }
 
-            Assert.True(false, "The LDA transform does not throw expected error on empty documents.");
+            Assert.Fail("The LDA transform does not throw expected error on empty documents.");
         }
     }
 }

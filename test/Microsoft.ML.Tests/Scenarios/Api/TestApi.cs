@@ -91,7 +91,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             try
             {
                 filter2.GetRowCursorForAllColumns().MoveNext();
-                Assert.True(false, "Throw an error if attribute is applied to a field that is not an IChannel.");
+                Assert.Fail("Throw an error if attribute is applied to a field that is not an IChannel.");
             }
             catch (InvalidOperationException ex)
             {
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             try
             {
                 filter3.GetRowCursorForAllColumns().MoveNext();
-                Assert.True(false, "Throw an error if attribute is applied to a field that is not an IChannel.");
+                Assert.Fail("Throw an error if attribute is applied to a field that is not an IChannel.");
             }
             catch (InvalidOperationException ex)
             {

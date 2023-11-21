@@ -120,14 +120,14 @@ namespace Microsoft.ML.Sweeper.RunTests
                     }
                     else
                     {
-                        Assert.True(false, "Wrong parameter");
+                        Assert.Fail("Wrong parameter");
                     }
                 }
             }
         }
 
         [Fact]
-        public void TestSimpleSweeperAsync()
+        public async void TestSimpleSweeperAsync()
         {
             var random = new Random(42);
             var env = new MLContext(42);
@@ -146,10 +146,11 @@ namespace Microsoft.ML.Sweeper.RunTests
             for (int i = 0; i < sweeps; i++)
             {
                 var task = sweeper.ProposeAsync();
+                var tResult = await task;
                 Assert.True(task.IsCompleted);
-                paramSets.Add(task.Result.ParameterSet);
-                var result = new RunResult(task.Result.ParameterSet, random.NextDouble(), true);
-                sweeper.Update(task.Result.Id, result);
+                paramSets.Add(tResult.ParameterSet);
+                var result = new RunResult(tResult.ParameterSet, random.NextDouble(), true);
+                sweeper.Update(tResult.Id, result);
             }
             Assert.Equal(sweeps, paramSets.Count);
             CheckAsyncSweeperResult(paramSets);
@@ -167,8 +168,9 @@ namespace Microsoft.ML.Sweeper.RunTests
             for (int i = 0; i < sweeps; i++)
             {
                 var task = gridSweeper.ProposeAsync();
+                var tResult = await task;
                 Assert.True(task.IsCompleted);
-                paramSets.Add(task.Result.ParameterSet);
+                paramSets.Add(tResult.ParameterSet);
             }
             Assert.Equal(sweeps, paramSets.Count);
             CheckAsyncSweeperResult(paramSets);
@@ -326,12 +328,12 @@ namespace Microsoft.ML.Sweeper.RunTests
             int[] sleeps = new int[sweeps];
             for (int i = 0; i < sleeps.Length; i++)
                 sleeps[i] = random.Next(10, 100);
-            var r = Task.Run(() => Parallel.For(0, sweeps, options, (int i) =>
+            var r = Task.Run(() => Parallel.For(0, sweeps, options, async (int i) =>
             {
                 var task = sweeper.ProposeAsync();
-                task.Wait();
+                var tResult = await task;
                 Assert.Equal(TaskStatus.RanToCompletion, task.Status);
-                var paramWithId = task.Result;
+                var paramWithId = tResult;
                 if (paramWithId == null)
                     return;
                 Thread.Sleep(sleeps[i]);
@@ -417,7 +419,7 @@ namespace Microsoft.ML.Sweeper.RunTests
                     }
                     else
                     {
-                        Assert.True(false, "Wrong parameter");
+                        Assert.Fail("Wrong parameter");
                     }
                 }
             }
@@ -464,7 +466,7 @@ namespace Microsoft.ML.Sweeper.RunTests
                     }
                     else
                     {
-                        Assert.True(false, "Wrong parameter");
+                        Assert.Fail("Wrong parameter");
                     }
                 }
                 Assert.False(gridPoint[i][j]);
@@ -491,7 +493,7 @@ namespace Microsoft.ML.Sweeper.RunTests
                     }
                     else
                     {
-                        Assert.True(false, "Wrong parameter");
+                        Assert.Fail("Wrong parameter");
                     }
                 }
                 Assert.False(gridPoint[i][j]);
@@ -523,7 +525,7 @@ namespace Microsoft.ML.Sweeper.RunTests
                     }
                     else
                     {
-                        Assert.True(false, "Wrong parameter");
+                        Assert.Fail("Wrong parameter");
                     }
                 }
                 Assert.False(gridPoint[i][j]);
@@ -577,7 +579,7 @@ namespace Microsoft.ML.Sweeper.RunTests
                         }
                         else
                         {
-                            Assert.True(false, "Wrong parameter");
+                            Assert.Fail("Wrong parameter");
                         }
                     }
                     results.Add(new RunResult(parameterSet, random.NextDouble(), true));
@@ -625,7 +627,7 @@ namespace Microsoft.ML.Sweeper.RunTests
                         }
                         else
                         {
-                            Assert.True(false, "Wrong parameter");
+                            Assert.Fail("Wrong parameter");
                         }
                     }
                     results.Add(new RunResult(parameterSet, random.NextDouble(), true));
@@ -676,7 +678,7 @@ namespace Microsoft.ML.Sweeper.RunTests
                         }
                         else
                         {
-                            Assert.True(false, "Wrong parameter");
+                            Assert.Fail("Wrong parameter");
                         }
                     }
                     results.Add(new RunResult(parameterSet, random.NextDouble(), true));

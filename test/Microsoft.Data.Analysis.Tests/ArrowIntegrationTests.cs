@@ -127,7 +127,7 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void TestEmptyDataFrameRecordBatch()
+        public async void TestEmptyDataFrameRecordBatch()
         {
             PrimitiveDataFrameColumn<int> ageColumn = new PrimitiveDataFrameColumn<int>("Age");
             PrimitiveDataFrameColumn<int> lengthColumn = new PrimitiveDataFrameColumn<int>("CharCount");
@@ -141,7 +141,7 @@ namespace Microsoft.Data.Analysis.Tests
                 foundARecordBatch = true;
                 MemoryStream stream = new MemoryStream();
                 ArrowStreamWriter writer = new ArrowStreamWriter(stream, recordBatch.Schema);
-                writer.WriteRecordBatchAsync(recordBatch).GetAwaiter().GetResult();
+                await writer.WriteRecordBatchAsync(recordBatch);
 
                 stream.Position = 0;
                 ArrowStreamReader reader = new ArrowStreamReader(stream);
