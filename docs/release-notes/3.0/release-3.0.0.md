@@ -5,16 +5,16 @@
 - **Add SamplingKeyColumnName to AutoMLExperiment API** ([#6649](https://github.com/dotnet/machinelearning/pull/6649)) - You can now set the SamplingKeyColumnName when you are using AutoML. Thanks @torronen!
 - **Add Object Detection to AutoML Sweeper** ([#6633](https://github.com/dotnet/machinelearning/pull/6633)) - Added Object Detection to the AutoML Sweeper so now they can be used together.
 - **Add String Vector support to DataFrame** ([#6628](https://github.com/dotnet/machinelearning/pull/6628)) - Adds support for String Vectors in DataFrame. This also allows for Better IDataView <-> DataFrame conversions.
-- **Add AutoZero tuner to BinaryClassification** ([#6615](https://github.com/dotnet/machinelearning/pull/6615)) - Can now user AutoZero tuner in AutoML Binary Classification experiments.
+- **Add AutoZero tuner to BinaryClassification** ([#6615](https://github.com/dotnet/machinelearning/pull/6615)) - Can now use AutoZero tuner in AutoML Binary Classification experiments.
 - **Added in fairness assessment and mitigation** ([#6539](https://github.com/dotnet/machinelearning/pull/6539)) - Support for fairness assessment and mitigation tool
 - **Added in Support for some Intel OneDal Algorithms** ([#6521](https://github.com/dotnet/machinelearning/pull/6521)) - You can now use Intel's OneDal for some algorithms. This gives you access to some accelerated versions of these algorithms. The models are fully interoperable between ML.NET's normal models and these, so you can train with OneDal and then still run on machines where OneDal is not supported. Thanks @rgesteve!
 - **Add in ability to have pre-defined weights for ngrams** ([#6458](https://github.com/dotnet/machinelearning/pull/6458)) - If you know the weights of your NGrams already you can now directly provide that.
 - **Add SentenceSimilarity sweepable estimator in AutoML** ([#6445](https://github.com/dotnet/machinelearning/pull/6445)) - Can now use SentenceSimilarity with the sweepable estimator.
 - **Add VBufferDataFrameCoumn to DataFrame** ([#6409](https://github.com/dotnet/machinelearning/pull/6409)) - Now DataFrame can support the VBuffer from ML.NET so the IDataView <-> DataFrame conversion can work with those types.
 - **Added ADO.NET importing/exporting functionality to DataFrame** ([#5975](https://github.com/dotnet/machinelearning/pull/5975)) - Can now use ADO.NET import/export with DataFrames. Thanks @andrei-faber!
-- **Added in native binaries for Windows Arm64** ([#6813](https://github.com/dotnet/machinelearning/pull/6813))
+- **Added native binaries for Windows Arm64** ([#6813](https://github.com/dotnet/machinelearning/pull/6813)) - This allows certain native transforms to be run on Widows Arm that were disabled before.
 - **Switches some computational code to use the new Tensor Primitives package** ([#6875](https://github.com/dotnet/machinelearning/pull/6875))
-- **Add QA sweepable estimator in AutoML ** ([#6781](https://github.com/dotnet/machinelearning/pull/6781))
+- **Add QA sweepable estimator in AutoML** ([#6781](https://github.com/dotnet/machinelearning/pull/6781))
 - **Add NameEntityRecognition and Q&A deep learning tasks.** ([#6760](https://github.com/dotnet/machinelearning/pull/6760))
 - **Adds the ability to load a pre-trained LightGBM file and import it into ML.Net.** ([#6569](https://github.com/dotnet/machinelearning/pull/6569))
 
@@ -33,13 +33,13 @@
 - **OneDAL - Fallback to default implementation** ([#6538](https://github.com/dotnet/machinelearning/pull/6538)) - If you specify you want to use OneDal but something happens that prevents you from using it, like it can't find the binaries/etc, it will auto default back to the normal implementation instead of crashing.
 - **Add addKeyValueAnnotationsAsText flag in AutoML** ([#6535](https://github.com/dotnet/machinelearning/pull/6535))
 - **Add continuous resource monitoring to AutoML.IMonitor** ([#6520](https://github.com/dotnet/machinelearning/pull/6520)) - Thanks @andrasfuchs!
-- **Update WebClient to HttpClient implementations** ([#6476](https://github.com/dotnet/machinelearning/pull/6476)) - Update a usage of WebClient to HttpClient since WebClient is now deprecated. Thanks @rgesteve!
+- **Update WebClient to HttpClient implementations** ([#6476](https://github.com/dotnet/machinelearning/pull/6476)) - Update the usage of WebClient to HttpClient since WebClient is now deprecated. Thanks @rgesteve!
 - **Set AutoML trial to unsuccess if trial loss is nan/inf** ([#6430](https://github.com/dotnet/machinelearning/pull/6430)) - Now trial will be marked as unsuccesssful if the loss is an invalid number.
 - **Add diskConvert option in fast tree search space** ([#6316](https://github.com/dotnet/machinelearning/pull/6316))
 - **Avoid Boxing/Unboxing on accessing elements of VBufferDataFrameColumn** ([#6867](https://github.com/dotnet/machinelearning/pull/6867)) and ([#6865](https://github.com/dotnet/machinelearning/pull/6865)) - Thanks @asmirnov82!
-- **Update LightGBM to version 3.X.X from 2.X.X ([#6880](https://github.com/dotnet/machinelearning/pull/6880))
+- **Update LightGBM to version 3.X.X from 2.X.X** ([#6880](https://github.com/dotnet/machinelearning/pull/6880))
 - **Implement vectorized binary arithmetic operations for DataFrames** ([#6854](https://github.com/dotnet/machinelearning/pull/6854)) - Thanks @asmirnov82!
-- **Upgrade .NET Interactive** ([#6857](https://github.com/dotnet/machinelearning/pull/6857)) - Thanks @colombod
+- **Upgrade .NET Interactive** ([#6857](https://github.com/dotnet/machinelearning/pull/6857)) - Thanks @colombod!
 - **Improve performance of column cloning inside DataFrame arithmetics** ([#6814](https://github.com/dotnet/machinelearning/pull/6814)) - Thanks @asmirnov82!
 - **Add performance benchmarks for dataframe arithmetic operations** ([#6827](https://github.com/dotnet/machinelearning/pull/6827)) - Thanks @asmirnov82!
 - **Simplify tt files for PrimitiveDataFrameColumnAritmetics** ([#6830](https://github.com/dotnet/machinelearning/pull/6830)) - Thanks @asmirnov82!
