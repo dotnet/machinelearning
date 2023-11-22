@@ -34,14 +34,14 @@
 - **Add addKeyValueAnnotationsAsText flag in AutoML** ([#6535](https://github.com/dotnet/machinelearning/pull/6535))
 - **Add continuous resource monitoring to AutoML.IMonitor** ([#6520](https://github.com/dotnet/machinelearning/pull/6520)) - Thanks @andrasfuchs!
 - **Update WebClient to HttpClient implementations** ([#6476](https://github.com/dotnet/machinelearning/pull/6476)) - Update the usage of WebClient to HttpClient since WebClient is now deprecated. Thanks @rgesteve!
-- **Set AutoML trial to unsuccess if trial loss is nan/inf** ([#6430](https://github.com/dotnet/machinelearning/pull/6430)) - Now trial will be marked as unsuccesssful if the loss is an invalid number.
+- **Set AutoML trial to unsuccessful if trial loss is nan/inf** ([#6430](https://github.com/dotnet/machinelearning/pull/6430)) - Now trial will be marked as unsuccessful if the loss is an invalid number.
 - **Add diskConvert option in fast tree search space** ([#6316](https://github.com/dotnet/machinelearning/pull/6316))
 - **Avoid Boxing/Unboxing on accessing elements of VBufferDataFrameColumn** ([#6867](https://github.com/dotnet/machinelearning/pull/6867)) and ([#6865](https://github.com/dotnet/machinelearning/pull/6865)) - Thanks @asmirnov82!
 - **Update LightGBM to version 3.X.X from 2.X.X** ([#6880](https://github.com/dotnet/machinelearning/pull/6880))
 - **Implement vectorized binary arithmetic operations for DataFrames** ([#6854](https://github.com/dotnet/machinelearning/pull/6854)) - Thanks @asmirnov82!
 - **Upgrade .NET Interactive** ([#6857](https://github.com/dotnet/machinelearning/pull/6857)) - Thanks @colombod!
-- **Improve performance of column cloning inside DataFrame arithmetics** ([#6814](https://github.com/dotnet/machinelearning/pull/6814)) - Thanks @asmirnov82!
-- **Add performance benchmarks for dataframe arithmetic operations** ([#6827](https://github.com/dotnet/machinelearning/pull/6827)) - Thanks @asmirnov82!
+- **Improve performance of column cloning inside DataFrame arithmetic** ([#6814](https://github.com/dotnet/machinelearning/pull/6814)) - Thanks @asmirnov82!
+- **Add performance benchmarks for DataFrame arithmetic operations** ([#6827](https://github.com/dotnet/machinelearning/pull/6827)) - Thanks @asmirnov82!
 - **Simplify tt files for PrimitiveDataFrameColumnAritmetics** ([#6830](https://github.com/dotnet/machinelearning/pull/6830)) - Thanks @asmirnov82!
 - **Improve performance of DataFrame binary comparison operations** ([#6869](https://github.com/dotnet/machinelearning/pull/6869)) - Thanks @asmirnov82!
 - **Allow a CultureInfo to be used for parsing CSV values into DataFrame** ([#6782](https://github.com/dotnet/machinelearning/pull/6782)) - Thanks @asmirnov82!
@@ -52,14 +52,14 @@
 - **File-scoped namespaces in files under `Environment` (`Microsoft.ML.Core`)** ([#6791](https://github.com/dotnet/machinelearning/pull/6791)) - Thanks @Lehonti!
 - **Add TargetType to Type_convert** ([#6785](https://github.com/dotnet/machinelearning/pull/6785))
 - **Modernized some argument checks that still used string literals for parameter names** ([#6766](https://github.com/dotnet/machinelearning/pull/6766)) - Thanks @Lehonti!
-- **Improve DataFrame Arithmetics implementation** ([#6763](https://github.com/dotnet/machinelearning/pull/6763)) - Thanks @asmirnov82!
+- **Improve DataFrame Arithmetic implementation** ([#6763](https://github.com/dotnet/machinelearning/pull/6763)) - Thanks @asmirnov82!
 - **Fixed mac build and minor torch sharp changes** ([#6776](https://github.com/dotnet/machinelearning/pull/6776))
 - **Clean DataFrame meaningless code** ([#6761](https://github.com/dotnet/machinelearning/pull/6761)) - Thanks @asmirnov82!
-- **Provide ability to filter dataframe column by null via ElementWise Methods** ([#6723](https://github.com/dotnet/machinelearning/pull/6723))
-- **Add missing implementation for datetime relevant arrow type into dataframe** ([#6675](https://github.com/dotnet/machinelearning/pull/6675)) - Thanks @asmirnov82!
+- **Provide ability to filter DataFrame column by null via ElementWise Methods** ([#6723](https://github.com/dotnet/machinelearning/pull/6723))
+- **Add missing implementation for DateTime relevant arrow type into DataFrame** ([#6675](https://github.com/dotnet/machinelearning/pull/6675)) - Thanks @asmirnov82!
 - **Fix DataFrame to allow to store columns with size more than 2 Gb** ([#6710](https://github.com/dotnet/machinelearning/pull/6710)) - Thanks @asmirnov82!
 - **Remove redundant column names collection from DataFrameColumnCollection** ([#6701](https://github.com/dotnet/machinelearning/pull/6701)) - Thanks @asmirnov82!
-- **Clean dataframe math** ([#6709](https://github.com/dotnet/machinelearning/pull/6709)) - Thanks @asmirnov82!
+- **Clean DataFrame math** ([#6709](https://github.com/dotnet/machinelearning/pull/6709)) - Thanks @asmirnov82!
 - **Continue training on OOM error && add subsampling support for trainValidationDatasetManager** ([#6714](https://github.com/dotnet/machinelearning/pull/6714))
 - **Add epsilon to eci inverse probability** ([#6668](https://github.com/dotnet/machinelearning/pull/6668))
 
@@ -68,7 +68,7 @@
 - **Fix DataFrame null math** ([#6661](https://github.com/dotnet/machinelearning/pull/6661)) - Fixes max in DataFrame columns when there are null values to match what Pandas does.
 - **Clean up PrimitiveColumnContainer** ([#6656](https://github.com/dotnet/machinelearning/pull/6656)) - Cleaned up the code in PrimitiveColumnContainer so its more correct and easier to use.
 - **Fix Apply in PrimitiveColumnContainer** ([#6642](https://github.com/dotnet/machinelearning/pull/6642)) - Fixes the Apply method so it no longer changes the source column. Thanks @janholo!
-- **Fix datetime null error** ([#6627](https://github.com/dotnet/machinelearning/pull/6627)) - Fixes loading a null datetime from a database so it now returns correctly instead of throwing an error.
+- **Fix DateTime null error** ([#6627](https://github.com/dotnet/machinelearning/pull/6627)) - Fixes loading a null DateTime from a database so it now returns correctly instead of throwing an error.
 - **Fix AggregateTrainingStopManager is trying to cancel disposed tokens** ([#6612](https://github.com/dotnet/machinelearning/pull/6612)) - Will no longer try and cancel already disposed tokens.
 - **Fix ToString bug for sweepable pipeline** ([#6610](https://github.com/dotnet/machinelearning/pull/6610))
 - **Change Test to Validate in Dataset manager** ([#6599](https://github.com/dotnet/machinelearning/pull/6599))
@@ -84,15 +84,15 @@
 - **PrimitiveDataFrameColumn.Clone method crashes when is used with IEnumerable mapIndices argument** ([#6822](https://github.com/dotnet/machinelearning/pull/6822)) - Thanks @asmirnov82!
 - **Addresses #6533, OneDal Index was outside the bounds of the array.** ([#6838](https://github.com/dotnet/machinelearning/pull/6838)) - Thanks @rgesteve!
 - **Fix wrong type conversion on PrimitiveDataFrameColumn** ([#6834](https://github.com/dotnet/machinelearning/pull/6834)) - Thanks @novelhawk!
-- **Append dataframe rows based on column names** ([#6808](https://github.com/dotnet/machinelearning/pull/6808)) - Thanks @asmirnov82!
-- **Fix inconsistent null handling in DataFrame Arithmetics** ([#6770](https://github.com/dotnet/machinelearning/pull/6770)) - Thanks @asmirnov82!
+- **Append DataFrame rows based on column names** ([#6808](https://github.com/dotnet/machinelearning/pull/6808)) - Thanks @asmirnov82!
+- **Fix inconsistent null handling in DataFrame Arithmetic** ([#6770](https://github.com/dotnet/machinelearning/pull/6770)) - Thanks @asmirnov82!
 - **Fix DataFrame.LoadCsv can not load CSV with duplicate column names** ([#6772](https://github.com/dotnet/machinelearning/pull/6772)) - Thanks @asmirnov82!
 - **Fix issue with addIndexColumn in DataFrame.LoadCsv** ([#6769](https://github.com/dotnet/machinelearning/pull/6769)) - Thanks @asmirnov82!
 - **Fix text classification InvocationException during cross-validation, issue #2718 from model builder** ([#6768](https://github.com/dotnet/machinelearning/pull/6768))
 - **Fix incorrect DataFrame min max computation with NULL** ([#6734](https://github.com/dotnet/machinelearning/pull/6734)) - Thanks @asmirnov82!
 - **Fix ML.Fairlean using ToList on Row Collection with Count more than Max.Int** ([#6678](https://github.com/dotnet/machinelearning/pull/6678)) - Thanks @asmirnov82!
 - **Fix the behavior of column SetName method** ([#6676](https://github.com/dotnet/machinelearning/pull/6676)) - Thanks @asmirnov82!
-- **Fix dataframe arithmetics for columns having several value buffers (column size is more than 2 Gb)** ([#6724](https://github.com/dotnet/machinelearning/pull/6724)) - Thanks @asmirnov82!
+- **Fix DataFrame arithmetic for columns having several value buffers (column size is more than 2 Gb)** ([#6724](https://github.com/dotnet/machinelearning/pull/6724)) - Thanks @asmirnov82!
 - **AutoML.Net avoid empty dataset in trainValidationDatasetManager** ([#6756](https://github.com/dotnet/machinelearning/pull/6756))
 - **Fix DataFrame bounds checking on indexing elements** ([#6681](https://github.com/dotnet/machinelearning/pull/6681)) - Thanks @asmirnov82!
 - **Reset DataFrame.RowCount to zero, when DataFrame is empty** ([#6698](https://github.com/dotnet/machinelearning/pull/6698)) - Thanks @asmirnov82!
