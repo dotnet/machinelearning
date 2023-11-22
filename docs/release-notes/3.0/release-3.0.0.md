@@ -43,10 +43,8 @@
 - **Improve performance of column cloning inside DataFrame arithmetics** ([#6814](https://github.com/dotnet/machinelearning/pull/6814)) - Thanks @asmirnov82!
 - **Add performance benchmarks for dataframe arithmetic operations** ([#6827](https://github.com/dotnet/machinelearning/pull/6827)) - Thanks @asmirnov82!
 - **Simplify tt files for PrimitiveDataFrameColumnAritmetics** ([#6830](https://github.com/dotnet/machinelearning/pull/6830)) - Thanks @asmirnov82!
-- **Update dependencies** ([#6837](https://github.com/dotnet/machinelearning/pull/6837))
-- **update interactive kernel version** ([#6836](https://github.com/dotnet/machinelearning/pull/6836))
 - **Improve performance of DataFrame binary comparison operations** ([#6869](https://github.com/dotnet/machinelearning/pull/6869)) - Thanks @asmirnov82!
-- **Allow to define CultureInfo for parsing values on reading DataFrame from csv** ([#6782](https://github.com/dotnet/machinelearning/pull/6782)) - Thanks @asmirnov82!
+- **Allow a CultureInfo to be used for parsing CSV values into DataFrame** ([#6782](https://github.com/dotnet/machinelearning/pull/6782)) - Thanks @asmirnov82!
 - **File-scoped namespaces in files under `Prediction` (`Microsoft.ML.Core`)** ([#6792](https://github.com/dotnet/machinelearning/pull/6792)) - Thanks @Lehonti!
 - **File-scoped namespaces in files under `ComponentModel` (`Microsoft.ML.Core`)** ([#6788](https://github.com/dotnet/machinelearning/pull/6788)) - Thanks @Lehonti!
 - **File-scoped namespaces in files under `Data` (`Microsoft.ML.Core`)** ([#6789](https://github.com/dotnet/machinelearning/pull/6789)) - Thanks @Lehonti!
@@ -72,11 +70,11 @@
 - **Fix Apply in PrimitiveColumnContainer** ([#6642](https://github.com/dotnet/machinelearning/pull/6642)) - Fixes the Apply method so it no longer changes the source column. Thanks @janholo!
 - **Fix datetime null error** ([#6627](https://github.com/dotnet/machinelearning/pull/6627)) - Fixes loading a null datetime from a database so it now returns correctly instead of throwing an error.
 - **Fix AggregateTrainingStopManager is trying to cancel disposed tokens** ([#6612](https://github.com/dotnet/machinelearning/pull/6612)) - Will no longer try and cancel already disposed tokens.
-- **Fix tostring bug for sweepable pipeline** ([#6610](https://github.com/dotnet/machinelearning/pull/6610))
+- **Fix ToString bug for sweepable pipeline** ([#6610](https://github.com/dotnet/machinelearning/pull/6610))
 - **Change Test to Validate in Dataset manager** ([#6599](https://github.com/dotnet/machinelearning/pull/6599))
 - **Fixed System.OperationCanceledException when calling experimentResult.BestRun.Estimator.Fit** ([#6572](https://github.com/dotnet/machinelearning/pull/6572))
 - **Fixed cancellation bug in SweepablePipelineRunner && Fixed object null exception in AutoML v1.0 regression API** ([#6560](https://github.com/dotnet/machinelearning/pull/6560))
-- **Fixed one dal dispatching issues** ([#6547](https://github.com/dotnet/machinelearning/pull/6547)) - OneDal now dispatches correctly.
+- **Fixed OneDal dispatching issues** ([#6547](https://github.com/dotnet/machinelearning/pull/6547)) - OneDal now dispatches correctly.
 - **Fixed Multi-threaded access issue** ([#6537](https://github.com/dotnet/machinelearning/pull/6537)) - Fixed a multi-threaded access issue for variable length string arrays in ONNX models.
 - **Fixed AutoML experiments in non declarative style not working** ([#6447](https://github.com/dotnet/machinelearning/pull/6447))
 - **Fix DataFrame Saving csv with VBufferDataFrameColumn** ([#6860](https://github.com/dotnet/machinelearning/pull/6860)) - Thanks @asmirnov82!
@@ -90,7 +88,7 @@
 - **Fix inconsistent null handling in DataFrame Arithmetics** ([#6770](https://github.com/dotnet/machinelearning/pull/6770)) - Thanks @asmirnov82!
 - **Fix DataFrame.LoadCsv can not load CSV with duplicate column names** ([#6772](https://github.com/dotnet/machinelearning/pull/6772)) - Thanks @asmirnov82!
 - **Fix issue with addIndexColumn in DataFrame.LoadCsv** ([#6769](https://github.com/dotnet/machinelearning/pull/6769)) - Thanks @asmirnov82!
-- **fix issue #2718 from model builder** ([#6768](https://github.com/dotnet/machinelearning/pull/6768))
+- **Fix text classification InvocationException during cross-validation, issue #2718 from model builder** ([#6768](https://github.com/dotnet/machinelearning/pull/6768))
 - **Fix incorrect DataFrame min max computation with NULL** ([#6734](https://github.com/dotnet/machinelearning/pull/6734)) - Thanks @asmirnov82!
 - **Fix ML.Fairlean using ToList on Row Collection with Count more than Max.Int** ([#6678](https://github.com/dotnet/machinelearning/pull/6678)) - Thanks @asmirnov82!
 - **Fix the behavior of column SetName method** ([#6676](https://github.com/dotnet/machinelearning/pull/6676)) - Thanks @asmirnov82!
@@ -107,15 +105,12 @@
 - **Remove MSIL Check for TorchSharp** ([#6658](https://github.com/dotnet/machinelearning/pull/6658)) - Removes the MSIL check for TorchSharp while we figure out how we want to correctly handle this.
 - **Change code coverage build pool** ([#6647](https://github.com/dotnet/machinelearning/pull/6647)) - Changed codecoverage build pool so the builds are faster and more stable.
 - **Update AutoMLExperimentTests.cs to fix timeout error** ([#6638](https://github.com/dotnet/machinelearning/pull/6638))
-- **Update FabricBot config** ([#6619](https://github.com/dotnet/machinelearning/pull/6619))
-- **Libraries area pod updates March 2023** ([#6607](https://github.com/dotnet/machinelearning/pull/6607))
+- **update interactive kernel version** ([#6836](https://github.com/dotnet/machinelearning/pull/6836))
+- **Update dependencies** ([#6837](https://github.com/dotnet/machinelearning/pull/6837))
 - **Update dependencies from dotnet/arcade** ([#6566 & #6518 & #6451 & #6439](https://github.com/dotnet/machinelearning/pull/6566))
 - **Mac python fix** ([#6549](https://github.com/dotnet/machinelearning/pull/6549))
 - **Moving onedal nuget download from onedal to native where its needed for building** ([#6527](https://github.com/dotnet/machinelearning/pull/6527))
 - **New os image for official builds** ([#6467](https://github.com/dotnet/machinelearning/pull/6467))
-- **FabricBot: Do not add needs-further-triage to issues still marked as untriaged** ([#6722](https://github.com/dotnet/machinelearning/pull/6722))
-- **FabricBot: Remove area pod project board automation** ([#6881](https://github.com/dotnet/machinelearning/pull/6881))
-- **Removed codecov token** ([#6811](https://github.com/dotnet/machinelearning/pull/6811))
 - **Removed deprecated yosemite brew** ([#6805](https://github.com/dotnet/machinelearning/pull/6805))
 - **Run tests that requires more than 2 Gb of memory only on 64-bit env** ([#6758](https://github.com/dotnet/machinelearning/pull/6758)) - Thanks @asmirnov82!
 - **Reduce coupling of Data.Analysis.Tests project** ([#6759](https://github.com/dotnet/machinelearning/pull/6759)) - Thanks @asmirnov82!
