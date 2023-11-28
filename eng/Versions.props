@@ -61,7 +61,9 @@
     <SharpZipLibVersion>1.4.0</SharpZipLibVersion>
     <TensorflowDotNETVersion>0.20.1</TensorflowDotNETVersion>
     <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
-    <TensorFlowVersion>2.3.1</TensorFlowVersion>
+    <TensorFlowVersion>2.16.0</TensorFlowVersion>
+    <TensorFlowWindowsGPUVersion>2.10.3</TensorFlowWindowsGPUVersion>
+    <TensorFlowLinuxGPUVersion>2.11.1</TensorFlowLinuxGPUVersion>
     <TorchSharpVersion>0.99.5</TorchSharpVersion>
     <LibTorchVersion>1.13.0.1</LibTorchVersion>
     <!-- Build/infrastructure Dependencies -->

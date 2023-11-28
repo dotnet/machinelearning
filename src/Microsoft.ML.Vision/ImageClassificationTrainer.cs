@@ -761,10 +761,26 @@ namespace Microsoft.ML.Vision
             return (jpegData, resizedImage);
         }
 
+        private static ulong VarintLength(ulong v)
+        {
+            ulong len = 1;
+            while (v >= 128)
+            {
+                v >>= 7;
+                len++;
+            }
+            return len;
+        }
+
+        private static ulong TF_StringEncodedSize(ulong length)
+        {
+            return VarintLength(length) + length;
+        }
+
         private static Tensor EncodeByteAsString(VBuffer<byte> buffer)
         {
             int length = buffer.Length;
-            var size = c_api.TF_StringEncodedSize((ulong)length);
+            var size = TF_StringEncodedSize((ulong)length);
             var handle = c_api.TF_AllocateTensor(TF_DataType.TF_STRING, Array.Empty<long>(), 0, ((ulong)size + 8));
 
             IntPtr tensor = c_api.TF_TensorData(handle);
