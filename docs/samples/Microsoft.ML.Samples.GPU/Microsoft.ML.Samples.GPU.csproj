@@ -38,6 +38,10 @@
 
   </ItemGroup>
 
+  <Task BeforeTargets="Build" Name="FileRestitch" Condition=" '$(OS)' == 'Unix' ">
+    <Mkdir Directories="$(ObjDir)" />
+  </Task>
+
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
