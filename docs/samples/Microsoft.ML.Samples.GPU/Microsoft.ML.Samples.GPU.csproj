@@ -73,5 +73,6 @@
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <MakeDir Directories="obj" />
+    <CreateFile FileName="obj/tensorflow_redist_build_log.txt" />
   </Target>
 </Project>
