@@ -772,7 +772,7 @@ namespace Microsoft.ML.Vision
             return len;
         }
 
-        private static ulong TF_StringEncodedSize(ulong length)
+        private static ulong TfStringEncodedSize(ulong length)
         {
             return VarintLength(length) + length;
         }
@@ -780,7 +780,7 @@ namespace Microsoft.ML.Vision
         private static Tensor EncodeByteAsString(VBuffer<byte> buffer)
         {
             int length = buffer.Length;
-            var size = TF_StringEncodedSize((ulong)length);
+            var size = TfStringEncodedSize((ulong)length);
             var handle = c_api.TF_AllocateTensor(TF_DataType.TF_STRING, Array.Empty<long>(), 0, ((ulong)size + 8));
 
             IntPtr tensor = c_api.TF_TensorData(handle);
