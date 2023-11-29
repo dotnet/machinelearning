@@ -72,6 +72,6 @@
     </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <MakeDir Directories="$(ObjDir)" />
+    <MakeDir Directories="obj" />
   </Target>
 </Project>
