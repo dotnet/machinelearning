@@ -71,7 +71,7 @@
       <Folder Include="Dynamic\" />
     </ItemGroup>
 
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+  <Target Name="MissingFile" BeforeTargets="Build">
     <PropertyGroup>
       <EmptyContent />
     </PropertyGroup>
