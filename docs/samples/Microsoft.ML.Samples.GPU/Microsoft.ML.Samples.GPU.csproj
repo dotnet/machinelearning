@@ -72,7 +72,15 @@
     </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <PropertyGroup>
+      <EmptyContent />
+    </PropertyGroup>
+
     <MakeDir Directories="obj" />
-    <CreateFile FileName="obj/tensorflow_redist_build_log.txt" />
+    <WriteLinesToFile
+            File="obj/tensorflow_redist_build_log.txt"
+            Lines="@(EmptyContent)"
+            Overwrite="true"
+            Encoding="Unicode"/>
   </Target>
 </Project>
