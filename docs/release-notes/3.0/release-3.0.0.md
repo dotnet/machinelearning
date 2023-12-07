@@ -1,7 +1,7 @@
 # [ML.NET](http://dot.net/ml) 3.0.0
 
 ## **New Features**
-- **Add the ability to use Object Detection using TorchSharp** ([#6605](https://github.com/dotnet/machinelearning/pull/6605)) - We have added a new deep learning model back by TorchSharp that lets you fine tune your own Object Detection model!
+- **Add the ability to use Object Detection using TorchSharp** ([#6605](https://github.com/dotnet/machinelearning/pull/6605)) - We have added a new deep learning model backed by TorchSharp that lets you fine tune your own Object Detection model!
 - **Add SamplingKeyColumnName to AutoMLExperiment API** ([#6649](https://github.com/dotnet/machinelearning/pull/6649)) - You can now set the SamplingKeyColumnName when you are using AutoML. Thanks @torronen!
 - **Add Object Detection to AutoML Sweeper** ([#6633](https://github.com/dotnet/machinelearning/pull/6633)) - Added Object Detection to the AutoML Sweeper so now they can be used together.
 - **Add String Vector support to DataFrame** ([#6628](https://github.com/dotnet/machinelearning/pull/6628)) - Adds support for String Vectors in DataFrame. This also allows for Better IDataView <-> DataFrame conversions.
