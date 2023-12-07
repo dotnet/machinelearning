@@ -102,11 +102,25 @@ namespace Microsoft.Data.Analysis
                     }
                     break;
                 case ArrowTypeId.Date64:
-                    Date64Array arrowDate64Array = (Date64Array)arrowArray;
-                    dataFrameColumn = new DateTimeDataFrameColumn(fieldName, arrowDate64Array.Data.Length);
-                    for (int i = 0; i < arrowDate64Array.Data.Length; i++)
                     {
-                        dataFrameColumn[i] = arrowDate64Array.GetDateTime(i);
+                        Date64Array arrowDate64Array = (Date64Array)arrowArray;
+                        var dataTimeDataFrameColumn = new DateTimeDataFrameColumn(fieldName, arrowDate64Array.Data.Length);
+                        for (int i = 0; i < arrowDate64Array.Data.Length; i++)
+                        {
+                            dataTimeDataFrameColumn[i] = arrowDate64Array.GetDateTime(i);
+                        }
+                        dataFrameColumn = dataTimeDataFrameColumn;
+                    }
+                    break;
+                case ArrowTypeId.Timestamp:
+                    {
+                        TimestampArray arrowTimeStampArray = (TimestampArray)arrowArray;
+                        var dataTimeDataFrameColumn = new DateTimeDataFrameColumn(fieldName, arrowTimeStampArray.Data.Length);
+                        for (int i = 0; i < arrowTimeStampArray.Data.Length; i++)
+                        {
+                            dataTimeDataFrameColumn[i] = arrowTimeStampArray.GetTimestamp(i)?.DateTime;
+                        }
+                        dataFrameColumn = dataTimeDataFrameColumn;
                     }
                     break;
                 case ArrowTypeId.Decimal128:
@@ -122,7 +136,7 @@ namespace Microsoft.Data.Analysis
                 case ArrowTypeId.Null:
                 case ArrowTypeId.Time32:
                 case ArrowTypeId.Time64:
-                case ArrowTypeId.Timestamp:
+
                 default:
                     throw new NotImplementedException($"{fieldType.Name}");
             }
