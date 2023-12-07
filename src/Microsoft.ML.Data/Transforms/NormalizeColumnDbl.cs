@@ -451,11 +451,11 @@ namespace Microsoft.ML.Transforms
         {
             get { return _m2.Select((m2, i) => m2 / _cnz[i]).ToArray(); }
         }
+
         public Double[] SampleVariance
         {
             get { return _m2.Select((m2, i) => m2 / Math.Max(0, _cnz[i] - 1)).ToArray(); }
         }
-
 
         public Double[] M2
         {
