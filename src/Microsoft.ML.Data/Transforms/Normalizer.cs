@@ -91,6 +91,7 @@ namespace Microsoft.ML.Transforms
             public const bool CenterData = true;
             public const uint QuantileMin = 25;
             public const uint QuantileMax = 75;
+            public const bool UseSampleVariance = false;
         }
 
         [BestFriend]
@@ -191,12 +192,14 @@ namespace Microsoft.ML.Transforms
         internal sealed class MeanVarianceColumnOptions : ControlZeroColumnOptionsBase
         {
             public readonly bool UseCdf;
+            public readonly bool UseSampleVariance;
 
             public MeanVarianceColumnOptions(string outputColumnName, string inputColumnName = null,
-                long maximumExampleCount = Defaults.MaximumExampleCount, bool fixZero = Defaults.EnsureZeroUntouched, bool useCdf = Defaults.MeanVarCdf)
+                long maximumExampleCount = Defaults.MaximumExampleCount, bool fixZero = Defaults.EnsureZeroUntouched, bool useCdf = Defaults.MeanVarCdf, bool useSampleVariance = Defaults.UseSampleVariance)
                 : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, fixZero)
             {
                 UseCdf = useCdf;
+                UseSampleVariance = useSampleVariance;
             }
 
             internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
@@ -207,12 +210,14 @@ namespace Microsoft.ML.Transforms
         internal sealed class LogMeanVarianceColumnOptions : ControlZeroColumnOptionsBase
         {
             public readonly bool UseCdf;
+            public readonly bool UseSampleVariance;
 
             public LogMeanVarianceColumnOptions(string outputColumnName, string inputColumnName = null,
-                long maximumExampleCount = Defaults.MaximumExampleCount, bool useCdf = Defaults.LogMeanVarCdf, bool fixZero = Defaults.EnsureZeroUntouched)
+                long maximumExampleCount = Defaults.MaximumExampleCount, bool useCdf = Defaults.LogMeanVarCdf, bool fixZero = Defaults.EnsureZeroUntouched, bool useSampleVariance = Defaults.UseSampleVariance)
                 : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, fixZero)
             {
                 UseCdf = useCdf;
+                UseSampleVariance = useSampleVariance;
             }
 
             internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
