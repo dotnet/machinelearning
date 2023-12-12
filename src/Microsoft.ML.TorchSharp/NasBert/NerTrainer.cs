@@ -69,6 +69,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 EncoderOutputDim = 384;
                 EmbeddingDim = 128;
                 Arches = new int[] { 15, 16, 14, 0, 0, 0, 15, 16, 14, 0, 0, 0, 17, 14, 15, 0, 0, 0, 17, 14, 15, 0, 0, 0 };
+                TaskType = BertTaskType.NameEntityRecognition;
             }
         }
         internal NerTrainer(IHostEnvironment env, NerOptions options) : base(env, options)
