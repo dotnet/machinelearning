@@ -3,10 +3,12 @@
     "dotnet": "9.0.100-alpha.1.23615.4",
     "runtimes": {
       "dotnet/x64": [
-        "$(DotNetRuntime60Version)"
+        "$(DotNetRuntime60Version)",
+        "$(DotNetRuntime80Version)"
       ],
       "dotnet/x86": [
-        "$(DotNetRuntime60Version)"
+        "$(DotNetRuntime60Version)",
+        "$(DotNetRuntime80Version)"
       ]
     }
   },
