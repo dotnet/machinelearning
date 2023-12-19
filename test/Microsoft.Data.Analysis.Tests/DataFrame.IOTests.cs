@@ -14,6 +14,8 @@ using System.Data.SQLite;
 using System.Data.SQLite.EF6;
 using Xunit;
 using Microsoft.ML.TestFramework.Attributes;
+using System.Threading;
+using Microsoft.ML.Data;
 
 namespace Microsoft.Data.Analysis.Tests
 {
@@ -102,7 +104,7 @@ namespace Microsoft.Data.Analysis.Tests
                 }
                 else if (dataType == typeof(DateTime))
                 {
-                    Assert.IsType<PrimitiveDataFrameColumn<DateTime>>(column);
+                    Assert.IsType<DateTimeDataFrameColumn>(column);
                 }
                 else
                 {
@@ -155,6 +157,82 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void TestReadCsvWithHeaderCultureInfoAndSeparator()
+        {
+            string data = @$"vendor_id;rate_code;passenger_count;trip_time_in_secs;trip_distance;payment_type;fare_amount
+CMT;1;1;1271;3,8;CRD;17,5
+CMT;1;1;474;1,5;CRD;8
+CMT;1;1;637;1,4;CRD;8,5
+CMT;1;1;181;0,6;CSH;4,5";
+
+            void RegularTest(DataFrame df)
+            {
+                Assert.Equal(4, df.Rows.Count);
+                Assert.Equal(7, df.Columns.Count);
+
+                Assert.Equal(3.8f, (float)df["trip_distance"][0]);
+                Assert.Equal(17.5f, (float)df["fare_amount"][0]);
+
+                Assert.Equal(1.5f, (float)df["trip_distance"][1]);
+                Assert.Equal(8f, (float)df["fare_amount"][1]);
+
+                Assert.Equal(1.4f, (float)df["trip_distance"][2]);
+                Assert.Equal(8.5f, (float)df["fare_amount"][2]);
+
+                VerifyColumnTypes(df);
+            }
+
+            // de-DE has ',' as decimal separator
+            var cultureInfo = new CultureInfo("de-DE");
+            DataFrame df = DataFrame.LoadCsv(GetStream(data), separator: ';', cultureInfo: cultureInfo);
+
+            RegularTest(df);
+
+            DataFrame csvDf = DataFrame.LoadCsvFromString(data, separator: ';', cultureInfo: cultureInfo);
+            RegularTest(csvDf);
+        }
+
+        [Fact]
+        public void TestReadCsvWithHeaderAndDuplicatedColumns_WithoutRenaming()
+        {
+
+            string data = @$"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,payment_type,fare_amount
+CMT,1,1,1271,3.8,CRD,CRD,17.5
+CMT,1,1,474,1.5,CRD,CRD,8
+CMT,1,1,637,1.4,CRD,CRD,8.5
+CMT,1,1,181,0.6,CSH,CSH,4.5";
+
+            Assert.Throws<System.ArgumentException>(() => DataFrame.LoadCsv(GetStream(data)));
+        }
+
+        [Fact]
+        public void TestReadCsvWithHeaderAndDuplicatedColumns_WithDuplicateColumnRenaming()
+        {
+
+            string data = @$"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,payment_type,payment_type,fare_amount
+CMT,1,1,1271,3.8,CRD,CRD_1,Test,17.5
+CMT,1,1,474,1.5,CRD,CRD,Test,8
+CMT,1,1,637,1.4,CRD,CRD,Test,8.5
+CMT,1,1,181,0.6,CSH,CSH,Test,4.5";
+
+            DataFrame df = DataFrame.LoadCsv(GetStream(data), renameDuplicatedColumns: true);
+
+            Assert.Equal(4, df.Rows.Count);
+            Assert.Equal(9, df.Columns.Count);
+            Assert.Equal("CMT", df.Columns["vendor_id"][3]);
+
+            Assert.Equal("payment_type", df.Columns[5].Name);
+            Assert.Equal("payment_type.1", df.Columns[6].Name);
+            Assert.Equal("payment_type.2", df.Columns[7].Name);
+
+            Assert.Equal("CRD", df.Columns["payment_type"][0]);
+            Assert.Equal("CRD_1", df.Columns["payment_type.1"][0]);
+            Assert.Equal("Test", df.Columns["payment_type.2"][0]);
+
+            VerifyColumnTypes(df);
+        }
+
+        [Fact]
         public void TestReadCsvSplitAcrossMultipleLines()
         {
             string CMT = @"""C
@@ -196,7 +274,7 @@ MT";
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void TestReadCsvNoHeader(bool useQuotes)
+        public void TestLoadCsvNoHeader(bool useQuotes)
         {
             string CMT = useQuotes ? @"""C,MT""" : "CMT";
             string verifyCMT = useQuotes ? "C,MT" : "CMT";
@@ -272,7 +350,7 @@ MT";
         [InlineData(false, 0)]
         [InlineData(true, 10)]
         [InlineData(false, 10)]
-        public void TestReadCsvWithTypesAndGuessRows(bool header, int guessRows)
+        public void TestLoadCsvWithTypesAndGuessRows(bool header, int guessRows)
         {
             /* Tests this matrix
              * 
@@ -395,7 +473,7 @@ CMT,1,1,181,0.6,CSH,4.5";
         }
 
         [Fact]
-        public void TestReadCsvWithTypesDateTime()
+        public void TestLoadCsvWithTypesDateTime()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount,date
 CMT,1,1,1271,3.8,CRD,17.5,1-june-2020
@@ -472,7 +550,7 @@ CMT,1,1,181,0.6,CSH,4.5,4-june-2020";
         }
 
         [Fact]
-        public void TestReadCsvWithPipeSeparator()
+        public void TestLoadCsvWithPipeSeparator()
         {
             string data = @"vendor_id|rate_code|passenger_count|trip_time_in_secs|trip_distance|payment_type|fare_amount
 CMT|1|1|1271|3.8|CRD|17.5
@@ -511,7 +589,7 @@ CMT|1|1|181|0.6|CSH|4.5";
         }
 
         [Fact]
-        public void TestReadCsvWithSemicolonSeparator()
+        public void TestLoadCsvWithSemicolonSeparator()
         {
             string data = @"vendor_id;rate_code;passenger_count;trip_time_in_secs;trip_distance;payment_type;fare_amount
 CMT;1;1;1271;3.8;CRD;17.5
@@ -550,7 +628,7 @@ CMT;1;1;181;0.6;CSH;4.5";
         }
 
         [Fact]
-        public void TestReadCsvWithExtraColumnInHeader()
+        public void TestLoadCsvWithExtraColumnInHeader()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount,extra
 CMT,1,1,1271,3.8,CRD,17.5
@@ -579,7 +657,7 @@ CMT,1,1,181,0.6,CSH,4.5";
         }
 
         [Fact]
-        public void TestReadCsvWithMultipleEmptyColumnNameInHeaderWithoutGivenColumn()
+        public void TestLoadCsvWithMultipleEmptyColumnNameInHeaderWithoutGivenColumn()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,,,,
 CMT,1,1,1271,3.8,CRD,17.5,0
@@ -594,7 +672,7 @@ CMT,1,1,181,0.6,CSH,4.5,0";
         }
 
         [Fact]
-        public void TestReadCsvWithMultipleEmptyColumnNameInHeaderWithGivenColumn()
+        public void TestLoadCsvWithMultipleEmptyColumnNameInHeaderWithGivenColumn()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,,,,
 CMT,1,1,1271,3.8,CRD,17.5,0
@@ -623,7 +701,20 @@ CMT,1,1,181,0.6,CSH,4.5,0";
         }
 
         [Fact]
-        public void TestReadCsvWithExtraColumnInRow()
+        public void TestLoadCsvWithAddIndexColumn()
+        {
+            var dataFrame = DataFrame.LoadCsvFromString("11\r\n22\r\n33", header: false, addIndexColumn: true);
+
+            Assert.Equal(2, dataFrame.Columns.Count);
+            Assert.Equal("IndexColumn", dataFrame.Columns[0].Name);
+            Assert.Equal(3, dataFrame.Columns[0].Length);
+
+            for (long i = 0; i < dataFrame.Columns[0].Length; i++)
+                Assert.Equal(i, dataFrame.Columns[0][i]);
+        }
+
+        [Fact]
+        public void TestLoadCsvWithExtraColumnInRow()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount
 CMT,1,1,1271,3.8,CRD,17.5,0
@@ -636,7 +727,7 @@ CMT,1,1,181,0.6,CSH,4.5,0";
         }
 
         [Fact]
-        public void TestReadCsvWithLessColumnsInRow()
+        public void TestLoadCsvWithLessColumnsInRow()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount
 CMT,1,1,1271,3.8,CRD
@@ -665,7 +756,7 @@ CMT,1,1,181,0.6,CSH";
         }
 
         [Fact]
-        public void TestReadCsvWithAllNulls()
+        public void TestLoadCsvWithAllNulls()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs
 null,null,null,null
@@ -708,7 +799,7 @@ null,null,null,null";
         }
 
         [Fact]
-        public void TestReadCsvWithNullsAndDataTypes()
+        public void TestLoadCsvWithNullsAndDataTypes()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs
 null,1,1,1271
@@ -770,7 +861,7 @@ CMT,1,1,null";
         }
 
         [Fact]
-        public void TestReadCsvWithNulls()
+        public void TestLoadCsvWithNulls()
         {
             string data = @"vendor_id,rate_code,passenger_count,trip_time_in_secs
 null,1,1,1271
@@ -832,7 +923,36 @@ CMT,1,1,null";
         }
 
         [Fact]
-        public void TestWriteCsvWithHeader()
+        public void TestSaveCsvVBufferColumn()
+        {
+            var vBuffers = new[]
+            {
+                new VBuffer<int> (3, new int[] { 1, 2, 3 }),
+                new VBuffer<int> (3, new int[] { 2, 3, 4 }),
+                new VBuffer<int> (3, new int[] { 3, 4, 5 }),
+            };
+
+            var vBufferColumn = new VBufferDataFrameColumn<int>("VBuffer", vBuffers);
+            DataFrame dataFrame = new DataFrame(vBufferColumn);
+
+            using MemoryStream csvStream = new MemoryStream();
+
+            DataFrame.SaveCsv(dataFrame, csvStream);
+
+            csvStream.Seek(0, SeekOrigin.Begin);
+            DataFrame readIn = DataFrame.LoadCsv(csvStream);
+
+            Assert.Equal(dataFrame.Rows.Count, readIn.Rows.Count);
+            Assert.Equal(dataFrame.Columns.Count, readIn.Columns.Count);
+
+            Assert.Equal(typeof(string), readIn.Columns[0].DataType);
+            Assert.Equal("(1 2 3)", readIn[0, 0]);
+            Assert.Equal("(2 3 4)", readIn[1, 0]);
+            Assert.Equal("(3 4 5)", readIn[2, 0]);
+        }
+
+        [Fact]
+        public void TestSaveCsvWithHeader()
         {
             using MemoryStream csvStream = new MemoryStream();
             DataFrame dataFrame = DataFrameTests.MakeDataFrameWithAllColumnTypes(10, true);
@@ -1049,7 +1169,7 @@ CMT,";
             Assert.Equal(vals, resVals);
         }
 
-        [X86X64FactAttribute("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
+        [X86X64Fact("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
         public async void TestSQLite()
         {
             var (columns, vals) = GetTestData();

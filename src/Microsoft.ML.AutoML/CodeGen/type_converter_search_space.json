@@ -9,6 +9,11 @@
     {
       "name": "InputColumnNames",
       "type": "strings"
+    },
+    {
+      "name": "TargetType",
+      "type": "dataKind",
+      "default": "DataKind.Single"
     }
   ]
 }

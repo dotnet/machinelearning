@@ -2,32 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.ML.TorchSharp.Utils;
 using TorchSharp;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Models
 {
-    internal class NasBertModel : BaseModel
+    internal abstract class NasBertModel : BaseModel
     {
-        private readonly PredictionHead _predictionHead;
-
         public override TransformerEncoder GetEncoder() => Encoder;
 
-        protected readonly TransformerEncoder Encoder;
+        protected readonly NasBertEncoder Encoder;
 
-        public NasBertModel(NasBertTrainer.NasBertOptions options, int padIndex, int symbolsCount, int numClasses)
+        public NasBertModel(NasBertTrainer.NasBertOptions options, int padIndex, int symbolsCount)
             : base(options)
         {
-            _predictionHead = new PredictionHead(
-                inputDim: Options.EncoderOutputDim,
-                numClasses: numClasses,
-                dropoutRate: Options.PoolerDropout);
-
-            Encoder = new TransformerEncoder(
+            Encoder = new NasBertEncoder(
                 paddingIdx: padIndex,
                 vocabSize: symbolsCount,
                 dropout: Options.Dropout,
@@ -43,18 +33,6 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
                 numEncoderLayers: Options.EncoderLayers,
                 applyBertInit: true,
                 freezeTransfer: Options.FreezeTransfer);
-
-            Initialize();
-            RegisterComponents();
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]
-        public override torch.Tensor forward(torch.Tensor srcTokens, torch.Tensor mask = null)
-        {
-            using var disposeScope = torch.NewDisposeScope();
-            var x = ExtractFeatures(srcTokens);
-            x = _predictionHead.forward(x);
-            return x.MoveToOuterDisposeScope();
         }
 
         protected void Initialize()
@@ -70,7 +48,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
         /// </summary>
         protected torch.Tensor ExtractFeatures(torch.Tensor srcTokens)
         {
-            return Encoder.forward(srcTokens, null, null);
+            return Encoder.call(srcTokens, null, null);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_GeneralName:This name should be PascalCased", Justification = "Need to match TorchSharp.")]

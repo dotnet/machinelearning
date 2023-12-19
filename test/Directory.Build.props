@@ -2,7 +2,7 @@
   <Import Project="..\Directory.Build.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net462</TargetFrameworks>
+    <TargetFrameworks>net6.0;net462;net8.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">net6.0</TargetFrameworks>
     <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('OSX')) AND '$(TargetArchitecture)' == 'arm64'">net6.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(TestTargetFramework)' != ''">$(TestTargetFramework)</TargetFrameworks>

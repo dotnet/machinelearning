@@ -60,7 +60,17 @@ namespace Microsoft.ML.TorchSharp.NasBert
     ///
     public class TextClassificationTrainer : NasBertTrainer<UInt32, long>
     {
-        internal TextClassificationTrainer(IHostEnvironment env, NasBertOptions options) : base(env, options)
+        public class TextClassificationOptions : NasBertTrainer.NasBertOptions
+        {
+            public TextClassificationOptions()
+            {
+                TaskType = BertTaskType.TextClassification;
+                BatchSize = 32;
+                MaxEpoch = 10;
+            }
+        }
+
+        internal TextClassificationTrainer(IHostEnvironment env, TextClassificationOptions options) : base(env, options)
         {
         }
 
@@ -74,7 +84,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             int maxEpochs = 10,
             IDataView validationSet = null,
             BertArchitecture architecture = BertArchitecture.Roberta) :
-            this(env, new NasBertOptions
+            this(env, new TextClassificationOptions
             {
                 PredictionColumnName = predictionColumnName,
                 ScoreColumnName = scoreColumnName,
@@ -101,7 +111,9 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
         private protected class Trainer : NasBertTrainerBase
         {
-            public Trainer(TorchSharpBaseTrainer<uint, long> parent, IChannel ch, IDataView input) : base(parent, ch, input)
+            private const string ModelUrlString = "models/NasBert2000000.tsm";
+
+            public Trainer(TorchSharpBaseTrainer<uint, long> parent, IChannel ch, IDataView input) : base(parent, ch, input, ModelUrlString)
             {
             }
 
@@ -253,7 +265,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             var tokenizer = TokenizerExtensions.GetInstance(ch);
             EnglishRoberta tokenizerModel = tokenizer.RobertaModel();
 
-            var model = new NasBertModel(options, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, options.NumberOfClasses);
+            var model = new ModelForPrediction(options, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, options.NumberOfClasses);
             if (!ctx.TryLoadBinaryStream("TSModel", r => model.load(r)))
                 throw env.ExceptDecode();
 

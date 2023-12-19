@@ -20,11 +20,11 @@ namespace Microsoft.ML.PerformanceTests
         {
             Add(DefaultConfig.Instance); // this config contains all of the basic settings (exporters, columns etc)
 
-            Add(GetJobDefinition() // job defines how many times given benchmark should be executed
+            AddJob(GetJobDefinition()// job defines how many times given benchmark should be executed
                 .WithCustomBuildConfiguration(GetBuildConfigurationName())
-                .With(CreateToolchain())); // toolchain is responsible for generating, building and running dedicated executable per benchmark
+                .WithToolchain(CreateToolchain())); // toolchain is responsible for generating, building and running dedicated executable per benchmark
 
-            Add(new ExtraMetricColumn()); // an extra column that can display additional metric reported by the benchmarks
+            AddColumn(new ExtraMetricColumn()); // an extra column that can display additional metric reported by the benchmarks
         }
 
         protected virtual Job GetJobDefinition()

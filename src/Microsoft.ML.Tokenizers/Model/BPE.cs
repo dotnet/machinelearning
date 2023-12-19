@@ -196,6 +196,14 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
+        /// Map the tokenized Id to the token.
+        /// </summary>
+        /// <param name="id">The Id to map to the token.</param>
+        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
+        /// <returns>The mapped token of the Id.</returns>
+        public override string? IdToString(int id, bool skipSpecialTokens = false) => throw new NotImplementedException();
+
+        /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
         public override IReadOnlyDictionary<string, int> GetVocab() => Vocab;
@@ -441,6 +449,11 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return tokens;
+        }
+
+        public override bool IsValidChar(char ch)
+        {
+            throw new NotImplementedException();
         }
 
         internal static readonly List<Token> EmptyTokensList = new();

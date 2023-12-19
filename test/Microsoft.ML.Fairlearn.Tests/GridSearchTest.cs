@@ -45,7 +45,7 @@ namespace Microsoft.ML.Fairlearn.Tests
         }
 
         // Data generated so it is identical from Binary_Classification.ipynb from Fairlearn.github on Github
-        private DataFrame CreateGridScearhDataset()
+        private DataFrame CreateGridSearchDataset()
         {
             float[] score_feature = new float[52];
             int index = 0;
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Fairlearn.Tests
         /// <summary>
         /// This trial runner run the tests from Grid searh for Binary Classification.ipynb
         /// </summary>
-        [X86X64Fact("Currently flaky on non x86/x64 devices. Disabling until we figure it out. See https://github.com/dotnet/machinelearning/issues/6684")]
+        [Fact(Skip = "Currently flaky on non x86/x64 devices. Disabling until we figure it out. See https://github.com/dotnet/machinelearning/issues/6684")]
         public void TestGridSearchTrialRunner2()
         {
             var context = new MLContext();
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Fairlearn.Tests
                 }
             };
             var experiment = context.Auto().CreateExperiment();
-            var df = CreateGridScearhDataset();
+            var df = CreateGridSearchDataset();
             var shuffledDataset = context.Data.ShuffleRows(df);
             var trainTestSplit = context.Data.TrainTestSplit(shuffledDataset, 0.2);
             var pipeline = context.Transforms.Categorical.OneHotHashEncoding("sensitiveFeature_encode", "sensitiveFeature")

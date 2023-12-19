@@ -1,0 +1,4 @@
+WeightedEnsemble
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/bp	/nm	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.995914	0.973932	0.955573	0.971819	0.984028	0.975162	0.129302	0.861313	0.963627	0.992159	Microsoft.ML.Runtime.ComponentFactoryUtils+SimpleComponentFactory`1[Microsoft.ML.Trainers.LinearSvmTrainer]	20	WeightedEnsemble	%Data%		%Output%	99	0	0	maml.exe CV tr=WeightedEnsemble{nm=20  tp=-} threads=- dout=%Output% loader=Text{col=Label:BL:0 col=Features:R4:1-9} data=%Data% seed=1	/bp:Microsoft.ML.Runtime.ComponentFactoryUtils+SimpleComponentFactory`1[Microsoft.ML.Trainers.LinearSvmTrainer];/nm:20	
+

@@ -533,6 +533,13 @@
       "searchOption": "object_detection_option"
     },
     {
+      "functionName": "QuestionAnswering",
+      "estimatorTypes": [ "MultiClassification" ],
+      "nugetDependencies": [ "Microsoft.ML", "Microsoft.ML.TorchSharp" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers", "Microsoft.ML.TorchSharp" ],
+      "searchOption": "question_answering_option"
+    },
+    {
       "functionName": "ForecastBySsa",
       "estimatorTypes": [ "Forecasting" ],
       "arguments": [

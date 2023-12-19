@@ -54,6 +54,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="ColumnArithmetic.OperationEnums.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ColumnArithmetic.OperationEnums.cs</LastGenOutput>
+    </None>
+    <None Update="Computations\Arithmetic.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Arithmetic.cs</LastGenOutput>
+    </None>
     <None Update="Converters.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Converters.cs</LastGenOutput>
@@ -111,11 +119,7 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PrimitiveDataFrameColumn.Computations.cs</LastGenOutput>
     </None>
-    <None Update="PrimitiveDataFrameColumn.ReversedBinaryOperations.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveDataFrameColumn.ReversedBinaryOperations.cs</LastGenOutput>
-    </None>
-    <None Update="PrimitiveDataFrameColumnArithmetic.tt">
+    <None Update="Computations\Arithmetics.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PrimitiveColumnArithmetic.cs</LastGenOutput>
     </None>
@@ -123,17 +127,9 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PrimitiveDataFrameColumnComputations.cs</LastGenOutput>
     </None>
-    <None Update="PrimitiveColumnContainer.BinaryOperations.tt">
+    <None Update="Computations\Arithmetics.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveColumnContainer.BinaryOperations.cs</LastGenOutput>
-    </None>
-    <None Update="PrimitiveDataFrameColumnArithmetic.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveDataFrameColumnArithmetic.cs</LastGenOutput>
-    </None>
-    <None Update="PrimitiveColumnContainer.BinaryOperations.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveColumnContainer.BinaryOperations.cs</LastGenOutput>
+      <LastGenOutput>Arithmetics.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -142,10 +138,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Computations\Arithmetic.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Arithmetic.tt</DependentUpon>
+    </Compile>
     <Compile Update="Converters.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Converters.tt</DependentUpon>
+    </Compile>
+    <Compile Update="ColumnArithmetic.OperationEnums.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ColumnArithmetic.OperationEnums.tt</DependentUpon>
     </Compile>
     <Compile Update="PrimitiveDataFrameColumn.BinaryOperationImplementations.Exploded.cs">
       <DesignTime>True</DesignTime>
@@ -202,12 +208,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>PrimitiveDataFrameColumn.Computations.tt</DependentUpon>
     </Compile>
-    <Compile Update="PrimitiveDataFrameColumn.ReversedBinaryOperations.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveDataFrameColumn.ReversedBinaryOperations.tt</DependentUpon>
-    </Compile>
-    <Compile Update="PrimitiveDataFrameColumnArithmetic.cs">
+    <Compile Update="Computations\Arithmetics.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>PrimitiveColumnArithmetic.tt</DependentUpon>
@@ -217,20 +218,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>PrimitiveDataFrameColumnComputations.tt</DependentUpon>
     </Compile>
-    <Compile Update="PrimitiveColumnContainer.BinaryOperations.cs">
+    <Compile Update="Computations\Arithmetics.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveColumnContainer.BinaryOperations.tt</DependentUpon>
-    </Compile>
-    <Compile Update="PrimitiveDataFrameColumnArithmetic.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveDataFrameColumnArithmetic.tt</DependentUpon>
-    </Compile>
-    <Compile Update="PrimitiveColumnContainer.BinaryOperations.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveColumnContainer.BinaryOperations.tt</DependentUpon>
+      <DependentUpon>Arithmetics.tt</DependentUpon>
     </Compile>
     <Compile Update="Strings.Designer.cs">
       <DesignTime>True</DesignTime>

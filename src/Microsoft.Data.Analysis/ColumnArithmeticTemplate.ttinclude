@@ -6,7 +6,7 @@
 <#+
     public class TypeConfiguration
     {
-        public TypeConfiguration(string typeName, string classPrefix = null, string oneLiteral = "1", string zeroLiteral = "0", bool supportsNumeric = true, bool supportsBitwise = true, IEnumerable<string> unsupportedMethods = null)
+        public TypeConfiguration(string typeName, string classPrefix = null, string oneLiteral = "1", string zeroLiteral = "0", bool supportsNumeric = true, bool supportsBitwise = true, IEnumerable<string> unsupportedMethods = null, bool supportsVectorization = false)
         {
             TypeName = typeName;
             ClassPrefix = classPrefix ?? char.ToUpper(typeName[0]) + typeName.Substring(1);
@@ -14,6 +14,7 @@
             ZeroLiteral = zeroLiteral;
             SupportsNumeric = supportsNumeric;
             SupportsBitwise = supportsBitwise;
+            SupportsVectorization = supportsVectorization;
             UnsupportedMethods = new HashSet<string>(unsupportedMethods ?? Enumerable.Empty<string>());
         }
 
@@ -24,14 +25,11 @@
         
         public bool SupportsNumeric { get; }
         public bool SupportsBitwise { get; }
+        public bool SupportsVectorization { get; }
+
         public ISet<string> UnsupportedMethods { get; }
     }
-
-    public string GenerateInPlaceStatement(string trueCondition, string falseCondition)
-    {
-        return $"inPlace ? {trueCondition} : {falseCondition}";
-    }
-
+        
     public string GenerateIfStatementHeader(TypeConfiguration type)
     {
         string keyword = (type == typeConfiguration[0]) ? "if" : "else if";
@@ -139,18 +137,18 @@
     public TypeConfiguration[] typeConfiguration = new []
     {
         new TypeConfiguration("bool", oneLiteral:"true", zeroLiteral:"false", supportsNumeric: false, unsupportedMethods: new[] {"LeftShift", "RightShift"}),
-        new TypeConfiguration("byte", unsupportedMethods: new[] {"All", "Any"}),
-        new TypeConfiguration("char", oneLiteral:"(char)1", zeroLiteral:"(char)0", unsupportedMethods: new[] {"All", "Any"}),
+        new TypeConfiguration("byte", unsupportedMethods: new[] {"All", "Any"}, supportsVectorization: true),
+        new TypeConfiguration("char", oneLiteral:"(char)1", zeroLiteral:"(char)0", unsupportedMethods: new[] {"All", "Any"}, supportsVectorization: true),
         new TypeConfiguration("decimal", supportsBitwise: false, unsupportedMethods: new[] {"All", "Any"}),
-        new TypeConfiguration("double", oneLiteral:"1.0", supportsBitwise: false, unsupportedMethods: new[] {"All", "Any"}),
-        new TypeConfiguration("float", oneLiteral:"1.0f", supportsBitwise: false, unsupportedMethods: new[] {"All", "Any"}),
-        new TypeConfiguration("int", unsupportedMethods: new[] {"All", "Any"}),
-        new TypeConfiguration("long", unsupportedMethods: new[] {"All", "Any"}),
-        new TypeConfiguration("sbyte", classPrefix:"SByte", unsupportedMethods: new[] {"All", "Any"}),
-        new TypeConfiguration("short", unsupportedMethods: new[] {"All", "Any"}),
-        new TypeConfiguration("uint", classPrefix:"UInt", unsupportedMethods: new[] {"UnaryMinus", "All", "Any"}),
-        new TypeConfiguration("ulong", classPrefix:"ULong", unsupportedMethods: new[] {"UnaryMinus", "All", "Any"}),
-        new TypeConfiguration("ushort", classPrefix:"UShort", unsupportedMethods: new[] {"UnaryMinus", "All", "Any"}),
+        new TypeConfiguration("double", oneLiteral:"1.0", supportsBitwise: false, unsupportedMethods: new[] {"All", "Any"}, supportsVectorization: true),
+        new TypeConfiguration("float", oneLiteral:"1.0f", supportsBitwise: false, unsupportedMethods: new[] {"All", "Any"}, supportsVectorization: true),
+        new TypeConfiguration("int", unsupportedMethods: new[] {"All", "Any"}, supportsVectorization: true),
+        new TypeConfiguration("long", unsupportedMethods: new[] {"All", "Any"}, supportsVectorization: true),
+        new TypeConfiguration("sbyte", classPrefix:"SByte", unsupportedMethods: new[] {"All", "Any"}, supportsVectorization: true),
+        new TypeConfiguration("short", unsupportedMethods: new[] {"All", "Any"}, supportsVectorization: true),
+        new TypeConfiguration("uint", classPrefix:"UInt", unsupportedMethods: new[] {"UnaryMinus", "All", "Any"}, supportsVectorization: true),
+        new TypeConfiguration("ulong", classPrefix:"ULong", unsupportedMethods: new[] {"UnaryMinus", "All", "Any"}, supportsVectorization: true),
+        new TypeConfiguration("ushort", classPrefix:"UShort", unsupportedMethods: new[] {"UnaryMinus", "All", "Any"}, supportsVectorization: true),
         new TypeConfiguration("DateTime", supportsBitwise: false, supportsNumeric: false, unsupportedMethods: new[] {"And", "Or", "Xor"})
     };
 
@@ -227,16 +225,16 @@
         new MethodConfiguration("Sum", MethodType.Reduction, "+", isNumeric:true, hasReturnValue:true, supportsRowSubsets: true, methodComments: "Returns the sum of the values at the rowIndices"),
         new MethodConfiguration("Round", MethodType.ElementwiseComputation, "Math.Round", isNumeric:true, methodComments: "Calls Math.Round on each value in a column"),
     };
-
+        
     public MethodConfiguration[] methodConfiguration = new [] 
     {
-        new MethodConfiguration("Add", MethodType.Binary, "+", isNumeric:true, methodComments: "Performs element-wise addition"),
+        new MethodConfiguration("Add", MethodType.Binary, "+", isNumeric:true, methodComments: "Performs element-wise addition", supportsVectorization: true),
         new MethodConfiguration("Add", MethodType.BinaryScalar, "+", isNumeric:true, methodComments: "Performs an element-wise addition on each column"),
-        new MethodConfiguration("Subtract", MethodType.Binary, "-", isNumeric:true, methodComments: "Performs element-wise subtraction"),
+        new MethodConfiguration("Subtract", MethodType.Binary, "-", isNumeric:true, methodComments: "Performs element-wise subtraction", supportsVectorization: true),
         new MethodConfiguration("Subtract", MethodType.BinaryScalar, "-", isNumeric:true, methodComments: "Performs an element-wise subtraction on each column"),
-        new MethodConfiguration("Multiply", MethodType.Binary, "*", isNumeric:true, methodComments: "Performs element-wise multiplication"),  // element-wise product, not matrix product
+        new MethodConfiguration("Multiply", MethodType.Binary, "*", isNumeric:true, methodComments: "Performs element-wise multiplication", supportsVectorization: true),
         new MethodConfiguration("Multiply", MethodType.BinaryScalar, "*", isNumeric:true, methodComments: "Performs an element-wise multiplication on each column"),
-        new MethodConfiguration("Divide", MethodType.Binary, "/", isNumeric:true, methodComments: "Performs element-wise division"),
+        new MethodConfiguration("Divide", MethodType.Binary, "/", isNumeric:true, methodComments: "Performs element-wise division", supportsVectorization: true),
         new MethodConfiguration("Divide", MethodType.BinaryScalar, "/", isNumeric:true, methodComments: "Performs an element-wise division on each column"),
         new MethodConfiguration("Modulo", MethodType.Binary, "%", isNumeric:true, methodComments: "Performs element-wise modulus"),
         new MethodConfiguration("Modulo", MethodType.BinaryScalar, "%", isNumeric:true, methodComments: "Performs an element-wise modulus operation on each column"),
@@ -265,7 +263,7 @@
 
      public class MethodConfiguration
     {
-        public MethodConfiguration(string methodName, MethodType methodType, string op = null, bool isNumeric = false, bool isBitwise = false, bool hasReturnValue = false, bool supportsRowSubsets = false, string methodComments = null)
+        public MethodConfiguration(string methodName, MethodType methodType, string op = null, bool isNumeric = false, bool isBitwise = false, bool hasReturnValue = false, bool supportsRowSubsets = false, string methodComments = null, bool supportsVectorization = false)
         {
             MethodName = methodName;
             MethodType = methodType;
@@ -275,6 +273,7 @@
             HasReturnValue = hasReturnValue;
             SupportsRowSubsets = supportsRowSubsets;
             MethodComments = methodComments;
+            SupportsVectorization = supportsVectorization;
         }
 
         public string ResultName => "result";
@@ -330,7 +329,7 @@
         public MethodType MethodType { get; }
         public string Operator { get; }
         public string MethodComments { get; }
-        
+        public bool SupportsVectorization { get; }        
         public string GetColumnSpecificMethodComments()
         {
             var str = MethodComments;
@@ -354,13 +353,7 @@
         {
             return GetColumnSpecificMethodComments().Replace(" an", " a reversed");
         }
-
-        public string GetMethodSignature(string columnType, string genericType)
-        {
-            var arguments = GetMethodArguments(columnType, genericType);
-            return $"void {MethodName}({arguments})";
-        }
-
+                
         public string GetInvertedMethodSignatureForBinaryScalarsOps(string columnType, string genericType)
         {
             var arguments = GetInvertedMethodArguments(columnType, genericType);
@@ -406,15 +399,13 @@
                 case MethodType.UnaryInPlace:
                     return $"{dataFrameType}<{genericType}> {Op1Name}";
                 case MethodType.BinaryScalar:
-                    return $"{dataFrameType}<{genericType}> {Op1Name}, {genericType} {Op2Name}";
                 case MethodType.ComparisonScalar:
-                    return $"{dataFrameType}<{genericType}> {Op1Name}, {genericType} {Op2Name}, {dataFrameType}<bool> ret";
+                    return $"{dataFrameType}<{genericType}> {Op1Name}, {genericType} {Op2Name}";
                 case MethodType.BinaryInt:
                     return $"{dataFrameType}<{genericType}> {Op1Name}, int {Op2Name}";
                 case MethodType.Binary:
-                    return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}";
                 case MethodType.Comparison:
-                    return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}, {dataFrameType}<bool> ret";
+                    return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}";
                 case MethodType.Contraction:
                     return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}, int[] leftAxes, int[] rightAxes";
                 case MethodType.ElementwiseComputation:
@@ -432,20 +423,16 @@
                 case MethodType.Unary:
                 case MethodType.UnaryInPlace:
                     throw new ArgumentException();
-                    return $"{dataFrameType}<{genericType}> {Op1Name}";
                 case MethodType.BinaryScalar:
-                    return $"{genericType} {Op2Name}";
                 case MethodType.ComparisonScalar:
-                    return $"{genericType} {Op2Name}, {dataFrameType}<bool> ret";
+                    return $"{genericType} {Op2Name}";
                 case MethodType.BinaryInt:
                     return $"int {Op2Name}";
                 case MethodType.Binary:
-                    return $"{dataFrameType}<{genericType}> {Op2Name}";
                 case MethodType.Comparison:
-                    return $"{dataFrameType}<{genericType}> {Op2Name}, {dataFrameType}<bool> ret";
+                    return $"{dataFrameType}<{genericType}> {Op2Name}";
                 case MethodType.Contraction:
                     throw new ArgumentException();
-                    return $"{dataFrameType}<{genericType}> {Op1Name}, {dataFrameType}<{genericType}> {Op2Name}, int[] leftAxes, int[] rightAxes";
                 default:
                     throw new ArgumentException();
             }

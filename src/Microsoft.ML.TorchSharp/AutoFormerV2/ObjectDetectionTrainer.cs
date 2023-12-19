@@ -17,19 +17,12 @@ using static TorchSharp.torch.optim;
 using static TorchSharp.torch.optim.lr_scheduler;
 using Microsoft.ML.TorchSharp.Utils;
 using Microsoft.ML;
-using Microsoft.ML.TorchSharp.NasBert;
 using System.IO;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.TorchSharp.Loss;
 using Microsoft.ML.Transforms.Image;
 using static Microsoft.ML.TorchSharp.AutoFormerV2.ObjectDetectionTrainer;
 using Microsoft.ML.TorchSharp.AutoFormerV2;
-using Microsoft.ML.Tokenizers;
-using Microsoft.ML.TorchSharp.Extensions;
-using Microsoft.ML.TorchSharp.NasBert.Models;
-using static Microsoft.ML.TorchSharp.NasBert.NasBertTrainer;
-using TorchSharp.Modules;
-using System.Text;
 using static Microsoft.ML.Data.AnnotationUtils;
 
 [assembly: LoadableClass(typeof(ObjectDetectionTransformer), null, typeof(SignatureLoadModel),
@@ -503,7 +496,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         }
     }
 
-    public class ObjectDetectionTransformer : RowToRowTransformerBase
+    public class ObjectDetectionTransformer : RowToRowTransformerBase, IDisposable
     {
         private protected readonly Device Device;
         private protected readonly AutoFormerV2 Model;
@@ -522,6 +515,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
         private static readonly FuncStaticMethodInfo1<object, Delegate> _decodeInitMethodInfo
             = new FuncStaticMethodInfo1<object, Delegate>(DecodeInit<int>);
+        private bool _disposedValue;
 
         internal ObjectDetectionTransformer(IHostEnvironment env, ObjectDetectionTrainer.Options options, AutoFormerV2 model, DataViewSchema.DetachedColumn labelColumn)
            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ObjectDetectionTransformer)))
@@ -991,6 +985,32 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             {
                 return col => (activeOutput(0) || activeOutput(1) || activeOutput(2)) && _inputColIndices.Any(i => i == col);
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                }
+
+                Model.Dispose();
+                _disposedValue = true;
+            }
+        }
+
+        ~ObjectDetectionTransformer()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

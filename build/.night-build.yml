@@ -15,9 +15,8 @@ schedules:
   branches:
     include:
     - main
-    - releases/1.6.0
-    - features/automl
-    - features/integrationPackage
+    - feature/*
+    - release/*
   always: true
 
 resources:

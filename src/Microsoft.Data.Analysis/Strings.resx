@@ -132,9 +132,6 @@
   <data name="CannotResizeDown" xml:space="preserve">
     <value>Cannot resize down</value>
   </data>
-  <data name="ColumnIndexOutOfRange" xml:space="preserve">
-    <value>Index cannot be greater than the Column's Length</value>
-  </data>
   <data name="CommentTokenCannotContainWhitespace" xml:space="preserve">
     <value>Comment token cannot contain whitespace</value>
   </data>
@@ -185,6 +182,9 @@
   </data>
   <data name="InconsistentNullBitMapAndNullCount" xml:space="preserve">
     <value>Inconsistent null bitmaps and NullCounts</value>
+  </data>
+  <data name="IndexIsGreaterThanColumnLength" xml:space="preserve">
+    <value>Index cannot be greater than the Column's Length</value>
   </data>
   <data name="InvalidColumnName" xml:space="preserve">
     <value>Column '{0}' does not exist</value>

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.ML.Internal.DataView;
@@ -27,7 +28,7 @@ namespace Microsoft.ML.Data
     /// a value is sufficient to make a completely independent copy of it. So, for example, this means that a buffer of
     /// buffers is not possible. But, things like <see cref="int"/>, <see cref="float"/>, and <see
     /// cref="ReadOnlyMemory{Char}"/>, are totally fine.</typeparam>
-    public readonly struct VBuffer<T>
+    public readonly struct VBuffer<T> : IEnumerable
     {
         /// <summary>
         /// The internal re-usable array of values.
@@ -402,6 +403,14 @@ namespace Microsoft.ML.Data
 
         public override string ToString()
             => IsDense ? $"Dense vector of size {Length}" : $"Sparse vector of size {Length}, {_count} explicit values";
+
+        /// <summary>
+        /// Returns an enumerator that iterates through the values in VBuffer.
+        /// </summary>
+        public IEnumerator GetEnumerator()
+        {
+            return _values.GetEnumerator();
+        }
 
         internal VBufferEditor<T> GetEditor()
         {

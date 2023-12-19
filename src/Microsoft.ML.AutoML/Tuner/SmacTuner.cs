@@ -111,6 +111,12 @@ namespace Microsoft.ML.AutoML
             }
         }
 
+        // test purpose
+        internal Queue<Parameter> Candidates => _candidates;
+
+        // test purpose
+        internal List<TrialResult> Histories => _histories;
+
         private FastForestRegressionModelParameters FitModel(IEnumerable<TrialResult> history)
         {
             Single[] losses = new Single[history.Count()];
@@ -357,7 +363,10 @@ namespace Microsoft.ML.AutoML
 
         public void Update(TrialResult result)
         {
-            _histories.Add(result);
+            if (!double.IsNaN(result.Loss) && !double.IsInfinity(result.Loss))
+            {
+                _histories.Add(result);
+            }
         }
     }
 }

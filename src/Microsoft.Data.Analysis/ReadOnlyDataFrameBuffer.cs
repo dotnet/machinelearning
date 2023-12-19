@@ -36,8 +36,7 @@ namespace Microsoft.Data.Analysis
 
         protected int Capacity => ReadOnlyBuffer.Length / Size;
 
-
-        public static int MaxCapacity => Int32.MaxValue / Size;
+        public static int MaxCapacity => ArrayUtility.ArrayMaxSize / Size;
 
         public ReadOnlySpan<T> ReadOnlySpan
         {
@@ -45,15 +44,16 @@ namespace Microsoft.Data.Analysis
             get => (MemoryMarshal.Cast<byte, T>(ReadOnlyBuffer.Span)).Slice(0, Length);
         }
 
-        public int Length { get; internal set; }
+        public int Length { get; protected set; }
 
-        public ReadOnlyDataFrameBuffer(int numberOfValues = 8)
+        public ReadOnlyDataFrameBuffer(int length = 0)
         {
-            if ((long)numberOfValues * Size > MaxCapacity)
+            if ((long)length * Size > MaxCapacity)
             {
-                throw new ArgumentException($"{numberOfValues} exceeds buffer capacity", nameof(numberOfValues));
+                throw new ArgumentException($"{length} exceeds buffer capacity", nameof(length));
             }
-            _readOnlyBuffer = new byte[numberOfValues * Size];
+            _readOnlyBuffer = new byte[length * Size];
+            Length = length;
         }
 
         public ReadOnlyDataFrameBuffer(ReadOnlyMemory<byte> buffer, int length)
@@ -66,8 +66,9 @@ namespace Microsoft.Data.Analysis
         {
             get
             {
-                if (index > Length)
+                if (index >= Length)
                     throw new ArgumentOutOfRangeException(nameof(index));
+
                 return ReadOnlySpan[index];
             }
             set => throw new NotSupportedException();
