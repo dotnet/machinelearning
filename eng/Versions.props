@@ -91,7 +91,7 @@
     <SystemDataSqlClientVersion>4.8.5</SystemDataSqlClientVersion>
     <SystemDataSQLiteCoreVersion>1.0.118</SystemDataSQLiteCoreVersion>
     <XunitCombinatorialVersion>1.2.7</XunitCombinatorialVersion>
-    <XUnitVersion>2.6.1</XUnitVersion>
+    <XUnitVersion>2.6.3</XUnitVersion>
     <!-- Opt-out repo features -->
     <UsingToolXliff>false</UsingToolXliff>
   </PropertyGroup>
