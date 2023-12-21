@@ -1386,7 +1386,7 @@ namespace Microsoft.ML.Data
                 {
                     Ctx.Assert(0 <= idx && idx < _rowCount);
                     Ctx.Assert(_rowCount < Utils.Size(_indexBoundaries));
-                    Ctx.Assert(_rowCount < Utils.Size(_valueBoundaries));
+                    Ctx.Assert(_rowCount < Utils.Size(_valueBoundaries), $"_rowCount = {_rowCount}, Utils.Size(_valueBoundaries) = {Utils.Size(_valueBoundaries)}, _valueBoundaries.Length = {_valueBoundaries.Length}");
                     Ctx.Assert(_uniformLength > 0 || _rowCount <= Utils.Size(_lengths));
 
                     Ctx.Assert(_indexBoundaries[idx + 1] - _indexBoundaries[idx] <= int.MaxValue);
