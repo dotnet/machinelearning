@@ -1,0 +1,27 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=id:R4:0
+#@   col=description:TX:1
+#@   col=date:DT:2
+#@   col=sing1:R4:3
+#@   col=sing2:R4:4
+#@   col=singFt1:R4:5-6
+#@   col=doubFt:R8:7-10
+#@ }
+id	description	date	sing1	sing2	num1	num2	num1	num2	num3	num4
+0	this is a description	"2001-01-01T%Time%Z"	0.12	0.34	0.12	0.34	0.12	0.34000000000000002	0.56000000000000005	0.78000000000000003
+?	this has an empty int and date	"0001-01-01T%Time%"	1.1	11.11	1.1	11.11	1.1000000000000001	11.109999999999999	111.111	1111.1111100000001
+?	this has a quoted empty int and date	"0001-01-01T%Time%"	1.1	11.11	1.1	11.11	1.1000000000000001	11.109999999999999	111.111	1111.1111100000001
+1	this has a quoted int and date	"2001-01-01T%Time%Z"	1.1	11.11	1.1	11.11	1.1000000000000001	11.109999999999999	111.111	1111.1111100000001
+2	this has an empty num1 and a space in num3	"2002-02-02T%Time%Z"	?	22.22	?	22.22	?	22.219999999999999	?	2222.2222000000002
+3	this has an empty quoted num1 and a quoted space in num3	"2003-03-03T%Time%Z"	?	33.33	?	33.33	?	33.329999999999998	?	3333.3332999999998
+4	this has a space in num2 and a space in num4	"2004-04-04T%Time%Z"	4.4	?	4.4	?	4.4000000000000004	?	444.44400000000002	?
+5	this has a quoted space num2 and quoted space in num4	"2005-05-05T%Time%Z"	5.5	?	5.5	?	5.5	?	555.55499999999995	?
+6	this has no date, num3 or num4 (the separator corresponding to them is also missing)	"0001-01-01T%Time%"	6.6	66.66	6.6	66.66	6.5999999999999996	66.659999999999997	?	?
+7	this has no num4 (the separator corresponding to it is missing)	"2007-07-07T%Time%Z"	7.7	77.77	7.7	77.77	7.7000000000000002	77.769999999999996	777.77700000000004	?
+8	this has nothing in num4, but includes the last separator	"2008-08-08T%Time%Z"	8.8	88.88	8.8	88.88	8.8000000000000007	88.879999999999995	888.88800000000003	?
+9	""	"2009-09-09T%Time%Z"	9.9	99.99	9.9	99.99	9.9000000000000004	99.989999999999995	999.99900000000002	?
+?	""	"2010-10-10T%Time%Z"	10.1	?	10.1	?	10.1	?	101010.10101	?
+11	NaN	"2011-11-11T%Time%Z"	?	?	?	?	?	?	?	Infinity
+Wrote 14 rows of length 11

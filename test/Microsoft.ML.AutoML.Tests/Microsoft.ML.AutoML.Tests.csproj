@@ -44,7 +44,7 @@
   </ItemGroup>
 
 
-  <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
+  <ItemGroup>
     <Content Include="$(ArtifactsObjDir)DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx">
       <Link>DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

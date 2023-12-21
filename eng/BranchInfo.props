@@ -28,15 +28,15 @@
     <IsStableProject Condition="'$(StableProjects.IndexOf($(_NormalizedStableProjectName), StringComparison.OrdinalIgnoreCase))' != '-1'">true</IsStableProject>
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' == 'true'">
-    <MajorVersion>3</MajorVersion>
+    <MajorVersion>4</MajorVersion>
     <MinorVersion>0</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <!-- Set baseline version for stable packages to check for API Compat -->
-    <PackageValidationBaselineVersion>2.0.0-preview.22551.1</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>3.0.0</PackageValidationBaselineVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' != 'true'">
     <MajorVersion>0</MajorVersion>
-    <MinorVersion>21</MinorVersion>
+    <MinorVersion>22</MinorVersion>
     <PatchVersion>0</PatchVersion>
   </PropertyGroup>
 </Project>

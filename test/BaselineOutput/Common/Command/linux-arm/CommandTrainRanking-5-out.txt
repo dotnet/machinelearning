@@ -1,0 +1,59 @@
+maml.exe TrainTest test=%Data% tr=frrank{mil=30 lr=0.1 iter=10 dt+} loader=Text{header+ sep=tab, col=Label:R4:0 col=Workclass:TX:1 col=Categories:TX:2-8 col=NumericFeatures:R4:9-14} data=%Data% out=%Output% xf=Term{col=Label col=GroupId:Workclass} xf=Copy{col=Features:NumericFeatures}
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise on disk
+Processed 500 instances
+Binning and forming Feature objects
+Changing data from row-wise to column-wise on disk
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+NDCG@1:             0.313492
+NDCG@2:             0.328916
+NDCG@3:             0.342168
+NDCG@4:             0.342168
+NDCG@5:             0.343530
+NDCG@6:             0.343158
+NDCG@7:             0.343158
+NDCG@8:             0.343537
+NDCG@9:             0.344631
+NDCG@10:            0.344631
+DCG@1:              1.356820
+DCG@2:              1.562708
+DCG@3:              1.657170
+DCG@4:              1.664567
+DCG@5:              1.677855
+DCG@6:              1.677855
+DCG@7:              1.677855
+DCG@8:              1.683273
+DCG@9:              1.693614
+DCG@10:             1.693614
+
+OVERALL RESULTS
+---------------------------------------
+NDCG@1:             0.313492 (0.0000)
+NDCG@2:             0.328916 (0.0000)
+NDCG@3:             0.342168 (0.0000)
+NDCG@4:             0.342168 (0.0000)
+NDCG@5:             0.343530 (0.0000)
+NDCG@6:             0.343158 (0.0000)
+NDCG@7:             0.343158 (0.0000)
+NDCG@8:             0.343537 (0.0000)
+NDCG@9:             0.344631 (0.0000)
+NDCG@10:            0.344631 (0.0000)
+DCG@1:              1.356820 (0.0000)
+DCG@2:              1.562708 (0.0000)
+DCG@3:              1.657170 (0.0000)
+DCG@4:              1.664567 (0.0000)
+DCG@5:              1.677855 (0.0000)
+DCG@6:              1.677855 (0.0000)
+DCG@7:              1.677855 (0.0000)
+DCG@8:              1.683273 (0.0000)
+DCG@9:              1.693614 (0.0000)
+DCG@10:             1.693614 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

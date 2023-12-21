@@ -1,0 +1,24 @@
+maml.exe TrainTest test=%Data%\azure-test-unlabeled.txt tr=pcaAnomaly dout=%Output%\pcaAnomaly\Default-TrainTest-azureCounterUnlabeled.txt loader=Text{sep=space col=Name:TX:0 col=Features:~} data=%Data%\azure-train-unlabeled.txt out=%Output%\pcaAnomaly\Default-TrainTest-azureCounterUnlabeled-model.zip seed=1 xf=Expr{col=Label:Name expr={x : na(float(0))}}
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Not training a calibrator because it is not needed.
+Warning: Encountered 6590 unlabeled instances during testing.
+Detection rate at 10 false positives:     NaN
+Detection rate at 0.01 false positive rate:     NaN
+Detection rate at 0 positive predictions:     NaN
+Threshold @K FP:        NaN
+Threshold @P FPR:       NaN
+Threshold @NumPos:      NaN
+AUC:                    NaN
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                    NaN (0.0000)
+DR @K FP:               NaN (0.0000)
+DR @P FPR:              NaN (0.0000)
+DR @NumPos:             NaN (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
