@@ -21,8 +21,8 @@ TRUTH     ||========================
 Precision ||1.0000 |0.9310 |0.8966 |
 Accuracy(micro-avg): 0.936709
 Accuracy(macro-avg): 0.942857
-Log-loss:           0.285741
-Log-loss reduction: 0.737254
+Log-loss:           0.286878
+Log-loss reduction: 0.736208
 
 Confusion table
           ||========================
@@ -30,20 +30,20 @@ PREDICTED ||     0 |     1 |     2 | Recall
 TRUTH     ||========================
         0 ||    29 |     0 |     0 | 1.0000
         1 ||     0 |    19 |     1 | 0.9500
-        2 ||     0 |     2 |    20 | 0.9091
+        2 ||     0 |     1 |    21 | 0.9545
           ||========================
-Precision ||1.0000 |0.9048 |0.9524 |
-Accuracy(micro-avg): 0.957746
-Accuracy(macro-avg): 0.953030
-Log-loss:           0.160970
-Log-loss reduction: 0.851729
+Precision ||1.0000 |0.9500 |0.9545 |
+Accuracy(micro-avg): 0.971831
+Accuracy(macro-avg): 0.968182
+Log-loss:           0.156315
+Log-loss reduction: 0.856017
 
 OVERALL RESULTS
 ---------------------------------------
-Accuracy(micro-avg): 0.947228 (0.0105)
-Accuracy(macro-avg): 0.947944 (0.0051)
-Log-loss:           0.223355 (0.0624)
-Log-loss reduction: 0.794491 (0.0572)
+Accuracy(micro-avg): 0.954270 (0.0176)
+Accuracy(macro-avg): 0.955519 (0.0127)
+Log-loss:           0.221597 (0.0653)
+Log-loss reduction: 0.796112 (0.0599)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

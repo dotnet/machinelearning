@@ -438,14 +438,24 @@ namespace Microsoft.ML.Transforms
             get { return _mean; }
         }
 
-        public Double[] StdDev
+        public Double[] StdDevPopulation
         {
             get { return _m2.Select((m2, i) => Math.Sqrt(m2 / _cnz[i])).ToArray(); }
+        }
+
+        public Double[] StdDevSample
+        {
+            get { return _m2.Select((m2, i) => Math.Sqrt(m2 / Math.Max(0, _cnz[i] - 1))).ToArray(); }
         }
 
         public Double[] MeanSquareError
         {
             get { return _m2.Select((m2, i) => m2 / _cnz[i]).ToArray(); }
+        }
+
+        public Double[] SampleVariance
+        {
+            get { return _m2.Select((m2, i) => m2 / Math.Max(0, _cnz[i] - 1)).ToArray(); }
         }
 
         public Double[] M2
@@ -1800,15 +1810,17 @@ namespace Microsoft.ML.Transforms
                 private readonly bool _useLog;
                 private readonly bool _useCdf;
                 private readonly bool _fix;
+                private readonly bool _useSampleVariance;
                 private readonly MeanVarSngAggregator _aggregator;
                 private VBuffer<TFloat> _buffer;
 
-                private MeanVarOneColumnFunctionBuilder(IHost host, long lim, bool fix, ValueGetter<TFloat> getSrc, bool useLog, bool useCdf)
+                private MeanVarOneColumnFunctionBuilder(IHost host, long lim, bool fix, ValueGetter<TFloat> getSrc, bool useLog, bool useCdf, bool useSampleVariance)
                     : base(host, lim, getSrc)
                 {
                     _useLog = useLog;
                     _useCdf = useCdf;
                     _fix = fix;
+                    _useSampleVariance = useSampleVariance;
                     _aggregator = new MeanVarSngAggregator(1, useLog);
                     _buffer = new VBuffer<TFloat>(1, new TFloat[1]);
                 }
@@ -1817,7 +1829,7 @@ namespace Microsoft.ML.Transforms
                     ValueGetter<TFloat> getter)
                 {
                     host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
-                    return new MeanVarOneColumnFunctionBuilder(host, column.MaximumExampleCount, column.EnsureZeroUntouched, getter, false, column.UseCdf);
+                    return new MeanVarOneColumnFunctionBuilder(host, column.MaximumExampleCount, column.EnsureZeroUntouched, getter, false, column.UseCdf, column.UseSampleVariance);
                 }
 
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.LogMeanVarianceColumnOptions column, IHost host, DataViewType srcType,
@@ -1825,7 +1837,7 @@ namespace Microsoft.ML.Transforms
                 {
                     var lim = column.MaximumExampleCount;
                     host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
-                    return new MeanVarOneColumnFunctionBuilder(host, lim, column.EnsureZeroUntouched, getter, true, column.UseCdf);
+                    return new MeanVarOneColumnFunctionBuilder(host, lim, column.EnsureZeroUntouched, getter, true, column.UseCdf, column.UseSampleVariance);
                 }
 
                 protected override bool ProcessValue(in TFloat origVal)
@@ -1852,10 +1864,13 @@ namespace Microsoft.ML.Transforms
                         return AffineColumnFunction.Create(Host, (TFloat)0, (TFloat)0);
                     TFloat scale;
                     TFloat offset;
+                    var stdDev = _useSampleVariance ? _aggregator.StdDevSample[0] : _aggregator.StdDevPopulation[0];
+                    var variance = _useSampleVariance ? _aggregator.SampleVariance[0] : _aggregator.MeanSquareError[0];
+
                     if (_fix)
-                        MeanVarUtils.ComputeScaleAndOffsetFixZero(_aggregator.Mean[0], _aggregator.MeanSquareError[0], out scale, out offset);
+                        MeanVarUtils.ComputeScaleAndOffsetFixZero(_aggregator.Mean[0], variance, out scale, out offset);
                     else
-                        MeanVarUtils.ComputeScaleAndOffset(_aggregator.Mean[0], _aggregator.StdDev[0], out scale, out offset);
+                        MeanVarUtils.ComputeScaleAndOffset(_aggregator.Mean[0], stdDev, out scale, out offset);
 
                     return AffineColumnFunction.Create(Host, scale, offset);
                 }
@@ -1866,7 +1881,9 @@ namespace Microsoft.ML.Transforms
                     if (_aggregator.M2[0] == 0 || _aggregator.Counts[0] == 0)
                         return CdfColumnFunction.Create(Host, (TFloat)0, (TFloat)0, _useLog);
 
-                    return CdfColumnFunction.Create(Host, (TFloat)_aggregator.Mean[0], (TFloat)_aggregator.StdDev[0], _useLog);
+                    var stdDev = _useSampleVariance ? _aggregator.StdDevSample[0] : _aggregator.StdDevPopulation[0];
+
+                    return CdfColumnFunction.Create(Host, (TFloat)_aggregator.Mean[0], (TFloat)stdDev, _useLog);
                 }
             }
 
@@ -1875,16 +1892,18 @@ namespace Microsoft.ML.Transforms
                 private readonly bool _fix;
                 private readonly bool _useLog;
                 private readonly bool _useCdf;
+                private readonly bool _useSampleVariance;
                 private readonly MeanVarSngAggregator _aggregator;
 
                 private MeanVarVecColumnFunctionBuilder(IHost host, int cv, long lim, bool fix,
-                    ValueGetter<VBuffer<TFloat>> getSrc, bool useLog, bool useCdf)
+                    ValueGetter<VBuffer<TFloat>> getSrc, bool useLog, bool useCdf, bool useSampleVariance)
                     : base(host, lim, getSrc)
                 {
                     _aggregator = new MeanVarSngAggregator(cv, useLog);
                     _fix = fix;
                     _useLog = useLog;
                     _useCdf = useCdf;
+                    _useSampleVariance = useSampleVariance;
                 }
 
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.MeanVarianceColumnOptions column, IHost host, VectorDataViewType srcType,
@@ -1892,7 +1911,7 @@ namespace Microsoft.ML.Transforms
                 {
                     host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
                     var cv = srcType.Size;
-                    return new MeanVarVecColumnFunctionBuilder(host, cv, column.MaximumExampleCount, column.EnsureZeroUntouched, getter, false, column.UseCdf);
+                    return new MeanVarVecColumnFunctionBuilder(host, cv, column.MaximumExampleCount, column.EnsureZeroUntouched, getter, false, column.UseCdf, column.UseSampleVariance);
                 }
 
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.LogMeanVarianceColumnOptions column, IHost host, VectorDataViewType srcType,
@@ -1901,7 +1920,7 @@ namespace Microsoft.ML.Transforms
                     var lim = column.MaximumExampleCount;
                     host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
                     var cv = srcType.Size;
-                    return new MeanVarVecColumnFunctionBuilder(host, cv, lim, column.EnsureZeroUntouched, getter, true, column.UseCdf);
+                    return new MeanVarVecColumnFunctionBuilder(host, cv, lim, column.EnsureZeroUntouched, getter, true, column.UseCdf, column.UseSampleVariance);
                 }
 
                 protected override bool ProcessValue(in VBuffer<TFloat> buffer)
@@ -1939,10 +1958,14 @@ namespace Microsoft.ML.Transforms
                             scale[i] = offset[i] = 0;
                             continue;
                         }
+
+                        var stdDev = _useSampleVariance ? _aggregator.StdDevSample[i] : _aggregator.StdDevPopulation[i];
+                        var variance = _useSampleVariance ? _aggregator.SampleVariance[i] : _aggregator.MeanSquareError[i];
+
                         if (_fix)
-                            MeanVarUtils.ComputeScaleAndOffsetFixZero(_aggregator.Mean[i], _aggregator.MeanSquareError[i], out scale[i], out offset[i]);
+                            MeanVarUtils.ComputeScaleAndOffsetFixZero(_aggregator.Mean[i], variance, out scale[i], out offset[i]);
                         else
-                            MeanVarUtils.ComputeScaleAndOffset(_aggregator.Mean[i], _aggregator.StdDev[i], out scale[i], out offset[i]);
+                            MeanVarUtils.ComputeScaleAndOffset(_aggregator.Mean[i], stdDev, out scale[i], out offset[i]);
                         if (offset[i] != 0 && nz.Count < lim)
                             nz.Add(i);
                     }
@@ -1982,7 +2005,8 @@ namespace Microsoft.ML.Transforms
                             continue;
                         }
                         mean[i] = (TFloat)_aggregator.Mean[i];
-                        stddev[i] = (TFloat)_aggregator.StdDev[i];
+                        stddev[i] = (TFloat)(_useSampleVariance ? _aggregator.StdDevSample[i] : _aggregator.StdDevPopulation[i]);
+
                     }
 
                     return CdfColumnFunction.Create(Host, mean, stddev, _useLog);

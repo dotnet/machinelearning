@@ -9,7 +9,7 @@
         https://github.com/dotnet/arcade/blob/c788ffa83b088cafe9dbffc1cbc8155ba88b2553/Documentation/CorePackages/Versioning.md#output
     -->
     <DotNetUseShippingVersions>true</DotNetUseShippingVersions>
-    <VersionPrefix>3.0.0</VersionPrefix>
+    <VersionPrefix>4.0.0</VersionPrefix>
     <PreReleaseVersionLabel>preview</PreReleaseVersionLabel>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <!-- .NET Runtime product dependencies -->
@@ -24,6 +24,7 @@
     <SystemConfigurationConfigurationManagerVersion>6.0.1</SystemConfigurationConfigurationManagerVersion>
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
     <SystemMemoryVersion>4.5.5</SystemMemoryVersion>
+    <SystemNumericsTensorsVersion>8.0.0</SystemNumericsTensorsVersion>
     <SystemReflectionEmitLightweightVersion>4.3.0</SystemReflectionEmitLightweightVersion>
     <SystemReflectionEmitVersion>4.3.0</SystemReflectionEmitVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>6.0.0</SystemRuntimeCompilerServicesUnsafeVersion>
@@ -34,7 +35,7 @@
     <!-- Other product dependencies -->
     <ApacheArrowVersion>11.0.0</ApacheArrowVersion>
     <GoogleProtobufVersion>3.19.6</GoogleProtobufVersion>
-    <LightGBMVersion>2.3.1</LightGBMVersion>
+    <LightGBMVersion>3.3.5</LightGBMVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.3.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisCSharpVersion>3.9.0</MicrosoftCodeAnalysisCSharpVersion>
     <MicrosoftDotNetInteractiveVersion>1.0.0-beta.23509.3</MicrosoftDotNetInteractiveVersion>
@@ -77,7 +78,7 @@
     <ApprovalTestsVersion>5.4.7</ApprovalTestsVersion>
     <BenchmarkDotNetVersion>0.13.1</BenchmarkDotNetVersion>
     <DotNetRuntime60Version>6.0.9</DotNetRuntime60Version>
-    <DotNetRuntime80Version>8.0.0-preview.3.23174.8</DotNetRuntime80Version>
+    <DotNetRuntime80Version>8.0.0</DotNetRuntime80Version>
     <FluentAssertionVersion>5.10.2</FluentAssertionVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.23431.1</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftDotNetXUnitExtensionsVersion>8.0.0-beta.23265.1</MicrosoftDotNetXUnitExtensionsVersion>
@@ -87,7 +88,7 @@
     <MicrosoftMLTensorFlowTestModelsVersion>0.0.13-test</MicrosoftMLTensorFlowTestModelsVersion>
     <MicrosoftMLTestDatabasesVersion>0.0.6-test</MicrosoftMLTestDatabasesVersion>
     <MicrosoftMLTestModelsVersion>0.0.7-test</MicrosoftMLTestModelsVersion>
-    <SystemDataSqlClientVersion>4.6.1</SystemDataSqlClientVersion>
+    <SystemDataSqlClientVersion>4.8.5</SystemDataSqlClientVersion>
     <SystemDataSQLiteCoreVersion>1.0.118</SystemDataSQLiteCoreVersion>
     <XunitCombinatorialVersion>1.2.7</XunitCombinatorialVersion>
     <XUnitVersion>2.4.2</XUnitVersion>

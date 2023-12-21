@@ -202,6 +202,14 @@ jobs:
           artifacts/TestResults/**
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: CopyFiles@2
+      displayName: Stage baseline files
+      condition: not(succeeded())
+      inputs:
+        sourceFolder: $(Build.SourcesDirectory)
+        contents: |
+          artifacts/bin/**/TestOutput/**
+        targetFolder: $(Build.ArtifactStagingDirectory)
+    - task: CopyFiles@2
       displayName: Stage process dump and pdb if any
       condition: not(succeeded())
       inputs:

@@ -1,0 +1,58 @@
+maml.exe CV tr=AveragedPerceptron threads=- cali=PAV dout=%Output% data=%Data% seed=1
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Warning: Skipped 80 instances with missing features during training (over 10 iterations; 8 inst/iter)
+Training calibrator.
+PAV calibrator:  piecewise function approximation has 5 components.
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Warning: Skipped 80 instances with missing features during training (over 10 iterations; 8 inst/iter)
+Training calibrator.
+PAV calibrator:  piecewise function approximation has 6 components.
+Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3785 (134.0/(134.0+220.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      133 |        1 | 0.9925
+ negative ||        9 |      211 | 0.9591
+          ||======================
+Precision ||   0.9366 |   0.9953 |
+OVERALL 0/1 ACCURACY: 0.971751
+LOG LOSS/instance:  Infinity
+Test-set entropy (prior Log-Loss/instance): 0.956998
+LOG-LOSS REDUCTION (RIG): -Infinity
+AUC:                0.994403
+Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3191 (105.0/(105.0+224.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      100 |        5 | 0.9524
+ negative ||        3 |      221 | 0.9866
+          ||======================
+Precision ||   0.9709 |   0.9779 |
+OVERALL 0/1 ACCURACY: 0.975684
+LOG LOSS/instance:  0.227705
+Test-set entropy (prior Log-Loss/instance): 0.903454
+LOG-LOSS REDUCTION (RIG): 0.747961
+AUC:                0.997619
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.996011 (0.0016)
+Accuracy:           0.973718 (0.0020)
+Positive precision: 0.953747 (0.0171)
+Positive recall:    0.972459 (0.0201)
+Negative precision: 0.986580 (0.0087)
+Negative recall:    0.972849 (0.0138)
+Log-loss:           Infinity (NaN)
+Log-loss reduction: -Infinity (NaN)
+F1 Score:           0.962653 (0.0011)
+AUPRC:              0.992269 (0.0025)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
