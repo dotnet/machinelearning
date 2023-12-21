@@ -293,7 +293,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             var actualValues = a.GetValues().ToArray();
             Assert.Equal(expectedValues.Length, actualValues.Length);
             for (int i = 0; i < expectedValues.Length; i++)
-                Assert.Equal(expectedValues[i], actualValues[i], precision: 6);
+                Assert.Equal(expectedValues[i], actualValues[i], 0.000001);
         }
 
         /// <summary>

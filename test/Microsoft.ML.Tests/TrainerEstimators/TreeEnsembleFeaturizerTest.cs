@@ -627,8 +627,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var loadedPrediction = loadedModel.Transform(dataView);
             var loadedMetrics = ML.Regression.Evaluate(loadedPrediction);
 
-            Assert.Equal(metrics.MeanAbsoluteError, loadedMetrics.MeanAbsoluteError, 5);
-            Assert.Equal(metrics.MeanSquaredError, loadedMetrics.MeanSquaredError, 5);
+            Assert.Equal(metrics.MeanAbsoluteError, loadedMetrics.MeanAbsoluteError, 0.00001);
+            Assert.Equal(metrics.MeanSquaredError, loadedMetrics.MeanSquaredError, 0.00001);
         }
 
         [Fact]
@@ -687,8 +687,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var loadedMetrics = ML.Regression.Evaluate(loadedPrediction);
 
             // Check if the loaded model produces the same result as the trained model.
-            Assert.Equal(metrics.MeanAbsoluteError, loadedMetrics.MeanAbsoluteError, 5);
-            Assert.Equal(metrics.MeanSquaredError, loadedMetrics.MeanSquaredError, 5);
+            Assert.Equal(metrics.MeanAbsoluteError, loadedMetrics.MeanAbsoluteError, 0.00001);
+            Assert.Equal(metrics.MeanSquaredError, loadedMetrics.MeanSquaredError, 0.00001);
 
             var secondPipeline = ML.Transforms.CopyColumns("CopiedFeatures", "Features")
                 .Append(ML.Transforms.NormalizeBinning("CopiedFeatures"))

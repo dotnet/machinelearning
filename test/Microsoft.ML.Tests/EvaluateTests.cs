@@ -65,7 +65,7 @@ namespace Microsoft.ML.Tests
             var metrics2 = mlContext.MulticlassClassification.Evaluate(inputDV2, topKPredictionCount: 4);
             var output2 = metrics2.TopKAccuracyForAllK.ToArray();
             for (int i = 0; i < expectedTopKArray2.Length; i++)
-                Assert.Equal(expectedTopKArray2[i], output2[i], precision: 7);
+                Assert.Equal(expectedTopKArray2[i], output2[i], 0.0000001);
         }
     }
 }
