@@ -1,0 +1,112 @@
+maml.exe CV tr=LogisticRegression{l1=1.0 l2=0.1 ot=1e-3 nt=1} eval=BinaryClassifier{threshold=0.95 useRawScore=-} threads=- norm=No dout=%Output% data=%Data% seed=1
+Not adding a normalizer.
+Warning: Skipped 8 instances with missing features/label/weight during training
+Beginning optimization
+num vars: 10
+improvement criterion: Mean Improvement
+L1 regularization selected 10 of 10 weights.
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Warning: Skipped 8 instances with missing features/label/weight during training
+Beginning optimization
+num vars: 10
+improvement criterion: Mean Improvement
+L1 regularization selected 10 of 10 weights.
+Not training a calibrator because it is not needed.
+Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3785 (134.0/(134.0+220.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      118 |       16 | 0.8806
+ negative ||        3 |      217 | 0.9864
+          ||======================
+Precision ||   0.9752 |   0.9313 |
+OVERALL 0/1 ACCURACY: 0.946328
+LOG LOSS/instance:  0.143504
+Test-set entropy (prior Log-Loss/instance): 0.956998
+LOG-LOSS REDUCTION (RIG): 0.850048
+AUC:                0.994132
+Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3191 (105.0/(105.0+224.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||       81 |       24 | 0.7714
+ negative ||        0 |      224 | 1.0000
+          ||======================
+Precision ||   1.0000 |   0.9032 |
+OVERALL 0/1 ACCURACY: 0.927052
+LOG LOSS/instance:  0.111794
+Test-set entropy (prior Log-Loss/instance): 0.903454
+LOG-LOSS REDUCTION (RIG): 0.876259
+AUC:                0.997236
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.995684 (0.0016)
+Accuracy:           0.936690 (0.0096)
+Positive precision: 0.987603 (0.0124)
+Positive recall:    0.826013 (0.0546)
+Negative precision: 0.917278 (0.0141)
+Negative recall:    0.993182 (0.0068)
+Log-loss:           0.127649 (0.0159)
+Log-loss reduction: 0.863153 (0.0131)
+F1 Score:           0.898229 (0.0273)
+AUPRC:              0.991584 (0.0025)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'LBFGS data prep' started.
+[1] 'LBFGS data prep' finished in %Time%.
+[2] 'LBFGS Optimizer' started.
+[2] (%Time%)	0 iterations	Loss: 0.6931471824645996
+[2] (%Time%)	1 iterations	Loss: 0.6544521450996399	Improvement: 0.0387
+[2] (%Time%)	2 iterations	Loss: 0.642568051815033	Improvement: 0.01725
+[2] (%Time%)	3 iterations	Loss: 0.5179428458213806	Improvement: 0.09906
+[2] (%Time%)	4 iterations	Loss: 0.4057178199291229	Improvement: 0.109
+[2] (%Time%)	5 iterations	Loss: 0.3352813422679901	Improvement: 0.08004
+[2] (%Time%)	6 iterations	Loss: 0.3197685182094574	Improvement: 0.03163
+[2] (%Time%)	7 iterations	Loss: 0.31049972772598267	Improvement: 0.01486
+[2] (%Time%)	8 iterations	Loss: 0.2985224425792694	Improvement: 0.0127
+[2] (%Time%)	9 iterations	Loss: 0.2738857865333557	Improvement: 0.02165
+[2] (%Time%)	10 iterations	Loss: 0.2316397875547409	Improvement: 0.0371
+[2] (%Time%)	11 iterations	Loss: 0.17319267988204956	Improvement: 0.05311
+[2] (%Time%)	12 iterations	Loss: 0.13885831832885742	Improvement: 0.03903
+[2] (%Time%)	13 iterations	Loss: 0.11185470223426819	Improvement: 0.03001
+[2] (%Time%)	14 iterations	Loss: 0.10666187852621078	Improvement: 0.0114
+[2] (%Time%)	15 iterations	Loss: 0.09659970551729202	Improvement: 0.0104
+[2] (%Time%)	16 iterations	Loss: 0.08454433083534241	Improvement: 0.01164
+[2] (%Time%)	17 iterations	Loss: 0.08044131845235825	Improvement: 0.005987
+[2] (%Time%)	18 iterations	Loss: 0.07466444373130798	Improvement: 0.00583
+[2] (%Time%)	19 iterations	Loss: 0.07378975301980972	Improvement: 0.002113
+[2] (%Time%)	20 iterations	Loss: 0.07328920811414719	Improvement: 0.0009038
+[2] 'LBFGS Optimizer' finished in %Time%.
+[3] 'LBFGS data prep #2' started.
+[3] 'LBFGS data prep #2' finished in %Time%.
+[4] 'LBFGS Optimizer #2' started.
+[4] (%Time%)	0 iterations	Loss: 0.6931471824645996
+[4] (%Time%)	1 iterations	Loss: 0.6328520774841309	Improvement: 0.0603
+[4] (%Time%)	2 iterations	Loss: 0.620979368686676	Improvement: 0.02156
+[4] (%Time%)	3 iterations	Loss: 0.6134979724884033	Improvement: 0.01083
+[4] (%Time%)	4 iterations	Loss: 0.40101736783981323	Improvement: 0.1627
+[4] (%Time%)	5 iterations	Loss: 0.36694765090942383	Improvement: 0.06612
+[4] (%Time%)	6 iterations	Loss: 0.3179488480091095	Improvement: 0.05328
+[4] (%Time%)	7 iterations	Loss: 0.2625056505203247	Improvement: 0.0549
+[4] (%Time%)	8 iterations	Loss: 0.21261096000671387	Improvement: 0.05115
+[4] (%Time%)	9 iterations	Loss: 0.17287731170654297	Improvement: 0.04259
+[4] (%Time%)	10 iterations	Loss: 0.14646978676319122	Improvement: 0.03045
+[4] (%Time%)	11 iterations	Loss: 0.11033976078033447	Improvement: 0.03471
+[4] (%Time%)	12 iterations	Loss: 0.10183008015155792	Improvement: 0.01506
+[4] (%Time%)	13 iterations	Loss: 0.09570615738630295	Improvement: 0.008358
+[4] (%Time%)	14 iterations	Loss: 0.09520583599805832	Improvement: 0.002465
+[4] (%Time%)	15 iterations	Loss: 0.08928800374269485	Improvement: 0.005055
+[4] (%Time%)	16 iterations	Loss: 0.08804423362016678	Improvement: 0.002196
+[4] (%Time%)	17 iterations	Loss: 0.0877317488193512	Improvement: 0.0007835
+[4] 'LBFGS Optimizer #2' finished in %Time%.

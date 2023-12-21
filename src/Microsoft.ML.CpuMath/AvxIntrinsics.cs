@@ -15,7 +15,9 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using Microsoft.ML.Internal.CpuMath.Core;
+#pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 using nuint = System.UInt64;
+#pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 
 namespace Microsoft.ML.Internal.CpuMath
 {

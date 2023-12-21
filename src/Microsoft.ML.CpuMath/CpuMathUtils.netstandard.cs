@@ -3,13 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Numerics.Tensors;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Internal.CpuMath.Core;
 
 namespace Microsoft.ML.Internal.CpuMath
 {
-    [BestFriend]
     internal static partial class CpuMathUtils
     {
         // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
@@ -110,47 +110,6 @@ namespace Microsoft.ML.Internal.CpuMath
             }
         }
 
-        // dst += a
-        public static void Add(float a, Span<float> dst)
-        {
-            Contracts.AssertNonEmpty(dst);
-
-            unsafe
-            {
-                fixed (float* pdst = &MemoryMarshal.GetReference(dst))
-                    Thunk.AddScalarU(a, pdst, dst.Length);
-            }
-        }
-
-        public static void Scale(float a, Span<float> dst)
-        {
-            Contracts.AssertNonEmpty(dst);
-
-            unsafe
-            {
-                fixed (float* pd = &MemoryMarshal.GetReference(dst))
-                    Thunk.Scale(a, pd, dst.Length);
-            }
-        }
-
-        // dst = a * src
-        public static void Scale(float a, ReadOnlySpan<float> src, Span<float> dst, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count && count <= src.Length);
-            Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(count <= dst.Length);
-
-            unsafe
-            {
-                fixed (float* psrc = &MemoryMarshal.GetReference(src))
-                fixed (float* pdst = &MemoryMarshal.GetReference(dst))
-                {
-                    Thunk.ScaleSrcU(a, psrc, pdst, count);
-                }
-            }
-        }
-
         // dst[i] = a * (dst[i] + b)
         public static void ScaleAdd(float a, float b, Span<float> dst)
         {
@@ -160,21 +119,6 @@ namespace Microsoft.ML.Internal.CpuMath
             {
                 fixed (float* pdst = &MemoryMarshal.GetReference(dst))
                     Thunk.ScaleAddU(a, b, pdst, dst.Length);
-            }
-        }
-
-        public static void AddScale(float a, ReadOnlySpan<float> src, Span<float> dst, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count && count <= src.Length);
-            Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(count <= dst.Length);
-
-            unsafe
-            {
-                fixed (float* psrc = &MemoryMarshal.GetReference(src))
-                fixed (float* pdst = &MemoryMarshal.GetReference(dst))
-                    Thunk.AddScaleU(a, psrc, pdst, count);
             }
         }
 
@@ -196,39 +140,6 @@ namespace Microsoft.ML.Internal.CpuMath
             }
         }
 
-        public static void AddScaleCopy(float a, ReadOnlySpan<float> src, ReadOnlySpan<float> dst, Span<float> res, int count)
-        {
-            Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(0 < count && count <= dst.Length);
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(count <= src.Length);
-            Contracts.AssertNonEmpty(res);
-            Contracts.Assert(count <= res.Length);
-
-            unsafe
-            {
-                fixed (float* pdst = &MemoryMarshal.GetReference(dst))
-                fixed (float* psrc = &MemoryMarshal.GetReference(src))
-                fixed (float* pres = &MemoryMarshal.GetReference(res))
-                    Thunk.AddScaleCopyU(a, psrc, pdst, pres, count);
-            }
-        }
-
-        public static void Add(ReadOnlySpan<float> src, Span<float> dst, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count && count <= src.Length);
-            Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(count <= dst.Length);
-
-            unsafe
-            {
-                fixed (float* ps = &MemoryMarshal.GetReference(src))
-                fixed (float* pd = &MemoryMarshal.GetReference(dst))
-                    Thunk.AddU(ps, pd, count);
-            }
-        }
-
         public static void Add(ReadOnlySpan<float> src, ReadOnlySpan<int> indices, Span<float> dst, int count)
         {
             Contracts.AssertNonEmpty(src);
@@ -247,44 +158,6 @@ namespace Microsoft.ML.Internal.CpuMath
             }
         }
 
-        public static void MulElementWise(ReadOnlySpan<float> src1, ReadOnlySpan<float> src2, Span<float> dst, int count)
-        {
-            Contracts.AssertNonEmpty(src1);
-            Contracts.Assert(0 < count && count <= src1.Length);
-            Contracts.AssertNonEmpty(src2);
-            Contracts.Assert(0 < count && count <= src2.Length);
-            Contracts.AssertNonEmpty(dst);
-            unsafe
-            {
-                fixed (float* ps1 = &MemoryMarshal.GetReference(src1))
-                fixed (float* ps2 = &MemoryMarshal.GetReference(src2))
-                fixed (float* pd = &MemoryMarshal.GetReference(dst))
-                    Thunk.MulElementWiseU(ps1, ps2, pd, count);
-            }
-        }
-
-        public static float Sum(ReadOnlySpan<float> src)
-        {
-            Contracts.AssertNonEmpty(src);
-
-            unsafe
-            {
-                fixed (float* psrc = &MemoryMarshal.GetReference(src))
-                    return Thunk.Sum(psrc, src.Length);
-            }
-        }
-
-        public static float SumSq(ReadOnlySpan<float> src)
-        {
-            Contracts.AssertNonEmpty(src);
-
-            unsafe
-            {
-                fixed (float* psrc = &MemoryMarshal.GetReference(src))
-                    return Thunk.SumSqU(psrc, src.Length);
-            }
-        }
-
         public static float SumSq(float mean, ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);
@@ -293,17 +166,6 @@ namespace Microsoft.ML.Internal.CpuMath
             {
                 fixed (float* psrc = &MemoryMarshal.GetReference(src))
                     return (mean == 0 ? Thunk.SumSqU(psrc, src.Length) : Thunk.SumSqDiffU(mean, psrc, src.Length));
-            }
-        }
-
-        public static float SumAbs(ReadOnlySpan<float> src)
-        {
-            Contracts.AssertNonEmpty(src);
-
-            unsafe
-            {
-                fixed (float* psrc = &MemoryMarshal.GetReference(src))
-                    return Thunk.SumAbsU(psrc, src.Length);
             }
         }
 
@@ -340,22 +202,6 @@ namespace Microsoft.ML.Internal.CpuMath
             }
         }
 
-        public static float DotProductDense(ReadOnlySpan<float> a, ReadOnlySpan<float> b, int count)
-        {
-            Contracts.AssertNonEmpty(a);
-            Contracts.AssertNonEmpty(b);
-            Contracts.Assert(0 < count);
-            Contracts.Assert(a.Length >= count);
-            Contracts.Assert(b.Length >= count);
-
-            unsafe
-            {
-                fixed (float* pa = &MemoryMarshal.GetReference(a))
-                fixed (float* pb = &MemoryMarshal.GetReference(b))
-                    return Thunk.DotU(pa, pb, count);
-            }
-        }
-
         public static float DotProductSparse(ReadOnlySpan<float> a, ReadOnlySpan<float> b, ReadOnlySpan<int> indices, int count)
         {
             Contracts.AssertNonEmpty(a);
@@ -381,12 +227,8 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(0 < count && count <= a.Length);
             Contracts.Assert(count <= b.Length);
 
-            unsafe
-            {
-                fixed (float* pa = &MemoryMarshal.GetReference(a))
-                fixed (float* pb = &MemoryMarshal.GetReference(b))
-                    return Thunk.Dist2(pa, pb, count);
-            }
+            var value = TensorPrimitives.Distance(a.Slice(0, count), b.Slice(0, count));
+            return value * value;
         }
 
         public static void ZeroMatrixItems(AlignedArray dst, int ccol, int cfltRow, int[] indices)

@@ -7,6 +7,8 @@
     <PackageLicenseExpression></PackageLicenseExpression>
     <PackageDescription>$(MSBuildProjectName) contains the MKL library redistributed as a NuGet package.</PackageDescription>
     <PackageTags>$(PackageTags) MLNET MKL</PackageTags>
+    <!-- No native dependencies on arm so causes nuget package failure -->
+    <IsPackable Condition="'$(TargetArchitecture)' == 'arm64' Or '$(TargetArchitecture)' == 'arm'">false</IsPackable>
      <!-- Empty package with no managed dependencies, only native, so no need to warn for empty lib folder/dependencies -->
     <NoWarn>$(NoWarn);NU5127;NU5128</NoWarn>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>

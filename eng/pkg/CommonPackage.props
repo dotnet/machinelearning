@@ -13,8 +13,16 @@
       <Visible>false</Visible>
       <Link>%(Filename)%(Extension)</Link>
     </Content>
+
     <Content Include="$(MSBuildThisFileDirectory)\..\..\runtimes\win-x86\native\*.dll"
              Condition="'$(PlatformTarget)' == 'x86'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+      <Link>%(Filename)%(Extension)</Link>
+    </Content>
+
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\runtimes\win-arm64\native\*.dll"
+             Condition="'$(PlatformTarget)' == 'arm64'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
       <Link>%(Filename)%(Extension)</Link>

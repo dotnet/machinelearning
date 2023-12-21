@@ -1,0 +1,6 @@
+Instance	Lab	Score	Probability	Log-loss	FeatureContributions	Assigned
+25	0	-7.89747334	0.198905617	0.31995586740159576	"Cat.marital-status.Never-married: -1, Cat.relationship.Own-child: -1, Cat.education.11th: -0.6349206, Num.fnlwgt: 0.07370297, Cat.occupation.Machine-op-inspct: 0.3253968, Cat.ethnicity.Black: 0.3253968"	0
+38	0	-5.940426	0.265715331	0.44558861605922789	"Cat.education.HS-grad: -1, Cat.occupation.Farming-fishing: -1, Cat.ethnicity.White: -0.6666667, Cat.sex.Male: 0.05833334, Cat.marital-status.Married-civ-spouse: 0.725, Cat.relationship.Husband: 0.725"	0
+28	1	5.871423	0.7785058	0.36122030322802184	"Cat.ethnicity.White: -0.9195402, Cat.native-country-region.United-States: -0.4482758, Num.hours-per-week: -0.1078942, Cat.education.Assoc-acdm: 0.9885057, Cat.marital-status.Married-civ-spouse: 1, Cat.relationship.Husband: 1"	1
+44	1	3.73609614	0.6997251	0.51513986867407058	"Cat.Workclass.Private: -0.9080459, Cat.native-country-region.United-States: -0.4482758, Num.hours-per-week: -0.1078942, Cat.education.Some-college: 0.862069, Cat.marital-status.Married-civ-spouse: 1, Cat.relationship.Husband: 1"	1
+18	0	-9.385759	0.1571482	0.24664910819847902	"Cat.marital-status.Never-married: -1, Cat.relationship.Own-child: -1, Cat.ethnicity.White: -0.6349206, Num.fnlwgt: 0.03363302, Num.education-num: 0.04402282, Cat.education.Some-college: 0.5952381"	0
