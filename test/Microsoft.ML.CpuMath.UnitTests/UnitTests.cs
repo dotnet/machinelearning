@@ -645,7 +645,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 }
 
                 var actual = CpuMathUtils.Sum(src);
-                Assert.Equal((double)expected, (double)actual, 2);
+                Assert.Equal((double)expected, (double)actual, 0.01);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, options);
         }
@@ -668,7 +668,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 }
 
                 var actual = CpuMathUtils.SumSq(src);
-                Assert.Equal((double)expected, (double)actual, 2);
+                Assert.Equal((double)expected, (double)actual, 0.01);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, options);
         }
@@ -693,7 +693,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                     expected += (src[i] - defaultScale) * (src[i] - defaultScale);
                 }
 
-                Assert.Equal((double)expected, (double)actual, 1);
+                Assert.Equal((double)expected, (double)actual, 0.1);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, scale, options);
         }
@@ -716,7 +716,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 }
 
                 var actual = CpuMathUtils.SumAbs(src);
-                Assert.Equal((double)expected, (double)actual, 2);
+                Assert.Equal((double)expected, (double)actual, 0.01);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, options);
         }
@@ -741,7 +741,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                     expected += Math.Abs(src[i] - defaultScale);
                 }
 
-                Assert.Equal((double)expected, (double)actual, 2);
+                Assert.Equal((double)expected, (double)actual, 0.01);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, scale, options);
         }
@@ -769,7 +769,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                     }
                 }
 
-                Assert.Equal((double)expected, (double)actual, 2);
+                Assert.Equal((double)expected, (double)actual, 0.01);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, options);
         }
@@ -797,7 +797,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                         expected = abs;
                     }
                 }
-                Assert.Equal((double)expected, (double)actual, 2);
+                Assert.Equal((double)expected, (double)actual, 0.01);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, scale, options);
         }
@@ -827,7 +827,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 }
 
                 var actual = CpuMathUtils.DotProductDense(src, dst, dst.Length);
-                Assert.Equal((double)expected, (double)actual, 1);
+                Assert.Equal((double)expected, (double)actual, 0.1);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, options);
         }
@@ -861,7 +861,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 }
 
                 var actual = CpuMathUtils.DotProductSparse(src, dst, idx, limit);
-                Assert.Equal((double)expected, (double)actual, 2);
+                Assert.Equal((double)expected, (double)actual, 0.01);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, options);
         }

@@ -498,7 +498,7 @@ namespace Microsoft.ML.IntegrationTests
             // Evaluate the model.
             var binaryClassificationMetrics = mlContext.MulticlassClassification.Evaluate(binaryClassificationPredictions);
 
-            Assert.Equal(0.4367, binaryClassificationMetrics.LogLoss, 4);
+            Assert.Equal(0.4367, binaryClassificationMetrics.LogLoss, 0.0001);
         }
     }
 }

@@ -195,10 +195,10 @@ namespace Microsoft.ML.Tests
             while (enumerator.MoveNext() && index < expectedValues.Count)
             {
                 row = enumerator.Current;
-                Assert.Equal(expectedValues[index++], row.Change[0], precision: 7);  // Alert
-                Assert.Equal(expectedValues[index++], row.Change[1], precision: 7);  // Raw score
-                Assert.Equal(expectedValues[index++], row.Change[2], precision: 7);  // P-Value score
-                Assert.Equal(expectedValues[index++], row.Change[3], precision: 7);  // Martingale score
+                Assert.Equal(expectedValues[index++], row.Change[0], 0.0000001);  // Alert
+                Assert.Equal(expectedValues[index++], row.Change[1], 0.0000001);  // Raw score
+                Assert.Equal(expectedValues[index++], row.Change[2], 0.0000001);  // P-Value score
+                Assert.Equal(expectedValues[index++], row.Change[3], 0.0000001);  // Martingale score
             }
         }
 
@@ -255,10 +255,10 @@ namespace Microsoft.ML.Tests
             var engine2 = model2.CreateTimeSeriesEngine<Data, Prediction>(ml);
             var prediction2 = engine2.Predict(new Data(1));
             //Raw score after first input.
-            Assert.Equal(1.1661833524703979, prediction2.Change[1], precision: 5); // Raw score
+            Assert.Equal(1.1661833524703979, prediction2.Change[1], 0.00001); // Raw score
             prediction2 = engine2.Predict(new Data(1));
             //Raw score after second input.
-            Assert.Equal(0.12216401100158691, prediction2.Change[1], precision: 5); // Raw score
+            Assert.Equal(0.12216401100158691, prediction2.Change[1], 0.00001); // Raw score
 
             //Even though time series column is not requested it will
             // pass the observation through time series transform and update the state with the first input.
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Tests
             //and raw score should match the raw score obtained by passing the two input in the first model.
             var engine3 = model3.CreateTimeSeriesEngine<Data, Prediction>(ml);
             var prediction3 = engine3.Predict(new Data(1));
-            Assert.Equal(0.12216401100158691, prediction2.Change[1], precision: 5); // Raw score
+            Assert.Equal(0.12216401100158691, prediction2.Change[1], 0.00001); // Raw score
         }
 
         [NativeDependencyFact("MklImports")]
@@ -318,10 +318,10 @@ namespace Microsoft.ML.Tests
             //Model 1: Prediction #1.
             var engine = model.CreateTimeSeriesEngine<Data, Prediction>(ml);
             var prediction = engine.Predict(new Data(1));
-            Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
-            Assert.Equal(1.1661833524703979, prediction.Change[1], precision: 5); // Raw score
-            Assert.Equal(0.5, prediction.Change[2], precision: 7); // P-Value score
-            Assert.Equal(5.1200000000000114E-08, prediction.Change[3], precision: 7); // Martingale score
+            Assert.Equal(0, prediction.Change[0], 0.0000001); // Alert
+            Assert.Equal(1.1661833524703979, prediction.Change[1], 0.00001); // Raw score
+            Assert.Equal(0.5, prediction.Change[2], 0.0000001); // P-Value score
+            Assert.Equal(5.1200000000000114E-08, prediction.Change[3], 0.0000001); // Martingale score
 
             //Model 1: Checkpoint.
             var modelPath = "temp.zip";
@@ -329,10 +329,10 @@ namespace Microsoft.ML.Tests
 
             //Model 1: Prediction #2
             prediction = engine.Predict(new Data(1));
-            Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
-            Assert.Equal(0.12216401100158691, prediction.Change[1], precision: 5); // Raw score
-            Assert.Equal(0.14823824685192111, prediction.Change[2], precision: 5); // P-Value score
-            Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 7); // Martingale score
+            Assert.Equal(0, prediction.Change[0], 0.0000001); // Alert
+            Assert.Equal(0.12216401100158691, prediction.Change[1], 0.00001); // Raw score
+            Assert.Equal(0.14823824685192111, prediction.Change[2], 0.00001); // P-Value score
+            Assert.Equal(1.5292508189989167E-07, prediction.Change[3], 0.0000001); // Martingale score
 
             // Load Model 1.
             ITransformer model2 = null;
@@ -342,10 +342,10 @@ namespace Microsoft.ML.Tests
             //Predict and expect the same result after checkpointing(Prediction #2).
             engine = model2.CreateTimeSeriesEngine<Data, Prediction>(ml);
             prediction = engine.Predict(new Data(1));
-            Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
-            Assert.Equal(0.12216401100158691, prediction.Change[1], precision: 5); // Raw score
-            Assert.Equal(0.14823824685192111, prediction.Change[2], precision: 5); // P-Value score
-            Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 5); // Martingale score
+            Assert.Equal(0, prediction.Change[0], 0.0000001); // Alert
+            Assert.Equal(0.12216401100158691, prediction.Change[1], 0.00001); // Raw score
+            Assert.Equal(0.14823824685192111, prediction.Change[2], 0.00001); // P-Value score
+            Assert.Equal(1.5292508189989167E-07, prediction.Change[3], 0.00001); // Martingale score
         }
 
         [NativeDependencyFact("MklImports")]
@@ -405,9 +405,9 @@ namespace Microsoft.ML.Tests
 
             for (int localIndex = 0; localIndex < 4; localIndex++)
             {
-                Assert.Equal(expectedForecast[localIndex], row.Forecast[localIndex], precision: 7);
-                Assert.Equal(minCnf[localIndex], row.MinCnf[localIndex], precision: 7);
-                Assert.Equal(maxCnf[localIndex], row.MaxCnf[localIndex], precision: 7);
+                Assert.Equal(expectedForecast[localIndex], row.Forecast[localIndex], 0.0000001);
+                Assert.Equal(minCnf[localIndex], row.MinCnf[localIndex], 0.0000001);
+                Assert.Equal(maxCnf[localIndex], row.MaxCnf[localIndex], 0.0000001);
             }
 
         }
@@ -645,7 +645,7 @@ namespace Microsoft.ML.Tests
                         if (k == 20)
                         {
                             Assert.Equal(1, prediction.Prediction[0]);
-                            Assert.Equal(5.00, prediction.Prediction[3], 2);
+                            Assert.Equal(5.00, prediction.Prediction[3], 0.01);
                         }
                         else
                             Assert.Equal(0, prediction.Prediction[0]);
@@ -655,10 +655,10 @@ namespace Microsoft.ML.Tests
                         if (k == 20)
                         {
                             Assert.Equal(1, prediction.Prediction[0]);
-                            Assert.Equal(5.00, prediction.Prediction[3], 2);
-                            Assert.Equal(5.00, prediction.Prediction[4], 2);
-                            Assert.Equal(5.01, prediction.Prediction[5], 2);
-                            Assert.Equal(4.99, prediction.Prediction[6], 2);
+                            Assert.Equal(5.00, prediction.Prediction[3], 0.01);
+                            Assert.Equal(5.00, prediction.Prediction[4], 0.01);
+                            Assert.Equal(5.01, prediction.Prediction[5], 0.01);
+                            Assert.Equal(4.99, prediction.Prediction[6], 0.01);
                             Assert.True(prediction.Prediction[6] > data[k].Value || data[k].Value > prediction.Prediction[5]);
                         }
                         else
