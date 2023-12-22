@@ -737,8 +737,8 @@ namespace Microsoft.ML.RunTests
                             probGetters[i](ref probs[i]);
                             predGetters[i](ref preds[i]);
                         }
-                        Assert.Equal(score, 0.4 * scores.Sum() / predCount, 5);
-                        Assert.Equal(prob, 1 / (1 + Math.Exp(-score)), 6);
+                        Assert.Equal(score, 0.4 * scores.Sum() / predCount, 0.00001);
+                        Assert.Equal(prob, 1 / (1 + Math.Exp(-score)), 0.000001);
                         Assert.True(pred == score > 0);
                     }
                 }
@@ -953,7 +953,7 @@ namespace Microsoft.ML.RunTests
                             for (int j = 0; j < predCount; j++)
                                 sum += vectorScores[j].GetItemOrDefault(i);
                             if (float.IsNaN(sum))
-                                Assert.Equal((double)vectorScore.GetItemOrDefault(i), (double)sum / predCount, 3);
+                                Assert.Equal((double)vectorScore.GetItemOrDefault(i), (double)sum / predCount, 0.001);
                         }
                         Assert.Equal(probs.Count(p => p >= prob), probs.Count(p => p <= prob));
                     }

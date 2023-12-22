@@ -35,7 +35,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [NER](xref:Microsoft.ML.TorchSharpCatalog.NameEntityRecognition(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,Int32,Int32,Int32,Microsoft.ML.TorchSharp.NasBert.BertArchitecture,Microsoft.ML.IDataView)).
+    /// To create this trainer, use [NER](xref:Microsoft.ML.TorchSharpCatalog.NamedEntityRecognition(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,Int32,Int32,Int32,Microsoft.ML.TorchSharp.NasBert.BertArchitecture,Microsoft.ML.IDataView)).
     ///
     /// ### Input and Output Columns
     /// The input label column data must be a Vector of [string](xref:Microsoft.ML.Data.TextDataViewType) type and the sentence columns must be of type<xref:Microsoft.ML.Data.TextDataViewType>.
@@ -54,7 +54,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
     /// | Exportable to ONNX | No |
     ///
     /// ### Training Algorithm Details
-    /// Trains a Deep Neural Network(DNN) by leveraging an existing pre-trained NAS-BERT roBERTa model for the purpose of name entity recognition.
+    /// Trains a Deep Neural Network(DNN) by leveraging an existing pre-trained NAS-BERT roBERTa model for the purpose of named entity recognition.
     /// ]]>
     /// </format>
     /// </remarks>
@@ -93,7 +93,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 BatchSize = batchSize,
                 MaxEpoch = maxEpochs,
                 ValidationSet = validationSet,
-                TaskType = BertTaskType.NameEntityRecognition
+                TaskType = BertTaskType.NamedEntityRecognition
             })
         {
         }
@@ -295,7 +295,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
             options.Sentence1ColumnName = ctx.LoadString();
             options.Sentence2ColumnName = ctx.LoadStringOrNull();
-            options.TaskType = BertTaskType.NameEntityRecognition;
+            options.TaskType = BertTaskType.NamedEntityRecognition;
 
             BinarySaver saver = new BinarySaver(env, new BinarySaver.Arguments());
             DataViewType type;

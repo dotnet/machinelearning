@@ -66,10 +66,10 @@ namespace Microsoft.ML.Tests
             {
                 row = enumerator.Current;
 
-                Assert.Equal(expectedValues[index++], row.Data[0], precision: 7);
-                Assert.Equal(expectedValues[index++], row.Data[1], precision: 7);
-                Assert.Equal(expectedValues[index++], row.Data[2], precision: 7);
-                Assert.Equal(expectedValues[index++], row.Data[3], precision: 7);
+                Assert.Equal(expectedValues[index++], row.Data[0], 0.0000001);
+                Assert.Equal(expectedValues[index++], row.Data[1], 0.0000001);
+                Assert.Equal(expectedValues[index++], row.Data[2], 0.0000001);
+                Assert.Equal(expectedValues[index++], row.Data[3], 0.0000001);
             }
         }
 

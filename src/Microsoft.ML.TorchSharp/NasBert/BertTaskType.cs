@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 
 namespace Microsoft.ML.TorchSharp.NasBert
@@ -17,7 +18,10 @@ namespace Microsoft.ML.TorchSharp.NasBert
         MaskedLM = 1,
         TextClassification = 2,
         SentenceRegression = 3,
-        NameEntityRecognition = 4,
+        NamedEntityRecognition = 4,
+        [Obsolete("Please use NamedEntityRecognition instead", false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        NameEntityRecognition = NamedEntityRecognition,
         QuestionAnswering = 5
     }
 }
