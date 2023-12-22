@@ -119,8 +119,8 @@ namespace Microsoft.ML.IntegrationTests
             var expectedThresholds = new float[] { 0.0911167f, 0.06509889f, 0.019873254f, 0.0361835f };
             for (int i = 0; i < finalTree.NumberOfNodes; ++i)
             {
-                Assert.Equal(expectedSplitGains[i], finalTree.SplitGains[i], 6);
-                Assert.Equal((double)expectedThresholds[i], (double)finalTree.NumericalSplitThresholds[i], 6);
+                Assert.Equal(expectedSplitGains[i], finalTree.SplitGains[i], 0.000001);
+                Assert.Equal((double)expectedThresholds[i], (double)finalTree.NumericalSplitThresholds[i], 0.000001);
             }
         }
 

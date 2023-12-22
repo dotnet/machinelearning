@@ -43,7 +43,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(binUpperBounds.Length, gam.NumberOfShapeFunctions);
 
             // Check the intercept
-            Assert.Equal(intercept, gam.Bias, 6);
+            Assert.Equal(intercept, gam.Bias, 0.000001);
 
             // Check that the binUpperBounds were made correctly
             CheckArrayOfArrayEquality(binUpperBounds, gam.GetBinUpperBounds());

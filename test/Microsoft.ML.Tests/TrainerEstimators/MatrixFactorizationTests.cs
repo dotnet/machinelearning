@@ -96,12 +96,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
-                    Assert.Equal(0.3041052520275116, leftMatrix[0], 4);
+                    Assert.Equal(0.3041052520275116, leftMatrix[0], 0.0001);
                 else
-                    Assert.Equal(0.309137582778931, leftMatrix[0], 4);
-                Assert.Equal(0.468956589698792, leftMatrix[leftMatrix.Count - 1], 4);
-                Assert.Equal(0.303486406803131, rightMatrix[0], 4);
-                Assert.Equal(0.503888845443726, rightMatrix[rightMatrix.Count - 1], 4);
+                    Assert.Equal(0.309137582778931, leftMatrix[0], 0.0001);
+                Assert.Equal(0.468956589698792, leftMatrix[leftMatrix.Count - 1], 0.0001);
+                Assert.Equal(0.303486406803131, rightMatrix[0], 0.0001);
+                Assert.Equal(0.503888845443726, rightMatrix[rightMatrix.Count - 1], 0.0001);
             }
             // Read the test data set as an IDataView
             var testData = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
@@ -687,13 +687,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             Assert.Equal(1u, firstElement.MatrixColumnIndex);
             Assert.Equal(1u, firstElement.MatrixRowIndex);
-            Assert.Equal(0.987113833, firstElement.Score, 3);
-            Assert.Equal(1d, firstElement.Value, 3);
+            Assert.Equal(0.987113833, firstElement.Score, 0.001);
+            Assert.Equal(1d, firstElement.Value, 0.001);
 
             Assert.Equal(60u, lastElement.MatrixColumnIndex);
             Assert.Equal(100u, lastElement.MatrixRowIndex);
-            Assert.Equal(0.149993762, lastElement.Score, 3);
-            Assert.Equal(0.15, lastElement.Value, 3);
+            Assert.Equal(0.149993762, lastElement.Score, 0.001);
+            Assert.Equal(0.15, lastElement.Value, 0.001);
 
             // Two columns with highest predicted score to the 2nd row (indexed by 1). If we view row index as user ID and column as game ID,
             // the following list contains the games recommended by the trained model. Note that sometime, you may want to exclude training
@@ -705,13 +705,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             Assert.Equal(1u, firstElement.MatrixColumnIndex);
             Assert.Equal(1u, firstElement.MatrixRowIndex);
-            Assert.Equal(0.987113833, firstElement.Score, 3);
-            Assert.Equal(1d, firstElement.Value, 3);
+            Assert.Equal(0.987113833, firstElement.Score, 0.001);
+            Assert.Equal(1d, firstElement.Value, 0.001);
 
             Assert.Equal(11u, lastElement.MatrixColumnIndex);
             Assert.Equal(1u, lastElement.MatrixRowIndex);
-            Assert.Equal(0.987113833, lastElement.Score, 3);
-            Assert.Equal(1d, lastElement.Value, 3);
+            Assert.Equal(0.987113833, lastElement.Score, 0.001);
+            Assert.Equal(1d, lastElement.Value, 0.001);
         }
 
         // A data structure used to encode a single value in matrix
@@ -842,7 +842,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Check if results computed by SSE code and MF predictor are the same.
             for (int i = 0; i < predictions.Count(); ++i)
-                Assert.Equal((double)predictions[i].Score, (double)valuesAtSecondColumn[i], 3);
+                Assert.Equal((double)predictions[i].Score, (double)valuesAtSecondColumn[i], 0.001);
         }
     }
 }

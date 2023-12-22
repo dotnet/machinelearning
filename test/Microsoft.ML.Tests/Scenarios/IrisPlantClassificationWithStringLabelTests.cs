@@ -54,9 +54,9 @@ namespace Microsoft.ML.Scenarios
                 PetalWidth = 0.2f,
             });
 
-            Assert.Equal(1d, prediction.PredictedScores[0], 2);
-            Assert.Equal(0d, prediction.PredictedScores[1], 2);
-            Assert.Equal(0d, prediction.PredictedScores[2], 2);
+            Assert.Equal(1d, prediction.PredictedScores[0], 0.01);
+            Assert.Equal(0d, prediction.PredictedScores[1], 0.01);
+            Assert.Equal(0d, prediction.PredictedScores[2], 0.01);
             Assert.True(prediction.PredictedPlant == "Iris-setosa");
 
             prediction = predictFunction.Predict(new IrisDataWithStringLabel()
@@ -67,9 +67,9 @@ namespace Microsoft.ML.Scenarios
                 PetalWidth = 2.2f,
             });
 
-            Assert.Equal(0d, prediction.PredictedScores[0], 2);
-            Assert.Equal(0d, prediction.PredictedScores[1], 2);
-            Assert.Equal(1d, prediction.PredictedScores[2], 2);
+            Assert.Equal(0d, prediction.PredictedScores[0], 0.01);
+            Assert.Equal(0d, prediction.PredictedScores[1], 0.01);
+            Assert.Equal(1d, prediction.PredictedScores[2], 0.01);
             Assert.True(prediction.PredictedPlant == "Iris-virginica");
 
             prediction = predictFunction.Predict(new IrisDataWithStringLabel()
@@ -80,9 +80,9 @@ namespace Microsoft.ML.Scenarios
                 PetalWidth = 1.2f,
             });
 
-            Assert.Equal(.2, prediction.PredictedScores[0], 1);
-            Assert.Equal(.8, prediction.PredictedScores[1], 1);
-            Assert.Equal(0d, prediction.PredictedScores[2], 2);
+            Assert.Equal(.2, prediction.PredictedScores[0], 0.1);
+            Assert.Equal(.8, prediction.PredictedScores[1], 0.1);
+            Assert.Equal(0d, prediction.PredictedScores[2], 0.01);
             Assert.True(prediction.PredictedPlant == "Iris-versicolor");
 
             // Evaluate the trained pipeline
@@ -90,15 +90,15 @@ namespace Microsoft.ML.Scenarios
             var metrics = mlContext.MulticlassClassification.Evaluate(predicted, topKPredictionCount: 3);
 
             Assert.Equal(.98, metrics.MacroAccuracy);
-            Assert.Equal(.98, metrics.MicroAccuracy, 2);
-            Assert.Equal(.06, metrics.LogLoss, 2);
+            Assert.Equal(.98, metrics.MicroAccuracy, 0.01);
+            Assert.Equal(.06, metrics.LogLoss, 0.01);
             Assert.InRange(metrics.LogLossReduction, 0.94, 0.96);
             Assert.Equal(1, metrics.TopKAccuracy);
 
             Assert.Equal(3, metrics.PerClassLogLoss.Count);
-            Assert.Equal(0d, metrics.PerClassLogLoss[0], 1);
-            Assert.Equal(.1, metrics.PerClassLogLoss[1], 1);
-            Assert.Equal(.1, metrics.PerClassLogLoss[2], 1);
+            Assert.Equal(0d, metrics.PerClassLogLoss[0], 0.1);
+            Assert.Equal(.1, metrics.PerClassLogLoss[1], 0.1);
+            Assert.Equal(.1, metrics.PerClassLogLoss[2], 0.1);
         }
 
         private class IrisDataWithStringLabel
