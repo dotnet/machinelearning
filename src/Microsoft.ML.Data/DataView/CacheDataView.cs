@@ -1320,7 +1320,7 @@ namespace Microsoft.ML.Data
 
             private sealed class ImplVec<T> : ColumnCache<VBuffer<T>>
             {
-                // The number of rows cached.
+                // The number of rows cached.  Only to be accesssed by the Caching thread.
                 private int _rowCount;
                 // For a given row [r], elements at [r] and [r+1] specify the inclusive
                 // and exclusive range of values for the two big arrays. In the case
@@ -1384,10 +1384,10 @@ namespace Microsoft.ML.Data
 
                 public override void Fetch(int idx, ref VBuffer<T> value)
                 {
-                    Ctx.Assert(0 <= idx && idx < _rowCount);
-                    Ctx.Assert(_rowCount < Utils.Size(_indexBoundaries));
-                    Ctx.Assert(_rowCount < Utils.Size(_valueBoundaries));
-                    Ctx.Assert(_uniformLength > 0 || _rowCount <= Utils.Size(_lengths));
+                    Ctx.Assert(0 <= idx);
+                    Ctx.Assert((idx + 1) < Utils.Size(_indexBoundaries));
+                    Ctx.Assert((idx + 1) < Utils.Size(_valueBoundaries));
+                    Ctx.Assert(_uniformLength > 0 || idx < Utils.Size(_lengths));
 
                     Ctx.Assert(_indexBoundaries[idx + 1] - _indexBoundaries[idx] <= int.MaxValue);
                     int indexCount = (int)(_indexBoundaries[idx + 1] - _indexBoundaries[idx]);
