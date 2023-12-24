@@ -27,6 +27,7 @@ namespace Microsoft.ML.Tokenizers
         private readonly IReadOnlyDictionary<char, char> _unicodeToByte;
         private readonly string[] _charToString;
         private readonly Cache<string, IReadOnlyList<Token>> _cache;
+        private readonly char _startChar = '\u0120';
 
         /// <summary>
         /// Construct tokenizer object to use with the English Robert model.
@@ -591,6 +592,13 @@ namespace Microsoft.ML.Tokenizers
         public override bool IsValidChar(char ch)
         {
             return _byteToUnicode.ContainsKey(ch);
+        }
+
+        public override bool IsFirstTokenInWord(string token)
+        {
+            if (token == null)
+                return true;
+            return token.Length != 0 && token[0] == _startChar;
         }
     }
 

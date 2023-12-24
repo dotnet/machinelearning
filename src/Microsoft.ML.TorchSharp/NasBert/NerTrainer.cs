@@ -19,6 +19,7 @@ using Microsoft.ML.TorchSharp.NasBert;
 using Microsoft.ML.TorchSharp.NasBert.Models;
 using TorchSharp;
 using static Microsoft.ML.TorchSharp.NasBert.NasBertTrainer;
+using static TorchSharp.torch;
 
 [assembly: LoadableClass(typeof(NerTransformer), null, typeof(SignatureLoadModel),
     NerTransformer.UserName, NerTransformer.LoaderSignature)]
@@ -69,7 +70,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 EncoderOutputDim = 384;
                 EmbeddingDim = 128;
                 Arches = new int[] { 15, 16, 14, 0, 0, 0, 15, 16, 14, 0, 0, 0, 17, 14, 15, 0, 0, 0, 17, 14, 15, 0, 0, 0 };
-                TaskType = BertTaskType.NameEntityRecognition;
+                TaskType = BertTaskType.NamedEntityRecognition;
             }
         }
         internal NerTrainer(IHostEnvironment env, NerOptions options) : base(env, options)
@@ -94,7 +95,6 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 BatchSize = batchSize,
                 MaxEpoch = maxEpochs,
                 ValidationSet = validationSet,
-                TaskType = BertTaskType.NamedEntityRecognition
             })
         {
         }
@@ -112,6 +112,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
         private protected class Trainer : NasBertTrainerBase
         {
             private const string ModelUrlString = "models/pretrained_NasBert_14M_encoder.tsm";
+            internal static readonly int[] ZeroArray = new int[] { 0 /* InitToken */};
 
             public Trainer(TorchSharpBaseTrainer<VBuffer<uint>, TargetType> parent, IChannel ch, IDataView input) : base(parent, ch, input, ModelUrlString)
             {
@@ -154,6 +155,40 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 }
 
                 return torch.tensor(targetArray, device: Device);
+            }
+
+            private protected override torch.Tensor PrepareRowTensor(ref VBuffer<uint> target)
+            {
+                ReadOnlyMemory<char> sentenceRom = default;
+                Sentence1Getter(ref sentenceRom);
+                var sentence = sentenceRom.ToString();
+                Tensor t;
+                var encoding = Tokenizer.Encode(sentence);
+
+                if (target.Length != encoding.Tokens.Count)
+                {
+                    var targetIndex = 0;
+                    var targetEditor = VBufferEditor.Create(ref target, encoding.Tokens.Count);
+                    var newValues = targetEditor.Values;
+                    for (var i = 0; i < encoding.Tokens.Count; i++)
+                    {
+                        if (Tokenizer.Model.IsFirstTokenInWord(encoding.Tokens[i]))
+                        {
+                            newValues[i] = target.GetItemOrDefault(++targetIndex);
+                        }
+                        else
+                        {
+                            newValues[i] = target.GetItemOrDefault(targetIndex);
+                        }
+                    }
+                    target = targetEditor.Commit();
+                }
+                t = torch.tensor((ZeroArray).Concat(Tokenizer.RobertaModel().IdsToOccurrenceRanks(encoding.Ids)).ToList(), device: Device);
+
+                if (t.NumberOfElements > 512)
+                    t = t.slice(0, 0, 512, 1);
+
+                return t;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -335,6 +370,41 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
             }
 
+            private void CondenseOutput(ref VBuffer<UInt32> dst, string sentence, Tokenizer tokenizer, TensorCacher outputCacher)
+            {
+                var pre = tokenizer.PreTokenizer.PreTokenize(sentence);
+                TokenizerResult encoding = tokenizer.Encode(sentence);
+
+                var argmax = (outputCacher as BertTensorCacher).Result.argmax(-1);
+                var prediction = argmax.ToArray<long>();
+
+                var targetIndex = 0;
+                // Figure out actual count of output tokens
+                for (var i = 0; i < encoding.Tokens.Count; i++)
+                {
+                    if (tokenizer.Model.IsFirstTokenInWord(encoding.Tokens[i]))
+                    {
+                        targetIndex++;
+                    }
+                }
+
+                var editor = VBufferEditor.Create(ref dst, targetIndex + 1);
+                var newValues = editor.Values;
+                targetIndex = 0;
+
+                newValues[targetIndex++] = (uint)prediction[0];
+
+                for (var i = 1; i < encoding.Tokens.Count; i++)
+                {
+                    if (tokenizer.Model.IsFirstTokenInWord(encoding.Tokens[i]))
+                    {
+                        newValues[targetIndex++] = (uint)prediction[i];
+                    }
+                }
+
+                dst = editor.Commit();
+            }
+
             private Delegate MakePredictedLabelGetter(DataViewRow input, IChannel ch, TensorCacher outputCacher)
             {
                 ValueGetter<ReadOnlyMemory<char>> getSentence1 = default;
@@ -354,13 +424,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     var argmax = (outputCacher as BertTensorCacher).Result.argmax(-1);
                     var prediction = argmax.ToArray<long>();
 
-                    var editor = VBufferEditor.Create(ref dst, prediction.Length - 1);
-                    for (int i = 1; i < prediction.Length; i++)
-                    {
-                        editor.Values[i - 1] = (uint)prediction[i];
-                    }
-
-                    dst = editor.Commit();
+                    CondenseOutput(ref dst, sentence1.ToString(), tokenizer, outputCacher);
                 };
 
                 return classification;
