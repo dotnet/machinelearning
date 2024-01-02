@@ -46,7 +46,7 @@ namespace Microsoft.ML.AutoML.Test
         public void TrainerNotNeedNormalization()
         {
             var pipeline = BuildSuggestedPipeline(BuildLightGbmTrainer());
-            Assert.Equal(0, pipeline.Transforms.Count);
+            Assert.Empty(pipeline.Transforms);
         }
 
         private static void TestPipelineBuilderCaching(
