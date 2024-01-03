@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tokenizers
         private readonly IReadOnlyDictionary<char, char> _unicodeToByte;
         private readonly string[] _charToString;
         private readonly Cache<string, IReadOnlyList<Token>> _cache;
-        private readonly char _startChar = '\u0120';
+        private const char StartChar = (char)(' ' + 256);
 
         /// <summary>
         /// Construct tokenizer object to use with the English Robert model.
