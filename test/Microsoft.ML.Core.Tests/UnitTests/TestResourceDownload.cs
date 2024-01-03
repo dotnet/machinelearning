@@ -14,7 +14,7 @@ using Microsoft.ML.Runtime;
 using Xunit;
 using Xunit.Abstractions;
 
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
+//[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace Microsoft.ML.Core.Tests.UnitTests
 {
