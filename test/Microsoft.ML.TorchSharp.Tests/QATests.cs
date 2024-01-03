@@ -4,24 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using Apache.Arrow;
-using ICSharpCode.SharpZipLib.Tar;
-using Microsoft.Data.Analysis;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TorchSharp;
-using Microsoft.ML.TorchSharp.NasBert;
-using TorchSharp;
-using TorchSharp.Modules;
 using Xunit;
 using Xunit.Abstractions;
-using static TorchSharp.torch.utils;
 
 namespace Microsoft.ML.Tests
 {
