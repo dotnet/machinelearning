@@ -584,7 +584,9 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 getSentence1(ref sentence1);
                 if (getSentence2 == default)
                 {
-                    return InitTokenArray.Concat(tokenizer.EncodeToConverted(sentence1.ToString())).ToList();
+                    List<int> newList = new List<int>(tokenizer.EncodeToConverted(sentence1.ToString()));
+                    newList.Insert(0, 0);
+                    return newList;
                 }
                 else
                 {
