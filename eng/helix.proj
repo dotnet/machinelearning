@@ -70,6 +70,8 @@
     <MyProjects Remove="..\test\RemoteExecutorConsoleApp\RemoteExecutorConsoleApp.csproj" />
     <MyProjects Remove="..\test\Microsoft.ML.NugetPackageVersionUpdater\Microsoft.ML.NugetPackageVersionUpdater.csproj" />
     <MyProjects Remove="..\test\Microsoft.ML.Benchmarks.Tests\Microsoft.ML.Benchmarks.Tests.csproj" />
+    <MyProjects Remove="..\test\Microsoft.ML.TorchSharp.Tests\Microsoft.ML.TorchSharp.Tests.csproj" Condition="'$(BuildArchitecture)' != 'x64'"/>
+    <MyProjects Remove="..\test\Microsoft.ML.TensorFlow.Tests\Microsoft.ML.TensorFlow.Tests.csproj" Condition="'$(BuildArchitecture)' != 'x64'"/>
   </ItemGroup>
 
   <ItemGroup>
