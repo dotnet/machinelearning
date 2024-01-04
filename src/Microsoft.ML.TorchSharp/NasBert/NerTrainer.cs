@@ -62,6 +62,8 @@ namespace Microsoft.ML.TorchSharp.NasBert
     ///
     public class NerTrainer : NasBertTrainer<VBuffer<uint>, TargetType>
     {
+        private const char StartChar = (char)(' ' + 256);
+
         public class NerOptions : NasBertOptions
         {
             public NerOptions()
@@ -108,6 +110,8 @@ namespace Microsoft.ML.TorchSharp.NasBert
         {
             return new NerTransformer(host, options as NasBertOptions, model as NasBertModel, labelColumn);
         }
+
+        internal static bool TokenStartsWithSpace(string token) => token is null || (token.Length != 0 && token[0] == StartChar);
 
         private protected class Trainer : NasBertTrainerBase
         {
@@ -172,7 +176,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     var newValues = targetEditor.Values;
                     for (var i = 0; i < encoding.Tokens.Count; i++)
                     {
-                        if (Tokenizer.Model.IsFirstTokenInWord(encoding.Tokens[i]))
+                        if (NerTrainer.TokenStartsWithSpace(encoding.Tokens[i]))
                         {
                             newValues[i] = target.GetItemOrDefault(++targetIndex);
                         }
@@ -382,7 +386,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 // Figure out actual count of output tokens
                 for (var i = 0; i < encoding.Tokens.Count; i++)
                 {
-                    if (tokenizer.Model.IsFirstTokenInWord(encoding.Tokens[i]))
+                    if (NerTrainer.TokenStartsWithSpace(encoding.Tokens[i]))
                     {
                         targetIndex++;
                     }
@@ -396,7 +400,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
                 for (var i = 1; i < encoding.Tokens.Count; i++)
                 {
-                    if (tokenizer.Model.IsFirstTokenInWord(encoding.Tokens[i]))
+                    if (NerTrainer.TokenStartsWithSpace(encoding.Tokens[i]))
                     {
                         newValues[targetIndex++] = (uint)prediction[i];
                     }

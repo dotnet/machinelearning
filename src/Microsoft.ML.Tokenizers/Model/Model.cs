@@ -66,13 +66,5 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="ch"></param>
         /// <returns></returns>
         public abstract bool IsValidChar(char ch);
-
-        /// <summary>
-        /// Returns if the first character of the token is part of the actual word or not.
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public abstract bool IsFirstTokenInWord(string token);
     }
-
 }
