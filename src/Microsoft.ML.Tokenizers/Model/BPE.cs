@@ -456,11 +456,6 @@ namespace Microsoft.ML.Tokenizers
             throw new NotImplementedException();
         }
 
-        public override bool IsFirstTokenInWord(string token)
-        {
-            throw new NotImplementedException();
-        }
-
         internal static readonly List<Token> EmptyTokensList = new();
     }
 }
