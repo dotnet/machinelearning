@@ -4,8 +4,6 @@
     <StrongNameKeyId>Test</StrongNameKeyId>
     <NoWarn>$(NoWarn)</NoWarn>
 
-    <!-- Remove once we have resolved the TorchSharp issue. -->
-    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
 
   <!-- Import the test signing certificate -->
