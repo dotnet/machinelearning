@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IncludeInPackage>Microsoft.ML.Core</IncludeInPackage>
     <DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
     <NoWarn>MSML_ContractsCheckMessageNotLiteralOrIdentifier</NoWarn>
     <LangVersion>9.0</LangVersion>

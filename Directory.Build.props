@@ -37,6 +37,14 @@
   <PropertyGroup>
     <PackageAssetsPath>$(ArtifactsDir)pkgassets/</PackageAssetsPath>
     <PkgDir>$(RepoRoot)pkg/</PkgDir>
+  
+    <Authors>Microsoft</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://dot.net/ml</PackageProjectUrl>
+    <PackageIcon>mlnetlogo.png</PackageIcon>
+    <PackageReleaseNotes>https://aka.ms/mlnetreleasenotes</PackageReleaseNotes>
+    <!-- space separated -->
+    <PackageTags>ML.NET ML Machine Learning</PackageTags>
   </PropertyGroup>
 
   <!-- Need to explicitly set these properties for the -net6_0 or -netfx configurations becuase they are typically based off 'Debug' or 'Release' configs -->
@@ -60,4 +68,12 @@
     <!-- Optional: Build symbol packages (.symbols.nupkg) to distribute the PDB containing Source Link -->
     <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
+
+  <!-- Work around https://github.com/NuGet/Home/issues/6091 
+       TODO: Determine if this is still needed-->
+  <ItemDefinitionGroup>
+    <PackageReference>
+      <PrivateAssets>None</PrivateAssets>
+    </PackageReference>
+  </ItemDefinitionGroup>
 </Project>

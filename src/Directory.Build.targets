@@ -2,30 +2,6 @@
 
   <Import Project="..\Directory.Build.targets" />
 
-  <Target Name="PreparePackageAssets" Condition="'$(CopyPackageAssets)' == 'true'"
-          AfterTargets="Build">
-
-    <ItemGroup Condition="'$(IncludeInPackage)' != ''">
-      <PackageAsset Include="$(TargetPath)"
-                    RelativePath="$(IncludeInPackage)\lib\$(TargetFramework)" />
-      <PackageAsset Include="@(DebugSymbolsProjectOutputGroupOutput)"
-                    RelativePath="$(IncludeInPackage)\lib\$(TargetFramework)" />
-      <PackageAsset Include="@(DocumentationProjectOutputGroupOutput)"
-                    RelativePath="$(IncludeInPackage)\lib\$(TargetFramework)" />
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(IncludeAnalyzerInPackage)' != ''">
-      <PackageAsset Include="$(TargetPath)"
-                    RelativePath="$(IncludeAnalyzerInPackage)\analyzers\dotnet\cs" />
-      <PackageAsset Include="@(DebugSymbolsProjectOutputGroupOutput)"
-                    RelativePath="$(IncludeAnalyzerInPackage)\analyzers\dotnet\cs" />
-    </ItemGroup>
-
-    <Copy SourceFiles="@(PackageAsset)"
-          DestinationFolder="$(PackageAssetsPath)%(PackageAsset.RelativePath)" />
-
-  </Target>
-
   <!-- API Compat -->
   <PropertyGroup Condition="'$(IsPackable)' == 'true'">
     <!-- Enable API compat for any packages unless they've set EnablePackageValidation -->

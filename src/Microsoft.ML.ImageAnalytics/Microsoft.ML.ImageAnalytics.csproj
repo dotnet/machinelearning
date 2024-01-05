@@ -1,9 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IncludeInPackage>Microsoft.ML.ImageAnalytics</IncludeInPackage>
+    <IsPackable>true</IsPackable>
     <PackageDescription>ML.NET component for Image support</PackageDescription>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -20,12 +19,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
 
-    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" >
-      <PrivateAssets>all</PrivateAssets>
-    </ProjectReference>
-    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" >
-      <PrivateAssets>all</PrivateAssets>
-    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

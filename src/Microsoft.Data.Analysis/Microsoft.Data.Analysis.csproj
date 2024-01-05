@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SuppressFinalPackageVersion>false</SuppressFinalPackageVersion>
+    <IsPackable>true</IsPackable>
     <Description>This package contains easy-to-use and high-performance libraries for data analysis and transformation.</Description>
     <PackageReleaseNotes>Initial preview of robust and extensible types and algorithms for manipulating structured data that supports aggregations, statistical funtions, sorting, grouping, joins, merges, handling missing values and more. </PackageReleaseNotes>
     <PackageTags>ML.NET ML Machine Learning Data Science DataFrame Preparation DataView Analytics Exploration</PackageTags>
@@ -16,7 +16,9 @@
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddMDAIToInteractiveExtensionsFolder</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
-  <!-- The following properties are set to package M.D.A.Interactive with the M.D.A nuget package. If M.D.A.I undergoes TFM or dependency changes, we need to update the TargetFramework passed in below-->
+  <!-- The following properties are set to package M.D.A.Interactive with the M.D.A nuget package.
+       We cannot include it with a ProjectReference, since that would create a circular dependency.
+       If M.D.A.I undergoes TFM or dependency changes, we need to update the TargetFramework passed in below-->
   <Target Name="AddMDAIToInteractiveExtensionsFolder">
     <MSBuild Projects="./../Microsoft.Data.Analysis.Interactive/Microsoft.Data.Analysis.Interactive.csproj" Targets="_GetBuildOutputFilesWithTfm" Properties="TargetFramework=net6.0">
       <!-- Manually hardcoding the TargetFramework to netcoreapp3.1 as that is the one that MDAI targets -->

@@ -1,12 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$(RepoRoot)eng/pkg/Pack.props" />
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-    <IncludeInPackage>Microsoft.ML.CpuMath</IncludeInPackage>
+    <IsPackable>true</IsPackable>
     <PackageDescription>Microsoft.ML.CpuMath contains optimized math routines for ML.NET.</PackageDescription>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);CPUMATH_INFRASTRUCTURE</DefineConstants>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\Microsoft.ML.Core\Utilities\Contracts.cs" />
@@ -33,12 +31,4 @@
   <ItemGroup>
     <PackageReference Include="System.Numerics.Tensors" Version="$(SystemNumericsTensorsVersion)" />
   </ItemGroup>
-  <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
-    <ItemGroup Condition="'$(TargetFramework)' != 'net6.0'">
-      <!--Include native PDBs-->
-      <!--The path needed to be hardcoded for this to work on our publishing CI-->
-      <BuildOutputInPackage Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\nativeassets\netstandard2.0\CpuMathNative.pdb')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x86\nativeassets\netstandard2.0\CpuMathNative.pdb" TargetPath="..\..\runtimes\win-x86\nativeassets\netstandard2.0" />
-      <BuildOutputInPackage Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\nativeassets\netstandard2.0\CpuMathNative.pdb')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\win-x64\nativeassets\netstandard2.0\CpuMathNative.pdb" TargetPath="..\..\runtimes\win-x64\nativeassets\netstandard2.0" />
-    </ItemGroup>
-  </Target>
 </Project>
