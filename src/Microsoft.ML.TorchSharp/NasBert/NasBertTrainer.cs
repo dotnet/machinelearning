@@ -585,6 +585,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 if (getSentence2 == default)
                 {
                     List<int> newList = new List<int>(tokenizer.EncodeToConverted(sentence1.ToString()));
+                    // 0 Is the init token and must be at the beginning.
                     newList.Insert(0, 0);
                     return newList;
                 }
