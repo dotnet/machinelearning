@@ -240,7 +240,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 return DataUtils.CollateTokens(inputTensors, Tokenizer.RobertaModel().PadIndex, device: Device);
             }
 
-            private protected override torch.Tensor PrepareRowTensor()
+            private protected override torch.Tensor PrepareRowTensor(ref TLabelCol target)
             {
                 ReadOnlyMemory<char> sentence1 = default;
                 Sentence1Getter(ref sentence1);
@@ -494,7 +494,8 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
             private static readonly FuncInstanceMethodInfo1<NasBertMapper, DataViewSchema.DetachedColumn, Delegate> _makeLabelAnnotationGetter
                 = FuncInstanceMethodInfo1<NasBertMapper, DataViewSchema.DetachedColumn, Delegate>.Create(target => target.GetLabelAnnotations<int>);
-
+            internal static readonly int[] InitTokenArray = new[] { 0 /* InitToken */ };
+            internal static readonly int[] SeperatorTokenArray = new[] { 2 /* SeperatorToken */ };
 
             public NasBertMapper(TorchSharpBaseTransformer<TLabelCol, TTargetsCol> parent, DataViewSchema inputSchema) :
                 base(parent, inputSchema)
@@ -583,13 +584,16 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 getSentence1(ref sentence1);
                 if (getSentence2 == default)
                 {
-                    return new[] { 0 /* InitToken */ }.Concat(tokenizer.EncodeToConverted(sentence1.ToString())).ToList();
+                    List<int> newList = new List<int>(tokenizer.EncodeToConverted(sentence1.ToString()));
+                    // 0 Is the init token and must be at the beginning.
+                    newList.Insert(0, 0);
+                    return newList;
                 }
                 else
                 {
                     getSentence2(ref sentence2);
-                    return new[] { 0 /* InitToken */ }.Concat(tokenizer.EncodeToConverted(sentence1.ToString()))
-                                              .Concat(new[] { 2 /* SeperatorToken */ }).Concat(tokenizer.EncodeToConverted(sentence2.ToString())).ToList();
+                    return InitTokenArray.Concat(tokenizer.EncodeToConverted(sentence1.ToString()))
+                                              .Concat(SeperatorTokenArray).Concat(tokenizer.EncodeToConverted(sentence2.ToString())).ToList();
                 }
             }
 
