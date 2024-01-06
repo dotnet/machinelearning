@@ -2,7 +2,6 @@
   <PropertyGroup>
     <AssemblyName>Microsoft.ML.TensorFlow.Tests</AssemblyName>
     <StrongNameKeyId>Test</StrongNameKeyId>
-    <NoWarn>$(NoWarn)</NoWarn>
 
   </PropertyGroup>
 
