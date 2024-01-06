@@ -2,7 +2,6 @@
   <PropertyGroup>
     <AssemblyName>Microsoft.ML.TorchSharp.Tests</AssemblyName>
     <StrongNameKeyId>Test</StrongNameKeyId>
-    <NoWarn>$(NoWarn)</NoWarn>
 
   </PropertyGroup>
 
