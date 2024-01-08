@@ -233,6 +233,14 @@ namespace Microsoft.ML.Tests
                 connection.Open();
                 using (var command = new SQLiteCommand(connection))
                 {
+                    // Make sure the table doesn't exist.
+                    command.CommandText = """
+                        BEGIN;
+                        DROP TABLE IF EXISTS Datetime;
+                        COMMIT;
+                        """;
+                    command.ExecuteNonQuery();
+
                     command.CommandText = """
                         BEGIN;
                         CREATE TABLE IF NOT EXISTS Datetime (datetime Datetime NULL);
