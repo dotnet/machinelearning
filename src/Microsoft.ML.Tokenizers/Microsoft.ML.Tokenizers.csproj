@@ -10,4 +10,5 @@
   <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
   </ItemGroup>
+
 </Project>

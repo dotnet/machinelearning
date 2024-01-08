@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <DefineConstants>CORECLR</DefineConstants>
   </PropertyGroup>
@@ -14,4 +15,5 @@
     <NativeAssemblyReference Include="MklImports" />
     <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
+
 </Project>

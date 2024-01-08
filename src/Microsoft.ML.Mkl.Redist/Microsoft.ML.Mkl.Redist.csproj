@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.Build.NoTargets">
+
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <IsPackable>true</IsPackable>
@@ -25,4 +26,5 @@
     <Content Include="$(RepoRoot)eng\pkg\_._" Pack="true" PackagePath="lib\netstandard2.0\" />
     <Content Include="$(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsVersion)\LICENSE.txt" Pack="true" PackagePath="" />
   </ItemGroup>
+
 </Project>

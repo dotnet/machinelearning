@@ -16,4 +16,5 @@
   <ItemGroup>
     <Content Include="$(RepoRoot)eng\pkg\DnnImageFeaturizer.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
   </ItemGroup>
+
 </Project>

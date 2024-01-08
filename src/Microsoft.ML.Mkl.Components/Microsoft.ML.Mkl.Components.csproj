@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -22,4 +23,5 @@
     dependancy on MlNetMklDeps. From the users prospective, the Microsoft.ML.Mkl.Components package depends on Microsoft.ML.Mkl.Redist. -->
     <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsVersion)" PrivateAssets="all" />
   </ItemGroup>
+
 </Project>

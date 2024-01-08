@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -18,7 +19,7 @@
 
   <!-- The following properties are set to package M.D.A.Interactive with the M.D.A nuget package.
        We cannot include it with a ProjectReference, since that would create a circular dependency.
-       If M.D.A.I undergoes TFM or dependency changes, we need to update the TargetFramework passed in below-->
+       If M.D.A.I undergoes TFM or dependency changes, we need to update the TargetFramework passed in below. -->
   <Target Name="AddMDAIToInteractiveExtensionsFolder">
     <MSBuild Projects="./../Microsoft.Data.Analysis.Interactive/Microsoft.Data.Analysis.Interactive.csproj" Targets="_GetBuildOutputFilesWithTfm" Properties="TargetFramework=net6.0">
       <!-- Manually hardcoding the TargetFramework to netcoreapp3.1 as that is the one that MDAI targets -->
@@ -239,4 +240,5 @@
       <CustomToolNamespace>Microsoft.Data</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
+
 </Project>

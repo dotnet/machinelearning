@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -14,4 +15,5 @@
     <Content Include="$(RepoRoot)eng\pkg\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
     <Content Include="$(RepoRoot)src\Native\MatrixFactorizationNative\libmf\COPYRIGHT" Pack="true" PackagePath="" />
   </ItemGroup>
+
 </Project>
