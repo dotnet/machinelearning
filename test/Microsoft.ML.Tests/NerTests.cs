@@ -54,7 +54,7 @@ namespace Microsoft.ML.Tests
                 }));
             var chain = new EstimatorChain<ITransformer>();
             var estimator = chain.Append(ML.Transforms.Conversion.MapValueToKey("Label", keyData: labels))
-               .Append(ML.MulticlassClassification.Trainers.NameEntityRecognition(outputColumnName: "outputColumn"))
+               .Append(ML.MulticlassClassification.Trainers.NamedEntityRecognition(outputColumnName: "outputColumn"))
                .Append(ML.Transforms.Conversion.MapKeyToValue("outputColumn"));
 
             var estimatorSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
