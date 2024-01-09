@@ -5,7 +5,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <!-- We need ProjectReferences to provide output since we're bundling the output -->
     <NoTargetsDoNotReferenceOutputAssemblies>false</NoTargetsDoNotReferenceOutputAssemblies>
-    <!-- Framwork references are reuquired for APICompat -->
+    <!-- Only include directly referenced projects -->
+    <_FindDependencies >false</_FindDependencies >
+    <!-- Framework references are required for APICompat -->
     <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
     <!-- This must be set to include any PDBs -->
     <IncludeBuildOutput>true</IncludeBuildOutput>
