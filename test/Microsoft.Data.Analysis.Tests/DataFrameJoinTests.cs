@@ -24,7 +24,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             // Assert
 
-            Assert.Equal(0, intersection.Count);
+            Assert.Empty(intersection);
         }
 
         [Fact]
@@ -47,7 +47,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             // Assert
 
-            Assert.Equal(0, intersection.Count);
+            Assert.Empty(intersection);
         }
 
         [Fact]
@@ -70,7 +70,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             // Assert
 
-            Assert.Equal(0, intersection.Count);
+            Assert.Empty(intersection);
         }
 
         [Fact]
@@ -101,7 +101,7 @@ namespace Microsoft.Data.Analysis.Tests
 
             // Assert
 
-            Assert.Equal(0, intersection.Count);
+            Assert.Empty(intersection);
         }
 
         [Fact]

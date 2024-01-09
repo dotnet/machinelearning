@@ -557,7 +557,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 double sum = 0;
                 for (int j = 0; j < _classNumber; ++j)
                 {
-                    Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 6);
+                    Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 0.000001);
                     if (float.IsNaN((float)nativeResult1[j + i * _classNumber]))
                         continue;
                     sum += MathUtils.SigmoidSlow(sigmoidScale * (float)nativeResult1[j + i * _classNumber]);
@@ -565,7 +565,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 for (int j = 0; j < _classNumber; ++j)
                 {
                     double prob = MathUtils.SigmoidSlow(sigmoidScale * (float)nativeResult1[j + i * _classNumber]);
-                    Assert.Equal(prob / sum, mlnetPredictions[i].Score[j], 6);
+                    Assert.Equal(prob / sum, mlnetPredictions[i].Score[j], 0.000001);
                 }
             }
 
@@ -593,7 +593,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 double sum = 0;
                 for (int j = 0; j < _classNumber; ++j)
                 {
-                    Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 6);
+                    Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 0.000001);
                     if (float.IsNaN((float)nativeResult1[j + i * _classNumber]))
                         continue;
                     sum += MathUtils.SigmoidSlow((float)sigmoidScale * (float)nativeResult1[j + i * _classNumber]);
@@ -601,7 +601,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 for (int j = 0; j < _classNumber; ++j)
                 {
                     double prob = MathUtils.SigmoidSlow((float)sigmoidScale * (float)nativeResult1[j + i * _classNumber]);
-                    Assert.Equal(prob / sum, mlnetPredictions[i].Score[j], 6);
+                    Assert.Equal(prob / sum, mlnetPredictions[i].Score[j], 0.000001);
                 }
             }
 
@@ -664,13 +664,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 double sum = 0;
                 for (int j = 0; j < _classNumber; ++j)
                 {
-                    Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 6);
+                    Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 0.000001);
                     sum += Math.Exp((float)nativeResult1[j + i * _classNumber]);
                 }
                 for (int j = 0; j < _classNumber; ++j)
                 {
                     double prob = Math.Exp(nativeResult1[j + i * _classNumber]);
-                    Assert.Equal(prob / sum, mlnetPredictions[i].Score[j], 6);
+                    Assert.Equal(prob / sum, mlnetPredictions[i].Score[j], 0.000001);
                 }
             }
 
@@ -693,13 +693,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 double sum = 0;
                 for (int j = 0; j < _classNumber; ++j)
                 {
-                    Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 6);
+                    Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 0.000001);
                     sum += Math.Exp((float)nativeResult1[j + i * _classNumber]);
                 }
                 for (int j = 0; j < _classNumber; ++j)
                 {
                     double prob = Math.Exp(nativeResult1[j + i * _classNumber]);
-                    Assert.Equal(prob / sum, mlnetPredictions[i].Score[j], 6);
+                    Assert.Equal(prob / sum, mlnetPredictions[i].Score[j], 0.000001);
                 }
             }
 

@@ -11,7 +11,6 @@ parameters:
   WarnAsError: ''
   TestTargetFramework: ''
   HelixConfiguration: ''                 # optional -- additional property attached to a job
-  IncludeDotNetCli: true                 # optional -- true will download a version of the .NET CLI onto the Helix machine as a correlation payload; requires DotNetCliPackageType and DotNetCliVersion
   EnableXUnitReporter: true              # optional -- true enables XUnit result reporting to Mission Control
   WaitForWorkItemCompletion: true        # optional -- true will make the task wait until work items have been completed and fail the build if work items fail. False is "fire and forget."
   HelixBaseUri: 'https://helix.dot.net' # optional -- sets the Helix API base URI (allows targeting int)
@@ -34,7 +33,6 @@ steps:
             /p:HelixBuild=${{ parameters.HelixBuild }}
             /p:HelixConfiguration="${{ parameters.HelixConfiguration }}"
             /p:HelixAccessToken="${{ parameters.HelixAccessToken }}"
-            /p:IncludeDotNetCli=${{ parameters.IncludeDotNetCli }}
             /p:EnableXUnitReporter=${{ parameters.EnableXUnitReporter }}
             /p:WaitForWorkItemCompletion=${{ parameters.WaitForWorkItemCompletion }}
             /p:HelixBaseUri=${{ parameters.HelixBaseUri }}

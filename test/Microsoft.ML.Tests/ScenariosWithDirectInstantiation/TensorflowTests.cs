@@ -161,24 +161,24 @@ namespace Microsoft.ML.Scenarios
             var predictions = transformer.Transform(data);
 
             var metrics = _mlContext.MulticlassClassification.Evaluate(predictions);
-            Assert.Equal(1, metrics.MicroAccuracy, 2);
+            Assert.Equal(1, metrics.MicroAccuracy, 0.01);
 
             var predictFunction = _mlContext.Model.CreatePredictionEngine<CifarData, CifarPrediction>(transformer);
             var prediction = predictFunction.Predict(new CifarData()
             {
                 ImagePath = GetDataPath("images/banana.jpg")
             });
-            Assert.Equal(0d, prediction.PredictedScores[0], 2);
-            Assert.Equal(1d, prediction.PredictedScores[1], 2);
-            Assert.Equal(0d, prediction.PredictedScores[2], 2);
+            Assert.Equal(0d, prediction.PredictedScores[0], 0.01);
+            Assert.Equal(1d, prediction.PredictedScores[1], 0.01);
+            Assert.Equal(0d, prediction.PredictedScores[2], 0.01);
 
             prediction = predictFunction.Predict(new CifarData()
             {
                 ImagePath = GetDataPath("images/hotdog.jpg")
             });
-            Assert.Equal(0d, prediction.PredictedScores[0], 2);
-            Assert.Equal(0d, prediction.PredictedScores[1], 2);
-            Assert.Equal(1d, prediction.PredictedScores[2], 2);
+            Assert.Equal(0d, prediction.PredictedScores[0], 0.01);
+            Assert.Equal(0d, prediction.PredictedScores[1], 0.01);
+            Assert.Equal(1d, prediction.PredictedScores[2], 0.01);
             (transformer as IDisposable)?.Dispose();
         }
 
@@ -677,7 +677,7 @@ namespace Microsoft.ML.Scenarios
             var metrics = _mlContext.MulticlassClassification.Evaluate(predicted);
 
             Assert.Equal(0.99, metrics.MicroAccuracy, .01);
-            Assert.Equal(0.93, metrics.MacroAccuracy, 2);
+            Assert.Equal(0.93, metrics.MacroAccuracy, 0.01);
 
             var oneSample = GetOneMNISTExample();
 
@@ -902,7 +902,7 @@ namespace Microsoft.ML.Scenarios
 
             // First group of checks
             Assert.Equal(0.99, metrics.MicroAccuracy, .01);
-            Assert.Equal(.93, metrics.MacroAccuracy, 2);
+            Assert.Equal(.93, metrics.MacroAccuracy, 0.01);
 
             // An in-memory example. Its label is predicted below.
             var oneSample = GetOneMNISTExample();
@@ -1172,7 +1172,7 @@ namespace Microsoft.ML.Scenarios
             var outputSchema = transformer.GetOutputSchema(data.Schema);
 
             var metrics = _mlContext.MulticlassClassification.Evaluate(transformedData);
-            Assert.Equal(1, metrics.MicroAccuracy, 2);
+            Assert.Equal(1, metrics.MicroAccuracy, 0.01);
 
             var predictFunction = _mlContext.Model.CreatePredictionEngine<CifarData, CifarPrediction>(transformer);
             var predictions = new[]
@@ -1207,7 +1207,7 @@ namespace Microsoft.ML.Scenarios
             for (var i = 0; i < predictions.Length; i++)
             {
                 for (var j = 0; j < predictions[i].PredictedScores.Length; j++)
-                    Assert.Equal((double)predictions[i].PredictedScores[j], (double)testPredictions[i].PredictedScores[j], 2);
+                    Assert.Equal((double)predictions[i].PredictedScores[j], (double)testPredictions[i].PredictedScores[j], 0.01);
             }
             (testTransformer as IDisposable)?.Dispose();
             testPredictFunction.Dispose();

@@ -12,7 +12,7 @@ namespace Microsoft.ML.TestFramework.Attributes
 #if DEBUG
         private const string SkipMessage = "BenchmarkDotNet does not allow running the benchmarks in Debug, so this test is disabled for DEBUG";
         private readonly bool _isEnvironmentSupported = false;
-#elif NET461
+#elif NETFRAMEWORK
         private const string SkipMessage = "We are currently not running Benchmarks for FullFramework";
         private readonly bool _isEnvironmentSupported = false;
 #else

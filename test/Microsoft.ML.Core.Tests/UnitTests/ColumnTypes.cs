@@ -32,19 +32,19 @@ namespace Microsoft.ML.RunTests
             {
                 var tmp = type;
                 if (dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
-                    Assert.True(false, dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
+                    Assert.Fail(dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
                 dict[tmp] = tmp.ToString();
                 for (int size = 0; size < 5; size++)
                 {
                     tmp1 = new VectorDataViewType(tmp, size);
                     if (dict.ContainsKey(tmp1) && dict[tmp1] != tmp1.ToString())
-                        Assert.True(false, dict[tmp1] + " and " + tmp1.ToString() + " are duplicates.");
+                        Assert.Fail(dict[tmp1] + " and " + tmp1.ToString() + " are duplicates.");
                     dict[tmp1] = tmp1.ToString();
                     for (int size1 = 0; size1 < 5; size1++)
                     {
                         tmp2 = new VectorDataViewType(tmp, size, size1);
                         if (dict.ContainsKey(tmp2) && dict[tmp2] != tmp2.ToString())
-                            Assert.True(false, dict[tmp2] + " and " + tmp2.ToString() + " are duplicates.");
+                            Assert.Fail(dict[tmp2] + " and " + tmp2.ToString() + " are duplicates.");
                         dict[tmp2] = tmp2.ToString();
                     }
                 }
@@ -59,19 +59,19 @@ namespace Microsoft.ML.RunTests
                     {
                         tmp = new KeyDataViewType(rawType, count);
                         if (dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
-                            Assert.True(false, dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
+                            Assert.Fail(dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
                         dict[tmp] = tmp.ToString();
                         for (int size = 0; size < 5; size++)
                         {
                             tmp1 = new VectorDataViewType(tmp, size);
                             if (dict.ContainsKey(tmp1) && dict[tmp1] != tmp1.ToString())
-                                Assert.True(false, dict[tmp1] + " and " + tmp1.ToString() + " are duplicates.");
+                                Assert.Fail(dict[tmp1] + " and " + tmp1.ToString() + " are duplicates.");
                             dict[tmp1] = tmp1.ToString();
                             for (int size1 = 0; size1 < 5; size1++)
                             {
                                 tmp2 = new VectorDataViewType(tmp, size, size1);
                                 if (dict.ContainsKey(tmp2) && dict[tmp2] != tmp2.ToString())
-                                    Assert.True(false, dict[tmp2] + " and " + tmp2.ToString() + " are duplicates.");
+                                    Assert.Fail(dict[tmp2] + " and " + tmp2.ToString() + " are duplicates.");
                                 dict[tmp2] = tmp2.ToString();
                             }
                         }
@@ -79,19 +79,19 @@ namespace Microsoft.ML.RunTests
                     Assert.True(rawType.TryGetDataKind(out var kind));
                     tmp = new KeyDataViewType(rawType, kind.ToMaxInt());
                     if (dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
-                        Assert.True(false, dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
+                        Assert.Fail(dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
                     dict[tmp] = tmp.ToString();
                     for (int size = 0; size < 5; size++)
                     {
                         tmp1 = new VectorDataViewType(tmp, size);
                         if (dict.ContainsKey(tmp1) && dict[tmp1] != tmp1.ToString())
-                            Assert.True(false, dict[tmp1] + " and " + tmp1.ToString() + " are duplicates.");
+                            Assert.Fail(dict[tmp1] + " and " + tmp1.ToString() + " are duplicates.");
                         dict[tmp1] = tmp1.ToString();
                         for (int size1 = 0; size1 < 5; size1++)
                         {
                             tmp2 = new VectorDataViewType(tmp, size, size1);
                             if (dict.ContainsKey(tmp2) && dict[tmp2] != tmp2.ToString())
-                                Assert.True(false, dict[tmp2] + " and " + tmp2.ToString() + " are duplicates.");
+                                Assert.Fail(dict[tmp2] + " and " + tmp2.ToString() + " are duplicates.");
                             dict[tmp2] = tmp2.ToString();
                         }
                     }
@@ -104,7 +104,7 @@ namespace Microsoft.ML.RunTests
                 {
                     var tmp4 = new ImageDataViewType(height, width);
                     if (dict.ContainsKey(tmp4))
-                        Assert.True(false, dict[tmp4] + " and " + tmp4.ToString() + " are duplicates.");
+                        Assert.Fail(dict[tmp4] + " and " + tmp4.ToString() + " are duplicates.");
                     dict[tmp4] = tmp4.ToString();
                 }
         }

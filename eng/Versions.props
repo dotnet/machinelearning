@@ -81,7 +81,7 @@
     <DotNetRuntime80Version>8.0.0</DotNetRuntime80Version>
     <FluentAssertionVersion>5.10.2</FluentAssertionVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.23431.1</MicrosoftCodeAnalysisTestingVersion>
-    <MicrosoftDotNetXUnitExtensionsVersion>8.0.0-beta.23265.1</MicrosoftDotNetXUnitExtensionsVersion>
+    <MicrosoftDotNetXUnitExtensionsVersion>8.0.0-beta.23620.2</MicrosoftDotNetXUnitExtensionsVersion>
     <MicrosoftExtensionsDependencyModelVersion>2.1.0</MicrosoftExtensionsDependencyModelVersion>
     <MicrosoftExtensionsTestVersion>3.0.1</MicrosoftExtensionsTestVersion>
     <MicrosoftMLOnnxTestModelsVersion>0.0.6-test</MicrosoftMLOnnxTestModelsVersion>
@@ -91,7 +91,7 @@
     <SystemDataSqlClientVersion>4.8.5</SystemDataSqlClientVersion>
     <SystemDataSQLiteCoreVersion>1.0.118</SystemDataSQLiteCoreVersion>
     <XunitCombinatorialVersion>1.2.7</XunitCombinatorialVersion>
-    <XUnitVersion>2.4.2</XUnitVersion>
+    <XUnitVersion>2.6.3</XUnitVersion>
     <!-- Opt-out repo features -->
     <UsingToolXliff>false</UsingToolXliff>
   </PropertyGroup>
