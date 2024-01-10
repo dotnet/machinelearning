@@ -47,8 +47,8 @@
     <ProjectReference Include="..\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" Pack="true" PrivateAssets="all" />
-    <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" Pack="true" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
   </ItemGroup>
 
