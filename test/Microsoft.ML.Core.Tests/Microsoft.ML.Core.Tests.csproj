@@ -4,7 +4,6 @@
     <StrongNameKeyId>Test</StrongNameKeyId>
     <!-- Temporary workaround for https://github.com/dotnet/roslyn/issues/64365 -->
     <LangVersion>10.0</LangVersion>
-    <NoWarn>$(NoWarn)</NoWarn>
 
     <!-- Remove once we have resolved the TorchSharp issue. -->
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
@@ -37,6 +36,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsVersion)" />
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
+    <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" Version="$(MicrosoftMLTensorFlowTestModelsVersion)" />
   </ItemGroup>
 
   <ItemGroup>
