@@ -37,7 +37,7 @@
     <ItemGroup>
       <!-- PDBs must be specified as TfmSpecificDebugSymbolsFile with TargetPath instead of PackagePath. -->
       <TfmSpecificDebugSymbolsFile Include="@(TfmSpecificPackageFile->WithMetadataValue('Extension', '.pdb'))"
-                                   TargetPath="/%(TfmSpecificPackageFile.PackagePath)%(Filename)%(Extension)"
+                                   TargetPath="%(TfmSpecificPackageFile.PackagePath)%(Filename)%(Extension)"
                                    TargetFramework="$(TargetFramework)" />
       <!-- Remove symbols from the file list. -->
       <TfmSpecificPackageFile Remove="@(TfmSpecificPackageFile->WithMetadataValue('Extension', '.pdb'))" />
