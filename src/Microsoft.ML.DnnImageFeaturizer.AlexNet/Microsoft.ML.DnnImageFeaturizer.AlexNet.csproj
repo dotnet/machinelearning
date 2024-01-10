@@ -14,6 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="$(ModelDownloadPath)AlexNetPrepOnnx\AlexNetPreprocess.onnx" PackagePath="tools\DnnImageModels\AlexNetPrepOnnx\AlexNetPreprocess.onnx" />
+    <Content Include="$(ModelDownloadPath)AlexNetOnnx\AlexNet.onnx" PackagePath="tools\DnnImageModels\AlexNetOnnx\AlexNet.onnx" />
     <Content Include="$(RepoRoot)eng\pkg\DnnImageFeaturizer.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
   </ItemGroup>
 

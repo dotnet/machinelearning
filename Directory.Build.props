@@ -35,6 +35,7 @@
     </PropertyGroup>
 
   <PropertyGroup>
+    <ModelDownloadPath>$(ArtifactsDir)models/</ModelDownloadPath>
     <PackageAssetsPath>$(ArtifactsDir)pkgassets/</PackageAssetsPath>
     <PkgDir>$(RepoRoot)pkg/</PkgDir>
   
