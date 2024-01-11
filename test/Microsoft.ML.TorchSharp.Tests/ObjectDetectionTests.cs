@@ -14,7 +14,7 @@ using Microsoft.ML.TorchSharp.AutoFormerV2;
 using Microsoft.ML.Runtime;
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Tests
+namespace Microsoft.ML.TorchSharp.Tests
 {
     [Collection("NoParallelization")]
 
