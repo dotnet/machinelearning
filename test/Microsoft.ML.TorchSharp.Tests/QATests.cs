@@ -10,9 +10,8 @@ using Microsoft.ML.TorchSharp;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Tests
+namespace Microsoft.ML.TorchSharp.Tests
 {
-    [Collection("NoParallelization")]
     public class QATests : TestDataPipeBase
     {
         public QATests(ITestOutputHelper output) : base(output)

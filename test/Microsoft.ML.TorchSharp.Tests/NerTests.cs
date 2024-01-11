@@ -11,9 +11,8 @@ using Microsoft.ML.TorchSharp.NasBert;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Tests
+namespace Microsoft.ML.TorchSharp.Tests
 {
-    [Collection("NoParallelization")]
     public class NerTests : TestDataPipeBase
     {
         public NerTests(ITestOutputHelper output) : base(output)
