@@ -395,36 +395,36 @@ namespace Microsoft.ML.Tests.Transformers
             var robustScalerTransformer = robustScalerEstimator.Fit(data);
 
             floatAffineModel = ((NormalizingTransformer)robustScalerTransformer).Columns[0].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<float>;
-            Assert.Equal(1 / 1.8, floatAffineModel.Scale, 2);
-            Assert.Equal(5.8d, floatAffineModel.Offset, 2);
+            Assert.Equal(1 / 1.8, floatAffineModel.Scale, 0.01);
+            Assert.Equal(5.8d, floatAffineModel.Offset, 0.01);
 
             floatAffineModelVec = ((NormalizingTransformer)robustScalerTransformer).Columns[1].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<float>>;
             Assert.Equal(4, floatAffineModelVec.Scale.Length);
-            Assert.Equal(.5555556, floatAffineModelVec.Scale[0], 2);
-            Assert.Equal(.8333333, floatAffineModelVec.Scale[1], 2);
-            Assert.Equal(.3389830, floatAffineModelVec.Scale[2], 2);
-            Assert.Equal(.8333333, floatAffineModelVec.Scale[3], 2);
+            Assert.Equal(.5555556, floatAffineModelVec.Scale[0], 0.01);
+            Assert.Equal(.8333333, floatAffineModelVec.Scale[1], 0.01);
+            Assert.Equal(.3389830, floatAffineModelVec.Scale[2], 0.01);
+            Assert.Equal(.8333333, floatAffineModelVec.Scale[3], 0.01);
 
-            Assert.Equal(5.8, floatAffineModelVec.Offset[0], 2);
-            Assert.Equal(3d, floatAffineModelVec.Offset[1], 2);
-            Assert.Equal(4.4, floatAffineModelVec.Offset[2], 2);
-            Assert.Equal(1.3, floatAffineModelVec.Offset[3], 2);
+            Assert.Equal(5.8, floatAffineModelVec.Offset[0], 0.01);
+            Assert.Equal(3d, floatAffineModelVec.Offset[1], 0.01);
+            Assert.Equal(4.4, floatAffineModelVec.Offset[2], 0.01);
+            Assert.Equal(1.3, floatAffineModelVec.Offset[3], 0.01);
 
             doubleAffineModel = ((NormalizingTransformer)robustScalerTransformer).Columns[2].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<double>;
-            Assert.Equal(1 / 1.8, doubleAffineModel.Scale, 2);
-            Assert.Equal(5.8, doubleAffineModel.Offset, 2);
+            Assert.Equal(1 / 1.8, doubleAffineModel.Scale, 0.01);
+            Assert.Equal(5.8, doubleAffineModel.Offset, 0.01);
 
             doubleAffineModelVector = ((NormalizingTransformer)robustScalerTransformer).Columns[3].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<double>>;
             Assert.Equal(4, doubleAffineModelVector.Scale.Length);
-            Assert.Equal(.5555556, doubleAffineModelVector.Scale[0], 2);
-            Assert.Equal(.8333333, doubleAffineModelVector.Scale[1], 2);
-            Assert.Equal(.3389830, doubleAffineModelVector.Scale[2], 2);
-            Assert.Equal(.8333333, doubleAffineModelVector.Scale[3], 2);
+            Assert.Equal(.5555556, doubleAffineModelVector.Scale[0], 0.01);
+            Assert.Equal(.8333333, doubleAffineModelVector.Scale[1], 0.01);
+            Assert.Equal(.3389830, doubleAffineModelVector.Scale[2], 0.01);
+            Assert.Equal(.8333333, doubleAffineModelVector.Scale[3], 0.01);
 
-            Assert.Equal(5.8, doubleAffineModelVector.Offset[0], 2);
-            Assert.Equal(3, doubleAffineModelVector.Offset[1], 2);
-            Assert.Equal(4.4, doubleAffineModelVector.Offset[2], 2);
-            Assert.Equal(1.3, doubleAffineModelVector.Offset[3], 2);
+            Assert.Equal(5.8, doubleAffineModelVector.Offset[0], 0.01);
+            Assert.Equal(3, doubleAffineModelVector.Offset[1], 0.01);
+            Assert.Equal(4.4, doubleAffineModelVector.Offset[2], 0.01);
+            Assert.Equal(1.3, doubleAffineModelVector.Offset[3], 0.01);
 
             // Robust scaler no offset
             robustScalerEstimator = context.Transforms.NormalizeRobustScaling(
@@ -435,28 +435,28 @@ namespace Microsoft.ML.Tests.Transformers
             robustScalerTransformer = robustScalerEstimator.Fit(data);
 
             floatAffineModel = ((NormalizingTransformer)robustScalerTransformer).Columns[0].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<float>;
-            Assert.Equal(1 / 1.8, floatAffineModel.Scale, 2);
-            Assert.Equal(0d, floatAffineModel.Offset, 2);
+            Assert.Equal(1 / 1.8, floatAffineModel.Scale, 0.01);
+            Assert.Equal(0d, floatAffineModel.Offset, 0.01);
 
             floatAffineModelVec = ((NormalizingTransformer)robustScalerTransformer).Columns[1].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<float>>;
             Assert.Equal(4, floatAffineModelVec.Scale.Length);
-            Assert.Equal(.5555556, floatAffineModelVec.Scale[0], 2);
-            Assert.Equal(.8333333, floatAffineModelVec.Scale[1], 2);
-            Assert.Equal(.3389830, floatAffineModelVec.Scale[2], 2);
-            Assert.Equal(.8333333, floatAffineModelVec.Scale[3], 2);
+            Assert.Equal(.5555556, floatAffineModelVec.Scale[0], 0.01);
+            Assert.Equal(.8333333, floatAffineModelVec.Scale[1], 0.01);
+            Assert.Equal(.3389830, floatAffineModelVec.Scale[2], 0.01);
+            Assert.Equal(.8333333, floatAffineModelVec.Scale[3], 0.01);
 
             Assert.Empty(floatAffineModelVec.Offset);
 
             doubleAffineModel = ((NormalizingTransformer)robustScalerTransformer).Columns[2].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<double>;
-            Assert.Equal(1 / 1.8, doubleAffineModel.Scale, 2);
-            Assert.Equal(0, doubleAffineModel.Offset, 2);
+            Assert.Equal(1 / 1.8, doubleAffineModel.Scale, 0.01);
+            Assert.Equal(0, doubleAffineModel.Offset, 0.01);
 
             doubleAffineModelVector = ((NormalizingTransformer)robustScalerTransformer).Columns[3].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<double>>;
             Assert.Equal(4, doubleAffineModelVector.Scale.Length);
-            Assert.Equal(.5555556, doubleAffineModelVector.Scale[0], 2);
-            Assert.Equal(.8333333, doubleAffineModelVector.Scale[1], 2);
-            Assert.Equal(.3389830, doubleAffineModelVector.Scale[2], 2);
-            Assert.Equal(.8333333, doubleAffineModelVector.Scale[3], 2);
+            Assert.Equal(.5555556, doubleAffineModelVector.Scale[0], 0.01);
+            Assert.Equal(.8333333, doubleAffineModelVector.Scale[1], 0.01);
+            Assert.Equal(.3389830, doubleAffineModelVector.Scale[2], 0.01);
+            Assert.Equal(.8333333, doubleAffineModelVector.Scale[3], 0.01);
 
             Assert.Empty(doubleAffineModelVector.Offset);
 

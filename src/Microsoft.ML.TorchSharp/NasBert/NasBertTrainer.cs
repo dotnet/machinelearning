@@ -204,7 +204,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 EnglishRoberta tokenizerModel = Tokenizer.RobertaModel();
 
                 NasBertModel model;
-                if (Parent.BertOptions.TaskType == BertTaskType.NameEntityRecognition)
+                if (Parent.BertOptions.TaskType == BertTaskType.NamedEntityRecognition)
                     model = new NerModel(Parent.BertOptions, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, Parent.Option.NumberOfClasses);
                 else
                     model = new ModelForPrediction(Parent.BertOptions, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, Parent.Option.NumberOfClasses);
@@ -240,7 +240,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 return DataUtils.CollateTokens(inputTensors, Tokenizer.RobertaModel().PadIndex, device: Device);
             }
 
-            private protected override torch.Tensor PrepareRowTensor()
+            private protected override torch.Tensor PrepareRowTensor(ref TLabelCol target)
             {
                 ReadOnlyMemory<char> sentence1 = default;
                 Sentence1Getter(ref sentence1);
@@ -268,7 +268,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             private protected override void RunModelAndBackPropagate(ref List<Tensor> inputTensors, ref Tensor targetsTensor)
             {
                 Tensor logits = default;
-                if (Parent.BertOptions.TaskType == BertTaskType.NameEntityRecognition)
+                if (Parent.BertOptions.TaskType == BertTaskType.NamedEntityRecognition)
                 {
                     int[,] lengthArray = new int[inputTensors.Count, 1];
                     for (int i = 0; i < inputTensors.Count; i++)
@@ -293,7 +293,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 torch.Tensor loss;
                 if (Parent.BertOptions.TaskType == BertTaskType.TextClassification)
                     loss = torch.nn.CrossEntropyLoss(reduction: Parent.BertOptions.Reduction).forward(logits, targetsTensor);
-                else if (Parent.BertOptions.TaskType == BertTaskType.NameEntityRecognition)
+                else if (Parent.BertOptions.TaskType == BertTaskType.NamedEntityRecognition)
                 {
                     targetsTensor = targetsTensor.@long().view(-1);
                     logits = logits.view(-1, logits.size(-1));
@@ -338,7 +338,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 outColumns[Option.ScoreColumnName] = new SchemaShape.Column(Option.ScoreColumnName, SchemaShape.Column.VectorKind.Vector,
                     NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.AnnotationsForMulticlassScoreColumn(labelCol)));
             }
-            else if (BertOptions.TaskType == BertTaskType.NameEntityRecognition)
+            else if (BertOptions.TaskType == BertTaskType.NamedEntityRecognition)
             {
                 var metadata = new List<SchemaShape.Column>();
                 metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
@@ -387,7 +387,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                             TextDataViewType.Instance.ToString(), sentenceCol2.GetTypeString());
                 }
             }
-            else if (BertOptions.TaskType == BertTaskType.NameEntityRecognition)
+            else if (BertOptions.TaskType == BertTaskType.NamedEntityRecognition)
             {
                 if (labelCol.ItemType != NumberDataViewType.UInt32)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "label", Option.LabelColumnName,
@@ -494,7 +494,8 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
             private static readonly FuncInstanceMethodInfo1<NasBertMapper, DataViewSchema.DetachedColumn, Delegate> _makeLabelAnnotationGetter
                 = FuncInstanceMethodInfo1<NasBertMapper, DataViewSchema.DetachedColumn, Delegate>.Create(target => target.GetLabelAnnotations<int>);
-
+            internal static readonly int[] InitTokenArray = new[] { 0 /* InitToken */ };
+            internal static readonly int[] SeperatorTokenArray = new[] { 2 /* SeperatorToken */ };
 
             public NasBertMapper(TorchSharpBaseTransformer<TLabelCol, TTargetsCol> parent, DataViewSchema inputSchema) :
                 base(parent, inputSchema)
@@ -535,7 +536,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     info[1] = new DataViewSchema.DetachedColumn(Parent.Options.ScoreColumnName, new VectorDataViewType(NumberDataViewType.Single, Parent.Options.NumberOfClasses), meta.ToAnnotations());
                     return info;
                 }
-                else if (Parent.BertOptions.TaskType == BertTaskType.NameEntityRecognition)
+                else if (Parent.BertOptions.TaskType == BertTaskType.NamedEntityRecognition)
                 {
                     var info = new DataViewSchema.DetachedColumn[1];
                     var keyType = Parent.LabelColumn.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
@@ -583,13 +584,16 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 getSentence1(ref sentence1);
                 if (getSentence2 == default)
                 {
-                    return new[] { 0 /* InitToken */ }.Concat(tokenizer.EncodeToConverted(sentence1.ToString())).ToList();
+                    List<int> newList = new List<int>(tokenizer.EncodeToConverted(sentence1.ToString()));
+                    // 0 Is the init token and must be at the beginning.
+                    newList.Insert(0, 0);
+                    return newList;
                 }
                 else
                 {
                     getSentence2(ref sentence2);
-                    return new[] { 0 /* InitToken */ }.Concat(tokenizer.EncodeToConverted(sentence1.ToString()))
-                                              .Concat(new[] { 2 /* SeperatorToken */ }).Concat(tokenizer.EncodeToConverted(sentence2.ToString())).ToList();
+                    return InitTokenArray.Concat(tokenizer.EncodeToConverted(sentence1.ToString()))
+                                              .Concat(SeperatorTokenArray).Concat(tokenizer.EncodeToConverted(sentence2.ToString())).ToList();
                 }
             }
 

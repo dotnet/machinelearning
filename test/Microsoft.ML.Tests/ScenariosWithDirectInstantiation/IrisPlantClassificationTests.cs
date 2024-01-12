@@ -61,9 +61,9 @@ namespace Microsoft.ML.Scenarios
                 PetalWidth = 0.2f,
             });
 
-            Assert.Equal(1d, prediction.PredictedLabels[0], 2);
-            Assert.Equal(0d, prediction.PredictedLabels[1], 2);
-            Assert.Equal(0d, prediction.PredictedLabels[2], 2);
+            Assert.Equal(1d, prediction.PredictedLabels[0], 0.01);
+            Assert.Equal(0d, prediction.PredictedLabels[1], 0.01);
+            Assert.Equal(0d, prediction.PredictedLabels[2], 0.01);
 
             prediction = model.Predict(new IrisData()
             {
@@ -73,9 +73,9 @@ namespace Microsoft.ML.Scenarios
                 PetalWidth = 2.2f,
             });
 
-            Assert.Equal(0d, prediction.PredictedLabels[0], 2);
-            Assert.Equal(0d, prediction.PredictedLabels[1], 2);
-            Assert.Equal(1d, prediction.PredictedLabels[2], 2);
+            Assert.Equal(0d, prediction.PredictedLabels[0], 0.01);
+            Assert.Equal(0d, prediction.PredictedLabels[1], 0.01);
+            Assert.Equal(1d, prediction.PredictedLabels[2], 0.01);
 
             prediction = model.Predict(new IrisData()
             {
@@ -85,22 +85,22 @@ namespace Microsoft.ML.Scenarios
                 PetalWidth = 1.2f,
             });
 
-            Assert.Equal(.2, prediction.PredictedLabels[0], 1);
-            Assert.Equal(.8, prediction.PredictedLabels[1], 1);
-            Assert.Equal(0d, prediction.PredictedLabels[2], 2);
+            Assert.Equal(.2, prediction.PredictedLabels[0], 0.1);
+            Assert.Equal(.8, prediction.PredictedLabels[1], 0.1);
+            Assert.Equal(0d, prediction.PredictedLabels[2], 0.01);
         }
 
         private void CompareMetrics(MulticlassClassificationMetrics metrics)
         {
             Assert.Equal(.98, metrics.MacroAccuracy);
-            Assert.Equal(.98, metrics.MicroAccuracy, 2);
+            Assert.Equal(.98, metrics.MicroAccuracy, 0.01);
             Assert.InRange(metrics.LogLoss, .05, .06);
             Assert.InRange(metrics.LogLossReduction, 0.94, 0.96);
 
             Assert.Equal(3, metrics.PerClassLogLoss.Count);
-            Assert.Equal(0d, metrics.PerClassLogLoss[0], 1);
-            Assert.Equal(.1, metrics.PerClassLogLoss[1], 1);
-            Assert.Equal(.1, metrics.PerClassLogLoss[2], 1);
+            Assert.Equal(0d, metrics.PerClassLogLoss[0], 0.1);
+            Assert.Equal(.1, metrics.PerClassLogLoss[1], 0.1);
+            Assert.Equal(.1, metrics.PerClassLogLoss[2], 0.1);
         }
     }
 }
