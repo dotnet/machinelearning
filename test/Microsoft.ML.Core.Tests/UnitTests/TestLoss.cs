@@ -39,8 +39,8 @@ namespace Microsoft.ML.RunTests
         {
             Double loss = lossFunc.Loss((float)output, (float)label);
             float derivative = lossFunc.Derivative((float)output, (float)label);
-            Assert.Equal(expectedLoss, loss, 5);
-            Assert.Equal(expectedUpdate, -derivative, 5);
+            Assert.Equal(expectedLoss, loss, 0.00001);
+            Assert.Equal(expectedUpdate, -derivative, 0.00001);
 
             if (differentiable)
             {
@@ -48,7 +48,7 @@ namespace Microsoft.ML.RunTests
                 // Use a simple finite difference method to see if it's in the right ballpark.
                 float almostOutput = Math.Max((float)output * (1 + _epsilon), (float)output + _epsilon);
                 Double almostLoss = lossFunc.Loss(almostOutput, (float)label);
-                Assert.Equal((almostLoss - loss) / (almostOutput - output), derivative, 1);
+                Assert.Equal((almostLoss - loss) / (almostOutput - output), derivative, 0.1);
             }
         }
 

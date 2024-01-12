@@ -31,10 +31,10 @@ namespace Microsoft.ML.Fairlearn.Tests
             PrimitiveDataFrameColumn<float> ypred = new PrimitiveDataFrameColumn<float>("pred", fl);
             var gSinged = dp.Gamma(ypred);
 
-            Assert.Equal(0.1, Convert.ToSingle(gSinged["value"][0]), 1);
-            Assert.Equal(-0.1, Convert.ToSingle(gSinged["value"][1]), 1);
-            Assert.Equal(-0.1, Convert.ToSingle(gSinged["value"][2]), 1);
-            Assert.Equal(0.1, Convert.ToSingle(gSinged["value"][3]), 1);
+            Assert.Equal(0.1, Convert.ToSingle(gSinged["value"][0]), 0.1);
+            Assert.Equal(-0.1, Convert.ToSingle(gSinged["value"][1]), 0.1);
+            Assert.Equal(-0.1, Convert.ToSingle(gSinged["value"][2]), 0.1);
+            Assert.Equal(0.1, Convert.ToSingle(gSinged["value"][3]), 0.1);
         }
     }
 }

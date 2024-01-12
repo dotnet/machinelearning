@@ -476,9 +476,9 @@ namespace Microsoft.ML.Tests
             var transformedValues = onnxTransformer.Transform(idv);
             var predictions = mlContext.Data.CreateEnumerable<PredictionNoneDimension>(transformedValues, reuseRowObject: false).ToArray();
 
-            Assert.Equal(-0.080, Math.Round(predictions[0].variable[0], 3));
-            Assert.Equal(1.204, Math.Round(predictions[1].variable[0], 3));
-            Assert.Equal(2.27, Math.Round(predictions[2].variable[0], 3));
+            Assert.Equal(-0.080, predictions[0].variable[0], 0.001);
+            Assert.Equal(1.204, predictions[1].variable[0], 0.001);
+            Assert.Equal(2.27, predictions[2].variable[0], 0.001);
         }
 
         /// <summary>

@@ -12,6 +12,7 @@ using Microsoft.ML.TorchSharp.NasBert.Modules;
 using Microsoft.ML.TorchSharp.Utils;
 using TorchSharp;
 using TorchSharp.Modules;
+using static Microsoft.ML.TorchSharp.NasBert.Modules.SearchSpace;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Models
 {
@@ -255,13 +256,13 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
             for (var i = 0; i < DistillBlocks; ++i)
             {
                 var hiddenSizesPerBlock = Enumerable.Range(i * blockPerLayer, blockPerLayer)
-                    .Select(j => SearchSpace.ArchHiddenSize[DiscreteArches[j]]).ToArray();
-                var nextHiddenSize = SearchSpace.CheckHiddenDimensionsAndReturnMax(hiddenSizesPerBlock);
+                    .Select(j => ArchHiddenSize[DiscreteArches[j]]).ToArray();
+                var nextHiddenSize = CheckHiddenDimensionsAndReturnMax(hiddenSizesPerBlock);
                 if (nextHiddenSize == 0)
                 {
                     if (hiddenSizePerBlock.Count == 0)
                     {
-                        nextHiddenSize = SearchSpace.ArchHiddenSize[^1];
+                        nextHiddenSize = ArchHiddenSize[^1];
                     }
                     else
                     {

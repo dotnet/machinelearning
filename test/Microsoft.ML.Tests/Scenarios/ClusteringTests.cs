@@ -87,7 +87,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(double.NaN, metrics.NormalizedMutualInformation);
             //Calculate dbi is false by default so Dbi would be 0
             Assert.Equal(0d, metrics.DaviesBouldinIndex);
-            Assert.Equal(0d, metrics.AverageDistance, 5);
+            Assert.Equal(0d, metrics.AverageDistance, 0.00001);
         }
     }
 }

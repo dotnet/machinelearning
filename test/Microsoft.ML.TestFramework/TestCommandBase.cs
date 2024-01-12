@@ -985,7 +985,7 @@ namespace Microsoft.ML.RunTests
         // FastTree internally fails if we try to run it simultaneously and if this happens we wouldn't get model file for training.
         [TestCategory(Cat)]
         [Fact]
-        public void CommandTrainFastTreeInDifferentThreads()
+        public async void CommandTrainFastTreeInDifferentThreads()
         {
             var dataPath = GetDataPath(TestDatasets.adult.testFilename);
             var firstModelOutPath = DeleteOutputPath("TreeTransform-model2.zip");
@@ -1001,10 +1001,11 @@ namespace Microsoft.ML.RunTests
             t[1] = new Task<int>(() => MainForTest(secondTrainArgs));
             t[0].Start();
             t[1].Start();
-            Task.WaitAll(t);
+            var t0 = await t[0];
+            var t1 = await t[1];
 
-            Assert.Equal(0, t[0].Result);
-            Assert.Equal(0, t[1].Result);
+            Assert.Equal(0, t0);
+            Assert.Equal(0, t1);
         }
 
         [TestCategory(Cat), TestCategory("FastTree")]

@@ -155,7 +155,7 @@ namespace Microsoft.ML.TestFramework
 
         private sealed class RemoteExecutionException : XunitException
         {
-            internal RemoteExecutionException(string stackTrace) : base("Remote process failed with an unhandled exception.", stackTrace) { }
+            internal RemoteExecutionException(string stackTrace) : base($"Remote process failed with an unhandled exception. {stackTrace}") { }
         }
 
         private static MethodInfo GetMethodInfo(Delegate d)

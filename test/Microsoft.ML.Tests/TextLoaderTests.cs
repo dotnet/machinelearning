@@ -109,7 +109,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 return;
             }
 
-            Assert.True(false, "Test failed.");
+            Assert.Fail("Test failed.");
         }
 
         [Fact]
@@ -133,7 +133,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 return;
             }
 
-            Assert.True(false, "Test failed.");
+            Assert.Fail("Test failed.");
         }
     }
 

@@ -66,7 +66,5 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="ch"></param>
         /// <returns></returns>
         public abstract bool IsValidChar(char ch);
-
     }
-
 }
