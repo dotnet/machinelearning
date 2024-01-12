@@ -11,31 +11,31 @@
 // environment, for example, see https://github.com/isaacabraham/ml-test-experiment/, but
 // here we list them explicitly to avoid the dependency on a package loader,
 //
-// You should build Microsoft.ML.FSharp.Tests in Debug mode for framework net461
+// You should build Microsoft.ML.FSharp.Tests in Debug mode for framework net462
 // before running this as a script with F# Interactive by editing the project
 // file to have:
-//    <TargetFrameworks>net6.0; net461</TargetFrameworks>
+//    <TargetFrameworks>net6.0; net462</TargetFrameworks>
 
 #if INTERACTIVE
 #r "netstandard"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.Core.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Google.Protobuf.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Newtonsoft.Json.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/System.CodeDom.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.CpuMath.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.Data.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.Transforms.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.ResultProcessor.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.PCA.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.KMeansClustering.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.FastTree.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.Api.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.Sweeper.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.StandardTrainers.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.PipelineInference.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/xunit.core.dll"
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/xunit.assert.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/Microsoft.ML.Core.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/Google.Protobuf.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/Newtonsoft.Json.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/System.CodeDom.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/Microsoft.ML.CpuMath.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/Microsoft.ML.Data.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/Microsoft.ML.Transforms.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/Microsoft.ML.ResultProcessor.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/Microsoft.ML.PCA.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/Microsoft.ML.KMeansClustering.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/Microsoft.ML.FastTree.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/Microsoft.ML.Api.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/Microsoft.ML.Sweeper.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/Microsoft.ML.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/Microsoft.ML.StandardTrainers.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/Microsoft.ML.PipelineInference.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/xunit.core.dll"
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net462/xunit.assert.dll"
 #r "System"
 #r "System.Core"
 #r "System.Xml.Linq"

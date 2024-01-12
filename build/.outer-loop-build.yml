@@ -23,7 +23,7 @@ schedules:
 resources:
   containers:
   - container: CentosContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-mlnet
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8-mlnet
 
   - container: UbuntuContainer
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet

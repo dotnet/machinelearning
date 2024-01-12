@@ -33,8 +33,8 @@ namespace Microsoft.ML.Tests
             // Evaluate
             var metrics = ML.AnomalyDetection.Evaluate(transformedData, falsePositiveCount: 5);
 
-            Assert.Equal(0.98667, metrics.AreaUnderRocCurve, 5);
-            Assert.Equal(0.90000, metrics.DetectionRateAtFalsePositiveCount, 5);
+            Assert.Equal(0.98667, metrics.AreaUnderRocCurve, 0.00001);
+            Assert.Equal(0.90000, metrics.DetectionRateAtFalsePositiveCount, 0.00001);
         }
 
         /// <summary>

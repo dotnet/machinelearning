@@ -223,8 +223,8 @@ namespace Microsoft.ML.AutoML.Test
 
             // File has 3 columns: "id", "description" and "animal"
             Assert.NotNull(result.ColumnInformation.LabelColumnName);
-            Assert.Equal(1, result.ColumnInformation.TextColumnNames.Count);
-            Assert.Equal(1, result.ColumnInformation.CategoricalColumnNames.Count);
+            Assert.Single(result.ColumnInformation.TextColumnNames);
+            Assert.Single(result.ColumnInformation.CategoricalColumnNames);
 
             Assert.Equal("id", result.ColumnInformation.LabelColumnName);
             Assert.Equal("description", result.ColumnInformation.TextColumnNames.First());

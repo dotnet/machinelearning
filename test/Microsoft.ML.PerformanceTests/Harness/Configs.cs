@@ -41,7 +41,7 @@ namespace Microsoft.ML.PerformanceTests
             TimeSpan timeout = TimeSpan.FromMinutes(5);
 
 #if NETFRAMEWORK
-            var tfm = "net461";
+            var tfm = "net462";
             var csProj = CsProjClassicNetToolchain.From(tfm, timeout: timeout);
 #else
             var frameworkName = new FrameworkName(AppContext.TargetFrameworkName);

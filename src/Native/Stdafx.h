@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <cmath>
 #include <cstring>
+#include <stdint.h>
 
 #define UNUSED(x) (void)(x)
 #define DEBUG_ONLY(x) (void)(x)

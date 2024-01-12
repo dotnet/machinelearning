@@ -238,9 +238,9 @@ namespace Microsoft.ML.TorchSharp
                     cursorValid = cursor.MoveNext();
                     if (cursorValid)
                     {
-                        inputTensors.Add(PrepareRowTensor());
                         TLabelCol target = default;
                         labelGetter(ref target);
+                        inputTensors.Add(PrepareRowTensor(ref target));
                         targets.Add(AddToTargets(target));
                     }
                     else
@@ -312,9 +312,9 @@ namespace Microsoft.ML.TorchSharp
                     cursorValid = cursor.MoveNext();
                     if (cursorValid)
                     {
-                        inputTensors.Add(PrepareRowTensor());
                         TLabelCol target = default;
                         labelGetter(ref target);
+                        inputTensors.Add(PrepareRowTensor(ref target));
                         targets.Add(AddToTargets(target));
                     }
                     else
@@ -343,7 +343,7 @@ namespace Microsoft.ML.TorchSharp
 
             private protected abstract void RunModelAndBackPropagate(ref List<Tensor> inputTensorm, ref Tensor targetsTensor);
 
-            private protected abstract torch.Tensor PrepareRowTensor();
+            private protected abstract torch.Tensor PrepareRowTensor(ref TLabelCol target);
             private protected abstract torch.Tensor PrepareBatchTensor(ref List<Tensor> inputTensors, Device device);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

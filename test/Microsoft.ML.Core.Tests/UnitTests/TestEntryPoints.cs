@@ -94,7 +94,7 @@ namespace Microsoft.ML.RunTests
             int testRows = CountRows(splitOutput.TestData);
 
             Assert.Equal(totalRows, trainRows + testRows);
-            Assert.Equal(0.9, (double)trainRows / totalRows, 1);
+            Assert.Equal(0.9, (double)trainRows / totalRows, 0.1);
         }
 
         private static int CountRows(IDataView dataView)
@@ -5005,7 +5005,7 @@ namespace Microsoft.ML.RunTests
                 Assert.True(b);
                 double auc = 0;
                 getter(ref auc);
-                Assert.Equal(0.93, auc, 2);
+                Assert.Equal(0.93, auc, 0.01);
                 b = cursor.MoveNext();
                 Assert.False(b);
             }
@@ -5210,7 +5210,7 @@ namespace Microsoft.ML.RunTests
                     if (w == 1)
                         Assert.Equal(1.585, stdev, .001);
                     else
-                        Assert.Equal(1.39, stdev, 2);
+                        Assert.Equal(1.39, stdev, 0.01);
                     isWeightedGetter(ref isWeighted);
                     Assert.True(isWeighted == (w == 1));
                 }
@@ -5379,7 +5379,7 @@ namespace Microsoft.ML.RunTests
                 getter(ref stdev);
                 foldGetter(ref fold);
                 Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
-                Assert.Equal(0.024809923969586353, stdev, 3);
+                Assert.Equal(0.024809923969586353, stdev, 0.001);
 
                 double sum = 0;
                 double val = 0;
@@ -5788,7 +5788,7 @@ namespace Microsoft.ML.RunTests
                 getter(ref stdev);
                 foldGetter(ref fold);
                 Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
-                Assert.Equal(0.02582, stdev, 5);
+                Assert.Equal(0.02582, stdev, 0.00001);
 
                 double sum = 0;
                 double val = 0;
@@ -6089,9 +6089,9 @@ namespace Microsoft.ML.RunTests
                 foldGetter(ref fold);
                 Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
                 var stdevValues = stdev.GetValues();
-                Assert.Equal(0.02462, stdevValues[0], 5);
-                Assert.Equal(0.02763, stdevValues[1], 5);
-                Assert.Equal(0.03273, stdevValues[2], 5);
+                Assert.Equal(0.02462, stdevValues[0], 0.00001);
+                Assert.Equal(0.02763, stdevValues[1], 0.00001);
+                Assert.Equal(0.03273, stdevValues[2], 0.00001);
 
                 var sumBldr = new BufferBuilder<double>(R8Adder.Instance);
                 sumBldr.Reset(avg.Length, true);
@@ -6291,7 +6291,7 @@ namespace Microsoft.ML.RunTests
                 Assert.True(b);
                 double acc = 0;
                 getter(ref acc);
-                Assert.Equal(0.96, acc, 2);
+                Assert.Equal(0.96, acc, 0.01);
                 b = cursor.MoveNext();
                 Assert.False(b);
             }
@@ -6463,7 +6463,7 @@ namespace Microsoft.ML.RunTests
                 Assert.True(b);
                 double acc = 0;
                 getter(ref acc);
-                Assert.Equal(0.71, acc, 2);
+                Assert.Equal(0.71, acc, 0.01);
                 b = cursor.MoveNext();
                 Assert.False(b);
             }
