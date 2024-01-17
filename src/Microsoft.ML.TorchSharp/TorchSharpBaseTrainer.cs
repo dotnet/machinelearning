@@ -158,7 +158,7 @@ namespace Microsoft.ML.TorchSharp
                 Device = TorchUtils.InitializeDevice(Parent.Host);
 
                 // Move to GPU if we are running there
-                if (Device == CUDA)
+                if (Device.type == DeviceType.CUDA)
                     Model.cuda();
             }
 
@@ -395,7 +395,7 @@ namespace Microsoft.ML.TorchSharp
 
             Model = model;
 
-            if (Device == CUDA)
+            if (Device.type == DeviceType.CUDA)
                 Model.cuda();
         }
 
