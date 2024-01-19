@@ -540,6 +540,13 @@
       "searchOption": "question_answering_option"
     },
     {
+      "functionName": "NamedEntityRecognition",
+      "estimatorTypes": [ "MultiClassification" ],
+      "nugetDependencies": [ "Microsoft.ML", "Microsoft.ML.TorchSharp" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Trainers", "Microsoft.ML.TorchSharp" ],
+      "searchOption": "named_entity_recognition_option"
+    },
+    {
       "functionName": "ForecastBySsa",
       "estimatorTypes": [ "Forecasting" ],
       "arguments": [
