@@ -207,7 +207,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
                 Device = TorchUtils.InitializeDevice(Parent.Host);
 
                 // Move to GPU if we are running there
-                if (Device == CUDA)
+                if (Device.type == DeviceType.CUDA)
                     Model.cuda();
 
                 Tokenizer = TokenizerExtensions.GetInstance(ch);
@@ -574,7 +574,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
             Model = model;
             Model.eval();
 
-            if (Device == CUDA)
+            if (Device.type == DeviceType.CUDA)
                 Model.cuda();
             using (var ch = Host.Start("Initialize Tokenizer"))
                 Tokenizer = TokenizerExtensions.GetInstance(ch);

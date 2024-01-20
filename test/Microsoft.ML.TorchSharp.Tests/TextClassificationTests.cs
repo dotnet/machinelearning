@@ -15,9 +15,8 @@ using Microsoft.ML.TorchSharp.NasBert;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Tests
+namespace Microsoft.ML.TorchSharp.Tests
 {
-    [Collection("NoParallelization")]
     public class TextClassificationTests : TestDataPipeBase
     {
         public TextClassificationTests(ITestOutputHelper output) : base(output)
@@ -172,7 +171,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext();
             mlContext.GpuDeviceId = 0;
             mlContext.FallbackToCpu = false;
-            var df = DataFrame.LoadCsv(@"Data\github-issues-train.tsv", separator: '\t', header: true, columnNames: new[] { "ID", "Label", "Title", "Description" });
+            var df = DataFrame.LoadCsv(GetDataPath("github-issues-train.tsv"), separator: '\t', header: true, columnNames: new[] { "ID", "Label", "Title", "Description" });
             var trainTestSplit = mlContext.Data.TrainTestSplit(df, testFraction: 0.2);
             var pipeline =
                     mlContext.Transforms.Conversion.MapValueToKey("Label")
