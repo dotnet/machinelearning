@@ -225,7 +225,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 Device = TorchUtils.InitializeDevice(Parent.Host);
 
                 // Move to GPU if we are running there
-                if (Device == CUDA)
+                if (Device.type == DeviceType.CUDA)
                     Model.cuda();
 
                 // Get the parameters that need optimization and set up the optimizer
@@ -531,7 +531,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
             Model = model;
             Model.eval();
 
-            if (Device == CUDA)
+            if (Device.type == DeviceType.CUDA)
                 Model.cuda();
         }
 
