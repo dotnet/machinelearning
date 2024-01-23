@@ -74,7 +74,8 @@
               "TextClassifcation",
               "SentenceSimilarity",
               "ObjectDetection",
-              "QuestionAnswering"
+              "QuestionAnswering",
+              "NamedEntityRecognition"
             ]
           },
           "nugetDependencies": {

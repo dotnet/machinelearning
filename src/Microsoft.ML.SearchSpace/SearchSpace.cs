@@ -214,9 +214,18 @@ namespace Microsoft.ML.SearchSpace
 
                     OptionBase option = attributes.First() switch
                     {
-                        ChoiceAttribute choice => choice.Option,
-                        RangeAttribute range => range.Option,
-                        BooleanChoiceAttribute booleanChoice => booleanChoice.Option,
+                        ChoiceAttribute choice => choice.DefaultValue == null ? new ChoiceOption(choice.Candidates) : new ChoiceOption(choice.Candidates, defaultChoice: choice.DefaultValue),
+                        RangeAttribute range => (range.Min, range.Max, range.Init, range.LogBase) switch
+                        {
+                            (double min, double max, double init, bool logBase) => new UniformDoubleOption(min, max, logBase, init),
+                            (double min, double max, null, bool logBase) => new UniformDoubleOption(min, max, logBase),
+                            (int min, int max, int init, bool logBase) => new UniformIntOption(min, max, logBase, init),
+                            (int min, int max, null, bool logBase) => new UniformIntOption(min, max, logBase),
+                            (float min, float max, float init, bool logBase) => new UniformSingleOption(min, max, logBase, init),
+                            (float min, float max, null, bool logBase) => new UniformSingleOption(min, max, logBase),
+                            _ => throw new NotImplementedException(),
+                        },
+                        BooleanChoiceAttribute booleanChoice => new ChoiceOption(new object[] { true, false }, defaultChoice: booleanChoice.DefaultValue),
                         NestOptionAttribute nest => GetSearchSpaceOptionFromType(field.FieldType),
                         _ => throw new NotImplementedException(),
                     };
@@ -252,9 +261,18 @@ namespace Microsoft.ML.SearchSpace
 
                     OptionBase option = attributes.First() switch
                     {
-                        ChoiceAttribute choice => choice.Option,
-                        RangeAttribute range => range.Option,
-                        BooleanChoiceAttribute booleanChoice => booleanChoice.Option,
+                        ChoiceAttribute choice => choice.DefaultValue == null ? new ChoiceOption(choice.Candidates) : new ChoiceOption(choice.Candidates, defaultChoice: choice.DefaultValue),
+                        RangeAttribute range => (range.Min, range.Max, range.Init, range.LogBase) switch
+                        {
+                            (double min, double max, double init, bool logBase) => new UniformDoubleOption(min, max, logBase, init),
+                            (double min, double max, null, bool logBase) => new UniformDoubleOption(min, max, logBase),
+                            (int min, int max, int init, bool logBase) => new UniformIntOption(min, max, logBase, init),
+                            (int min, int max, null, bool logBase) => new UniformIntOption(min, max, logBase),
+                            (float min, float max, float init, bool logBase) => new UniformSingleOption(min, max, logBase, init),
+                            (float min, float max, null, bool logBase) => new UniformSingleOption(min, max, logBase),
+                            _ => throw new NotImplementedException(),
+                        },
+                        BooleanChoiceAttribute booleanChoice => new ChoiceOption(new object[] { true, false }, defaultChoice: booleanChoice.DefaultValue),
                         NestOptionAttribute nest => GetSearchSpaceOptionFromType(property.PropertyType),
                         _ => throw new NotImplementedException(),
                     };
@@ -274,7 +292,7 @@ namespace Microsoft.ML.SearchSpace
                 return;
             }
 
-            if (attribute is RangeAttribute range && (range.Option is UniformDoubleOption || range.Option is UniformSingleOption))
+            if (attribute is RangeAttribute range && (range.Min is double || range.Min is float))
             {
                 Contract.Assert(type != typeof(int) && type != typeof(short) && type != typeof(long), $"[Option:{optionName}] UniformDoubleOption or UniformSingleOption can't apply to property or field which type is int or short or long");
                 return;
