@@ -30,13 +30,13 @@
   <PropertyGroup Condition="'$(IsStableProject)' == 'true'">
     <MajorVersion>3</MajorVersion>
     <MinorVersion>0</MinorVersion>
-    <PatchVersion>1</PatchVersion>
+    <PatchVersion>2</PatchVersion>
     <!-- Set baseline version for stable packages to check for API Compat -->
-    <PackageValidationBaselineVersion>3.0.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>3.0.1</PackageValidationBaselineVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' != 'true'">
     <MajorVersion>0</MajorVersion>
     <MinorVersion>21</MinorVersion>
-    <PatchVersion>1</PatchVersion>
+    <PatchVersion>2</PatchVersion>
   </PropertyGroup>
 </Project>
