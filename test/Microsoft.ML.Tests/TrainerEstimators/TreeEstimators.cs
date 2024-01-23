@@ -24,6 +24,10 @@ using System.IO;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
+    [CollectionDefinition(nameof(NoParallelizationDefinition), DisableParallelization = true)]
+    public class NoParallelizationDefinition { }
+
+    [Collection(nameof(NoParallelizationDefinition))]
     public partial class TrainerEstimators : TestDataPipeBase
     {
         /// <summary>
