@@ -238,7 +238,8 @@
         "AnswerIndexStartColumnName",
         "predictedAnswerColumnName",
         "TopKAnswers",
-        "TargetType"
+        "TargetType",
+        "KeyData"
       ]
     },
     "option_type": {
@@ -257,7 +258,8 @@
         "dnnModelFactory",
         "bertArchitecture",
         "imageClassificationArchType",
-        "dataKind"
+        "dataKind",
+        "dataView"
       ]
     }
   },

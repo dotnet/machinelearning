@@ -14,6 +14,10 @@
       "name": "TargetType",
       "type": "dataKind",
       "default": "DataKind.Single"
+    },
+    {
+      "name": "KeyData",
+      "type": "dataView"
     }
   ]
 }
