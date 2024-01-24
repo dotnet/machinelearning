@@ -57,20 +57,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Data\**">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprBindExInput.txt" />
     <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprBindInput.txt" />
     <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprCodeGenInput.txt" />
     <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprEvalInput.txt" />
     <EmbeddedResource Include="ExpressionLanguageTests\TestData\ExprParseInput.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Properties\" />
   </ItemGroup>
 </Project>

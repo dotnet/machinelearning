@@ -23,9 +23,8 @@ using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
 using InMemoryImage = Microsoft.ML.Tests.ImageTests.InMemoryImage;
 
-namespace Microsoft.ML.Scenarios
+namespace Microsoft.ML.TensorFlow.Scenarios
 {
-
     internal sealed class TensorFlowScenariosTestsFixture : IDisposable
     {
         public static string tempFolder;
@@ -57,7 +56,6 @@ namespace Microsoft.ML.Scenarios
         }
     }
 
-    [Collection("NoParallelization")]
     public sealed class TensorFlowScenariosTests : BaseTestClass, IClassFixture<TensorFlowScenariosTestsFixture>
     {
         private readonly string _fullImagesetFolderPath;
