@@ -240,7 +240,7 @@
         "predictedAnswerColumnName",
         "TopKAnswers",
         "TargetType",
-        "PredictionColumnName"
+        "PredictionColumnName",
         "KeyData"
       ]
     },
