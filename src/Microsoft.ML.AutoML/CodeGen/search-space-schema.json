@@ -261,7 +261,7 @@
         "bertArchitecture",
         "imageClassificationArchType",
         "dataKind",
-        "iDataView"
+        "dataView"
       ]
     }
   },
