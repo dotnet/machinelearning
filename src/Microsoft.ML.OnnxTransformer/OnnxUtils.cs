@@ -299,7 +299,15 @@ namespace Microsoft.ML.Transforms.Onnx
                 else
                 {
                     // No user-specified shape is found, so the shape loaded from ONNX model file is used.
-                    info = new OnnxVariableInfo(name, meta.Dimensions.ToList(), meta.ElementType, dataViewType, caster);
+                    // If its not a tensor then its a Sequence or Map, dimensions should be null and type is always NamedOnnxValue.
+                    if (meta.IsTensor == false)
+                    {
+                        info = new OnnxVariableInfo(name, null, typeof(NamedOnnxValue), dataViewType, caster);
+                    }
+                    else
+                    {
+                        info = new OnnxVariableInfo(name, meta.Dimensions.ToList(), meta.ElementType, dataViewType, caster);
+                    }
                 }
 
                 onnxVariableInfos.Add(info);
