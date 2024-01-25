@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="normalizedString">The list of tokens to merge.</param>
         /// <param name="splits">The list of tokens to merge.</param>
         /// <param name="offsetsMappedToOriginalString">Indicate whether the offsets is mapped to the original string or the normalized string.</param>
-        public TokenizerResult(string originalString, string normalizedString, IReadOnlyList<Split> splits, bool offsetsMappedToOriginalString)
+        public TokenizerResult(string originalString, string normalizedString, IEnumerable<Split> splits, bool offsetsMappedToOriginalString)
         {
             OriginalString = originalString;
             NormalizedString = normalizedString;
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         public bool OffsetsMappedToOriginalString { get; }
 
-        internal IReadOnlyList<Split> Splits { get; }
+        internal IEnumerable<Split> Splits { get; }
         private List<Token>? _tokens;
         private List<string>? _tokensWords;
         private List<int>? _ids;

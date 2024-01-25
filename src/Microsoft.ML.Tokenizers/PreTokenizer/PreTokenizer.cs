@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.ML.Tokenizers
 {
@@ -13,7 +14,7 @@ namespace Microsoft.ML.Tokenizers
     /// in the original string. These offsets are in the `original` referential.
     /// It also contains any `Token` associated to the current split.
     /// </summary>
-    public sealed class Split : IEquatable<Split>
+    public readonly struct Split : IEquatable<Split>
     {
         /// <summary>
         /// Gets the underlying split token. Each SubString is represented by a token
@@ -30,19 +31,28 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// create a Split object using the token and the offset
         /// </summary>
-        public Split(string token, (int Index, int End) offset)
+        /// <param name="token">The token string</param>
+        /// <param name="offset">The offset mapping to the original string</param>
+        /// <param name="isSpecialToken">Indicates whether the token is a special token</param>
+        public Split(string token, (int Index, int End) offset, bool isSpecialToken = false)
         {
             TokenString = token;
             Offset = offset;
+            IsSpecialToken = isSpecialToken;
         }
+
+        /// <summary>
+        /// Gets if the current Split is a special token.
+        /// </summary>
+        public bool IsSpecialToken { get; }
 
         /// <summary>
         /// Indicates whether the current Split object is equal to another Split object.
         /// </summary>
         /// <param name="other">The Split object to compare with the current object.</param>
-        public bool Equals(Split? other) =>
-            other is not null &&
+        public bool Equals(Split other) =>
             TokenString == other.TokenString &&
+            IsSpecialToken == other.IsSpecialToken &&
             Offset.Index == other.Offset.Index &&
             Offset.End == other.Offset.End;
     }
@@ -54,11 +64,64 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     public abstract class PreTokenizer
     {
+        internal static readonly IReadOnlyList<Split> EmptyList = new List<Split>();
+
         /// <summary>
         /// Splits the given string in multiple substrings at the word boundary, keeping track of the offsets of said substrings from the original string.
         /// </summary>
         /// <param name="sentence">The string to split into tokens.</param>
+        /// <param name="skipSpecialTokens">Indicates whether to skip the special tokens.</param>
         /// <returns>The list of the splits containing the tokens and the token's offsets to the original string.</returns>
-        public abstract IReadOnlyList<Split> PreTokenize(string sentence);
+        public abstract IEnumerable<Split> PreTokenize(string sentence, bool skipSpecialTokens = false);
     }
+
+    internal readonly struct RegexSplitEnumerable : IEnumerable<Split>
+    {
+        private readonly MatchCollection _matches;
+
+        public RegexSplitEnumerable(string sentence, string pattern)
+        {
+            _matches = Regex.Matches(sentence, pattern);
+        }
+
+        public IEnumerator<Split> GetEnumerator() => new RegexSplitEnumerator(_matches);
+
+        IEnumerator IEnumerable.GetEnumerator() => new RegexSplitEnumerator(_matches);
+
+        private struct RegexSplitEnumerator : IEnumerator<Split>
+        {
+            private Split _current = default;
+            private int _matchIndex = 0;
+            private readonly MatchCollection _matches;
+
+            public RegexSplitEnumerator(MatchCollection matches) => _matches = matches;
+
+            public Split Current => _current;
+
+            object IEnumerator.Current => _current;
+
+            public bool MoveNext()
+            {
+                if (_matchIndex >= _matches.Count)
+                {
+                    return false;
+                }
+
+                var match = _matches[_matchIndex++];
+                _current = new Split(match.Value, (match.Index, match.Index + match.Length));
+                return true;
+            }
+
+            public void Reset()
+            {
+                _matchIndex = 0;
+            }
+
+            public void Dispose()
+            {
+            }
+        }
+    }
+
+
 }

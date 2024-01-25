@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace Microsoft.ML.Tokenizers
 {
@@ -21,28 +19,20 @@ namespace Microsoft.ML.Tokenizers
 
         private const string Pattern = @"'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+";
 
-        private static readonly IReadOnlyList<Split> _emptyList = new List<Split>();
-
         /// <summary>
         /// Splits the given string in multiple substrings at the word boundary, keeping track of the offsets of said substrings from the original string.
         /// </summary>
         /// <param name="sentence">The string to split into tokens.</param>
+        /// <param name="skipSpecialTokens">Indicates whether to skip the special tokens.</param>
         /// <returns>The list of the splits containing the tokens and the token's offsets to the original string.</returns>
-        public override IReadOnlyList<Split> PreTokenize(string? sentence)
+        public override IEnumerable<Split> PreTokenize(string sentence, bool skipSpecialTokens = false)
         {
-            if (sentence is null)
+            if (string.IsNullOrEmpty(sentence))
             {
-                return _emptyList;
+                return EmptyList;
             }
 
-            List<Split> parts = new List<Split>();
-
-            foreach (Match match in Regex.Matches(sentence, Pattern))
-            {
-                parts.Add(new Split(match.Value, (match.Index, match.Index + match.Length)));
-            }
-
-            return parts;
+            return new RegexSplitEnumerable(sentence, Pattern);
         }
     }
 }
