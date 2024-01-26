@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.Build.NoTargets">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>

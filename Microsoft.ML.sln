@@ -138,9 +138,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.NightlyBuild.T
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.NugetPackageVersionUpdater", "test\Microsoft.ML.NugetPackageVersionUpdater\Microsoft.ML.NugetPackageVersionUpdater.csproj", "{C8DB58DC-6434-4431-A81F-263D86E2A5F3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML", "src\Microsoft.ML\Microsoft.ML.csproj", "{6CF88209-69DB-4B36-9604-3ECD9F163E96}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML", "src\Microsoft.ML\Microsoft.ML.proj", "{6CF88209-69DB-4B36-9604-3ECD9F163E96}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Mkl.Redist", "src\Microsoft.ML.Mkl.Redist\Microsoft.ML.Mkl.Redist.csproj", "{4584326B-C5B3-4CAE-B98A-34C5F5AA16F3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Mkl.Redist", "src\Microsoft.ML.Mkl.Redist\Microsoft.ML.Mkl.Redist.proj", "{4584326B-C5B3-4CAE-B98A-34C5F5AA16F3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Data.Analysis", "src\Microsoft.Data.Analysis\Microsoft.Data.Analysis.csproj", "{84150C22-0627-4A11-81C9-F214762855EA}"
 EndProject
