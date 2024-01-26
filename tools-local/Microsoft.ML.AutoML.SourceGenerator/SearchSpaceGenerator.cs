@@ -57,6 +57,7 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                         "bertArchitecture" => "BertArchitecture",
                         "imageClassificationArchType" => "Microsoft.ML.Vision.ImageClassificationTrainer.Architecture",
                         "dataKind" => "Microsoft.ML.Data.DataKind",
+                        "dataView" => "Microsoft.ML.IDataView",
                         _ => throw new ArgumentException("unknown type"),
                     };
 
@@ -76,6 +77,7 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                         (_, "BertArchitecture") => defaultToken.GetValue<string>(),
                         (_, "Microsoft.ML.Vision.ImageClassificationTrainer.Architecture") => defaultToken.GetValue<string>(),
                         (_, "Microsoft.ML.Data.DataKind") => defaultToken.GetValue<string>(),
+                        (_, "Microsoft.ML.IDataView") => defaultToken.GetValue<string>(),
                         (_, _) => throw new ArgumentException("unknown"),
                     };
 
