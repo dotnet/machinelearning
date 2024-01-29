@@ -6,13 +6,11 @@
     <!-- We need ProjectReferences to provide output since we're bundling the output -->
     <NoTargetsDoNotReferenceOutputAssemblies>false</NoTargetsDoNotReferenceOutputAssemblies>
     <!-- Only include directly referenced projects -->
-    <_FindDependencies >false</_FindDependencies >
+    <_FindDependencies>false</_FindDependencies>
     <!-- Framework references are required for APICompat -->
     <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
     <!-- This must be set to include any PDBs -->
     <IncludeBuildOutput>true</IncludeBuildOutput>
-    <!-- Don't produce nor include xml docs -->
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);NU5127;NU5128</NoWarn>
     <IsPackable>true</IsPackable>
     <PackageDescription>ML.NET is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers.</PackageDescription>
