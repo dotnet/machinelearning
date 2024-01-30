@@ -108,11 +108,4 @@
           BeforeTargets="Test"
           DependsOnTargets="GenerateCoverageResult"
           Condition="'$(IsUnitTestProject)' == 'true' AND '$(TargetFramework)' != '' AND '$(CollectCoverage)' == 'true'" />
-
-  <Target Name="ValidateNoTargetsProjectExtension"
-          BeforeTargets="PrepareForBuild"
-          Condition="'$(UsingMicrosoftNoTargetsSdk)' == 'true'">
-    <!-- Make sure any NoTargets projects use the proj extension so that they don't get language specific behavior from other SDKs -->
-    <Error Text="The project file should have a .proj extension since it uses the NoTargets SDK." Condition="'$(MSBuildProjectExtension)' != '.proj'" />
-  </Target>
 </Project>
