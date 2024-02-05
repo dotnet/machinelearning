@@ -120,22 +120,21 @@ namespace Microsoft.ML.Tokenizers
                 {
                     while (!reader.EndOfStream)
                     {
-                        string line = reader.ReadLine();
+                        string? line = reader.ReadLine();
                         if (string.IsNullOrWhiteSpace(line))
                         {
                             continue;
                         }
 
-                        var tokens = line.Split(' ');
-                        if (tokens.Length != 2)
+                        int spaceIndex = line.IndexOf(' ');
+                        if (spaceIndex <= 0 || spaceIndex >= line.Length - 1 || line.IndexOf(' ', spaceIndex + 1) >= 0)
                         {
                             throw new FormatException($"Invalid format in the BPE encoder file stream");
                         }
 
-                        byte[] tokenBytes = Convert.FromBase64String(tokens[0]);
-                        int rank = 0;
+                        byte[] tokenBytes = Helpers.FromBase64String(line, 0, spaceIndex);
 
-                        if (int.TryParse(tokens[1], out rank))
+                        if (Helpers.TryParseInt32(line, spaceIndex + 1, out int rank))
                         {
                             encoder[tokenBytes] = rank;
                             decoder[rank] = tokenBytes;
@@ -146,7 +145,7 @@ namespace Microsoft.ML.Tokenizers
                         }
                         else
                         {
-                            throw new FormatException($"Can't parse {tokens[1]} to integer");
+                            throw new FormatException($"Can't parse {line.Substring(spaceIndex)} to integer");
                         }
                     }
                 }
@@ -242,7 +241,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
         /// <param name="accumulatedIds">The list of accumulated Ids.</param>
         /// <returns>True if the operation succeeded, false otherwise.</returns>
-        public override bool TokenizeToIds(string sequence, bool isSpecialToken, List<int> accumulatedIds)
+        public override bool TokenizeToIds(string sequence, bool isSpecialToken, IList<int> accumulatedIds)
         {
             if (string.IsNullOrEmpty(sequence))
             {
@@ -320,7 +319,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             int[] idsToCache = BytePairEncoder.BytePairEncode(Encoding.UTF8.GetBytes(token), _encoder);
-            _cache.Add(token, idsToCache.ToArray());
+            _cache.Add(token, idsToCache);
 
             if (idsToCache.Length == 1)
             {
@@ -338,12 +337,12 @@ namespace Microsoft.ML.Tokenizers
         /// <returns>The mapped token of the Id.</returns>
         public override string? IdToToken(int id, bool skipSpecialTokens = false)
         {
-            if (!skipSpecialTokens && _specialTokensDecoder is not null && _specialTokensDecoder.TryGetValue(id, out string token))
+            if (!skipSpecialTokens && _specialTokensDecoder is not null && _specialTokensDecoder.TryGetValue(id, out string? token))
             {
                 return token;
             }
 
-            if (_decoder.TryGetValue(id, out byte[] tokenBytes))
+            if (_decoder.TryGetValue(id, out byte[]? tokenBytes))
             {
                 return Encoding.UTF8.GetString(tokenBytes);
             }
@@ -363,11 +362,11 @@ namespace Microsoft.ML.Tokenizers
 
             foreach (int id in ids)
             {
-                if (_decoder.TryGetValue(id, out byte[] tokenBytes))
+                if (_decoder.TryGetValue(id, out byte[]? tokenBytes))
                 {
                     utf8Bytes.AddRange(tokenBytes);
                 }
-                else if (useSpecialTokens && _specialTokensDecoder!.TryGetValue(id, out string token))
+                else if (useSpecialTokens && _specialTokensDecoder!.TryGetValue(id, out string? token))
                 {
                     utf8Bytes.AddRange(Encoding.UTF8.GetBytes(token));
                 }

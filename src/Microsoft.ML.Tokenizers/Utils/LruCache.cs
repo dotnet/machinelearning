@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.Tokenizers
 {
-    internal class LruCache<TKey, TValue>
+    internal class LruCache<TKey, TValue> where TKey : notnull where TValue : notnull
     {
         /// <summary>
         /// The default LRU cache size.
@@ -58,8 +58,7 @@ namespace Microsoft.ML.Tokenizers
         {
             lock (_lockObject)
             {
-                LinkedListNode<CacheItem> cached;
-                if (_cache.TryGetValue(key, out cached))
+                if (_cache.TryGetValue(key, out LinkedListNode<CacheItem>? cached))
                 {
                     _lruList.Remove(cached);
                     _lruList.AddFirst(cached);
@@ -78,9 +77,9 @@ namespace Microsoft.ML.Tokenizers
         {
             while (_cache.Count >= _cacheSize)
             {
-                LinkedListNode<CacheItem> nodeToEvict = _lruList.Last;
+                LinkedListNode<CacheItem>? nodeToEvict = _lruList.Last;
                 _lruList.RemoveLast();
-                _cache.Remove(nodeToEvict.Value.Key);
+                _cache.Remove(nodeToEvict!.Value.Key);
                 OnEviction(nodeToEvict.Value.Value);
             }
         }
@@ -102,7 +101,7 @@ namespace Microsoft.ML.Tokenizers
 
         private bool ReplaceInternal(TKey key, TValue value, out TValue oldValue)
         {
-            if (_cache.TryGetValue(key, out LinkedListNode<CacheItem> cached))
+            if (_cache.TryGetValue(key, out LinkedListNode<CacheItem>? cached))
             {
                 oldValue = cached.Value.Value;
                 cached.Value.Value = value;

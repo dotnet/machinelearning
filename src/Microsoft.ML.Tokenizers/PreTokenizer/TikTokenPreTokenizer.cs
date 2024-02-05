@@ -19,14 +19,20 @@ namespace Microsoft.ML.Tokenizers
         private readonly Regex? _specialTokensRegex;
         private readonly Regex _regex;
 
-        public TikTokenPreTokenizer(string regexPattern, IReadOnlyDictionary<string, int>? specialTokensEncoder)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TikTokenPreTokenizer"/> class.
+        /// </summary>
+        /// <param name="regex">The regex to use for splitting the text into smaller tokens in the pre-tokenization process.</param>
+        /// <param name="specialTokensEncoder">Encode the special token to Id.</param>
+        /// <exception cref="ArgumentNullException">When regex is null</exception>
+        public TikTokenPreTokenizer(Regex regex, IReadOnlyDictionary<string, int>? specialTokensEncoder)
         {
-            if (regexPattern is null)
+            if (regex is null)
             {
-                throw new ArgumentNullException(nameof(regexPattern));
+                throw new ArgumentNullException(nameof(regex));
             }
 
-            _regex = new Regex(regexPattern, RegexOptions.Compiled);
+            _regex = regex;
 
             if (specialTokensEncoder is not null && specialTokensEncoder.Count > 0)
             {
@@ -50,7 +56,7 @@ namespace Microsoft.ML.Tokenizers
             return new TokenizationEnumerable(sentence, _regex, skipSpecialTokens ? null : _specialTokensRegex);
         }
 
-        private readonly struct TokenizationEnumerable : IEnumerable<Split>
+        private sealed class TokenizationEnumerable : IEnumerable<Split>
         {
             private readonly string _sentence;
             private readonly Regex _regex;
@@ -73,10 +79,10 @@ namespace Microsoft.ML.Tokenizers
                 _specialTokensRegex = specialTokensRegex;
             }
 
-            public readonly IEnumerator<Split> GetEnumerator() => new TokenizationEnumerator(_sentence, _regex, _specialTokensRegex);
+            public IEnumerator<Split> GetEnumerator() => new TokenizationEnumerator(_sentence, _regex, _specialTokensRegex);
             IEnumerator IEnumerable.GetEnumerator() => new TokenizationEnumerator(_sentence, _regex, _specialTokensRegex);
 
-            private struct TokenizationEnumerator : IEnumerator<Split>
+            private sealed class TokenizationEnumerator : IEnumerator<Split>
             {
                 private Split _current = default;
                 private int _startIndex;
@@ -100,9 +106,9 @@ namespace Microsoft.ML.Tokenizers
                     _offset = 0;
                 }
 
-                readonly object IEnumerator.Current => _current;
+                object IEnumerator.Current => _current;
 
-                readonly Split IEnumerator<Split>.Current => _current;
+                Split IEnumerator<Split>.Current => _current;
 
                 public bool MoveNext()
                 {

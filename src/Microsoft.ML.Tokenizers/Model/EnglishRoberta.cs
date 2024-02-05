@@ -429,7 +429,7 @@ namespace Microsoft.ML.Tokenizers
                 using StreamReader reader = new StreamReader(mergeStream);
                 while (reader.Peek() >= 0)
                 {
-                    splitContents.Add(reader.ReadLine());
+                    splitContents.Add(reader.ReadLine()!);
                 }
             }
             catch (Exception e)
@@ -761,7 +761,11 @@ namespace Microsoft.ML.Tokenizers
 
             while (reader.Peek() >= 0)
             {
-                string line = reader.ReadLine();
+                string? line = reader.ReadLine();
+                if (line is null)
+                {
+                    continue;
+                }
 
                 var splitLine = line.Trim().Split(' ');
                 if (splitLine.Length != 2)

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Microsoft.ML.Tokenizers
@@ -454,7 +455,7 @@ namespace Microsoft.ML.Tokenizers
                 _tiktokenCache.Add(mergeableRanksFileUrl, cache);
             }
 
-            return new Tokenizer(new Tiktoken(cache.encoder, cache.decoder, cache.vocab, specialTokens), new TikTokenPreTokenizer(regexPatternStr, specialTokens), normalizer);
+            return new Tokenizer(new Tiktoken(cache.encoder, cache.decoder, cache.vocab, specialTokens), new TikTokenPreTokenizer(new Regex(regexPatternStr, RegexOptions.Compiled), specialTokens), normalizer);
         }
     }
 }

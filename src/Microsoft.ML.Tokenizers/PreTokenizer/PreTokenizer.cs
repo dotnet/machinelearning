@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace Microsoft.ML.Tokenizers
@@ -75,26 +76,50 @@ namespace Microsoft.ML.Tokenizers
         public abstract IEnumerable<Split> PreTokenize(string sentence, bool skipSpecialTokens = false);
     }
 
-    internal readonly struct RegexSplitEnumerable : IEnumerable<Split>
+    internal sealed class RegexSplitEnumerable : IEnumerable<Split>
     {
-        private readonly MatchCollection _matches;
+        private readonly static Dictionary<string, Regex> _regexCache = new(StringComparer.Ordinal);
+        private readonly Regex _regex;
+        private readonly string _sentence;
 
         public RegexSplitEnumerable(string sentence, string pattern)
         {
-            _matches = Regex.Matches(sentence, pattern);
+            Debug.Assert(sentence is not null);
+            Debug.Assert(pattern is not null);
+
+            Regex? regex;
+            lock (_regexCache)
+            {
+                if (!_regexCache.TryGetValue(pattern!, out regex))
+                {
+                    regex = new Regex(pattern, RegexOptions.Compiled);
+                    _regexCache[pattern!] = regex;
+                }
+            }
+
+            _regex = regex;
+            _sentence = sentence!;
         }
 
-        public IEnumerator<Split> GetEnumerator() => new RegexSplitEnumerator(_matches);
+        public IEnumerator<Split> GetEnumerator() => new RegexSplitEnumerator(_regex, _sentence);
 
-        IEnumerator IEnumerable.GetEnumerator() => new RegexSplitEnumerator(_matches);
+        IEnumerator IEnumerable.GetEnumerator() => new RegexSplitEnumerator(_regex, _sentence);
 
-        private struct RegexSplitEnumerator : IEnumerator<Split>
+        private sealed class RegexSplitEnumerator : IEnumerator<Split>
         {
             private Split _current = default;
-            private int _matchIndex = 0;
-            private readonly MatchCollection _matches;
+            private readonly Regex _regex;
+            private Match? _tokenMatch;
+            private readonly string _sentence;
 
-            public RegexSplitEnumerator(MatchCollection matches) => _matches = matches;
+            public RegexSplitEnumerator(Regex regex, string sentence)
+            {
+                Debug.Assert(sentence is not null);
+                Debug.Assert(regex is not null);
+
+                _regex = regex!;
+                _sentence = sentence!;
+            }
 
             public Split Current => _current;
 
@@ -102,19 +127,31 @@ namespace Microsoft.ML.Tokenizers
 
             public bool MoveNext()
             {
-                if (_matchIndex >= _matches.Count)
+                if (_tokenMatch is null)
+                {
+                    _tokenMatch = _regex.Match(_sentence);
+                }
+                else if (!_tokenMatch.Success)
+                {
+                    return false;
+                }
+                else
+                {
+                    _tokenMatch = _tokenMatch.NextMatch();
+                }
+
+                if (!_tokenMatch.Success)
                 {
                     return false;
                 }
 
-                var match = _matches[_matchIndex++];
-                _current = new Split(match.Value, (match.Index, match.Index + match.Length));
+                _current = new Split(_tokenMatch.Value, (_tokenMatch.Index, _tokenMatch.Index + _tokenMatch.Length));
                 return true;
             }
 
             public void Reset()
             {
-                _matchIndex = 0;
+                _tokenMatch = null;
             }
 
             public void Dispose()
@@ -122,6 +159,4 @@ namespace Microsoft.ML.Tokenizers
             }
         }
     }
-
-
 }

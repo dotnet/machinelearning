@@ -4,32 +4,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.ML.Tokenizers
 {
     internal class ByteArrayComparer : IEqualityComparer<byte[]>
     {
-        public bool Equals(byte[] x, byte[] y)
+        public bool Equals(byte[]? x, byte[]? y)
         {
             if (x is null || y is null)
             {
                 return x == y;
             }
 
-            if (x.Length != y.Length)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < x.Length; i++)
-            {
-                if (x[i] != y[i])
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return x.SequenceEqual(y);
         }
 
         public int GetHashCode(byte[] bytes)

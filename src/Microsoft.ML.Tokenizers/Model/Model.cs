@@ -35,7 +35,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
         /// <param name="accumulatedIds">The list of accumulated tokenized Ids.</param>
         /// <returns>True if the operation succeeded, false otherwise.</returns>
-        public virtual bool TokenizeToIds(string sequence, bool isSpecialToken, List<int> accumulatedIds)
+        public virtual bool TokenizeToIds(string sequence, bool isSpecialToken, IList<int> accumulatedIds)
         {
             if (accumulatedIds is null)
             {
