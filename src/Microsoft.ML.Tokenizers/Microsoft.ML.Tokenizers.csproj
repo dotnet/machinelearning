@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
-    <Compile Remove="Utils/Helpers.netfx.cs" />
+    <Compile Remove="Utils/Helpers.netstandard.cs" />
   </ItemGroup>
 
   <ItemGroup>
