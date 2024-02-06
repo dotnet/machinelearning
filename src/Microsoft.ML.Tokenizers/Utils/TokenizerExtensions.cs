@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tokenizers
             return minValue < int.MaxValue ? minSource : default;
         }
 
-        public static TValue GetOrAdd<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key, TValue setValue)
+        public static TValue GetOrAdd<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key, TValue setValue) where TKey : notnull
         {
             if (dic.TryGetValue(key, out var value))
             {
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tokenizers
             return setValue;
         }
 
-        public static IReadOnlyDictionary<TValue, TKey> Reverse<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> source)
+        public static IReadOnlyDictionary<TValue, TKey> Reverse<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> source) where TValue : notnull
         {
             Dictionary<TValue, TKey> dictionary = new Dictionary<TValue, TKey>();
             if (source != null)
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Tokenizers
             return dictionary;
         }
 
-        public static SortedDictionary<TValue, TKey> ReverseSorted<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> source)
+        public static SortedDictionary<TValue, TKey> ReverseSorted<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> source) where TKey : notnull where TValue : notnull
         {
             SortedDictionary<TValue, TKey> dictionary = new SortedDictionary<TValue, TKey>();
             if (source != null)

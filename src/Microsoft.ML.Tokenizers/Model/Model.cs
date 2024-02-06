@@ -21,11 +21,49 @@ namespace Microsoft.ML.Tokenizers
         public abstract IReadOnlyList<Token> Tokenize(string sequence);
 
         /// <summary>
+        /// Tokenize a split sequence string to a list of tokens.
+        /// </summary>
+        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
+        /// <returns>The list of tokens generated from the sequence tokenization.</returns>
+        public virtual IReadOnlyList<Token> Tokenize(string sequence, bool isSpecialToken) => Tokenize(sequence);
+
+        /// <summary>
+        /// Tokenize a split sequence string to a list of Ids and add them to the accumulatedIds list.
+        /// </summary>
+        /// <param name="sequence">The sequence to split.</param>
+        /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
+        /// <param name="accumulatedIds">The list of accumulated tokenized Ids.</param>
+        /// <returns>True if the operation succeeded, false otherwise.</returns>
+        public virtual bool TokenizeToIds(string sequence, bool isSpecialToken, IList<int> accumulatedIds)
+        {
+            if (accumulatedIds is null)
+            {
+                throw new ArgumentNullException(nameof(accumulatedIds));
+            }
+
+            var tokens = Tokenize(sequence);
+            foreach (var token in tokens)
+            {
+                accumulatedIds.Add(token.Id);
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Map the token to tokenized Id.
         /// </summary>
         /// <param name="token">The token to map to the Id.</param>
         /// <returns>The mapped Id of the token.</returns>
         public abstract int? TokenToId(string token);
+
+        /// <summary>
+        /// Map the token to tokenized id with the option to skip the special tokens.
+        /// </summary>
+        /// <param name="token">The token to map to Id</param>
+        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
+        /// <returns>The mapped Id of the token.</returns>
+        public virtual int? TokenToId(string token, bool skipSpecialTokens) => TokenToId(token);
 
         /// <summary>
         /// Map the tokenized Id to the token.
