@@ -65,12 +65,12 @@ namespace Microsoft.ML.Tokenizers.Tests
         [Fact]
         public void TestWhiteSpacePreTokenizer()
         {
-            WhiteSpace.Instance.PreTokenize(null);
+            Assert.Empty(WhiteSpace.Instance.PreTokenize(null!));
         }
 
         public class SpacePreTokenizer : PreTokenizer
         {
-            public override IReadOnlyList<Split> PreTokenize(string sentence)
+            public override IEnumerable<Split> PreTokenize(string sentence, bool skipSpecialTokens = false)
             {
                 List<Split> splits = new();
                 if (string.IsNullOrEmpty(sentence))
