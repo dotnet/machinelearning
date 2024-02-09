@@ -117,9 +117,6 @@ configuration:
             activitySenderHasPermission:
               permission: Write
         - not:
-            activitySenderHasPermission:
-              permission: Write
-        - not:
             isActivitySender:
               user: github-actions[bot]
               issueAuthor: False
@@ -290,4 +287,4 @@ configuration:
           label: no-recent-activity
       description: Remove `no-recent-activity` label from PRs when new review is added
 onFailure: 
-onSuccess: 
+onSuccess:
