@@ -1,0 +1,39 @@
+id: untriaged
+name: GitOps.PullRequestIssueManagement
+description: Manage the 'untriaged' label on issues
+owner:
+resource: repository
+disabled: false
+where:
+configuration:
+  resourceManagementConfiguration:
+    eventResponderTasks:
+    - if:
+      - payloadType: Issues
+      - isOpen
+      - not:
+          isPartOfAnyMilestone
+      - or:
+        - isAction:
+            action: Opened
+        - isAction:
+            action: Reopened
+      - not:
+          hasLabel:
+            label: untriaged
+      then:
+      - addLabel:
+          label: untriaged
+      description: Add untriaged label to new/reopened issues without a milestone
+    - if:
+      - payloadType: Issues
+      - or:
+        - isAction:
+            action: Closed
+        - isPartOfAnyMilestone
+      - hasLabel:
+          label: untriaged
+      then:
+      - removeLabel:
+          label: untriaged
+      description: Remove untriaged label from issues when closed or added to a milestone
