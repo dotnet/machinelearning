@@ -69,7 +69,6 @@
     <AdditionalFiles Include="CodeGen\code_gen_flag.json" />
     <AdditionalFiles Include="CodeGen\*-estimators.json" />
   </ItemGroup>
-
   <ItemGroup>
     <None Remove="CodeGen\normalize_text_search_space.json" />
   </ItemGroup>

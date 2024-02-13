@@ -80,7 +80,6 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                         (_, "Microsoft.ML.Data.DataKind") => defaultToken.GetValue<string>(),
                         (_, "Microsoft.ML.IDataView") => defaultToken.GetValue<string>(),
                         (_, "Microsoft.ML.Transforms.Text.TextNormalizingEstimator.CaseMode") => defaultToken.GetValue<string>(),
-
                         (_, _) => throw new ArgumentException("unknown"),
                     };
 
