@@ -12,7 +12,8 @@
     },
     {
       "name": "Mode",
-      "type": "caseMode"
+      "type": "caseMode",
+      "default": "CaseMode.None"
     },
     {
       "name": "KeepDiacritics",
