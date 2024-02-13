@@ -35,6 +35,8 @@ using Anchor = Microsoft.ML.Transforms.Image.ImageResizingEstimator.Anchor;
 using BertArchitecture = Microsoft.ML.TorchSharp.NasBert.BertArchitecture;
 using static Microsoft.ML.Vision.ImageClassificationTrainer.Architecture;
 using DataKind = Microsoft.ML.Data.DataKind;
+using CaseMode = Microsoft.ML.Transforms.Text.TextNormalizingEstimator.CaseMode;
+
 #nullable enable
 
 namespace ");
