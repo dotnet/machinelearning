@@ -168,7 +168,8 @@
         "sentence_similarity_option",
         "object_detection_option",
         "question_answering_option",
-        "named_entity_recognition_option"
+        "named_entity_recognition_option",
+        "normalize_text_option"
       ]
     },
     "option_name": {
@@ -241,7 +242,12 @@
         "TopKAnswers",
         "TargetType",
         "PredictionColumnName",
-        "KeyData"
+        "KeyData",
+        "Mode",
+        "KeepPunctuations",
+        "KeepDiacritics",
+        "KeepNumbers"
+
       ]
     },
     "option_type": {
@@ -261,7 +267,8 @@
         "bertArchitecture",
         "imageClassificationArchType",
         "dataKind",
-        "dataView"
+        "dataView",
+        "caseMode"
       ]
     }
   },

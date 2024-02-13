@@ -181,6 +181,39 @@
       "searchOption": "featurize_text_option"
     },
     {
+      "functionName": "NormalizeText",
+      "estimatorTypes": [ "Text" ],
+      "arguments": [
+        {
+          "argumentName": "outputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "inputColumnName",
+          "argumentType": "string"
+        },
+        {
+          "argumentName": "mode",
+          "argumentType": "caseMode"
+        },
+        {
+          "argumentName": "keepDiacritics",
+          "argumentType": "boolean"
+        },
+        {
+          "argumentName": "keepPunctuations",
+          "argumentType": "boolean"
+        },
+        {
+          "argumentName": "keepNumbers",
+          "argumentType": "boolean"
+        }
+      ],
+      "nugetDependencies": [ "Microsoft.ML" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data", "Microsoft.ML.Transforms.Text" ],
+      "searchOption": "normalize_text_option"
+    },
+    {
       "functionName": "ConvertType",
       "estimatorTypes": [ "Conversion" ],
       "arguments": [

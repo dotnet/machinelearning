@@ -58,6 +58,7 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                         "imageClassificationArchType" => "Microsoft.ML.Vision.ImageClassificationTrainer.Architecture",
                         "dataKind" => "Microsoft.ML.Data.DataKind",
                         "dataView" => "Microsoft.ML.IDataView",
+                        "caseMode" => "Microsoft.ML.Transforms.Text.TextNormalizingEstimator.CaseMode",
                         _ => throw new ArgumentException("unknown type"),
                     };
 
@@ -78,6 +79,8 @@ namespace Microsoft.ML.AutoML.SourceGenerator
                         (_, "Microsoft.ML.Vision.ImageClassificationTrainer.Architecture") => defaultToken.GetValue<string>(),
                         (_, "Microsoft.ML.Data.DataKind") => defaultToken.GetValue<string>(),
                         (_, "Microsoft.ML.IDataView") => defaultToken.GetValue<string>(),
+                        (_, "Microsoft.ML.Transforms.Text.TextNormalizingEstimator.CaseMode") => defaultToken.GetValue<string>(),
+
                         (_, _) => throw new ArgumentException("unknown"),
                     };
 
