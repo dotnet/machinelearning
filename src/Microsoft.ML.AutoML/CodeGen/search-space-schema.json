@@ -66,6 +66,14 @@
         "DataKind.DateTimeOffset"
       ]
     },
+    "caseMode": {
+      "type": "string",
+      "enum": [
+        "CaseMode.Lower",
+        "CaseMode.Upper",
+        "CaseMode.None"
+      ]
+    },
     "bertArchitectureArray": {
       "type": "array",
       "items": {
@@ -90,7 +98,7 @@
           "$ref": "#/definitions/dnnModelFactoryArray"
         },
         {
-          "$ref":  "#/definitions/imageClassificationArchArray"
+          "$ref": "#/definitions/imageClassificationArchArray"
         },
         {
           "$ref": "#/definitions/boolArray"
@@ -247,7 +255,6 @@
         "KeepPunctuations",
         "KeepDiacritics",
         "KeepNumbers"
-
       ]
     },
     "option_type": {

@@ -210,7 +210,7 @@
         }
       ],
       "nugetDependencies": [ "Microsoft.ML" ],
-      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data", "Microsoft.ML.Transforms.Text" ],
+      "usingStatements": [ "Microsoft.ML", "Microsoft.ML.Data", "Microsoft.ML.Transforms.Text.TextNormalizingEstimator"],
       "searchOption": "normalize_text_option"
     },
     {
