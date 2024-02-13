@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.proj" />
-    <ProjectReference Include="..\Microsoft.ML.Mkl.Redist\Microsoft.ML.Mkl.Redist.proj" />
+    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Mkl.Redist\Microsoft.ML.Mkl.Redist.csproj" />
 
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" PrivateAssets="all" />

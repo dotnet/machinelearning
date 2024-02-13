@@ -7,7 +7,7 @@
     <PackageDescription>LIBMF, the core computation library for matrix factorization in ML.NET</PackageDescription>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.proj" />
+    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" PrivateAssets="all" />
   </ItemGroup>

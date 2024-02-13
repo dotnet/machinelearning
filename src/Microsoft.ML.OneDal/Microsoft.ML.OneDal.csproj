@@ -7,7 +7,7 @@
     <PackageDescription>ML.NET additional learners making use of Intel® oneAPI Data Analytics Library (oneDAL).</PackageDescription>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.proj" />
+    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" PrivateAssets="all" />

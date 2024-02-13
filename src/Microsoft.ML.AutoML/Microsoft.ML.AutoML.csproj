@@ -49,7 +49,7 @@
     <ProjectReference Include="..\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />
     <ProjectReference Include="..\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.proj" />
+    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
   </ItemGroup>
 
   <ItemGroup>
