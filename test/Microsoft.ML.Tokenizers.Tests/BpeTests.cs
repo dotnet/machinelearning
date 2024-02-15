@@ -140,10 +140,13 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Tokenizer tokenizer = new Tokenizer(bpe);
 
                 TokenizerResult encoding = tokenizer.Encode(sentence);
+                IReadOnlyList<int> idsList = tokenizer.EncodeToIds(sentence);
 
                 Assert.Equal(expectedTokens.Length, encoding.Tokens.Count);
                 Assert.Equal(offsets.Length, encoding.Offsets.Count);
                 Assert.Equal(ids.Length, encoding.Ids.Count);
+                Assert.Equal(ids.Length, idsList.Count);
+                Assert.Equal(ids.Length, tokenizer.GetEncodedIdsCount(sentence));
                 Assert.Equal(decodedTokens, tokenizer.Decode(encoding.Ids));
 
                 for (int i = 0; i < encoding.Tokens.Count; i++)
@@ -151,6 +154,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     Assert.Equal(expectedTokens[i], encoding.Tokens[i]);
                     Assert.Equal(offsets[i], encoding.Offsets[i]);
                     Assert.Equal(ids[i], encoding.Ids[i]);
+                    Assert.Equal(ids[i], idsList[i]);
                     Assert.Equal(encoding.Tokens[i], tokenizer.Model.IdToToken(encoding.Ids[i]));
                     Assert.Equal(encoding.Ids[i], tokenizer.Model.TokenToId(encoding.Tokens[i]));
                     Assert.Equal(encoding.Tokens[i], tokenizer.Decode(encoding.Ids[i]));
@@ -232,11 +236,14 @@ namespace Microsoft.ML.Tokenizers.Tests
                 foreach (object?[] arguments in BpeTestData)
                 {
                     TokenizerResult enc = tokenizer.Encode((string)arguments[0]!);
+                    IReadOnlyList<int> ids = tokenizer.EncodeToIds((string)arguments[0]!);
+                    int idsCount = tokenizer.GetEncodedIdsCount((string)arguments[0]!);
                     Assert.Equal((string)arguments[0]!, enc.OriginalString);
                     Assert.Equal((string[])arguments[1]!, enc.Tokens);
                     (int, int)[] offsets = ((int, int)[])arguments[2]!;
-                    for (int i = 0; i < offsets.Length; i++)
-                        Assert.Equal(offsets[i], enc.Offsets[i]);
+                    Assert.Equal(offsets, enc.Offsets);
+                    Assert.Equal(enc.Tokens.Count, ids.Count);
+                    Assert.Equal(enc.Tokens.Count, idsCount);
 
                     Assert.Equal(enc.Tokens.Count, enc.Ids.Count);
 
@@ -244,6 +251,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     for (int i = 0; i < enc.Ids.Count; i++)
                     {
                         Assert.Equal(vocab[enc.Tokens[i]], enc.Ids[i]);
+                        Assert.Equal(enc.Ids[i], ids[i]);
                     }
                 }
             }

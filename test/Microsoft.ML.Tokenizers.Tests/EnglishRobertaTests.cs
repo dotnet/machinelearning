@@ -48,7 +48,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 // Sentence, Expected Ids, Expected Tokens, Expected Offsets, Decoded Tokens, Token occurrence values
                 yield return new object[]
                 {
-                    "In the night.", // Heighest occurence tokens
+                    "In the night.", // Highest occurrence tokens
                     new int[] { 818, 262, 1755, 13 },
                     new string[] { "In", "\u0120the", "\u0120night", "." },
                     new (int, int)[] { (0, 2), (2, 6), (6, 12), (12, 13) },
@@ -131,7 +131,11 @@ namespace Microsoft.ML.Tokenizers.Tests
             foreach (object[] p in BertaData)
             {
                 TokenizerResult encoding = tokenizer.Encode((string)p[0]);
+                IReadOnlyList<int> ids = tokenizer.EncodeToIds((string)p[0]);
+                int idsCount = tokenizer.GetEncodedIdsCount((string)p[0]);
                 Assert.Equal(p[1], encoding.Ids);
+                Assert.Equal(p[1], ids);
+                Assert.Equal(((int[])p[1]).Length, idsCount);
                 Assert.Equal(p[2], encoding.Tokens);
                 Assert.Equal(p[3], encoding.Offsets);
                 Assert.Equal(encoding.Ids.Count, encoding.Tokens.Count);

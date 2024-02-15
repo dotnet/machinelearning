@@ -165,13 +165,6 @@ namespace Microsoft.ML.Tokenizers
         public IReadOnlyDictionary<string, int>? SpecialTokensEncoder => _specialTokensEncoder;
 
         /// <summary>
-        /// Tokenize a sequence string to a list of tokens.
-        /// </summary>
-        /// <param name="sequence">The sequence to tokenize.</param>
-        /// <returns>The list of tokens generated from the sequence tokenization.</returns>
-        public override IReadOnlyList<Token> Tokenize(string sequence) => Tokenize(sequence, isSpecialToken: false);
-
-        /// <summary>
         /// Tokenize a split sequence string to a list of tokens.
         /// </summary>
         /// <param name="sequence">The text to tokenize.</param>
@@ -240,12 +233,11 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="sequence">The sequence to tokenize.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
         /// <param name="accumulatedIds">The list of accumulated Ids.</param>
-        /// <returns>True if the operation succeeded, false otherwise.</returns>
-        public override bool TokenizeToIds(string sequence, bool isSpecialToken, IList<int> accumulatedIds)
+        public override void TokenizeToIds(string sequence, bool isSpecialToken, IList<int> accumulatedIds)
         {
             if (string.IsNullOrEmpty(sequence))
             {
-                return true;
+                return;
             }
 
             if (isSpecialToken)
@@ -253,29 +245,62 @@ namespace Microsoft.ML.Tokenizers
                 if (_specialTokensEncoder is not null && _specialTokensEncoder.TryGetValue(sequence, out int id))
                 {
                     accumulatedIds.Add(id);
-                    return true;
                 }
 
-                return false;
+                return;
             }
 
             if (_cache.Lookup(sequence, out int[] tokenIds))
             {
                 accumulatedIds.AddRange(tokenIds);
-                return true;
+                return;
             }
 
             if (_vocab.TryGetValue(sequence, out int mappedId))
             {
                 accumulatedIds.Add(mappedId);
-                return true;
+                return;
             }
 
             int[] encodedIds = BytePairEncoder.BytePairEncode(Encoding.UTF8.GetBytes(sequence), _encoder);
             _cache.Add(sequence, encodedIds);
 
             accumulatedIds.AddRange(encodedIds);
-            return true;
+            return;
+        }
+
+        /// <summary>
+        /// Get the number of token's Ids that the input sequence will be encoded to.
+        /// </summary>
+        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="isSpecialToken">Indicate if the token is special token.</param>
+        /// <returns>The number of token's Ids that the input sequence will be encoded to.</returns>
+        public override int GetTokenizedIdsCount(string sequence, bool isSpecialToken)
+        {
+            if (string.IsNullOrEmpty(sequence))
+            {
+                return 0;
+            }
+
+            if (isSpecialToken && _specialTokensEncoder is not null)
+            {
+                return _specialTokensEncoder.TryGetValue(sequence, out int id) ? 1 : 0;
+            }
+
+            if (_cache.Lookup(sequence, out int[] ids))
+            {
+                return ids.Length;
+            }
+
+            if (_vocab.TryGetValue(sequence, out int mappedId))
+            {
+                return 1;
+            }
+
+            int[] encodedIds = BytePairEncoder.BytePairEncode(Encoding.UTF8.GetBytes(sequence), _encoder);
+            _cache.Add(sequence, encodedIds);
+
+            return encodedIds.Length;
         }
 
         /// <summary>
@@ -379,8 +404,6 @@ namespace Microsoft.ML.Tokenizers
             return utf8Bytes.Count > 0 ? Encoding.UTF8.GetString(utf8Bytes.ToArray()) : string.Empty;
         }
 
-        public override string? IdToString(int id, bool skipSpecialTokens = false) => IdToToken(id, skipSpecialTokens);
-
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
@@ -403,12 +426,5 @@ namespace Microsoft.ML.Tokenizers
         /// Gets a trainer object to use in training the model.
         /// </summary>
         public override Trainer? GetTrainer() => throw new NotImplementedException();
-
-        /// <summary>
-        /// Return true if the char is valid in the tokenizer; otherwise return false.
-        /// </summary>
-        /// <param name="ch"></param>
-        /// <returns></returns>
-        public override bool IsValidChar(char ch) => true;
     }
 }

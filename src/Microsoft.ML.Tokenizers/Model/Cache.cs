@@ -9,14 +9,14 @@ using System.Threading;
 
 namespace Microsoft.ML.Tokenizers
 {
-    internal sealed class Cache<TKey, TValue> where TKey : notnull
+    internal sealed class Cache<TKey, TValue> where TKey : notnull where TValue : notnull
     {
         internal Cache() : this(Bpe.DefaultCacheCapacity) { }
 
         internal Cache(int capacity)
         {
             Capacity = capacity;
-            Map = new Dictionary<TKey, TValue>((int)Capacity);
+            Map = new Dictionary<TKey, TValue>(Capacity);
         }
 
         private readonly ReaderWriterLockSlim _cacheLock = new ReaderWriterLockSlim();
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tokenizers
 
         internal int Capacity { get; set; }
 
-        internal void Fresh() => Map = new Dictionary<TKey, TValue>((int)Capacity);
+        internal void Fresh() => Map = new Dictionary<TKey, TValue>(Capacity);
 
         internal void Clear()
         {
@@ -56,27 +56,22 @@ namespace Microsoft.ML.Tokenizers
             return values;
         }
 
-        internal TValue? Get(TKey key)
+        internal bool TryGet(TKey key, out TValue value)
         {
             _cacheLock.EnterReadLock();
             try
             {
-                if (Map.TryGetValue(key, out TValue? value))
-                {
-                    return value;
-                }
+                return Map.TryGetValue(key, out value!);
             }
             finally { _cacheLock.ExitReadLock(); }
-
-            return default;
         }
 
-        internal void SetValues(IEnumerable<(TKey, TValue)> enteries)
+        internal void SetValues(IEnumerable<(TKey, TValue)> entries)
         {
             _cacheLock.EnterWriteLock();
             try
             {
-                foreach ((TKey, TValue) entry in enteries)
+                foreach ((TKey, TValue) entry in entries)
                 {
                     if (Capacity <= Map.Count)
                     {

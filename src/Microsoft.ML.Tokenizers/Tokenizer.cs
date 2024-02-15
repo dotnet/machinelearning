@@ -55,13 +55,6 @@ namespace Microsoft.ML.Tokenizers
         /// Encodes input text to object has the tokens list, tokens Ids, tokens offset mapping.
         /// </summary>
         /// <param name="sequence">The text to tokenize.</param>
-        /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
-        public TokenizerResult Encode(string sequence) => Encode(sequence, skipSpecialTokens: false);
-
-        /// <summary>
-        /// Encodes input text to object has the tokens list, tokens Ids, tokens offset mapping.
-        /// </summary>
-        /// <param name="sequence">The text to tokenize.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
         /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
         public TokenizerResult Encode(string sequence, bool skipSpecialTokens = false)
@@ -140,33 +133,41 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(sequence));
             }
 
-            string normalized;
-            NormalizedString normalizedString = default;
-
-            bool offsetsMappedToOriginal = true;
-            if (Normalizer is not null)
-            {
-                normalizedString = Normalizer.Normalize(sequence);
-                normalized = normalizedString.Normalized;
-
-                offsetsMappedToOriginal = normalizedString.CanMapToOriginal;
-            }
-            else
-            {
-                normalized = sequence;
-            }
-
+            string normalized = Normalizer is not null ? Normalizer.Normalize(sequence).Normalized : sequence;
             List<int> idsList = new();
 
             foreach (Split split in PreTokenizer.PreTokenize(normalized, skipSpecialTokens))
             {
-                if (!Model.TokenizeToIds(split.TokenString, split.IsSpecialToken, idsList))
-                {
-                    throw new ArgumentException($"Unable to tokenize the sequence: {split.TokenString}");
-                }
+                Model.TokenizeToIds(split.TokenString, split.IsSpecialToken, idsList);
             }
 
             return idsList;
+        }
+
+        /// <summary>
+        /// Get the number of token's Ids that the input sequence will be encoded to.
+        /// </summary>
+        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
+        /// <returns>The number of token's Ids that the input sequence will be encoded to.</returns>
+        /// <exception cref="ArgumentNullException">The input sequence is null.</exception>
+        /// <exception cref="ArgumentException">Unable to tokenize the sequence.</exception>
+        public int GetEncodedIdsCount(string sequence, bool skipSpecialTokens = false)
+        {
+            if (sequence is null)
+            {
+                throw new ArgumentNullException(nameof(sequence));
+            }
+
+            string normalized = Normalizer is not null ? Normalizer.Normalize(sequence).Normalized : sequence;
+
+            int idsCount = 0;
+            foreach (Split split in PreTokenizer.PreTokenize(normalized, skipSpecialTokens))
+            {
+                idsCount += Model.GetTokenizedIdsCount(split.TokenString, split.IsSpecialToken);
+            }
+
+            return idsCount;
         }
 
         // skipSpecialTokens is used in post processing we don't support yet. We are keeping it to allow using it when we support post processing.
@@ -199,12 +200,19 @@ namespace Microsoft.ML.Tokenizers
 
             List<string> tokens = new List<string>();
 
-            foreach (int id in ids)
+            if (Model is EnglishRoberta robertaModel)
             {
-                if (Model.GetType() == typeof(EnglishRoberta))
-                    tokens.Add(Model.IdToString(id) ?? "");
-                else
-                    tokens.Add(Model.IdToToken(id) ?? "");
+                foreach (int id in ids)
+                {
+                    tokens.Add(robertaModel.IdToFilteredToken(id, skipSpecialTokens) ?? "");
+                }
+            }
+            else
+            {
+                foreach (int id in ids)
+                {
+                    tokens.Add(Model.IdToToken(id, skipSpecialTokens) ?? "");
+                }
             }
 
             return Decoder?.Decode(tokens) ?? string.Join("", tokens);
@@ -254,11 +262,6 @@ namespace Microsoft.ML.Tokenizers
 
             // To Do: support added vocabulary in the tokenizer which will include this returned special_tokens.
             // self.add_special_tokens(&special_tokens);
-        }
-
-        public bool IsValidChar(char ch)
-        {
-            return Model.IsValidChar(ch);
         }
 
         private const string EndOfText = "<|endoftext|>";
