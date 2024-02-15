@@ -270,12 +270,12 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Get the number of token's Ids that the input sequence will be encoded to.
+        /// Get the number of tokens that the input sequence will be encoded to.
         /// </summary>
         /// <param name="sequence">The text to tokenize.</param>
         /// <param name="isSpecialToken">Indicate if the token is special token.</param>
-        /// <returns>The number of token's Ids that the input sequence will be encoded to.</returns>
-        public override int GetTokenizedIdsCount(string sequence, bool isSpecialToken)
+        /// <returns>The number of tokens that the input sequence will be encoded to.</returns>
+        public override int CountTokens(string sequence, bool isSpecialToken)
         {
             if (string.IsNullOrEmpty(sequence))
             {

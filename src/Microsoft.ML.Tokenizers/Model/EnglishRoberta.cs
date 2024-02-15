@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -207,14 +208,8 @@ namespace Microsoft.ML.Tokenizers
         /// <returns>The list of tokens generated from the sequence tokenization.</returns>
         public override IReadOnlyList<Token> Tokenize(string sequence, bool isSpecialToken = false)
         {
-            Span<char> token = stackalloc char[100];
-            Span<int> indexMapping = stackalloc int[100];
-
-            if (sequence.Length > 100)
-            {
-                token = new char[sequence.Length].AsSpan();
-                indexMapping = new int[sequence.Length].AsSpan();
-            }
+            char[] token = ArrayPool<char>.Shared.Rent(sequence.Length);
+            int[] indexMapping = ArrayPool<int>.Shared.Rent(sequence.Length);
 
             int newTokenIndex = 0;
             for (int i = 0; i < sequence.Length; i++)
@@ -229,16 +224,22 @@ namespace Microsoft.ML.Tokenizers
 
             if (newTokenIndex == 0)
             {
+                ArrayPool<char>.Shared.Return(token);
+                ArrayPool<int>.Shared.Return(indexMapping);
                 return Bpe.EmptyTokensList;
             }
 
             if (_cache.TryGet(sequence, out IReadOnlyList<Token>? hit))
             {
+                ArrayPool<char>.Shared.Return(token);
+                ArrayPool<int>.Shared.Return(indexMapping);
                 return ModifyTokenListOffsets(hit, indexMapping);
             }
 
-            IReadOnlyList<Token> result = EncodeToTokens(token.Slice(0, newTokenIndex), indexMapping);
+            IReadOnlyList<Token> result = EncodeToTokens(token.AsSpan().Slice(0, newTokenIndex), indexMapping);
             _cache.Set(sequence, result);
+            ArrayPool<char>.Shared.Return(token);
+            ArrayPool<int>.Shared.Return(indexMapping);
             return result;
         }
 
@@ -251,12 +252,12 @@ namespace Microsoft.ML.Tokenizers
         public override void TokenizeToIds(string sequence, bool isSpecialToken, IList<int> accumulatedIds) => TokenizeToIds(sequence, accumulatedIds);
 
         /// <summary>
-        /// Get the number of token's Ids that the input sequence will be encoded to.
+        /// Get the number of tokens that the input sequence will be encoded to.
         /// </summary>
         /// <param name="sequence">The text to tokenize.</param>
         /// <param name="isSpecialToken">Indicate if the token is special token.</param>
-        /// <returns>The number of token's Ids that the input sequence will be encoded to.</returns>
-        public override int GetTokenizedIdsCount(string sequence, bool isSpecialToken) => TokenizeToIds(sequence, null);
+        /// <returns>The number of tokens that the input sequence will be encoded to.</returns>
+        public override int CountTokens(string sequence, bool isSpecialToken) => TokenizeToIds(sequence, null);
 
         private int TokenizeToIds(string sequence, IList<int>? accumulatedIds)
         {
@@ -602,12 +603,20 @@ namespace Microsoft.ML.Tokenizers
                     var j = word.IndexOf(first, i);
                     if (j == -1)
                     {
-                        newWord.AddRange(word.Skip(i));
+                        // Equivalent to newWord.AddRange(word.Skip(i)) without allocations
+                        for (int k = i; k < word.Count; k++)
+                        {
+                            newWord.Add(word[k]);
+                        }
                         break;
                     }
                     else
                     {
-                        newWord.AddRange(word.Skip(i).Take(j - i));
+                        // Equivalent to newWord.AddRange(word.Skip(i).Take(j - i)) without allocations
+                        for (int k = i; k < j; k++)
+                        {
+                            newWord.Add(word[k]);
+                        }
                         i = j;
                     }
 

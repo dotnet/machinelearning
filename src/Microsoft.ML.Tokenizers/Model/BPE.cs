@@ -168,12 +168,12 @@ namespace Microsoft.ML.Tokenizers
         public override void TokenizeToIds(string sequence, bool isSpecialToken, IList<int> accumulatedIds) => TokenizeToIdsWithCache(sequence, accumulatedIds);
 
         /// <summary>
-        /// Get the number of token's Ids that the input sequence will be encoded to.
+        /// Get the number of tokens that the input sequence will be encoded to.
         /// </summary>
         /// <param name="sequence">The text to tokenize.</param>
         /// <param name="isSpecialToken">Indicate if the token is special token.</param>
-        /// <returns>The number of token's Ids that the input sequence will be encoded to.</returns>
-        public override int GetTokenizedIdsCount(string sequence, bool isSpecialToken) => TokenizeToIdsWithCache(sequence, null);
+        /// <returns>The number of tokens that the input sequence will be encoded to.</returns>
+        public override int CountTokens(string sequence, bool isSpecialToken) => TokenizeToIdsWithCache(sequence, null);
 
         /// <summary>
         /// Map the token to tokenized Id.

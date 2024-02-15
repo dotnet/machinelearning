@@ -46,16 +46,16 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Get the number of token's Ids that the input sequence will be encoded to.
+        /// Get the number of tokens that the input sequence will be encoded to.
         /// </summary>
         /// <param name="sequence">The text to tokenize.</param>
         /// <param name="isSpecialToken">Indicate if the token is special token.</param>
-        /// <returns>The number of token's Ids that the input sequence will be encoded to.</returns>
+        /// <returns>The number of tokens that the input sequence will be encoded to.</returns>
         /// <remarks>
         /// This method does the default implementation that uses the TokenizeToIds method to get the number of token's Ids.
         /// Tokenizer's models which care about performance may choose to override this method to provide a more efficient implementation.
         /// </remarks>
-        public virtual int GetTokenizedIdsCount(string sequence, bool isSpecialToken)
+        public virtual int CountTokens(string sequence, bool isSpecialToken)
         {
             var ids = new List<int>();
             TokenizeToIds(sequence, isSpecialToken, ids);

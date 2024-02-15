@@ -145,14 +145,14 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Get the number of token's Ids that the input sequence will be encoded to.
+        /// Get the number of tokens that the input sequence will be encoded to.
         /// </summary>
         /// <param name="sequence">The text to tokenize.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
-        /// <returns>The number of token's Ids that the input sequence will be encoded to.</returns>
+        /// <returns>The number of tokens Ids that the input sequence will be encoded to.</returns>
         /// <exception cref="ArgumentNullException">The input sequence is null.</exception>
         /// <exception cref="ArgumentException">Unable to tokenize the sequence.</exception>
-        public int GetEncodedIdsCount(string sequence, bool skipSpecialTokens = false)
+        public int CountTokens(string sequence, bool skipSpecialTokens = false)
         {
             if (sequence is null)
             {
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Tokenizers
             int idsCount = 0;
             foreach (Split split in PreTokenizer.PreTokenize(normalized, skipSpecialTokens))
             {
-                idsCount += Model.GetTokenizedIdsCount(split.TokenString, split.IsSpecialToken);
+                idsCount += Model.CountTokens(split.TokenString, split.IsSpecialToken);
             }
 
             return idsCount;

@@ -146,7 +146,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(offsets.Length, encoding.Offsets.Count);
                 Assert.Equal(ids.Length, encoding.Ids.Count);
                 Assert.Equal(ids.Length, idsList.Count);
-                Assert.Equal(ids.Length, tokenizer.GetEncodedIdsCount(sentence));
+                Assert.Equal(ids.Length, tokenizer.CountTokens(sentence));
                 Assert.Equal(decodedTokens, tokenizer.Decode(encoding.Ids));
 
                 for (int i = 0; i < encoding.Tokens.Count; i++)
@@ -237,13 +237,12 @@ namespace Microsoft.ML.Tokenizers.Tests
                 {
                     TokenizerResult enc = tokenizer.Encode((string)arguments[0]!);
                     IReadOnlyList<int> ids = tokenizer.EncodeToIds((string)arguments[0]!);
-                    int idsCount = tokenizer.GetEncodedIdsCount((string)arguments[0]!);
                     Assert.Equal((string)arguments[0]!, enc.OriginalString);
                     Assert.Equal((string[])arguments[1]!, enc.Tokens);
                     (int, int)[] offsets = ((int, int)[])arguments[2]!;
                     Assert.Equal(offsets, enc.Offsets);
                     Assert.Equal(enc.Tokens.Count, ids.Count);
-                    Assert.Equal(enc.Tokens.Count, idsCount);
+                    Assert.Equal(enc.Tokens.Count, tokenizer.CountTokens((string)arguments[0]!));
 
                     Assert.Equal(enc.Tokens.Count, enc.Ids.Count);
 

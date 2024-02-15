@@ -132,7 +132,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             {
                 TokenizerResult encoding = tokenizer.Encode((string)p[0]);
                 IReadOnlyList<int> ids = tokenizer.EncodeToIds((string)p[0]);
-                int idsCount = tokenizer.GetEncodedIdsCount((string)p[0]);
+                int idsCount = tokenizer.CountTokens((string)p[0]);
                 Assert.Equal(p[1], encoding.Ids);
                 Assert.Equal(p[1], ids);
                 Assert.Equal(((int[])p[1]).Length, idsCount);
