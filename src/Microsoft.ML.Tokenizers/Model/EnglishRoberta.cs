@@ -56,9 +56,9 @@ namespace Microsoft.ML.Tokenizers
             using Stream mergeStream = File.OpenRead(mergePath);
             using Stream highestOccurrenceMappingStream = File.OpenRead(highestOccurrenceMappingPath);
 
-            // vocabularyPath like encoder.json
-            // merge file like vocab.bpe
-            // highestOccurrenceMappingPath like dict.txt
+            // vocabularyPath like "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/encoder.json"
+            // merge file like "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/vocab.bpe"
+            // highestOccurrenceMappingPath like "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/dict.txt"
 
             _vocabIdToHighestOccurrence = GetHighestOccurrenceMapping(highestOccurrenceMappingStream);
             _vocab = GetVocabulary(vocabularyStream);
@@ -167,8 +167,8 @@ namespace Microsoft.ML.Tokenizers
         public override string[] Save(string path, string? prefix = null)
         {
             // Write vocab.json
-            string vocabFileNname = prefix is null ? "vocab.json" : $"{prefix}-vocab.json";
-            string vocabPath = Path.Combine(path, vocabFileNname);
+            string vocabFileName = prefix is null ? "vocab.json" : $"{prefix}-vocab.json";
+            string vocabPath = Path.Combine(path, vocabFileName);
             string serialized = JsonSerializer.Serialize(_vocabReverse, new JsonSerializerOptions { Converters = { new DictReversingConverter() } });
             File.WriteAllText(vocabPath, serialized, System.Text.Encoding.UTF8);
 
@@ -482,33 +482,33 @@ namespace Microsoft.ML.Tokenizers
 
         private Dictionary<(string, string), int> GetMergeRanks(Stream mergeStream)
         {
-            List<string> splitContents = new();
-
+            var mergeRanks = new Dictionary<(string, string), int>();
             try
             {
                 using StreamReader reader = new StreamReader(mergeStream);
+
+                // We ignore the first and last line in the file
+                if (reader.Peek() >= 0)
+                {
+                    string ignored = reader.ReadLine()!;
+                }
+
+                int rank = 1;
                 while (reader.Peek() >= 0)
                 {
-                    splitContents.Add(reader.ReadLine()!);
+                    string line = reader.ReadLine()!;
+                    int index = line.IndexOf(' ');
+                    if (index < 1 || index == line.Length - 1 || line.IndexOf(' ', index + 1) != -1)
+                    {
+                        throw new Exception($"Invalid format of merge file: \"{line}\"");
+                    }
+
+                    mergeRanks.Add((line.Substring(0, index), line.Substring(index + 1)), rank++);
                 }
             }
             catch (Exception e)
             {
                 throw new IOException($"Cannot read the file Merge file.{Environment.NewLine}Error message: {e.Message}", e);
-            }
-
-            var mergeRanks = new Dictionary<(string, string), int>();
-
-            // We ignore the first and last line in the file
-            for (int i = 1; i < splitContents.Count - 1; i++)
-            {
-                var split = splitContents[i].Split(' ');
-                if (split.Length != 2 || string.IsNullOrEmpty(split[0]) || string.IsNullOrEmpty(split[1]))
-                {
-                    throw new Exception($"Invalid format of merge file: \"{splitContents[i]}\"");
-                }
-
-                mergeRanks.Add((split[0], split[1]), i);
             }
 
             return mergeRanks;
@@ -814,16 +814,16 @@ namespace Microsoft.ML.Tokenizers
             PadWord = pad;
             EosWord = eos;
             UnkWord = unk;
-            BosIndex = ReserveStringSymboleSlot(bos);
-            PadIndex = ReserveStringSymboleSlot(pad);
-            EosIndex = ReserveStringSymboleSlot(eos);
-            UnkIndex = ReserveStringSymboleSlot(unk);
+            BosIndex = ReserveStringSymbolSlot(bos);
+            PadIndex = ReserveStringSymbolSlot(pad);
+            EosIndex = ReserveStringSymbolSlot(eos);
+            UnkIndex = ReserveStringSymbolSlot(unk);
 
             if (extraSpecialSymbols is not null)
             {
                 foreach (var symbol in extraSpecialSymbols)
                 {
-                    ReserveStringSymboleSlot(symbol);
+                    ReserveStringSymbolSlot(symbol);
                 }
             }
         }
@@ -860,7 +860,7 @@ namespace Microsoft.ML.Tokenizers
             return _symbols[rank].Id;
         }
 
-        private int ReserveStringSymboleSlot(string symbol, int defaultOccurrence = -1)
+        private int ReserveStringSymbolSlot(string symbol, int defaultOccurrence = -1)
         {
             if (symbol is null)
             {
@@ -892,7 +892,7 @@ namespace Microsoft.ML.Tokenizers
         public int AddMaskSymbol(string mask = "<mask>")
         {
             MaskWord = mask;
-            MaskIndex = ReserveStringSymboleSlot(mask, 1);
+            MaskIndex = ReserveStringSymbolSlot(mask, 1);
             return MaskIndex;
         }
 
@@ -965,7 +965,7 @@ namespace Microsoft.ML.Tokenizers
 
                 if (!int.TryParse(splitLine[0], out var id))
                 {
-                    ReserveStringSymboleSlot(splitLine[0], occurrenceScore);
+                    ReserveStringSymbolSlot(splitLine[0], occurrenceScore);
                 }
                 else
                 {
