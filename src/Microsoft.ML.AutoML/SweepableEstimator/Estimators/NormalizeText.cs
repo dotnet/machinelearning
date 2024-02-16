@@ -12,7 +12,7 @@ namespace Microsoft.ML.AutoML.CodeGen
     {
         public override IEstimator<ITransformer> BuildFromOption(MLContext context, NormalizeTextOption param)
         {
-            return context.Transforms.Text.NormalizeText(param.OutputColumnName, param.InputColumnName, param.Mode, param.KeepDiacritics, param.KeepPunctuations, param.KeepNumbers);
+            return context.Transforms.Text.NormalizeText(param.OutputColumnName, param.InputColumnName, param.CaseMode, param.KeepDiacritics, param.KeepPunctuations, param.KeepNumbers);
         }
     }
 }

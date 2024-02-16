@@ -251,7 +251,7 @@
         "TargetType",
         "PredictionColumnName",
         "KeyData",
-        "Mode",
+        "CaseMode",
         "KeepPunctuations",
         "KeepDiacritics",
         "KeepNumbers"

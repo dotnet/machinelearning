@@ -20,7 +20,7 @@
       "type": "dataView"
     },
     {
-      "name": "Mode",
+      "name": "CaseMode",
       "type": "caseMode"
     }
   ]

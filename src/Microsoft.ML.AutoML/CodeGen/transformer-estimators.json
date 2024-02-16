@@ -193,7 +193,7 @@
           "argumentType": "string"
         },
         {
-          "argumentName": "mode",
+          "argumentName": "caseMode",
           "argumentType": "caseMode"
         },
         {
