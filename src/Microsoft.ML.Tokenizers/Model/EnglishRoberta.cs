@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -55,9 +56,9 @@ namespace Microsoft.ML.Tokenizers
             using Stream mergeStream = File.OpenRead(mergePath);
             using Stream highestOccurrenceMappingStream = File.OpenRead(highestOccurrenceMappingPath);
 
-            // vocabularyPath like encoder.json
-            // merge file like vocab.bpe
-            // highestOccurrenceMappingPath like dict.txt
+            // vocabularyPath like "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/encoder.json"
+            // merge file like "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/vocab.bpe"
+            // highestOccurrenceMappingPath like "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/dict.txt"
 
             _vocabIdToHighestOccurrence = GetHighestOccurrenceMapping(highestOccurrenceMappingStream);
             _vocab = GetVocabulary(vocabularyStream);
@@ -136,12 +137,12 @@ namespace Microsoft.ML.Tokenizers
             skipSpecialTokens && id < 0 ? null : _vocabReverse.TryGetValue(id, out var value) ? value : null;
 
         /// <summary>
-        /// Map the tokenized Id to the original string.
+        /// Map the tokenized Id to the original string while filtering out unsupported characters.
         /// </summary>
         /// <param name="id">The Id to map to the string.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public override string? IdToString(int id, bool skipSpecialTokens = false)
+        public string? IdToFilteredToken(int id, bool skipSpecialTokens = false)
         {
             if (skipSpecialTokens && id < 0)
                 return null;
@@ -166,8 +167,8 @@ namespace Microsoft.ML.Tokenizers
         public override string[] Save(string path, string? prefix = null)
         {
             // Write vocab.json
-            string vocabFileNname = prefix is null ? "vocab.json" : $"{prefix}-vocab.json";
-            string vocabPath = Path.Combine(path, vocabFileNname);
+            string vocabFileName = prefix is null ? "vocab.json" : $"{prefix}-vocab.json";
+            string vocabPath = Path.Combine(path, vocabFileName);
             string serialized = JsonSerializer.Serialize(_vocabReverse, new JsonSerializerOptions { Converters = { new DictReversingConverter() } });
             File.WriteAllText(vocabPath, serialized, System.Text.Encoding.UTF8);
 
@@ -203,10 +204,75 @@ namespace Microsoft.ML.Tokenizers
         /// Tokenize a sequence string to a list of tokens.
         /// </summary>
         /// <param name="sequence">The sequence to tokenize.</param>
+        /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
         /// <returns>The list of tokens generated from the sequence tokenization.</returns>
-        public override IReadOnlyList<Token> Tokenize(string sequence)
+        public override IReadOnlyList<Token> Tokenize(string sequence, bool isSpecialToken = false)
         {
-            var bpeTokens = new List<string>();
+            char[] token = ArrayPool<char>.Shared.Rent(sequence.Length);
+            int[] indexMapping = ArrayPool<int>.Shared.Rent(sequence.Length);
+
+            int newTokenIndex = 0;
+            for (int i = 0; i < sequence.Length; i++)
+            {
+                if (_byteToUnicode.TryGetValue(sequence[i], out var value))
+                {
+                    token[newTokenIndex] = value;
+                    indexMapping[newTokenIndex] = i;
+                    newTokenIndex++;
+                }
+            }
+
+            if (newTokenIndex == 0)
+            {
+                ArrayPool<char>.Shared.Return(token);
+                ArrayPool<int>.Shared.Return(indexMapping);
+                return Bpe.EmptyTokensList;
+            }
+
+            if (_cache.TryGet(sequence, out IReadOnlyList<Token>? hit))
+            {
+                ArrayPool<char>.Shared.Return(token);
+                ArrayPool<int>.Shared.Return(indexMapping);
+                return ModifyTokenListOffsets(hit, indexMapping);
+            }
+
+            IReadOnlyList<Token> result = EncodeToTokens(token.AsSpan().Slice(0, newTokenIndex), indexMapping);
+            _cache.Set(sequence, result);
+            ArrayPool<char>.Shared.Return(token);
+            ArrayPool<int>.Shared.Return(indexMapping);
+            return result;
+        }
+
+        /// <summary>
+        /// Tokenize a split sequence string to a list of Ids and add them to the accumulatedIds list.
+        /// </summary>
+        /// <param name="sequence">The sequence to split.</param>
+        /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
+        /// <param name="accumulatedIds">The list of accumulated tokenized Ids.</param>
+        public override void TokenizeToIds(string sequence, bool isSpecialToken, IList<int> accumulatedIds) => TokenizeToIds(sequence, accumulatedIds);
+
+        /// <summary>
+        /// Get the number of tokens that the input sequence will be encoded to.
+        /// </summary>
+        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="isSpecialToken">Indicate if the token is special token.</param>
+        /// <returns>The number of tokens that the input sequence will be encoded to.</returns>
+        public override int CountTokens(string sequence, bool isSpecialToken) => TokenizeToIds(sequence, null);
+
+        private int TokenizeToIds(string sequence, IList<int>? accumulatedIds)
+        {
+            if (_cache.TryGet(sequence, out IReadOnlyList<Token>? hit))
+            {
+                if (accumulatedIds is not null)
+                {
+                    foreach (var t in hit)
+                    {
+                        accumulatedIds.Add(t.Id);
+                    }
+                }
+
+                return hit.Count;
+            }
 
             Span<char> token = stackalloc char[100];
             Span<int> indexMapping = stackalloc int[100];
@@ -230,18 +296,12 @@ namespace Microsoft.ML.Tokenizers
 
             if (newTokenIndex == 0)
             {
-                return Bpe.EmptyTokensList;
+                return 0;
             }
 
-            IReadOnlyList<Token>? hit = _cache.Get(sequence);
-            if (hit is not null)
-            {
-                return ModifyTokenListOffsets(hit, indexMapping);
-            }
-
-            IReadOnlyList<Token> result = BpeToken(token.Slice(0, newTokenIndex), indexMapping);
+            IReadOnlyList<Token> result = EncodeToTokens(token.Slice(0, newTokenIndex), indexMapping);
             _cache.Set(sequence, result);
-            return result;
+            return result.Count;
         }
 
         /// <summary>
@@ -422,33 +482,33 @@ namespace Microsoft.ML.Tokenizers
 
         private Dictionary<(string, string), int> GetMergeRanks(Stream mergeStream)
         {
-            List<string> splitContents = new();
-
+            var mergeRanks = new Dictionary<(string, string), int>();
             try
             {
                 using StreamReader reader = new StreamReader(mergeStream);
+
+                // We ignore the first and last line in the file
+                if (reader.Peek() >= 0)
+                {
+                    string ignored = reader.ReadLine()!;
+                }
+
+                int rank = 1;
                 while (reader.Peek() >= 0)
                 {
-                    splitContents.Add(reader.ReadLine()!);
+                    string line = reader.ReadLine()!;
+                    int index = line.IndexOf(' ');
+                    if (index < 1 || index == line.Length - 1 || line.IndexOf(' ', index + 1) != -1)
+                    {
+                        throw new Exception($"Invalid format of merge file: \"{line}\"");
+                    }
+
+                    mergeRanks.Add((line.Substring(0, index), line.Substring(index + 1)), rank++);
                 }
             }
             catch (Exception e)
             {
                 throw new IOException($"Cannot read the file Merge file.{Environment.NewLine}Error message: {e.Message}", e);
-            }
-
-            var mergeRanks = new Dictionary<(string, string), int>();
-
-            // We ignore the first and last line in the file
-            for (int i = 1; i < splitContents.Count - 1; i++)
-            {
-                var split = splitContents[i].Split(' ');
-                if (split.Length != 2 || string.IsNullOrEmpty(split[0]) || string.IsNullOrEmpty(split[1]))
-                {
-                    throw new Exception($"Invalid format of merge file: \"{splitContents[i]}\"");
-                }
-
-                mergeRanks.Add((split[0], split[1]), i);
             }
 
             return mergeRanks;
@@ -481,10 +541,28 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Encode a token into BPE-ed sub-tokens. E.g., "playing" into ["play", "ing"].
+        /// Encode a token into BPE-ed Ids. E.g., "playing" into ["play", "ing"].
         /// </summary>
-        private List<Token> BpeToken(Span<char> token, Span<int> indexMapping)
+        /// <param name="token">The token to encode.</param>
+        /// <param name="ids">The list of Ids to encode the token into.</param>
+        /// <returns>The number of encoded ids.</returns>
+        private int EncodeToIds(Span<char> token, IList<int>? ids)
         {
+            if (token.Length == 0)
+            {
+                return 0;
+            }
+
+            if (token.Length == 1)
+            {
+                if (ids is not null)
+                {
+                    ids.Add(_vocab[_charToString[token[0]]]);
+                }
+
+                return 1;
+            }
+
             List<string> word = new(token.Length);
             foreach (char c in token)
             {
@@ -492,13 +570,13 @@ namespace Microsoft.ML.Tokenizers
                 word.Add(_charToString[c]);
             }
 
-            HashSet<(string, string)> pairs = WordToPairs(word);
+            HashSet<(string, string)> pairs = new();
 
-            if (pairs.Count == 0)
-            {
-                string tokenValue = token.ToString();
-                return new List<Token> { new Token(_vocab[tokenValue], tokenValue, (indexMapping[0], indexMapping[token.Length - 1] + 1)) };
-            }
+            WordToPairs(word, pairs);
+
+            var newWord = new List<string>();
+
+            Debug.Assert(pairs.Count != 0, "Pairs should not be empty.");
 
             while (true)
             {
@@ -518,7 +596,112 @@ namespace Microsoft.ML.Tokenizers
                 /* end while conditions */
 
                 // search and merge all (first, second) pairs in {word}
-                var newWord = new List<string>();
+                var i = 0;
+                while (i < word.Count)
+                {
+                    // find the next occurrence of {first} and add the elements before into {newWord}
+                    var j = word.IndexOf(first, i);
+                    if (j == -1)
+                    {
+                        // Equivalent to newWord.AddRange(word.Skip(i)) without allocations
+                        for (int k = i; k < word.Count; k++)
+                        {
+                            newWord.Add(word[k]);
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        // Equivalent to newWord.AddRange(word.Skip(i).Take(j - i)) without allocations
+                        for (int k = i; k < j; k++)
+                        {
+                            newWord.Add(word[k]);
+                        }
+                        i = j;
+                    }
+
+                    // check the next element is {second} or not
+                    if (i < word.Count - 1 && word[i + 1] == second)
+                    {
+                        newWord.Add(first + second);
+                        i += 2;
+                    }
+                    else
+                    {
+                        newWord.Add(word[i]);
+                        i += 1;
+                    }
+                }
+
+                List<string> temp = word;
+                word = newWord;
+                newWord = temp;
+                newWord.Clear();
+
+                // otherwise, continue merging
+                WordToPairs(word, pairs);
+            }
+
+            if (ids is not null)
+            {
+                foreach (string w in word)
+                {
+                    ids.Add(_vocab[w]);
+                }
+            }
+
+            return word.Count;
+        }
+
+        /// <summary>
+        /// Encode a token into BPE-ed sub-tokens. E.g., "playing" into ["play", "ing"].
+        /// </summary>
+        private List<Token> EncodeToTokens(Span<char> token, Span<int> indexMapping)
+        {
+            if (token.Length == 0)
+            {
+                return Bpe.EmptyTokensList;
+            }
+
+            if (token.Length == 1)
+            {
+                string tokenValue = _charToString[token[0]];
+                return new List<Token> { new Token(_vocab[tokenValue], tokenValue, (indexMapping[0], indexMapping[0] + 1)) };
+            }
+
+            List<string> word = new(token.Length);
+            foreach (char c in token)
+            {
+                Debug.Assert(c < _charToString.Length);
+                word.Add(_charToString[c]);
+            }
+
+            HashSet<(string, string)> pairs = new();
+
+            WordToPairs(word, pairs);
+
+            var newWord = new List<string>();
+
+            Debug.Assert(pairs.Count != 0, "Pairs should not be empty.");
+
+            while (true)
+            {
+                /* while conditions */
+                // if only one element left, merge is finished (with the whole word merged)
+                if (word.Count == 1)
+                {
+                    break;
+                }
+
+                // get the most frequent bi-gram pair
+                var (first, second) = pairs.ArgMin(pair => _mergeRanks.GetOrAdd(pair, int.MaxValue));
+                if (!_mergeRanks.ContainsKey((first, second)))
+                {
+                    break;
+                }
+                /* end while conditions */
+
+                // search and merge all (first, second) pairs in {word}
                 var i = 0;
                 while (i < word.Count)
                 {
@@ -548,10 +731,13 @@ namespace Microsoft.ML.Tokenizers
                     }
                 }
 
+                List<string> temp = word;
                 word = newWord;
+                newWord = temp;
+                newWord.Clear();
 
                 // otherwise, continue merging
-                pairs = WordToPairs(word);
+                WordToPairs(word, pairs);
             }
 
             var tokens = new List<Token>(word.Count);
@@ -570,12 +756,13 @@ namespace Microsoft.ML.Tokenizers
         /// Extract element pairs in an aggregating word. E.g. [p, l, ay] into [(p,l), (l,ay)].
         /// If word contains 0 or 1 element, an empty HashSet will be returned.
         /// </summary>
-        private static HashSet<(string, string)> WordToPairs(IReadOnlyList<string> word)
+        private static void WordToPairs(IReadOnlyList<string> word, HashSet<(string, string)> pairs)
         {
-            var pairs = new HashSet<(string, string)>();
+            pairs.Clear();
+
             if (word.Count <= 1)
             {
-                return pairs;
+                return;
             }
 
             var prevElem = word[0];
@@ -584,11 +771,9 @@ namespace Microsoft.ML.Tokenizers
                 pairs.Add((prevElem, elem));
                 prevElem = elem;
             }
-
-            return pairs;
         }
 
-        public override bool IsValidChar(char ch)
+        public bool CharInSupportedRange(char ch)
         {
             return _byteToUnicode.ContainsKey(ch);
         }
@@ -629,16 +814,16 @@ namespace Microsoft.ML.Tokenizers
             PadWord = pad;
             EosWord = eos;
             UnkWord = unk;
-            BosIndex = ReserveStringSymboleSlot(bos);
-            PadIndex = ReserveStringSymboleSlot(pad);
-            EosIndex = ReserveStringSymboleSlot(eos);
-            UnkIndex = ReserveStringSymboleSlot(unk);
+            BosIndex = ReserveStringSymbolSlot(bos);
+            PadIndex = ReserveStringSymbolSlot(pad);
+            EosIndex = ReserveStringSymbolSlot(eos);
+            UnkIndex = ReserveStringSymbolSlot(unk);
 
             if (extraSpecialSymbols is not null)
             {
                 foreach (var symbol in extraSpecialSymbols)
                 {
-                    ReserveStringSymboleSlot(symbol);
+                    ReserveStringSymbolSlot(symbol);
                 }
             }
         }
@@ -675,7 +860,7 @@ namespace Microsoft.ML.Tokenizers
             return _symbols[rank].Id;
         }
 
-        private int ReserveStringSymboleSlot(string symbol, int defaultOccurrence = -1)
+        private int ReserveStringSymbolSlot(string symbol, int defaultOccurrence = -1)
         {
             if (symbol is null)
             {
@@ -707,7 +892,7 @@ namespace Microsoft.ML.Tokenizers
         public int AddMaskSymbol(string mask = "<mask>")
         {
             MaskWord = mask;
-            MaskIndex = ReserveStringSymboleSlot(mask, 1);
+            MaskIndex = ReserveStringSymbolSlot(mask, 1);
             return MaskIndex;
         }
 
@@ -780,7 +965,7 @@ namespace Microsoft.ML.Tokenizers
 
                 if (!int.TryParse(splitLine[0], out var id))
                 {
-                    ReserveStringSymboleSlot(splitLine[0], occurrenceScore);
+                    ReserveStringSymbolSlot(splitLine[0], occurrenceScore);
                 }
                 else
                 {

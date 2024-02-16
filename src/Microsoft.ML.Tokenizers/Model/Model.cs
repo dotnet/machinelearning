@@ -14,19 +14,12 @@ namespace Microsoft.ML.Tokenizers
     public abstract class Model
     {
         /// <summary>
-        /// Tokenize a sequence string to a list of tokens.
-        /// </summary>
-        /// <param name="sequence">The sequence to tokenize.</param>
-        /// <returns>The list of tokens generated from the sequence tokenization.</returns>
-        public abstract IReadOnlyList<Token> Tokenize(string sequence);
-
-        /// <summary>
         /// Tokenize a split sequence string to a list of tokens.
         /// </summary>
         /// <param name="sequence">The text to tokenize.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
         /// <returns>The list of tokens generated from the sequence tokenization.</returns>
-        public virtual IReadOnlyList<Token> Tokenize(string sequence, bool isSpecialToken) => Tokenize(sequence);
+        public abstract IReadOnlyList<Token> Tokenize(string sequence, bool isSpecialToken = false);
 
         /// <summary>
         /// Tokenize a split sequence string to a list of Ids and add them to the accumulatedIds list.
@@ -34,8 +27,11 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="sequence">The sequence to split.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
         /// <param name="accumulatedIds">The list of accumulated tokenized Ids.</param>
-        /// <returns>True if the operation succeeded, false otherwise.</returns>
-        public virtual bool TokenizeToIds(string sequence, bool isSpecialToken, IList<int> accumulatedIds)
+        /// <remarks>
+        /// This method does the default implementation that uses the Tokenize method to get the token's Ids.
+        /// Tokenizer's models which care about performance may choose to override this method to provide a more efficient implementation.
+        /// </remarks>
+        public virtual void TokenizeToIds(string sequence, bool isSpecialToken, IList<int> accumulatedIds)
         {
             if (accumulatedIds is null)
             {
@@ -47,7 +43,23 @@ namespace Microsoft.ML.Tokenizers
             {
                 accumulatedIds.Add(token.Id);
             }
-            return true;
+        }
+
+        /// <summary>
+        /// Get the number of tokens that the input sequence will be encoded to.
+        /// </summary>
+        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="isSpecialToken">Indicate if the token is special token.</param>
+        /// <returns>The number of tokens that the input sequence will be encoded to.</returns>
+        /// <remarks>
+        /// This method does the default implementation that uses the TokenizeToIds method to get the number of token's Ids.
+        /// Tokenizer's models which care about performance may choose to override this method to provide a more efficient implementation.
+        /// </remarks>
+        public virtual int CountTokens(string sequence, bool isSpecialToken)
+        {
+            var ids = new List<int>();
+            TokenizeToIds(sequence, isSpecialToken, ids);
+            return ids.Count;
         }
 
         /// <summary>
@@ -73,8 +85,6 @@ namespace Microsoft.ML.Tokenizers
         /// <returns>The mapped token of the Id.</returns>
         public abstract string? IdToToken(int id, bool skipSpecialTokens = false);
 
-        public abstract string? IdToString(int id, bool skipSpecialTokens = false);
-
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
@@ -97,12 +107,5 @@ namespace Microsoft.ML.Tokenizers
         /// Gets a trainer object to use in training the model.
         /// </summary>
         public abstract Trainer? GetTrainer();
-
-        /// <summary>
-        /// Return true if the char is valid in the tokenizer; otherwise return false.
-        /// </summary>
-        /// <param name="ch"></param>
-        /// <returns></returns>
-        public abstract bool IsValidChar(char ch);
     }
 }
