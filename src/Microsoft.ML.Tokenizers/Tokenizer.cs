@@ -336,7 +336,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 { "code-search-babbage-code-001", ModelEncoding.R50kBase },
                                                                 { "code-search-ada-code-001", ModelEncoding.R50kBase },
 
-                                                                //open source
+                                                                // open source
                                                                 { "gpt2", ModelEncoding.GPT2 }
                                                             };
 

@@ -106,6 +106,13 @@ namespace Microsoft.ML.Tokenizers.Tests
                 using Stream translationStream = File.OpenRead(translationFile);
                 tokenizer = new Tokenizer(new EnglishRoberta(vocabStream, mergeStream, translationStream), RobertaPreTokenizer.Instance);
                 TestTokenizer(tokenizer);
+
+                // Ensure caching works regardless of which method is called first.
+                for (CallingOrder order = CallingOrder.Encode; order <= CallingOrder.CountTokens; order++)
+                {
+                    tokenizer = new Tokenizer(new EnglishRoberta(vocabFile, mergeFile, translationFile), RobertaPreTokenizer.Instance);
+                    TestTokenizer(tokenizer, order);
+                }
             }
             finally
             {
@@ -122,7 +129,16 @@ namespace Microsoft.ML.Tokenizers.Tests
             }
         }
 
-        private void TestTokenizer(Tokenizer tokenizer)
+        private enum CallingOrder
+        {
+            Encode,
+            EncodeToIds,
+            CountTokens
+        }
+
+        // Calling EncodeToIds after calling Encode will cause EncodeToIds uses the cached data from the previous Encode call.
+        // Calling with callIdsFirst = true will test the other way around.
+        private void TestTokenizer(Tokenizer tokenizer, CallingOrder callingOrder = CallingOrder.Encode)
         {
             Assert.NotNull(tokenizer.Model);
             Assert.True(tokenizer.Model is EnglishRoberta);
@@ -130,9 +146,29 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             foreach (object[] p in BertaData)
             {
-                TokenizerResult encoding = tokenizer.Encode((string)p[0]);
-                IReadOnlyList<int> ids = tokenizer.EncodeToIds((string)p[0]);
-                int idsCount = tokenizer.CountTokens((string)p[0]);
+                IReadOnlyList<int> ids;
+                TokenizerResult encoding;
+                int idsCount;
+
+                if (callingOrder == CallingOrder.Encode)
+                {
+                    encoding = tokenizer.Encode((string)p[0]);
+                    ids = tokenizer.EncodeToIds((string)p[0]);
+                    idsCount = tokenizer.CountTokens((string)p[0]);
+                }
+                else if (callingOrder == CallingOrder.EncodeToIds)
+                {
+                    ids = tokenizer.EncodeToIds((string)p[0]);
+                    encoding = tokenizer.Encode((string)p[0]);
+                    idsCount = tokenizer.CountTokens((string)p[0]);
+                }
+                else // CountTokens
+                {
+                    idsCount = tokenizer.CountTokens((string)p[0]);
+                    ids = tokenizer.EncodeToIds((string)p[0]);
+                    encoding = tokenizer.Encode((string)p[0]);
+                }
+
                 Assert.Equal(p[1], encoding.Ids);
                 Assert.Equal(p[1], ids);
                 Assert.Equal(((int[])p[1]).Length, idsCount);

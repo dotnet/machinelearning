@@ -205,6 +205,11 @@ namespace Microsoft.ML.Tokenizers
         /// <returns>The list of tokens generated from the sequence tokenization.</returns>
         public override IReadOnlyList<Token> Tokenize(string sequence, bool isSpecialToken = false)
         {
+            if (string.IsNullOrEmpty(sequence))
+            {
+                return Bpe.EmptyTokensList;
+            }
+
             char[] token = ArrayPool<char>.Shared.Rent(sequence.Length);
             int[] indexMapping = ArrayPool<int>.Shared.Rent(sequence.Length);
 
@@ -258,6 +263,11 @@ namespace Microsoft.ML.Tokenizers
 
         private int TokenizeToIds(string sequence, IList<int>? accumulatedIds)
         {
+            if (string.IsNullOrEmpty(sequence))
+            {
+                return 0;
+            }
+
             if (_cache.TryGet(sequence, out List<Token>? hit))
             {
                 if (accumulatedIds is not null)
@@ -271,34 +281,17 @@ namespace Microsoft.ML.Tokenizers
                 return hit.Count;
             }
 
-            Span<char> token = stackalloc char[100];
-            Span<int> indexMapping = stackalloc int[100];
-
-            if (sequence.Length > 100)
+            // If the cache doesn't have the sequence, then tokenize it and add it to the cache
+            IReadOnlyList<Token> tokens = Tokenize(sequence);
+            if (accumulatedIds is not null)
             {
-                token = new char[sequence.Length].AsSpan();
-                indexMapping = new int[sequence.Length].AsSpan();
-            }
-
-            int newTokenIndex = 0;
-            for (int i = 0; i < sequence.Length; i++)
-            {
-                if (_byteToUnicode.TryGetValue(sequence[i], out var value))
+                foreach (var t in tokens)
                 {
-                    token[newTokenIndex] = value;
-                    indexMapping[newTokenIndex] = i;
-                    newTokenIndex++;
+                    accumulatedIds.Add(t.Id);
                 }
             }
 
-            if (newTokenIndex == 0)
-            {
-                return 0;
-            }
-
-            List<Token> result = EncodeToTokens(token.Slice(0, newTokenIndex), indexMapping);
-            _cache.Set(sequence, result);
-            return result.Count;
+            return tokens.Count;
         }
 
         /// <summary>
@@ -538,119 +531,6 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Encode a token into BPE-ed Ids. E.g., "playing" into ["play", "ing"].
-        /// </summary>
-        /// <param name="token">The token to encode.</param>
-        /// <param name="ids">The list of Ids to encode the token into.</param>
-        /// <returns>The number of encoded ids.</returns>
-        private int EncodeToIds(Span<char> token, IList<int>? ids)
-        {
-            if (token.Length == 0)
-            {
-                return 0;
-            }
-
-            if (token.Length == 1)
-            {
-                if (ids is not null)
-                {
-                    ids.Add(_vocab[_charToString[token[0]]]);
-                }
-
-                return 1;
-            }
-
-            List<string> word = new(token.Length);
-            foreach (char c in token)
-            {
-                Debug.Assert(c < _charToString.Length);
-                word.Add(_charToString[c]);
-            }
-
-            HashSet<(string, string)> pairs = new();
-
-            WordToPairs(word, pairs);
-
-            var newWord = new List<string>();
-
-            Debug.Assert(pairs.Count != 0, "Pairs should not be empty.");
-
-            while (true)
-            {
-                /* while conditions */
-                // if only one element left, merge is finished (with the whole word merged)
-                if (word.Count == 1)
-                {
-                    break;
-                }
-
-                // get the most frequent bi-gram pair
-                var (first, second) = pairs.ArgMin(pair => _mergeRanks.GetOrAdd(pair, int.MaxValue));
-                if (!_mergeRanks.ContainsKey((first, second)))
-                {
-                    break;
-                }
-                /* end while conditions */
-
-                // search and merge all (first, second) pairs in {word}
-                var i = 0;
-                while (i < word.Count)
-                {
-                    // find the next occurrence of {first} and add the elements before into {newWord}
-                    var j = word.IndexOf(first, i);
-                    if (j == -1)
-                    {
-                        // Equivalent to newWord.AddRange(word.Skip(i)) without allocations
-                        for (int k = i; k < word.Count; k++)
-                        {
-                            newWord.Add(word[k]);
-                        }
-                        break;
-                    }
-                    else
-                    {
-                        // Equivalent to newWord.AddRange(word.Skip(i).Take(j - i)) without allocations
-                        for (int k = i; k < j; k++)
-                        {
-                            newWord.Add(word[k]);
-                        }
-                        i = j;
-                    }
-
-                    // check the next element is {second} or not
-                    if (i < word.Count - 1 && word[i + 1] == second)
-                    {
-                        newWord.Add(first + second);
-                        i += 2;
-                    }
-                    else
-                    {
-                        newWord.Add(word[i]);
-                        i += 1;
-                    }
-                }
-
-                List<string> temp = word;
-                word = newWord;
-                newWord = temp;
-                newWord.Clear();
-
-                // otherwise, continue merging
-                WordToPairs(word, pairs);
-            }
-
-            if (ids is not null)
-            {
-                foreach (string w in word)
-                {
-                    ids.Add(_vocab[w]);
-                }
-            }
-
-            return word.Count;
-        }
-
-        /// <summary>
         /// Encode a token into BPE-ed sub-tokens. E.g., "playing" into ["play", "ing"].
         /// </summary>
         private List<Token> EncodeToTokens(Span<char> token, Span<int> indexMapping)
@@ -706,12 +586,22 @@ namespace Microsoft.ML.Tokenizers
                     var j = word.IndexOf(first, i);
                     if (j == -1)
                     {
-                        newWord.AddRange(word.Skip(i));
+                        // Equivalent to newWord.AddRange(word.Skip(i)) without allocations
+                        for (int k = i; k < word.Count; k++)
+                        {
+                            newWord.Add(word[k]);
+                        }
+
                         break;
                     }
                     else
                     {
-                        newWord.AddRange(word.Skip(i).Take(j - i));
+                        // Equivalent to newWord.AddRange(word.Skip(i).Take(j - i)) without allocations
+                        for (int k = i; k < j; k++)
+                        {
+                            newWord.Add(word[k]);
+                        }
+
                         i = j;
                     }
 
