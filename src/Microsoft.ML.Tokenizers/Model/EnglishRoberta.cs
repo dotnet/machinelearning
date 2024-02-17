@@ -8,10 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Microsoft.ML.Tokenizers
 {
@@ -27,7 +24,7 @@ namespace Microsoft.ML.Tokenizers
         private readonly IReadOnlyDictionary<char, char> _byteToUnicode;
         private readonly IReadOnlyDictionary<char, char> _unicodeToByte;
         private readonly string[] _charToString;
-        private readonly Cache<string, IReadOnlyList<Token>> _cache;
+        private readonly Cache<string, List<Token>> _cache;
 
         /// <summary>
         /// Construct tokenizer object to use with the English Robert model.
@@ -72,7 +69,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             _unicodeToByte = _byteToUnicode.Reverse();
-            _cache = new Cache<string, IReadOnlyList<Token>>();
+            _cache = new Cache<string, List<Token>>();
         }
 
         /// <summary>
@@ -110,7 +107,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             _unicodeToByte = _byteToUnicode.Reverse();
-            _cache = new Cache<string, IReadOnlyList<Token>>();
+            _cache = new Cache<string, List<Token>>();
         }
 
         //
@@ -226,17 +223,17 @@ namespace Microsoft.ML.Tokenizers
             {
                 ArrayPool<char>.Shared.Return(token);
                 ArrayPool<int>.Shared.Return(indexMapping);
-                return Bpe.EmptyTokensList;
+                return Array.Empty<Token>();
             }
 
-            if (_cache.TryGet(sequence, out IReadOnlyList<Token>? hit))
+            if (_cache.TryGet(sequence, out List<Token>? hit))
             {
                 ArrayPool<char>.Shared.Return(token);
                 ArrayPool<int>.Shared.Return(indexMapping);
                 return ModifyTokenListOffsets(hit, indexMapping);
             }
 
-            IReadOnlyList<Token> result = EncodeToTokens(token.AsSpan().Slice(0, newTokenIndex), indexMapping);
+            List<Token> result = EncodeToTokens(token.AsSpan().Slice(0, newTokenIndex), indexMapping);
             _cache.Set(sequence, result);
             ArrayPool<char>.Shared.Return(token);
             ArrayPool<int>.Shared.Return(indexMapping);
@@ -261,7 +258,7 @@ namespace Microsoft.ML.Tokenizers
 
         private int TokenizeToIds(string sequence, IList<int>? accumulatedIds)
         {
-            if (_cache.TryGet(sequence, out IReadOnlyList<Token>? hit))
+            if (_cache.TryGet(sequence, out List<Token>? hit))
             {
                 if (accumulatedIds is not null)
                 {
@@ -299,7 +296,7 @@ namespace Microsoft.ML.Tokenizers
                 return 0;
             }
 
-            IReadOnlyList<Token> result = EncodeToTokens(token.Slice(0, newTokenIndex), indexMapping);
+            List<Token> result = EncodeToTokens(token.Slice(0, newTokenIndex), indexMapping);
             _cache.Set(sequence, result);
             return result.Count;
         }
