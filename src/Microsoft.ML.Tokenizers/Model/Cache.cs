@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -94,6 +95,41 @@ namespace Microsoft.ML.Tokenizers
                 }
             }
             finally { _cacheLock.ExitWriteLock(); }
+        }
+
+        internal KeyValuePair<TKey, TValue>[] ToArray()
+        {
+            _cacheLock.EnterReadLock();
+            try
+            {
+                return Map.ToArray();
+            }
+            finally { _cacheLock.ExitReadLock(); }
+        }
+
+        internal TValue GetOrAdd(TKey key, TValue value)
+        {
+            _cacheLock.EnterUpgradeableReadLock();
+            try
+            {
+                if (Map.TryGetValue(key, out TValue? v))
+                {
+                    return v;
+                }
+
+                _cacheLock.EnterWriteLock();
+                try
+                {
+                    if (Capacity > Map.Count)
+                    {
+                        Map[key] = value;
+                    }
+                }
+                finally { _cacheLock.ExitWriteLock(); }
+
+                return value;
+            }
+            finally { _cacheLock.ExitUpgradeableReadLock(); }
         }
     }
 }

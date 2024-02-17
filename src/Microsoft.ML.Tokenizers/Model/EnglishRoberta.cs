@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tokenizers
         private readonly HighestOccurrenceMapping _vocabIdToHighestOccurrence;
         private readonly IReadOnlyDictionary<string, int> _vocab;
         private readonly SortedDictionary<int, string> _vocabReverse;
-        private readonly Dictionary<(string, string), int> _mergeRanks;
+        private readonly Cache<(string, string), int> _mergeRanks;
         private readonly IReadOnlyDictionary<char, char> _byteToUnicode;
         private readonly IReadOnlyDictionary<char, char> _unicodeToByte;
         private readonly string[] _charToString;
@@ -470,9 +470,9 @@ namespace Microsoft.ML.Tokenizers
             return vocab;
         }
 
-        private Dictionary<(string, string), int> GetMergeRanks(Stream mergeStream)
+        private Cache<(string, string), int> GetMergeRanks(Stream mergeStream)
         {
-            var mergeRanks = new Dictionary<(string, string), int>();
+            var mergeRanks = new Cache<(string, string), int>(60_000);
             try
             {
                 using StreamReader reader = new StreamReader(mergeStream);
@@ -493,7 +493,7 @@ namespace Microsoft.ML.Tokenizers
                         throw new Exception($"Invalid format of merge file: \"{line}\"");
                     }
 
-                    mergeRanks.Add((line.Substring(0, index), line.Substring(index + 1)), rank++);
+                    mergeRanks.Set((line.Substring(0, index), line.Substring(index + 1)), rank++);
                 }
             }
             catch (Exception e)
@@ -572,7 +572,7 @@ namespace Microsoft.ML.Tokenizers
 
                 // get the most frequent bi-gram pair
                 var (first, second) = pairs.ArgMin(pair => _mergeRanks.GetOrAdd(pair, int.MaxValue));
-                if (!_mergeRanks.ContainsKey((first, second)))
+                if (!_mergeRanks.TryGet((first, second), out int _))
                 {
                     break;
                 }
