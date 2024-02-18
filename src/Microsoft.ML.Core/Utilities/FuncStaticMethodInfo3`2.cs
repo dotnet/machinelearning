@@ -8,26 +8,25 @@ using System;
 using System.Reflection;
 using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities;
+
+/// <summary>
+/// Represents the <see cref="MethodInfo"/> for a generic function corresponding to <see cref="Func{T, TResult}"/>,
+/// with the following characteristics:
+///
+/// <list type="bullet">
+/// <item><description>The method is static.</description></item>
+/// <item><description>Three generic type arguments.</description></item>
+/// <item><description>A return value of <typeparamref name="TResult"/>.</description></item>
+/// </list>
+/// </summary>
+/// <typeparam name="T">The type of the parameter of the method.</typeparam>
+/// <typeparam name="TResult">The type of the return value of the method.</typeparam>
+internal sealed class FuncStaticMethodInfo3<T, TResult> : FuncMethodInfo3<T, TResult>
 {
-    /// <summary>
-    /// Represents the <see cref="MethodInfo"/> for a generic function corresponding to <see cref="Func{T, TResult}"/>,
-    /// with the following characteristics:
-    ///
-    /// <list type="bullet">
-    /// <item><description>The method is static.</description></item>
-    /// <item><description>Three generic type arguments.</description></item>
-    /// <item><description>A return value of <typeparamref name="TResult"/>.</description></item>
-    /// </list>
-    /// </summary>
-    /// <typeparam name="T">The type of the parameter of the method.</typeparam>
-    /// <typeparam name="TResult">The type of the return value of the method.</typeparam>
-    internal sealed class FuncStaticMethodInfo3<T, TResult> : FuncMethodInfo3<T, TResult>
+    public FuncStaticMethodInfo3(Func<T, TResult> function)
+        : base(function.Method)
     {
-        public FuncStaticMethodInfo3(Func<T, TResult> function)
-            : base(function.Method)
-        {
-            Contracts.CheckParam(GenericMethodDefinition.IsStatic, nameof(function), "Should be a static method");
-        }
+        Contracts.CheckParam(GenericMethodDefinition.IsStatic, nameof(function), "Should be a static method");
     }
 }

@@ -6,15 +6,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities;
+
+internal static class TaskExtensions
 {
-    internal static class TaskExtensions
+    [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "The task is completed.")]
+    public static TResult CompletedResult<TResult>(this Task<TResult> task)
     {
-        [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "The task is completed.")]
-        public static TResult CompletedResult<TResult>(this Task<TResult> task)
-        {
-            Contracts.Check(task.IsCompleted);
-            return task.Result;
-        }
+        Contracts.Check(task.IsCompleted);
+        return task.Result;
     }
 }
