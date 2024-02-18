@@ -4,20 +4,28 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.ML.Tokenizers
 {
     /// <summary>
     /// The pre-tokenizer for Roberta English tokenizer.
     /// </summary>
-    public sealed class RobertaPreTokenizer : PreTokenizer
+    public sealed partial class RobertaPreTokenizer : PreTokenizer
     {
         /// <summary>
         /// Gets a singleton instance of the Roberta pre-tokenizer..
         /// </summary>
-        public static readonly RobertaPreTokenizer Instance = new RobertaPreTokenizer();
+        public static RobertaPreTokenizer Instance { get; } = new RobertaPreTokenizer();
 
-        private const string Pattern = @"'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+";
+        private const string PretokenizePattern = @"'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+";
+#if NET7_0_OR_GREATER
+        [GeneratedRegex(PretokenizePattern)]
+        private static partial Regex PretokenizeRegex();
+#else
+        private static readonly Regex _regex = new Regex(PretokenizePattern, RegexOptions.Compiled);
+        private static Regex PretokenizeRegex() => _regex;
+#endif
 
         /// <summary>
         /// Splits the given string in multiple substrings at the word boundary, keeping track of the offsets of said substrings from the original string.
@@ -29,10 +37,10 @@ namespace Microsoft.ML.Tokenizers
         {
             if (string.IsNullOrEmpty(sentence))
             {
-                return EmptyList;
+                return Array.Empty<Split>();
             }
 
-            return new RegexSplitEnumerable(sentence, Pattern);
+            return SplitSentence(sentence, PretokenizeRegex());
         }
     }
 }

@@ -1,10 +1,9 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 namespace Microsoft.ML.Tokenizers
 {
@@ -13,11 +12,11 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     internal static class BytePairEncoder
     {
-        public static int[] BytePairEncode(byte[] mergingBytes, IReadOnlyDictionary<byte[], int> ranks)
+        public static int[] BytePairEncode(ReadOnlyMemory<byte> mergingBytes, Dictionary<ReadOnlyMemory<byte>, int> ranks)
         {
             if (mergingBytes.Length == 1)
             {
-                return new int[] { ranks[mergingBytes] };
+                return [ranks[mergingBytes]];
             }
 
             var byteIndicesAndRanks = new List<(int Index, int Rank)>();
@@ -29,7 +28,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (startIndex + skip + 2 < byteIndicesAndRanks.Count)
                 {
-                    var slice = mergingBytes.Slice(byteIndicesAndRanks[startIndex].Index, byteIndicesAndRanks[startIndex + skip + 2].Index);
+                    var slice = mergingBytes.SliceStartEnd(byteIndicesAndRanks[startIndex].Index, byteIndicesAndRanks[startIndex + skip + 2].Index);
                     if (ranks.TryGetValue(slice, out var rank))
                     {
                         return rank;
@@ -74,17 +73,11 @@ namespace Microsoft.ML.Tokenizers
             var outList = new int[byteIndicesAndRanks.Count - 1];
             for (int i = 0; i < byteIndicesAndRanks.Count - 1; i++)
             {
-                outList[i] = ranks[mergingBytes.Slice(byteIndicesAndRanks[i].Index, byteIndicesAndRanks[i + 1].Index)];
+                outList[i] = ranks[mergingBytes.SliceStartEnd(byteIndicesAndRanks[i].Index, byteIndicesAndRanks[i + 1].Index)];
             }
             return outList;
         }
 
-        private static T[] Slice<T>(this T[] array, int start, int end)
-        {
-            var length = end - start;
-            var result = new T[length];
-            Array.Copy(array, start, result, 0, length);
-            return result;
-        }
+        private static ReadOnlyMemory<byte> SliceStartEnd(this ReadOnlyMemory<byte> memory, int start, int end) => memory.Slice(start, end - start);
     }
 }
