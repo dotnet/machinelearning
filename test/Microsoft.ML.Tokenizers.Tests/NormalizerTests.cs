@@ -79,7 +79,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(canMapToOriginal, ns.CanMapToOriginal);
             Assert.Equal(normalizedToOriginalMapping, ns.NormalizedToOriginalMapping);
 
-            Tokenizer tokenizer = new Tokenizer(new Bpe(), WhiteSpace.Instance, normalizer);
+            Tokenizer tokenizer = new Tokenizer(BpeTests.CreateEmptyBpe(), WhiteSpace.Instance, normalizer);
             TokenizerResult encoding = tokenizer.Encode(sentence);
             Assert.Equal(canMapToOriginal, encoding.OffsetsMappedToOriginalString);
             Assert.Equal(sentence, encoding.OriginalString);

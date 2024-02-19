@@ -94,18 +94,5 @@ namespace Microsoft.ML.Tokenizers
         /// Gets the dictionary size that map tokens to Ids.
         /// </summary>
         public abstract int GetVocabSize();
-
-        /// <summary>
-        /// Save the model data into the vocabulary and merges files.
-        /// </summary>
-        /// <param name="path">The file system path to store the generated files at.</param>
-        /// <param name="prefix">Optional prefix for the generated file names.</param>
-        /// <returns>The list of all saved files.</returns>
-        public abstract string[] Save(string path, string? prefix = null);
-
-        /// <summary>
-        /// Gets a trainer object to use in training the model.
-        /// </summary>
-        public abstract Trainer? GetTrainer();
     }
 }

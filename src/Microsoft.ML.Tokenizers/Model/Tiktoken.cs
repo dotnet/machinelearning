@@ -492,19 +492,6 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         public override int GetVocabSize() => _vocab.Count;
 
-        /// <summary>
-        /// Save the model data into the vocabulary and merges files.
-        /// </summary>
-        /// <param name="path">The file system path to store the generated files at.</param>
-        /// <param name="prefix">Optional prefix for the generated file names.</param>
-        /// <returns>The list of all saved files.</returns>
-        public override string[] Save(string path, string? prefix = null) => throw new NotImplementedException();
-
-        /// <summary>
-        /// Gets a trainer object to use in training the model.
-        /// </summary>
-        public override Trainer? GetTrainer() => throw new NotImplementedException();
-
         private static unsafe int GetUtf8Bytes(ReadOnlySpan<char> source, Span<byte> destination)
         {
 #if NETCOREAPP

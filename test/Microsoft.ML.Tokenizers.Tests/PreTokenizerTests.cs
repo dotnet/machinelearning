@@ -54,9 +54,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(splits, splitParts);
 
             // Empty tokenizer which tokenize all parts as unknown tokens.
-            Bpe bpe = new Bpe();
-
-            Tokenizer tokenizer = new Tokenizer(bpe, preTokenizer);
+            Tokenizer tokenizer = new Tokenizer(BpeTests.CreateEmptyBpe(), preTokenizer);
 
             TokenizerResult encoding = tokenizer.Encode(sentence);
             Assert.True(encoding.Tokens.Count >= splitParts.Length, $"Expected to have {encoding.Tokens.Count} >= {splitParts.Length}");

@@ -97,10 +97,6 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Tokenizer tokenizer = new Tokenizer(new EnglishRoberta(vocabFile, mergeFile, translationFile), RobertaPreTokenizer.Instance);
                 TestTokenizer(tokenizer);
 
-                paths = tokenizer.Model.Save(Path.GetTempPath(), "roberta");
-                Tokenizer tokenizer1 = new Tokenizer(new EnglishRoberta(paths[0], paths[1], paths[2]), RobertaPreTokenizer.Instance);
-                TestTokenizer(tokenizer1);
-
                 using Stream vocabStream = File.OpenRead(vocabFile);
                 using Stream mergeStream = File.OpenRead(mergeFile);
                 using Stream translationStream = File.OpenRead(translationFile);

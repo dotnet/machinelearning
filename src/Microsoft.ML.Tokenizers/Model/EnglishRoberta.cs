@@ -156,48 +156,6 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Save the model data into the vocabulary, merges, and occurrence mapping files.
-        /// </summary>
-        /// <param name="path">The file system path to store the generated files at.</param>
-        /// <param name="prefix">Optional prefix for the generated file names.</param>
-        /// <returns>The list of all saved files.</returns>
-        public override string[] Save(string path, string? prefix = null)
-        {
-            // Write vocab.json
-            string vocabFileName = prefix is null ? "vocab.json" : $"{prefix}-vocab.json";
-            string vocabPath = Path.Combine(path, vocabFileName);
-            string serialized = JsonSerializer.Serialize(_vocabReverse, new JsonSerializerOptions { Converters = { new DictReversingConverter() } });
-            File.WriteAllText(vocabPath, serialized, System.Text.Encoding.UTF8);
-
-            // Write merges.txt
-            string mergeFileName = prefix is null ? "merges.txt" : $"{prefix}-merges.txt";
-            string mergePath = Path.Combine(path, mergeFileName);
-
-            KeyValuePair<(string, string), int>[] mergeArray = _mergeRanks.ToArray();
-            Array.Sort(mergeArray, (x, y) => x.Value.CompareTo(y.Value));
-
-            using StreamWriter file = new(mergePath, append: false, System.Text.Encoding.UTF8);
-            file.WriteLine("#version: 0.2");
-            foreach (var p in mergeArray)
-            {
-                if (p.Value == int.MaxValue)
-                {
-                    // Skip the entries which we added during the runs.
-                    continue;
-                }
-                file.WriteLine($"{p.Key.Item1} {p.Key.Item2}");
-            }
-
-            // Write high occurrence mapping file
-            string highOccurrenceFileName = prefix is null ? "dict.txt" : $"{prefix}-dict.txt";
-            string highOccurrencePath = Path.Combine(path, highOccurrenceFileName);
-            using StreamWriter file1 = new(highOccurrencePath, append: false, System.Text.Encoding.UTF8);
-            _vocabIdToHighestOccurrence.Save(file1);
-
-            return new string[] { vocabPath, mergePath, highOccurrencePath };
-        }
-
-        /// <summary>
         /// Tokenize a sequence string to a list of tokens.
         /// </summary>
         /// <param name="sequence">The sequence to tokenize.</param>
@@ -300,14 +258,6 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="token">The token to map to the Id.</param>
         /// <returns>The mapped Id of the token.</returns>
         public override int? TokenToId(string token) => _vocab.TryGetValue(token, out var value) ? value : null;
-
-        /// <summary>
-        /// Gets a trainer object to use in training the model and generate the vocabulary and merges data.
-        /// </summary>
-        /// <remarks>
-        /// This tokenizer doesn't support training so this method will return null. Consider using Bpe.GetTrainer() for training.
-        /// </remarks>
-        public override Trainer? GetTrainer() => null;
 
         /// <summary>
         /// Convert a list of tokens Ids to highest occurrence rankings.
@@ -857,26 +807,6 @@ namespace Microsoft.ML.Tokenizers
                 else
                 {
                     AddSymbol(id, occurrenceScore);
-                }
-            }
-        }
-
-        public void Save(StreamWriter file)
-        {
-            for (int i = NumSpecialSymbols; i < _symbols.Count; i++)
-            {
-                (int id, int occurrenceScore) symbol = _symbols[i];
-                if (symbol.id >= 0 && symbol.occurrenceScore >= 0)
-                {
-                    file.WriteLine($"{symbol.id} {symbol.occurrenceScore}");
-                }
-            }
-
-            foreach (KeyValuePair<string, int> kvp in _stringSymbolToIndexMapping)
-            {
-                if (_symbols[kvp.Value].OccurrenceScore >= 0)
-                {
-                    file.WriteLine($"{kvp.Key} {_symbols[kvp.Value].OccurrenceScore}");
                 }
             }
         }

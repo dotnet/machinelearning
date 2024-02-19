@@ -219,52 +219,6 @@ namespace Microsoft.ML.Tokenizers
             return Decoder?.Decode(tokens) ?? string.Join("", tokens);
         }
 
-        /// <summary>
-        /// Train the tokenizer model using input files.
-        /// </summary>
-        /// <param name="trainer">An optional trainer that should be used to train our Model.</param>
-        /// <param name="progress">Optional progress callback to report the training progress.</param>
-        /// <param name="files">A list of the files that we should use for training.</param>
-        public void TrainFromFiles(
-                        Trainer? trainer,
-                        ReportProgress? progress,
-                        params string[] files)
-        {
-            Trainer? t = trainer ?? Model.GetTrainer();
-            if (t == null)
-            {
-                throw new ArgumentNullException(nameof(trainer));
-            }
-
-            foreach (var file in files)
-            {
-                string[] lines = File.ReadAllLines(file);
-                progress?.Invoke(new Progress(ProgressState.Start, $"{file}", lines.Length));
-
-                t.Feed(lines, (s) =>
-                {
-                    string current = Normalizer is null ? s : Normalizer.Normalize(s).Normalized;
-                    IEnumerable<Split> splits = PreTokenizer.PreTokenize(current);
-
-                    List<string> list = new();
-                    foreach (Split split in splits)
-                    {
-                        list.Add(split.TokenString);
-                    }
-
-                    progress?.Invoke(new Progress(ProgressState.Increment, null, 1));
-
-                    return list;
-                });
-                progress?.Invoke(new Progress(ProgressState.End, null, lines.Length));
-            }
-
-            IReadOnlyList<AddedToken>? addedTokens = t.Train(Model);
-
-            // To Do: support added vocabulary in the tokenizer which will include this returned special_tokens.
-            // self.add_special_tokens(&special_tokens);
-        }
-
         private const string EndOfText = "<|endoftext|>";
         private const string FimPrefix = "<|fim_prefix|>";
         private const string FimMiddle = "<|fim_middle|>";
