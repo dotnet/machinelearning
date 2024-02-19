@@ -134,8 +134,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             try
             {
-                Bpe bpe = new Bpe(vocabFile, mergesFile, UnknownToken);
-                bpe.FuseUnknownTokens = fuseUnknownToken;
+                Bpe bpe = new Bpe(vocabFile, mergesFile, UnknownToken, null, null, fuseUnknownToken);
 
                 Assert.Equal(vocab.Count + 1u, bpe.GetVocabSize());
                 Tokenizer tokenizer = new Tokenizer(bpe);

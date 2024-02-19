@@ -56,17 +56,17 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// A prefix to be used for every subword that is not a beginning-of-word
         /// </summary>
-        public string? ContinuingSubwordPrefix { get; set; }
+        public string? ContinuingSubwordPrefix { get; private set; }
 
         /// <summary>
         /// An optional suffix to characterize and end-of-word sub-word
         /// </summary>
-        public string? EndOfWordSuffix { get; set; }
+        public string? EndOfWordSuffix { get; private set; }
 
         /// <summary>
         /// Gets or sets whether allowing multiple unknown tokens get fused
         /// </summary>
-        public bool FuseUnknownTokens { get; set; }
+        public bool FuseUnknownTokens { get; private set; }
 
 
         /// <summary>
@@ -77,9 +77,10 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="unknownToken"> The unknown token to be used by the model.</param>
         /// <param name="continuingSubwordPrefix">The prefix to attach to sub-word units that don’t represent a beginning of word.</param>
         /// <param name="endOfWordSuffix">The suffix to attach to sub-word units that represent an end of word.</param>
-        public Bpe(string vocabFile, string? mergesFile, string? unknownToken = null, string? continuingSubwordPrefix = null, string? endOfWordSuffix = null) :
+        /// <param name="fuseUnknownTokens">Indicate whether allowing multiple unknown tokens get fused.</param>
+        public Bpe(string vocabFile, string? mergesFile, string? unknownToken = null, string? continuingSubwordPrefix = null, string? endOfWordSuffix = null, bool fuseUnknownTokens = false) :
             this(vocabFile is null ? throw new ArgumentNullException(nameof(vocabFile)) : File.Open(vocabFile, FileMode.Open, FileAccess.Read),
-                mergesFile is null ? null : File.Open(mergesFile, FileMode.Open, FileAccess.Read), unknownToken, continuingSubwordPrefix, endOfWordSuffix, disposeStreams: true)
+                mergesFile is null ? null : File.Open(mergesFile, FileMode.Open, FileAccess.Read), unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens, disposeStreams: true)
         {
         }
 
@@ -91,12 +92,13 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="unknownToken"> The unknown token to be used by the model.</param>
         /// <param name="continuingSubwordPrefix">The prefix to attach to sub-word units that don’t represent a beginning of word.</param>
         /// <param name="endOfWordSuffix">The suffix to attach to sub-word units that represent an end of word.</param>
-        public Bpe(Stream vocabStream, Stream? mergesStream, string? unknownToken = null, string? continuingSubwordPrefix = null, string? endOfWordSuffix = null) :
-                this(vocabStream, mergesStream, unknownToken, continuingSubwordPrefix, endOfWordSuffix, disposeStreams: false)
+        /// <param name="fuseUnknownTokens">Indicate whether allowing multiple unknown tokens get fused.</param>
+        public Bpe(Stream vocabStream, Stream? mergesStream, string? unknownToken = null, string? continuingSubwordPrefix = null, string? endOfWordSuffix = null, bool fuseUnknownTokens = false) :
+                this(vocabStream, mergesStream, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens, disposeStreams: false)
         {
         }
 
-        private Bpe(Stream vocabStream, Stream? mergesStream, string? unknownToken, string? continuingSubwordPrefix, string? endOfWordSuffix, bool disposeStreams)
+        private Bpe(Stream vocabStream, Stream? mergesStream, string? unknownToken, string? continuingSubwordPrefix, string? endOfWordSuffix, bool fuseUnknownTokens, bool disposeStreams)
         {
             try
             {
@@ -104,6 +106,8 @@ namespace Microsoft.ML.Tokenizers
                 {
                     throw new ArgumentNullException(nameof(vocabStream));
                 }
+
+                FuseUnknownTokens = fuseUnknownTokens;
                 ContinuingSubwordPrefix = continuingSubwordPrefix;
                 EndOfWordSuffix = endOfWordSuffix;
 
