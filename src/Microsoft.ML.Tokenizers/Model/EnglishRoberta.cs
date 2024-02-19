@@ -257,8 +257,9 @@ namespace Microsoft.ML.Tokenizers
         /// Map the token to tokenized Id.
         /// </summary>
         /// <param name="token">The token to map to the Id.</param>
+        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public override int? TokenToId(string token) => _vocab.TryGetValue(token, out var value) ? value : null;
+        public override int? TokenToId(string token, bool skipSpecialTokens = false) => _vocab.TryGetValue(token, out var value) ? value : null;
 
         /// <summary>
         /// Convert a list of tokens Ids to highest occurrence rankings.

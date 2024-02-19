@@ -335,13 +335,6 @@ namespace Microsoft.ML.Tokenizers
         /// Map the token to tokenized Id.
         /// </summary>
         /// <param name="token">The token to map to the Id.</param>
-        /// <returns>The mapped Id of the token.</returns>
-        public override int? TokenToId(string token) => TokenToId(token, skipSpecialTokens: false);
-
-        /// <summary>
-        /// Map the token to tokenized Id.
-        /// </summary>
-        /// <param name="token">The token to map to the Id.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
         public override int? TokenToId(string token, bool skipSpecialTokens)

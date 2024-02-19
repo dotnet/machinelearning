@@ -206,8 +206,9 @@ namespace Microsoft.ML.Tokenizers
         /// Map the token to tokenized Id.
         /// </summary>
         /// <param name="token">The token to map to the Id.</param>
+        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public override int? TokenToId(string token)
+        public override int? TokenToId(string token, bool skipSpecialTokens = false)
         {
             if (Vocab.TryGetValue(token, out int value))
             {

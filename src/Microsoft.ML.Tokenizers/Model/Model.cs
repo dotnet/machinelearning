@@ -63,19 +63,12 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Map the token to tokenized Id.
-        /// </summary>
-        /// <param name="token">The token to map to the Id.</param>
-        /// <returns>The mapped Id of the token.</returns>
-        public abstract int? TokenToId(string token);
-
-        /// <summary>
         /// Map the token to tokenized id with the option to skip the special tokens.
         /// </summary>
         /// <param name="token">The token to map to Id</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public virtual int? TokenToId(string token, bool skipSpecialTokens) => TokenToId(token);
+        public abstract int? TokenToId(string token, bool skipSpecialTokens = false);
 
         /// <summary>
         /// Map the tokenized Id to the token.
