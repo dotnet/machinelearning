@@ -208,6 +208,50 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(text, decoded);
         }
 
+        [Theory]
+        [InlineData("gpt-4")]
+        [InlineData("gpt-4-")]
+        [InlineData("gpt-3.5-turbo")]
+        [InlineData("gpt-3.5-turbo-")]
+        [InlineData("text-davinci-003")]
+        [InlineData("text-davinci-002")]
+        [InlineData("text-davinci-001")]
+        [InlineData("text-curie-001")]
+        [InlineData("text-babbage-001")]
+        [InlineData("text-ada-001")]
+        [InlineData("davinci")]
+        [InlineData("curie")]
+        [InlineData("babbage")]
+        [InlineData("ada")]
+        [InlineData("code-davinci-002")]
+        [InlineData("code-davinci-001")]
+        [InlineData("code-cushman-002")]
+        [InlineData("code-cushman-001")]
+        [InlineData("davinci-codex")]
+        [InlineData("cushman-codex")]
+        [InlineData("text-davinci-edit-001")]
+        [InlineData("code-davinci-edit-001")]
+        [InlineData("text-embedding-ada-002")]
+        [InlineData("text-embedding-3-small")]
+        [InlineData("text-embedding-3-large")]
+        [InlineData("text-similarity-davinci-001")]
+        [InlineData("text-similarity-curie-001")]
+        [InlineData("text-similarity-babbage-001")]
+        [InlineData("text-similarity-ada-001")]
+        [InlineData("text-search-davinci-doc-001")]
+        [InlineData("text-search-curie-doc-001")]
+        [InlineData("text-search-babbage-doc-001")]
+        [InlineData("text-search-ada-doc-001")]
+        [InlineData("code-search-babbage-code-001")]
+        [InlineData("code-search-ada-code-001")]
+        [InlineData("gpt2")]
+        public async void TestAllSupportedModelNames(string modelName)
+        {
+            Tokenizer tokenizer = await Tokenizer.CreateByModelNameAsync(modelName);
+            Assert.NotNull(tokenizer.Model);
+            Assert.NotNull(tokenizer.PreTokenizer);
+        }
+
         // Test running copy the test data files to the output folder but sometimes the file content is mutated replacing '\n' with '\r\n'.
         // This method reads the file and removes the extra inserted '\r' characters. Having '\r' in the file content will cause the tests to fail.
         private string ReadAndSanitizeFile(string path)
