@@ -82,8 +82,29 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
+        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public abstract string? IdToToken(int id, bool skipSpecialTokens = false);
+        public abstract string? IdToToken(int id, bool skipSpecialTokens = false, bool filterUnsupportedChars = true);
+
+        /// <summary>
+        /// Decode the given ids, back to a String.
+        /// </summary>
+        /// <param name="ids">The list of ids that we want to decode.</param>
+        /// <param name="skipSpecialTokens">Whether the special tokens should be removed from the decoded string.</param>
+        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
+        /// <param name="decoder">The optional Decoder to merge the given list of tokens in a string.</param>
+        /// <returns>The decoded string.</returns>
+        public virtual string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null, bool skipSpecialTokens = false, bool filterUnsupportedChars = true)
+        {
+            List<string> tokens = new List<string>();
+
+            foreach (int id in ids)
+            {
+                tokens.Add(IdToToken(id, skipSpecialTokens, filterUnsupportedChars) ?? "");
+            }
+
+            return decoder?.Decode(tokens) ?? string.Join("", tokens);
+        }
 
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.

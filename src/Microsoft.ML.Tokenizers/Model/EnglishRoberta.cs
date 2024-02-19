@@ -127,29 +127,30 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Map the tokenized Id to the token.
         /// </summary>
-        /// <param name="id">The Id to map to the token.</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
-        /// <returns>The mapped token of the Id.</returns>
-        public override string? IdToToken(int id, bool skipSpecialTokens = false) =>
-            skipSpecialTokens && id < 0 ? null : _vocabReverse.TryGetValue(id, out var value) ? value : null;
-
-        /// <summary>
-        /// Map the tokenized Id to the original string while filtering out unsupported characters.
-        /// </summary>
         /// <param name="id">The Id to map to the string.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
+        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public string? IdToFilteredToken(int id, bool skipSpecialTokens = false)
+        public override string? IdToToken(int id, bool skipSpecialTokens = false, bool filterUnsupportedChars = true)
         {
             if (skipSpecialTokens && id < 0)
+            {
                 return null;
+            }
+
             if (_vocabReverse.TryGetValue(id, out var value))
             {
-                var textChars = string.Join("", value)
-                    .Where(c => _unicodeToByte.ContainsKey(c))
-                    .Select(c => _unicodeToByte[c]);
-                var text = new string(textChars.ToArray());
-                return text;
+                if (filterUnsupportedChars)
+                {
+                    var textChars = string.Join("", value)
+                        .Where(c => _unicodeToByte.ContainsKey(c))
+                        .Select(c => _unicodeToByte[c]);
+                    return new string(textChars.ToArray());
+                }
+                else
+                {
+                    return value;
+                }
             }
 
             return null;

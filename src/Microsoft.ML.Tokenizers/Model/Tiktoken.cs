@@ -397,8 +397,9 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
+        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public override string? IdToToken(int id, bool skipSpecialTokens = false)
+        public override string? IdToToken(int id, bool skipSpecialTokens = false, bool filterUnsupportedChars = true)
         {
             if (!skipSpecialTokens && _specialTokensDecoder is not null && _specialTokensDecoder.TryGetValue(id, out string? token))
             {
@@ -413,8 +414,22 @@ namespace Microsoft.ML.Tokenizers
             return null;
         }
 
-        internal string? IdsToString(IEnumerable<int> ids, bool skipSpecialTokens = false)
+        /// <summary>
+        /// Decode the given ids, back to a String.
+        /// </summary>
+        /// <param name="ids">The list of ids that we want to decode.</param>
+        /// <param name="skipSpecialTokens">Whether the special tokens should be removed from the decoded string.</param>
+        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
+        /// <param name="decoder">The optional Decoder to merge the given list of tokens in a string.</param>
+        /// <returns>The decoded string.</returns>
+        public override string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null, bool skipSpecialTokens = false, bool filterUnsupportedChars = true)
         {
+            // Tiktoken does not ensure a one-to-one mapping between IDs and tokens. Consequently, decoding individual IDs into tokens is not supported;
+            // instead, decoding all IDs must be done collectively.
+            // Here is example of case that map one character to multiple Ids:
+            // '⭐' U-2B50 is mapped to Ids [2928, 99834] in the Tiktoken model.
+            // In other words, the character '⭐' has UTF-8 code point 0xE2, 0xAD, 0x90, Tiktoken will map 0xE2 to [2928] and 0xAD, 0x90 to [99834].
+
             if (ids is null)
             {
                 return null;

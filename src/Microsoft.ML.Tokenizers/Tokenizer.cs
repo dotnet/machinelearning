@@ -25,11 +25,13 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="model">The Model in use by the Tokenizer.</param>
         /// <param name="preTokenizer">The optional PreTokenizer in use by the Tokenizer. WhiteSpace PreTokenizer will be used if this parameter is null.</param>
         /// <param name="normalizer">The optional Normalizer in use by the Tokenizer.</param>
-        public Tokenizer(Model model, PreTokenizer? preTokenizer = null, Normalizer? normalizer = null)
+        /// <param name="decoder">The optional Decoder in use by the Tokenizer during the decoding operation to merge the given list of tokens in a string.</param>
+        public Tokenizer(Model model, PreTokenizer? preTokenizer = null, Normalizer? normalizer = null, TokenizerDecoder? decoder = null)
         {
             Model = model;
             PreTokenizer = preTokenizer ?? WhiteSpace.Instance;
             Normalizer = normalizer;
+            Decoder = decoder;
         }
 
         /// <summary>
@@ -40,17 +42,17 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets or sets the PreTokenizer used by the Tokenizer.
         /// </summary>
-        public PreTokenizer PreTokenizer { get; set; }
+        public PreTokenizer PreTokenizer { get; private set; }
 
         /// <summary>
         /// Gets or sets the Normalizer in use by the Tokenizer.
         /// </summary>
-        public Normalizer? Normalizer { get; set; }
+        public Normalizer? Normalizer { get; private set; }
 
         /// <summary>
         /// Gets or sets the Decoder in use by the Tokenizer.
         /// </summary>
-        public TokenizerDecoder? Decoder { get; set; }
+        public TokenizerDecoder? Decoder { get; private set; }
 
         /// <summary>
         /// Encodes input text to object has the tokens list, tokens Ids, tokens offset mapping.
@@ -171,53 +173,23 @@ namespace Microsoft.ML.Tokenizers
             return idsCount;
         }
 
-        // skipSpecialTokens is used in post processing we don't support yet. We are keeping it to allow using it when we support post processing.
         /// <summary>
         /// Decodes the Id to the mapped token.
         /// </summary>
         /// <param name="id">The id to map to the token.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
+        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The decoded string or null if there is no token mapped to the input id.</returns>
-        public string? Decode(int id, bool skipSpecialTokens = false) => Model.IdToToken(id, skipSpecialTokens);
+        public string? Decode(int id, bool skipSpecialTokens = false, bool filterUnsupportedChars = true) => Model.IdToToken(id, skipSpecialTokens, filterUnsupportedChars);
 
-        // skipSpecialTokens is used in post processing we don't support yet. We are keeping it to allow using it when we support post processing.
         /// <summary>
         /// Decode the given ids, back to a String.
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
         /// <param name="skipSpecialTokens">Whether the special tokens should be removed from the decoded string.</param>
+        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The decoded string.</returns>
-        public string? Decode(IEnumerable<int> ids, bool skipSpecialTokens = false)
-        {
-            if (Model is Tiktoken tiktoken)
-            {
-                // Tiktoken does not ensure a one-to-one mapping between IDs and tokens. Consequently, decoding individual IDs into tokens is not supported;
-                // instead, decoding all IDs must be done collectively.
-                // Here is example of case that map one character to multiple Ids:
-                // '⭐' U-2B50 is mapped to Ids [2928, 99834] in the Tiktoken model.
-                // In other words, the character '⭐' has UTF-8 code point 0xE2, 0xAD, 0x90, Tiktoken will map 0xE2 to [2928] and 0xAD, 0x90 to [99834].
-                return tiktoken.IdsToString(ids, skipSpecialTokens);
-            }
-
-            List<string> tokens = new List<string>();
-
-            if (Model is EnglishRoberta robertaModel)
-            {
-                foreach (int id in ids)
-                {
-                    tokens.Add(robertaModel.IdToFilteredToken(id, skipSpecialTokens) ?? "");
-                }
-            }
-            else
-            {
-                foreach (int id in ids)
-                {
-                    tokens.Add(Model.IdToToken(id, skipSpecialTokens) ?? "");
-                }
-            }
-
-            return Decoder?.Decode(tokens) ?? string.Join("", tokens);
-        }
+        public string? Decode(IEnumerable<int> ids, bool skipSpecialTokens = false, bool filterUnsupportedChars = true) => Model.Decode(ids, Decoder, skipSpecialTokens, filterUnsupportedChars);
 
         private const string EndOfText = "<|endoftext|>";
         private const string FimPrefix = "<|fim_prefix|>";

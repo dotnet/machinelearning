@@ -30,7 +30,8 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new string[] { "Hello", "\u0120Bert", "a" },
                     new (int, int)[] { (0, 5), (5, 10), (10, 11) },
                     "Hello Berta",
-                    new int[] { 35245, 144292, 18759122 }
+                    new int[] { 35245, 144292, 18759122 },
+                    new string[] { "Hello", " Bert", "a" },
                 };
 
                 // Intentionally repeating the same case data to test caching.
@@ -42,7 +43,8 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new string[] { "Hello", "\u0120Bert", "a" },
                     new (int, int)[] { (0, 5), (5, 10), (10, 11) },
                     "Hello Berta",
-                    new int[] { 35245, 144292, 18759122 }
+                    new int[] { 35245, 144292, 18759122 },
+                    new string[] { "Hello", " Bert", "a" },
                 };
 
                 // Sentence, Expected Ids, Expected Tokens, Expected Offsets, Decoded Tokens, Token occurrence values
@@ -53,7 +55,8 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new string[] { "In", "\u0120the", "\u0120night", "." },
                     new (int, int)[] { (0, 2), (2, 6), (6, 12), (12, 13) },
                     "In the night.",
-                    new int[] { 2224123, 800385005, 6062347, 850314647 }
+                    new int[] { 2224123, 800385005, 6062347, 850314647 },
+                    new string[] { "In", " the", " night", "." },
                 };
 
                 // Sentence, Expected Ids, Expected Tokens, Expected Offsets, Decoded Tokens, Token occurrence values
@@ -64,7 +67,8 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new string[] { "He", "llo", "ĠBer", "ta" },
                     new (int, int)[] { (0, 2), (4, 7), (7, 11), (13, 15) },
                     "Hello Berta",
-                    new int[] { 2759525, 207306, 565286, 560191 }
+                    new int[] { 2759525, 207306, 565286, 560191 },
+                    new string[] { "He", "llo", " Ber", "ta" },
                 };
 
                 // Sentence, Expected Ids, Expected Tokens, Expected Offsets, Decoded Tokens, Token occurrence values
@@ -75,7 +79,8 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new string[] {  },
                     new (int, int)[] { },
                     "",
-                    new int[] {  }
+                    new int[] {  },
+                    new string[] {  },
                 };
             }
         }
@@ -180,9 +185,13 @@ namespace Microsoft.ML.Tokenizers.Tests
 
                 for (int i = 0; i < encoding.Tokens.Count; i++)
                 {
-                    Assert.Equal(encoding.Tokens[i], tokenizer.Model.IdToToken(encoding.Ids[i]));
+                    Assert.Equal(encoding.Tokens[i], tokenizer.Model.IdToToken(encoding.Ids[i], skipSpecialTokens: true, filterUnsupportedChars: false));
                     Assert.Equal(encoding.Ids[i], tokenizer.Model.TokenToId(encoding.Tokens[i]));
-                    Assert.Equal(encoding.Tokens[i], tokenizer.Decode(encoding.Ids[i]));
+                    Assert.Equal(encoding.Tokens[i], tokenizer.Decode(encoding.Ids[i], skipSpecialTokens: true, filterUnsupportedChars: false));
+
+                    string[]? filteredToken = p[6] as string[];
+
+                    Assert.Equal(filteredToken![i], tokenizer.Model.IdToToken(encoding.Ids[i], skipSpecialTokens: true, filterUnsupportedChars: true));
                 }
             }
         }

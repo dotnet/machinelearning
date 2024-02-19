@@ -222,8 +222,9 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
+        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public override string? IdToToken(int id, bool skipSpecialTokens = false)
+        public override string? IdToToken(int id, bool skipSpecialTokens = false, bool filterUnsupportedChars = true)
         {
             if (VocabReverse.TryGetValue(id, out string? value))
             {
