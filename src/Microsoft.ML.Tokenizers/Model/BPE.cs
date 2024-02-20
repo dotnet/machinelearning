@@ -95,7 +95,7 @@ namespace Microsoft.ML.Tokenizers
 
             (Dictionary<string, int>? vocab1, Vec<(string, string)> merges) = ReadFile(vocabFile, mergesFile);
             Vocab = vocab1 ?? new Dictionary<string, int>();
-            Cache = new Cache<string, Word>();
+            Cache = new Cache<Word>();
 
             VocabReverse = new();
 
@@ -274,7 +274,7 @@ namespace Microsoft.ML.Tokenizers
         internal Dictionary<Pair<int>, (int, int)> Merges { get; set; }
 
         /// Contains the cache for optimizing the encoding step.
-        internal Cache<string, Word>? Cache { get; set; }
+        internal Cache<Word>? Cache { get; set; }
 
         internal static readonly int DefaultCacheCapacity = 10_000;
 
@@ -314,9 +314,6 @@ namespace Microsoft.ML.Tokenizers
 
             return merges;
         }
-
-        /// Reset the cache.
-        internal void ClearCache() => Cache?.Clear();
 
         private readonly Dictionary<char, string> _charToString = new Dictionary<char, string>();
 
@@ -425,7 +422,7 @@ namespace Microsoft.ML.Tokenizers
             Word word;
             if (Cache is not null)
             {
-                if (Cache.TryGet(sequence, out word))
+                if (Cache.TryGetValue(sequence, out word))
                 {
                     return WordToTokens(ref word);
                 }
@@ -457,7 +454,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (Cache is not null)
             {
-                if (Cache.TryGet(sequence, out Word hit))
+                if (Cache.TryGetValue(sequence, out Word hit))
                 {
                     return WordToIds(ref hit, accumulatedIds);
                 }

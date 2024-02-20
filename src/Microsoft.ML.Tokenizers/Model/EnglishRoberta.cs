@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tokenizers
         private readonly IReadOnlyDictionary<char, char> _byteToUnicode;
         private readonly IReadOnlyDictionary<char, char> _unicodeToByte;
         private readonly string[] _charToString;
-        private readonly Cache<string, List<Token>> _cache;
+        private readonly Cache<List<Token>> _cache;
 
         /// <summary>
         /// Construct tokenizer object to use with the English Robert model.
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             _unicodeToByte = _byteToUnicode.Reverse();
-            _cache = new Cache<string, List<Token>>();
+            _cache = new Cache<List<Token>>();
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             _unicodeToByte = _byteToUnicode.Reverse();
-            _cache = new Cache<string, List<Token>>();
+            _cache = new Cache<List<Token>>();
         }
 
         //
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Tokenizers
                 return Array.Empty<Token>();
             }
 
-            if (_cache.TryGet(sequence, out List<Token>? hit))
+            if (_cache.TryGetValue(sequence, out List<Token>? hit))
             {
                 ArrayPool<char>.Shared.Return(token);
                 ArrayPool<int>.Shared.Return(indexMapping);
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Tokenizers
 
         private int TokenizeToIds(string sequence, IList<int>? accumulatedIds)
         {
-            if (_cache.TryGet(sequence, out List<Token>? hit))
+            if (_cache.TryGetValue(sequence, out List<Token>? hit))
             {
                 if (accumulatedIds is not null)
                 {

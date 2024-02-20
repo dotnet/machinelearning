@@ -4,96 +4,52 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 
 namespace Microsoft.ML.Tokenizers
 {
-    internal sealed class Cache<TKey, TValue> where TKey : notnull where TValue : notnull
+    internal sealed class Cache<TValue>
     {
+        private readonly int _capacity;
+        private readonly Dictionary<StringSpanOrdinalKey, TValue> _map;
+
+        private object SyncObj => _map;
+
         internal Cache() : this(Bpe.DefaultCacheCapacity) { }
 
         internal Cache(int capacity)
         {
-            Capacity = capacity;
-            Map = new Dictionary<TKey, TValue>(Capacity);
+            _capacity = capacity;
+            _map = new Dictionary<StringSpanOrdinalKey, TValue>(capacity);
         }
 
-        private readonly ReaderWriterLockSlim _cacheLock = new ReaderWriterLockSlim();
-
-        internal Dictionary<TKey, TValue> Map { get; set; }
-
-        internal int Capacity { get; set; }
-
-        internal void Fresh() => Map = new Dictionary<TKey, TValue>(Capacity);
-
-        internal void Clear()
+        internal bool TryGetValue(string key, out TValue value)
         {
-            _cacheLock.EnterWriteLock();
-            try
+            lock (SyncObj)
             {
-                Map.Clear();
+                return _map.TryGetValue(new StringSpanOrdinalKey(key), out value!);
             }
-            finally { _cacheLock.ExitWriteLock(); }
         }
 
-        internal List<TValue> GetValues(IEnumerable<TKey> keys)
+        internal unsafe bool TryGetValue(ReadOnlySpan<char> key, out TValue value)
         {
-            List<TValue> values = new();
-            _cacheLock.EnterReadLock();
-            try
+            lock (SyncObj)
             {
-                foreach (TKey key in keys)
+                fixed (char* ptr = key)
                 {
-                    if (Map.TryGetValue(key, out TValue? value))
-                    {
-                        values.Add(value);
-                    }
+                    return _map.TryGetValue(new StringSpanOrdinalKey(ptr, key.Length), out value!);
                 }
             }
-            finally { _cacheLock.ExitReadLock(); }
-
-            return values;
         }
 
-        internal bool TryGet(TKey key, out TValue value)
+        internal void Set(string k, TValue v)
         {
-            _cacheLock.EnterReadLock();
-            try
+            lock (SyncObj)
             {
-                return Map.TryGetValue(key, out value!);
-            }
-            finally { _cacheLock.ExitReadLock(); }
-        }
-
-        internal void SetValues(IEnumerable<(TKey, TValue)> entries)
-        {
-            _cacheLock.EnterWriteLock();
-            try
-            {
-                foreach ((TKey, TValue) entry in entries)
+                if (_map.Count < _capacity)
                 {
-                    if (Capacity <= Map.Count)
-                    {
-                        break;
-                    }
-                    Map[entry.Item1] = entry.Item2;
+                    _map[new StringSpanOrdinalKey(k)] = v;
                 }
             }
-            finally { _cacheLock.ExitWriteLock(); }
-        }
-
-        internal void Set(TKey k, TValue v)
-        {
-            _cacheLock.EnterWriteLock();
-            try
-            {
-                if (Capacity > Map.Count)
-                {
-                    Map[k] = v;
-                }
-            }
-            finally { _cacheLock.ExitWriteLock(); }
         }
     }
 }
