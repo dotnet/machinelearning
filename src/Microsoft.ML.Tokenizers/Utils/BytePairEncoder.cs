@@ -13,7 +13,7 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     internal static class BytePairEncoder
     {
-        public static int[] BytePairEncode(ReadOnlyMemory<byte> mergingBytes, Dictionary<ReadOnlyMemory<byte>, int> ranks)
+        public static int[] BytePairEncode(ReadOnlyMemory<byte> mergingBytes, IReadOnlyDictionary<ReadOnlyMemory<byte>, int> ranks)
         {
             if (mergingBytes.Length == 1)
             {

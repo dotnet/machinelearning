@@ -32,15 +32,49 @@ namespace Microsoft.ML.Tokenizers.Tests
         public static Tokenizer P50kEdit { get; } = Tokenizer.CreateByModelNameAsync("text-davinci-edit-001").GetAwaiter().GetResult();
 
         [Fact]
-        public void TestGPT4TokenizationEncoding()
+        public async void TestTokenizerCreation()
+        {
+            TestGPT4TokenizationEncoding(GPT4);
+
+            Assert.True(GPT4.Model is Tiktoken);
+            IReadOnlyDictionary<string, int>? specialTokensEncoder = (GPT4.Model as Tiktoken)!.SpecialTokensEncoder;
+            string tokenizerDataFileName = "./Data/cl100k_base.tiktoken";
+
+            Tokenizer tokenizer = new Tokenizer(new Tiktoken(tokenizerDataFileName, specialTokensEncoder), GPT4.PreTokenizer);
+            TestGPT4TokenizationEncoding(tokenizer);
+
+            using (Stream stream = File.OpenRead(tokenizerDataFileName))
+            {
+                tokenizer = new Tokenizer(new Tiktoken(stream, specialTokensEncoder), GPT4.PreTokenizer);
+            }
+            TestGPT4TokenizationEncoding(tokenizer);
+
+            tokenizer = new Tokenizer(await Tiktoken.CreateAsync(tokenizerDataFileName, specialTokensEncoder), GPT4.PreTokenizer);
+            TestGPT4TokenizationEncoding(tokenizer);
+
+            using (Stream stream = File.OpenRead(tokenizerDataFileName))
+            {
+                tokenizer = new Tokenizer(await Tiktoken.CreateAsync(stream, specialTokensEncoder), GPT4.PreTokenizer);
+            }
+            TestGPT4TokenizationEncoding(tokenizer);
+
+            Tiktoken? tiktoken = GPT4.Model as Tiktoken;
+            tokenizer = new Tokenizer(new Tiktoken(tiktoken!.Encoder, tiktoken!.Decoder, tiktoken!.GetVocab(), specialTokensEncoder), GPT4.PreTokenizer);
+            TestGPT4TokenizationEncoding(tokenizer);
+
+            tokenizer = new Tokenizer(new Tiktoken(tiktoken!.Encoder, decoder: null, vocab: null, specialTokensEncoder), GPT4.PreTokenizer);
+            TestGPT4TokenizationEncoding(tokenizer);
+        }
+
+        private void TestGPT4TokenizationEncoding(Tokenizer tokenizer)
         {
             string text = "Hello World";
-            IReadOnlyList<int> encoded = GPT4.EncodeToIds(text);
+            IReadOnlyList<int> encoded = tokenizer.EncodeToIds(text);
             Assert.Equal(new List<int>() { 9906, 4435 }, encoded);
-            Assert.Equal(text, GPT4.Decode(encoded.ToArray())!);
+            Assert.Equal(text, tokenizer.Decode(encoded.ToArray())!);
 
-            TokenizerResult result = GPT4.Encode(text);
-            int idsCount = GPT4.CountTokens(text);
+            TokenizerResult result = tokenizer.Encode(text);
+            int idsCount = tokenizer.CountTokens(text);
             Assert.Equal(encoded, result.Ids);
             Assert.Equal(new string[] { "Hello", " World" }, result.Tokens);
             Assert.Equal(new List<(int, int)> { (0, 5), (5, 11) }, result.Offsets);
