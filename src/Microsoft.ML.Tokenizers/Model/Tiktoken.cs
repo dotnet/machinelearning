@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.ML.Tokenizers
@@ -111,9 +112,11 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="tikTokenBpeFileStream">Stream to the BPE rank file</param>
         /// <param name="useAsync">Whether to perform I/O synchronously or asynchronously.</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>Map of byte[] to integer token id</returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async ValueTask<(Dictionary<ReadOnlyMemory<byte>, int>, Dictionary<string, int>, IReadOnlyDictionary<int, byte[]>)> LoadTikTokenBpeAsync(Stream tikTokenBpeFileStream, bool useAsync)
+        internal static async ValueTask<(Dictionary<ReadOnlyMemory<byte>, int>, Dictionary<string, int>, IReadOnlyDictionary<int, byte[]>)> LoadTikTokenBpeAsync(
+            Stream tikTokenBpeFileStream, bool useAsync, CancellationToken cancellationToken = default)
         {
             var encoder = new Dictionary<ReadOnlyMemory<byte>, int>(ReadOnlyMemoryByteComparer.Instance);
             var vocab = new Dictionary<string, int>();
@@ -126,7 +129,7 @@ namespace Microsoft.ML.Tokenizers
                     while (true)
                     {
                         string? line = useAsync ?
-                            await reader.ReadLineAsync().ConfigureAwait(false) :
+                            await Helpers.ReadLineAsync(reader, cancellationToken).ConfigureAwait(false) :
                             reader.ReadLine();
                         if (string.IsNullOrWhiteSpace(line))
                         {
@@ -143,10 +146,10 @@ namespace Microsoft.ML.Tokenizers
                             throw new FormatException($"Invalid format in the BPE encoder file stream");
                         }
 
-                        byte[] tokenBytes = Helpers.FromBase64String(line, 0, spaceIndex);
-
                         if (Helpers.TryParseInt32(line, spaceIndex + 1, out int rank))
                         {
+                            byte[] tokenBytes = Helpers.FromBase64String(line, 0, spaceIndex);
+
                             encoder[tokenBytes] = rank;
                             decoder[rank] = tokenBytes;
 
@@ -221,7 +224,7 @@ namespace Microsoft.ML.Tokenizers
             // cache miss
             if (_vocab.TryGetValue(sequence, out int mappedId))
             {
-                return new List<Token> { new(mappedId, sequence, (0, sequence.Length)) };
+                return new Token[1] { new(mappedId, sequence, (0, sequence.Length)) };
             }
 
             byte[] arrayPoolArray = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(sequence.Length));
