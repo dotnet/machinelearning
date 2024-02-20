@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         public static WhiteSpace Instance { get; } = new WhiteSpace();
 
-        private const string PretokenizePattern = @"\w+|[^\w\s]+";
+        private const string PretokenizePattern = /*lang=regex*/ @"\w+|[^\w\s]+";
 #if NET7_0_OR_GREATER
         [GeneratedRegex(PretokenizePattern)]
         private static partial Regex PretokenizeRegex();

@@ -18,7 +18,7 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         public static RobertaPreTokenizer Instance { get; } = new RobertaPreTokenizer();
 
-        private const string PretokenizePattern = @"'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+";
+        private const string PretokenizePattern = /*lang=regex*/ @"'(?:[sdmt]|re|ve|ll)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+";
 #if NET7_0_OR_GREATER
         [GeneratedRegex(PretokenizePattern)]
         private static partial Regex PretokenizeRegex();
