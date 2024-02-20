@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tokenizers
     {
         private readonly Dictionary<ReadOnlyMemory<byte>, int> _encoder = null!;
         private readonly IReadOnlyDictionary<int, byte[]> _decoder = null!;
-        private readonly LruCache<string, int[]> _cache;
+        private readonly LruCache<string, int[]>? _cache;
         private readonly IReadOnlyDictionary<string, int>? _specialTokensEncoder;
         private readonly Dictionary<int, string>? _specialTokensDecoder;
         private readonly Dictionary<string, int> _vocab = null!;
@@ -96,7 +96,14 @@ namespace Microsoft.ML.Tokenizers
 
         private Tiktoken(int cacheSize)
         {
-            _cache = new LruCache<string, int[]>(cacheSize);
+            if (cacheSize < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(cacheSize));
+            }
+            else if (cacheSize > 0)
+            {
+                _cache = new LruCache<string, int[]>(cacheSize);
+            }
         }
 
         /// <summary>
@@ -198,7 +205,7 @@ namespace Microsoft.ML.Tokenizers
                 throw new InvalidOperationException($"The special token {sequence} doesn't exist in the tokenizer");
             }
 
-            if (_cache.Lookup(sequence, out int[] ids))
+            if (_cache?.Lookup(sequence, out int[] ids) is true)
             {
                 tokens = new Token[ids.Length];
                 tokens[0] = new Token(ids[0], sequence, (0, sequence.Length));
@@ -222,7 +229,7 @@ namespace Microsoft.ML.Tokenizers
 
             int[] encodedIds = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
             Debug.Assert(encodedIds.Length > 0);
-            _cache.Add(sequence, encodedIds);
+            _cache?.Add(sequence, encodedIds);
 
             tokens = new Token[encodedIds.Length];
             tokens[0] = new Token(encodedIds[0], sequence, (0, sequence.Length));
@@ -259,7 +266,7 @@ namespace Microsoft.ML.Tokenizers
                 return;
             }
 
-            if (_cache.Lookup(sequence, out int[] tokenIds))
+            if (_cache?.Lookup(sequence, out int[] tokenIds) is true)
             {
                 accumulatedIds.AddRange(tokenIds);
                 return;
@@ -275,7 +282,7 @@ namespace Microsoft.ML.Tokenizers
             int encodedLength = GetUtf8Bytes(sequence.AsSpan(), arrayPoolArray);
 
             int[] encodedIds = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
-            _cache.Add(sequence, encodedIds);
+            _cache?.Add(sequence, encodedIds);
 
             accumulatedIds.AddRange(encodedIds);
 
@@ -301,7 +308,7 @@ namespace Microsoft.ML.Tokenizers
                 return _specialTokensEncoder.TryGetValue(sequence, out _) ? 1 : 0;
             }
 
-            if (_cache.Lookup(sequence, out int[] ids))
+            if (_cache?.Lookup(sequence, out int[] ids) is true)
             {
                 return ids.Length;
             }
@@ -315,7 +322,7 @@ namespace Microsoft.ML.Tokenizers
             int encodedLength = GetUtf8Bytes(sequence.AsSpan(), arrayPoolArray);
 
             int[] encodedIds = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
-            _cache.Add(sequence, encodedIds);
+            _cache?.Add(sequence, encodedIds);
 
             ArrayPool<byte>.Shared.Return(arrayPoolArray);
             return encodedIds.Length;
@@ -346,7 +353,7 @@ namespace Microsoft.ML.Tokenizers
                 return specialTokenId;
             }
 
-            if (_cache.Lookup(token, out int[] ids))
+            if (_cache?.Lookup(token, out int[] ids) is true)
             {
                 if (ids.Length == 1)
                 {
@@ -367,7 +374,7 @@ namespace Microsoft.ML.Tokenizers
                 int encodedLength = GetUtf8Bytes(token.AsSpan(), arrayPoolArray);
 
                 int[] idsToCache = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
-                _cache.Add(token, idsToCache);
+                _cache?.Add(token, idsToCache);
 
                 if (idsToCache.Length == 1)
                 {
