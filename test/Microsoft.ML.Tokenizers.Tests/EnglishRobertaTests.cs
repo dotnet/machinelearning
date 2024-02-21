@@ -180,18 +180,18 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(p[4], tokenizer.Decode(encoding.Ids));
                 EnglishRoberta? robertaModel = tokenizer.Model as EnglishRoberta;
                 Assert.NotNull(robertaModel);
-                Assert.Equal(encoding.Ids, robertaModel!.OccurrenceRanksIds(robertaModel!.IdsToOccurrenceRanks(encoding.Ids)));
-                Assert.Equal(p[5], robertaModel.IdsToOccurrenceValues(encoding.Ids));
+                Assert.Equal(encoding.Ids, robertaModel!.ConvertOccurrenceRanksToIds(robertaModel!.ConvertIdsToOccurrenceRanks(encoding.Ids)));
+                Assert.Equal(p[5], robertaModel.ConvertIdsToOccurrenceValues(encoding.Ids));
 
                 for (int i = 0; i < encoding.Tokens.Count; i++)
                 {
-                    Assert.Equal(encoding.Tokens[i], tokenizer.Model.IdToToken(encoding.Ids[i], considerSpecialTokens: false, filterUnsupportedChars: false));
-                    Assert.Equal(encoding.Ids[i], tokenizer.Model.TokenToId(encoding.Tokens[i]));
+                    Assert.Equal(encoding.Tokens[i], tokenizer.Model.MapIdToToken(encoding.Ids[i], considerSpecialTokens: false, filterUnsupportedChars: false));
+                    Assert.Equal(encoding.Ids[i], tokenizer.Model.MapTokenToId(encoding.Tokens[i]));
                     Assert.Equal(encoding.Tokens[i], tokenizer.Decode(encoding.Ids[i], considerSpecialTokens: false, filterUnsupportedChars: false));
 
                     string[]? filteredToken = p[6] as string[];
 
-                    Assert.Equal(filteredToken![i], tokenizer.Model.IdToToken(encoding.Ids[i], considerSpecialTokens: false, filterUnsupportedChars: true));
+                    Assert.Equal(filteredToken![i], tokenizer.Model.MapIdToToken(encoding.Ids[i], considerSpecialTokens: false, filterUnsupportedChars: true));
                 }
             }
         }

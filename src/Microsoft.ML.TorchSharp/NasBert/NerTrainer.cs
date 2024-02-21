@@ -187,7 +187,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     }
                     target = targetEditor.Commit();
                 }
-                t = torch.tensor((ZeroArray).Concat(Tokenizer.RobertaModel().IdsToOccurrenceRanks(encoding.Ids)).ToList(), device: Device);
+                t = torch.tensor((ZeroArray).Concat(Tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(encoding.Ids)).ToList(), device: Device);
 
                 if (t.NumberOfElements > 512)
                     t = t.slice(0, 0, 512, 1);

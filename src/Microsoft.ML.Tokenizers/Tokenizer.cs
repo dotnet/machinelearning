@@ -179,7 +179,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The decoded string or null if there is no token mapped to the input id.</returns>
-        public string? Decode(int id, bool considerSpecialTokens = true, bool filterUnsupportedChars = true) => Model.IdToToken(id, considerSpecialTokens, filterUnsupportedChars);
+        public string? Decode(int id, bool considerSpecialTokens = true, bool filterUnsupportedChars = true) => Model.MapIdToToken(id, considerSpecialTokens, filterUnsupportedChars);
 
         /// <summary>
         /// Decode the given ids, back to a String.

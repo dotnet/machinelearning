@@ -131,7 +131,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public override string? IdToToken(int id, bool considerSpecialTokens = true, bool filterUnsupportedChars = true)
+        public override string? MapIdToToken(int id, bool considerSpecialTokens = true, bool filterUnsupportedChars = true)
         {
             if (!considerSpecialTokens && id < 0)
             {
@@ -259,14 +259,14 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="token">The token to map to the Id.</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public override int? TokenToId(string token, bool considerSpecialTokens = true) => _vocab.TryGetValue(token, out var value) ? value : null;
+        public override int? MapTokenToId(string token, bool considerSpecialTokens = true) => _vocab.TryGetValue(token, out var value) ? value : null;
 
         /// <summary>
         /// Convert a list of tokens Ids to highest occurrence rankings.
         /// </summary>
         /// <param name="ids">The Ids list to map to the high occurrence rank.</param>
         /// <returns>The list of ranks mapped from the list of Ids.</returns>
-        public IReadOnlyList<int> IdsToOccurrenceRanks(IReadOnlyList<int> ids)
+        public IReadOnlyList<int> ConvertIdsToOccurrenceRanks(IReadOnlyList<int> ids)
         {
             if (ids is null)
             {
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="ids">The Ids list to map to the high occurrence values.</param>
         /// <returns>The list of occurrence values mapped from the list of Ids.</returns>
-        public IReadOnlyList<int> IdsToOccurrenceValues(IReadOnlyList<int> ids)
+        public IReadOnlyList<int> ConvertIdsToOccurrenceValues(IReadOnlyList<int> ids)
         {
             if (ids is null)
             {
@@ -310,7 +310,7 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="ranks">The high occurrence ranks list to map to the Ids list.</param>
         /// <returns>The list of Ids mapped from the list of ranks.</returns>
-        public IReadOnlyList<int> OccurrenceRanksIds(IReadOnlyList<int> ranks)
+        public IReadOnlyList<int> ConvertOccurrenceRanksToIds(IReadOnlyList<int> ranks)
         {
             if (ranks is null)
             {
@@ -321,7 +321,7 @@ namespace Microsoft.ML.Tokenizers
 
             foreach (int rank in ranks)
             {
-                list.Add(_vocabIdToHighestOccurrence.OccurrenceRankToId(rank));
+                list.Add(_vocabIdToHighestOccurrence.ConvertOccurrenceRankToId(rank));
             }
 
             return list;
@@ -612,7 +612,12 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
-        public bool CharInSupportedRange(char ch)
+        /// <summary>
+        /// Check if the character is supported by the tokenizer's model.
+        /// </summary>
+        /// <param name="ch">The character to check.</param>
+        /// <returns>True if the character is supported, otherwise false.</returns>
+        public bool IsSupportedChar(char ch)
         {
             return _byteToUnicode.ContainsKey(ch);
         }
@@ -689,7 +694,7 @@ namespace Microsoft.ML.Tokenizers
             return 0;
         }
 
-        public int OccurrenceRankToId(int rank)
+        public int ConvertOccurrenceRankToId(int rank)
         {
             if ((uint)rank >= _symbols.Count)
             {
@@ -716,12 +721,12 @@ namespace Microsoft.ML.Tokenizers
             return idx;
         }
 
-        public int AddSymbol(int id, int highOccuranceScore)
+        public int AddSymbol(int id, int highOccurrenceScore)
         {
             if (!_idToIndex.TryGetValue(id, out int idx))
             {
                 idx = _symbols.Count;
-                _symbols.Add((id, highOccuranceScore));
+                _symbols.Add((id, highOccurrenceScore));
                 _idToIndex[id] = idx;
             }
 

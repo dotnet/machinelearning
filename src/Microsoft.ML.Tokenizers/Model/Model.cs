@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="token">The token to map to Id</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public abstract int? TokenToId(string token, bool considerSpecialTokens = true);
+        public abstract int? MapTokenToId(string token, bool considerSpecialTokens = true);
 
         /// <summary>
         /// Map the encoded Id to the token.
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public abstract string? IdToToken(int id, bool considerSpecialTokens = true, bool filterUnsupportedChars = true);
+        public abstract string? MapIdToToken(int id, bool considerSpecialTokens = true, bool filterUnsupportedChars = true);
 
         /// <summary>
         /// Decode the given ids, back to a String.
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Tokenizers
 
             foreach (int id in ids)
             {
-                tokens.Add(IdToToken(id, considerSpecialTokens, filterUnsupportedChars) ?? "");
+                tokens.Add(MapIdToToken(id, considerSpecialTokens, filterUnsupportedChars) ?? "");
             }
 
             return decoder?.Decode(tokens) ?? string.Join("", tokens);
