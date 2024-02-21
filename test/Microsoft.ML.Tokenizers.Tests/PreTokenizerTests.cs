@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             // Empty tokenizer which tokenize all parts as unknown tokens.
             Tokenizer tokenizer = new Tokenizer(BpeTests.CreateEmptyBpe(), preTokenizer);
 
-            TokenizerResult encoding = tokenizer.Encode(sentence);
+            EncodingResult encoding = tokenizer.Encode(sentence);
             Assert.True(encoding.Tokens.Count >= splitParts.Length, $"Expected to have {encoding.Tokens.Count} >= {splitParts.Length}");
         }
 
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
         public class SpacePreTokenizer : PreTokenizer
         {
-            public override IEnumerable<Split> PreTokenize(string sentence, bool skipSpecialTokens = false)
+            public override IEnumerable<Split> PreTokenize(string sentence, bool considerSpecialTokens = true)
             {
                 List<Split> splits = new();
                 if (string.IsNullOrEmpty(sentence))

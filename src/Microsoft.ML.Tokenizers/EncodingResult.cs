@@ -11,16 +11,16 @@ namespace Microsoft.ML.Tokenizers
     /// <summary>
     /// The Encoding represents the output of a Tokenizer.
     /// </summary>
-    public sealed class TokenizerResult
+    public sealed class EncodingResult
     {
         /// <summary>
-        /// Create a new object of the TokenizerResult object.
+        /// Create a new object of the EncodingResult object.
         /// </summary>
         /// <param name="originalString">The list of tokens to merge.</param>
         /// <param name="normalizedString">The list of tokens to merge.</param>
         /// <param name="splits">The list of tokens to merge.</param>
         /// <param name="offsetsMappedToOriginalString">Indicate whether the offsets is mapped to the original string or the normalized string.</param>
-        public TokenizerResult(string originalString, string normalizedString, IEnumerable<Split> splits, bool offsetsMappedToOriginalString)
+        public EncodingResult(string originalString, string normalizedString, IEnumerable<Split> splits, bool offsetsMappedToOriginalString)
         {
             OriginalString = originalString;
             NormalizedString = normalizedString;

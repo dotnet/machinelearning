@@ -139,7 +139,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(vocab.Count + 1u, bpe.GetVocabSize());
                 Tokenizer tokenizer = new Tokenizer(bpe);
 
-                TokenizerResult encoding = tokenizer.Encode(sentence);
+                EncodingResult encoding = tokenizer.Encode(sentence);
                 IReadOnlyList<int> idsList = tokenizer.EncodeToIds(sentence);
 
                 Assert.Equal(expectedTokens.Length, encoding.Tokens.Count);
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             string text = "The quick brown fox jumps over the lazy dog!";
 
-            TokenizerResult encoding = tokenizer.Encode(text);
+            EncodingResult encoding = tokenizer.Encode(text);
             IReadOnlyList<int> ids = tokenizer.EncodeToIds(text);
 
             Assert.Equal(12, encoding.Tokens.Count);

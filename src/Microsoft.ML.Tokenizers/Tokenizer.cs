@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 namespace Microsoft.ML.Tokenizers
 {
     /// <summary>
-    /// A Tokenizer works as a pipeline. It processes some raw text as input and outputs a TokenizerResult object.
+    /// A Tokenizer works as a pipeline. It processes some raw text as input and outputs a EncodingResult object.
     /// </summary>
     public partial class Tokenizer
     {
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="text">The text to encode.</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
-        public TokenizerResult Encode(string text, bool considerSpecialTokens = true)
+        public EncodingResult Encode(string text, bool considerSpecialTokens = true)
         {
             if (text is null)
             {
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Tokenizers
                 normalized = text;
             }
 
-            TokenizerResult encoding = new(text, normalized, PreTokenizer.PreTokenize(normalized, considerSpecialTokens), offsetsMappedToOriginal);
+            EncodingResult encoding = new(text, normalized, PreTokenizer.PreTokenize(normalized, considerSpecialTokens), offsetsMappedToOriginal);
 
             if (Normalizer is null || !normalizedString.CanMapToOriginal || normalizedString.IsOneToOneMapping)
             {

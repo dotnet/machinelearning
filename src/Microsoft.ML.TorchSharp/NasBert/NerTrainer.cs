@@ -377,7 +377,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             private void CondenseOutput(ref VBuffer<UInt32> dst, string sentence, Tokenizer tokenizer, TensorCacher outputCacher)
             {
                 var pre = tokenizer.PreTokenizer.PreTokenize(sentence);
-                TokenizerResult encoding = tokenizer.Encode(sentence);
+                EncodingResult encoding = tokenizer.Encode(sentence);
 
                 var argmax = (outputCacher as BertTensorCacher).Result.argmax(-1);
                 var prediction = argmax.ToArray<long>();

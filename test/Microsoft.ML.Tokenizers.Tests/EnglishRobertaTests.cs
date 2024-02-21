@@ -148,7 +148,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             foreach (object[] p in BertaData)
             {
                 IReadOnlyList<int> ids;
-                TokenizerResult encoding;
+                EncodingResult encoding;
                 int idsCount;
 
                 if (callingOrder == CallingOrder.Encode)

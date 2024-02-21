@@ -51,7 +51,7 @@ namespace Microsoft.ML.TorchSharp.Extensions
 
         internal static IReadOnlyList<int> EncodeToConverted(this Tokenizer tokenizer, string sentence)
         {
-            TokenizerResult encoding = tokenizer.Encode(sentence);
+            EncodingResult encoding = tokenizer.Encode(sentence);
             return tokenizer.RobertaModel().IdsToOccurrenceRanks(encoding.Ids);
         }
     }

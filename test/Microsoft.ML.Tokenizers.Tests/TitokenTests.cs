@@ -73,7 +73,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(new List<int>() { 9906, 4435 }, encoded);
             Assert.Equal(text, tokenizer.Decode(encoded.ToArray())!);
 
-            TokenizerResult result = tokenizer.Encode(text);
+            EncodingResult result = tokenizer.Encode(text);
             int idsCount = tokenizer.CountTokens(text);
             Assert.Equal(encoded, result.Ids);
             Assert.Equal(new string[] { "Hello", " World" }, result.Tokens);
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(new List<int>() { 100264, 9906, 4435, 100265 }, encoded);
             Assert.Equal(text, GPT4.Decode(encoded.ToArray()));
 
-            TokenizerResult result = GPT4.Encode(text);
+            EncodingResult result = GPT4.Encode(text);
             int idsCount = GPT4.CountTokens(text);
             Assert.Equal(encoded, result.Ids);
             Assert.Equal(new string[] { "<|im_start|>", "Hello", " World", "<|im_end|>" }, result.Tokens);
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             string? decoded = GPT4.Decode(encoded.ToArray());
             Assert.Equal(text, decoded);
 
-            TokenizerResult result = GPT4.Encode(text);
+            EncodingResult result = GPT4.Encode(text);
             int idsCount = GPT4.CountTokens(text);
             Assert.Equal(encoded, result.Ids);
             Assert.Equal(encoded.Count, idsCount);
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             IReadOnlyList<int> encoded = GPT4.EncodeToIds(text);
             Assert.Empty(encoded);
 
-            TokenizerResult result = GPT4.Encode(text);
+            EncodingResult result = GPT4.Encode(text);
             int idsCount = GPT4.CountTokens(text);
             Assert.Empty(result.Ids);
             Assert.Empty(result.Tokens);
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(new List<int>() { 100264, 9906, 2928, 99834, 4435, 100265 }, encoded);
             Assert.Equal(text, GPT4.Decode(encoded.ToArray()));
 
-            TokenizerResult result = GPT4.Encode(text);
+            EncodingResult result = GPT4.Encode(text);
             Assert.Equal(encoded, result.Ids);
             Assert.Equal(encoded.Count, idsCount);
             Assert.Equal(new string[] { "<|im_start|>", "Hello", " ⭐", "", " World", "<|im_end|>" }, result.Tokens);
