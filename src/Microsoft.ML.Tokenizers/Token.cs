@@ -15,19 +15,19 @@ namespace Microsoft.ML.Tokenizers
     public sealed class Token
     {
         /// <summary>
-        /// Gets or sets the Id value associated to the token.
+        /// Gets the Id value associated to the token.
         /// </summary>
-        public int Id { get; set; }
+        public int Id { get; }
 
         /// <summary>
-        /// Gets or sets the token string value.
+        /// Gets the token string value.
         /// </summary>
         public string Value { get; set; }
 
         /// <summary>
-        /// Gets or sets the offset mapping to the original string.
+        /// Gets the offset mapping to the original string.
         /// </summary>
-        public (int Index, int End) Offset { get; set; }
+        public (int Index, int End) Offset { get; internal set; }
 
         /// <summary>
         /// Construct a new Token object using the token value, Id, and the offset mapping to the original string.
