@@ -58,9 +58,9 @@ namespace Microsoft.ML.Tokenizers
         /// Encodes input text to object has the tokens list, tokens Ids, tokens offset mapping.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
-        public TokenizerResult Encode(string text, bool skipSpecialTokens = false)
+        public TokenizerResult Encode(string text, bool considerSpecialTokens = true)
         {
             if (text is null)
             {
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Tokenizers
                 normalized = text;
             }
 
-            TokenizerResult encoding = new(text, normalized, PreTokenizer.PreTokenize(normalized, skipSpecialTokens), offsetsMappedToOriginal);
+            TokenizerResult encoding = new(text, normalized, PreTokenizer.PreTokenize(normalized, considerSpecialTokens), offsetsMappedToOriginal);
 
             if (Normalizer is null || !normalizedString.CanMapToOriginal || normalizedString.IsOneToOneMapping)
             {
@@ -127,9 +127,9 @@ namespace Microsoft.ML.Tokenizers
         /// Encodes input text to tokens Ids.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
-        public IReadOnlyList<int> EncodeToIds(string text, bool skipSpecialTokens = false)
+        public IReadOnlyList<int> EncodeToIds(string text, bool considerSpecialTokens = true)
         {
             if (text is null)
             {
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Tokenizers
             string normalized = Normalizer is not null ? Normalizer.Normalize(text).Normalized : text;
             List<int> idsList = new();
 
-            foreach (Split split in PreTokenizer.PreTokenize(normalized, skipSpecialTokens))
+            foreach (Split split in PreTokenizer.PreTokenize(normalized, considerSpecialTokens))
             {
                 Model.EncodeToIds(split.TokenString, split.IsSpecialToken, idsList);
             }
@@ -151,11 +151,11 @@ namespace Microsoft.ML.Tokenizers
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The number of tokens Ids that the input text will be encoded to.</returns>
         /// <exception cref="ArgumentNullException">The input text is null.</exception>
         /// <exception cref="ArgumentException">Unable to encode the text.</exception>
-        public int CountTokens(string text, bool skipSpecialTokens = false)
+        public int CountTokens(string text, bool considerSpecialTokens = true)
         {
             if (text is null)
             {
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Tokenizers
             string normalized = Normalizer is not null ? Normalizer.Normalize(text).Normalized : text;
 
             int idsCount = 0;
-            foreach (Split split in PreTokenizer.PreTokenize(normalized, skipSpecialTokens))
+            foreach (Split split in PreTokenizer.PreTokenize(normalized, considerSpecialTokens))
             {
                 idsCount += Model.CountTokens(split.TokenString, split.IsSpecialToken);
             }
@@ -177,19 +177,19 @@ namespace Microsoft.ML.Tokenizers
         /// Decodes the Id to the mapped token.
         /// </summary>
         /// <param name="id">The id to map to the token.</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The decoded string or null if there is no token mapped to the input id.</returns>
-        public string? Decode(int id, bool skipSpecialTokens = false, bool filterUnsupportedChars = true) => Model.IdToToken(id, skipSpecialTokens, filterUnsupportedChars);
+        public string? Decode(int id, bool considerSpecialTokens = true, bool filterUnsupportedChars = true) => Model.IdToToken(id, considerSpecialTokens, filterUnsupportedChars);
 
         /// <summary>
         /// Decode the given ids, back to a String.
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
-        /// <param name="skipSpecialTokens">Whether the special tokens should be removed from the decoded string.</param>
+        /// <param name="considerSpecialTokens">Whether the special tokens should be kept in the decoded string.</param>
         /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The decoded string.</returns>
-        public string? Decode(IEnumerable<int> ids, bool skipSpecialTokens = false, bool filterUnsupportedChars = true) => Model.Decode(ids, Decoder, skipSpecialTokens, filterUnsupportedChars);
+        public string? Decode(IEnumerable<int> ids, bool considerSpecialTokens = true, bool filterUnsupportedChars = true) => Model.Decode(ids, Decoder, considerSpecialTokens, filterUnsupportedChars);
 
         private const string EndOfText = "<|endoftext|>";
         private const string FimPrefix = "<|fim_prefix|>";

@@ -424,16 +424,16 @@ namespace Microsoft.ML.Tokenizers
         /// Map the token to encoded Id.
         /// </summary>
         /// <param name="token">The token to map to the Id.</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public override int? TokenToId(string token, bool skipSpecialTokens)
+        public override int? TokenToId(string token, bool considerSpecialTokens = true)
         {
             if (string.IsNullOrEmpty(token))
             {
                 return 0;
             }
 
-            if (!skipSpecialTokens && _specialTokensEncoder is not null && _specialTokensEncoder.TryGetValue(token, out int specialTokenId))
+            if (considerSpecialTokens && _specialTokensEncoder is not null && _specialTokensEncoder.TryGetValue(token, out int specialTokenId))
             {
                 return specialTokenId;
             }
@@ -478,12 +478,12 @@ namespace Microsoft.ML.Tokenizers
         /// Map the encoded Id to the token.
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public override string? IdToToken(int id, bool skipSpecialTokens = false, bool filterUnsupportedChars = true)
+        public override string? IdToToken(int id, bool considerSpecialTokens = true, bool filterUnsupportedChars = true)
         {
-            if (!skipSpecialTokens && _specialTokensDecoder is not null && _specialTokensDecoder.TryGetValue(id, out string? token))
+            if (considerSpecialTokens && _specialTokensDecoder is not null && _specialTokensDecoder.TryGetValue(id, out string? token))
             {
                 return token;
             }
@@ -500,11 +500,11 @@ namespace Microsoft.ML.Tokenizers
         /// Decode the given ids, back to a String.
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
-        /// <param name="skipSpecialTokens">Whether the special tokens should be removed from the decoded string.</param>
+        /// <param name="considerSpecialTokens">Whether the special tokens should be kept in the decoded string.</param>
         /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <param name="decoder">The optional Decoder to merge the given list of tokens in a string.</param>
         /// <returns>The decoded string.</returns>
-        public override string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null, bool skipSpecialTokens = false, bool filterUnsupportedChars = true)
+        public override string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null, bool considerSpecialTokens = true, bool filterUnsupportedChars = true)
         {
             // Tiktoken does not ensure a one-to-one mapping between IDs and tokens. Consequently, decoding individual IDs into tokens is not supported;
             // instead, decoding all IDs must be done collectively.
@@ -523,7 +523,7 @@ namespace Microsoft.ML.Tokenizers
                 Span<byte> utf8Bytes = stackalloc byte[256];
                 int utf8ByteCount = 0;
 
-                bool useSpecialTokens = !skipSpecialTokens && _specialTokensDecoder is not null;
+                bool useSpecialTokens = considerSpecialTokens && _specialTokensDecoder is not null;
 
                 foreach (int id in ids)
                 {

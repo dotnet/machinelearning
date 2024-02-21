@@ -185,13 +185,13 @@ namespace Microsoft.ML.Tokenizers.Tests
 
                 for (int i = 0; i < encoding.Tokens.Count; i++)
                 {
-                    Assert.Equal(encoding.Tokens[i], tokenizer.Model.IdToToken(encoding.Ids[i], skipSpecialTokens: true, filterUnsupportedChars: false));
+                    Assert.Equal(encoding.Tokens[i], tokenizer.Model.IdToToken(encoding.Ids[i], considerSpecialTokens: false, filterUnsupportedChars: false));
                     Assert.Equal(encoding.Ids[i], tokenizer.Model.TokenToId(encoding.Tokens[i]));
-                    Assert.Equal(encoding.Tokens[i], tokenizer.Decode(encoding.Ids[i], skipSpecialTokens: true, filterUnsupportedChars: false));
+                    Assert.Equal(encoding.Tokens[i], tokenizer.Decode(encoding.Ids[i], considerSpecialTokens: false, filterUnsupportedChars: false));
 
                     string[]? filteredToken = p[6] as string[];
 
-                    Assert.Equal(filteredToken![i], tokenizer.Model.IdToToken(encoding.Ids[i], skipSpecialTokens: true, filterUnsupportedChars: true));
+                    Assert.Equal(filteredToken![i], tokenizer.Model.IdToToken(encoding.Ids[i], considerSpecialTokens: false, filterUnsupportedChars: true));
                 }
             }
         }

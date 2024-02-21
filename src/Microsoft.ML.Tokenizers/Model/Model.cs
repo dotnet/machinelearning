@@ -66,34 +66,34 @@ namespace Microsoft.ML.Tokenizers
         /// Map the token to encoded id with the option to skip the special tokens.
         /// </summary>
         /// <param name="token">The token to map to Id</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public abstract int? TokenToId(string token, bool skipSpecialTokens = false);
+        public abstract int? TokenToId(string token, bool considerSpecialTokens = true);
 
         /// <summary>
         /// Map the encoded Id to the token.
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public abstract string? IdToToken(int id, bool skipSpecialTokens = false, bool filterUnsupportedChars = true);
+        public abstract string? IdToToken(int id, bool considerSpecialTokens = true, bool filterUnsupportedChars = true);
 
         /// <summary>
         /// Decode the given ids, back to a String.
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
-        /// <param name="skipSpecialTokens">Whether the special tokens should be removed from the decoded string.</param>
+        /// <param name="considerSpecialTokens">Whether the special tokens should be kept in the decoded string.</param>
         /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <param name="decoder">The optional Decoder to merge the given list of tokens in a string.</param>
         /// <returns>The decoded string.</returns>
-        public virtual string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null, bool skipSpecialTokens = false, bool filterUnsupportedChars = true)
+        public virtual string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null, bool considerSpecialTokens = true, bool filterUnsupportedChars = true)
         {
             List<string> tokens = new List<string>();
 
             foreach (int id in ids)
             {
-                tokens.Add(IdToToken(id, skipSpecialTokens, filterUnsupportedChars) ?? "");
+                tokens.Add(IdToToken(id, considerSpecialTokens, filterUnsupportedChars) ?? "");
             }
 
             return decoder?.Decode(tokens) ?? string.Join("", tokens);

@@ -206,9 +206,9 @@ namespace Microsoft.ML.Tokenizers
         /// Map the token to encoded Id.
         /// </summary>
         /// <param name="token">The token to map to the Id.</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public override int? TokenToId(string token, bool skipSpecialTokens = false)
+        public override int? TokenToId(string token, bool considerSpecialTokens = true)
         {
             if (Vocab.TryGetValue(token, out int value))
             {
@@ -222,10 +222,10 @@ namespace Microsoft.ML.Tokenizers
         /// Map the encoded Id to the token.
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public override string? IdToToken(int id, bool skipSpecialTokens = false, bool filterUnsupportedChars = true)
+        public override string? IdToToken(int id, bool considerSpecialTokens = true, bool filterUnsupportedChars = true)
         {
             if (VocabReverse.TryGetValue(id, out string? value))
             {

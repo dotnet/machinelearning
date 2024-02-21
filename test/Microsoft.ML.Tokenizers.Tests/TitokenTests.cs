@@ -103,9 +103,9 @@ namespace Microsoft.ML.Tokenizers.Tests
         public void TestEncode2()
         {
             string text = ReadAndSanitizeFile("./Data/lib.rs.txt");
-            IReadOnlyList<int> encoded = GPT4.EncodeToIds(text, skipSpecialTokens: true);
+            IReadOnlyList<int> encoded = GPT4.EncodeToIds(text, considerSpecialTokens: false);
             Assert.Equal(5584, encoded.Count);
-            int idsCount = GPT4.CountTokens(text, skipSpecialTokens: true);
+            int idsCount = GPT4.CountTokens(text, considerSpecialTokens: false);
             Assert.Equal(encoded.Count, idsCount);
 
             using (Stream stream = File.OpenRead("./Data/tokens.json"))
