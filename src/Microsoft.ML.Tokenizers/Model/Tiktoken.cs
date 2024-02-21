@@ -151,24 +151,22 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="tikTokenBpeFileStream">The stream to the BPE rank file.</param>
         /// <param name="specialTokensEncoder">The dictionary mapping special tokens to Ids.</param>
         /// <param name="cacheSize">The size of the cache to use.</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>Tiktoken tokenizer object.</returns>
-        public static async Task<Tiktoken> CreateAsync(Stream tikTokenBpeFileStream, IReadOnlyDictionary<string, int>? specialTokensEncoder = null, int cacheSize = LruCache<string, int[]>.DefaultCacheSize)
+        public static async Task<Tiktoken> CreateAsync(
+                            Stream tikTokenBpeFileStream,
+                            IReadOnlyDictionary<string, int>? specialTokensEncoder = null,
+                            int cacheSize = LruCache<string, int[]>.DefaultCacheSize,
+                            CancellationToken cancellationToken = default)
         {
-            if (cacheSize < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(cacheSize));
-            }
-            else if (cacheSize > 0)
-            {
-                _cache = new LruCache<string, int[]>(cacheSize);
-            }
-
             if (tikTokenBpeFileStream is null)
             {
                 throw new ArgumentNullException(nameof(tikTokenBpeFileStream));
             }
 
-            (IReadOnlyDictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<string, int> vocab, IReadOnlyDictionary<int, byte[]> decoder) = await LoadTikTokenBpeAsync(tikTokenBpeFileStream, useAsync: true).ConfigureAwait(false);
+            (IReadOnlyDictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<string, int> vocab, IReadOnlyDictionary<int, byte[]> decoder) =
+                        await LoadTikTokenBpeAsync(tikTokenBpeFileStream, useAsync: true, cancellationToken).ConfigureAwait(false);
+
             return new Tiktoken(encoder, decoder, vocab, specialTokensEncoder, cacheSize);
         }
 
@@ -178,8 +176,13 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="tikTokenBpeFile">The BPE rank file.</param>
         /// <param name="specialTokensEncoder">The dictionary mapping special tokens to Ids.</param>
         /// <param name="cacheSize">The size of the cache to use.</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>Tiktoken tokenizer object.</returns>
-        public static async Task<Tiktoken> CreateAsync(string tikTokenBpeFile, IReadOnlyDictionary<string, int>? specialTokensEncoder = null, int cacheSize = LruCache<string, int[]>.DefaultCacheSize)
+        public static async Task<Tiktoken> CreateAsync(
+                                string tikTokenBpeFile,
+                                IReadOnlyDictionary<string, int>? specialTokensEncoder = null,
+                                int cacheSize = LruCache<string, int[]>.DefaultCacheSize,
+                                CancellationToken cancellationToken = default)
         {
             if (tikTokenBpeFile is null)
             {
@@ -187,7 +190,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             using Stream tikTokenBpeFileStream = File.OpenRead(tikTokenBpeFile);
-            return await CreateAsync(tikTokenBpeFileStream, specialTokensEncoder, cacheSize).ConfigureAwait(false);
+            return await CreateAsync(tikTokenBpeFileStream, specialTokensEncoder, cacheSize, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
