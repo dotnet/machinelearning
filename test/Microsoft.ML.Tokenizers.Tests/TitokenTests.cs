@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             TestGPT4TokenizationEncoding(tokenizer);
 
             Tiktoken? tiktoken = GPT4.Model as Tiktoken;
-            tokenizer = new Tokenizer(new Tiktoken(tiktoken!.Encoder, tiktoken!.Decoder, tiktoken!.GetVocab(), specialTokensEncoder), GPT4.PreTokenizer);
+            tokenizer = new Tokenizer(new Tiktoken(tiktoken!.Encoder, tiktoken!.Decoder, tiktoken!.Vocab, specialTokensEncoder), GPT4.PreTokenizer);
             TestGPT4TokenizationEncoding(tokenizer);
 
             tokenizer = new Tokenizer(new Tiktoken(tiktoken!.Encoder, decoder: null, vocab: null, specialTokensEncoder), GPT4.PreTokenizer);

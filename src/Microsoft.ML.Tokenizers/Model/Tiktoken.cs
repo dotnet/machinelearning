@@ -582,7 +582,7 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
-        public override IReadOnlyDictionary<string, int> GetVocab() => _vocab;
+        public override IReadOnlyDictionary<string, int> Vocab => _vocab;
 
         /// <summary>
         /// Gets the dictionary mapping token utf-8 bytes to Ids.

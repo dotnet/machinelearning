@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tokenizers
                 return _unknownToken;
             }
 
-            set
+            private set
             {
                 _unknownToken = value;
 
@@ -39,15 +39,15 @@ namespace Microsoft.ML.Tokenizers
                     if (VocabReverse.TryGetValue(0, out string? v))
                     {
                         VocabReverse.Remove(0);
-                        if (Vocab.TryGetValue(v, out int id))
+                        if (_vocab.TryGetValue(v, out int id))
                         {
-                            Vocab.Remove(v);
+                            _vocab.Remove(v);
                         }
                     }
                 }
                 else
                 {
-                    Vocab[value] = 0;
+                    _vocab[value] = 0;
                     VocabReverse[0] = value;
                 }
             }
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Tokenizers
                 EndOfWordSuffix = endOfWordSuffix;
 
                 (Dictionary<string, int>? vocab1, Vec<(string, string)> merges) = ReadModelData(vocabStream, mergesStream);
-                Vocab = vocab1 ?? new Dictionary<string, int>();
+                _vocab = vocab1 ?? new Dictionary<string, int>();
                 Cache = new Cache<string, Word>();
 
                 VocabReverse = new();
@@ -136,18 +136,18 @@ namespace Microsoft.ML.Tokenizers
                 {
                     (string a, string b) mergeValues = merges[i];
 
-                    if (!Vocab.TryGetValue(mergeValues.a, out int aId))
+                    if (!_vocab.TryGetValue(mergeValues.a, out int aId))
                     {
                         throw new InvalidOperationException($"Trying to merge a token '{mergeValues.a}' which not exist in the vocabulary.");
                     }
 
-                    if (!Vocab.TryGetValue(mergeValues.b, out int bId))
+                    if (!_vocab.TryGetValue(mergeValues.b, out int bId))
                     {
                         throw new InvalidOperationException($"Trying to merge a token '{mergeValues.b}' which not exist in the vocabulary.");
                     }
 
                     string newToken = $"{mergeValues.a}{mergeValues.b.Substring(prefixLen)}";
-                    if (!Vocab.TryGetValue(newToken, out int newId))
+                    if (!_vocab.TryGetValue(newToken, out int newId))
                     {
                         throw new InvalidOperationException($"Trying to merge a token '{newToken}' which not exist in the vocabulary.");
                     }
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Tokenizers
         /// <returns>The mapped Id of the token.</returns>
         public override int? MapTokenToId(string token, bool considerSpecialTokens = true)
         {
-            if (Vocab.TryGetValue(token, out int value))
+            if (_vocab.TryGetValue(token, out int value))
             {
                 return value;
             }
@@ -238,12 +238,12 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
-        public override IReadOnlyDictionary<string, int> GetVocab() => Vocab;
+        public override IReadOnlyDictionary<string, int> Vocab => _vocab;
 
         /// <summary>
         /// Gets the dictionary size that map tokens to Ids.
         /// </summary>
-        public override int GetVocabSize() => Vocab.Count;
+        public override int GetVocabSize() => _vocab.Count;
 
         /// Read the given files to extract the vocab and merges
         internal static (Dictionary<string, int>?, Vec<(string, string)>) ReadModelData(Stream vocab, Stream? merges)
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// The vocabulary assigns a number to each token.
-        internal Dictionary<string, int> Vocab { get; set; }
+        private readonly Dictionary<string, int> _vocab;
 
         /// Contains the mapping between Pairs and their (rank, newId).
         internal Dictionary<Pair<int>, (int, int)> Merges { get; set; }
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Tokenizers
                     s = $"{s}{EndOfWordSuffix}";
                 }
 
-                if (Vocab.TryGetValue(s, out int id))
+                if (_vocab.TryGetValue(s, out int id))
                 {
                     if (unk.HasValue)
                     {
@@ -384,7 +384,7 @@ namespace Microsoft.ML.Tokenizers
                         {
                             // Do not fuse unk, add the previous one
                             word.Add(unk.Value.Id, unk.Value.Len);
-                            if (!Vocab.TryGetValue(UnknownToken, out int value))
+                            if (!_vocab.TryGetValue(UnknownToken, out int value))
                             {
                                 throw new InvalidOperationException($"Unknown Token Out Of Vocabulary.");
                             }
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Tokenizers
                     }
                     else
                     {
-                        if (!Vocab.TryGetValue(UnknownToken, out int value))
+                        if (!_vocab.TryGetValue(UnknownToken, out int value))
                         {
                             throw new InvalidOperationException($"Unknown Token Out Of Vocabulary.");
                         }

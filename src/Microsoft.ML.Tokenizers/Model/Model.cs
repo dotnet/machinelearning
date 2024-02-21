@@ -102,7 +102,7 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
-        public abstract IReadOnlyDictionary<string, int> GetVocab();
+        public abstract IReadOnlyDictionary<string, int> Vocab { get; }
 
         /// <summary>
         /// Gets the dictionary size that map tokens to Ids.
