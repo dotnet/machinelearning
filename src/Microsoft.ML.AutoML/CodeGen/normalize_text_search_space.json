@@ -11,7 +11,7 @@
       "type": "string"
     },
     {
-      "name": "Mode",
+      "name": "CaseMode",
       "type": "caseMode",
       "default": "CaseMode.Lower"
     },
