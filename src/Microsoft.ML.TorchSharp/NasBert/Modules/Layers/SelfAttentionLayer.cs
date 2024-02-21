@@ -16,6 +16,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules.Layers
         private readonly MultiHeadAttention SelfAttention;
         private readonly LayerNorm LayerNorm;
         private readonly Dropout DropoutLayer;
+        private bool _disposedValue;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
 
 
@@ -82,6 +83,22 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules.Layers
             selfAttentionMask = (torch.Tensor)param[AttentionMaskKey];
             selfAttentionPaddingMask = (torch.Tensor)param[PaddingMaskKey];
             return true;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    SelfAttention.Dispose();
+                    LayerNorm.Dispose();
+                    DropoutLayer.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

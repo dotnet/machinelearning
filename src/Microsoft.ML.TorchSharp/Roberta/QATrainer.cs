@@ -167,8 +167,9 @@ namespace Microsoft.ML.TorchSharp.Roberta
                     ch.Trace($"Finished epoch {i}");
                 }
 
-                transformer = new QATransformer(Host, Option, trainer.Model);
+                trainer.Optimizer.Optimizer.Dispose();
 
+                transformer = new QATransformer(Host, Option, trainer.Model);
                 transformer.GetOutputSchema(input.Schema);
             }
             return transformer;
@@ -552,7 +553,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
     public class QATransformer : RowToRowTransformerBase, IDisposable
     {
         private protected readonly Device Device;
-        private protected readonly RobertaModelForQA Model;
+        private protected RobertaModelForQA Model;
         internal readonly QATrainer.Options Options;
 
         internal const string LoadName = "QATrainer";
@@ -867,7 +868,10 @@ namespace Microsoft.ML.TorchSharp.Roberta
 
             private Tensor PrepAndRunModel(Tensor inputTensor)
             {
-                return _parent.Model.forward(inputTensor);
+                using (torch.NewDisposeScope())
+                {
+                    return _parent.Model.forward(inputTensor).MoveToOuterDisposeScope();
+                }
             }
 
             private protected class TensorCacher : IDisposable
@@ -940,10 +944,10 @@ namespace Microsoft.ML.TorchSharp.Roberta
             {
                 if (disposing)
                 {
+                    Model.Dispose();
+                    Model = null;
+                    _disposedValue = true;
                 }
-
-                Model.Dispose();
-                _disposedValue = true;
             }
         }
 

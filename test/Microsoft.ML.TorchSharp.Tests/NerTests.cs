@@ -83,21 +83,23 @@ namespace Microsoft.ML.TorchSharp.Tests
             Assert.Equal("outputColumn", transformerSchema[4].Name);
 
             var output = transformer.Transform(dataView);
-            var cursor = output.GetRowCursorForAllColumns();
-
-            var labelGetter = cursor.GetGetter<VBuffer<uint>>(output.Schema[2]);
-            var predictedLabelGetter = cursor.GetGetter<VBuffer<uint>>(output.Schema[3]);
-
-            VBuffer<uint> labelData = default;
-            VBuffer<uint> predictedLabelData = default;
-
-            while (cursor.MoveNext())
+            using (var cursor = output.GetRowCursorForAllColumns())
             {
-                labelGetter(ref labelData);
-                predictedLabelGetter(ref predictedLabelData);
 
-                // Make sure that the expected label and the predicted label have same length
-                Assert.Equal(labelData.Length, predictedLabelData.Length);
+                var labelGetter = cursor.GetGetter<VBuffer<uint>>(output.Schema[2]);
+                var predictedLabelGetter = cursor.GetGetter<VBuffer<uint>>(output.Schema[3]);
+
+                VBuffer<uint> labelData = default;
+                VBuffer<uint> predictedLabelData = default;
+
+                while (cursor.MoveNext())
+                {
+                    labelGetter(ref labelData);
+                    predictedLabelGetter(ref predictedLabelData);
+
+                    // Make sure that the expected label and the predicted label have same length
+                    Assert.Equal(labelData.Length, predictedLabelData.Length);
+                }
             }
 
             TestEstimatorCore(estimator, dataView, shouldDispose: true);
@@ -160,21 +162,23 @@ namespace Microsoft.ML.TorchSharp.Tests
             Assert.Equal("outputColumn", transformerSchema[4].Name);
 
             var output = transformer.Transform(dataView);
-            var cursor = output.GetRowCursorForAllColumns();
-
-            var labelGetter = cursor.GetGetter<VBuffer<uint>>(output.Schema[2]);
-            var predictedLabelGetter = cursor.GetGetter<VBuffer<uint>>(output.Schema[3]);
-
-            VBuffer<uint> labelData = default;
-            VBuffer<uint> predictedLabelData = default;
-
-            while (cursor.MoveNext())
+            using (var cursor = output.GetRowCursorForAllColumns())
             {
-                labelGetter(ref labelData);
-                predictedLabelGetter(ref predictedLabelData);
 
-                // Make sure that the expected label and the predicted label have same length
-                Assert.Equal(labelData.Length, predictedLabelData.Length);
+                var labelGetter = cursor.GetGetter<VBuffer<uint>>(output.Schema[2]);
+                var predictedLabelGetter = cursor.GetGetter<VBuffer<uint>>(output.Schema[3]);
+
+                VBuffer<uint> labelData = default;
+                VBuffer<uint> predictedLabelData = default;
+
+                while (cursor.MoveNext())
+                {
+                    labelGetter(ref labelData);
+                    predictedLabelGetter(ref predictedLabelData);
+
+                    // Make sure that the expected label and the predicted label have same length
+                    Assert.Equal(labelData.Length, predictedLabelData.Length);
+                }
             }
 
             TestEstimatorCore(estimator, dataView, shouldDispose: true);
@@ -229,7 +233,7 @@ namespace Microsoft.ML.TorchSharp.Tests
             var transformerSchema = transformer.GetOutputSchema(dataView.Schema);
 
             var output = transformer.Transform(trainTest.TrainSet);
-            var cursor = output.GetRowCursorForAllColumns();
+            using var cursor = output.GetRowCursorForAllColumns();
 
             var labelGetter = cursor.GetGetter<VBuffer<uint>>(output.Schema[2]);
             var predictedLabelGetter = cursor.GetGetter<VBuffer<uint>>(output.Schema[3]);

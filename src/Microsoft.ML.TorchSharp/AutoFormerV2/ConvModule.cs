@@ -18,6 +18,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         private readonly Conv2d conv;
         private readonly ReLU activation;
         private readonly bool useRelu;
+        private bool _disposedValue;
 #pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
@@ -56,6 +57,21 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 return x.MoveToOuterDisposeScope();
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    conv.Dispose();
+                    activation?.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

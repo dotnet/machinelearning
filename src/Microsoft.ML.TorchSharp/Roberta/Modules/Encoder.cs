@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
+using Microsoft.ML.TorchSharp.Roberta.Modules;
+using System.Text;
 using TorchSharp;
 using TorchSharp.Modules;
 
@@ -13,6 +16,7 @@ namespace Microsoft.ML.TorchSharp.Roberta.Models
         public readonly int NumLayers;
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
         public readonly ModuleList<Layer> layer;
+        private bool _disposedValue;
 
         public Encoder(int numLayers, int numAttentionHeads, long embeddingSize, long hiddenSize, long outputSize, long ffnHiddenSize,
             double layerNormEps, double dropoutRate, double attentionDropoutRate, double outputDropoutRate)
@@ -36,6 +40,20 @@ namespace Microsoft.ML.TorchSharp.Roberta.Models
                 x = lyr.forward(x, attentionMask);
             }
             return x.MoveToOuterDisposeScope();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    layer.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

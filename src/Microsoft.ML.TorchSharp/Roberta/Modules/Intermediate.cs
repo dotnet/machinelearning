@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using TorchSharp;
 using TorchSharp.Modules;
 
@@ -12,6 +13,7 @@ namespace Microsoft.ML.TorchSharp.Roberta.Modules
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
         public readonly Linear dense;
         public readonly GELU gelu;
+        private bool _disposedValue;
 
         public Intermediate(long hiddenSize, long ffnHiddenSize) : base(nameof(Intermediate))
         {
@@ -26,6 +28,21 @@ namespace Microsoft.ML.TorchSharp.Roberta.Modules
             t = dense.forward(t);
             t = gelu.forward(t);
             return t.MoveToOuterDisposeScope();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    dense.Dispose();
+                    gelu.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

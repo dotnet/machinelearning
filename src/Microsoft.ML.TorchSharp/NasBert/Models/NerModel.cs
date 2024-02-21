@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using TorchSharp;
+using TorchSharp.Modules;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Models
 {
@@ -10,6 +11,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:Private field name not in: _camelCase format", Justification = "Has to match TorchSharp model.")]
         private readonly SequenceLabelHead NerHead;
+        private bool _disposedValue;
 
         public override BaseHead GetHead() => NerHead;
 
@@ -31,6 +33,20 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
             var x = ExtractFeatures(srcTokens);
             x = NerHead.call(x);
             return x.MoveToOuterDisposeScope();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    NerHead.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

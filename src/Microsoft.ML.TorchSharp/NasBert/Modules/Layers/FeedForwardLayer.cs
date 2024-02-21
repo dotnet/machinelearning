@@ -16,6 +16,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules.Layers
 #pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format
         private readonly Sequential FullConnects;
         private readonly LayerNorm FinalLayerNorm;
+        private bool _disposedValue;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
 
 
@@ -73,5 +74,20 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules.Layers
 
         private static double CalculateDropout(double dropout, int sampleEmbeddingDim, int superEmbeddingDim)
             => dropout * sampleEmbeddingDim / superEmbeddingDim;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    FullConnects.Dispose();
+                    FinalLayerNorm.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
+        }
     }
 }

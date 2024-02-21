@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.ML.TorchSharp.Utils;
 using TorchSharp;
+using TorchSharp.Modules;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Models
 {
@@ -13,6 +14,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
         public override TransformerEncoder GetEncoder() => Encoder;
 
         protected readonly NasBertEncoder Encoder;
+        private bool _disposedValue;
 
         public NasBertModel(NasBertTrainer.NasBertOptions options, int padIndex, int symbolsCount)
             : base(options)
@@ -59,6 +61,20 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
             {
                 Encoder.CloseLayerNormTraining();
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    Encoder.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
 
     }

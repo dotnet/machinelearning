@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.ML.TorchSharp.Extensions;
 using Microsoft.ML.TorchSharp.Roberta.Modules;
 using TorchSharp;
@@ -15,6 +16,7 @@ namespace Microsoft.ML.TorchSharp.Roberta.Models
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
         public readonly Embeddings embeddings;
         public readonly Encoder encoder;
+        private bool _disposedValue;
 
         public RobertaEncoder(int numLayers, int numAttentionHeads,
             long numEmbeddings, long embeddingSize, long hiddenSize, long outputSize, long ffnHiddenSize,
@@ -59,6 +61,21 @@ namespace Microsoft.ML.TorchSharp.Roberta.Models
                 layerNormModule.weight.fill_(1.0);
                 layerNormModule.bias.zero_();
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    embeddings.Dispose();
+                    encoder.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

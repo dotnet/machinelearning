@@ -16,6 +16,8 @@ internal class RobertaModelForQA : RobertaModel
 
     public override BaseHead GetHead() => QAHead;
 
+    private bool _disposedValue;
+
     public RobertaModelForQA(QATrainer.Options options)
         : base(options)
     {
@@ -34,5 +36,19 @@ internal class RobertaModelForQA : RobertaModel
         var x = ExtractFeatures(srcTokens);
         x = QAHead.call(x);
         return x.MoveToOuterDisposeScope();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (!_disposedValue)
+        {
+            if (disposing)
+            {
+                QAHead.Dispose();
+                _disposedValue = true;
+            }
+        }
+
+        base.Dispose(disposing);
     }
 }

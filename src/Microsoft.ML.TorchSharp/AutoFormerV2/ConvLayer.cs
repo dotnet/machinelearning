@@ -17,6 +17,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 #pragma warning disable MSML_PrivateFieldName // Need to match TorchSharp model names.
         private readonly ModuleList<MBConv> blocks;
         private readonly PatchMerging downsample;
+        private bool _disposedValue;
 #pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
@@ -55,6 +56,21 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 return (xOut.MoveToOuterDisposeScope(), h, w, x.MoveToOuterDisposeScope(), nH, nW);
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    blocks.Dispose();
+                    downsample.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }
