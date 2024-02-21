@@ -31,17 +31,17 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Splits the given string in multiple substrings at the word boundary, keeping track of the offsets of said substrings from the original string.
         /// </summary>
-        /// <param name="sentence">The string to split into tokens.</param>
+        /// <param name="text">The string to split into tokens.</param>
         /// <param name="skipSpecialTokens">Indicates whether to skip the special tokens.</param>
         /// <returns>The list of the splits containing the tokens and the token's offsets to the original string.</returns>
-        public override IEnumerable<Split> PreTokenize(string sentence, bool skipSpecialTokens = false)
+        public override IEnumerable<Split> PreTokenize(string text, bool skipSpecialTokens = false)
         {
-            if (string.IsNullOrEmpty(sentence))
+            if (string.IsNullOrEmpty(text))
             {
                 return Array.Empty<Split>();
             }
 
-            return SplitSentence(sentence, PretokenizeRegex());
+            return SplitText(text, PretokenizeRegex());
         }
     }
 }

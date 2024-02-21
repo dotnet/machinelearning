@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tokenizers
         private readonly Cache<string, List<Token>> _cache;
 
         /// <summary>
-        /// Construct tokenizer object to use with the English Robert model.
+        /// Construct tokenizer's model object to use with the English Robert model.
         /// </summary>
         /// <param name="vocabularyPath">The JSON file path containing the dictionary of string keys and their ids.</param>
         /// <param name="mergePath">The file path containing the tokens's pairs list.</param>
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Construct tokenizer object to use with the English Robert model.
+        /// Construct tokenizer's model object to use with the English Robert model.
         /// </summary>
         /// <param name="vocabularyStream">The stream of a JSON file containing the dictionary of string keys and their ids.</param>
         /// <param name="mergeStream">The stream of a file containing the tokens's pairs list.</param>
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Tokenizers
         public override int GetVocabSize() => _vocab.Count;
 
         /// <summary>
-        /// Map the tokenized Id to the token.
+        /// Map the encoded Id to the token.
         /// </summary>
         /// <param name="id">The Id to map to the string.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
@@ -157,25 +157,25 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Tokenize a sequence string to a list of tokens.
+        /// Encode a text string to a list of tokens.
         /// </summary>
-        /// <param name="sequence">The sequence to tokenize.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
-        /// <returns>The list of tokens generated from the sequence tokenization.</returns>
-        public override IReadOnlyList<Token> Tokenize(string sequence, bool isSpecialToken = false)
+        /// <returns>The list of tokens generated from the text tokenization.</returns>
+        public override IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false)
         {
-            if (string.IsNullOrEmpty(sequence))
+            if (string.IsNullOrEmpty(text))
             {
                 return Bpe.EmptyTokensList;
             }
 
-            char[] token = ArrayPool<char>.Shared.Rent(sequence.Length);
-            int[] indexMapping = ArrayPool<int>.Shared.Rent(sequence.Length);
+            char[] token = ArrayPool<char>.Shared.Rent(text.Length);
+            int[] indexMapping = ArrayPool<int>.Shared.Rent(text.Length);
 
             int newTokenIndex = 0;
-            for (int i = 0; i < sequence.Length; i++)
+            for (int i = 0; i < text.Length; i++)
             {
-                if (_byteToUnicode.TryGetValue(sequence[i], out var value))
+                if (_byteToUnicode.TryGetValue(text[i], out var value))
                 {
                     token[newTokenIndex] = value;
                     indexMapping[newTokenIndex] = i;
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Tokenizers
                 return Array.Empty<Token>();
             }
 
-            if (_cache.TryGet(sequence, out List<Token>? hit))
+            if (_cache.TryGet(text, out List<Token>? hit))
             {
                 ArrayPool<char>.Shared.Return(token);
                 ArrayPool<int>.Shared.Return(indexMapping);
@@ -198,36 +198,36 @@ namespace Microsoft.ML.Tokenizers
             }
 
             List<Token> result = EncodeToTokens(token.AsSpan().Slice(0, newTokenIndex), indexMapping);
-            _cache.Set(sequence, result);
+            _cache.Set(text, result);
             ArrayPool<char>.Shared.Return(token);
             ArrayPool<int>.Shared.Return(indexMapping);
             return result;
         }
 
         /// <summary>
-        /// Tokenize a split sequence string to a list of Ids and add them to the accumulatedIds list.
+        /// Encode a split text string to a list of Ids and add them to the accumulatedIds list.
         /// </summary>
-        /// <param name="sequence">The sequence to split.</param>
+        /// <param name="text">The text to split.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
-        /// <param name="accumulatedIds">The list of accumulated tokenized Ids.</param>
-        public override void TokenizeToIds(string sequence, bool isSpecialToken, IList<int> accumulatedIds) => TokenizeToIds(sequence, accumulatedIds);
+        /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
+        public override void EncodeToIds(string text, bool isSpecialToken, IList<int> accumulatedIds) => EncodeToIds(text, accumulatedIds);
 
         /// <summary>
-        /// Get the number of tokens that the input sequence will be encoded to.
+        /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
-        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="isSpecialToken">Indicate if the token is special token.</param>
-        /// <returns>The number of tokens that the input sequence will be encoded to.</returns>
-        public override int CountTokens(string sequence, bool isSpecialToken) => TokenizeToIds(sequence, null);
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        public override int CountTokens(string text, bool isSpecialToken) => EncodeToIds(text, null);
 
-        private int TokenizeToIds(string sequence, IList<int>? accumulatedIds)
+        private int EncodeToIds(string text, IList<int>? accumulatedIds)
         {
-            if (string.IsNullOrEmpty(sequence))
+            if (string.IsNullOrEmpty(text))
             {
                 return 0;
             }
 
-            if (_cache.TryGet(sequence, out List<Token>? hit))
+            if (_cache.TryGet(text, out List<Token>? hit))
             {
                 if (accumulatedIds is not null)
                 {
@@ -240,8 +240,8 @@ namespace Microsoft.ML.Tokenizers
                 return hit.Count;
             }
 
-            // If the cache doesn't have the sequence, then tokenize it and add it to the cache
-            IReadOnlyList<Token> tokens = Tokenize(sequence);
+            // If the cache doesn't have the text, then encode it and add it to the cache
+            IReadOnlyList<Token> tokens = Encode(text);
             if (accumulatedIds is not null)
             {
                 foreach (var t in tokens)
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Map the token to tokenized Id.
+        /// Map the token to encoded Id.
         /// </summary>
         /// <param name="token">The token to map to the Id.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>

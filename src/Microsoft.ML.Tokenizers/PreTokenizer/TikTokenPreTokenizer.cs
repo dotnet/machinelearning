@@ -41,19 +41,19 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Splits the given string in multiple substrings at the word boundary, keeping track of the offsets of said substrings from the original string.
         /// </summary>
-        /// <param name="sentence">The string to split into tokens.</param>
+        /// <param name="text">The string to split into tokens.</param>
         /// <param name="skipSpecialTokens">Indicates whether to skip the special tokens.</param>
         /// <returns>The list of the splits containing the tokens and the token's offsets to the original string.</returns>
-        public override IEnumerable<Split> PreTokenize(string sentence, bool skipSpecialTokens = false)
+        public override IEnumerable<Split> PreTokenize(string text, bool skipSpecialTokens = false)
         {
-            if (string.IsNullOrEmpty(sentence))
+            if (string.IsNullOrEmpty(text))
             {
                 return Array.Empty<Split>();
             }
 
-            return SplitSentences(sentence, _regex, skipSpecialTokens ? null : _specialTokensRegex);
+            return SplitText(text, _regex, skipSpecialTokens ? null : _specialTokensRegex);
 
-            static IEnumerable<Split> SplitSentences(string sentence, Regex regex, Regex? specialTokensRegex)
+            static IEnumerable<Split> SplitText(string text, Regex regex, Regex? specialTokensRegex)
             {
                 (int Offset, int Length) match;
                 int beginning = 0;
@@ -63,25 +63,25 @@ namespace Microsoft.ML.Tokenizers
                     while (true)
                     {
                         (int Offset, int Length) specialMatch;
-                        if (!TryGetMatch(specialTokensRegex, sentence, beginning, sentence.Length - beginning, out specialMatch))
+                        if (!TryGetMatch(specialTokensRegex, text, beginning, text.Length - beginning, out specialMatch))
                         {
                             break;
                         }
 
-                        while (TryGetMatch(regex, sentence, beginning, specialMatch.Offset - beginning, out match))
+                        while (TryGetMatch(regex, text, beginning, specialMatch.Offset - beginning, out match))
                         {
-                            yield return new Split(sentence, null, (match.Offset, match.Offset + match.Length));
+                            yield return new Split(text, null, (match.Offset, match.Offset + match.Length));
                             beginning = match.Offset + match.Length;
                         }
 
-                        yield return new Split(sentence, null, (specialMatch.Offset, specialMatch.Offset + specialMatch.Length), isSpecialToken: true);
+                        yield return new Split(text, null, (specialMatch.Offset, specialMatch.Offset + specialMatch.Length), isSpecialToken: true);
                         beginning = specialMatch.Offset + specialMatch.Length;
                     }
                 }
 
-                while (TryGetMatch(regex, sentence, beginning, sentence.Length - beginning, out match))
+                while (TryGetMatch(regex, text, beginning, text.Length - beginning, out match))
                 {
-                    yield return new Split(sentence, null, (match.Offset, match.Offset + match.Length));
+                    yield return new Split(text, null, (match.Offset, match.Offset + match.Length));
                     beginning = match.Length + match.Offset;
                 }
             }

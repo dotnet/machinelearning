@@ -81,32 +81,32 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Splits the given string in multiple substrings at the word boundary, keeping track of the offsets of said substrings from the original string.
         /// </summary>
-        /// <param name="sentence">The string to split into tokens.</param>
+        /// <param name="text">The string to split into tokens.</param>
         /// <param name="skipSpecialTokens">Indicates whether to skip the special tokens.</param>
         /// <returns>The list of the splits containing the tokens and the token's offsets to the original string.</returns>
-        public abstract IEnumerable<Split> PreTokenize(string sentence, bool skipSpecialTokens = false);
+        public abstract IEnumerable<Split> PreTokenize(string text, bool skipSpecialTokens = false);
 
-        internal static IEnumerable<Split> SplitSentence(string sentence, Regex regex)
+        internal static IEnumerable<Split> SplitText(string text, Regex regex)
         {
             (int Offset, int Length) match;
             int beginning = 0;
-            while (TryGetMatch(regex, sentence, beginning, sentence.Length - beginning, out match))
+            while (TryGetMatch(regex, text, beginning, text.Length - beginning, out match))
             {
-                yield return new Split(sentence, null, (match.Offset, match.Offset + match.Length));
+                yield return new Split(text, null, (match.Offset, match.Offset + match.Length));
                 beginning = match.Offset + match.Length;
             }
         }
 
-        internal static bool TryGetMatch(Regex regex, string sentence, int beginning, int length, out (int offset, int length) match)
+        internal static bool TryGetMatch(Regex regex, string text, int beginning, int length, out (int offset, int length) match)
         {
 #if NET7_0_OR_GREATER
-            foreach (ValueMatch m in regex.EnumerateMatches(sentence.AsSpan(beginning, length)))
+            foreach (ValueMatch m in regex.EnumerateMatches(text.AsSpan(beginning, length)))
             {
                 match = (beginning + m.Index, m.Length);
                 return true;
             }
 #else
-            Match m = regex.Match(sentence, beginning, length);
+            Match m = regex.Match(text, beginning, length);
             if (m.Success)
             {
                 match = (m.Index, m.Length);

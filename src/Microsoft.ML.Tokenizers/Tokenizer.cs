@@ -42,29 +42,29 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets or sets the PreTokenizer used by the Tokenizer.
         /// </summary>
-        public PreTokenizer PreTokenizer { get; private set; }
+        public PreTokenizer PreTokenizer { get; }
 
         /// <summary>
         /// Gets or sets the Normalizer in use by the Tokenizer.
         /// </summary>
-        public Normalizer? Normalizer { get; private set; }
+        public Normalizer? Normalizer { get; }
 
         /// <summary>
         /// Gets or sets the Decoder in use by the Tokenizer.
         /// </summary>
-        public TokenizerDecoder? Decoder { get; private set; }
+        public TokenizerDecoder? Decoder { get; }
 
         /// <summary>
         /// Encodes input text to object has the tokens list, tokens Ids, tokens offset mapping.
         /// </summary>
-        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
         /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
-        public TokenizerResult Encode(string sequence, bool skipSpecialTokens = false)
+        public TokenizerResult Encode(string text, bool skipSpecialTokens = false)
         {
-            if (sequence is null)
+            if (text is null)
             {
-                throw new ArgumentNullException(nameof(sequence));
+                throw new ArgumentNullException(nameof(text));
             }
 
             string normalized;
@@ -73,24 +73,24 @@ namespace Microsoft.ML.Tokenizers
             bool offsetsMappedToOriginal = true;
             if (Normalizer is not null)
             {
-                normalizedString = Normalizer.Normalize(sequence);
+                normalizedString = Normalizer.Normalize(text);
                 normalized = normalizedString.Normalized;
 
                 offsetsMappedToOriginal = normalizedString.CanMapToOriginal;
             }
             else
             {
-                normalized = sequence;
+                normalized = text;
             }
 
-            TokenizerResult encoding = new(sequence, normalized, PreTokenizer.PreTokenize(normalized, skipSpecialTokens), offsetsMappedToOriginal);
+            TokenizerResult encoding = new(text, normalized, PreTokenizer.PreTokenize(normalized, skipSpecialTokens), offsetsMappedToOriginal);
 
             if (Normalizer is null || !normalizedString.CanMapToOriginal || normalizedString.IsOneToOneMapping)
             {
                 // Optimize the case we don't have to map the offsets.
                 foreach (Split split in encoding.Splits)
                 {
-                    IReadOnlyList<Token> tokens = Model.Tokenize(split.TokenString, split.IsSpecialToken);
+                    IReadOnlyList<Token> tokens = Model.Encode(split.TokenString, split.IsSpecialToken);
                     foreach (Token token in tokens)
                     {
                         token.Offset = (token.Offset.Index + split.Offset.Index, token.Offset.End + split.Offset.Index);
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Tokenizers
 
                 foreach (Split split in encoding.Splits)
                 {
-                    IReadOnlyList<Token> tokens = Model.Tokenize(split.TokenString, split.IsSpecialToken);
+                    IReadOnlyList<Token> tokens = Model.Encode(split.TokenString, split.IsSpecialToken);
                     foreach (Token token in tokens)
                     {
                         int index = normalizedString.NormalizedToOriginalMapping![token.Offset.Index + split.Offset.Index];
@@ -126,43 +126,43 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Encodes input text to tokens Ids.
         /// </summary>
-        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
         /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
-        public IReadOnlyList<int> EncodeToIds(string sequence, bool skipSpecialTokens = false)
+        public IReadOnlyList<int> EncodeToIds(string text, bool skipSpecialTokens = false)
         {
-            if (sequence is null)
+            if (text is null)
             {
-                throw new ArgumentNullException(nameof(sequence));
+                throw new ArgumentNullException(nameof(text));
             }
 
-            string normalized = Normalizer is not null ? Normalizer.Normalize(sequence).Normalized : sequence;
+            string normalized = Normalizer is not null ? Normalizer.Normalize(text).Normalized : text;
             List<int> idsList = new();
 
             foreach (Split split in PreTokenizer.PreTokenize(normalized, skipSpecialTokens))
             {
-                Model.TokenizeToIds(split.TokenString, split.IsSpecialToken, idsList);
+                Model.EncodeToIds(split.TokenString, split.IsSpecialToken, idsList);
             }
 
             return idsList;
         }
 
         /// <summary>
-        /// Get the number of tokens that the input sequence will be encoded to.
+        /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
-        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
-        /// <returns>The number of tokens Ids that the input sequence will be encoded to.</returns>
-        /// <exception cref="ArgumentNullException">The input sequence is null.</exception>
-        /// <exception cref="ArgumentException">Unable to tokenize the sequence.</exception>
-        public int CountTokens(string sequence, bool skipSpecialTokens = false)
+        /// <returns>The number of tokens Ids that the input text will be encoded to.</returns>
+        /// <exception cref="ArgumentNullException">The input text is null.</exception>
+        /// <exception cref="ArgumentException">Unable to encode the text.</exception>
+        public int CountTokens(string text, bool skipSpecialTokens = false)
         {
-            if (sequence is null)
+            if (text is null)
             {
-                throw new ArgumentNullException(nameof(sequence));
+                throw new ArgumentNullException(nameof(text));
             }
 
-            string normalized = Normalizer is not null ? Normalizer.Normalize(sequence).Normalized : sequence;
+            string normalized = Normalizer is not null ? Normalizer.Normalize(text).Normalized : text;
 
             int idsCount = 0;
             foreach (Split split in PreTokenizer.PreTokenize(normalized, skipSpecialTokens))

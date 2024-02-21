@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tokenizers
         private readonly IReadOnlyDictionary<string, int> _vocab = null!;
 
         /// <summary>
-        /// Create a new Tiktoken tokenizer object.
+        /// Create a new Tiktoken tokenizer's model object.
         /// </summary>
         /// <param name="tikTokenBpeFile">The path to the BPE rank file.</param>
         /// <param name="specialTokensEncoder">The dictionary mapping special tokens to Ids.</param>
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Create a new Tiktoken tokenizer object.
+        /// Create a new Tiktoken tokenizer's model object.
         /// </summary>
         /// <param name="tikTokenBpeFileStream">The stream to the BPE rank file.</param>
         /// <param name="specialTokensEncoder">The dictionary mapping special tokens to Ids.</param>
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Create a new Tiktoken tokenizer object.
+        /// Create a new Tiktoken tokenizer's model object.
         /// </summary>
         /// <param name="encoder">The dictionary mapping token utf-8 bytes to Ids.</param>
         /// <param name="decoder">The dictionary mapping Ids to token utf-8 bytes.</param>
@@ -146,13 +146,13 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Create a new Tiktoken tokenizer object asynchronously.
+        /// Create a new Tiktoken tokenizer's model object asynchronously.
         /// </summary>
         /// <param name="tikTokenBpeFileStream">The stream to the BPE rank file.</param>
         /// <param name="specialTokensEncoder">The dictionary mapping special tokens to Ids.</param>
         /// <param name="cacheSize">The size of the cache to use.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
-        /// <returns>Tiktoken tokenizer object.</returns>
+        /// <returns>Tiktoken tokenizer's object.</returns>
         public static async Task<Tiktoken> CreateAsync(
                             Stream tikTokenBpeFileStream,
                             IReadOnlyDictionary<string, int>? specialTokensEncoder = null,
@@ -171,13 +171,13 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Create a new Tiktoken tokenizer object asynchronously.
+        /// Create a new Tiktoken tokenizer's object asynchronously.
         /// </summary>
         /// <param name="tikTokenBpeFile">The BPE rank file.</param>
         /// <param name="specialTokensEncoder">The dictionary mapping special tokens to Ids.</param>
         /// <param name="cacheSize">The size of the cache to use.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
-        /// <returns>Tiktoken tokenizer object.</returns>
+        /// <returns>Tiktoken tokenizer's model object.</returns>
         public static async Task<Tiktoken> CreateAsync(
                                 string tikTokenBpeFile,
                                 IReadOnlyDictionary<string, int>? specialTokensEncoder = null,
@@ -268,16 +268,16 @@ namespace Microsoft.ML.Tokenizers
         public IReadOnlyDictionary<string, int>? SpecialTokensEncoder => _specialTokensEncoder;
 
         /// <summary>
-        /// Tokenize a split sequence string to a list of tokens.
+        /// Encode a split text string to a list of tokens.
         /// </summary>
-        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
-        /// <returns>The list of tokens generated from the sequence tokenization.</returns>
-        public override IReadOnlyList<Token> Tokenize(string sequence, bool isSpecialToken)
+        /// <returns>The list of tokens generated from the text tokenization.</returns>
+        public override IReadOnlyList<Token> Encode(string text, bool isSpecialToken)
         {
             Token[] tokens;
 
-            if (string.IsNullOrEmpty(sequence))
+            if (string.IsNullOrEmpty(text))
             {
                 return Array.Empty<Token>();
             }
@@ -289,46 +289,46 @@ namespace Microsoft.ML.Tokenizers
                     throw new InvalidOperationException($"The tokenizer doesn't have special tokens");
                 }
 
-                if (_specialTokensEncoder.TryGetValue(sequence, out int id))
+                if (_specialTokensEncoder.TryGetValue(text, out int id))
                 {
-                    return new List<Token> { new(id, sequence, (0, sequence.Length)) };
+                    return new List<Token> { new(id, text, (0, text.Length)) };
                 }
 
-                throw new InvalidOperationException($"The special token {sequence} doesn't exist in the tokenizer");
+                throw new InvalidOperationException($"The special token {text} doesn't exist in the tokenizer");
             }
 
-            if (_cache?.Lookup(sequence, out int[] ids) is true)
+            if (_cache?.Lookup(text, out int[] ids) is true)
             {
                 tokens = new Token[ids.Length];
-                tokens[0] = new Token(ids[0], sequence, (0, sequence.Length));
+                tokens[0] = new Token(ids[0], text, (0, text.Length));
                 for (int i = 1; i < ids.Length; i++)
                 {
                     // One word split mapped to multiple Ids. Make the offset of the remaining token point at the end with zero width.
-                    tokens[i] = new Token(ids[i], "", (sequence.Length, sequence.Length));
+                    tokens[i] = new Token(ids[i], "", (text.Length, text.Length));
                 }
 
                 return tokens;
             }
 
             // cache miss
-            if (_vocab.TryGetValue(sequence, out int mappedId))
+            if (_vocab.TryGetValue(text, out int mappedId))
             {
-                return new Token[1] { new(mappedId, sequence, (0, sequence.Length)) };
+                return new Token[1] { new(mappedId, text, (0, text.Length)) };
             }
 
-            byte[] arrayPoolArray = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(sequence.Length));
-            int encodedLength = GetUtf8Bytes(sequence.AsSpan(), arrayPoolArray);
+            byte[] arrayPoolArray = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(text.Length));
+            int encodedLength = GetUtf8Bytes(text.AsSpan(), arrayPoolArray);
 
             int[] encodedIds = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
             Debug.Assert(encodedIds.Length > 0);
-            _cache?.Add(sequence, encodedIds);
+            _cache?.Add(text, encodedIds);
 
             tokens = new Token[encodedIds.Length];
-            tokens[0] = new Token(encodedIds[0], sequence, (0, sequence.Length));
+            tokens[0] = new Token(encodedIds[0], text, (0, text.Length));
             for (int i = 1; i < encodedIds.Length; i++)
             {
                 // One word split mapped to multiple Ids. Make the offset of the remaining token point at the end with zero width.
-                tokens[i] = new Token(encodedIds[i], "", (sequence.Length, sequence.Length));
+                tokens[i] = new Token(encodedIds[i], "", (text.Length, text.Length));
             }
 
             ArrayPool<byte>.Shared.Return(arrayPoolArray);
@@ -336,21 +336,21 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Tokenize a split sequence string to a list of Ids.
+        /// Encode a split text string to a list of Ids.
         /// </summary>
-        /// <param name="sequence">The sequence to tokenize.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
         /// <param name="accumulatedIds">The list of accumulated Ids.</param>
-        public override void TokenizeToIds(string sequence, bool isSpecialToken, IList<int> accumulatedIds)
+        public override void EncodeToIds(string text, bool isSpecialToken, IList<int> accumulatedIds)
         {
-            if (string.IsNullOrEmpty(sequence))
+            if (string.IsNullOrEmpty(text))
             {
                 return;
             }
 
             if (isSpecialToken)
             {
-                if (_specialTokensEncoder is not null && _specialTokensEncoder.TryGetValue(sequence, out int id))
+                if (_specialTokensEncoder is not null && _specialTokensEncoder.TryGetValue(text, out int id))
                 {
                     accumulatedIds.Add(id);
                 }
@@ -358,23 +358,23 @@ namespace Microsoft.ML.Tokenizers
                 return;
             }
 
-            if (_cache?.Lookup(sequence, out int[] tokenIds) is true)
+            if (_cache?.Lookup(text, out int[] tokenIds) is true)
             {
                 accumulatedIds.AddRange(tokenIds);
                 return;
             }
 
-            if (_vocab.TryGetValue(sequence, out int mappedId))
+            if (_vocab.TryGetValue(text, out int mappedId))
             {
                 accumulatedIds.Add(mappedId);
                 return;
             }
 
-            byte[] arrayPoolArray = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(sequence.Length));
-            int encodedLength = GetUtf8Bytes(sequence.AsSpan(), arrayPoolArray);
+            byte[] arrayPoolArray = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(text.Length));
+            int encodedLength = GetUtf8Bytes(text.AsSpan(), arrayPoolArray);
 
             int[] encodedIds = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
-            _cache?.Add(sequence, encodedIds);
+            _cache?.Add(text, encodedIds);
 
             accumulatedIds.AddRange(encodedIds);
 
@@ -383,45 +383,45 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Get the number of tokens that the input sequence will be encoded to.
+        /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
-        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="isSpecialToken">Indicate if the token is special token.</param>
-        /// <returns>The number of tokens that the input sequence will be encoded to.</returns>
-        public override int CountTokens(string sequence, bool isSpecialToken)
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        public override int CountTokens(string text, bool isSpecialToken)
         {
-            if (string.IsNullOrEmpty(sequence))
+            if (string.IsNullOrEmpty(text))
             {
                 return 0;
             }
 
             if (isSpecialToken && _specialTokensEncoder is not null)
             {
-                return _specialTokensEncoder.TryGetValue(sequence, out _) ? 1 : 0;
+                return _specialTokensEncoder.TryGetValue(text, out _) ? 1 : 0;
             }
 
-            if (_cache?.Lookup(sequence, out int[] ids) is true)
+            if (_cache?.Lookup(text, out int[] ids) is true)
             {
                 return ids.Length;
             }
 
-            if (_vocab.TryGetValue(sequence, out _))
+            if (_vocab.TryGetValue(text, out _))
             {
                 return 1;
             }
 
-            byte[] arrayPoolArray = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(sequence.Length));
-            int encodedLength = GetUtf8Bytes(sequence.AsSpan(), arrayPoolArray);
+            byte[] arrayPoolArray = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(text.Length));
+            int encodedLength = GetUtf8Bytes(text.AsSpan(), arrayPoolArray);
 
             int[] encodedIds = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
-            _cache?.Add(sequence, encodedIds);
+            _cache?.Add(text, encodedIds);
 
             ArrayPool<byte>.Shared.Return(arrayPoolArray);
             return encodedIds.Length;
         }
 
         /// <summary>
-        /// Map the token to tokenized Id.
+        /// Map the token to encoded Id.
         /// </summary>
         /// <param name="token">The token to map to the Id.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
@@ -475,7 +475,7 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Map the tokenized Id to the token.
+        /// Map the encoded Id to the token.
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>

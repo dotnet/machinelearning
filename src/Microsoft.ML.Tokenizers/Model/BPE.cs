@@ -70,7 +70,7 @@ namespace Microsoft.ML.Tokenizers
 
 
         /// <summary>
-        /// Construct a new Bpe model object to use for sentence tokenization.
+        /// Construct a new Bpe model object to use for text encoding.
         /// </summary>
         /// <param name="vocabFile">The JSON file path containing the dictionary of string keys and their ids.</param>
         /// <param name="mergesFile">The file path containing the tokens's pairs list.</param>
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Construct a new Bpe model object to use for sentence tokenization.
+        /// Construct a new Bpe model object to use for text encoding.
         /// </summary>
         /// <param name="vocabStream">The JSON stream containing the dictionary of string keys and their ids.</param>
         /// <param name="mergesStream">The stream containing the tokens's pairs list.</param>
@@ -171,39 +171,39 @@ namespace Microsoft.ML.Tokenizers
         public static TokenizerDecoder Decoder { get; } = new BpeDecoder();
 
         /// <summary>
-        /// Tokenize a sequence string to a list of tokens.
+        /// Encode a text string to a list of tokens.
         /// </summary>
-        /// <param name="sequence">The sequence to tokenize.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
-        /// <returns>The list of tokens generated from the sequence tokenization.</returns>
-        public override IReadOnlyList<Token> Tokenize(string sequence, bool isSpecialToken = false)
+        /// <returns>The list of tokens generated from the text tokenization.</returns>
+        public override IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false)
         {
-            if (sequence.Length == 0)
+            if (text.Length == 0)
             {
                 return EmptyTokensList;
             }
 
-            return TokenizeWithCache(sequence);
+            return EncodeWithCache(text);
         }
 
         /// <summary>
-        /// Tokenize a split sequence string to a list of Ids and add them to the accumulatedIds list.
+        /// Encode a split text string to a list of Ids and add them to the accumulatedIds list.
         /// </summary>
-        /// <param name="sequence">The sequence to split.</param>
+        /// <param name="text">The text to split.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
-        /// <param name="accumulatedIds">The list of accumulated tokenized Ids.</param>
-        public override void TokenizeToIds(string sequence, bool isSpecialToken, IList<int> accumulatedIds) => TokenizeToIdsWithCache(sequence, accumulatedIds);
+        /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
+        public override void EncodeToIds(string text, bool isSpecialToken, IList<int> accumulatedIds) => EncodeToIdsWithCache(text, accumulatedIds);
 
         /// <summary>
-        /// Get the number of tokens that the input sequence will be encoded to.
+        /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
-        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="isSpecialToken">Indicate if the token is special token.</param>
-        /// <returns>The number of tokens that the input sequence will be encoded to.</returns>
-        public override int CountTokens(string sequence, bool isSpecialToken) => TokenizeToIdsWithCache(sequence, null);
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        public override int CountTokens(string text, bool isSpecialToken) => EncodeToIdsWithCache(text, null);
 
         /// <summary>
-        /// Map the token to tokenized Id.
+        /// Map the token to encoded Id.
         /// </summary>
         /// <param name="token">The token to map to the Id.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Map the tokenized Id to the token.
+        /// Map the encoded Id to the token.
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Tokenizers
 
         internal static readonly int DefaultCacheCapacity = 10_000;
 
-        /// Reversed vocabulary, to rebuild sentences.
+        /// Reversed vocabulary, to rebuild the text.
         internal SortedDictionary<int, string> VocabReverse { get; set; }
 
         /// Dropout probability for merges. 0 = no dropout is the default. At 1.0, tokenization will
@@ -415,22 +415,22 @@ namespace Microsoft.ML.Tokenizers
 
         internal List<Token> WordToTokens(ref Word word) => word.ToTokens(VocabReverse);
 
-        internal List<Token> TokenizeWithCache(string sequence)
+        internal List<Token> EncodeWithCache(string text)
         {
             Word word;
             if (Cache is not null)
             {
-                if (Cache.TryGet(sequence, out word))
+                if (Cache.TryGet(text, out word))
                 {
                     return WordToTokens(ref word);
                 }
 
-                word = MergeWord(sequence);
-                Cache.Set(sequence, word);
+                word = MergeWord(text);
+                Cache.Set(text, word);
             }
             else
             {
-                word = MergeWord(sequence);
+                word = MergeWord(text);
             }
 
             return WordToTokens(ref word);
@@ -446,23 +446,23 @@ namespace Microsoft.ML.Tokenizers
             return word.SymbolsCount;
         }
 
-        internal int TokenizeToIdsWithCache(string sequence, IList<int>? accumulatedIds)
+        internal int EncodeToIdsWithCache(string text, IList<int>? accumulatedIds)
         {
             Word word;
 
             if (Cache is not null)
             {
-                if (Cache.TryGet(sequence, out Word hit))
+                if (Cache.TryGet(text, out Word hit))
                 {
                     return WordToIds(ref hit, accumulatedIds);
                 }
 
-                word = MergeWord(sequence);
-                Cache.Set(sequence, word);
+                word = MergeWord(text);
+                Cache.Set(text, word);
             }
             else
             {
-                word = MergeWord(sequence);
+                word = MergeWord(text);
             }
 
             return WordToIds(ref word, accumulatedIds);

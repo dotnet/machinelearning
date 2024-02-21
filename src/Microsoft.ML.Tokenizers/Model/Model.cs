@@ -14,31 +14,31 @@ namespace Microsoft.ML.Tokenizers
     public abstract class Model
     {
         /// <summary>
-        /// Tokenize a split sequence string to a list of tokens.
+        /// Encode a split text string to a list of tokens.
         /// </summary>
-        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
-        /// <returns>The list of tokens generated from the sequence tokenization.</returns>
-        public abstract IReadOnlyList<Token> Tokenize(string sequence, bool isSpecialToken = false);
+        /// <returns>The list of tokens generated from the text tokenization.</returns>
+        public abstract IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false);
 
         /// <summary>
-        /// Tokenize a split sequence string to a list of Ids and add them to the accumulatedIds list.
+        /// Encode a split text string to a list of Ids and add them to the accumulatedIds list.
         /// </summary>
-        /// <param name="sequence">The sequence to split.</param>
+        /// <param name="text">The text to split.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
-        /// <param name="accumulatedIds">The list of accumulated tokenized Ids.</param>
+        /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
         /// <remarks>
-        /// This method does the default implementation that uses the Tokenize method to get the token's Ids.
+        /// This method does the default implementation that uses the Encode method to get the token's Ids.
         /// Tokenizer's models which care about performance may choose to override this method to provide a more efficient implementation.
         /// </remarks>
-        public virtual void TokenizeToIds(string sequence, bool isSpecialToken, IList<int> accumulatedIds)
+        public virtual void EncodeToIds(string text, bool isSpecialToken, IList<int> accumulatedIds)
         {
             if (accumulatedIds is null)
             {
                 throw new ArgumentNullException(nameof(accumulatedIds));
             }
 
-            var tokens = Tokenize(sequence);
+            var tokens = Encode(text);
             foreach (var token in tokens)
             {
                 accumulatedIds.Add(token.Id);
@@ -46,24 +46,24 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Get the number of tokens that the input sequence will be encoded to.
+        /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
-        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="isSpecialToken">Indicate if the token is special token.</param>
-        /// <returns>The number of tokens that the input sequence will be encoded to.</returns>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
         /// <remarks>
-        /// This method does the default implementation that uses the TokenizeToIds method to get the number of token's Ids.
+        /// This method does the default implementation that uses the EncodeToIds method to get the number of token's Ids.
         /// Tokenizer's models which care about performance may choose to override this method to provide a more efficient implementation.
         /// </remarks>
-        public virtual int CountTokens(string sequence, bool isSpecialToken)
+        public virtual int CountTokens(string text, bool isSpecialToken)
         {
             var ids = new List<int>();
-            TokenizeToIds(sequence, isSpecialToken, ids);
+            EncodeToIds(text, isSpecialToken, ids);
             return ids.Count;
         }
 
         /// <summary>
-        /// Map the token to tokenized id with the option to skip the special tokens.
+        /// Map the token to encoded id with the option to skip the special tokens.
         /// </summary>
         /// <param name="token">The token to map to Id</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Tokenizers
         public abstract int? TokenToId(string token, bool skipSpecialTokens = false);
 
         /// <summary>
-        /// Map the tokenized Id to the token.
+        /// Map the encoded Id to the token.
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
         /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
