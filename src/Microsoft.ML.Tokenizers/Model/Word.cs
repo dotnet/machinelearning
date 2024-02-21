@@ -239,8 +239,8 @@ namespace Microsoft.ML.Tokenizers
             for (int i = 0; i < SymbolsCount; i++)
             {
                 int endIndex = index + _symbols[i].Len;
-                tokens.Add(new Token(_symbols[i].C, vocabReverse[_symbols[i].C], (index, endIndex)));
-                index = endIndex;
+                tokens.Add(new Token(_symbols[i].C, vocabReverse[_symbols[i].C], (index, _symbols[i].Len)));
+                index += _symbols[i].Len;
             }
 
             return tokens;

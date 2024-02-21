@@ -93,7 +93,7 @@ namespace Microsoft.ML.Tokenizers
                     IReadOnlyList<Token> tokens = Model.Encode(split.TokenString, split.IsSpecialToken);
                     foreach (Token token in tokens)
                     {
-                        token.Offset = (token.Offset.Index + split.Offset.Index, token.Offset.End + split.Offset.Index);
+                        token.Offset = (token.Offset.Index + split.Offset.Index, token.Offset.Length);
                     }
 
                     encoding.AddTokens(tokens);
@@ -109,11 +109,10 @@ namespace Microsoft.ML.Tokenizers
                     foreach (Token token in tokens)
                     {
                         int index = normalizedString.NormalizedToOriginalMapping![token.Offset.Index + split.Offset.Index];
-                        int end = normalizedString.NormalizedToOriginalMapping![token.Offset.End + split.Offset.Index - 1] + 1;
 
-                        Debug.Assert(index < end && end >= 0 && index >= 0);
+                        Debug.Assert(index >= 0);
 
-                        token.Offset = (index, end);
+                        token.Offset = (index, token.Offset.Length);
                     }
 
                     encoding.AddTokens(tokens);

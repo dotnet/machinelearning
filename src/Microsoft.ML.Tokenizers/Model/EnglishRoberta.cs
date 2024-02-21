@@ -356,7 +356,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 Debug.Assert(index + tokens[i].Value.Length <= indexMapping.Length);
 
-                if (tokens[i].Offset != (indexMapping[index], indexMapping[index + tokens[i].Value.Length - 1] + 1))
+                if (tokens[i].Offset != (indexMapping[index], tokens[i].Value.Length))
                 {
                     List<Token> list = new List<Token>(tokens.Count);
                     for (int j = 0; j < i; j++)
@@ -366,7 +366,7 @@ namespace Microsoft.ML.Tokenizers
 
                     for (int j = i; j < tokens.Count; j++)
                     {
-                        list.Add(new Token(tokens[j].Id, tokens[j].Value, (indexMapping[index], indexMapping[index + tokens[j].Value.Length - 1] + 1)));
+                        list.Add(new Token(tokens[j].Id, tokens[j].Value, (indexMapping[index], tokens[j].Value.Length)));
                         index += tokens[j].Value.Length;
                     }
 
@@ -495,7 +495,7 @@ namespace Microsoft.ML.Tokenizers
             if (token.Length == 1)
             {
                 string tokenValue = _charToString[token[0]];
-                return new List<Token> { new Token(_vocab[tokenValue], tokenValue, (indexMapping[0], indexMapping[0] + 1)) };
+                return new List<Token> { new Token(_vocab[tokenValue], tokenValue, (indexMapping[0], 1)) };
             }
 
             List<string> word = new(token.Length);
@@ -584,7 +584,7 @@ namespace Microsoft.ML.Tokenizers
 
             foreach (string w in word)
             {
-                tokens.Add(new Token(_vocab[w], w, (indexMapping[index], indexMapping[index + w.Length - 1] + 1)));
+                tokens.Add(new Token(_vocab[w], w, (indexMapping[index], w.Length)));
                 index += w.Length;
             }
 

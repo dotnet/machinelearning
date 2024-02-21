@@ -77,7 +77,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             int idsCount = tokenizer.CountTokens(text);
             Assert.Equal(encoded, result.Ids);
             Assert.Equal(new string[] { "Hello", " World" }, result.Tokens);
-            Assert.Equal(new List<(int, int)> { (0, 5), (5, 11) }, result.Offsets);
+            Assert.Equal(new List<(int, int)> { (0, 5), (5, 6) }, result.Offsets);
             Assert.Equal(encoded.Count, idsCount);
             Assert.Equal(encoded, result.Ids);
         }
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             int idsCount = GPT4.CountTokens(text);
             Assert.Equal(encoded, result.Ids);
             Assert.Equal(new string[] { "<|im_start|>", "Hello", " World", "<|im_end|>" }, result.Tokens);
-            Assert.Equal(new List<(int, int)> { (0, 12), (12, 17), (17, 23), (23, 33) }, result.Offsets);
+            Assert.Equal(new List<(int, int)> { (0, 12), (12, 5), (17, 6), (23, 10) }, result.Offsets);
             Assert.Equal(encoded.Count, idsCount);
             Assert.Equal(encoded, result.Ids);
         }
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(encoded, result.Ids);
             Assert.Equal(encoded.Count, idsCount);
             Assert.Equal(new string[] { "<|im_start|>", "Hello", "<|im_end|>", " World" }, result.Tokens);
-            Assert.Equal(new List<(int, int)> { (0, 12), (12, 17), (17, 27), (27, 33) }, result.Offsets);
+            Assert.Equal(new List<(int, int)> { (0, 12), (12, 5), (17, 10), (27, 6) }, result.Offsets);
         }
 
         [Fact]
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(encoded, result.Ids);
             Assert.Equal(encoded.Count, idsCount);
             Assert.Equal(new string[] { "<|im_start|>", "Hello", " ⭐", "", " World", "<|im_end|>" }, result.Tokens);
-            Assert.Equal(new List<(int, int)> { (0, 12), (12, 17), (17, 19), (19, 19), (19, 25), (25, 35) }, result.Offsets);
+            Assert.Equal(new List<(int, int)> { (0, 12), (12, 5), (17, 2), (19, 0), (19, 6), (25, 10) }, result.Offsets);
         }
 
         [Fact]

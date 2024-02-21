@@ -20,21 +20,21 @@ namespace Microsoft.ML.Tokenizers.Tests
                 {
                     WhiteSpace.Instance,
                     "How are you doing?",
-                    new Split[] { new Split("How", (0, 3)), new Split("are", (4, 7)), new Split("you", (8, 11)), new Split("doing", (12, 17)), new Split("?", (17, 18)),}
+                    new Split[] { new Split("How", (0, 3)), new Split("are", (4, 3)), new Split("you", (8, 3)), new Split("doing", (12, 5)), new Split("?", (17, 1)),}
                 };
 
                 yield return new object[]
                 {
                     WhiteSpace.Instance,
                     "I_am_Just_Fine!",
-                    new Split[] { new Split("I_am_Just_Fine", (0, 14)), new Split("!", (14, 15)) }
+                    new Split[] { new Split("I_am_Just_Fine", (0, 14)), new Split("!", (14, 1)) }
                 };
 
                 yield return new object[]
                 {
                     new SpacePreTokenizer(),
                     "How are    you doing?!",
-                    new Split[] { new Split("How", (0, 3)), new Split("are", (4, 7)), new Split("you", (11, 14)), new Split("doing?!", (15, 22)) }
+                    new Split[] { new Split("How", (0, 3)), new Split("are", (4, 3)), new Split("you", (11, 3)), new Split("doing?!", (15, 7)) }
                 };
 
                 yield return new object[]
@@ -48,15 +48,15 @@ namespace Microsoft.ML.Tokenizers.Tests
 
         [Theory]
         [MemberData(nameof(PreTokenizerData))]
-        public void TestPreTokenizer(PreTokenizer preTokenizer, string sentence, Split[] splits)
+        public void TestPreTokenizer(PreTokenizer preTokenizer, string text, Split[] splits)
         {
-            Split[] splitParts = preTokenizer.PreTokenize(sentence).ToArray<Split>();
+            Split[] splitParts = preTokenizer.PreTokenize(text).ToArray<Split>();
             Assert.Equal(splits, splitParts);
 
             // Empty tokenizer which tokenize all parts as unknown tokens.
             Tokenizer tokenizer = new Tokenizer(BpeTests.CreateEmptyBpe(), preTokenizer);
 
-            EncodingResult encoding = tokenizer.Encode(sentence);
+            EncodingResult encoding = tokenizer.Encode(text);
             Assert.True(encoding.Tokens.Count >= splitParts.Length, $"Expected to have {encoding.Tokens.Count} >= {splitParts.Length}");
         }
 
@@ -68,10 +68,10 @@ namespace Microsoft.ML.Tokenizers.Tests
 
         public class SpacePreTokenizer : PreTokenizer
         {
-            public override IEnumerable<Split> PreTokenize(string sentence, bool considerSpecialTokens = true)
+            public override IEnumerable<Split> PreTokenize(string text, bool considerSpecialTokens = true)
             {
                 List<Split> splits = new();
-                if (string.IsNullOrEmpty(sentence))
+                if (string.IsNullOrEmpty(text))
                 {
                     return splits;
                 }
@@ -79,20 +79,20 @@ namespace Microsoft.ML.Tokenizers.Tests
                 int index = 0;
                 while (true)
                 {
-                    while (index < sentence.Length && char.IsWhiteSpace(sentence[index]))
+                    while (index < text.Length && char.IsWhiteSpace(text[index]))
                     {
                         index++;
                     }
 
                     int end = index + 1;
-                    while (end < sentence.Length && !char.IsWhiteSpace(sentence[end]))
+                    while (end < text.Length && !char.IsWhiteSpace(text[end]))
                     {
                         end++;
                     }
 
-                    if (index < sentence.Length)
+                    if (index < text.Length)
                     {
-                        splits.Add(new Split(sentence.Substring(index, end - index), (index, end)));
+                        splits.Add(new Split(text.Substring(index, end - index), (index, end - index)));
                     }
                     else
                     {

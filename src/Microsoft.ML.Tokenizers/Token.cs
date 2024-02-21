@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the offset mapping to the original string.
         /// </summary>
-        public (int Index, int End) Offset { get; internal set; }
+        public (int Index, int Length) Offset { get; internal set; }
 
         /// <summary>
         /// Construct a new Token object using the token value, Id, and the offset mapping to the original string.

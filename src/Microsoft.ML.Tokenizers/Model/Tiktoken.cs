@@ -304,7 +304,7 @@ namespace Microsoft.ML.Tokenizers
                 for (int i = 1; i < ids.Length; i++)
                 {
                     // One word split mapped to multiple Ids. Make the offset of the remaining token point at the end with zero width.
-                    tokens[i] = new Token(ids[i], "", (text.Length, text.Length));
+                    tokens[i] = new Token(ids[i], "", (text.Length, 0));
                 }
 
                 return tokens;
@@ -328,7 +328,7 @@ namespace Microsoft.ML.Tokenizers
             for (int i = 1; i < encodedIds.Length; i++)
             {
                 // One word split mapped to multiple Ids. Make the offset of the remaining token point at the end with zero width.
-                tokens[i] = new Token(encodedIds[i], "", (text.Length, text.Length));
+                tokens[i] = new Token(encodedIds[i], "", (text.Length, 0));
             }
 
             ArrayPool<byte>.Shared.Return(arrayPoolArray);

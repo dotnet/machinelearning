@@ -70,18 +70,18 @@ namespace Microsoft.ML.Tokenizers
 
                         while (TryGetMatch(regex, text, beginning, specialMatch.Offset - beginning, out match))
                         {
-                            yield return new Split(text, null, (match.Offset, match.Offset + match.Length));
+                            yield return new Split(text, null, (match.Offset, match.Length));
                             beginning = match.Offset + match.Length;
                         }
 
-                        yield return new Split(text, null, (specialMatch.Offset, specialMatch.Offset + specialMatch.Length), isSpecialToken: true);
+                        yield return new Split(text, null, (specialMatch.Offset, specialMatch.Length), isSpecialToken: true);
                         beginning = specialMatch.Offset + specialMatch.Length;
                     }
                 }
 
                 while (TryGetMatch(regex, text, beginning, text.Length - beginning, out match))
                 {
-                    yield return new Split(text, null, (match.Offset, match.Offset + match.Length));
+                    yield return new Split(text, null, (match.Offset, match.Length));
                     beginning = match.Length + match.Offset;
                 }
             }

@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tokenizers
         private List<Token>? _tokens;
         private List<string>? _tokensWords;
         private List<int>? _ids;
-        private List<(int Index, int End)>? _offsets;
+        private List<(int Index, int Length)>? _offsets;
 
         internal void AddTokens(IReadOnlyList<Token> addedTokens)
         {
@@ -121,10 +121,10 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Gets The list of offsets. These offsets let’s you slice the input string, and thus retrieve
+        /// Gets The list of offsets. These offsets let's you slice the input string, and thus retrieve
         /// the original part that led to producing the corresponding token.
         /// </summary>
-        public IReadOnlyList<(int Index, int End)> Offsets
+        public IReadOnlyList<(int Index, int Length)> Offsets
         {
             get
             {
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Tokenizers
                     return Array.Empty<(int, int)>();
                 }
 
-                _offsets = new List<(int Index, int End)>(_tokens.Count);
+                _offsets = new List<(int Index, int Length)>(_tokens.Count);
 
                 foreach (var token in _tokens)
                 {
