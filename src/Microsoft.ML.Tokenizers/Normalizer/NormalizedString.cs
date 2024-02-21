@@ -16,18 +16,18 @@ namespace Microsoft.ML.Tokenizers
         /// between the original and the normalized string.
         /// </summary>
         /// <param name="original">The original string before normalization.</param>
-        /// <param name="normalizedString">The normalized string.</param>
-        /// <param name="mapping">The mapping between the normalized string and the original string.</param>
+        /// <param name="normalized">The normalized string.</param>
+        /// <param name="normalizedToOriginalMapping">The mapping between the normalized string and the original string.</param>
         /// <param name="isOneToOneMapping">Indicate whether the mapping is one-to-one.</param>
-        public NormalizedString(string original, string normalizedString, int[]? mapping, bool isOneToOneMapping)
+        public NormalizedString(string original, string normalized, int[]? normalizedToOriginalMapping, bool isOneToOneMapping)
         {
             Original = original;
-            Normalized = normalizedString;
-            NormalizedToOriginalMapping = mapping;
+            Normalized = normalized;
+            NormalizedToOriginalMapping = normalizedToOriginalMapping;
 
-            if (mapping is not null && mapping.Length < normalizedString.Length)
+            if (normalizedToOriginalMapping is not null && normalizedToOriginalMapping.Length < normalized.Length)
             {
-                throw new ArgumentException($"Mapping array has to cover the whole normalized string length mapping", nameof(mapping));
+                throw new ArgumentException($"Mapping array has to cover the whole normalized string length mapping", nameof(normalizedToOriginalMapping));
             }
 
             IsOneToOneMapping = isOneToOneMapping;
