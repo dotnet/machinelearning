@@ -20,6 +20,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
+    [CollectionDefinition(nameof(NoParallelizationDefinition), DisableParallelization = true)]
+    public class NoParallelizationDefinition { }
+    [Collection(nameof(NoParallelizationDefinition))]
     public class DatabaseLoaderTests : BaseTestClass
     {
         public DatabaseLoaderTests(ITestOutputHelper output)
