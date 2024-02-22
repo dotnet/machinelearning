@@ -56,17 +56,17 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// A prefix to be used for every subword that is not a beginning-of-word
         /// </summary>
-        public string? ContinuingSubwordPrefix { get; private set; }
+        public string? ContinuingSubwordPrefix { get; }
 
         /// <summary>
         /// An optional suffix to characterize and end-of-word sub-word
         /// </summary>
-        public string? EndOfWordSuffix { get; private set; }
+        public string? EndOfWordSuffix { get; }
 
         /// <summary>
         /// Gets or sets whether allowing multiple unknown tokens get fused
         /// </summary>
-        public bool FuseUnknownTokens { get; private set; }
+        public bool FuseUnknownTokens { get; }
 
 
         /// <summary>
@@ -144,6 +144,11 @@ namespace Microsoft.ML.Tokenizers
                     if (!_vocab.TryGetValue(mergeValues.b, out int bId))
                     {
                         throw new InvalidOperationException($"Trying to merge a token '{mergeValues.b}' which not exist in the vocabulary.");
+                    }
+
+                    if (mergeValues.b.Length <= prefixLen)
+                    {
+                        throw new InvalidOperationException($"The merge value '{mergeValues.b}' is too short to be merged with a prefix of length {prefixLen}. This implies that the merge file is either damaged or missing the prefix in its entries.");
                     }
 
                     string newToken = $"{mergeValues.a}{mergeValues.b.Substring(prefixLen)}";
@@ -252,19 +257,19 @@ namespace Microsoft.ML.Tokenizers
         private readonly Dictionary<string, int> _vocab;
 
         /// Contains the mapping between Pairs and their (rank, newId).
-        internal Dictionary<Pair<int>, (int, int)> Merges { get; set; }
+        internal Dictionary<Pair<int>, (int, int)> Merges { get; }
 
         /// Contains the cache for optimizing the encoding step.
-        internal Cache<string, Word>? Cache { get; set; }
+        internal Cache<string, Word>? Cache { get; }
 
         internal static readonly int DefaultCacheCapacity = 10_000;
 
         /// Reversed vocabulary, to rebuild the text.
-        internal SortedDictionary<int, string> VocabReverse { get; set; }
+        internal SortedDictionary<int, string> VocabReverse { get; }
 
         /// Dropout probability for merges. 0 = no dropout is the default. At 1.0, tokenization will
         /// perform no merges, so the result will just be characters.
-        internal float? Dropout { get; set; }
+        internal float? Dropout { get; }
 
         /// Converts the merges strings (for example from `merges.txt` file) with the format
         /// "{pair_a} {pair_b}" into the format expected by the BPE struct
