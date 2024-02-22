@@ -201,7 +201,7 @@
                     "steps",
                     "initLearningRate",
                     "weightDecay",
-                    "mode",
+                    "caseMode",
                     "keepPunctuations",
                     "keepDiacritics",
                     "keepNumbers"

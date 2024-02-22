@@ -12,6 +12,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests.Transformers
 {
+    [CollectionDefinition(nameof(NoParallelizationDefinition), DisableParallelization = true)]
+    public class NoParallelizationDefinition { }
+    [Collection(nameof(NoParallelizationDefinition))]
     public sealed class WordEmbeddingsTests : TestDataPipeBase
     {
         public WordEmbeddingsTests(ITestOutputHelper helper)

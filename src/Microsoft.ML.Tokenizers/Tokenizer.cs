@@ -286,8 +286,8 @@ namespace Microsoft.ML.Tokenizers
         private static readonly (string Prefix, ModelEncoding Encoding)[] _modelPrefixToEncoding =
                                                             [
                                                                 // chat
-                                                                ( "gpt-4-", ModelEncoding.Cl100kBase ),  // e.g., gpt-4-0314, etc., plus gpt-4-32k
-                                                                ( "gpt-3.5-turbo-", ModelEncoding.Cl100kBase ) // e.g, gpt-3.5-turbo-0301, -0401, etc.
+                                                                ("gpt-4-", ModelEncoding.Cl100kBase),  // e.g., gpt-4-0314, etc., plus gpt-4-32k
+                                                                ("gpt-3.5-turbo-", ModelEncoding.Cl100kBase) // e.g, gpt-3.5-turbo-0301, -0401, etc.
                                                             ];
 
         private static readonly Dictionary<string, ModelEncoding> _modelToEncoding =
