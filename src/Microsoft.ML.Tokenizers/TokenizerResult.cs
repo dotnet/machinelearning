@@ -63,8 +63,6 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
-        private static readonly IReadOnlyList<int> _emptyIds = new List<int>();
-
         /// <summary>
         /// Gets list of the tokens Ids.
         /// The Ids are the main input to a Language Model. They are the token indices, the numerical representations that a LM understands.
@@ -80,7 +78,7 @@ namespace Microsoft.ML.Tokenizers
 
                 if (_tokens is null)
                 {
-                    return _emptyIds;
+                    return Array.Empty<int>();
                 }
 
                 _ids = new List<int>(_tokens.Count);
@@ -93,8 +91,6 @@ namespace Microsoft.ML.Tokenizers
                 return _ids;
             }
         }
-
-        private static readonly IReadOnlyList<string> _emptyTokens = new List<string>();
 
         /// <summary>
         /// Gets the generated tokens. They are the string representation of the Ids.
@@ -110,7 +106,7 @@ namespace Microsoft.ML.Tokenizers
 
                 if (_tokens is null)
                 {
-                    return _emptyTokens;
+                    return Array.Empty<string>();
                 }
 
                 _tokensWords = new List<string>(_tokens.Count);
@@ -123,8 +119,6 @@ namespace Microsoft.ML.Tokenizers
                 return _tokensWords;
             }
         }
-
-        private static readonly IReadOnlyList<(int, int)> _emptyOffsets = new List<(int, int)>();
 
         /// <summary>
         /// Gets The list of offsets. These offsets let’s you slice the input string, and thus retrieve
@@ -141,7 +135,7 @@ namespace Microsoft.ML.Tokenizers
 
                 if (_tokens is null)
                 {
-                    return _emptyOffsets;
+                    return Array.Empty<(int, int)>();
                 }
 
                 _offsets = new List<(int Index, int End)>(_tokens.Count);

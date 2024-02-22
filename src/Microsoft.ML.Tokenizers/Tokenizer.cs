@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.ML.Tokenizers
@@ -16,7 +17,7 @@ namespace Microsoft.ML.Tokenizers
     /// <summary>
     /// A Tokenizer works as a pipeline. It processes some raw text as input and outputs a TokenizerResult object.
     /// </summary>
-    public class Tokenizer
+    public partial class Tokenizer
     {
         /// <summary>
         /// Create a new Tokenizer object.
@@ -50,13 +51,6 @@ namespace Microsoft.ML.Tokenizers
         /// Gets or sets the Decoder in use by the Tokenizer.
         /// </summary>
         public TokenizerDecoder? Decoder { get; set; }
-
-        /// <summary>
-        /// Encodes input text to object has the tokens list, tokens Ids, tokens offset mapping.
-        /// </summary>
-        /// <param name="sequence">The text to tokenize.</param>
-        /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
-        public TokenizerResult Encode(string sequence) => Encode(sequence, skipSpecialTokens: false);
 
         /// <summary>
         /// Encodes input text to object has the tokens list, tokens Ids, tokens offset mapping.
@@ -140,33 +134,41 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(sequence));
             }
 
-            string normalized;
-            NormalizedString normalizedString = default;
-
-            bool offsetsMappedToOriginal = true;
-            if (Normalizer is not null)
-            {
-                normalizedString = Normalizer.Normalize(sequence);
-                normalized = normalizedString.Normalized;
-
-                offsetsMappedToOriginal = normalizedString.CanMapToOriginal;
-            }
-            else
-            {
-                normalized = sequence;
-            }
-
+            string normalized = Normalizer is not null ? Normalizer.Normalize(sequence).Normalized : sequence;
             List<int> idsList = new();
 
             foreach (Split split in PreTokenizer.PreTokenize(normalized, skipSpecialTokens))
             {
-                if (!Model.TokenizeToIds(split.TokenString, split.IsSpecialToken, idsList))
-                {
-                    throw new ArgumentException($"Unable to tokenize the sequence: {split.TokenString}");
-                }
+                Model.TokenizeToIds(split.TokenString, split.IsSpecialToken, idsList);
             }
 
             return idsList;
+        }
+
+        /// <summary>
+        /// Get the number of tokens that the input sequence will be encoded to.
+        /// </summary>
+        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
+        /// <returns>The number of tokens Ids that the input sequence will be encoded to.</returns>
+        /// <exception cref="ArgumentNullException">The input sequence is null.</exception>
+        /// <exception cref="ArgumentException">Unable to tokenize the sequence.</exception>
+        public int CountTokens(string sequence, bool skipSpecialTokens = false)
+        {
+            if (sequence is null)
+            {
+                throw new ArgumentNullException(nameof(sequence));
+            }
+
+            string normalized = Normalizer is not null ? Normalizer.Normalize(sequence).Normalized : sequence;
+
+            int idsCount = 0;
+            foreach (Split split in PreTokenizer.PreTokenize(normalized, skipSpecialTokens))
+            {
+                idsCount += Model.CountTokens(split.TokenString, split.IsSpecialToken);
+            }
+
+            return idsCount;
         }
 
         // skipSpecialTokens is used in post processing we don't support yet. We are keeping it to allow using it when we support post processing.
@@ -199,12 +201,19 @@ namespace Microsoft.ML.Tokenizers
 
             List<string> tokens = new List<string>();
 
-            foreach (int id in ids)
+            if (Model is EnglishRoberta robertaModel)
             {
-                if (Model.GetType() == typeof(EnglishRoberta))
-                    tokens.Add(Model.IdToString(id) ?? "");
-                else
-                    tokens.Add(Model.IdToToken(id) ?? "");
+                foreach (int id in ids)
+                {
+                    tokens.Add(robertaModel.IdToFilteredToken(id, skipSpecialTokens) ?? "");
+                }
+            }
+            else
+            {
+                foreach (int id in ids)
+                {
+                    tokens.Add(Model.IdToToken(id, skipSpecialTokens) ?? "");
+                }
             }
 
             return Decoder?.Decode(tokens) ?? string.Join("", tokens);
@@ -256,11 +265,6 @@ namespace Microsoft.ML.Tokenizers
             // self.add_special_tokens(&special_tokens);
         }
 
-        public bool IsValidChar(char ch)
-        {
-            return Model.IsValidChar(ch);
-        }
-
         private const string EndOfText = "<|endoftext|>";
         private const string FimPrefix = "<|fim_prefix|>";
         private const string FimMiddle = "<|fim_middle|>";
@@ -279,15 +283,14 @@ namespace Microsoft.ML.Tokenizers
             GPT2
         }
 
-        private static readonly IReadOnlyDictionary<string, ModelEncoding> _modelPrefixToEncoding =
-                                                            new Dictionary<string, ModelEncoding>()
-                                                            {
+        private static readonly (string Prefix, ModelEncoding Encoding)[] _modelPrefixToEncoding =
+                                                            [
                                                                 // chat
-                                                                { "gpt-4-", ModelEncoding.Cl100kBase },  // e.g., gpt-4-0314, etc., plus gpt-4-32k
-                                                                { "gpt-3.5-turbo-", ModelEncoding.Cl100kBase } // e.g, gpt-3.5-turbo-0301, -0401, etc.
-                                                            };
+                                                                ( "gpt-4-", ModelEncoding.Cl100kBase ),  // e.g., gpt-4-0314, etc., plus gpt-4-32k
+                                                                ( "gpt-3.5-turbo-", ModelEncoding.Cl100kBase ) // e.g, gpt-3.5-turbo-0301, -0401, etc.
+                                                            ];
 
-        private static readonly IReadOnlyDictionary<string, ModelEncoding> _modelToEncoding =
+        private static readonly Dictionary<string, ModelEncoding> _modelToEncoding =
                                                             new Dictionary<string, ModelEncoding>(StringComparer.OrdinalIgnoreCase)
                                                             {
                                                                 // chat
@@ -344,41 +347,64 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="modelName">Model name</param>
         /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the model</param>
         /// <param name="normalizer">To normalize the text before tokenization</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>The tokenizer</returns>
-        public static async Task<Tokenizer> CreateByModelNameAsync(
+        public static Task<Tokenizer> CreateByModelNameAsync(
                                                 string modelName,
                                                 IReadOnlyDictionary<string, int>? extraSpecialTokens = null,
-                                                Normalizer? normalizer = null)
+                                                Normalizer? normalizer = null,
+                                                CancellationToken cancellationToken = default)
         {
-            var encoder = ModelEncoding.None;
-
-            if (!_modelToEncoding.TryGetValue(modelName, out encoder))
+            try
             {
-                foreach (KeyValuePair<string, ModelEncoding> kvp in _modelPrefixToEncoding)
+                ModelEncoding encoder;
+
+                if (!_modelToEncoding.TryGetValue(modelName, out encoder))
                 {
-                    if (modelName.StartsWith(kvp.Key, StringComparison.OrdinalIgnoreCase))
+                    foreach ((string Prefix, ModelEncoding Encoding) in _modelPrefixToEncoding)
                     {
-                        encoder = kvp.Value;
-                        break;
+                        if (modelName.StartsWith(Prefix, StringComparison.OrdinalIgnoreCase))
+                        {
+                            encoder = Encoding;
+                            break;
+                        }
                     }
                 }
-            }
 
-            if (encoder == ModelEncoding.None)
+                if (encoder == ModelEncoding.None)
+                {
+                    throw new NotImplementedException($"Doesn't support this model [{modelName}]");
+                }
+
+                return CreateByEncoderNameAsync(encoder, extraSpecialTokens, normalizer, cancellationToken);
+            }
+            catch (Exception ex)
             {
-                throw new NotImplementedException($"Doesn't support this model [{modelName}]");
+                return Task.FromException<Tokenizer>(ex);
             }
-
-            return await CreateByEncoderNameAsync(encoder, extraSpecialTokens, normalizer);
         }
 
         private const string Cl100kBaseRegexPattern = @"(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+";
         private const string P50kBaseRegexPattern = @"'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+";
 
-        const string Cl100kBaseVocabUrl = @"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken";
-        const string P50RegexUrl = @"https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken";
-        const string R50RegexUrl = @"https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken";
-        const string GPT2Url = @"https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken";
+        private const string Cl100kBaseVocabUrl = @"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken";
+        private const string P50RanksUrl = @"https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken";
+        private const string R50RanksUrl = @"https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken";
+        private const string GPT2Url = @"https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken";
+
+#if NET7_0_OR_GREATER
+        [GeneratedRegex(Cl100kBaseRegexPattern)]
+        private static partial Regex Cl100kBaseRegex();
+
+        [GeneratedRegex(P50kBaseRegexPattern)]
+        private static partial Regex P50kBaseRegex();
+#else
+        private static Regex? _cl100kBaseRegex;
+        private static Regex Cl100kBaseRegex() => _cl100kBaseRegex ??= new Regex(Cl100kBaseRegexPattern, RegexOptions.Compiled);
+
+        private static Regex? _p50kBaseRegex;
+        private static Regex P50kBaseRegex() => _p50kBaseRegex ??= new Regex(P50kBaseRegexPattern, RegexOptions.Compiled);
+#endif
 
         /// <summary>
         /// Create tokenizer based on encoder name and extra special tokens
@@ -386,36 +412,38 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="modelEncoding">Encoder label</param>
         /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the encoder</param>
         /// <param name="normalizer">To normalize the text before tokenization</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>The tokenizer</returns>
         /// <exception cref="NotImplementedException">Throws if the encoder is not supported</exception>
-        private static async Task<Tokenizer> CreateByEncoderNameAsync(
+        private static Task<Tokenizer> CreateByEncoderNameAsync(
                                                 ModelEncoding modelEncoding,
                                                 IReadOnlyDictionary<string, int>? extraSpecialTokens,
-                                                Normalizer? normalizer)
+                                                Normalizer? normalizer,
+                                                CancellationToken cancellationToken)
         {
             switch (modelEncoding)
             {
                 case ModelEncoding.Cl100kBase:
                     var specialTokens = new Dictionary<string, int>
                         { { EndOfText, 100257}, { FimPrefix, 100258}, { FimMiddle, 100259}, { FimSuffix, 100260}, { EndOfPrompt, 100276} };
-                    return await CreateTikTokenTokenizerAsync(Cl100kBaseRegexPattern, Cl100kBaseVocabUrl, specialTokens, extraSpecialTokens, normalizer);
+                    return CreateTikTokenTokenizerAsync(Cl100kBaseRegex(), Cl100kBaseVocabUrl, specialTokens, extraSpecialTokens, normalizer, cancellationToken);
 
                 case ModelEncoding.P50kBase:
                     specialTokens = new Dictionary<string, int> { { EndOfText, 50256 } };
-                    return await CreateTikTokenTokenizerAsync(P50kBaseRegexPattern, P50RegexUrl, specialTokens, extraSpecialTokens, normalizer);
+                    return CreateTikTokenTokenizerAsync(P50kBaseRegex(), P50RanksUrl, specialTokens, extraSpecialTokens, normalizer, cancellationToken);
 
                 case ModelEncoding.P50kEdit:
                     specialTokens = new Dictionary<string, int>
                         { { EndOfText, 50256 }, { FimPrefix, 50281 }, { FimMiddle, 50282 }, { FimSuffix, 50283 } };
-                    return await CreateTikTokenTokenizerAsync(P50kBaseRegexPattern, P50RegexUrl, specialTokens, extraSpecialTokens, normalizer);
+                    return CreateTikTokenTokenizerAsync(P50kBaseRegex(), P50RanksUrl, specialTokens, extraSpecialTokens, normalizer, cancellationToken);
 
                 case ModelEncoding.R50kBase:
                     specialTokens = new Dictionary<string, int> { { EndOfText, 50256 } };
-                    return await CreateTikTokenTokenizerAsync(P50kBaseRegexPattern, R50RegexUrl, specialTokens, extraSpecialTokens, normalizer);
+                    return CreateTikTokenTokenizerAsync(P50kBaseRegex(), R50RanksUrl, specialTokens, extraSpecialTokens, normalizer, cancellationToken);
 
                 case ModelEncoding.GPT2:
                     specialTokens = new Dictionary<string, int> { { EndOfText, 50256 }, };
-                    return await CreateTikTokenTokenizerAsync(P50kBaseRegexPattern, GPT2Url, specialTokens, extraSpecialTokens, normalizer);
+                    return CreateTikTokenTokenizerAsync(P50kBaseRegex(), GPT2Url, specialTokens, extraSpecialTokens, normalizer, cancellationToken);
 
                 default:
                     Debug.Assert(false, $"Unexpected encoder [{modelEncoding}]");
@@ -423,39 +451,45 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
-        private static readonly Dictionary<string, (Dictionary<byte[], int>, Dictionary<string, int>, IReadOnlyDictionary<int, byte[]>)> _tiktokenCache = new(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<string, (Dictionary<ReadOnlyMemory<byte>, int>, Dictionary<string, int>, IReadOnlyDictionary<int, byte[]>)> _tiktokenCache = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Create tokenizer based on regex pattern, BPE rank file and special tokens
         /// </summary>
-        /// <param name="regexPatternStr">Regex pattern to break a long string</param>
+        /// <param name="regex">Regex to break a long string</param>
         /// <param name="mergeableRanksFileUrl">BPE rank file</param>
-        /// <param name="specialTokens">Special tokens mapping</param>
+        /// <param name="specialTokens">Special tokens mapping. This may be mutated by the method.</param>
         /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the encoder</param>
         /// <param name="normalizer">To normalize the text before tokenization</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>The tokenizer</returns>
         private static async Task<Tokenizer> CreateTikTokenTokenizerAsync(
-                                                string regexPatternStr,
-                                                string mergeableRanksFileUrl,
-                                                Dictionary<string, int> specialTokens,
-                                                IReadOnlyDictionary<string, int>? extraSpecialTokens,
-                                                Normalizer? normalizer)
+            Regex regex,
+            string mergeableRanksFileUrl,
+            Dictionary<string, int> specialTokens,
+            IReadOnlyDictionary<string, int>? extraSpecialTokens,
+            Normalizer? normalizer,
+            CancellationToken cancellationToken)
         {
             if (extraSpecialTokens is not null)
             {
-                specialTokens = specialTokens.Concat(extraSpecialTokens).ToDictionary(pair => pair.Key, pair => pair.Value);
-            }
-
-            if (!_tiktokenCache.TryGetValue(mergeableRanksFileUrl, out (Dictionary<byte[], int> encoder, Dictionary<string, int> vocab, IReadOnlyDictionary<int, byte[]> decoder) cache))
-            {
-                using (Stream stream = await _httpClient.GetStreamAsync(mergeableRanksFileUrl))
+                foreach (var extraSpecialToken in extraSpecialTokens)
                 {
-                    cache = Tiktoken.LoadTikTokenBpe(stream);
+                    specialTokens.Add(extraSpecialToken.Key, extraSpecialToken.Value);
                 }
-                _tiktokenCache.Add(mergeableRanksFileUrl, cache);
             }
 
-            return new Tokenizer(new Tiktoken(cache.encoder, cache.decoder, cache.vocab, specialTokens), new TikTokenPreTokenizer(new Regex(regexPatternStr, RegexOptions.Compiled), specialTokens), normalizer);
+            if (!_tiktokenCache.TryGetValue(mergeableRanksFileUrl, out (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<string, int> vocab, IReadOnlyDictionary<int, byte[]> decoder) cache))
+            {
+                using (Stream stream = await Helpers.GetStreamAsync(_httpClient, mergeableRanksFileUrl, cancellationToken).ConfigureAwait(false))
+                {
+                    cache = await Tiktoken.LoadTikTokenBpeAsync(stream, useAsync: true, cancellationToken).ConfigureAwait(false);
+                }
+
+                _tiktokenCache.TryAdd(mergeableRanksFileUrl, cache);
+            }
+
+            return new Tokenizer(new Tiktoken(cache.encoder, cache.decoder, cache.vocab, specialTokens), new TikTokenPreTokenizer(regex, specialTokens), normalizer);
         }
     }
 }

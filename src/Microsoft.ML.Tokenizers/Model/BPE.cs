@@ -95,6 +95,7 @@ namespace Microsoft.ML.Tokenizers
 
             (Dictionary<string, int>? vocab1, Vec<(string, string)> merges) = ReadFile(vocabFile, mergesFile);
             Vocab = vocab1 ?? new Dictionary<string, int>();
+            Cache = new Cache<string, Word>();
 
             VocabReverse = new();
 
@@ -146,23 +147,33 @@ namespace Microsoft.ML.Tokenizers
         /// Tokenize a sequence string to a list of tokens.
         /// </summary>
         /// <param name="sequence">The sequence to tokenize.</param>
+        /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
         /// <returns>The list of tokens generated from the sequence tokenization.</returns>
-        public override IReadOnlyList<Token> Tokenize(string sequence)
+        public override IReadOnlyList<Token> Tokenize(string sequence, bool isSpecialToken = false)
         {
             if (sequence.Length == 0)
             {
                 return EmptyTokensList;
             }
 
-            if (!Dropout.HasValue)
-            {
-                return TokenizeWithCache(sequence);
-            }
-
-            Word word = MergeWord(sequence);
-
-            return WordToTokens(ref word);
+            return TokenizeWithCache(sequence);
         }
+
+        /// <summary>
+        /// Tokenize a split sequence string to a list of Ids and add them to the accumulatedIds list.
+        /// </summary>
+        /// <param name="sequence">The sequence to split.</param>
+        /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
+        /// <param name="accumulatedIds">The list of accumulated tokenized Ids.</param>
+        public override void TokenizeToIds(string sequence, bool isSpecialToken, IList<int> accumulatedIds) => TokenizeToIdsWithCache(sequence, accumulatedIds);
+
+        /// <summary>
+        /// Get the number of tokens that the input sequence will be encoded to.
+        /// </summary>
+        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="isSpecialToken">Indicate if the token is special token.</param>
+        /// <returns>The number of tokens that the input sequence will be encoded to.</returns>
+        public override int CountTokens(string sequence, bool isSpecialToken) => TokenizeToIdsWithCache(sequence, null);
 
         /// <summary>
         /// Map the token to tokenized Id.
@@ -194,14 +205,6 @@ namespace Microsoft.ML.Tokenizers
 
             return null;
         }
-
-        /// <summary>
-        /// Map the tokenized Id to the token.
-        /// </summary>
-        /// <param name="id">The Id to map to the token.</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
-        /// <returns>The mapped token of the Id.</returns>
-        public override string? IdToString(int id, bool skipSpecialTokens = false) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
@@ -332,7 +335,7 @@ namespace Microsoft.ML.Tokenizers
 
         internal Word MergeWord(string w)
         {
-            Word word = Word.WithCapacity((int)w.Length);
+            Word word = Word.WithCapacity(w.Length);
             (int Id, int Len)? unk = null;
             int i = 0;
 
@@ -344,7 +347,7 @@ namespace Microsoft.ML.Tokenizers
                 if (Char.IsHighSurrogate(w[i]) && i < w.Length - 1 && Char.IsLowSurrogate(w[i + 1]))
                 {
                     length = 2;
-                    s = w.Substring(i, (int)length);
+                    s = w.Substring(i, length);
                 }
                 else
                 {
@@ -403,7 +406,7 @@ namespace Microsoft.ML.Tokenizers
                     }
                 }
 
-                i += (int)length;
+                i += length;
             }
 
             if (unk.HasValue)
@@ -415,45 +418,59 @@ namespace Microsoft.ML.Tokenizers
             return word;
         }
 
-        // internal Word.Enumerator WordToTokens(Word word) => word.GetIterator(VocabReverse);
-        internal List<Token> WordToTokens(ref Word word)
-        {
-            List<Token> tokens = new(word.SymbolsCount);
-
-            foreach (Token token in word.GetIterator(VocabReverse))
-            {
-                tokens.Add(token);
-            }
-
-            return tokens;
-        }
+        internal List<Token> WordToTokens(ref Word word) => word.ToTokens(VocabReverse);
 
         internal List<Token> TokenizeWithCache(string sequence)
         {
+            Word word;
             if (Cache is not null)
             {
-                Word? hit = Cache.Get(sequence);
-                if (hit.HasValue)
+                if (Cache.TryGet(sequence, out word))
                 {
-                    Word w = hit.Value;
-                    return WordToTokens(ref w);
+                    return WordToTokens(ref word);
                 }
-            }
 
-            Word word = MergeWord(sequence);
-            List<Token> tokens = WordToTokens(ref word);
-
-            if (Cache is not null)
-            {
+                word = MergeWord(sequence);
                 Cache.Set(sequence, word);
             }
+            else
+            {
+                word = MergeWord(sequence);
+            }
 
-            return tokens;
+            return WordToTokens(ref word);
         }
 
-        public override bool IsValidChar(char ch)
+        internal int WordToIds(ref Word word, IList<int>? accumulatedIds)
         {
-            throw new NotImplementedException();
+            if (accumulatedIds is not null)
+            {
+                word.PopulateIds(accumulatedIds);
+            }
+
+            return word.SymbolsCount;
+        }
+
+        internal int TokenizeToIdsWithCache(string sequence, IList<int>? accumulatedIds)
+        {
+            Word word;
+
+            if (Cache is not null)
+            {
+                if (Cache.TryGet(sequence, out Word hit))
+                {
+                    return WordToIds(ref hit, accumulatedIds);
+                }
+
+                word = MergeWord(sequence);
+                Cache.Set(sequence, word);
+            }
+            else
+            {
+                word = MergeWord(sequence);
+            }
+
+            return WordToIds(ref word, accumulatedIds);
         }
 
         internal static readonly List<Token> EmptyTokensList = new();

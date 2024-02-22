@@ -40,9 +40,12 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(text, GPT4.Decode(encoded.ToArray())!);
 
             TokenizerResult result = GPT4.Encode(text);
-            Assert.Equal(new List<int>() { 9906, 4435 }, result.Ids);
+            int idsCount = GPT4.CountTokens(text);
+            Assert.Equal(encoded, result.Ids);
             Assert.Equal(new string[] { "Hello", " World" }, result.Tokens);
             Assert.Equal(new List<(int, int)> { (0, 5), (5, 11) }, result.Offsets);
+            Assert.Equal(encoded.Count, idsCount);
+            Assert.Equal(encoded, result.Ids);
         }
 
         [Fact]
@@ -54,9 +57,12 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(text, GPT4.Decode(encoded.ToArray()));
 
             TokenizerResult result = GPT4.Encode(text);
-            Assert.Equal(new List<int>() { 100264, 9906, 4435, 100265 }, result.Ids);
+            int idsCount = GPT4.CountTokens(text);
+            Assert.Equal(encoded, result.Ids);
             Assert.Equal(new string[] { "<|im_start|>", "Hello", " World", "<|im_end|>" }, result.Tokens);
             Assert.Equal(new List<(int, int)> { (0, 12), (12, 17), (17, 23), (23, 33) }, result.Offsets);
+            Assert.Equal(encoded.Count, idsCount);
+            Assert.Equal(encoded, result.Ids);
         }
 
         [Fact]
@@ -65,6 +71,8 @@ namespace Microsoft.ML.Tokenizers.Tests
             string text = ReadAndSanitizeFile("./Data/lib.rs.txt");
             IReadOnlyList<int> encoded = GPT4.EncodeToIds(text, skipSpecialTokens: true);
             Assert.Equal(5584, encoded.Count);
+            int idsCount = GPT4.CountTokens(text, skipSpecialTokens: true);
+            Assert.Equal(encoded.Count, idsCount);
 
             using (Stream stream = File.OpenRead("./Data/tokens.json"))
             {
@@ -86,7 +94,9 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(text, decoded);
 
             TokenizerResult result = GPT4.Encode(text);
-            Assert.Equal(new List<int>() { 100264, 9906, 100265, 4435 }, result.Ids);
+            int idsCount = GPT4.CountTokens(text);
+            Assert.Equal(encoded, result.Ids);
+            Assert.Equal(encoded.Count, idsCount);
             Assert.Equal(new string[] { "<|im_start|>", "Hello", "<|im_end|>", " World" }, result.Tokens);
             Assert.Equal(new List<(int, int)> { (0, 12), (12, 17), (17, 27), (27, 33) }, result.Offsets);
         }
@@ -99,9 +109,11 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Empty(encoded);
 
             TokenizerResult result = GPT4.Encode(text);
+            int idsCount = GPT4.CountTokens(text);
             Assert.Empty(result.Ids);
             Assert.Empty(result.Tokens);
             Assert.Empty(result.Offsets);
+            Assert.Equal(result.Ids.Count, idsCount);
         }
 
         [Fact]
@@ -109,11 +121,13 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             string text = "<|im_start|>Hello ⭐ World<|im_end|>";
             IReadOnlyList<int> encoded = GPT4.EncodeToIds(text);
+            int idsCount = GPT4.CountTokens(text);
             Assert.Equal(new List<int>() { 100264, 9906, 2928, 99834, 4435, 100265 }, encoded);
             Assert.Equal(text, GPT4.Decode(encoded.ToArray()));
 
             TokenizerResult result = GPT4.Encode(text);
-            Assert.Equal(new List<int>() { 100264, 9906, 2928, 99834, 4435, 100265 }, result.Ids);
+            Assert.Equal(encoded, result.Ids);
+            Assert.Equal(encoded.Count, idsCount);
             Assert.Equal(new string[] { "<|im_start|>", "Hello", " ⭐", "", " World", "<|im_end|>" }, result.Tokens);
             Assert.Equal(new List<(int, int)> { (0, 12), (12, 17), (17, 19), (19, 19), (19, 25), (25, 35) }, result.Offsets);
         }
@@ -123,7 +137,9 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             string text = ReadAndSanitizeFile("./Data/lib.rs.txt");
             IReadOnlyList<int> encoded = GPT2.EncodeToIds(text);
+            int idsCount = GPT2.CountTokens(text);
             Assert.Equal(11378, encoded.Count);
+            Assert.Equal(encoded.Count, idsCount);
 
             using (Stream stream = File.OpenRead("./Data/tokens_gpt2.json"))
             {
@@ -140,7 +156,9 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             string text = ReadAndSanitizeFile("./Data/lib.rs.txt");
             IReadOnlyList<int> encoded = P50kBase.EncodeToIds(text);
+            int idsCount = P50kBase.CountTokens(text);
             Assert.Equal(7230, encoded.Count);
+            Assert.Equal(encoded.Count, idsCount);
 
             using (Stream stream = File.OpenRead("./Data/tokens_p50k_base.json"))
             {
@@ -157,7 +175,9 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             string text = ReadAndSanitizeFile("./Data/lib.rs.txt");
             IReadOnlyList<int> encoded = P50kEdit.EncodeToIds(text);
+            int idsCount = P50kEdit.CountTokens(text);
             Assert.Equal(7230, encoded.Count);
+            Assert.Equal(encoded.Count, idsCount);
 
             using (Stream stream = File.OpenRead("./Data/tokens_p50k_edit.json"))
             {
@@ -174,7 +194,9 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             string text = ReadAndSanitizeFile("./Data/lib.rs.txt");
             IReadOnlyList<int> encoded = R50kBase.EncodeToIds(text);
+            int idsCount = R50kBase.CountTokens(text);
             Assert.Equal(11378, encoded.Count);
+            Assert.Equal(encoded.Count, idsCount);
 
             using (Stream stream = File.OpenRead("./Data/tokens_r50k_base.json"))
             {

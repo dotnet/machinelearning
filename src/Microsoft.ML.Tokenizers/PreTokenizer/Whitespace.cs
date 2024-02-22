@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.ML.Tokenizers
 {
@@ -11,14 +12,21 @@ namespace Microsoft.ML.Tokenizers
     /// The pre-tokenizer which split the text at the word boundary.
     /// The word is a set of alphabet, numeric, and underscore characters.
     /// </summary>
-    public sealed class WhiteSpace : PreTokenizer
+    public sealed partial class WhiteSpace : PreTokenizer
     {
         /// <summary>
         /// Gets a singleton instance of the WhiteSpace pre-tokenizer..
         /// </summary>
-        public static readonly WhiteSpace Instance = new WhiteSpace();
+        public static WhiteSpace Instance { get; } = new WhiteSpace();
 
-        private const string Pattern = @"\w+|[^\w\s]+";
+        private const string PretokenizePattern = @"\w+|[^\w\s]+";
+#if NET7_0_OR_GREATER
+        [GeneratedRegex(PretokenizePattern)]
+        private static partial Regex PretokenizeRegex();
+#else
+        private static readonly Regex _regex = new Regex(PretokenizePattern, RegexOptions.Compiled);
+        private static Regex PretokenizeRegex() => _regex;
+#endif
 
         /// <summary>
         /// Splits the given string in multiple substrings at the word boundary, keeping track of the offsets of said substrings from the original string.
@@ -30,10 +38,10 @@ namespace Microsoft.ML.Tokenizers
         {
             if (string.IsNullOrEmpty(sentence))
             {
-                return EmptyList;
+                return Array.Empty<Split>();
             }
 
-            return new RegexSplitEnumerable(sentence, Pattern);
+            return SplitSentence(sentence, PretokenizeRegex());
         }
     }
 }

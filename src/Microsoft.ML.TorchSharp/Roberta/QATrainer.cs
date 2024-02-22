@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
@@ -62,7 +63,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
             public string AnswerIndexStartColumnName = DefaultColumnNames.AnswerIndex;
 
             /// <summary>
-            /// Number of top predicted answers in question answering task. 
+            /// Number of top predicted answers in question answering task.
             /// </summary>
             public int TopKAnswers = DefaultColumnNames.TopKAnswers;
 
@@ -435,6 +436,9 @@ namespace Microsoft.ML.TorchSharp.Roberta
 
             private Dictionary<int, int> AlignAnswerPosition(IReadOnlyList<string> tokens, string text)
             {
+                EnglishRoberta robertaModel = Tokenizer.Model as EnglishRoberta;
+                Debug.Assert(robertaModel is not null);
+
                 var mapping = new Dictionary<int, int>();
                 int surrogateDeduce = 0;
                 for (var (i, j, tid) = (0, 0, 0); i < text.Length && tid < tokens.Count;)
@@ -457,7 +461,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
                         ++i;
                     }
                     // Chars not included in tokenizer will not appear in tokens
-                    else if (!Tokenizer.IsValidChar(text[i]))
+                    else if (!robertaModel.CharInSupportedRange(text[i]))
                     {
                         mapping[i - surrogateDeduce] = tid;
                         ++i;
