@@ -136,7 +136,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             {
                 Bpe bpe = new Bpe(vocabFile, mergesFile, UnknownToken, null, null, fuseUnknownToken);
 
-                Assert.Equal(vocab.Count + 1u, bpe.GetVocabSize());
+                Assert.Equal(vocab.Count + 1u, bpe.Vocab.Count);
                 Tokenizer tokenizer = new Tokenizer(bpe);
 
                 EncodingResult encoding = tokenizer.Encode(sentence);

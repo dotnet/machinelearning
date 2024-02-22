@@ -238,12 +238,7 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
-        public override IReadOnlyDictionary<string, int> Vocab => _vocab;
-
-        /// <summary>
-        /// Gets the dictionary size that map tokens to Ids.
-        /// </summary>
-        public override int GetVocabSize() => _vocab.Count;
+        public IReadOnlyDictionary<string, int> Vocab => _vocab;
 
         /// Read the given files to extract the vocab and merges
         internal static (Dictionary<string, int>?, Vec<(string, string)>) ReadModelData(Stream vocab, Stream? merges)

@@ -110,19 +110,14 @@ namespace Microsoft.ML.Tokenizers
             _cache = new Cache<string, List<Token>>();
         }
 
-        //
-        // Public Model interfaces implementation
-        //
-
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
-        public override IReadOnlyDictionary<string, int> Vocab => _vocab;
+        public IReadOnlyDictionary<string, int> Vocab => _vocab;
 
-        /// <summary>
-        /// Gets the dictionary size that map tokens to Ids.
-        /// </summary>
-        public override int GetVocabSize() => _vocab.Count;
+        //
+        // Public Model interfaces implementation
+        //
 
         /// <summary>
         /// Map the encoded Id to the token.

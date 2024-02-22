@@ -91,7 +91,7 @@ namespace Microsoft.ML.Tokenizers
                 var vocab1 = new Dictionary<string, int>();
                 foreach (var kvp in encoder)
                 {
-                    string s = Encoding.UTF8.GetString(kvp.Key.ToArray());
+                    string s = GetString(kvp.Key.Span);
 
                     // Don't add mal-formed utf8 converted bytes to the vocab.
                     if (!s.Contains('\uFFFD'))
@@ -582,10 +582,11 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
-        public override IReadOnlyDictionary<string, int> Vocab => _vocab;
+        /// <remarks>This may not contain the full set of vocabulary tokens, use Encoder to get the full set of vocabulary.</remarks>
+        public IReadOnlyDictionary<string, int> Vocab => _vocab;
 
         /// <summary>
-        /// Gets the dictionary mapping token utf-8 bytes to Ids.
+        /// Gets the dictionary mapping token bytes to Ids.
         /// </summary>
         public IReadOnlyDictionary<ReadOnlyMemory<byte>, int> Encoder => _encoder;
 
@@ -593,11 +594,6 @@ namespace Microsoft.ML.Tokenizers
         /// Gets the dictionary mapping Ids to token utf-8 bytes.
         /// </summary>
         public IReadOnlyDictionary<int, byte[]>? Decoder => _decoder;
-
-        /// <summary>
-        /// Gets the dictionary size that map tokens to Ids.
-        /// </summary>
-        public override int GetVocabSize() => _vocab.Count;
 
         private static unsafe int GetUtf8Bytes(ReadOnlySpan<char> source, Span<byte> destination)
         {
