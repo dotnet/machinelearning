@@ -67,56 +67,20 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(text));
             }
 
-            string normalized;
-            NormalizedString normalizedString = default;
-
+            string normalized = Normalizer is null ? text : Normalizer.Normalize(text);
             bool offsetsMappedToOriginal = true;
-            if (Normalizer is not null)
-            {
-                normalizedString = Normalizer.Normalize(text);
-                normalized = normalizedString.Normalized;
-
-                offsetsMappedToOriginal = normalizedString.CanMapToOriginal;
-            }
-            else
-            {
-                normalized = text;
-            }
 
             EncodingResult encoding = new(text, normalized, PreTokenizer.PreTokenize(normalized, considerSpecialTokens), offsetsMappedToOriginal);
 
-            if (Normalizer is null || !normalizedString.CanMapToOriginal || normalizedString.IsOneToOneMapping)
+            foreach (Split split in encoding.Splits)
             {
-                // Optimize the case we don't have to map the offsets.
-                foreach (Split split in encoding.Splits)
+                IReadOnlyList<Token> tokens = Model.Encode(split.TokenString, split.IsSpecialToken);
+                foreach (Token token in tokens)
                 {
-                    IReadOnlyList<Token> tokens = Model.Encode(split.TokenString, split.IsSpecialToken);
-                    foreach (Token token in tokens)
-                    {
-                        token.Offset = (token.Offset.Index + split.Offset.Index, token.Offset.Length);
-                    }
-
-                    encoding.AddTokens(tokens);
+                    token.Offset = (token.Offset.Index + split.Offset.Index, token.Offset.Length);
                 }
-            }
-            else
-            {
-                Debug.Assert(normalizedString.NormalizedToOriginalMapping is not null);
 
-                foreach (Split split in encoding.Splits)
-                {
-                    IReadOnlyList<Token> tokens = Model.Encode(split.TokenString, split.IsSpecialToken);
-                    foreach (Token token in tokens)
-                    {
-                        int index = normalizedString.NormalizedToOriginalMapping![token.Offset.Index + split.Offset.Index];
-
-                        Debug.Assert(index >= 0);
-
-                        token.Offset = (index, token.Offset.Length);
-                    }
-
-                    encoding.AddTokens(tokens);
-                }
+                encoding.AddTokens(tokens);
             }
 
             return encoding;
@@ -135,7 +99,7 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(text));
             }
 
-            string normalized = Normalizer is not null ? Normalizer.Normalize(text).Normalized : text;
+            string normalized = Normalizer is not null ? Normalizer.Normalize(text) : text;
             List<int> idsList = new();
 
             foreach (Split split in PreTokenizer.PreTokenize(normalized, considerSpecialTokens))
@@ -161,7 +125,7 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(text));
             }
 
-            string normalized = Normalizer is not null ? Normalizer.Normalize(text).Normalized : text;
+            string normalized = Normalizer is not null ? Normalizer.Normalize(text) : text;
 
             int idsCount = 0;
             foreach (Split split in PreTokenizer.PreTokenize(normalized, considerSpecialTokens))

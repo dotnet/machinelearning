@@ -21,6 +21,6 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="original">The original string to normalize to uppercase form.</param>
         /// <returns>The upper-cased normalized string.</returns>
-        public override NormalizedString Normalize(string original) => new NormalizedString(original, original.ToUpperInvariant(), normalizedToOriginalMapping: null, isOneToOneMapping: true);
+        public override string Normalize(string original) => original.ToUpperInvariant();
     }
 }

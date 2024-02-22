@@ -22,9 +22,6 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new LowerCaseNormalizer(),
                     "How Are You Doing?",
                     "how are you doing?",
-                    true,   // IsOneToOneMapping
-                    true,   // CanMapToOriginal
-                    null,   // NormalizedToOriginalMapping
                 };
 
                 yield return new object?[]
@@ -32,9 +29,6 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new UpperCaseNormalizer(),
                     "How Are You Doing?",
                     "HOW ARE YOU DOING?",
-                    true,   // IsOneToOneMapping
-                    true,   // CanMapToOriginal
-                    null,   // NormalizedToOriginalMapping
                 };
 
                 yield return new object?[]
@@ -42,9 +36,6 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new RemoveQuotesNormalizer(),
                     "This is already normalized string",
                     "This is already normalized string",
-                    true,   // IsOneToOneMapping
-                    true,   // CanMapToOriginal
-                    null,   // NormalizedToOriginalMapping
                 };
 
                 yield return new object?[]
@@ -52,9 +43,6 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new RemoveQuotesNormalizer(),
                     "String \"to\" normalize",
                     "String to normalize",
-                    false,   // IsOneToOneMapping
-                    true,    // CanMapToOriginal
-                    new int[] { 0, 1, 2, 3, 4, 5, 6, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 },    // NormalizedToOriginalMapping
                 };
 
                 yield return new object?[]
@@ -62,38 +50,31 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new UnicodeNormalizer(NormalizationForm.FormKD),
                     "\uFB01", // Composed form of the character 'fi' one character
                     "fi", // normalized in 2 characters 'f' and 'i'
-                    false,   // IsOneToOneMapping
-                    false,    // CanMapToOriginal
-                    null,    // NormalizedToOriginalMapping
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(NormalizerData))]
-        public void TestNormalizer(Normalizer normalizer, string sentence, string normalized, bool isOneToOneMapping, bool canMapToOriginal, int[] normalizedToOriginalMapping)
+        public void TestNormalizer(Normalizer normalizer, string text, string normalized)
         {
-            NormalizedString ns = normalizer.Normalize(sentence);
-            Assert.Equal(normalized, ns.Normalized);
-            Assert.Equal(isOneToOneMapping, ns.IsOneToOneMapping);
-            Assert.Equal(canMapToOriginal, ns.CanMapToOriginal);
-            Assert.Equal(normalizedToOriginalMapping, ns.NormalizedToOriginalMapping);
+            string normalizedText = normalizer.Normalize(text);
+            Assert.Equal(normalized, normalizedText);
 
             Tokenizer tokenizer = new Tokenizer(BpeTests.CreateEmptyBpe(), WhiteSpace.Instance, normalizer);
-            EncodingResult encoding = tokenizer.Encode(sentence);
-            Assert.Equal(canMapToOriginal, encoding.OffsetsMappedToOriginalString);
-            Assert.Equal(sentence, encoding.OriginalString);
+            EncodingResult encoding = tokenizer.Encode(text);
+            Assert.Equal(text, encoding.OriginalString);
             Assert.Equal(normalized, encoding.NormalizedString);
         }
 
         public class RemoveQuotesNormalizer : Normalizer
         {
-            public override NormalizedString Normalize(string original)
+            public override string Normalize(string original)
             {
                 int index = original.IndexOf('"');
                 if (index <= 0)
                 {
-                    return new NormalizedString(original, original, null, true);
+                    return original;
                 }
 
                 StringBuilder sb = new StringBuilder(original.Length);
@@ -128,7 +109,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     }
                 } while (true);
 
-                return new NormalizedString(original, sb.ToString(), mapping.ToArray(), false);
+                return sb.ToString();
             }
         }
 
@@ -140,14 +121,14 @@ namespace Microsoft.ML.Tokenizers.Tests
                 _normalizationForm = form;
             }
 
-            public override NormalizedString Normalize(string original)
+            public override string Normalize(string original)
             {
                 if (string.IsNullOrEmpty(original))
                 {
-                    return new NormalizedString(original, "", null, true);
+                    return string.Empty;
                 }
 
-                return new NormalizedString(original, original.Normalize(_normalizationForm), null, false);
+                return original.Normalize(_normalizationForm);
             }
         }
     }
