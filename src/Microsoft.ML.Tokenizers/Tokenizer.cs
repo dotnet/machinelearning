@@ -384,6 +384,8 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
+        // Regex patterns based on https://github.com/openai/tiktoken/blob/main/tiktoken_ext/openai_public.py
+
         private const string Cl100kBaseRegexPattern = /*lang=regex*/ @"'(?i:[sdmt]|re|ve|ll)|(?>[^\r\n\p{L}\p{N}]?)\p{L}+|\p{N}{1,3}| ?(?>[^\s\p{L}\p{N}]+)[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+";
         private const string P50kBaseRegexPattern = /*lang=regex*/ @"'(?:[sdmt]|re|ve|ll)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+";
 
@@ -397,13 +399,13 @@ namespace Microsoft.ML.Tokenizers
         private static partial Regex Cl100kBaseRegex();
 
         [GeneratedRegex(P50kBaseRegexPattern)]
-        private static partial Regex P50kBaseRegex();
+        internal static partial Regex P50kBaseRegex();
 #else
         private static Regex? _cl100kBaseRegex;
         private static Regex Cl100kBaseRegex() => _cl100kBaseRegex ??= new Regex(Cl100kBaseRegexPattern, RegexOptions.Compiled);
 
         private static Regex? _p50kBaseRegex;
-        private static Regex P50kBaseRegex() => _p50kBaseRegex ??= new Regex(P50kBaseRegexPattern, RegexOptions.Compiled);
+        internal static Regex P50kBaseRegex() => _p50kBaseRegex ??= new Regex(P50kBaseRegexPattern, RegexOptions.Compiled);
 #endif
 
         /// <summary>

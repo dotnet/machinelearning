@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 namespace Microsoft.ML.Tokenizers
 {
@@ -17,15 +16,6 @@ namespace Microsoft.ML.Tokenizers
         /// Gets a singleton instance of the Roberta pre-tokenizer..
         /// </summary>
         public static RobertaPreTokenizer Instance { get; } = new RobertaPreTokenizer();
-
-        private const string PretokenizePattern = /*lang=regex*/ @"'(?:[sdmt]|re|ve|ll)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+";
-#if NET7_0_OR_GREATER
-        [GeneratedRegex(PretokenizePattern)]
-        private static partial Regex PretokenizeRegex();
-#else
-        private static readonly Regex _regex = new Regex(PretokenizePattern, RegexOptions.Compiled);
-        private static Regex PretokenizeRegex() => _regex;
-#endif
 
         /// <summary>
         /// Splits the given string in multiple substrings at the word boundary, keeping track of the offsets of said substrings from the original string.
@@ -40,7 +30,7 @@ namespace Microsoft.ML.Tokenizers
                 return Array.Empty<Split>();
             }
 
-            return SplitSentence(sentence, PretokenizeRegex());
+            return SplitSentence(sentence, Tokenizer.P50kBaseRegex());
         }
     }
 }
