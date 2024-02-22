@@ -29,26 +29,26 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Create a new Tiktoken tokenizer's model object.
         /// </summary>
-        /// <param name="tikTokenBpeFile">The path to the BPE rank file.</param>
-        /// <param name="specialTokensEncoder">The dictionary mapping special tokens to Ids.</param>
+        /// <param name="vocabFilePath">The path to the BPE vocab file.</param>
+        /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
         /// <param name="cacheSize">The size of the cache to use.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="tikTokenBpeFile"/> is null or empty.</exception>
-        /// <exception cref="InvalidOperationException">Thrown when failed to load the BPE rank file.</exception>
-        public Tiktoken(string tikTokenBpeFile, IReadOnlyDictionary<string, int>? specialTokensEncoder = null, int cacheSize = LruCache<string, int[]>.DefaultCacheSize) :
-            this(string.IsNullOrEmpty(tikTokenBpeFile) ? throw new ArgumentNullException(nameof(tikTokenBpeFile)) : File.OpenRead(tikTokenBpeFile), specialTokensEncoder, cacheSize, disposeStream: true)
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="vocabFilePath"/> is null or empty.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when failed to load the BPE vocab file.</exception>
+        public Tiktoken(string vocabFilePath, IReadOnlyDictionary<string, int>? specialTokens = null, int cacheSize = LruCache<string, int[]>.DefaultCacheSize) :
+            this(string.IsNullOrEmpty(vocabFilePath) ? throw new ArgumentNullException(nameof(vocabFilePath)) : File.OpenRead(vocabFilePath), specialTokens, cacheSize, disposeStream: true)
         {
         }
 
         /// <summary>
         /// Create a new Tiktoken tokenizer's model object.
         /// </summary>
-        /// <param name="tikTokenBpeFileStream">The stream to the BPE rank file.</param>
-        /// <param name="specialTokensEncoder">The dictionary mapping special tokens to Ids.</param>
+        /// <param name="vocabStream">The stream to the BPE vocab file.</param>
+        /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
         /// <param name="cacheSize">The size of the cache to use.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="tikTokenBpeFileStream"/> is null or empty.</exception>
-        /// <exception cref="InvalidOperationException">Thrown when failed to load the BPE rank file.</exception>
-        public Tiktoken(Stream tikTokenBpeFileStream, IReadOnlyDictionary<string, int>? specialTokensEncoder = null, int cacheSize = LruCache<string, int[]>.DefaultCacheSize) :
-            this(tikTokenBpeFileStream ?? throw new ArgumentNullException(nameof(tikTokenBpeFileStream)), specialTokensEncoder, cacheSize, disposeStream: false)
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="vocabStream"/> is null or empty.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when failed to load the BPE vocab file.</exception>
+        public Tiktoken(Stream vocabStream, IReadOnlyDictionary<string, int>? specialTokens = null, int cacheSize = LruCache<string, int[]>.DefaultCacheSize) :
+            this(vocabStream ?? throw new ArgumentNullException(nameof(vocabStream)), specialTokens, cacheSize, disposeStream: false)
         {
         }
 
@@ -58,13 +58,13 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="encoder">The dictionary mapping token utf-8 bytes to Ids.</param>
         /// <param name="decoder">The dictionary mapping Ids to token utf-8 bytes.</param>
         /// <param name="vocab">The dictionary mapping string tokens to Ids.</param>
-        /// <param name="specialTokensEncoder">The dictionary mapping special tokens to Ids.</param>
+        /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
         /// <param name="cacheSize">The max size of the cache to use.</param>
         public Tiktoken(
             IReadOnlyDictionary<ReadOnlyMemory<byte>, int> encoder,
             IReadOnlyDictionary<int, byte[]>? decoder,
             IReadOnlyDictionary<string, int>? vocab,
-            IReadOnlyDictionary<string, int>? specialTokensEncoder = null,
+            IReadOnlyDictionary<string, int>? specialTokens = null,
             int cacheSize = LruCache<string, int[]>.DefaultCacheSize) : this(cacheSize)
         {
             if (encoder is null)
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Tokenizers
                     string s = Encoding.UTF8.GetString(kvp.Key.ToArray());
 
                     // Don't add mal-formed utf8 converted bytes to the vocab.
-                    if (!StringContainInvalidChars(s))
+                    if (!s.Contains('\uFFFD'))
                     {
                         vocab1[s] = kvp.Value;
                     }
@@ -104,20 +104,20 @@ namespace Microsoft.ML.Tokenizers
 
             _vocab = vocab;
 
-            _specialTokensEncoder = specialTokensEncoder;
+            _specialTokensEncoder = specialTokens;
             if (_specialTokensEncoder is not null)
             {
                 _specialTokensDecoder = _specialTokensEncoder.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
             }
         }
 
-        private Tiktoken(Stream tikTokenBpeFileStream, IReadOnlyDictionary<string, int>? specialTokensEncoder, int cacheSize, bool disposeStream) : this(cacheSize)
+        private Tiktoken(Stream vocabStream, IReadOnlyDictionary<string, int>? specialTokens, int cacheSize, bool disposeStream) : this(cacheSize)
         {
             try
             {
-                (_encoder, _vocab, _decoder) = LoadTikTokenBpeAsync(tikTokenBpeFileStream, useAsync: false).GetAwaiter().GetResult();
+                (_encoder, _vocab, _decoder) = LoadTikTokenBpeAsync(vocabStream, useAsync: false).GetAwaiter().GetResult();
 
-                _specialTokensEncoder = specialTokensEncoder;
+                _specialTokensEncoder = specialTokens;
                 if (_specialTokensEncoder is not null)
                 {
                     _specialTokensDecoder = _specialTokensEncoder.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (disposeStream)
                 {
-                    tikTokenBpeFileStream.Dispose();
+                    vocabStream.Dispose();
                 }
             }
         }
@@ -148,61 +148,61 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Create a new Tiktoken tokenizer's model object asynchronously.
         /// </summary>
-        /// <param name="tikTokenBpeFileStream">The stream to the BPE rank file.</param>
-        /// <param name="specialTokensEncoder">The dictionary mapping special tokens to Ids.</param>
+        /// <param name="vocabStream">The stream to the BPE vocab file.</param>
+        /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
         /// <param name="cacheSize">The size of the cache to use.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>Tiktoken tokenizer's object.</returns>
         public static async Task<Tiktoken> CreateAsync(
-                            Stream tikTokenBpeFileStream,
-                            IReadOnlyDictionary<string, int>? specialTokensEncoder = null,
+                            Stream vocabStream,
+                            IReadOnlyDictionary<string, int>? specialTokens = null,
                             int cacheSize = LruCache<string, int[]>.DefaultCacheSize,
                             CancellationToken cancellationToken = default)
         {
-            if (tikTokenBpeFileStream is null)
+            if (vocabStream is null)
             {
-                throw new ArgumentNullException(nameof(tikTokenBpeFileStream));
+                throw new ArgumentNullException(nameof(vocabStream));
             }
 
             (IReadOnlyDictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<string, int> vocab, IReadOnlyDictionary<int, byte[]> decoder) =
-                        await LoadTikTokenBpeAsync(tikTokenBpeFileStream, useAsync: true, cancellationToken).ConfigureAwait(false);
+                        await LoadTikTokenBpeAsync(vocabStream, useAsync: true, cancellationToken).ConfigureAwait(false);
 
-            return new Tiktoken(encoder, decoder, vocab, specialTokensEncoder, cacheSize);
+            return new Tiktoken(encoder, decoder, vocab, specialTokens, cacheSize);
         }
 
         /// <summary>
         /// Create a new Tiktoken tokenizer's object asynchronously.
         /// </summary>
-        /// <param name="tikTokenBpeFile">The BPE rank file.</param>
+        /// <param name="vocabFilePath">The BPE vocab file.</param>
         /// <param name="specialTokensEncoder">The dictionary mapping special tokens to Ids.</param>
         /// <param name="cacheSize">The size of the cache to use.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>Tiktoken tokenizer's model object.</returns>
         public static async Task<Tiktoken> CreateAsync(
-                                string tikTokenBpeFile,
+                                string vocabFilePath,
                                 IReadOnlyDictionary<string, int>? specialTokensEncoder = null,
                                 int cacheSize = LruCache<string, int[]>.DefaultCacheSize,
                                 CancellationToken cancellationToken = default)
         {
-            if (tikTokenBpeFile is null)
+            if (vocabFilePath is null)
             {
-                throw new ArgumentNullException(nameof(tikTokenBpeFile));
+                throw new ArgumentNullException(nameof(vocabFilePath));
             }
 
-            using Stream tikTokenBpeFileStream = File.OpenRead(tikTokenBpeFile);
-            return await CreateAsync(tikTokenBpeFileStream, specialTokensEncoder, cacheSize, cancellationToken).ConfigureAwait(false);
+            using Stream vocabStream = File.OpenRead(vocabFilePath);
+            return await CreateAsync(vocabStream, specialTokensEncoder, cacheSize, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Load BPE rank dictionary from a stream.
+        /// Load BPE vocab dictionary from a stream.
         /// </summary>
-        /// <param name="tikTokenBpeFileStream">Stream to the BPE rank file</param>
+        /// <param name="vocabStream">Stream to the BPE vocab file</param>
         /// <param name="useAsync">Whether to perform I/O synchronously or asynchronously.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>Map of byte[] to integer token id</returns>
         /// <exception cref="InvalidOperationException"></exception>
         internal static async ValueTask<(Dictionary<ReadOnlyMemory<byte>, int>, Dictionary<string, int>, IReadOnlyDictionary<int, byte[]>)> LoadTikTokenBpeAsync(
-            Stream tikTokenBpeFileStream, bool useAsync, CancellationToken cancellationToken = default)
+            Stream vocabStream, bool useAsync, CancellationToken cancellationToken = default)
         {
             var encoder = new Dictionary<ReadOnlyMemory<byte>, int>(ReadOnlyMemoryByteComparer.Instance);
             var vocab = new Dictionary<string, int>();
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Tokenizers
 
             try
             {
-                using (StreamReader reader = new StreamReader(tikTokenBpeFileStream))
+                using (StreamReader reader = new StreamReader(vocabStream))
                 {
                     while (true)
                     {
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Tokenizers
                         int spaceIndex = line.IndexOf(' ');
                         if (spaceIndex <= 0 || spaceIndex >= line.Length - 1 || line.IndexOf(' ', spaceIndex + 1) >= 0)
                         {
-                            throw new FormatException($"Invalid format in the BPE encoder file stream");
+                            throw new FormatException($"Invalid format in the BPE vocab file stream");
                         }
 
                         if (Helpers.TryParseInt32(line, spaceIndex + 1, out int rank))
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Tokenizers
 
                             string decodedToken = Encoding.UTF8.GetString(tokenBytes);
 
-                            if (!StringContainInvalidChars(decodedToken))
+                            if (!decodedToken.Contains('\uFFFD'))
                             {
                                 vocab[decodedToken] = rank;
                             }
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Tokenizers
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to load from BPE encoder file stream: {ex.Message}", ex);
+                throw new InvalidOperationException($"Failed to load from BPE vocab file stream: {ex.Message}", ex);
             }
 
             return (encoder, vocab, decoder);
@@ -642,19 +642,6 @@ namespace Microsoft.ML.Tokenizers
                 return Encoding.UTF8.GetString(sourcePtr, utf8Bytes.Length);
             }
 #endif
-        }
-
-        private static bool StringContainInvalidChars(string text)
-        {
-            for (int i = 0; i < text.Length; i++)
-            {
-                if (text[i] == 0xFFFD)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }
