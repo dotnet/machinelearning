@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tokenizers
                 return Array.Empty<Split>();
             }
 
-            return SplitText(sentence, Tokenizer.P50kBaseRegex());
+            return SplitText(text, Tokenizer.P50kBaseRegex());
         }
     }
 }
