@@ -29,7 +29,6 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new int[] { 15496, 22108, 64 },
                     new string[] { "Hello", "\u0120Bert", "a" },
                     new (int, int)[] { (0, 5), (5, 5), (10, 1) },
-                    "Hello Berta",
                     new int[] { 35245, 144292, 18759122 },
                     new string[] { "Hello", " Bert", "a" },
                 };
@@ -42,7 +41,6 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new int[] { 15496, 22108, 64 },
                     new string[] { "Hello", "\u0120Bert", "a" },
                     new (int, int)[] { (0, 5), (5, 5), (10, 1) },
-                    "Hello Berta",
                     new int[] { 35245, 144292, 18759122 },
                     new string[] { "Hello", " Bert", "a" },
                 };
@@ -54,7 +52,6 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new int[] { 818, 262, 1755, 13 },
                     new string[] { "In", "\u0120the", "\u0120night", "." },
                     new (int, int)[] { (0, 2), (2, 4), (6, 6), (12, 1) },
-                    "In the night.",
                     new int[] { 2224123, 800385005, 6062347, 850314647 },
                     new string[] { "In", " the", " night", "." },
                 };
@@ -66,7 +63,6 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new int[] { 1544, 18798, 4312, 8326 },
                     new string[] { "He", "llo", "ĠBer", "ta" },
                     new (int, int)[] { (0, 2), (4, 3), (7, 4), (13, 2) },
-                    "Hello Berta",
                     new int[] { 2759525, 207306, 565286, 560191 },
                     new string[] { "He", "llo", " Ber", "ta" },
                 };
@@ -78,7 +74,6 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new int[] { },
                     new string[] {  },
                     new (int, int)[] { },
-                    "",
                     new int[] {  },
                     new string[] {  },
                 };
@@ -102,6 +97,9 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Tokenizer tokenizer = new Tokenizer(new EnglishRoberta(vocabFile, mergeFile, translationFile), RobertaPreTokenizer.Instance);
                 TestTokenizer(tokenizer);
 
+                tokenizer = new Tokenizer(new EnglishRoberta(vocabFile, mergeFile, translationFile, filterUnsupportedChars: false), RobertaPreTokenizer.Instance);
+                TestTokenizer(tokenizer);
+
                 using Stream vocabStream = File.OpenRead(vocabFile);
                 using Stream mergeStream = File.OpenRead(mergeFile);
                 using Stream translationStream = File.OpenRead(translationFile);
@@ -112,6 +110,9 @@ namespace Microsoft.ML.Tokenizers.Tests
                 for (CallingOrder order = CallingOrder.Encode; order <= CallingOrder.CountTokens; order++)
                 {
                     tokenizer = new Tokenizer(new EnglishRoberta(vocabFile, mergeFile, translationFile), RobertaPreTokenizer.Instance);
+                    TestTokenizer(tokenizer, order);
+
+                    tokenizer = new Tokenizer(new EnglishRoberta(vocabFile, mergeFile, translationFile, filterUnsupportedChars: false), RobertaPreTokenizer.Instance);
                     TestTokenizer(tokenizer, order);
                 }
             }
@@ -173,25 +174,34 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(p[1], encoding.Ids);
                 Assert.Equal(p[1], ids);
                 Assert.Equal(((int[])p[1]).Length, idsCount);
-                Assert.Equal(p[2], encoding.Tokens);
                 Assert.Equal(p[3], encoding.Offsets);
                 Assert.Equal(encoding.Ids.Count, encoding.Tokens.Count);
                 Assert.Equal(encoding.Ids.Count, encoding.Offsets.Count);
-                Assert.Equal(p[4], tokenizer.Decode(encoding.Ids));
+
                 EnglishRoberta? robertaModel = tokenizer.Model as EnglishRoberta;
+                Assert.Equal(p[2], encoding.Tokens);
+
+                Assert.Equal(string.Concat((string[])(p[robertaModel!.FilterUnsupportedChars ? 5 : 2])), tokenizer.Decode(encoding.Ids));
+
                 Assert.NotNull(robertaModel);
                 Assert.Equal(encoding.Ids, robertaModel!.ConvertOccurrenceRanksToIds(robertaModel!.ConvertIdsToOccurrenceRanks(encoding.Ids)));
-                Assert.Equal(p[5], robertaModel.ConvertIdsToOccurrenceValues(encoding.Ids));
+                Assert.Equal(p[4], robertaModel.ConvertIdsToOccurrenceValues(encoding.Ids));
 
                 for (int i = 0; i < encoding.Tokens.Count; i++)
                 {
-                    Assert.Equal(encoding.Tokens[i], tokenizer.Model.MapIdToToken(encoding.Ids[i], considerSpecialTokens: false, filterUnsupportedChars: false));
+                    if (robertaModel.FilterUnsupportedChars)
+                    {
+                        string[]? filteredToken = p[5] as string[];
+                        Assert.Equal(filteredToken![i], tokenizer.Model.MapIdToToken(encoding.Ids[i], considerSpecialTokens: false));
+                    }
+                    else
+                    {
+                        Assert.Equal(encoding.Tokens[i], tokenizer.Model.MapIdToToken(encoding.Ids[i], considerSpecialTokens: false));
+                        string[]? unfilteredToken = p[2] as string[];
+                        Assert.Equal(unfilteredToken![i], tokenizer.Model.MapIdToToken(encoding.Ids[i], considerSpecialTokens: false));
+                    }
+
                     Assert.Equal(encoding.Ids[i], tokenizer.Model.MapTokenToId(encoding.Tokens[i]));
-                    Assert.Equal(encoding.Tokens[i], tokenizer.Decode(encoding.Ids[i], considerSpecialTokens: false, filterUnsupportedChars: false));
-
-                    string[]? filteredToken = p[6] as string[];
-
-                    Assert.Equal(filteredToken![i], tokenizer.Model.MapIdToToken(encoding.Ids[i], considerSpecialTokens: false, filterUnsupportedChars: true));
                 }
             }
         }

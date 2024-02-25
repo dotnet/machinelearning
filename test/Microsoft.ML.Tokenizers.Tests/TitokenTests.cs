@@ -38,32 +38,34 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             Assert.True(GPT4.Model is Tiktoken);
             IReadOnlyDictionary<string, int>? specialTokensEncoder = (GPT4.Model as Tiktoken)!.SpecialTokensEncoder;
-            string tokenizerDataFileName = "./Data/cl100k_base.tiktoken";
 
-            Tokenizer tokenizer = new Tokenizer(new Tiktoken(tokenizerDataFileName, specialTokensEncoder), GPT4.PreTokenizer);
-            TestGPT4TokenizationEncoding(tokenizer);
+            string tokenizerDataFileName = Utils.CreateTemporaryFile("tiktoken");
+            await Utils.DownloadFile(@"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken", tokenizerDataFileName);
 
-            using (Stream stream = File.OpenRead(tokenizerDataFileName))
+            try
             {
-                tokenizer = new Tokenizer(new Tiktoken(stream, specialTokensEncoder), GPT4.PreTokenizer);
+                Tokenizer tokenizer = new Tokenizer(new Tiktoken(tokenizerDataFileName, specialTokensEncoder), GPT4.PreTokenizer);
+                TestGPT4TokenizationEncoding(tokenizer);
+
+                using (Stream stream = File.OpenRead(tokenizerDataFileName))
+                {
+                    tokenizer = new Tokenizer(new Tiktoken(stream, specialTokensEncoder), GPT4.PreTokenizer);
+                }
+                TestGPT4TokenizationEncoding(tokenizer);
+
+                tokenizer = new Tokenizer(await Tiktoken.CreateAsync(tokenizerDataFileName, specialTokensEncoder), GPT4.PreTokenizer);
+                TestGPT4TokenizationEncoding(tokenizer);
+
+                using (Stream stream = File.OpenRead(tokenizerDataFileName))
+                {
+                    tokenizer = new Tokenizer(await Tiktoken.CreateAsync(stream, specialTokensEncoder), GPT4.PreTokenizer);
+                }
+                TestGPT4TokenizationEncoding(tokenizer);
             }
-            TestGPT4TokenizationEncoding(tokenizer);
-
-            tokenizer = new Tokenizer(await Tiktoken.CreateAsync(tokenizerDataFileName, specialTokensEncoder), GPT4.PreTokenizer);
-            TestGPT4TokenizationEncoding(tokenizer);
-
-            using (Stream stream = File.OpenRead(tokenizerDataFileName))
+            finally
             {
-                tokenizer = new Tokenizer(await Tiktoken.CreateAsync(stream, specialTokensEncoder), GPT4.PreTokenizer);
+                Utils.DeleteFile(tokenizerDataFileName);
             }
-            TestGPT4TokenizationEncoding(tokenizer);
-
-            Tiktoken? tiktoken = GPT4.Model as Tiktoken;
-            tokenizer = new Tokenizer(new Tiktoken(tiktoken!.Encoder, tiktoken!.Decoder, tiktoken!.Vocab, specialTokensEncoder), GPT4.PreTokenizer);
-            TestGPT4TokenizationEncoding(tokenizer);
-
-            tokenizer = new Tokenizer(new Tiktoken(tiktoken!.Encoder, decoder: null, vocab: null, specialTokensEncoder), GPT4.PreTokenizer);
-            TestGPT4TokenizationEncoding(tokenizer);
         }
 
         private void TestGPT4TokenizationEncoding(Tokenizer tokenizer)

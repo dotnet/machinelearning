@@ -14,7 +14,7 @@ namespace Microsoft.ML.Tokenizers
     public abstract class Model
     {
         /// <summary>
-        /// Encode a split text string to a list of tokens.
+        /// Encode a text to a list of tokens.
         /// </summary>
         /// <param name="text">The text to encode.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
@@ -22,9 +22,9 @@ namespace Microsoft.ML.Tokenizers
         public abstract IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false);
 
         /// <summary>
-        /// Encode a split text string to a list of Ids and add them to the accumulatedIds list.
+        /// Encode a text to a list of Ids and add them to the accumulatedIds list.
         /// </summary>
-        /// <param name="text">The text to split.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
         /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
         /// <remarks>
@@ -75,28 +75,29 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
-        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public abstract string? MapIdToToken(int id, bool considerSpecialTokens = true, bool filterUnsupportedChars = true);
+        public abstract string? MapIdToToken(int id, bool considerSpecialTokens = true);
 
         /// <summary>
         /// Decode the given ids, back to a String.
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
         /// <param name="considerSpecialTokens">Whether the special tokens should be kept in the decoded string.</param>
-        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <param name="decoder">The optional Decoder to merge the given list of tokens in a string.</param>
         /// <returns>The decoded string.</returns>
-        public virtual string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null, bool considerSpecialTokens = true, bool filterUnsupportedChars = true)
+        public virtual string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null, bool considerSpecialTokens = true)
         {
             List<string> tokens = new List<string>();
 
             foreach (int id in ids)
             {
-                tokens.Add(MapIdToToken(id, considerSpecialTokens, filterUnsupportedChars) ?? "");
+                if (MapIdToToken(id, considerSpecialTokens) is string s)
+                {
+                    tokens.Add(s);
+                }
             }
 
-            return decoder?.Decode(tokens) ?? string.Join("", tokens);
+            return decoder?.Decode(tokens) ?? string.Concat(tokens);
         }
     }
 }

@@ -8,9 +8,6 @@
 
   <!-- Import the test signing certificate -->
   <Import Project="../Cert.props" />
-  <ItemGroup>
-    <None Remove="Data\wiki.test.raw" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj" />
@@ -33,9 +30,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Data\tokens_r50k_base.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\cl100k_base.tiktoken">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

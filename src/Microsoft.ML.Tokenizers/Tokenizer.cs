@@ -141,18 +141,16 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="id">The id to map to the token.</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
-        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The decoded string or null if there is no token mapped to the input id.</returns>
-        public string? Decode(int id, bool considerSpecialTokens = true, bool filterUnsupportedChars = true) => Model.MapIdToToken(id, considerSpecialTokens, filterUnsupportedChars);
+        public string? Decode(int id, bool considerSpecialTokens = true) => Model.MapIdToToken(id, considerSpecialTokens);
 
         /// <summary>
         /// Decode the given ids, back to a String.
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
         /// <param name="considerSpecialTokens">Whether the special tokens should be kept in the decoded string.</param>
-        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The decoded string.</returns>
-        public string? Decode(IEnumerable<int> ids, bool considerSpecialTokens = true, bool filterUnsupportedChars = true) => Model.Decode(ids, Decoder, considerSpecialTokens, filterUnsupportedChars);
+        public string? Decode(IEnumerable<int> ids, bool considerSpecialTokens = true) => Model.Decode(ids, Decoder, considerSpecialTokens);
 
         private const string EndOfText = "<|endoftext|>";
         private const string FimPrefix = "<|fim_prefix|>";
@@ -345,7 +343,7 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
-        private static readonly ConcurrentDictionary<string, (IReadOnlyDictionary<ReadOnlyMemory<byte>, int>, Dictionary<string, int>, IReadOnlyDictionary<int, byte[]>)> _tiktokenCache = new(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<string, (Dictionary<ReadOnlyMemory<byte>, int>, Dictionary<string, int>, Dictionary<int, ReadOnlyMemory<byte>>)> _tiktokenCache = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Create tokenizer based on regex pattern, BPE rank file and special tokens
@@ -373,7 +371,7 @@ namespace Microsoft.ML.Tokenizers
                 }
             }
 
-            if (!_tiktokenCache.TryGetValue(mergeableRanksFileUrl, out (IReadOnlyDictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<string, int> vocab, IReadOnlyDictionary<int, byte[]> decoder) cache))
+            if (!_tiktokenCache.TryGetValue(mergeableRanksFileUrl, out (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<string, int> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) cache))
             {
                 using (Stream stream = await Helpers.GetStreamAsync(_httpClient, mergeableRanksFileUrl, cancellationToken).ConfigureAwait(false))
                 {

@@ -27,12 +27,18 @@ namespace Microsoft.ML.Tokenizers
         private readonly Cache<string, List<Token>> _cache;
 
         /// <summary>
+        /// Indicate if want to filter the unsupported characters during the decoding.
+        /// </summary>
+        public bool FilterUnsupportedChars { get; }
+
+        /// <summary>
         /// Construct tokenizer's model object to use with the English Robert model.
         /// </summary>
         /// <param name="vocabularyPath">The JSON file path containing the dictionary of string keys and their ids.</param>
         /// <param name="mergePath">The file path containing the tokens's pairs list.</param>
         /// <param name="highestOccurrenceMappingPath">Remap the original GPT-2 model Ids to high occurrence ranks and values.</param>
-        public EnglishRoberta(string vocabularyPath, string mergePath, string highestOccurrenceMappingPath)
+        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
+        public EnglishRoberta(string vocabularyPath, string mergePath, string highestOccurrenceMappingPath, bool filterUnsupportedChars = true)
         {
             if (vocabularyPath is null)
             {
@@ -48,6 +54,8 @@ namespace Microsoft.ML.Tokenizers
             {
                 throw new ArgumentNullException(nameof(highestOccurrenceMappingPath));
             }
+
+            FilterUnsupportedChars = filterUnsupportedChars;
 
             using Stream vocabularyStream = File.OpenRead(vocabularyPath);
             using Stream mergeStream = File.OpenRead(mergePath);
@@ -78,7 +86,8 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="vocabularyStream">The stream of a JSON file containing the dictionary of string keys and their ids.</param>
         /// <param name="mergeStream">The stream of a file containing the tokens's pairs list.</param>
         /// <param name="highestOccurrenceMappingStream">Remap the original GPT-2 model Ids to high occurrence ranks and values.</param>
-        public EnglishRoberta(Stream vocabularyStream, Stream mergeStream, Stream highestOccurrenceMappingStream)
+        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
+        public EnglishRoberta(Stream vocabularyStream, Stream mergeStream, Stream highestOccurrenceMappingStream, bool filterUnsupportedChars = true)
         {
             if (vocabularyStream is null)
             {
@@ -94,6 +103,8 @@ namespace Microsoft.ML.Tokenizers
             {
                 throw new ArgumentNullException(nameof(highestOccurrenceMappingStream));
             }
+
+            FilterUnsupportedChars = filterUnsupportedChars;
 
             _vocabIdToHighestOccurrence = GetHighestOccurrenceMapping(highestOccurrenceMappingStream);
             _vocab = GetVocabulary(vocabularyStream);
@@ -124,9 +135,8 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="id">The Id to map to the string.</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
-        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public override string? MapIdToToken(int id, bool considerSpecialTokens = true, bool filterUnsupportedChars = true)
+        public override string? MapIdToToken(int id, bool considerSpecialTokens = true)
         {
             if (!considerSpecialTokens && id < 0)
             {
@@ -135,12 +145,22 @@ namespace Microsoft.ML.Tokenizers
 
             if (_vocabReverse.TryGetValue(id, out var value))
             {
-                if (filterUnsupportedChars)
+                if (FilterUnsupportedChars)
                 {
-                    var textChars = string.Join("", value)
-                        .Where(c => _unicodeToByte.ContainsKey(c))
-                        .Select(c => _unicodeToByte[c]);
-                    return new string(textChars.ToArray());
+                    char[] buffer = ArrayPool<char>.Shared.Rent(value.Length);
+                    int i = 0;
+
+                    for (int j = 0; j < value.Length; j++)
+                    {
+                        if (_unicodeToByte.TryGetValue(value[j], out var c))
+                        {
+                            buffer[i++] = c;
+                        }
+                    }
+
+                    string result = new string(buffer, 0, i);
+                    ArrayPool<char>.Shared.Return(buffer);
+                    return result;
                 }
                 else
                 {

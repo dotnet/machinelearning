@@ -19,12 +19,12 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     public sealed class Tiktoken : Model
     {
-        private readonly IReadOnlyDictionary<ReadOnlyMemory<byte>, int> _encoder = null!;
-        private readonly IReadOnlyDictionary<int, byte[]> _decoder = null!;
+        private readonly Dictionary<ReadOnlyMemory<byte>, int> _encoder = null!;
+        private readonly Dictionary<int, ReadOnlyMemory<byte>> _decoder = null!;
         private readonly LruCache<string, int[]>? _cache;
         private readonly IReadOnlyDictionary<string, int>? _specialTokensEncoder;
         private readonly Dictionary<int, string>? _specialTokensDecoder;
-        private readonly IReadOnlyDictionary<string, int> _vocab = null!;
+        private readonly Dictionary<string, int> _vocab = null!;
 
         /// <summary>
         /// Create a new Tiktoken tokenizer's model object.
@@ -60,49 +60,18 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="vocab">The dictionary mapping string tokens to Ids.</param>
         /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
         /// <param name="cacheSize">The max size of the cache to use.</param>
-        public Tiktoken(
-            IReadOnlyDictionary<ReadOnlyMemory<byte>, int> encoder,
-            IReadOnlyDictionary<int, byte[]>? decoder,
-            IReadOnlyDictionary<string, int>? vocab,
-            IReadOnlyDictionary<string, int>? specialTokens = null,
+        internal Tiktoken(
+            Dictionary<ReadOnlyMemory<byte>, int> encoder,
+            Dictionary<int, ReadOnlyMemory<byte>> decoder,
+            Dictionary<string, int> vocab,
+            IReadOnlyDictionary<string, int>? specialTokens,
             int cacheSize = LruCache<string, int[]>.DefaultCacheSize) : this(cacheSize)
         {
-            if (encoder is null)
-            {
-                throw new ArgumentNullException(nameof(encoder));
-            }
+            _encoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
+            _decoder = decoder ?? throw new ArgumentNullException(nameof(decoder));
+            _vocab = vocab ?? throw new ArgumentNullException(nameof(vocab));
 
-            _encoder = encoder;
-
-            if (decoder is null)
-            {
-                decoder = encoder.ToDictionary(kvp => kvp.Value, kvp => kvp.Key.ToArray());
-            }
-
-            if (encoder.Count != decoder.Count)
-            {
-                throw new ArgumentException("The encoder and decoder dictionaries must have the same number of elements");
-            }
-
-            _decoder = decoder!;
-
-            if (vocab is null)
-            {
-                var vocab1 = new Dictionary<string, int>();
-                foreach (var kvp in encoder)
-                {
-                    string s = GetString(kvp.Key.Span);
-
-                    // Don't add mal-formed utf8 converted bytes to the vocab.
-                    if (!s.Contains('\uFFFD'))
-                    {
-                        vocab1[s] = kvp.Value;
-                    }
-                }
-                vocab = vocab1;
-            }
-
-            _vocab = vocab;
+            Debug.Assert(encoder.Count == decoder.Count);
 
             _specialTokensEncoder = specialTokens;
             if (_specialTokensEncoder is not null)
@@ -164,7 +133,7 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(vocabStream));
             }
 
-            (IReadOnlyDictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<string, int> vocab, IReadOnlyDictionary<int, byte[]> decoder) =
+            (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<string, int> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) =
                         await LoadTikTokenBpeAsync(vocabStream, useAsync: true, cancellationToken).ConfigureAwait(false);
 
             return new Tiktoken(encoder, decoder, vocab, specialTokens, cacheSize);
@@ -201,12 +170,12 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>Map of byte[] to integer token id</returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async ValueTask<(Dictionary<ReadOnlyMemory<byte>, int>, Dictionary<string, int>, IReadOnlyDictionary<int, byte[]>)> LoadTikTokenBpeAsync(
+        internal static async ValueTask<(Dictionary<ReadOnlyMemory<byte>, int>, Dictionary<string, int>, Dictionary<int, ReadOnlyMemory<byte>>)> LoadTikTokenBpeAsync(
             Stream vocabStream, bool useAsync, CancellationToken cancellationToken = default)
         {
             var encoder = new Dictionary<ReadOnlyMemory<byte>, int>(ReadOnlyMemoryByteComparer.Instance);
             var vocab = new Dictionary<string, int>();
-            var decoder = new Dictionary<int, byte[]>();
+            var decoder = new Dictionary<int, ReadOnlyMemory<byte>>();
 
             try
             {
@@ -241,7 +210,7 @@ namespace Microsoft.ML.Tokenizers
 
                             string decodedToken = Encoding.UTF8.GetString(tokenBytes);
 
-                            if (!decodedToken.Contains('\uFFFD'))
+                            if (decodedToken.IndexOf('\uFFFD') < 0)
                             {
                                 vocab[decodedToken] = rank;
                             }
@@ -479,18 +448,17 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
-        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public override string? MapIdToToken(int id, bool considerSpecialTokens = true, bool filterUnsupportedChars = true)
+        public override string? MapIdToToken(int id, bool considerSpecialTokens = true)
         {
             if (considerSpecialTokens && _specialTokensDecoder is not null && _specialTokensDecoder.TryGetValue(id, out string? token))
             {
                 return token;
             }
 
-            if (_decoder.TryGetValue(id, out byte[]? tokenBytes))
+            if (_decoder.TryGetValue(id, out ReadOnlyMemory<byte> tokenBytes))
             {
-                return Encoding.UTF8.GetString(tokenBytes);
+                return GetString(tokenBytes.Span);
             }
 
             return null;
@@ -501,10 +469,9 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
         /// <param name="considerSpecialTokens">Whether the special tokens should be kept in the decoded string.</param>
-        /// <param name="filterUnsupportedChars">Indicate if want to filter the unsupported characters during the decoding.</param>
         /// <param name="decoder">The optional Decoder to merge the given list of tokens in a string.</param>
         /// <returns>The decoded string.</returns>
-        public override string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null, bool considerSpecialTokens = true, bool filterUnsupportedChars = true)
+        public override string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null, bool considerSpecialTokens = true)
         {
             // Tiktoken does not ensure a one-to-one mapping between IDs and tokens. Consequently, decoding individual IDs into tokens is not supported;
             // instead, decoding all IDs must be done collectively.
@@ -527,14 +494,14 @@ namespace Microsoft.ML.Tokenizers
 
                 foreach (int id in ids)
                 {
-                    if (_decoder.TryGetValue(id, out byte[]? tokenBytes))
+                    if (_decoder.TryGetValue(id, out ReadOnlyMemory<byte> tokenBytes))
                     {
                         if ((uint)utf8ByteCount + (uint)tokenBytes.Length > (uint)utf8Bytes.Length)
                         {
                             ArrayPoolGrow(ref utf8Bytes, ref arrayPoolArray, utf8ByteCount + tokenBytes.Length);
                         }
 
-                        tokenBytes.AsSpan().CopyTo(utf8Bytes.Slice(utf8ByteCount));
+                        tokenBytes.Span.CopyTo(utf8Bytes.Slice(utf8ByteCount));
                         utf8ByteCount += tokenBytes.Length;
                     }
                     else if (useSpecialTokens && _specialTokensDecoder!.TryGetValue(id, out string? token))
@@ -593,7 +560,7 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the dictionary mapping Ids to token utf-8 bytes.
         /// </summary>
-        public IReadOnlyDictionary<int, byte[]>? Decoder => _decoder;
+        public IReadOnlyDictionary<int, ReadOnlyMemory<byte>> Decoder => _decoder;
 
         private static unsafe int GetUtf8Bytes(ReadOnlySpan<char> source, Span<byte> destination)
         {
