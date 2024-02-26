@@ -23,17 +23,17 @@ namespace Microsoft.ML.Tokenizers
         /// and in the end we might be carrying a lot of SubString representing various parts of the
         /// original input string.
         /// </summary>
-        public string TokenString => _tokenString ??= _originalString!.Substring(Offset.Index, Offset.End - Offset.Index);
+        public string TokenString => _tokenString ??= _originalString!.Substring(Offset.Index, Offset.Length);
 
         /// <summary>
         /// Gets the underlying split token as a span.
         /// </summary>
-        public ReadOnlySpan<char> TokenSpan => _tokenString is string s ? s.AsSpan() : _originalString.AsSpan(Offset.Index, Offset.End - Offset.Index);
+        public ReadOnlySpan<char> TokenSpan => _tokenString is string s ? s.AsSpan() : _originalString.AsSpan(Offset.Index, Offset.Length);
 
         /// <summary>
         /// Returns the offset mapping to the original string
         /// </summary>
-        public (int Index, int End) Offset { get; }
+        public (int Index, int Length) Offset { get; }
 
         /// <summary>
         /// create a Split object using the token and the offset
@@ -41,14 +41,14 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="token">The token string</param>
         /// <param name="offset">The offset mapping to the original string</param>
         /// <param name="isSpecialToken">Indicates whether the token is a special token</param>
-        public Split(string token, (int Index, int End) offset, bool isSpecialToken = false)
+        public Split(string token, (int Index, int Length) offset, bool isSpecialToken = false)
         {
             _tokenString = token;
             Offset = offset;
             IsSpecialToken = isSpecialToken;
         }
 
-        internal Split(string originalString, string? token, (int Index, int End) offset, bool isSpecialToken = false)
+        internal Split(string originalString, string? token, (int Index, int Length) offset, bool isSpecialToken = false)
         {
             _originalString = originalString;
             _tokenString = token;
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tokenizers
             (_originalString == other._originalString || TokenString == other.TokenString) &&
             IsSpecialToken == other.IsSpecialToken &&
             Offset.Index == other.Offset.Index &&
-            Offset.End == other.Offset.End;
+            Offset.Length == other.Offset.Length;
     }
 
     /// <summary>
@@ -81,32 +81,32 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Splits the given string in multiple substrings at the word boundary, keeping track of the offsets of said substrings from the original string.
         /// </summary>
-        /// <param name="sentence">The string to split into tokens.</param>
-        /// <param name="skipSpecialTokens">Indicates whether to skip the special tokens.</param>
+        /// <param name="text">The string to split into tokens.</param>
+        /// <param name="considerSpecialTokens">Indicates whether to consider the special tokens.</param>
         /// <returns>The list of the splits containing the tokens and the token's offsets to the original string.</returns>
-        public abstract IEnumerable<Split> PreTokenize(string sentence, bool skipSpecialTokens = false);
+        public abstract IEnumerable<Split> PreTokenize(string text, bool considerSpecialTokens = true);
 
-        internal static IEnumerable<Split> SplitSentence(string sentence, Regex regex)
+        internal static IEnumerable<Split> SplitText(string text, Regex regex)
         {
             (int Offset, int Length) match;
             int beginning = 0;
-            while (TryGetMatch(regex, sentence, beginning, sentence.Length - beginning, out match))
+            while (TryGetMatch(regex, text, beginning, text.Length - beginning, out match))
             {
-                yield return new Split(sentence, null, (match.Offset, match.Offset + match.Length));
+                yield return new Split(text, null, (match.Offset, match.Length));
                 beginning = match.Offset + match.Length;
             }
         }
 
-        internal static bool TryGetMatch(Regex regex, string sentence, int beginning, int length, out (int offset, int length) match)
+        internal static bool TryGetMatch(Regex regex, string text, int beginning, int length, out (int offset, int length) match)
         {
 #if NET7_0_OR_GREATER
-            foreach (ValueMatch m in regex.EnumerateMatches(sentence.AsSpan(beginning, length)))
+            foreach (ValueMatch m in regex.EnumerateMatches(text.AsSpan(beginning, length)))
             {
                 match = (beginning + m.Index, m.Length);
                 return true;
             }
 #else
-            Match m = regex.Match(sentence, beginning, length);
+            Match m = regex.Match(text, beginning, length);
             if (m.Success)
             {
                 match = (m.Index, m.Length);

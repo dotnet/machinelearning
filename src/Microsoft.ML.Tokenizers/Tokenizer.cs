@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 namespace Microsoft.ML.Tokenizers
 {
     /// <summary>
-    /// A Tokenizer works as a pipeline. It processes some raw text as input and outputs a TokenizerResult object.
+    /// A Tokenizer works as a pipeline. It processes some raw text as input and outputs a EncodingResult object.
     /// </summary>
     public partial class Tokenizer
     {
@@ -25,11 +25,13 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="model">The Model in use by the Tokenizer.</param>
         /// <param name="preTokenizer">The optional PreTokenizer in use by the Tokenizer. WhiteSpace PreTokenizer will be used if this parameter is null.</param>
         /// <param name="normalizer">The optional Normalizer in use by the Tokenizer.</param>
-        public Tokenizer(Model model, PreTokenizer? preTokenizer = null, Normalizer? normalizer = null)
+        /// <param name="decoder">The optional Decoder in use by the Tokenizer during the decoding operation to merge the given list of tokens in a string.</param>
+        public Tokenizer(Model model, PreTokenizer? preTokenizer = null, Normalizer? normalizer = null, TokenizerDecoder? decoder = null)
         {
             Model = model;
             PreTokenizer = preTokenizer ?? WhiteSpace.Instance;
             Normalizer = normalizer;
+            Decoder = decoder;
         }
 
         /// <summary>
@@ -40,82 +42,45 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets or sets the PreTokenizer used by the Tokenizer.
         /// </summary>
-        public PreTokenizer PreTokenizer { get; set; }
+        public PreTokenizer PreTokenizer { get; }
 
         /// <summary>
         /// Gets or sets the Normalizer in use by the Tokenizer.
         /// </summary>
-        public Normalizer? Normalizer { get; set; }
+        public Normalizer? Normalizer { get; }
 
         /// <summary>
         /// Gets or sets the Decoder in use by the Tokenizer.
         /// </summary>
-        public TokenizerDecoder? Decoder { get; set; }
+        public TokenizerDecoder? Decoder { get; }
 
         /// <summary>
         /// Encodes input text to object has the tokens list, tokens Ids, tokens offset mapping.
         /// </summary>
-        /// <param name="sequence">The text to tokenize.</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
-        public TokenizerResult Encode(string sequence, bool skipSpecialTokens = false)
+        public EncodingResult Encode(string text, bool considerSpecialTokens = true)
         {
-            if (sequence is null)
+            if (text is null)
             {
-                throw new ArgumentNullException(nameof(sequence));
+                throw new ArgumentNullException(nameof(text));
             }
 
-            string normalized;
-            NormalizedString normalizedString = default;
-
+            string normalized = Normalizer is null ? text : Normalizer.Normalize(text);
             bool offsetsMappedToOriginal = true;
-            if (Normalizer is not null)
-            {
-                normalizedString = Normalizer.Normalize(sequence);
-                normalized = normalizedString.Normalized;
 
-                offsetsMappedToOriginal = normalizedString.CanMapToOriginal;
-            }
-            else
-            {
-                normalized = sequence;
-            }
+            EncodingResult encoding = new(text, normalized, PreTokenizer.PreTokenize(normalized, considerSpecialTokens), offsetsMappedToOriginal);
 
-            TokenizerResult encoding = new(sequence, normalized, PreTokenizer.PreTokenize(normalized, skipSpecialTokens), offsetsMappedToOriginal);
-
-            if (Normalizer is null || !normalizedString.CanMapToOriginal || normalizedString.IsOneToOneMapping)
+            foreach (Split split in encoding.Splits)
             {
-                // Optimize the case we don't have to map the offsets.
-                foreach (Split split in encoding.Splits)
+                IReadOnlyList<Token> tokens = Model.Encode(split.TokenString, split.IsSpecialToken);
+                foreach (Token token in tokens)
                 {
-                    IReadOnlyList<Token> tokens = Model.Tokenize(split.TokenString, split.IsSpecialToken);
-                    foreach (Token token in tokens)
-                    {
-                        token.Offset = (token.Offset.Index + split.Offset.Index, token.Offset.End + split.Offset.Index);
-                    }
-
-                    encoding.AddTokens(tokens);
+                    token.Offset = (token.Offset.Index + split.Offset.Index, token.Offset.Length);
                 }
-            }
-            else
-            {
-                Debug.Assert(normalizedString.NormalizedToOriginalMapping is not null);
 
-                foreach (Split split in encoding.Splits)
-                {
-                    IReadOnlyList<Token> tokens = Model.Tokenize(split.TokenString, split.IsSpecialToken);
-                    foreach (Token token in tokens)
-                    {
-                        int index = normalizedString.NormalizedToOriginalMapping![token.Offset.Index + split.Offset.Index];
-                        int end = normalizedString.NormalizedToOriginalMapping![token.Offset.End + split.Offset.Index - 1] + 1;
-
-                        Debug.Assert(index < end && end >= 0 && index >= 0);
-
-                        token.Offset = (index, end);
-                    }
-
-                    encoding.AddTokens(tokens);
-                }
+                encoding.AddTokens(tokens);
             }
 
             return encoding;
@@ -124,46 +89,46 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Encodes input text to tokens Ids.
         /// </summary>
-        /// <param name="sequence">The text to tokenize.</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
-        public IReadOnlyList<int> EncodeToIds(string sequence, bool skipSpecialTokens = false)
+        public IReadOnlyList<int> EncodeToIds(string text, bool considerSpecialTokens = true)
         {
-            if (sequence is null)
+            if (text is null)
             {
-                throw new ArgumentNullException(nameof(sequence));
+                throw new ArgumentNullException(nameof(text));
             }
 
-            string normalized = Normalizer is not null ? Normalizer.Normalize(sequence).Normalized : sequence;
+            string normalized = Normalizer is not null ? Normalizer.Normalize(text) : text;
             List<int> idsList = new();
 
-            foreach (Split split in PreTokenizer.PreTokenize(normalized, skipSpecialTokens))
+            foreach (Split split in PreTokenizer.PreTokenize(normalized, considerSpecialTokens))
             {
-                Model.TokenizeToIds(split.TokenString, split.IsSpecialToken, idsList);
+                Model.EncodeToIds(split.TokenString, split.IsSpecialToken, idsList);
             }
 
             return idsList;
         }
 
         /// <summary>
-        /// Get the number of tokens that the input sequence will be encoded to.
+        /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
-        /// <param name="sequence">The text to tokenize.</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
-        /// <returns>The number of tokens Ids that the input sequence will be encoded to.</returns>
-        /// <exception cref="ArgumentNullException">The input sequence is null.</exception>
-        /// <exception cref="ArgumentException">Unable to tokenize the sequence.</exception>
-        public int CountTokens(string sequence, bool skipSpecialTokens = false)
+        /// <param name="text">The text to encode.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
+        /// <returns>The number of tokens Ids that the input text will be encoded to.</returns>
+        /// <exception cref="ArgumentNullException">The input text is null.</exception>
+        /// <exception cref="ArgumentException">Unable to encode the text.</exception>
+        public int CountTokens(string text, bool considerSpecialTokens = true)
         {
-            if (sequence is null)
+            if (text is null)
             {
-                throw new ArgumentNullException(nameof(sequence));
+                throw new ArgumentNullException(nameof(text));
             }
 
-            string normalized = Normalizer is not null ? Normalizer.Normalize(sequence).Normalized : sequence;
+            string normalized = Normalizer is not null ? Normalizer.Normalize(text) : text;
 
             int idsCount = 0;
-            foreach (Split split in PreTokenizer.PreTokenize(normalized, skipSpecialTokens))
+            foreach (Split split in PreTokenizer.PreTokenize(normalized, considerSpecialTokens))
             {
                 idsCount += Model.CountTokens(split.TokenString, split.IsSpecialToken);
             }
@@ -171,99 +136,21 @@ namespace Microsoft.ML.Tokenizers
             return idsCount;
         }
 
-        // skipSpecialTokens is used in post processing we don't support yet. We are keeping it to allow using it when we support post processing.
         /// <summary>
         /// Decodes the Id to the mapped token.
         /// </summary>
         /// <param name="id">The id to map to the token.</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <returns>The decoded string or null if there is no token mapped to the input id.</returns>
-        public string? Decode(int id, bool skipSpecialTokens = false) => Model.IdToToken(id, skipSpecialTokens);
+        public string? Decode(int id, bool considerSpecialTokens = true) => Model.MapIdToToken(id, considerSpecialTokens);
 
-        // skipSpecialTokens is used in post processing we don't support yet. We are keeping it to allow using it when we support post processing.
         /// <summary>
         /// Decode the given ids, back to a String.
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
-        /// <param name="skipSpecialTokens">Whether the special tokens should be removed from the decoded string.</param>
+        /// <param name="considerSpecialTokens">Whether the special tokens should be kept in the decoded string.</param>
         /// <returns>The decoded string.</returns>
-        public string? Decode(IEnumerable<int> ids, bool skipSpecialTokens = false)
-        {
-            if (Model is Tiktoken tiktoken)
-            {
-                // Tiktoken does not ensure a one-to-one mapping between IDs and tokens. Consequently, decoding individual IDs into tokens is not supported;
-                // instead, decoding all IDs must be done collectively.
-                // Here is example of case that map one character to multiple Ids:
-                // '⭐' U-2B50 is mapped to Ids [2928, 99834] in the Tiktoken model.
-                // In other words, the character '⭐' has UTF-8 code point 0xE2, 0xAD, 0x90, Tiktoken will map 0xE2 to [2928] and 0xAD, 0x90 to [99834].
-                return tiktoken.IdsToString(ids, skipSpecialTokens);
-            }
-
-            List<string> tokens = new List<string>();
-
-            if (Model is EnglishRoberta robertaModel)
-            {
-                foreach (int id in ids)
-                {
-                    tokens.Add(robertaModel.IdToFilteredToken(id, skipSpecialTokens) ?? "");
-                }
-            }
-            else
-            {
-                foreach (int id in ids)
-                {
-                    tokens.Add(Model.IdToToken(id, skipSpecialTokens) ?? "");
-                }
-            }
-
-            return Decoder?.Decode(tokens) ?? string.Join("", tokens);
-        }
-
-        /// <summary>
-        /// Train the tokenizer model using input files.
-        /// </summary>
-        /// <param name="trainer">An optional trainer that should be used to train our Model.</param>
-        /// <param name="progress">Optional progress callback to report the training progress.</param>
-        /// <param name="files">A list of the files that we should use for training.</param>
-        public void TrainFromFiles(
-                        Trainer? trainer,
-                        ReportProgress? progress,
-                        params string[] files)
-        {
-            Trainer? t = trainer ?? Model.GetTrainer();
-            if (t == null)
-            {
-                throw new ArgumentNullException(nameof(trainer));
-            }
-
-            foreach (var file in files)
-            {
-                string[] lines = File.ReadAllLines(file);
-                progress?.Invoke(new Progress(ProgressState.Start, $"{file}", lines.Length));
-
-                t.Feed(lines, (s) =>
-                {
-                    string current = Normalizer is null ? s : Normalizer.Normalize(s).Normalized;
-                    IEnumerable<Split> splits = PreTokenizer.PreTokenize(current);
-
-                    List<string> list = new();
-                    foreach (Split split in splits)
-                    {
-                        list.Add(split.TokenString);
-                    }
-
-                    progress?.Invoke(new Progress(ProgressState.Increment, null, 1));
-
-                    return list;
-                });
-                progress?.Invoke(new Progress(ProgressState.End, null, lines.Length));
-            }
-
-            IReadOnlyList<AddedToken>? addedTokens = t.Train(Model);
-
-            // To Do: support added vocabulary in the tokenizer which will include this returned special_tokens.
-            // self.add_special_tokens(&special_tokens);
-        }
+        public string? Decode(IEnumerable<int> ids, bool considerSpecialTokens = true) => Model.Decode(ids, Decoder, considerSpecialTokens);
 
         private const string EndOfText = "<|endoftext|>";
         private const string FimPrefix = "<|fim_prefix|>";
@@ -322,7 +209,10 @@ namespace Microsoft.ML.Tokenizers
                                                                 { "code-davinci-edit-001", ModelEncoding.P50kEdit },
 
                                                                 // embeddings
+                                                                // https://platform.openai.com/docs/guides/embeddings/what-are-embeddings
                                                                 { "text-embedding-ada-002", ModelEncoding.Cl100kBase },
+                                                                { "text-embedding-3-small", ModelEncoding.Cl100kBase },
+                                                                { "text-embedding-3-large", ModelEncoding.Cl100kBase },
 
                                                                 // old embeddings
                                                                 { "text-similarity-davinci-001", ModelEncoding.R50kBase },
@@ -336,7 +226,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 { "code-search-babbage-code-001", ModelEncoding.R50kBase },
                                                                 { "code-search-ada-code-001", ModelEncoding.R50kBase },
 
-                                                                //open source
+                                                                // open source
                                                                 { "gpt2", ModelEncoding.GPT2 }
                                                             };
 
@@ -453,7 +343,7 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
-        private static readonly ConcurrentDictionary<string, (Dictionary<ReadOnlyMemory<byte>, int>, Dictionary<string, int>, IReadOnlyDictionary<int, byte[]>)> _tiktokenCache = new(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<string, (Dictionary<ReadOnlyMemory<byte>, int>, Dictionary<string, int>, Dictionary<int, ReadOnlyMemory<byte>>)> _tiktokenCache = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Create tokenizer based on regex pattern, BPE rank file and special tokens
@@ -481,7 +371,7 @@ namespace Microsoft.ML.Tokenizers
                 }
             }
 
-            if (!_tiktokenCache.TryGetValue(mergeableRanksFileUrl, out (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<string, int> vocab, IReadOnlyDictionary<int, byte[]> decoder) cache))
+            if (!_tiktokenCache.TryGetValue(mergeableRanksFileUrl, out (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<string, int> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) cache))
             {
                 using (Stream stream = await Helpers.GetStreamAsync(_httpClient, mergeableRanksFileUrl, cancellationToken).ConfigureAwait(false))
                 {

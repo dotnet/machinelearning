@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -19,7 +20,7 @@ namespace Microsoft.ML.Tokenizers
             Map = new Dictionary<TKey, TValue>(Capacity);
         }
 
-        private readonly ReaderWriterLockSlim _cacheLock = new ReaderWriterLockSlim();
+        private readonly object _lock = new();
 
         internal Dictionary<TKey, TValue> Map { get; set; }
 
@@ -29,19 +30,16 @@ namespace Microsoft.ML.Tokenizers
 
         internal void Clear()
         {
-            _cacheLock.EnterWriteLock();
-            try
+            lock (_lock)
             {
                 Map.Clear();
             }
-            finally { _cacheLock.ExitWriteLock(); }
         }
 
         internal List<TValue> GetValues(IEnumerable<TKey> keys)
         {
             List<TValue> values = new();
-            _cacheLock.EnterReadLock();
-            try
+            lock (_lock)
             {
                 foreach (TKey key in keys)
                 {
@@ -51,25 +49,21 @@ namespace Microsoft.ML.Tokenizers
                     }
                 }
             }
-            finally { _cacheLock.ExitReadLock(); }
 
             return values;
         }
 
         internal bool TryGet(TKey key, out TValue value)
         {
-            _cacheLock.EnterReadLock();
-            try
+            lock (_lock)
             {
                 return Map.TryGetValue(key, out value!);
             }
-            finally { _cacheLock.ExitReadLock(); }
         }
 
         internal void SetValues(IEnumerable<(TKey, TValue)> entries)
         {
-            _cacheLock.EnterWriteLock();
-            try
+            lock (_lock)
             {
                 foreach ((TKey, TValue) entry in entries)
                 {
@@ -80,20 +74,43 @@ namespace Microsoft.ML.Tokenizers
                     Map[entry.Item1] = entry.Item2;
                 }
             }
-            finally { _cacheLock.ExitWriteLock(); }
         }
 
         internal void Set(TKey k, TValue v)
         {
-            _cacheLock.EnterWriteLock();
-            try
+            lock (_lock)
             {
                 if (Capacity > Map.Count)
                 {
                     Map[k] = v;
                 }
             }
-            finally { _cacheLock.ExitWriteLock(); }
+        }
+
+        internal KeyValuePair<TKey, TValue>[] ToArray()
+        {
+            lock (_lock)
+            {
+                return Map.ToArray();
+            }
+        }
+
+        internal TValue GetOrAdd(TKey key, TValue value)
+        {
+            lock (_lock)
+            {
+                if (Map.TryGetValue(key, out TValue? v))
+                {
+                    return v;
+                }
+
+                if (Capacity > Map.Count)
+                {
+                    Map[key] = value;
+                }
+
+                return value;
+            }
         }
     }
 }

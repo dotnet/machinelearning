@@ -402,7 +402,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
                     var contextString = context.ToString();
                     var contextTokens = Tokenizer.Encode(contextString);
                     var contextToken = contextTokens.Tokens;
-                    var contextTokenId = Tokenizer.RobertaModel().IdsToOccurrenceRanks(contextTokens.Ids);
+                    var contextTokenId = Tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(contextTokens.Ids);
 
                     var mapping = AlignAnswerPosition(contextToken, contextString);
                     if (mapping == null)
@@ -461,7 +461,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
                         ++i;
                     }
                     // Chars not included in tokenizer will not appear in tokens
-                    else if (!robertaModel.CharInSupportedRange(text[i]))
+                    else if (!robertaModel.IsSupportedChar(text[i]))
                     {
                         mapping[i - surrogateDeduce] = tid;
                         ++i;
@@ -853,9 +853,9 @@ namespace Microsoft.ML.TorchSharp.Roberta
                 contextGetter(ref context);
                 questionGetter(ref question);
 
-                var contextTokenId = _parent.Tokenizer.RobertaModel().IdsToOccurrenceRanks(_parent.Tokenizer.Encode(context.ToString()).Ids);
+                var contextTokenId = _parent.Tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(_parent.Tokenizer.Encode(context.ToString()).Ids);
 
-                var questionTokenId = _parent.Tokenizer.RobertaModel().IdsToOccurrenceRanks(_parent.Tokenizer.Encode(question.ToString()).Ids);
+                var questionTokenId = _parent.Tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(_parent.Tokenizer.Encode(question.ToString()).Ids);
 
                 var srcTensor = torch.tensor((new[] { 0 /* InitToken */ }).Concat(questionTokenId).Concat(new[] { 2 /* SeparatorToken */ }).Concat(contextTokenId).ToList(), device: _parent.Device);
 
@@ -920,7 +920,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
                             var predictStart = topKSpan.start;
                             var predictEnd = topKSpan.end;
                             var score = topKSpan.score;
-                            outputCache.PredictedAnswersBuffer[index] = new ReadOnlyMemory<char>(_parent.Tokenizer.Decode(_parent.Tokenizer.RobertaModel().OccurrenceRanksIds(contextIds).ToArray().AsSpan(predictStart - questionLength - 2, predictEnd - predictStart).ToArray()).Trim().ToCharArray());
+                            outputCache.PredictedAnswersBuffer[index] = new ReadOnlyMemory<char>(_parent.Tokenizer.Decode(_parent.Tokenizer.RobertaModel().ConvertOccurrenceRanksToIds(contextIds).ToArray().AsSpan(predictStart - questionLength - 2, predictEnd - predictStart).ToArray()).Trim().ToCharArray());
                             outputCache.ScoresBuffer[index++] = score;
                         }
 
