@@ -17,7 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="LightGBM" Version="$(LightGBMVersion)" />
+    <!-- Include all assets https://github.com/microsoft/LightGBM/issues/6344 -->
+    <PackageReference Include="LightGBM" Version="$(LightGBMVersion)" PrivateAssets="None" />
   </ItemGroup>
 
 </Project>

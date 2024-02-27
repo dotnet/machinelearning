@@ -1,12 +1,12 @@
 <Project>
 
   <ItemGroup>
-    <Content Include="$(RepoRoot)eng\pkg\mlnetlogo.png" Pack="true" PackagePath="" />
+    <Content Include="$(RepositoryEngineeringDir)pkg\mlnetlogo.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IncludeMLNetNotices)' != 'false'">
-    <Content Include="$(RepoRoot)\THIRD-PARTY-NOTICES.TXT" Pack="true" PackagePath="" />
-    <Content Include="$(RepoRoot)\LICENSE" Pack="true" PackagePath=""/>
+    <Content Include="$(RepoRoot)THIRD-PARTY-NOTICES.TXT" Pack="true" PackagePath="" />
+    <Content Include="$(RepoRoot)LICENSE" Pack="true" PackagePath=""/>
   </ItemGroup>
   
   <PropertyGroup>    

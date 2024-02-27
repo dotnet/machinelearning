@@ -70,11 +70,4 @@
     <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
 
-  <!-- Work around https://github.com/NuGet/Home/issues/6091 
-       TODO: Determine if this is still needed-->
-  <ItemDefinitionGroup>
-    <PackageReference>
-      <PrivateAssets>None</PrivateAssets>
-    </PackageReference>
-  </ItemDefinitionGroup>
 </Project>
