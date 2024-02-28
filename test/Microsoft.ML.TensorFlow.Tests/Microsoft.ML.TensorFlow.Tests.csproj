@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <AssemblyName>Microsoft.ML.TensorFlow.Tests</AssemblyName>
     <StrongNameKeyId>Test</StrongNameKeyId>

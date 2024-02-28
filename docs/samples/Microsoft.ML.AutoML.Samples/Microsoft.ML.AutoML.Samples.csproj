@@ -23,4 +23,5 @@
   <ItemGroup>
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
   </ItemGroup>
+
 </Project>

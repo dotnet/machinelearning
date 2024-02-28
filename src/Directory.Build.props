@@ -3,7 +3,7 @@
   <Import Project="..\Directory.Build.props" />
 
   <PropertyGroup>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateDocumentationFile Condition="'$(UsingMicrosoftNoTargetsSdk)' != 'true'">true</GenerateDocumentationFile>
     <!-- Not all types and members have XML docs yet.
          When you are ready to tackle adding them, remove <NoWarn>
          below, and when you get clean, also remove <WarningsNotAsErrors>
@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <ProjectReference
-      Condition="'$(UseMLCodeAnalyzer)' != 'false' and '$(MSBuildProjectExtension)' == '.csproj'"
+      Condition="'$(UseMLCodeAnalyzer)' != 'false' and '$(MSBuildProjectExtension)' == '.csproj' and '$(UsingMicrosoftNoTargetsSdk)' != 'true'"
       Include="$(MSBuildThisFileDirectory)\..\tools-local\Microsoft.ML.InternalCodeAnalyzer\Microsoft.ML.InternalCodeAnalyzer.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <OutputItemType>Analyzer</OutputItemType>

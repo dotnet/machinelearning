@@ -1,9 +1,4 @@
 <Project>
-  <ItemGroup>
-    <ItemsToSign Include="$(ArtifactsPackagesDir)**\*.snupkg" />
-    <FileExtensionSignInfo Include="*.snupkg" CertificateName="NuGet" />
-  </ItemGroup>
-
   <PropertyGroup>
     <UseDotNetCertificate>true</UseDotNetCertificate>
   </PropertyGroup>
