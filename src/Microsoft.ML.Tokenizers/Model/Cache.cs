@@ -4,112 +4,53 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 
 namespace Microsoft.ML.Tokenizers
 {
     internal sealed class Cache<TKey, TValue> where TKey : notnull where TValue : notnull
     {
+        private readonly int _capacity;
+        private readonly Dictionary<TKey, TValue> _map;
+        private object SyncObj => _map;
+
         internal Cache() : this(Bpe.DefaultCacheCapacity) { }
 
         internal Cache(int capacity)
         {
-            Capacity = capacity;
-            Map = new Dictionary<TKey, TValue>(Capacity);
+            _capacity = capacity;
+            _map = new Dictionary<TKey, TValue>(capacity);
         }
 
-        private readonly object _lock = new();
-
-        internal Dictionary<TKey, TValue> Map { get; set; }
-
-        internal int Capacity { get; set; }
-
-        internal void Fresh() => Map = new Dictionary<TKey, TValue>(Capacity);
-
-        internal void Clear()
+        internal bool TryGetValue(TKey key, out TValue value)
         {
-            lock (_lock)
+            lock (SyncObj)
             {
-                Map.Clear();
-            }
-        }
-
-        internal List<TValue> GetValues(IEnumerable<TKey> keys)
-        {
-            List<TValue> values = new();
-            lock (_lock)
-            {
-                foreach (TKey key in keys)
-                {
-                    if (Map.TryGetValue(key, out TValue? value))
-                    {
-                        values.Add(value);
-                    }
-                }
-            }
-
-            return values;
-        }
-
-        internal bool TryGet(TKey key, out TValue value)
-        {
-            lock (_lock)
-            {
-                return Map.TryGetValue(key, out value!);
-            }
-        }
-
-        internal void SetValues(IEnumerable<(TKey, TValue)> entries)
-        {
-            lock (_lock)
-            {
-                foreach ((TKey, TValue) entry in entries)
-                {
-                    if (Capacity <= Map.Count)
-                    {
-                        break;
-                    }
-                    Map[entry.Item1] = entry.Item2;
-                }
-            }
-        }
-
-        internal void Set(TKey k, TValue v)
-        {
-            lock (_lock)
-            {
-                if (Capacity > Map.Count)
-                {
-                    Map[k] = v;
-                }
-            }
-        }
-
-        internal KeyValuePair<TKey, TValue>[] ToArray()
-        {
-            lock (_lock)
-            {
-                return Map.ToArray();
+                return _map.TryGetValue(key, out value!);
             }
         }
 
         internal TValue GetOrAdd(TKey key, TValue value)
         {
-            lock (_lock)
+            lock (SyncObj)
             {
-                if (Map.TryGetValue(key, out TValue? v))
+                if (_map.TryGetValue(key, out TValue? v))
                 {
-                    return v;
+                    return v!;
                 }
 
-                if (Capacity > Map.Count)
-                {
-                    Map[key] = value;
-                }
-
+                _map[key] = value;
                 return value;
+            }
+        }
+
+        internal void Set(TKey key, TValue value)
+        {
+            lock (SyncObj)
+            {
+                if (_map.Count < _capacity)
+                {
+                    _map[key] = value;
+                }
             }
         }
     }

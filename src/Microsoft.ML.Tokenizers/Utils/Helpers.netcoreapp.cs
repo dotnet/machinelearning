@@ -37,5 +37,7 @@ namespace Microsoft.ML.Tokenizers
 
         internal static bool TryParseInt32(string s, int offset, out int result)
             => int.TryParse(s.AsSpan().Slice(offset), NumberStyles.None, CultureInfo.InvariantCulture, out result);
+
+        internal static int GetHashCode(ReadOnlySpan<char> span) => string.GetHashCode(span);
     }
 }

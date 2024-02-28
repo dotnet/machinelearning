@@ -18,13 +18,14 @@ namespace Microsoft.ML.Tokenizers
     public sealed class EnglishRoberta : Model
     {
         private readonly HighestOccurrenceMapping _vocabIdToHighestOccurrence;
-        private readonly IReadOnlyDictionary<string, int> _vocab;
-        private readonly SortedDictionary<int, string> _vocabReverse;
+        private readonly IReadOnlyDictionary<StringSpanOrdinalKey, int> _vocab;
+        private Dictionary<string, int>? _vocabOriginal;
+        private readonly SortedDictionary<int, StringSpanOrdinalKey> _vocabReverse;
         private readonly Cache<(string, string), int> _mergeRanks;
         private readonly IReadOnlyDictionary<char, char> _byteToUnicode;
         private readonly IReadOnlyDictionary<char, char> _unicodeToByte;
         private readonly string[] _charToString;
-        private readonly Cache<string, List<Token>> _cache;
+        private readonly StringSpanOrdinalKeyCache<List<Token>> _cache;
 
         /// <summary>
         /// Indicate if want to filter the unsupported characters during the decoding.
@@ -77,7 +78,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             _unicodeToByte = _byteToUnicode.Reverse();
-            _cache = new Cache<string, List<Token>>();
+            _cache = new StringSpanOrdinalKeyCache<List<Token>>();
         }
 
         /// <summary>
@@ -118,13 +119,13 @@ namespace Microsoft.ML.Tokenizers
             }
 
             _unicodeToByte = _byteToUnicode.Reverse();
-            _cache = new Cache<string, List<Token>>();
+            _cache = new StringSpanOrdinalKeyCache<List<Token>>();
         }
 
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
-        public IReadOnlyDictionary<string, int> Vocab => _vocab;
+        public IReadOnlyDictionary<string, int> Vocab => _vocabOriginal ??= (_vocabOriginal = _vocab.ToDictionary(kvp => kvp.Key.Data!, kvp => kvp.Value));
 
         //
         // Public Model interfaces implementation
@@ -145,14 +146,15 @@ namespace Microsoft.ML.Tokenizers
 
             if (_vocabReverse.TryGetValue(id, out var value))
             {
+                string v = value.Data!;
                 if (FilterUnsupportedChars)
                 {
-                    char[] buffer = ArrayPool<char>.Shared.Rent(value.Length);
+                    char[] buffer = ArrayPool<char>.Shared.Rent(v.Length);
                     int i = 0;
 
-                    for (int j = 0; j < value.Length; j++)
+                    for (int j = 0; j < v.Length; j++)
                     {
-                        if (_unicodeToByte.TryGetValue(value[j], out var c))
+                        if (_unicodeToByte.TryGetValue(v[j], out var c))
                         {
                             buffer[i++] = c;
                         }
@@ -164,7 +166,7 @@ namespace Microsoft.ML.Tokenizers
                 }
                 else
                 {
-                    return value;
+                    return v;
                 }
             }
 
@@ -205,7 +207,7 @@ namespace Microsoft.ML.Tokenizers
                 return Array.Empty<Token>();
             }
 
-            if (_cache.TryGet(text, out List<Token>? hit))
+            if (_cache.TryGetValue(text, out List<Token>? hit))
             {
                 ArrayPool<char>.Shared.Return(token);
                 ArrayPool<int>.Shared.Return(indexMapping);
@@ -225,7 +227,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="text">The text to split.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
         /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
-        public override void EncodeToIds(string text, bool isSpecialToken, IList<int> accumulatedIds) => EncodeToIds(text, accumulatedIds);
+        public override void EncodeToIds(ReadOnlySpan<char> text, bool isSpecialToken, IList<int> accumulatedIds) => EncodeToIds(text, accumulatedIds);
 
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
@@ -233,16 +235,16 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="text">The text to encode.</param>
         /// <param name="isSpecialToken">Indicate if the token is special token.</param>
         /// <returns>The number of tokens that the input text will be encoded to.</returns>
-        public override int CountTokens(string text, bool isSpecialToken) => EncodeToIds(text, null);
+        public override int CountTokens(ReadOnlySpan<char> text, bool isSpecialToken) => EncodeToIds(text, null);
 
-        private int EncodeToIds(string text, IList<int>? accumulatedIds)
+        private int EncodeToIds(ReadOnlySpan<char> text, IList<int>? accumulatedIds)
         {
-            if (string.IsNullOrEmpty(text))
+            if (text.IsEmpty)
             {
                 return 0;
             }
 
-            if (_cache.TryGet(text, out List<Token>? hit))
+            if (_cache.TryGetValue(text, out List<Token>? hit))
             {
                 if (accumulatedIds is not null)
                 {
@@ -255,17 +257,41 @@ namespace Microsoft.ML.Tokenizers
                 return hit.Count;
             }
 
-            // If the cache doesn't have the text, then encode it and add it to the cache
-            IReadOnlyList<Token> tokens = Encode(text);
+            char[] token = ArrayPool<char>.Shared.Rent(text.Length);
+            int[] indexMapping = ArrayPool<int>.Shared.Rent(text.Length);
+
+            int newTokenIndex = 0;
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (_byteToUnicode.TryGetValue(text[i], out var value))
+                {
+                    token[newTokenIndex] = value;
+                    indexMapping[newTokenIndex] = i;
+                    newTokenIndex++;
+                }
+            }
+
+            if (newTokenIndex == 0)
+            {
+                ArrayPool<char>.Shared.Return(token);
+                ArrayPool<int>.Shared.Return(indexMapping);
+                return 0;
+            }
+
+            List<Token> result = EncodeToTokens(token.AsSpan().Slice(0, newTokenIndex), indexMapping);
+            _cache.Set(text.ToString(), result);
+            ArrayPool<char>.Shared.Return(token);
+            ArrayPool<int>.Shared.Return(indexMapping);
+
             if (accumulatedIds is not null)
             {
-                foreach (var t in tokens)
+                foreach (var t in result)
                 {
                     accumulatedIds.Add(t.Id);
                 }
             }
 
-            return tokens.Count;
+            return result.Count;
         }
 
         /// <summary>
@@ -274,7 +300,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="token">The token to map to the Id.</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public override int? MapTokenToId(string token, bool considerSpecialTokens = true) => _vocab.TryGetValue(token, out var value) ? value : null;
+        public override int? MapTokenToId(ReadOnlySpan<char> token, bool considerSpecialTokens = true) => _vocab.TryGetValueUnsafe(token, out int value) ? value : null;
 
         /// <summary>
         /// Convert a list of tokens Ids to highest occurrence rankings.
@@ -397,12 +423,13 @@ namespace Microsoft.ML.Tokenizers
         private static HighestOccurrenceMapping GetHighestOccurrenceMapping(Stream highestOccurrenceMappingStream) =>
             HighestOccurrenceMapping.Load(highestOccurrenceMappingStream);
 
-        private Dictionary<string, int> GetVocabulary(Stream vocabularyStream)
+        private Dictionary<StringSpanOrdinalKey, int> GetVocabulary(Stream vocabularyStream)
         {
-            Dictionary<string, int>? vocab;
+            Dictionary<StringSpanOrdinalKey, int>? vocab;
             try
             {
-                vocab = JsonSerializer.Deserialize<Dictionary<string, int>>(vocabularyStream) as Dictionary<string, int>;
+                JsonSerializerOptions options = new() { Converters = { new StringSpanOrdinalKeyConverter() } };
+                vocab = JsonSerializer.Deserialize<Dictionary<StringSpanOrdinalKey, int>>(vocabularyStream, options) as Dictionary<StringSpanOrdinalKey, int>;
             }
             catch (Exception e)
             {
@@ -416,22 +443,22 @@ namespace Microsoft.ML.Tokenizers
 
             if (_vocabIdToHighestOccurrence.BosWord is not null)
             {
-                vocab[_vocabIdToHighestOccurrence.BosWord] = -_vocabIdToHighestOccurrence.BosIndex;
+                vocab[new StringSpanOrdinalKey(_vocabIdToHighestOccurrence.BosWord)] = -_vocabIdToHighestOccurrence.BosIndex;
             }
 
             if (_vocabIdToHighestOccurrence.EosWord is not null)
             {
-                vocab[_vocabIdToHighestOccurrence.EosWord] = -_vocabIdToHighestOccurrence.EosIndex;
+                vocab[new StringSpanOrdinalKey(_vocabIdToHighestOccurrence.EosWord)] = -_vocabIdToHighestOccurrence.EosIndex;
             }
 
             if (_vocabIdToHighestOccurrence.UnkWord is not null)
             {
-                vocab[_vocabIdToHighestOccurrence.UnkWord] = -_vocabIdToHighestOccurrence.UnkIndex;
+                vocab[new StringSpanOrdinalKey(_vocabIdToHighestOccurrence.UnkWord)] = -_vocabIdToHighestOccurrence.UnkIndex;
             }
 
             if (_vocabIdToHighestOccurrence.PadWord is not null)
             {
-                vocab[_vocabIdToHighestOccurrence.PadWord] = -_vocabIdToHighestOccurrence.PadIndex;
+                vocab[new StringSpanOrdinalKey(_vocabIdToHighestOccurrence.PadWord)] = -_vocabIdToHighestOccurrence.PadIndex;
             }
 
             return vocab;
@@ -510,7 +537,7 @@ namespace Microsoft.ML.Tokenizers
             if (token.Length == 1)
             {
                 string tokenValue = _charToString[token[0]];
-                return new List<Token> { new Token(_vocab[tokenValue], tokenValue, (indexMapping[0], 1)) };
+                return new List<Token> { new Token(_vocab[new StringSpanOrdinalKey(tokenValue)], tokenValue, (indexMapping[0], 1)) };
             }
 
             List<string> word = new(token.Length);
@@ -539,7 +566,7 @@ namespace Microsoft.ML.Tokenizers
 
                 // get the most frequent bi-gram pair
                 var (first, second) = pairs.ArgMin(pair => _mergeRanks.GetOrAdd(pair, int.MaxValue));
-                if (!_mergeRanks.TryGet((first, second), out int _))
+                if (!_mergeRanks.TryGetValue((first, second), out int _))
                 {
                     break;
                 }
@@ -599,7 +626,7 @@ namespace Microsoft.ML.Tokenizers
 
             foreach (string w in word)
             {
-                tokens.Add(new Token(_vocab[w], w, (indexMapping[index], w.Length)));
+                tokens.Add(new Token(_vocab[new StringSpanOrdinalKey(w)], w, (indexMapping[index], w.Length)));
                 index += w.Length;
             }
 

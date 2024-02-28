@@ -104,7 +104,7 @@ namespace Microsoft.ML.Tokenizers
 
             foreach (Split split in PreTokenizer.PreTokenize(normalized, considerSpecialTokens))
             {
-                Model.EncodeToIds(split.TokenString, split.IsSpecialToken, idsList);
+                Model.EncodeToIds(split.TokenSpan, split.IsSpecialToken, idsList);
             }
 
             return idsList;
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Tokenizers
             int idsCount = 0;
             foreach (Split split in PreTokenizer.PreTokenize(normalized, considerSpecialTokens))
             {
-                idsCount += Model.CountTokens(split.TokenString, split.IsSpecialToken);
+                idsCount += Model.CountTokens(split.TokenSpan, split.IsSpecialToken);
             }
 
             return idsCount;
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
-        private static readonly ConcurrentDictionary<string, (Dictionary<ReadOnlyMemory<byte>, int>, Dictionary<string, int>, Dictionary<int, ReadOnlyMemory<byte>>)> _tiktokenCache = new(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<string, (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, int> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder)> _tiktokenCache = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Create tokenizer based on regex pattern, BPE rank file and special tokens
@@ -371,7 +371,7 @@ namespace Microsoft.ML.Tokenizers
                 }
             }
 
-            if (!_tiktokenCache.TryGetValue(mergeableRanksFileUrl, out (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<string, int> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) cache))
+            if (!_tiktokenCache.TryGetValue(mergeableRanksFileUrl, out (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, int> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) cache))
             {
                 using (Stream stream = await Helpers.GetStreamAsync(_httpClient, mergeableRanksFileUrl, cancellationToken).ConfigureAwait(false))
                 {

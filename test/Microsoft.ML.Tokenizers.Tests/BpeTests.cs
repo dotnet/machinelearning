@@ -156,7 +156,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     Assert.Equal(ids[i], encoding.Ids[i]);
                     Assert.Equal(ids[i], idsList[i]);
                     Assert.Equal(encoding.Tokens[i], tokenizer.Model.MapIdToToken(encoding.Ids[i]));
-                    Assert.Equal(encoding.Ids[i], tokenizer.Model.MapTokenToId(encoding.Tokens[i]));
+                    Assert.Equal(encoding.Ids[i], tokenizer.Model.MapTokenToId(encoding.Tokens[i].AsSpan()));
                     Assert.Equal(encoding.Tokens[i], tokenizer.Decode(encoding.Ids[i]));
                 }
             }

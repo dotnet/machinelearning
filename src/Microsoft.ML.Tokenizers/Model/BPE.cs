@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -34,20 +36,21 @@ namespace Microsoft.ML.Tokenizers
             {
                 _unknownToken = value;
 
-                if (value is null)
+                if (VocabReverse.TryGetValue(0, out string? v))
                 {
-                    if (VocabReverse.TryGetValue(0, out string? v))
+                    if (v == value)
                     {
-                        VocabReverse.Remove(0);
-                        if (_vocab.TryGetValue(v, out int id))
-                        {
-                            _vocab.Remove(v);
-                        }
+                        return;
                     }
+
+                    VocabReverse.Remove(0);
+                    _vocab.Remove(new StringSpanOrdinalKey(v));
                 }
-                else
+
+
+                if (value is not null)
                 {
-                    _vocab[value] = 0;
+                    _vocab[new StringSpanOrdinalKey(value)] = 0;
                     VocabReverse[0] = value;
                 }
             }
@@ -67,7 +70,6 @@ namespace Microsoft.ML.Tokenizers
         /// Gets or sets whether allowing multiple unknown tokens get fused
         /// </summary>
         public bool FuseUnknownTokens { get; }
-
 
         /// <summary>
         /// Construct a new Bpe model object to use for text encoding.
@@ -111,23 +113,19 @@ namespace Microsoft.ML.Tokenizers
                 ContinuingSubwordPrefix = continuingSubwordPrefix;
                 EndOfWordSuffix = endOfWordSuffix;
 
-                (Dictionary<string, int>? vocab1, Vec<(string, string)> merges) = ReadModelData(vocabStream, mergesStream);
-                _vocab = vocab1 ?? new Dictionary<string, int>();
-                Cache = new Cache<string, Word>();
+                (Dictionary<StringSpanOrdinalKey, int>? vocab1, Vec<(string, string)> merges) = ReadModelData(vocabStream, mergesStream);
+                _vocab = vocab1 ?? new Dictionary<StringSpanOrdinalKey, int>();
+                Cache = new StringSpanOrdinalKeyCache<Word>();
 
                 VocabReverse = new();
 
-                foreach (KeyValuePair<string, int> kvp in Vocab)
+                foreach (KeyValuePair<StringSpanOrdinalKey, int> kvp in _vocab)
                 {
-                    VocabReverse.Add(kvp.Value, kvp.Key);
+                    VocabReverse.Add(kvp.Value, kvp.Key.Data!);
                 }
 
-                if (unknownToken is null && VocabReverse.TryGetValue(0, out string? unkToken))
-                {
-                    unknownToken = unkToken;
-                }
 
-                UnknownToken = unknownToken;
+                UnknownToken = unknownToken ?? (VocabReverse.TryGetValue(0, out string? unkToken) ? unkToken : null);
 
                 int prefixLen = ContinuingSubwordPrefix is null ? 0 : ContinuingSubwordPrefix.Length;
 
@@ -136,12 +134,12 @@ namespace Microsoft.ML.Tokenizers
                 {
                     (string a, string b) mergeValues = merges[i];
 
-                    if (!_vocab.TryGetValue(mergeValues.a, out int aId))
+                    if (!_vocab.TryGetValueUnsafe(mergeValues.a, out int aId))
                     {
                         throw new InvalidOperationException($"Trying to merge a token '{mergeValues.a}' which not exist in the vocabulary.");
                     }
 
-                    if (!_vocab.TryGetValue(mergeValues.b, out int bId))
+                    if (!_vocab.TryGetValueUnsafe(mergeValues.b, out int bId))
                     {
                         throw new InvalidOperationException($"Trying to merge a token '{mergeValues.b}' which not exist in the vocabulary.");
                     }
@@ -152,7 +150,7 @@ namespace Microsoft.ML.Tokenizers
                     }
 
                     string newToken = $"{mergeValues.a}{mergeValues.b.Substring(prefixLen)}";
-                    if (!_vocab.TryGetValue(newToken, out int newId))
+                    if (!_vocab.TryGetValueUnsafe(newToken, out int newId))
                     {
                         throw new InvalidOperationException($"Trying to merge a token '{newToken}' which not exist in the vocabulary.");
                     }
@@ -197,7 +195,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="text">The text to split.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
         /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
-        public override void EncodeToIds(string text, bool isSpecialToken, IList<int> accumulatedIds) => EncodeToIdsWithCache(text, accumulatedIds);
+        public override void EncodeToIds(ReadOnlySpan<char> text, bool isSpecialToken, IList<int> accumulatedIds) => EncodeToIdsWithCache(text, accumulatedIds);
 
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
@@ -205,7 +203,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="text">The text to encode.</param>
         /// <param name="isSpecialToken">Indicate if the token is special token.</param>
         /// <returns>The number of tokens that the input text will be encoded to.</returns>
-        public override int CountTokens(string text, bool isSpecialToken) => EncodeToIdsWithCache(text, null);
+        public override int CountTokens(ReadOnlySpan<char> text, bool isSpecialToken) => EncodeToIdsWithCache(text, null);
 
         /// <summary>
         /// Map the token to encoded Id.
@@ -213,15 +211,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="token">The token to map to the Id.</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public override int? MapTokenToId(string token, bool considerSpecialTokens = true)
-        {
-            if (_vocab.TryGetValue(token, out int value))
-            {
-                return value;
-            }
-
-            return null;
-        }
+        public override int? MapTokenToId(ReadOnlySpan<char> token, bool considerSpecialTokens = true) => _vocab.TryGetValueUnsafe(token, out int value) ? value : null;
 
         /// <summary>
         /// Map the encoded Id to the token.
@@ -242,24 +232,27 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
-        public IReadOnlyDictionary<string, int> Vocab => _vocab;
+        public IReadOnlyDictionary<string, int> Vocab => _vocabOriginal ?? (_vocabOriginal = _vocab.ToDictionary(kvp => kvp.Key.Data!, kvp => kvp.Value));
 
         /// Read the given files to extract the vocab and merges
-        internal static (Dictionary<string, int>?, Vec<(string, string)>) ReadModelData(Stream vocab, Stream? merges)
+        internal static (Dictionary<StringSpanOrdinalKey, int>?, Vec<(string, string)>) ReadModelData(Stream vocab, Stream? merges)
         {
-            Dictionary<string, int>? dic = JsonSerializer.Deserialize<Dictionary<string, int>>(vocab) as Dictionary<string, int>;
+            JsonSerializerOptions options = new() { Converters = { new StringSpanOrdinalKeyConverter() } };
+            Dictionary<StringSpanOrdinalKey, int>? dic = JsonSerializer.Deserialize<Dictionary<StringSpanOrdinalKey, int>>(vocab, options) as Dictionary<StringSpanOrdinalKey, int>;
 
             return (dic, ConvertMergesToHashmap(merges));
         }
 
         /// The vocabulary assigns a number to each token.
-        private readonly Dictionary<string, int> _vocab;
+        private readonly Dictionary<StringSpanOrdinalKey, int> _vocab;
+
+        private Dictionary<string, int>? _vocabOriginal;
 
         /// Contains the mapping between Pairs and their (rank, newId).
         internal Dictionary<Pair<int>, (int, int)> Merges { get; }
 
         /// Contains the cache for optimizing the encoding step.
-        internal Cache<string, Word>? Cache { get; }
+        internal StringSpanOrdinalKeyCache<Word>? Cache { get; }
 
         internal static readonly int DefaultCacheCapacity = 10_000;
 
@@ -309,9 +302,6 @@ namespace Microsoft.ML.Tokenizers
             return merges;
         }
 
-        /// Reset the cache.
-        internal void ClearCache() => Cache?.Clear();
-
         private readonly Dictionary<char, string> _charToString = new Dictionary<char, string>();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -327,80 +317,124 @@ namespace Microsoft.ML.Tokenizers
             return s;
         }
 
-        internal Word MergeWord(string w)
+        internal Word MergeWord(ReadOnlySpan<char> w)
         {
             Word word = Word.WithCapacity(w.Length);
             (int Id, int Len)? unk = null;
             int i = 0;
 
-            while (i < w.Length)
+            char[]? buffer = null;
+
+            try
             {
-                int length;
-                string s;
+                while (i < w.Length)
+                {
+                    int length;
+                    ReadOnlySpan<char> s;
 
-                if (Char.IsHighSurrogate(w[i]) && i < w.Length - 1 && Char.IsLowSurrogate(w[i + 1]))
-                {
-                    length = 2;
-                    s = w.Substring(i, length);
-                }
-                else
-                {
-                    length = 1;
-                    s = CharToString(w[i]);
-                }
-
-                // Add the `continuing_subword_prefix` if relevant
-                if (i > 0 && ContinuingSubwordPrefix is not null)
-                {
-                    s = $"{ContinuingSubwordPrefix}{s}";
-                }
-
-                // Add the `end_of_word_suffix` if relevant
-                if (i + length >= w.Length && EndOfWordSuffix is not null)
-                {
-                    s = $"{s}{EndOfWordSuffix}";
-                }
-
-                if (_vocab.TryGetValue(s, out int id))
-                {
-                    if (unk.HasValue)
+                    if (Char.IsHighSurrogate(w[i]) && i < w.Length - 1 && Char.IsLowSurrogate(w[i + 1]))
                     {
-                        word.Add(unk.Value.Id, unk.Value.Len);
-                        unk = null;
+                        length = 2;
+                        s = w.Slice(i, 2);
                     }
-                    word.Add(id, length);
-                }
-                else if (UnknownToken is not null)
-                {
-                    if (unk.HasValue)
+                    else
                     {
-                        if (FuseUnknownTokens)
+                        length = 1;
+                        s = w.Slice(i, 1);
+                    }
+
+                    // Add the `continuing_subword_prefix` if relevant
+                    if (i > 0 && ContinuingSubwordPrefix is not null)
+                    {
+                        if (buffer is null)
                         {
-                            // Fuse unk
-                            unk = (unk.Value.Id, unk.Value.Len + length);
+                            // 60 should be enough for most cases
+                            buffer = ArrayPool<char>.Shared.Rent(60);
+                        }
+
+                        if (ContinuingSubwordPrefix.Length + s.Length <= buffer.Length)
+                        {
+                            ContinuingSubwordPrefix.AsSpan().CopyTo(buffer.AsSpan());
+                            s.CopyTo(buffer.AsSpan().Slice(ContinuingSubwordPrefix.Length));
+                            s = buffer.AsSpan().Slice(0, ContinuingSubwordPrefix.Length + s.Length);
                         }
                         else
                         {
-                            // Do not fuse unk, add the previous one
+                            string s1 = s.Length == 1 ? CharToString(s[0]) : s.ToString();
+                            s = $"{ContinuingSubwordPrefix}{s1}".AsSpan();
+                        }
+                    }
+
+                    // Add the `end_of_word_suffix` if relevant
+                    if (i + length >= w.Length && EndOfWordSuffix is not null)
+                    {
+                        if (buffer is null)
+                        {
+                            // 60 should be enough for most cases
+                            buffer = ArrayPool<char>.Shared.Rent(60);
+                        }
+
+                        if (s.Length + EndOfWordSuffix.Length <= buffer.Length)
+                        {
+                            s.CopyTo(buffer.AsSpan());
+                            EndOfWordSuffix.AsSpan().CopyTo(buffer.AsSpan().Slice(s.Length));
+                            s = buffer.AsSpan().Slice(0, s.Length + EndOfWordSuffix.Length);
+                        }
+                        else
+                        {
+                            string s1 = s.Length == 1 ? CharToString(s[0]) : s.ToString();
+                            s = $"{s1}{EndOfWordSuffix}".AsSpan();
+                        }
+                    }
+
+                    if (_vocab.TryGetValueUnsafe(s, out int id))
+                    {
+                        if (unk.HasValue)
+                        {
                             word.Add(unk.Value.Id, unk.Value.Len);
-                            if (!_vocab.TryGetValue(UnknownToken, out int value))
+                            unk = null;
+                        }
+                        word.Add(id, length);
+                    }
+                    else if (UnknownToken is not null)
+                    {
+                        if (unk.HasValue)
+                        {
+                            if (FuseUnknownTokens)
+                            {
+                                // Fuse unk
+                                unk = (unk.Value.Id, unk.Value.Len + length);
+                            }
+                            else
+                            {
+                                // Do not fuse unk, add the previous one
+                                word.Add(unk.Value.Id, unk.Value.Len);
+                                if (!_vocab.TryGetValueUnsafe(UnknownToken, out int value))
+                                {
+                                    throw new InvalidOperationException($"Unknown Token Out Of Vocabulary.");
+                                }
+                                unk = (value, length);
+                            }
+                        }
+                        else
+                        {
+                            if (!_vocab.TryGetValueUnsafe(UnknownToken, out int value))
                             {
                                 throw new InvalidOperationException($"Unknown Token Out Of Vocabulary.");
                             }
                             unk = (value, length);
                         }
                     }
-                    else
-                    {
-                        if (!_vocab.TryGetValue(UnknownToken, out int value))
-                        {
-                            throw new InvalidOperationException($"Unknown Token Out Of Vocabulary.");
-                        }
-                        unk = (value, length);
-                    }
-                }
 
-                i += length;
+                    i += length;
+                }
+            }
+            finally
+            {
+                if (buffer is not null)
+                {
+                    ArrayPool<char>.Shared.Return(buffer);
+                }
             }
 
             if (unk.HasValue)
@@ -419,17 +453,17 @@ namespace Microsoft.ML.Tokenizers
             Word word;
             if (Cache is not null)
             {
-                if (Cache.TryGet(text, out word))
+                if (Cache.TryGetValue(text, out word))
                 {
                     return WordToTokens(ref word);
                 }
 
-                word = MergeWord(text);
+                word = MergeWord(text.AsSpan());
                 Cache.Set(text, word);
             }
             else
             {
-                word = MergeWord(text);
+                word = MergeWord(text.AsSpan());
             }
 
             return WordToTokens(ref word);
@@ -445,19 +479,19 @@ namespace Microsoft.ML.Tokenizers
             return word.SymbolsCount;
         }
 
-        internal int EncodeToIdsWithCache(string text, IList<int>? accumulatedIds)
+        internal int EncodeToIdsWithCache(ReadOnlySpan<char> text, IList<int>? accumulatedIds)
         {
             Word word;
 
             if (Cache is not null)
             {
-                if (Cache.TryGet(text, out Word hit))
+                if (Cache.TryGetValue(text, out Word hit))
                 {
                     return WordToIds(ref hit, accumulatedIds);
                 }
 
                 word = MergeWord(text);
-                Cache.Set(text, word);
+                Cache.Set(text.ToString(), word);
             }
             else
             {
