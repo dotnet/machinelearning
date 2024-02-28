@@ -134,12 +134,12 @@ namespace Microsoft.ML.Tokenizers
                 {
                     (string a, string b) mergeValues = merges[i];
 
-                    if (!_vocab.TryGetValueUnsafe(mergeValues.a, out int aId))
+                    if (!_vocab.TryGetValue(mergeValues.a, out int aId))
                     {
                         throw new InvalidOperationException($"Trying to merge a token '{mergeValues.a}' which not exist in the vocabulary.");
                     }
 
-                    if (!_vocab.TryGetValueUnsafe(mergeValues.b, out int bId))
+                    if (!_vocab.TryGetValue(mergeValues.b, out int bId))
                     {
                         throw new InvalidOperationException($"Trying to merge a token '{mergeValues.b}' which not exist in the vocabulary.");
                     }
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Tokenizers
                     }
 
                     string newToken = $"{mergeValues.a}{mergeValues.b.Substring(prefixLen)}";
-                    if (!_vocab.TryGetValueUnsafe(newToken, out int newId))
+                    if (!_vocab.TryGetValue(newToken, out int newId))
                     {
                         throw new InvalidOperationException($"Trying to merge a token '{newToken}' which not exist in the vocabulary.");
                     }
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="token">The token to map to the Id.</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public override int? MapTokenToId(ReadOnlySpan<char> token, bool considerSpecialTokens = true) => _vocab.TryGetValueUnsafe(token, out int value) ? value : null;
+        public override int? MapTokenToId(ReadOnlySpan<char> token, bool considerSpecialTokens = true) => _vocab.TryGetValue(token, out int value) ? value : null;
 
         /// <summary>
         /// Map the encoded Id to the token.
@@ -232,12 +232,12 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
-        public IReadOnlyDictionary<string, int> Vocab => _vocabOriginal ?? (_vocabOriginal = _vocab.ToDictionary(kvp => kvp.Key.Data!, kvp => kvp.Value));
+        public IReadOnlyDictionary<string, int> Vocab => _vocabOriginal ??= _vocab.ToDictionary(kvp => kvp.Key.Data!, kvp => kvp.Value);
 
         /// Read the given files to extract the vocab and merges
         internal static (Dictionary<StringSpanOrdinalKey, int>?, Vec<(string, string)>) ReadModelData(Stream vocab, Stream? merges)
         {
-            JsonSerializerOptions options = new() { Converters = { new StringSpanOrdinalKeyConverter() } };
+            JsonSerializerOptions options = new() { Converters = { StringSpanOrdinalKeyConverter.Instance } };
             Dictionary<StringSpanOrdinalKey, int>? dic = JsonSerializer.Deserialize<Dictionary<StringSpanOrdinalKey, int>>(vocab, options) as Dictionary<StringSpanOrdinalKey, int>;
 
             return (dic, ConvertMergesToHashmap(merges));
@@ -346,11 +346,7 @@ namespace Microsoft.ML.Tokenizers
                     // Add the `continuing_subword_prefix` if relevant
                     if (i > 0 && ContinuingSubwordPrefix is not null)
                     {
-                        if (buffer is null)
-                        {
-                            // 60 should be enough for most cases
-                            buffer = ArrayPool<char>.Shared.Rent(60);
-                        }
+                        buffer ??= ArrayPool<char>.Shared.Rent(60); // 60 should be enough for most cases
 
                         if (ContinuingSubwordPrefix.Length + s.Length <= buffer.Length)
                         {
@@ -360,19 +356,19 @@ namespace Microsoft.ML.Tokenizers
                         }
                         else
                         {
+#if NETCOREAPP
+                            s = $"{ContinuingSubwordPrefix}{s}".AsSpan();
+#else
                             string s1 = s.Length == 1 ? CharToString(s[0]) : s.ToString();
                             s = $"{ContinuingSubwordPrefix}{s1}".AsSpan();
+#endif
                         }
                     }
 
                     // Add the `end_of_word_suffix` if relevant
                     if (i + length >= w.Length && EndOfWordSuffix is not null)
                     {
-                        if (buffer is null)
-                        {
-                            // 60 should be enough for most cases
-                            buffer = ArrayPool<char>.Shared.Rent(60);
-                        }
+                        buffer ??= ArrayPool<char>.Shared.Rent(60); // 60 should be enough for most cases
 
                         if (s.Length + EndOfWordSuffix.Length <= buffer.Length)
                         {
@@ -382,12 +378,16 @@ namespace Microsoft.ML.Tokenizers
                         }
                         else
                         {
+#if NETCOREAPP
+                            s = $"{s}{EndOfWordSuffix}".AsSpan();
+#else
                             string s1 = s.Length == 1 ? CharToString(s[0]) : s.ToString();
                             s = $"{s1}{EndOfWordSuffix}".AsSpan();
+#endif
                         }
                     }
 
-                    if (_vocab.TryGetValueUnsafe(s, out int id))
+                    if (_vocab.TryGetValue(s, out int id))
                     {
                         if (unk.HasValue)
                         {
@@ -409,7 +409,7 @@ namespace Microsoft.ML.Tokenizers
                             {
                                 // Do not fuse unk, add the previous one
                                 word.Add(unk.Value.Id, unk.Value.Len);
-                                if (!_vocab.TryGetValueUnsafe(UnknownToken, out int value))
+                                if (!_vocab.TryGetValue(UnknownToken, out int value))
                                 {
                                     throw new InvalidOperationException($"Unknown Token Out Of Vocabulary.");
                                 }
@@ -418,7 +418,7 @@ namespace Microsoft.ML.Tokenizers
                         }
                         else
                         {
-                            if (!_vocab.TryGetValueUnsafe(UnknownToken, out int value))
+                            if (!_vocab.TryGetValue(UnknownToken, out int value))
                             {
                                 throw new InvalidOperationException($"Unknown Token Out Of Vocabulary.");
                             }

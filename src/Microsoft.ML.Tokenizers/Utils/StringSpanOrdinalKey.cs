@@ -102,6 +102,7 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     internal sealed class StringSpanOrdinalKeyConverter : JsonConverter<StringSpanOrdinalKey>
     {
+        public static StringSpanOrdinalKeyConverter Instance { get; } = new StringSpanOrdinalKeyConverter();
         public override StringSpanOrdinalKey ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
             new StringSpanOrdinalKey(reader.GetString()!);
 
@@ -117,7 +118,7 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     internal static class StringSpanOrdinalKeyExtensions
     {
-        public unsafe static bool TryGetValueUnsafe<TValue>(this IReadOnlyDictionary<StringSpanOrdinalKey, TValue> map, ReadOnlySpan<char> key, out TValue value)
+        public unsafe static bool TryGetValue<TValue>(this Dictionary<StringSpanOrdinalKey, TValue> map, ReadOnlySpan<char> key, out TValue value)
         {
             fixed (char* ptr = key)
             {
@@ -125,7 +126,7 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
-        public static bool TryGetValueUnsafe<TValue>(this IReadOnlyDictionary<StringSpanOrdinalKey, TValue> map, string key, out TValue value) =>
+        public static bool TryGetValue<TValue>(this Dictionary<StringSpanOrdinalKey, TValue> map, string key, out TValue value) =>
             map.TryGetValue(new StringSpanOrdinalKey(key), out value!);
     }
 }

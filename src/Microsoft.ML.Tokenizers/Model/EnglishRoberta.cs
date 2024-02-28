@@ -18,7 +18,7 @@ namespace Microsoft.ML.Tokenizers
     public sealed class EnglishRoberta : Model
     {
         private readonly HighestOccurrenceMapping _vocabIdToHighestOccurrence;
-        private readonly IReadOnlyDictionary<StringSpanOrdinalKey, int> _vocab;
+        private readonly Dictionary<StringSpanOrdinalKey, int> _vocab;
         private Dictionary<string, int>? _vocabOriginal;
         private readonly SortedDictionary<int, StringSpanOrdinalKey> _vocabReverse;
         private readonly Cache<(string, string), int> _mergeRanks;
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
-        public IReadOnlyDictionary<string, int> Vocab => _vocabOriginal ??= (_vocabOriginal = _vocab.ToDictionary(kvp => kvp.Key.Data!, kvp => kvp.Value));
+        public IReadOnlyDictionary<string, int> Vocab => _vocabOriginal ??= _vocab.ToDictionary(kvp => kvp.Key.Data!, kvp => kvp.Value);
 
         //
         // Public Model interfaces implementation
@@ -300,7 +300,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="token">The token to map to the Id.</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public override int? MapTokenToId(ReadOnlySpan<char> token, bool considerSpecialTokens = true) => _vocab.TryGetValueUnsafe(token, out int value) ? value : null;
+        public override int? MapTokenToId(ReadOnlySpan<char> token, bool considerSpecialTokens = true) => _vocab.TryGetValue(token, out int value) ? value : null;
 
         /// <summary>
         /// Convert a list of tokens Ids to highest occurrence rankings.
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Tokenizers
             Dictionary<StringSpanOrdinalKey, int>? vocab;
             try
             {
-                JsonSerializerOptions options = new() { Converters = { new StringSpanOrdinalKeyConverter() } };
+                JsonSerializerOptions options = new() { Converters = { StringSpanOrdinalKeyConverter.Instance } };
                 vocab = JsonSerializer.Deserialize<Dictionary<StringSpanOrdinalKey, int>>(vocabularyStream, options) as Dictionary<StringSpanOrdinalKey, int>;
             }
             catch (Exception e)

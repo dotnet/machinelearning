@@ -244,7 +244,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (isSpecialToken)
             {
-                if (_specialTokensEncoder?.TryGetValueUnsafe(text, out int id) is true)
+                if (_specialTokensEncoder?.TryGetValue(text, out int id) is true)
                 {
                     return new List<Token> { new(id, text, (0, text.Length)) };
                 }
@@ -266,7 +266,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             // cache miss
-            if (_vocab.TryGetValueUnsafe(text, out int mappedId))
+            if (_vocab.TryGetValue(text, out int mappedId))
             {
                 return new Token[1] { new(mappedId, text, (0, text.Length)) };
             }
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (isSpecialToken)
             {
-                if (_specialTokensEncoder?.TryGetValueUnsafe(text, out int id) is true)
+                if (_specialTokensEncoder?.TryGetValue(text, out int id) is true)
                 {
                     accumulatedIds.Add(id);
                 }
@@ -319,7 +319,7 @@ namespace Microsoft.ML.Tokenizers
                 return;
             }
 
-            if (_vocab.TryGetValueUnsafe(text, out int mappedId))
+            if (_vocab.TryGetValue(text, out int mappedId))
             {
                 accumulatedIds.Add(mappedId);
                 return;
@@ -352,7 +352,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (isSpecialToken && _specialTokensEncoder is not null)
             {
-                return _specialTokensEncoder.TryGetValueUnsafe(text, out _) ? 1 : 0;
+                return _specialTokensEncoder.TryGetValue(text, out _) ? 1 : 0;
             }
 
             if (_cache.TryGetValue(text, out int[] ids))
@@ -360,7 +360,7 @@ namespace Microsoft.ML.Tokenizers
                 return ids.Length;
             }
 
-            if (_vocab.TryGetValueUnsafe(text, out _))
+            if (_vocab.TryGetValue(text, out _))
             {
                 return 1;
             }
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (considerSpecialTokens && _specialTokensEncoder is not null)
             {
-                if (_specialTokensEncoder.TryGetValueUnsafe(token, out int specialTokenId))
+                if (_specialTokensEncoder.TryGetValue(token, out int specialTokenId))
                 {
                     return specialTokenId;
                 }
@@ -406,7 +406,7 @@ namespace Microsoft.ML.Tokenizers
                 return null;
             }
 
-            if (_vocab.TryGetValueUnsafe(token, out int id))
+            if (_vocab.TryGetValue(token, out int id))
             {
                 return id;
             }
@@ -539,12 +539,12 @@ namespace Microsoft.ML.Tokenizers
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
         /// <remarks>This may not contain the full set of vocabulary tokens, use Encoder to get the full set of vocabulary.</remarks>
-        public IReadOnlyDictionary<string, int> Vocab => _vocabOriginal ?? (_vocabOriginal = _vocab.ToDictionary(kvp => kvp.Key.Data!, kvp => kvp.Value));
+        public IReadOnlyDictionary<string, int> Vocab => _vocabOriginal ??= _vocab.ToDictionary(kvp => kvp.Key.Data!, kvp => kvp.Value);
 
         /// <summary>
         /// Gets the dictionary mapping special tokens to Ids.
         /// </summary>
-        public IReadOnlyDictionary<string, int>? SpecialTokensEncoder => _specialTokensEncoderOriginal ?? (_specialTokensEncoderOriginal = _specialTokensEncoder?.ToDictionary(kvp => kvp.Key.Data!, kvp => kvp.Value));
+        public IReadOnlyDictionary<string, int>? SpecialTokensEncoder => _specialTokensEncoderOriginal ??= _specialTokensEncoder?.ToDictionary(kvp => kvp.Key.Data!, kvp => kvp.Value);
 
         /// <summary>
         /// Gets the dictionary mapping token bytes to Ids.
