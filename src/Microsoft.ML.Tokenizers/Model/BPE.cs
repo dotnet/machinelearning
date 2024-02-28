@@ -323,101 +323,86 @@ namespace Microsoft.ML.Tokenizers
             (int Id, int Len)? unk = null;
             int i = 0;
 
-            char[]? buffer = null;
+            Span<char> buffer = stackalloc char[256];
+            scoped ReadOnlySpan<char> s;
 
-            try
+            while (i < w.Length)
             {
-                while (i < w.Length)
-                {
-                    int length;
-                    ReadOnlySpan<char> s;
+                int length;
 
-                    if (Char.IsHighSurrogate(w[i]) && i < w.Length - 1 && Char.IsLowSurrogate(w[i + 1]))
+                if (Char.IsHighSurrogate(w[i]) && i < w.Length - 1 && Char.IsLowSurrogate(w[i + 1]))
+                {
+                    length = 2;
+                    s = w.Slice(i, 2);
+                }
+                else
+                {
+                    length = 1;
+                    s = w.Slice(i, 1);
+                }
+
+                // Add the `continuing_subword_prefix` if relevant
+                if (i > 0 && ContinuingSubwordPrefix is not null)
+                {
+                    if (ContinuingSubwordPrefix.Length + s.Length <= buffer.Length)
                     {
-                        length = 2;
-                        s = w.Slice(i, 2);
+                        ContinuingSubwordPrefix.AsSpan().CopyTo(buffer);
+                        s.CopyTo(buffer.Slice(ContinuingSubwordPrefix.Length));
+                        s = buffer.Slice(0, ContinuingSubwordPrefix.Length + s.Length);
                     }
                     else
                     {
-                        length = 1;
-                        s = w.Slice(i, 1);
+#if NETCOREAPP
+                        s = $"{ContinuingSubwordPrefix}{s}".AsSpan();
+#else
+                        string s1 = s.Length == 1 ? CharToString(s[0]) : s.ToString();
+                        s = $"{ContinuingSubwordPrefix}{s1}".AsSpan();
+#endif
                     }
+                }
 
-                    // Add the `continuing_subword_prefix` if relevant
-                    if (i > 0 && ContinuingSubwordPrefix is not null)
+                // Add the `end_of_word_suffix` if relevant
+                if (i + length >= w.Length && EndOfWordSuffix is not null)
+                {
+                    if (s.Length + EndOfWordSuffix.Length <= buffer.Length)
                     {
-                        buffer ??= ArrayPool<char>.Shared.Rent(60); // 60 should be enough for most cases
+                        s.CopyTo(buffer);
+                        EndOfWordSuffix.AsSpan().CopyTo(buffer.Slice(s.Length));
+                        s = buffer.Slice(0, s.Length + EndOfWordSuffix.Length);
+                    }
+                    else
+                    {
+#if NETCOREAPP
+                        s = $"{s}{EndOfWordSuffix}".AsSpan();
+#else
+                        string s1 = s.Length == 1 ? CharToString(s[0]) : s.ToString();
+                        s = $"{s1}{EndOfWordSuffix}".AsSpan();
+#endif
+                    }
+                }
 
-                        if (ContinuingSubwordPrefix.Length + s.Length <= buffer.Length)
+                if (_vocab.TryGetValue(s, out int id))
+                {
+                    if (unk.HasValue)
+                    {
+                        word.Add(unk.Value.Id, unk.Value.Len);
+                        unk = null;
+                    }
+                    word.Add(id, length);
+                }
+                else if (UnknownToken is not null)
+                {
+                    if (unk.HasValue)
+                    {
+                        if (FuseUnknownTokens)
                         {
-                            ContinuingSubwordPrefix.AsSpan().CopyTo(buffer.AsSpan());
-                            s.CopyTo(buffer.AsSpan().Slice(ContinuingSubwordPrefix.Length));
-                            s = buffer.AsSpan().Slice(0, ContinuingSubwordPrefix.Length + s.Length);
+                            // Fuse unk
+                            unk = (unk.Value.Id, unk.Value.Len + length);
                         }
                         else
                         {
-#if NETCOREAPP
-                            s = $"{ContinuingSubwordPrefix}{s}".AsSpan();
-#else
-                            string s1 = s.Length == 1 ? CharToString(s[0]) : s.ToString();
-                            s = $"{ContinuingSubwordPrefix}{s1}".AsSpan();
-#endif
-                        }
-                    }
-
-                    // Add the `end_of_word_suffix` if relevant
-                    if (i + length >= w.Length && EndOfWordSuffix is not null)
-                    {
-                        buffer ??= ArrayPool<char>.Shared.Rent(60); // 60 should be enough for most cases
-
-                        if (s.Length + EndOfWordSuffix.Length <= buffer.Length)
-                        {
-                            s.CopyTo(buffer.AsSpan());
-                            EndOfWordSuffix.AsSpan().CopyTo(buffer.AsSpan().Slice(s.Length));
-                            s = buffer.AsSpan().Slice(0, s.Length + EndOfWordSuffix.Length);
-                        }
-                        else
-                        {
-#if NETCOREAPP
-                            s = $"{s}{EndOfWordSuffix}".AsSpan();
-#else
-                            string s1 = s.Length == 1 ? CharToString(s[0]) : s.ToString();
-                            s = $"{s1}{EndOfWordSuffix}".AsSpan();
-#endif
-                        }
-                    }
-
-                    if (_vocab.TryGetValue(s, out int id))
-                    {
-                        if (unk.HasValue)
-                        {
+                            // Do not fuse unk, add the previous one
                             word.Add(unk.Value.Id, unk.Value.Len);
-                            unk = null;
-                        }
-                        word.Add(id, length);
-                    }
-                    else if (UnknownToken is not null)
-                    {
-                        if (unk.HasValue)
-                        {
-                            if (FuseUnknownTokens)
-                            {
-                                // Fuse unk
-                                unk = (unk.Value.Id, unk.Value.Len + length);
-                            }
-                            else
-                            {
-                                // Do not fuse unk, add the previous one
-                                word.Add(unk.Value.Id, unk.Value.Len);
-                                if (!_vocab.TryGetValue(UnknownToken, out int value))
-                                {
-                                    throw new InvalidOperationException($"Unknown Token Out Of Vocabulary.");
-                                }
-                                unk = (value, length);
-                            }
-                        }
-                        else
-                        {
                             if (!_vocab.TryGetValue(UnknownToken, out int value))
                             {
                                 throw new InvalidOperationException($"Unknown Token Out Of Vocabulary.");
@@ -425,16 +410,17 @@ namespace Microsoft.ML.Tokenizers
                             unk = (value, length);
                         }
                     }
+                    else
+                    {
+                        if (!_vocab.TryGetValue(UnknownToken, out int value))
+                        {
+                            throw new InvalidOperationException($"Unknown Token Out Of Vocabulary.");
+                        }
+                        unk = (value, length);
+                    }
+                }
 
-                    i += length;
-                }
-            }
-            finally
-            {
-                if (buffer is not null)
-                {
-                    ArrayPool<char>.Shared.Return(buffer);
-                }
+                i += length;
             }
 
             if (unk.HasValue)
