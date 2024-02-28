@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsVersion)" />
   </ItemGroup>

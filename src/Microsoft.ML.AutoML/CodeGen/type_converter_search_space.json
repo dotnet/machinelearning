@@ -18,6 +18,10 @@
     {
       "name": "KeyData",
       "type": "dataView"
+    },
+    {
+      "name": "CaseMode",
+      "type": "caseMode"
     }
   ]
 }

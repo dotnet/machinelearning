@@ -1,0 +1,290 @@
+id: 
+name: GitOps.PullRequestIssueManagement
+description: GitOps.PullRequestIssueManagement primitive
+owner: 
+resource: repository
+disabled: false
+where: 
+configuration:
+  resourceManagementConfiguration:
+    scheduledSearches:
+    - description: Add no-recent-activity label to issues
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isIssue
+      - isOpen
+      - hasLabel:
+          label: needs-author-action
+      - noActivitySince:
+          days: 14
+      - isNotLabeledWith:
+          label: no-recent-activity
+      actions:
+      - addLabel:
+          label: no-recent-activity
+      - addReply:
+          reply: This issue has been automatically marked `no-recent-activity` because it has not had any activity for 14 days. It will be closed if no further activity occurs within 14 more days. Any new comment (by anyone, not necessarily the author) will remove `no-recent-activity`.
+    - description: Add no-recent-activity label to PRs
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isPullRequest
+      - isOpen
+      - hasLabel:
+          label: needs-author-action
+      - noActivitySince:
+          days: 14
+      - isNotLabeledWith:
+          label: no-recent-activity
+      actions:
+      - addLabel:
+          label: no-recent-activity
+      - addReply:
+          reply: This pull request has been automatically marked `no-recent-activity` because it has not had any activity for 14 days. It will be closed if no further activity occurs within 14 more days. Any new comment (by anyone, not necessarily the author) will remove `no-recent-activity`.
+    - description: Close issues with no recent activity
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isIssue
+      - isOpen
+      - hasLabel:
+          label: no-recent-activity
+      - noActivitySince:
+          days: 14
+      actions:
+      - addReply:
+          reply: This issue will now be closed since it had been marked `no-recent-activity` but received no further activity in the past 14 days. It is still possible to reopen or comment on the issue, but please note that the issue will be locked if it remains inactive for another 30 days.
+      - closeIssue
+    - description: Close PRs with no-recent-activity
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isPullRequest
+      - isOpen
+      - hasLabel:
+          label: no-recent-activity
+      - noActivitySince:
+          days: 14
+      actions:
+      - addReply:
+          reply: This pull request will now be closed since it had been marked `no-recent-activity` but received no further activity in the past 14 days. It is still possible to reopen or comment on the pull request, but please note that it will be locked if it remains inactive for another 30 days.
+      - closeIssue
+    - description: Close inactive Draft PRs
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isDraftPullRequest
+      - isOpen
+      - noActivitySince:
+          days: 30
+      actions:
+      - closeIssue
+      - addReply:
+          reply: Draft Pull Request was automatically closed for 30 days of inactivity. Please [let us know](https://github.com/dotnet/runtime/blob/main/docs/area-owners.md) if you'd like to reopen it.
+    eventResponderTasks:
+    - if:
+      - payloadType: Pull_Request
+      then:
+      - inPrLabel:
+          label: in-pr
+      description: Add `in-pr` label on issue when an open pull request is targeting it
+    - if:
+      - payloadType: Pull_Request
+      - isAction:
+          action: Opened
+      - not:
+          activitySenderHasPermission:
+            permission: Read
+      then:
+      - assignTo:
+          author: True
+      description: Assign Team PRs to author
+    - if:
+      - payloadType: Pull_Request
+      - isAction:
+          action: Opened
+      - and:
+        - not:
+            activitySenderHasPermission:
+              permission: Admin
+        - not:
+            activitySenderHasPermission:
+              permission: Write
+        - not:
+            isActivitySender:
+              user: github-actions[bot]
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: dotnet-maestro[bot]
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: dotnet-maestro-bot[bot]
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: dotnet-maestro-bot
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: dotnet-maestro
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: github-actions
+              issueAuthor: False
+      then:
+      - addLabel:
+          label: community-contribution
+      description: Label community PRs
+    - if:
+      - payloadType: Issues
+      - labelAdded:
+          label: needs-author-action
+      then:
+      - addReply:
+          reply: This issue has been marked `needs-author-action` and may be missing some important information.
+      description: Needs-author-action notification
+    - if:
+      - payloadType: Pull_Request_Review
+      - not:
+          activitySenderHasPermission:
+            permission: Read
+      - isAction:
+          action: Submitted
+      - isReviewState:
+          reviewState: Changes_requested
+      then:
+      - addLabel:
+          label: needs-author-action
+      description: PR reviews with "changes requested" applies the needs-author-action label
+    - if:
+      - payloadType: Issue_Comment
+      - isAction:
+          action: Created
+      - isActivitySender:
+          issueAuthor: True
+      - hasLabel:
+          label: needs-author-action
+      - not:
+          hasLabel:
+            label: untriaged
+      - isOpen
+      then:
+      - addLabel:
+          label: needs-further-triage
+      - removeLabel:
+          label: needs-author-action
+      description: Replace `needs-author-action` label with `needs-further-triage` label when the author comments on an issue that is not still untriaged
+    - if:
+      - payloadType: Issue_Comment
+      - isAction:
+          action: Created
+      - isActivitySender:
+          issueAuthor: True
+      - hasLabel:
+          label: needs-author-action
+      - hasLabel:
+          label: untriaged
+      - isOpen
+      then:
+      - removeLabel:
+          label: needs-author-action
+      description: Remove `needs-author-action` label when the author comments on an `untriaged` issue
+    - if:
+      - payloadType: Pull_Request
+      - isAction:
+          action: Synchronize
+      - hasLabel:
+          label: needs-author-action
+      then:
+      - removeLabel:
+          label: needs-author-action
+      description: Pushing changes to PR branch removes the needs-author-action label
+    - if:
+      - payloadType: Issue_Comment
+      - isActivitySender:
+          issueAuthor: True
+      - isAction:
+          action: Created
+      - hasLabel:
+          label: needs-author-action
+      - isOpen
+      then:
+      - removeLabel:
+          label: needs-author-action
+      description: Author commenting in PR removes the needs-author-action label
+    - if:
+      - payloadType: Pull_Request_Review
+      - isActivitySender:
+          issueAuthor: True
+      - hasLabel:
+          label: needs-author-action
+      - isAction:
+          action: Submitted
+      - isOpen
+      then:
+      - removeLabel:
+          label: needs-author-action
+      description: Author responding to a pull request review comment removes the needs-author-action label
+    - if:
+      - payloadType: Issues
+      - not:
+          isAction:
+            action: Closed
+      - hasLabel:
+          label: no-recent-activity
+      - not:
+          labelAdded:
+            label: no-recent-activity
+      then:
+      - removeLabel:
+          label: no-recent-activity
+      description: Remove `no-recent-activity` label from issues when issue is modified
+    - if:
+      - payloadType: Issue_Comment
+      - hasLabel:
+          label: no-recent-activity
+      then:
+      - removeLabel:
+          label: no-recent-activity
+      description: Remove `no-recent-activity` label when an issue is commented on
+    - if:
+      - payloadType: Pull_Request
+      - isOpen
+      - hasLabel:
+          label: no-recent-activity
+      - not:
+          labelAdded:
+            label: no-recent-activity
+      then:
+      - removeLabel:
+          label: no-recent-activity
+      description: Remove `no-recent-activity` label from PRs when modified
+    - if:
+      - payloadType: Issue_Comment
+      - hasLabel:
+          label: no-recent-activity
+      - isOpen
+      then:
+      - removeLabel:
+          label: no-recent-activity
+      description: Remove `no-recent-activity` label from PRs when commented on
+    - if:
+      - payloadType: Pull_Request_Review
+      - hasLabel:
+          label: no-recent-activity
+      - isOpen
+      then:
+      - removeLabel:
+          label: no-recent-activity
+      description: Remove `no-recent-activity` label from PRs when new review is added
+onFailure: 
+onSuccess:

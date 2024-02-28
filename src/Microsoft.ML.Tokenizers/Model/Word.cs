@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 throw new ArgumentOutOfRangeException(nameof(capacity));
             }
-            _symbols = new Vec<Symbol>((int)capacity);
+            _symbols = new Vec<Symbol>(capacity);
         }
 
         public static Word WithCapacity(int capacity) => new Word(capacity);
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Tokenizers
                     int next = current.Next;
                     if ((uint)next < (uint)_symbols.Count)
                     {
-                        Symbol nextSymbol = _symbols[(int)next];
+                        Symbol nextSymbol = _symbols[next];
                         Pair<int> newPair = Pair<int>.Create(current.C, nextSymbol.C);
                         if (merges.TryGetValue(newPair, out value))
                         {
@@ -191,6 +191,14 @@ namespace Microsoft.ML.Tokenizers
                 {
                     _symbols.Remove(i);
                 }
+            }
+        }
+
+        public void PopulateIds(IList<int> accumulatedIds)
+        {
+            for (int i = 0; i < SymbolsCount; i++)
+            {
+                accumulatedIds.Add(_symbols[i].C);
             }
         }
 
@@ -223,39 +231,19 @@ namespace Microsoft.ML.Tokenizers
             return sb.ToString();
         }
 
-        public Enumerator GetIterator(SortedDictionary<int, string> vocabReverse) => new Enumerator(ref _symbols, vocabReverse);
-
-        public struct Enumerator
+        public List<Token> ToTokens(SortedDictionary<int, string> vocabReverse)
         {
-            private int _index;
-            private int _pos;
-            private Vec<Symbol> _symbols;
-            private readonly SortedDictionary<int, string> _vocabReverse;
+            List<Token> tokens = new(SymbolsCount);
+            int index = 0;
 
-            public Enumerator(ref Vec<Symbol> symbols, SortedDictionary<int, string> vocabReverse)
+            for (int i = 0; i < SymbolsCount; i++)
             {
-                _index = -1;
-                _pos = 0;
-                _symbols = symbols;
-                _vocabReverse = vocabReverse;
+                int endIndex = index + _symbols[i].Len;
+                tokens.Add(new Token(_symbols[i].C, vocabReverse[_symbols[i].C], (index, _symbols[i].Len)));
+                index += _symbols[i].Len;
             }
 
-            public readonly Enumerator GetEnumerator() => this;
-
-            public readonly Token Current => new Token(_symbols[_index].C, _vocabReverse[_symbols[_index].C], (_pos, _pos + _symbols[_index].Len));
-
-            public bool MoveNext()
-            {
-                if (_symbols.Count == 0 || _index >= _symbols.Count - 1)
-                {
-                    return false;
-                }
-
-                _pos = _index == -1 ? 0 : _pos + _symbols[_index].Len;
-
-                _index++;
-                return true;
-            }
+            return tokens;
         }
     }
 }

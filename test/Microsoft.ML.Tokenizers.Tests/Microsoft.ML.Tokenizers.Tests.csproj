@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <AssemblyName>Microsoft.ML.Tokenizers.Tests</AssemblyName>
     <StrongNameKeyId>Test</StrongNameKeyId>
@@ -8,15 +9,6 @@
 
   <!-- Import the test signing certificate -->
   <Import Project="../Cert.props" />
-  <ItemGroup>
-    <None Remove="Data\wiki.test.raw" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Data\wiki.test.raw">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      <LogicalName>wiki.test.raw</LogicalName>
-    </EmbeddedResource>
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj" />

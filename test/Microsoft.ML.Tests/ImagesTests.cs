@@ -1232,7 +1232,7 @@ namespace Microsoft.ML.Tests
             var dataFile = GetDataPath($"images/{imageName}");
 
             using MLImage image1 = MLImage.CreateFromFile(dataFile);
-            using FileStream imageStream = new FileStream(dataFile, FileMode.Open, FileAccess.Read);
+            using FileStream imageStream = new FileStream(dataFile, FileMode.Open, FileAccess.Read, FileShare.Read);
             using MLImage image2 = MLImage.CreateFromStream(imageStream);
 
             Assert.Equal(image1.Tag, image2.Tag);
@@ -1333,7 +1333,7 @@ namespace Microsoft.ML.Tests
             using MLImage image1 = MLImage.CreateFromFile(imageFile);
 
             // Create image from stream then close the stream and then try to access the image data
-            FileStream stream = new FileStream(imageFile, FileMode.Open, FileAccess.Read, FileShare.None);
+            FileStream stream = new FileStream(imageFile, FileMode.Open, FileAccess.Read, FileShare.Read);
             MLImage image2 = MLImage.CreateFromStream(stream);
             stream.Dispose();
             Assert.Equal(image1.Pixels.ToArray(), image2.Pixels.ToArray());
@@ -1349,7 +1349,7 @@ namespace Microsoft.ML.Tests
             image2.Dispose();
 
             // Now test image stream contains image data prepended and appended with extra unrelated data.
-            stream = new FileStream(imageFile, FileMode.Open, FileAccess.Read, FileShare.None);
+            stream = new FileStream(imageFile, FileMode.Open, FileAccess.Read, FileShare.Read);
             MemoryStream ms = new MemoryStream((int)stream.Length);
             for (int i = 0; i < stream.Length; i++)
             {

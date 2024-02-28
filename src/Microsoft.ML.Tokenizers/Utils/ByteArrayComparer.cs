@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -8,27 +8,17 @@ using System.Linq;
 
 namespace Microsoft.ML.Tokenizers
 {
-    internal class ByteArrayComparer : IEqualityComparer<byte[]>
+    internal sealed class ReadOnlyMemoryByteComparer : IEqualityComparer<ReadOnlyMemory<byte>>
     {
-        public bool Equals(byte[]? x, byte[]? y)
+        public static ReadOnlyMemoryByteComparer Instance { get; } = new();
+
+        public bool Equals(ReadOnlyMemory<byte> x, ReadOnlyMemory<byte> y) =>
+            x.Span.SequenceEqual(y.Span);
+
+        public int GetHashCode(ReadOnlyMemory<byte> x)
         {
-            if (x is null || y is null)
-            {
-                return x == y;
-            }
-
-            return x.SequenceEqual(y);
-        }
-
-        public int GetHashCode(byte[] bytes)
-        {
-            if (bytes == null)
-            {
-                throw new ArgumentNullException(nameof(bytes));
-            }
-
             int hash = 17;
-            foreach (byte b in bytes)
+            foreach (byte b in x.Span)
             {
                 hash = hash * 31 + b;
             }

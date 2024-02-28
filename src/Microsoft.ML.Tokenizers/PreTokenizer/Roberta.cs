@@ -10,29 +10,27 @@ namespace Microsoft.ML.Tokenizers
     /// <summary>
     /// The pre-tokenizer for Roberta English tokenizer.
     /// </summary>
-    public sealed class RobertaPreTokenizer : PreTokenizer
+    public sealed partial class RobertaPreTokenizer : PreTokenizer
     {
         /// <summary>
         /// Gets a singleton instance of the Roberta pre-tokenizer..
         /// </summary>
-        public static readonly RobertaPreTokenizer Instance = new RobertaPreTokenizer();
-
-        private const string Pattern = @"'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+";
+        public static RobertaPreTokenizer Instance { get; } = new RobertaPreTokenizer();
 
         /// <summary>
         /// Splits the given string in multiple substrings at the word boundary, keeping track of the offsets of said substrings from the original string.
         /// </summary>
-        /// <param name="sentence">The string to split into tokens.</param>
-        /// <param name="skipSpecialTokens">Indicates whether to skip the special tokens.</param>
+        /// <param name="text">The string to split into tokens.</param>
+        /// <param name="considerSpecialTokens">Indicates whether to keep the special tokens.</param>
         /// <returns>The list of the splits containing the tokens and the token's offsets to the original string.</returns>
-        public override IEnumerable<Split> PreTokenize(string sentence, bool skipSpecialTokens = false)
+        public override IEnumerable<Split> PreTokenize(string text, bool considerSpecialTokens = true)
         {
-            if (string.IsNullOrEmpty(sentence))
+            if (string.IsNullOrEmpty(text))
             {
-                return EmptyList;
+                return Array.Empty<Split>();
             }
 
-            return new RegexSplitEnumerable(sentence, Pattern);
+            return SplitText(text, Tokenizer.P50kBaseRegex());
         }
     }
 }

@@ -21,6 +21,6 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="original">The original string to normalize to lowercase form.</param>
         /// <returns>The lower-cased normalized string.</returns>
-        public override NormalizedString Normalize(string original) => new NormalizedString(original, original.ToLowerInvariant(), mapping: null, isOneToOneMapping: true);
+        public override string Normalize(string original) => original.ToLowerInvariant();
     }
 }

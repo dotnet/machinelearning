@@ -1,0 +1,34 @@
+﻿{
+  "$schema": "./search-space-schema.json#",
+  "name": "normalize_text_option",
+  "search_space": [
+    {
+      "name": "InputColumnName",
+      "type": "string"
+    },
+    {
+      "name": "OutputColumnName",
+      "type": "string"
+    },
+    {
+      "name": "CaseMode",
+      "type": "caseMode",
+      "default": "CaseMode.Lower"
+    },
+    {
+      "name": "KeepDiacritics",
+      "type": "boolean",
+      "default": false
+    },
+    {
+      "name": "KeepPunctuations",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "name": "KeepNumbers",
+      "type": "boolean",
+      "default": true
+    }
+  ]
+}

@@ -5,6 +5,7 @@
 using Microsoft.ML.Tokenizers;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -60,7 +61,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new Dictionary<string, int>() { { "a", 1 }, { "b", 2 } },
                     null,
                     "abc",
-                    new (int, int)[] { (0, 1), (1, 2), (2, 3) },
+                    new (int, int)[] { (0, 1), (1, 1), (2, 1) },
                     new int[] { 1, 2, 0 },
                     new string[] { "a", "b", UnknownToken },
                     false,
@@ -71,7 +72,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new Dictionary<string, int>() { { "a", 1 }, { "b", 2 } },
                     null,
                     "a b c",
-                    new (int, int)[] { (0, 1), (2, 3), (4, 5) },
+                    new (int, int)[] { (0, 1), (2, 1), (4, 1) },
                     new int[] { 1, 2, 0 },
                     new string[] { "a", "b", UnknownToken },
                     false,
@@ -82,7 +83,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new Dictionary<string, int>() { { "a", 1 }, { "b", 2 }, { "ab", 3 } },
                     new (string, string)[] { ("a", "b") },
                     "ab c",
-                    new (int, int)[] { (0, 2), (3, 4) },
+                    new (int, int)[] { (0, 2), (3, 1) },
                     new int[] { 3, 0 },
                     new string[] { "ab", UnknownToken },
                     false,
@@ -104,7 +105,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new Dictionary<string, int>(),
                     null,
                     "abc",
-                    new (int, int)[] { (0, 1), (1, 2), (2, 3) },
+                    new (int, int)[] { (0, 1), (1, 1), (2, 1) },
                     new int[] { 0, 0, 0 },
                     new string[] { UnknownToken, UnknownToken, UnknownToken },
                     false,
@@ -133,17 +134,19 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             try
             {
-                Bpe bpe = new Bpe(vocabFile, mergesFile, UnknownToken);
-                bpe.FuseUnknownTokens = fuseUnknownToken;
+                Bpe bpe = new Bpe(vocabFile, mergesFile, UnknownToken, null, null, fuseUnknownToken);
 
-                Assert.Equal(vocab.Count + 1u, bpe.GetVocabSize());
+                Assert.Equal(vocab.Count + 1u, bpe.Vocab.Count);
                 Tokenizer tokenizer = new Tokenizer(bpe);
 
-                TokenizerResult encoding = tokenizer.Encode(sentence);
+                EncodingResult encoding = tokenizer.Encode(sentence);
+                IReadOnlyList<int> idsList = tokenizer.EncodeToIds(sentence);
 
                 Assert.Equal(expectedTokens.Length, encoding.Tokens.Count);
                 Assert.Equal(offsets.Length, encoding.Offsets.Count);
                 Assert.Equal(ids.Length, encoding.Ids.Count);
+                Assert.Equal(ids.Length, idsList.Count);
+                Assert.Equal(ids.Length, tokenizer.CountTokens(sentence));
                 Assert.Equal(decodedTokens, tokenizer.Decode(encoding.Ids));
 
                 for (int i = 0; i < encoding.Tokens.Count; i++)
@@ -151,8 +154,9 @@ namespace Microsoft.ML.Tokenizers.Tests
                     Assert.Equal(expectedTokens[i], encoding.Tokens[i]);
                     Assert.Equal(offsets[i], encoding.Offsets[i]);
                     Assert.Equal(ids[i], encoding.Ids[i]);
-                    Assert.Equal(encoding.Tokens[i], tokenizer.Model.IdToToken(encoding.Ids[i]));
-                    Assert.Equal(encoding.Ids[i], tokenizer.Model.TokenToId(encoding.Tokens[i]));
+                    Assert.Equal(ids[i], idsList[i]);
+                    Assert.Equal(encoding.Tokens[i], tokenizer.Model.MapIdToToken(encoding.Ids[i]));
+                    Assert.Equal(encoding.Ids[i], tokenizer.Model.MapTokenToId(encoding.Tokens[i]));
                     Assert.Equal(encoding.Tokens[i], tokenizer.Decode(encoding.Ids[i]));
                 }
             }
@@ -198,61 +202,29 @@ namespace Microsoft.ML.Tokenizers.Tests
             }
         }
 
+        private const string Gpt2VocabUrl = "https://huggingface.co/openai-community/gpt2/raw/main/vocab.json";
+        private const string Gpt2MergesUrl = "https://huggingface.co/openai-community/gpt2/raw/main/merges.txt";
+
         [Fact]
-        public void TestTrainingLoadingVocabFile()
+        public async void TestGpt2Vocab()
         {
-            string trainingFilePath = Utils.SaveEmbeddedResourceFile("wiki.test.raw");
-            string prefix = Guid.NewGuid().ToString();
-            string vocabFilePath = Path.GetTempPath() + Path.DirectorySeparatorChar + prefix + "-vocab.json";
-            string mergeFilePath = Path.GetTempPath() + Path.DirectorySeparatorChar + prefix + "-merges.txt";
+            using HttpClient httpClient = new HttpClient();
+            using Stream vocabStream = await httpClient.GetStreamAsync(Gpt2VocabUrl);
+            using Stream mergesStream = await httpClient.GetStreamAsync(Gpt2MergesUrl);
 
-            try
-            {
-                //
-                // Training
-                //
+            Bpe bpe = new Bpe(vocabStream, mergesStream);
+            Tokenizer tokenizer = new Tokenizer(bpe);
 
-                Tokenizer tokenizer = new Tokenizer(new Bpe());
-                Trainer bpeTrainer = new BpeTrainer(specialTokens: new List<AddedToken>() { "[UNK]", "[CLS]", "[SEP]", "[PAD]", "[MASK]" }, minFrequency: 0, vocabSize: 50_000);
-                tokenizer.TrainFromFiles(bpeTrainer, null, trainingFilePath);
+            string text = "The quick brown fox jumps over the lazy dog!";
 
-                tokenizer.Model.Save(Path.GetTempPath(), prefix);
+            EncodingResult encoding = tokenizer.Encode(text);
+            IReadOnlyList<int> ids = tokenizer.EncodeToIds(text);
 
-                Assert.True(File.Exists(mergeFilePath));
-                Assert.True(File.Exists(vocabFilePath));
-
-                //
-                // Create the tokenizer using the generated vocab and merges files
-                //
-
-                tokenizer = new Tokenizer(new Bpe(vocabFilePath, mergeFilePath));
-                Assert.True(tokenizer.Model.GetVocab().TryGetValue("[UNK]", out int unkId));
-                Assert.Equal(0, unkId);
-
-                foreach (object?[] arguments in BpeTestData)
-                {
-                    TokenizerResult enc = tokenizer.Encode((string)arguments[0]!);
-                    Assert.Equal((string)arguments[0]!, enc.OriginalString);
-                    Assert.Equal((string[])arguments[1]!, enc.Tokens);
-                    (int, int)[] offsets = ((int, int)[])arguments[2]!;
-                    for (int i = 0; i < offsets.Length; i++)
-                        Assert.Equal(offsets[i], enc.Offsets[i]);
-
-                    Assert.Equal(enc.Tokens.Count, enc.Ids.Count);
-
-                    IReadOnlyDictionary<string, int> vocab = tokenizer.Model.GetVocab();
-                    for (int i = 0; i < enc.Ids.Count; i++)
-                    {
-                        Assert.Equal(vocab[enc.Tokens[i]], enc.Ids[i]);
-                    }
-                }
-            }
-            finally
-            {
-                Utils.DeleteFile(trainingFilePath);
-                Utils.DeleteFile(mergeFilePath);
-                Utils.DeleteFile(vocabFilePath);
-            }
+            Assert.Equal(12, encoding.Tokens.Count);
+            Assert.Equal(12, encoding.Offsets.Count);
+            Assert.Equal(12, encoding.Ids.Count);
+            Assert.Equal(encoding.Ids, ids);
+            Assert.Equal(12, tokenizer.CountTokens(text));
         }
 
         private static string WriteToMergeFile((string, string)[] mergeEntries)
@@ -272,6 +244,17 @@ namespace Microsoft.ML.Tokenizers.Tests
             string fileName = Utils.CreateTemporaryFile("json");
             File.WriteAllText(fileName, JsonSerializer.Serialize<Dictionary<string, int>>(dic), Encoding.UTF8);
             return fileName;
+        }
+
+        internal static Bpe CreateEmptyBpe()
+        {
+            using MemoryStream emptyVocabStream = new MemoryStream();
+            using StreamWriter writer = new StreamWriter(emptyVocabStream);
+            writer.Write("{}");
+            writer.Flush();
+            emptyVocabStream.Position = 0;
+
+            return new Bpe(vocabStream: emptyVocabStream, mergesStream: null, UnknownToken);
         }
     }
 }

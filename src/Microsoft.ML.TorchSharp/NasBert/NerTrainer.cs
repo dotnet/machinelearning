@@ -187,7 +187,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     }
                     target = targetEditor.Commit();
                 }
-                t = torch.tensor((ZeroArray).Concat(Tokenizer.RobertaModel().IdsToOccurrenceRanks(encoding.Ids)).ToList(), device: Device);
+                t = torch.tensor((ZeroArray).Concat(Tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(encoding.Ids)).ToList(), device: Device);
 
                 if (t.NumberOfElements > 512)
                     t = t.slice(0, 0, 512, 1);
@@ -377,7 +377,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             private void CondenseOutput(ref VBuffer<UInt32> dst, string sentence, Tokenizer tokenizer, TensorCacher outputCacher)
             {
                 var pre = tokenizer.PreTokenizer.PreTokenize(sentence);
-                TokenizerResult encoding = tokenizer.Encode(sentence);
+                EncodingResult encoding = tokenizer.Encode(sentence);
 
                 var argmax = (outputCacher as BertTensorCacher).Result.argmax(-1);
                 var prediction = argmax.ToArray<long>();

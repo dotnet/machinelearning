@@ -14,95 +14,90 @@ namespace Microsoft.ML.Tokenizers
     public abstract class Model
     {
         /// <summary>
-        /// Tokenize a sequence string to a list of tokens.
+        /// Encode a text to a list of tokens.
         /// </summary>
-        /// <param name="sequence">The sequence to tokenize.</param>
-        /// <returns>The list of tokens generated from the sequence tokenization.</returns>
-        public abstract IReadOnlyList<Token> Tokenize(string sequence);
+        /// <param name="text">The text to encode.</param>
+        /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
+        /// <returns>The list of tokens generated from the text tokenization.</returns>
+        public abstract IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false);
 
         /// <summary>
-        /// Tokenize a split sequence string to a list of tokens.
+        /// Encode a text to a list of Ids and add them to the accumulatedIds list.
         /// </summary>
-        /// <param name="sequence">The text to tokenize.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
-        /// <returns>The list of tokens generated from the sequence tokenization.</returns>
-        public virtual IReadOnlyList<Token> Tokenize(string sequence, bool isSpecialToken) => Tokenize(sequence);
-
-        /// <summary>
-        /// Tokenize a split sequence string to a list of Ids and add them to the accumulatedIds list.
-        /// </summary>
-        /// <param name="sequence">The sequence to split.</param>
-        /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
-        /// <param name="accumulatedIds">The list of accumulated tokenized Ids.</param>
-        /// <returns>True if the operation succeeded, false otherwise.</returns>
-        public virtual bool TokenizeToIds(string sequence, bool isSpecialToken, IList<int> accumulatedIds)
+        /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
+        /// <remarks>
+        /// This method does the default implementation that uses the Encode method to get the token's Ids.
+        /// Tokenizer's models which care about performance may choose to override this method to provide a more efficient implementation.
+        /// </remarks>
+        public virtual void EncodeToIds(string text, bool isSpecialToken, IList<int> accumulatedIds)
         {
             if (accumulatedIds is null)
             {
                 throw new ArgumentNullException(nameof(accumulatedIds));
             }
 
-            var tokens = Tokenize(sequence);
+            var tokens = Encode(text);
             foreach (var token in tokens)
             {
                 accumulatedIds.Add(token.Id);
             }
-            return true;
         }
 
         /// <summary>
-        /// Map the token to tokenized Id.
+        /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
-        /// <param name="token">The token to map to the Id.</param>
-        /// <returns>The mapped Id of the token.</returns>
-        public abstract int? TokenToId(string token);
+        /// <param name="text">The text to encode.</param>
+        /// <param name="isSpecialToken">Indicate if the token is special token.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        /// <remarks>
+        /// This method does the default implementation that uses the EncodeToIds method to get the number of token's Ids.
+        /// Tokenizer's models which care about performance may choose to override this method to provide a more efficient implementation.
+        /// </remarks>
+        public virtual int CountTokens(string text, bool isSpecialToken)
+        {
+            var ids = new List<int>();
+            EncodeToIds(text, isSpecialToken, ids);
+            return ids.Count;
+        }
 
         /// <summary>
-        /// Map the token to tokenized id with the option to skip the special tokens.
+        /// Map the token to encoded id with the option to skip the special tokens.
         /// </summary>
         /// <param name="token">The token to map to Id</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the encoding.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public virtual int? TokenToId(string token, bool skipSpecialTokens) => TokenToId(token);
+        public abstract int? MapTokenToId(string token, bool considerSpecialTokens = true);
 
         /// <summary>
-        /// Map the tokenized Id to the token.
+        /// Map the encoded Id to the token.
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
-        /// <param name="skipSpecialTokens">Indicate if want to skip the special tokens during the decoding.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public abstract string? IdToToken(int id, bool skipSpecialTokens = false);
-
-        public abstract string? IdToString(int id, bool skipSpecialTokens = false);
+        public abstract string? MapIdToToken(int id, bool considerSpecialTokens = true);
 
         /// <summary>
-        /// Gets the dictionary mapping tokens to Ids.
+        /// Decode the given ids, back to a String.
         /// </summary>
-        public abstract IReadOnlyDictionary<string, int> GetVocab();
+        /// <param name="ids">The list of ids that we want to decode.</param>
+        /// <param name="considerSpecialTokens">Whether the special tokens should be kept in the decoded string.</param>
+        /// <param name="decoder">The optional Decoder to merge the given list of tokens in a string.</param>
+        /// <returns>The decoded string.</returns>
+        public virtual string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null, bool considerSpecialTokens = true)
+        {
+            List<string> tokens = new List<string>();
 
-        /// <summary>
-        /// Gets the dictionary size that map tokens to Ids.
-        /// </summary>
-        public abstract int GetVocabSize();
+            foreach (int id in ids)
+            {
+                if (MapIdToToken(id, considerSpecialTokens) is string s)
+                {
+                    tokens.Add(s);
+                }
+            }
 
-        /// <summary>
-        /// Save the model data into the vocabulary and merges files.
-        /// </summary>
-        /// <param name="path">The file system path to store the generated files at.</param>
-        /// <param name="prefix">Optional prefix for the generated file names.</param>
-        /// <returns>The list of all saved files.</returns>
-        public abstract string[] Save(string path, string? prefix = null);
-
-        /// <summary>
-        /// Gets a trainer object to use in training the model.
-        /// </summary>
-        public abstract Trainer? GetTrainer();
-
-        /// <summary>
-        /// Return true if the char is valid in the tokenizer; otherwise return false.
-        /// </summary>
-        /// <param name="ch"></param>
-        /// <returns></returns>
-        public abstract bool IsValidChar(char ch);
+            return decoder?.Decode(tokens) ?? string.Concat(tokens);
+        }
     }
 }

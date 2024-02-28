@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+  
+  <Import Condition="'$(IsPackable)' == 'true'" Project="$(RepositoryEngineeringDir)Packaging.targets"  />
 
   <ItemGroup Condition="'$(IsUnitTestProject)' == 'true'">
     <PackageReference Include="coverlet.msbuild" Version="$(CoverletMsbuildVersion)" PrivateAssets="all" />

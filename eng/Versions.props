@@ -39,7 +39,7 @@
     <MicrosoftCodeAnalysisAnalyzersVersion>3.3.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisCSharpVersion>3.9.0</MicrosoftCodeAnalysisCSharpVersion>
     <MicrosoftDotNetInteractiveVersion>1.0.0-beta.23509.3</MicrosoftDotNetInteractiveVersion>
-    <MicrosoftMLOnnxRuntimeVersion>1.14.0</MicrosoftMLOnnxRuntimeVersion>
+    <MicrosoftMLOnnxRuntimeVersion>1.16.3</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
     <!--  
 @("inteltbb.devel", "win", "2021.7.1.15305")
@@ -70,8 +70,6 @@
     <CoverletMsbuildVersion>3.1.2</CoverletMsbuildVersion>
     <MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>3.3.1</MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>
     <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
-    <MicrosoftSourceLinkVersion>1.1.0-beta-20206-02</MicrosoftSourceLinkVersion>
-    <MicrosoftSymbolUploaderBuildTaskVersion>1.1.225302</MicrosoftSymbolUploaderBuildTaskVersion>
     <ReportGeneratorVersion>4.3.6</ReportGeneratorVersion>
     <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
     <!-- Test-only Dependencies -->

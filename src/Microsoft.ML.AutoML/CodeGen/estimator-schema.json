@@ -75,7 +75,8 @@
               "SentenceSimilarity",
               "ObjectDetection",
               "QuestionAnswering",
-              "NamedEntityRecognition"
+              "NamedEntityRecognition",
+              "NormalizeText"
             ]
           },
           "nugetDependencies": {
@@ -114,7 +115,8 @@
                 "Microsoft.ML.Transforms.Image",
                 "Microsoft.ML.Trainers.FastTree",
                 "Microsoft.ML.TorchSharp",
-                "Microsoft.ML.Trainers.LightGbm"
+                "Microsoft.ML.Trainers.LightGbm",
+                "Microsoft.ML.Transforms.Text.TextNormalizingEstimator"
               ]
             }
           },
@@ -198,7 +200,11 @@
                     "scoreThreshold",
                     "steps",
                     "initLearningRate",
-                    "weightDecay"
+                    "weightDecay",
+                    "caseMode",
+                    "keepPunctuations",
+                    "keepDiacritics",
+                    "keepNumbers"
                   ]
                 },
                 "argumentType": {
