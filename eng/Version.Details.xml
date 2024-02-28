@@ -27,41 +27,9 @@
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>2fb543a45580400a559b5ae41c96a815ea14dac5</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Maestro.Client" Version="1.1.0-beta.20074.1">
-      <Uri>https://github.com/dotnet/arcade-services</Uri>
-      <Sha>cd705029f2675970b42f9273ae359d0926c5e815</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.DotNet.Maestro.Tasks" Version="1.1.0-beta.20074.1">
-      <Uri>https://github.com/dotnet/arcade-services</Uri>
-      <Sha>cd705029f2675970b42f9273ae359d0926c5e815</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.DotNet.XHarness.CLI" Version="1.0.0-prerelease.21254.2">
-      <Uri>https://github.com/dotnet/xharness</Uri>
-      <Sha>89cb4b1d368e0f15b4df8e02a176dd1f1c33958b</Sha>
-    </Dependency>
     <Dependency Name="Microsoft.DotNet.XUnitExtensions" Version="9.0.0-beta.24102.4">
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>2fb543a45580400a559b5ae41c96a815ea14dac5</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="3.8.0-3.20460.2">
-      <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>d57cda76c2b76cff75487a085d289cfadd99150b</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.SourceLink.GitHub" Version="1.1.0-beta-20464-02">
-      <Uri>https://github.com/dotnet/sourcelink</Uri>
-      <Sha>8a3edd1902dbfe3adba65f22e3bb7aa2cc73e97f</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.SourceLink.AzureRepos.Git" Version="1.1.0-beta-20464-02">
-      <Uri>https://github.com/dotnet/sourcelink</Uri>
-      <Sha>8a3edd1902dbfe3adba65f22e3bb7aa2cc73e97f</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.DiaSymReader.Pdb2Pdb" Version="1.1.0-beta2-19575-01">
-      <Uri>https://github.com/dotnet/symreader-converter</Uri>
-      <Sha>c5ba7c88f92e2dde156c324a8c8edc04d9fa4fe0</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.DiaSymReader.Converter" Version="1.1.0-beta2-19575-01">
-      <Uri>https://github.com/dotnet/symreader-converter</Uri>
-      <Sha>c5ba7c88f92e2dde156c324a8c8edc04d9fa4fe0</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DotNet.XliffTasks" Version="9.0.0-beta.24102.4">
       <Uri>https://github.com/dotnet/arcade</Uri>
