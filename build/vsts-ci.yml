@@ -33,7 +33,7 @@ extends:
   parameters:
     pool:
       name: $(DncEngInternalBuildPool)
-      image: 1es-windows-2022-pt
+      image: 1es-windows-2019-pt
       os: windows
     containers:
       CentosContainer: 
@@ -154,7 +154,7 @@ extends:
       ################################################################################
         pool:
           name: $(DncEngInternalBuildPool)
-          image: 1es-windows-2022-pt
+          image: 1es-windows-2019-pt
           os: windows
         templateContext:
           outputs:
@@ -177,7 +177,7 @@ extends:
           _TeamName: DotNetCore
         pool:
           name: $(DncEngInternalBuildPool)
-          image: 1es-windows-2022-pt
+          image: 1es-windows-2019-pt
           os: windows
         templateContext:
           outputs:
@@ -201,7 +201,7 @@ extends:
           _TeamName: DotNetCore
         pool:
           name: $(DncEngInternalBuildPool)
-          image: 1es-windows-2022-pt
+          image: 1es-windows-2019-pt
           os: windows
         templateContext:
           outputs:
@@ -258,7 +258,7 @@ extends:
                                   /p:DotNetPublishUsingPipelines=$true
           pool:
             name: $(DncEngInternalBuildPool)
-            image: 1es-windows-2022-pt
+            image: 1es-windows-2019-pt
             os: windows
           steps:
 
@@ -288,7 +288,7 @@ extends:
           publishUsingPipelines: true
           pool:
             name: $(DncEngInternalBuildPool)
-            image: 1es-windows-2022-pt
+            image: 1es-windows-2019-pt
             os: windows
 
     - template: /eng/common/templates/post-build/post-build.yml@self
