@@ -19,8 +19,7 @@ variables:
   value: true
 - name: Codeql.SkipTaskAutoInjection
   value: True  #default to not inject CodeQL tasks, we'll enable it in a single job.
-- template: /eng/common-variables.yml
-- template: /eng/common/templates/variables/pool-providers.yml
+- template: /eng/common/templates/variables/pool-providers.yml@self
 
 resources:
   repositories:
