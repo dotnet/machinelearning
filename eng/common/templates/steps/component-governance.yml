@@ -1,7 +1,8 @@
+# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
+# Please make sure to check all the converted content, it is your team's responsibility to make sure that the pipeline is still valid and functions as expected.
 parameters:
   disableComponentGovernance: false
   componentGovernanceIgnoreDirectories: ''
-
 steps:
 - ${{ if eq(parameters.disableComponentGovernance, 'true') }}:
   - script: "echo ##vso[task.setvariable variable=skipComponentGovernanceDetection]true"
