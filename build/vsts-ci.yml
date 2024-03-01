@@ -32,7 +32,7 @@ extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
     pool:
-      name: Azure-Pipelines-1ESPT-ExDShared
+      name: $(DncEngInternalBuildPool)
       image: windows-2022
       os: windows
     containers:
