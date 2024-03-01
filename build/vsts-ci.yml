@@ -56,19 +56,16 @@ extends:
           image: 1es-ubuntu-2204-pt
           os: linux
         container: CentosContainer
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            targetPath: $(Build.SourcesDirectory)/artifacts/pkgassets
+            artifactName: pkgassets
+            artifactType: container
         steps:
         # Only build native assets to avoid conflicts.
         - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
           displayName: Build Native Assets
-
-        - task: PublishBuildArtifacts@1
-          displayName: Publish Linux package assets
-          inputs:
-            pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-            artifactName: pkgassets
-            artifactType: container
-
-        - template: /eng/common/templates/steps/generate-sbom.yml@self
 
       ################################################################################
       - job: Linux_arm
@@ -80,19 +77,16 @@ extends:
           image: 1es-ubuntu-2204-pt
           os: linux
         container: UbuntuCrossArmContainer
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            targetPath: $(Build.SourcesDirectory)/artifacts/pkgassets
+            artifactName: pkgassets
+            artifactType: container
         steps:
         # Only build native assets to avoid conflicts.
         - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm /p:CopyPackageAssets=true
           displayName: Build Native Assets
-
-        - task: PublishBuildArtifacts@1
-          displayName: Publish Linux_arm package assets
-          inputs:
-            pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-            artifactName: pkgassets
-            artifactType: container
-
-        - template: /eng/common/templates/steps/generate-sbom.yml@self
 
       ################################################################################
       - job: Linux_arm64
@@ -104,19 +98,16 @@ extends:
           image: 1es-ubuntu-2204-pt
           os: linux
         container: UbuntuCrossArm64Container
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            targetPath: $(Build.SourcesDirectory)/artifacts/pkgassets
+            artifactName: pkgassets
+            artifactType: container
         steps:
         # Only build native assets to avoid conflicts.
         - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
           displayName: Build Native Assets
-
-        - task: PublishBuildArtifacts@1
-          displayName: Publish Linux_arm64 package assets
-          inputs:
-            pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-            artifactName: pkgassets
-            artifactType: container
-
-        - template: /eng/common/templates/steps/generate-sbom.yml@self
 
       ################################################################################
       - job: MacOS
@@ -125,21 +116,18 @@ extends:
           name: Azure Pipelines
           vmImage: macOS-12
           os: macOS
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            targetPath: $(Build.SourcesDirectory)/artifacts/pkgassets
+            artifactName: pkgassets
+            artifactType: container
         steps:
         - script: export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 &&  rm '/usr/local/bin/2to3-3.11' && brew unlink libomp && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
           displayName: Install build dependencies
         # Only build native assets to avoid conflicts.
         - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
           displayName: Build Native Assets
-
-        - task: PublishBuildArtifacts@1
-          displayName: Publish macOS package assets
-          inputs:
-            pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-            artifactName: pkgassets
-            artifactType: container
-
-        - template: /eng/common/templates/steps/generate-sbom.yml@self
 
       ################################################################################
       - job: MacOS_Apple_Silicon
@@ -148,6 +136,12 @@ extends:
           name: Azure Pipelines
           vmImage: macOS-12
           os: macOS
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            targetPath: $(Build.SourcesDirectory)/artifacts/pkgassets
+            artifactName: pkgassets
+            artifactType: container
         steps:
         # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
         - script: |
@@ -160,15 +154,6 @@ extends:
         - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
           displayName: Build Native Assets
 
-        - task: PublishBuildArtifacts@1
-          displayName: Publish macOS_M1 package assets
-          inputs:
-            pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-            artifactName: pkgassets
-            artifactType: container
-
-        - template: /eng/common/templates/steps/generate-sbom.yml@self
-
       ################################################################################
       - job: Windows_arm64
       ################################################################################
@@ -176,19 +161,16 @@ extends:
           name: $(DncEngInternalBuildPool)
           image: 1es-windows-2022-pt
           os: windows
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            targetPath: $(Build.SourcesDirectory)/artifacts/pkgassets
+            artifactName: pkgassets
+            artifactType: container
         steps:
         # Only build native assets to avoid conflicts.
         - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
           displayName: Build Native Assets
-
-        - task: PublishBuildArtifacts@1
-          displayName: Publish Windows_arm64 package assets
-          inputs:
-            pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-            artifactName: pkgassets
-            artifactType: container
-
-        - template: /eng/common/templates/steps/generate-sbom.yml@self
 
         # Terminate all dotnet build processes.
         - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
@@ -203,19 +185,16 @@ extends:
           name: $(DncEngInternalBuildPool)
           image: 1es-windows-2022-pt
           os: windows
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            targetPath: $(Build.SourcesDirectory)/artifacts/pkgassets
+            artifactName: pkgassets
+            artifactType: container
         steps:
         # Only build native assets to avoid conflicts.
         - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:CopyPackageAssets=true
           displayName: Build Native Assets
-
-        - task: PublishBuildArtifacts@1
-          displayName: Publish Windows_x86 package assets
-          inputs:
-            pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-            artifactName: pkgassets
-            artifactType: container
-
-        - template: /eng/common/templates/steps/generate-sbom.yml@self
 
         # Terminate all dotnet build processes.
         - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
@@ -231,6 +210,12 @@ extends:
           name: $(DncEngInternalBuildPool)
           image: 1es-windows-2022-pt
           os: windows
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            targetPath: $(Build.SourcesDirectory)/artifacts/pkgassets
+            artifactName: pkgassets
+            artifactType: container
         steps:
 
         # Build both native and managed assets.
@@ -242,15 +227,6 @@ extends:
             scanType: 'Register'
             verbosity: 'Verbose'
             alertWarningLevel: 'High'
-
-        - task: PublishBuildArtifacts@1
-          displayName: Publish Windows_x64 package assets
-          inputs:
-            pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-            artifactName: pkgassets
-            artifactType: container
-
-        - template: /eng/common/templates/steps/generate-sbom.yml@self
 
         # Terminate all dotnet build processes.
         - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
