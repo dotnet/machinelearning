@@ -58,10 +58,9 @@ extends:
         container: CentosContainer
         templateContext:
           outputs:
-          - output: pipelineArtifact
-            targetPath: $(Build.SourcesDirectory)/artifacts/pkgassets
-            artifactName: pkgassets
-            artifactType: container
+          - output: buildArtifact
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+            ArtifactName: pkgassets
         steps:
         # Only build native assets to avoid conflicts.
         - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
@@ -79,10 +78,9 @@ extends:
         container: UbuntuCrossArmContainer
         templateContext:
           outputs:
-          - output: pipelineArtifact
-            targetPath: $(Build.SourcesDirectory)/artifacts/pkgassets
-            artifactName: pkgassets
-            artifactType: container
+          - output: buildArtifact
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+            ArtifactName: pkgassets
         steps:
         # Only build native assets to avoid conflicts.
         - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm /p:CopyPackageAssets=true
@@ -100,10 +98,9 @@ extends:
         container: UbuntuCrossArm64Container
         templateContext:
           outputs:
-          - output: pipelineArtifact
-            targetPath: $(Build.SourcesDirectory)/artifacts/pkgassets
-            artifactName: pkgassets
-            artifactType: container
+          - output: buildArtifact
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+            ArtifactName: pkgassets
         steps:
         # Only build native assets to avoid conflicts.
         - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
@@ -118,10 +115,9 @@ extends:
           os: macOS
         templateContext:
           outputs:
-          - output: pipelineArtifact
-            targetPath: $(Build.SourcesDirectory)/artifacts/pkgassets
-            artifactName: pkgassets
-            artifactType: container
+          - output: buildArtifact
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+            ArtifactName: pkgassets
         steps:
         - script: export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 &&  rm '/usr/local/bin/2to3-3.11' && brew unlink libomp && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
           displayName: Install build dependencies
@@ -138,10 +134,9 @@ extends:
           os: macOS
         templateContext:
           outputs:
-          - output: pipelineArtifact
-            targetPath: $(Build.SourcesDirectory)/artifacts/pkgassets
-            artifactName: pkgassets
-            artifactType: container
+          - output: buildArtifact
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+            ArtifactName: pkgassets
         steps:
         # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
         - script: |
@@ -163,10 +158,9 @@ extends:
           os: windows
         templateContext:
           outputs:
-          - output: pipelineArtifact
-            targetPath: $(Build.SourcesDirectory)/artifacts/pkgassets
-            artifactName: pkgassets
-            artifactType: container
+          - output: buildArtifact
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+            ArtifactName: pkgassets
         steps:
         # Only build native assets to avoid conflicts.
         - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
@@ -187,10 +181,9 @@ extends:
           os: windows
         templateContext:
           outputs:
-          - output: pipelineArtifact
-            targetPath: $(Build.SourcesDirectory)/artifacts/pkgassets
-            artifactName: pkgassets
-            artifactType: container
+          - output: buildArtifact
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+            ArtifactName: pkgassets
         steps:
         # Only build native assets to avoid conflicts.
         - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:CopyPackageAssets=true
@@ -212,10 +205,9 @@ extends:
           os: windows
         templateContext:
           outputs:
-          - output: pipelineArtifact
-            targetPath: $(Build.SourcesDirectory)/artifacts/pkgassets
-            artifactName: pkgassets
-            artifactType: container
+          - output: buildArtifact
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+            ArtifactName: pkgassets
         steps:
 
         # Build both native and managed assets.
