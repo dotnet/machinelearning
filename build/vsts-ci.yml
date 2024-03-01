@@ -5,9 +5,9 @@
 variables:
 - name: BuildConfig
   value: Release
-- name: _BuildConfig:
+- name: _BuildConfig
   value: $(BuildConfig)
-- name: OfficialBuildId:
+- name: OfficialBuildId
   value: $(BUILD.BUILDNUMBER)
 - name: DOTNET_CLI_TELEMETRY_OPTOUT
   value: 1
