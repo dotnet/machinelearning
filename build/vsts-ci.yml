@@ -139,7 +139,7 @@ extends:
             artifactName: pkgassets
             artifactType: container
 
-        - template: /eng/common/templates/steps/generate-sbom.yml
+        - template: /eng/common/templates/steps/generate-sbom.yml@self
 
       ################################################################################
       - job: MacOS_Apple_Silicon
@@ -167,7 +167,7 @@ extends:
             artifactName: pkgassets
             artifactType: container
 
-        - template: /eng/common/templates/steps/generate-sbom.yml
+        - template: /eng/common/templates/steps/generate-sbom.yml@self
 
       ################################################################################
       - job: Windows_arm64
@@ -188,7 +188,7 @@ extends:
             artifactName: pkgassets
             artifactType: container
 
-        - template: /eng/common/templates/steps/generate-sbom.yml
+        - template: /eng/common/templates/steps/generate-sbom.yml@self
 
         # Terminate all dotnet build processes.
         - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
@@ -215,7 +215,7 @@ extends:
             artifactName: pkgassets
             artifactType: container
 
-        - template: /eng/common/templates/steps/generate-sbom.yml
+        - template: /eng/common/templates/steps/generate-sbom.yml@self
 
         # Terminate all dotnet build processes.
         - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
@@ -250,7 +250,7 @@ extends:
             artifactName: pkgassets
             artifactType: container
 
-        - template: /eng/common/templates/steps/generate-sbom.yml
+        - template: /eng/common/templates/steps/generate-sbom.yml@self
 
         # Terminate all dotnet build processes.
         - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
