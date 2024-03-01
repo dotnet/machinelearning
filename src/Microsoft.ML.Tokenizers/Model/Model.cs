@@ -31,14 +31,15 @@ namespace Microsoft.ML.Tokenizers
         /// This method does the default implementation that uses the Encode method to get the token's Ids.
         /// Tokenizer's models which care about performance may choose to override this method to provide a more efficient implementation.
         /// </remarks>
-        public virtual void EncodeToIds(string text, bool isSpecialToken, IList<int> accumulatedIds)
+        public virtual void EncodeToIds(ReadOnlySpan<char> text, bool isSpecialToken, IList<int> accumulatedIds)
         {
             if (accumulatedIds is null)
             {
                 throw new ArgumentNullException(nameof(accumulatedIds));
             }
 
-            var tokens = Encode(text);
+            // Default implementation is not optimized for memory allocation. It is recommended to override this method for the sake of the performance.
+            var tokens = Encode(text.ToString());
             foreach (var token in tokens)
             {
                 accumulatedIds.Add(token.Id);
@@ -55,7 +56,7 @@ namespace Microsoft.ML.Tokenizers
         /// This method does the default implementation that uses the EncodeToIds method to get the number of token's Ids.
         /// Tokenizer's models which care about performance may choose to override this method to provide a more efficient implementation.
         /// </remarks>
-        public virtual int CountTokens(string text, bool isSpecialToken)
+        public virtual int CountTokens(ReadOnlySpan<char> text, bool isSpecialToken)
         {
             var ids = new List<int>();
             EncodeToIds(text, isSpecialToken, ids);
@@ -68,7 +69,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="token">The token to map to Id</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public abstract int? MapTokenToId(string token, bool considerSpecialTokens = true);
+        public abstract int? MapTokenToId(ReadOnlySpan<char> token, bool considerSpecialTokens = true);
 
         /// <summary>
         /// Map the encoded Id to the token.

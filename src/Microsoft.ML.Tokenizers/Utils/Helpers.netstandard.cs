@@ -48,6 +48,17 @@ namespace Microsoft.ML.Tokenizers
 
             return true;
         }
+
+        internal static int GetHashCode(ReadOnlySpan<char> span)
+        {
+            int hash = 17;
+            foreach (char c in span)
+            {
+                hash = hash * 31 + c;
+            }
+
+            return hash;
+        }
     }
 }
 

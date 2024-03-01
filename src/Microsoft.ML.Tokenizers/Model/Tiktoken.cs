@@ -19,12 +19,14 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     public sealed class Tiktoken : Model
     {
-        private readonly Dictionary<ReadOnlyMemory<byte>, int> _encoder = null!;
-        private readonly Dictionary<int, ReadOnlyMemory<byte>> _decoder = null!;
-        private readonly LruCache<string, int[]>? _cache;
-        private readonly IReadOnlyDictionary<string, int>? _specialTokensEncoder;
+        private readonly Dictionary<ReadOnlyMemory<byte>, int> _encoder;
+        private readonly Dictionary<int, ReadOnlyMemory<byte>> _decoder;
+        private readonly LruCache<int[]> _cache;
+        private readonly Dictionary<StringSpanOrdinalKey, int>? _specialTokensEncoder;
+        private Dictionary<string, int>? _specialTokensEncoderOriginal;
         private readonly Dictionary<int, string>? _specialTokensDecoder;
-        private readonly Dictionary<string, int> _vocab = null!;
+        private readonly Dictionary<StringSpanOrdinalKey, int> _vocab;
+        private IReadOnlyDictionary<string, int>? _vocabOriginal;
 
         /// <summary>
         /// Create a new Tiktoken tokenizer's model object.
@@ -34,7 +36,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="cacheSize">The size of the cache to use.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="vocabFilePath"/> is null or empty.</exception>
         /// <exception cref="InvalidOperationException">Thrown when failed to load the BPE vocab file.</exception>
-        public Tiktoken(string vocabFilePath, IReadOnlyDictionary<string, int>? specialTokens = null, int cacheSize = LruCache<string, int[]>.DefaultCacheSize) :
+        public Tiktoken(string vocabFilePath, IReadOnlyDictionary<string, int>? specialTokens = null, int cacheSize = LruCache<int[]>.DefaultCacheSize) :
             this(string.IsNullOrEmpty(vocabFilePath) ? throw new ArgumentNullException(nameof(vocabFilePath)) : File.OpenRead(vocabFilePath), specialTokens, cacheSize, disposeStream: true)
         {
         }
@@ -47,7 +49,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="cacheSize">The size of the cache to use.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="vocabStream"/> is null or empty.</exception>
         /// <exception cref="InvalidOperationException">Thrown when failed to load the BPE vocab file.</exception>
-        public Tiktoken(Stream vocabStream, IReadOnlyDictionary<string, int>? specialTokens = null, int cacheSize = LruCache<string, int[]>.DefaultCacheSize) :
+        public Tiktoken(Stream vocabStream, IReadOnlyDictionary<string, int>? specialTokens = null, int cacheSize = LruCache<int[]>.DefaultCacheSize) :
             this(vocabStream ?? throw new ArgumentNullException(nameof(vocabStream)), specialTokens, cacheSize, disposeStream: false)
         {
         }
@@ -63,9 +65,9 @@ namespace Microsoft.ML.Tokenizers
         internal Tiktoken(
             Dictionary<ReadOnlyMemory<byte>, int> encoder,
             Dictionary<int, ReadOnlyMemory<byte>> decoder,
-            Dictionary<string, int> vocab,
+            Dictionary<StringSpanOrdinalKey, int> vocab,
             IReadOnlyDictionary<string, int>? specialTokens,
-            int cacheSize = LruCache<string, int[]>.DefaultCacheSize) : this(cacheSize)
+            int cacheSize = LruCache<int[]>.DefaultCacheSize)
         {
             _encoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
             _decoder = decoder ?? throw new ArgumentNullException(nameof(decoder));
@@ -73,24 +75,21 @@ namespace Microsoft.ML.Tokenizers
 
             Debug.Assert(encoder.Count == decoder.Count);
 
-            _specialTokensEncoder = specialTokens;
-            if (_specialTokensEncoder is not null)
-            {
-                _specialTokensDecoder = _specialTokensEncoder.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
-            }
+            _encoder = encoder!;
+            _decoder = decoder!;
+            _vocab = vocab!;
+            _cache = new LruCache<int[]>(cacheSize);
+
+            (_specialTokensEncoder, _specialTokensDecoder) = CreateEncoderDecoder(specialTokens);
         }
 
-        private Tiktoken(Stream vocabStream, IReadOnlyDictionary<string, int>? specialTokens, int cacheSize, bool disposeStream) : this(cacheSize)
+        private Tiktoken(Stream vocabStream, IReadOnlyDictionary<string, int>? specialTokens, int cacheSize, bool disposeStream)
         {
             try
             {
+                _cache = new LruCache<int[]>(cacheSize);
                 (_encoder, _vocab, _decoder) = LoadTikTokenBpeAsync(vocabStream, useAsync: false).GetAwaiter().GetResult();
-
-                _specialTokensEncoder = specialTokens;
-                if (_specialTokensEncoder is not null)
-                {
-                    _specialTokensDecoder = _specialTokensEncoder.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
-                }
+                (_specialTokensEncoder, _specialTokensDecoder) = CreateEncoderDecoder(specialTokens);
             }
             finally
             {
@@ -101,17 +100,15 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
-        private Tiktoken(int cacheSize)
+        private static (Dictionary<StringSpanOrdinalKey, int>?, Dictionary<int, string>?) CreateEncoderDecoder(IReadOnlyDictionary<string, int>? specialTokens)
         {
-            if (cacheSize < 0)
+            if (specialTokens is not null)
             {
-                throw new ArgumentOutOfRangeException(nameof(cacheSize));
+                var encoder = specialTokens.ToDictionary(e => new StringSpanOrdinalKey(e.Key), e => e.Value);
+                return (encoder, encoder.ToDictionary(kvp => kvp.Value, kvp => kvp.Key.Data!));
             }
 
-            if (cacheSize > 0)
-            {
-                _cache = new LruCache<string, int[]>(cacheSize);
-            }
+            return (null, null);
         }
 
         /// <summary>
@@ -125,7 +122,7 @@ namespace Microsoft.ML.Tokenizers
         public static async Task<Tiktoken> CreateAsync(
                             Stream vocabStream,
                             IReadOnlyDictionary<string, int>? specialTokens = null,
-                            int cacheSize = LruCache<string, int[]>.DefaultCacheSize,
+                            int cacheSize = LruCache<int[]>.DefaultCacheSize,
                             CancellationToken cancellationToken = default)
         {
             if (vocabStream is null)
@@ -133,7 +130,7 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(vocabStream));
             }
 
-            (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<string, int> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) =
+            (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, int> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) =
                         await LoadTikTokenBpeAsync(vocabStream, useAsync: true, cancellationToken).ConfigureAwait(false);
 
             return new Tiktoken(encoder, decoder, vocab, specialTokens, cacheSize);
@@ -150,7 +147,7 @@ namespace Microsoft.ML.Tokenizers
         public static async Task<Tiktoken> CreateAsync(
                                 string vocabFilePath,
                                 IReadOnlyDictionary<string, int>? specialTokensEncoder = null,
-                                int cacheSize = LruCache<string, int[]>.DefaultCacheSize,
+                                int cacheSize = LruCache<int[]>.DefaultCacheSize,
                                 CancellationToken cancellationToken = default)
         {
             if (vocabFilePath is null)
@@ -170,11 +167,11 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>Map of byte[] to integer token id</returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async ValueTask<(Dictionary<ReadOnlyMemory<byte>, int>, Dictionary<string, int>, Dictionary<int, ReadOnlyMemory<byte>>)> LoadTikTokenBpeAsync(
+        internal static async ValueTask<(Dictionary<ReadOnlyMemory<byte>, int>, Dictionary<StringSpanOrdinalKey, int>, Dictionary<int, ReadOnlyMemory<byte>>)> LoadTikTokenBpeAsync(
             Stream vocabStream, bool useAsync, CancellationToken cancellationToken = default)
         {
             var encoder = new Dictionary<ReadOnlyMemory<byte>, int>(ReadOnlyMemoryByteComparer.Instance);
-            var vocab = new Dictionary<string, int>();
+            var vocab = new Dictionary<StringSpanOrdinalKey, int>();
             var decoder = new Dictionary<int, ReadOnlyMemory<byte>>();
 
             try
@@ -212,7 +209,7 @@ namespace Microsoft.ML.Tokenizers
 
                             if (decodedToken.IndexOf('\uFFFD') < 0)
                             {
-                                vocab[decodedToken] = rank;
+                                vocab[new StringSpanOrdinalKey(decodedToken)] = rank;
                             }
                         }
                         else
@@ -231,12 +228,6 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Gets the dictionary mapping special tokens to Ids.
-        /// </summary>
-        /// <returns>The dictionary mapping special tokens to Ids.</returns>
-        public IReadOnlyDictionary<string, int>? SpecialTokensEncoder => _specialTokensEncoder;
-
-        /// <summary>
         /// Encode a split text string to a list of tokens.
         /// </summary>
         /// <param name="text">The text to encode.</param>
@@ -253,12 +244,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (isSpecialToken)
             {
-                if (_specialTokensEncoder is null)
-                {
-                    throw new InvalidOperationException($"The tokenizer doesn't have special tokens");
-                }
-
-                if (_specialTokensEncoder.TryGetValue(text, out int id))
+                if (_specialTokensEncoder?.TryGetValue(text, out int id) is true)
                 {
                     return new List<Token> { new(id, text, (0, text.Length)) };
                 }
@@ -266,7 +252,7 @@ namespace Microsoft.ML.Tokenizers
                 throw new InvalidOperationException($"The special token {text} doesn't exist in the tokenizer");
             }
 
-            if (_cache?.Lookup(text, out int[] ids) is true)
+            if (_cache.TryGetValue(text, out int[]? ids))
             {
                 tokens = new Token[ids.Length];
                 tokens[0] = new Token(ids[0], text, (0, text.Length));
@@ -290,7 +276,7 @@ namespace Microsoft.ML.Tokenizers
 
             int[] encodedIds = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
             Debug.Assert(encodedIds.Length > 0);
-            _cache?.Add(text, encodedIds);
+            _cache.Add(text, encodedIds);
 
             tokens = new Token[encodedIds.Length];
             tokens[0] = new Token(encodedIds[0], text, (0, text.Length));
@@ -305,21 +291,21 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Encode a split text string to a list of Ids.
+        /// Encode text to a list of Ids.
         /// </summary>
         /// <param name="text">The text to encode.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
         /// <param name="accumulatedIds">The list of accumulated Ids.</param>
-        public override void EncodeToIds(string text, bool isSpecialToken, IList<int> accumulatedIds)
+        public override void EncodeToIds(ReadOnlySpan<char> text, bool isSpecialToken, IList<int> accumulatedIds)
         {
-            if (string.IsNullOrEmpty(text))
+            if (text.IsEmpty)
             {
                 return;
             }
 
             if (isSpecialToken)
             {
-                if (_specialTokensEncoder is not null && _specialTokensEncoder.TryGetValue(text, out int id))
+                if (_specialTokensEncoder?.TryGetValue(text, out int id) is true)
                 {
                     accumulatedIds.Add(id);
                 }
@@ -327,7 +313,7 @@ namespace Microsoft.ML.Tokenizers
                 return;
             }
 
-            if (_cache?.Lookup(text, out int[] tokenIds) is true)
+            if (_cache.TryGetValue(text, out int[]? tokenIds))
             {
                 accumulatedIds.AddRange(tokenIds);
                 return;
@@ -340,10 +326,10 @@ namespace Microsoft.ML.Tokenizers
             }
 
             byte[] arrayPoolArray = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(text.Length));
-            int encodedLength = GetUtf8Bytes(text.AsSpan(), arrayPoolArray);
+            int encodedLength = GetUtf8Bytes(text, arrayPoolArray);
 
             int[] encodedIds = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
-            _cache?.Add(text, encodedIds);
+            _cache.Add(text.ToString(), encodedIds);
 
             accumulatedIds.AddRange(encodedIds);
 
@@ -354,12 +340,12 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
-        /// <param name="text">The text to encode.</param>
+        /// <param name="text">The text to tokenize.</param>
         /// <param name="isSpecialToken">Indicate if the token is special token.</param>
         /// <returns>The number of tokens that the input text will be encoded to.</returns>
-        public override int CountTokens(string text, bool isSpecialToken)
+        public override int CountTokens(ReadOnlySpan<char> text, bool isSpecialToken)
         {
-            if (string.IsNullOrEmpty(text))
+            if (text.IsEmpty)
             {
                 return 0;
             }
@@ -369,7 +355,7 @@ namespace Microsoft.ML.Tokenizers
                 return _specialTokensEncoder.TryGetValue(text, out _) ? 1 : 0;
             }
 
-            if (_cache?.Lookup(text, out int[] ids) is true)
+            if (_cache.TryGetValue(text, out int[] ids))
             {
                 return ids.Length;
             }
@@ -380,10 +366,10 @@ namespace Microsoft.ML.Tokenizers
             }
 
             byte[] arrayPoolArray = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(text.Length));
-            int encodedLength = GetUtf8Bytes(text.AsSpan(), arrayPoolArray);
+            int encodedLength = GetUtf8Bytes(text, arrayPoolArray);
 
             int[] encodedIds = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
-            _cache?.Add(text, encodedIds);
+            _cache.Add(text.ToString(), encodedIds);
 
             ArrayPool<byte>.Shared.Return(arrayPoolArray);
             return encodedIds.Length;
@@ -395,19 +381,22 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="token">The token to map to the Id.</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public override int? MapTokenToId(string token, bool considerSpecialTokens = true)
+        public override int? MapTokenToId(ReadOnlySpan<char> token, bool considerSpecialTokens = true)
         {
-            if (string.IsNullOrEmpty(token))
+            if (token.IsEmpty)
             {
                 return 0;
             }
 
-            if (considerSpecialTokens && _specialTokensEncoder is not null && _specialTokensEncoder.TryGetValue(token, out int specialTokenId))
+            if (considerSpecialTokens && _specialTokensEncoder is not null)
             {
-                return specialTokenId;
+                if (_specialTokensEncoder.TryGetValue(token, out int specialTokenId))
+                {
+                    return specialTokenId;
+                }
             }
 
-            if (_cache?.Lookup(token, out int[] ids) is true)
+            if (_cache.TryGetValue(token, out int[] ids))
             {
                 if (ids.Length == 1)
                 {
@@ -425,10 +414,10 @@ namespace Microsoft.ML.Tokenizers
             byte[] arrayPoolArray = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(token.Length));
             try
             {
-                int encodedLength = GetUtf8Bytes(token.AsSpan(), arrayPoolArray);
+                int encodedLength = GetUtf8Bytes(token, arrayPoolArray);
 
                 int[] idsToCache = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
-                _cache?.Add(token, idsToCache);
+                _cache.Add(token.ToString(), idsToCache);
 
                 if (idsToCache.Length == 1)
                 {
@@ -550,7 +539,12 @@ namespace Microsoft.ML.Tokenizers
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
         /// <remarks>This may not contain the full set of vocabulary tokens, use Encoder to get the full set of vocabulary.</remarks>
-        public IReadOnlyDictionary<string, int> Vocab => _vocab;
+        public IReadOnlyDictionary<string, int> Vocab => _vocabOriginal ??= _vocab.ToDictionary(kvp => kvp.Key.Data!, kvp => kvp.Value);
+
+        /// <summary>
+        /// Gets the dictionary mapping special tokens to Ids.
+        /// </summary>
+        public IReadOnlyDictionary<string, int>? SpecialTokensEncoder => _specialTokensEncoderOriginal ??= _specialTokensEncoder?.ToDictionary(kvp => kvp.Key.Data!, kvp => kvp.Value);
 
         /// <summary>
         /// Gets the dictionary mapping token bytes to Ids.
