@@ -257,7 +257,7 @@ extends:
           displayName: Dotnet Server Shutdown
 
       ################################################################################
-      - template: /eng/common/templates/job/job.yml
+      - template: /eng/common/templates/job/job.yml@self
         parameters:
           name: Package
       ################################################################################
@@ -312,7 +312,7 @@ extends:
           - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
             displayName: Dotnet Server Shutdown
 
-      - template: /eng/common/templates/job/publish-build-assets.yml
+      - template: /eng/common/templates/job/publish-build-assets.yml@self
         parameters:
           dependsOn: Package
           enablePublishBuildArtifacts: true
@@ -323,7 +323,7 @@ extends:
             image: 1es-windows-2022-pt
             os: windows
 
-    - template: /eng/common/templates/post-build/post-build.yml
+    - template: /eng/common/templates/post-build/post-build.yml@self
       parameters:
         publishingInfraVersion: 3
         # This is to enable SDL runs part of Post-Build Validation Stage
