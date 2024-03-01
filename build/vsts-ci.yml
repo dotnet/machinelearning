@@ -33,7 +33,7 @@ extends:
   parameters:
     pool:
       name: $(DncEngInternalBuildPool)
-      image: windows-2022
+      image: 1es-windows-2022-pt
       os: windows
     containers:
       CentosContainer: 
