@@ -1,58 +1,69 @@
-# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
-# Please make sure to check all the converted content, it is your team's responsibility to make sure that the pipeline is still valid and functions as expected.
-# Outputs were added with YAML Conditional expressions generated using AI in a best attempt to preserve the boolean logic that would have lead to the tasks producing outputs executing before conversion. You may need to review the generated expressions for correctness of the execution logic, and you will need to manually translate any cross-template parameters.
-# Output from "eng\common\templates\steps\execute-sdl.yml" added to job "Run SDL tool" with conditionals extracted using AI from the following files: "eng\common\templates\steps\execute-sdl.yml".
-# Output from "eng\common\templates\steps\execute-sdl.yml" added to job "Run SDL tool" with conditionals extracted using AI from the following files: "eng\common\templates\steps\execute-sdl.yml".
-
 parameters:
-  enable: 'false'
-  overrideParameters: ''
-  additionalParameters: ''
+  enable: 'false'                                             # Whether the SDL validation job should execute or not
+  overrideParameters: ''                                       # Optional: to override values for parameters.
+  additionalParameters: ''                                     # Optional: parameters that need user specific values eg: '-SourceToolsList @("abc","def") -ArtifactToolsList @("ghi","jkl")'
+  # Optional: if specified, restore and use this version of Guardian instead of the default.
   overrideGuardianVersion: ''
+  # Optional: if true, publish the '.gdn' folder as a pipeline artifact. This can help with in-depth
+  # diagnosis of problems with specific tool configurations.
   publishGuardianDirectoryToPipeline: false
+  # The script to run to execute all SDL tools. Use this if you want to use a script to define SDL
+  # parameters rather than relying on YAML. It may be better to use a local script, because you can
+  # reproduce results locally without piecing together a command based on the YAML.
   executeAllSdlToolsScript: 'eng/common/sdl/execute-all-sdl-tools.ps1'
-  sdlContinueOnError: false
+  # There is some sort of bug (has been reported) in Azure DevOps where if this parameter is named
+  # 'continueOnError', the parameter value is not correctly picked up.
+  # This can also be remedied by the caller (post-build.yml) if it does not use a nested parameter
+  sdlContinueOnError: false                                    # optional: determines whether to continue the build if the step errors;
+  # optional: determines if build artifacts should be downloaded.
   downloadArtifacts: true
+  # optional: determines if this job should search the directory of downloaded artifacts for
+  # 'tar.gz' and 'zip' archive files and extract them before running SDL validation tasks.
   extractArchiveArtifacts: false
-  dependsOn: ''
-  artifactNames: ''
+  dependsOn: ''                                                # Optional: dependencies of the job
+  artifactNames: ''                                            # Optional: patterns supplied to DownloadBuildArtifacts
+                                                               # Usage:
+                                                               #  artifactNames:
+                                                               #    - 'BlobArtifacts'
+                                                               #    - 'Artifacts_Windows_NT_Release'
+  # Optional: download a list of pipeline artifacts. 'downloadArtifacts' controls build artifacts,
+  # not pipeline artifacts, so doesn't affect the use of this parameter.
   pipelineArtifactNames: []
+
 jobs:
 - job: Run_SDL
   dependsOn: ${{ parameters.dependsOn }}
   displayName: Run SDL tool
   condition: and(succeededOrFailed(), eq( ${{ parameters.enable }}, 'true'))
   variables:
-  - group: DotNet-VSTS-Bot
-  - name: AzDOProjectName
-    value: ${{ parameters.AzDOProjectName }}
-  - name: AzDOPipelineId
-    value: ${{ parameters.AzDOPipelineId }}
-  - name: AzDOBuildId
-    value: ${{ parameters.AzDOBuildId }}
-  - template: /eng/common/templates/variables/sdl-variables.yml@self
-  - name: GuardianVersion
-    value: ${{ coalesce(parameters.overrideGuardianVersion, '$(DefaultGuardianVersion)') }}
-  - template: /eng/common/templates/variables/pool-providers.yml@self
-  templateContext:
-    outputs:
-    - ${{ if ne(parameters.publishGuardianDirectoryToPipeline, 'false') }}:
-      - output: pipelineArtifact
-        displayName: 'Publish GuardianConfiguration'
-        condition: succeededOrFailed()
-        targetPath: $(Agent.BuildDirectory)/.gdn
-        artifactName: GuardianConfiguration
-    - ${{ if ne(parameters.publishGuardianDirectoryToPipeline, 'false') }}:
-      - output: pipelineArtifact
-        displayName: 'Publish SARIF files to CodeAnalysisLogs container'
-        condition: succeededOrFailed()
-        targetPath: $(Build.SourcesDirectory)/CodeAnalysisLogs
-        artifactName: CodeAnalysisLogs
+    - group: DotNet-VSTS-Bot
+    - name: AzDOProjectName
+      value: ${{ parameters.AzDOProjectName }}
+    - name: AzDOPipelineId
+      value: ${{ parameters.AzDOPipelineId }}
+    - name: AzDOBuildId
+      value: ${{ parameters.AzDOBuildId }}
+    - template: /eng/common/templates/variables/sdl-variables.yml
+    - name: GuardianVersion
+      value: ${{ coalesce(parameters.overrideGuardianVersion, '$(DefaultGuardianVersion)') }}
+    - template: /eng/common/templates/variables/pool-providers.yml
+  pool:
+    # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
+    ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+      name: VSEngSS-MicroBuild2022-1ES
+      demands: Cmd
+    # If it's not devdiv, it's dnceng
+    ${{ if ne(variables['System.TeamProject'], 'DevDiv') }}:
+      name: $(DncEngInternalBuildPool)
+      demands: ImageOverride -equals windows.vs2019.amd64
   steps:
   - checkout: self
     clean: true
+
+  # If the template caller didn't provide an AzDO parameter, set them all up as Maestro vars.
   - ${{ if not(and(parameters.AzDOProjectName, parameters.AzDOPipelineId, parameters.AzDOBuildId)) }}:
-    - template: /eng/common/templates/post-build/setup-maestro-vars.yml@self
+    - template: /eng/common/templates/post-build/setup-maestro-vars.yml
+
   - ${{ if ne(parameters.downloadArtifacts, 'false')}}:
     - ${{ if ne(parameters.artifactNames, '') }}:
       - ${{ each artifactName in parameters.artifactNames }}:
@@ -80,6 +91,7 @@ jobs:
           itemPattern: "**"
           downloadPath: $(Build.ArtifactStagingDirectory)\artifacts
           checkDownloadedFiles: true
+
   - ${{ each artifactName in parameters.pipelineArtifactNames }}:
     - task: DownloadPipelineArtifact@2
       displayName: Download Pipeline Artifacts
@@ -92,20 +104,32 @@ jobs:
         artifactName: ${{ artifactName }}
         downloadPath: $(Build.ArtifactStagingDirectory)\artifacts
         checkDownloadedFiles: true
-  - powershell: eng/common/sdl/trim-assets-version.ps1 -InputPath $(Build.ArtifactStagingDirectory)\artifacts
+
+  - powershell: eng/common/sdl/trim-assets-version.ps1
+      -InputPath $(Build.ArtifactStagingDirectory)\artifacts
     displayName: Trim the version from the NuGet packages
     continueOnError: ${{ parameters.sdlContinueOnError }}
-  - powershell: eng/common/sdl/extract-artifact-packages.ps1 -InputPath $(Build.ArtifactStagingDirectory)\artifacts\BlobArtifacts -ExtractPath $(Build.ArtifactStagingDirectory)\artifacts\BlobArtifacts
+
+  - powershell: eng/common/sdl/extract-artifact-packages.ps1
+      -InputPath $(Build.ArtifactStagingDirectory)\artifacts\BlobArtifacts
+      -ExtractPath $(Build.ArtifactStagingDirectory)\artifacts\BlobArtifacts
     displayName: Extract Blob Artifacts
     continueOnError: ${{ parameters.sdlContinueOnError }}
-  - powershell: eng/common/sdl/extract-artifact-packages.ps1 -InputPath $(Build.ArtifactStagingDirectory)\artifacts\PackageArtifacts -ExtractPath $(Build.ArtifactStagingDirectory)\artifacts\PackageArtifacts
+
+  - powershell: eng/common/sdl/extract-artifact-packages.ps1
+      -InputPath $(Build.ArtifactStagingDirectory)\artifacts\PackageArtifacts
+      -ExtractPath $(Build.ArtifactStagingDirectory)\artifacts\PackageArtifacts
     displayName: Extract Package Artifacts
     continueOnError: ${{ parameters.sdlContinueOnError }}
+
   - ${{ if ne(parameters.extractArchiveArtifacts, 'false') }}:
-    - powershell: eng/common/sdl/extract-artifact-archives.ps1 -InputPath $(Build.ArtifactStagingDirectory)\artifacts -ExtractPath $(Build.ArtifactStagingDirectory)\artifacts
+    - powershell: eng/common/sdl/extract-artifact-archives.ps1
+        -InputPath $(Build.ArtifactStagingDirectory)\artifacts
+        -ExtractPath $(Build.ArtifactStagingDirectory)\artifacts
       displayName: Extract Archive Artifacts
       continueOnError: ${{ parameters.sdlContinueOnError }}
-  - template: /eng/common/templates/steps/execute-sdl.yml@self
+  
+  - template: /eng/common/templates/steps/execute-sdl.yml
     parameters:
       overrideGuardianVersion: ${{ parameters.overrideGuardianVersion }}
       executeAllSdlToolsScript: ${{ parameters.executeAllSdlToolsScript }}

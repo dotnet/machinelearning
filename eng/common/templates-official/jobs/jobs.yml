@@ -12,7 +12,7 @@ parameters:
   enableSourceBuild: false
 
   # Optional: Parameters for source-build template.
-  #           See /eng/common/templates/jobs/source-build.yml for options
+  #           See /eng/common/templates-official/jobs/source-build.yml for options
   sourceBuildParameters: []
 
   graphFileGeneration:
@@ -61,7 +61,7 @@ jobs:
       name: ${{ job.job }}
 
 - ${{ if eq(parameters.enableSourceBuild, true) }}:
-  - template: /eng/common/templates/jobs/source-build.yml
+  - template: /eng/common/templates-official/jobs/source-build.yml
     parameters:
       allCompletedJobId: Source_Build_Complete
       ${{ each parameter in parameters.sourceBuildParameters }}:
