@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -98,6 +99,43 @@ namespace Microsoft.ML.Tokenizers
                     vocabStream.Dispose();
                 }
             }
+        }
+
+        /// <summary>
+        /// Create a Tiktoken tokenizer based on model name and vocab file.
+        /// </summary>
+        /// <param name="modelName">Model name</param>
+        /// <param name="vocabStream">The stream to the BPE vocab file.</param>
+        /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the model</param>
+        /// <param name="cacheSize">The size of the cache to use.</param>
+        /// <param name="normalizer">To normalize the text before tokenization</param>
+        /// <returns>The tokenizer</returns>
+        public static Tokenizer CreateByModelName(
+                                    string modelName,
+                                    Stream vocabStream,
+                                    IReadOnlyDictionary<string, int>? extraSpecialTokens = null,
+                                    int cacheSize = LruCache<int[]>.DefaultCacheSize,
+                                    Normalizer? normalizer = null)
+        {
+            if (string.IsNullOrEmpty(modelName))
+            {
+                throw new ArgumentNullException(nameof(modelName));
+            }
+
+            (Dictionary<string, int> SpecialTokens, Regex Regex) tiktokenConfiguration = Tokenizer.GetTiktokenConfigurations(modelName);
+
+            if (extraSpecialTokens is not null)
+            {
+                foreach (var extraSpecialToken in extraSpecialTokens)
+                {
+                    tiktokenConfiguration.SpecialTokens.Add(extraSpecialToken.Key, extraSpecialToken.Value);
+                }
+            }
+
+            return new Tokenizer(
+                            new Tiktoken(vocabStream, tiktokenConfiguration.SpecialTokens, cacheSize),
+                            new TikTokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
+                            normalizer);
         }
 
         private static (Dictionary<StringSpanOrdinalKey, int>?, Dictionary<int, string>?) CreateEncoderDecoder(IReadOnlyDictionary<string, int>? specialTokens)
@@ -233,7 +271,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="text">The text to encode.</param>
         /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
-        public override IReadOnlyList<Token> Encode(string text, bool isSpecialToken)
+        public override IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false)
         {
             Token[] tokens;
 
@@ -462,12 +500,14 @@ namespace Microsoft.ML.Tokenizers
         /// <returns>The decoded string.</returns>
         public override string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null, bool considerSpecialTokens = true)
         {
-            // Tiktoken does not ensure a one-to-one mapping between IDs and tokens. Consequently, decoding individual IDs into tokens is not supported;
-            // instead, decoding all IDs must be done collectively.
-            // Here is example of case that map one character to multiple Ids:
-            // '⭐' U-2B50 is mapped to Ids [2928, 99834] in the Tiktoken model.
-            // In other words, the character '⭐' has UTF-8 code point 0xE2, 0xAD, 0x90, Tiktoken will map 0xE2 to [2928] and 0xAD, 0x90 to [99834].
 
+            // Tiktoken doesn't guarantee a one-to-one correspondence between IDs and UTF-16 words.
+            // Consequently, decoding individual IDs into UTF-16 string is not supported; instead, decoding all IDs must be performed collectively.
+            // Here's an example case that maps one character to multiple IDs:
+            // '⭐' U-2B50 is mapped to IDs [2928, 99834] in the Tiktoken model.
+            // In other words, the character '⭐' with UTF-8 code point 0xE2, 0xAD, 0x90 will be mapped by Tiktoken as follows: 0xE2 to [2928]
+            // and 0xAD, 0x90 to [99834]. Decoding 2928 and 99834 individually won't reconstruct the original UTF-16 string '⭐' U-2B50;
+            // decoding all IDs together is required to get the expected result.
             if (ids is null)
             {
                 return null;

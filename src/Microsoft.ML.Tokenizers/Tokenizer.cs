@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -137,6 +138,76 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
+        /// Find the maximum encoding capacity within the input text without surpassing the token limit.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
+        /// <param name="fromStart">Indicate if want to trim from the start of the text.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
+        /// <returns>
+        /// The entire normalized text, the starting offset within the returned text for token counting, the length of text constrained by the maximum token count,
+        /// and the token count can be generated using the provided subtext offset and length.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">The input text is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">The maximum token count must be greater than 0.</exception>
+        /// <remarks>
+        /// If the tokenizer has a normalizer, the returned text will be the normalized text. Otherwise the returned text will be the input text.
+        /// If <paramref name="fromStart"/> is true, the returned offset will be 0. Otherwise the returned offset will be the starting index of the subtext.
+        /// If the provided <paramref name="maxTokenCount"/> is greater than the token count of the input text, the returned length will be the length of the input text.
+        /// If the provided <paramref name="maxTokenCount"/> is smaller enough to hold smallest number of grouped Ids, the returned length will be 0 and returned TokenCount will be 0.
+        /// </remarks>
+        public (string Text, int Offset, int Length, int TokenCount) TrimWithinTokenLimit(string text, int maxTokenCount, bool fromStart = true, bool considerSpecialTokens = true)
+        {
+            if (text is null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (maxTokenCount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The max token count must be greater than 0.");
+            }
+
+            string normalized = Normalizer is not null ? Normalizer.Normalize(text) : text;
+            int idsCount = 0;
+
+            if (fromStart)
+            {
+                foreach (Split split in PreTokenizer.PreTokenize(normalized, considerSpecialTokens))
+                {
+                    int tokenCount = Model.CountTokens(split.TokenSpan, split.IsSpecialToken);
+
+                    if (tokenCount + idsCount > maxTokenCount)
+                    {
+                        return (normalized, 0, split.Offset.Index, idsCount);
+                    }
+
+                    idsCount += tokenCount;
+                }
+
+                return (normalized, 0, normalized.Length, idsCount);
+            }
+
+            // from end
+            Split[] splits = PreTokenizer.PreTokenize(normalized, considerSpecialTokens).ToArray();
+
+            for (int i = splits.Length - 1; i >= 0; i--)
+            {
+                Split split = splits[i];
+                int tokenCount = Model.CountTokens(split.TokenSpan, split.IsSpecialToken);
+
+                if (tokenCount + idsCount > maxTokenCount)
+                {
+                    return (normalized, split.Offset.Index + split.Offset.Length, normalized.Length - split.Offset.Index - split.Offset.Length, idsCount);
+                }
+
+                idsCount += tokenCount;
+            }
+
+            return (normalized, 0, normalized.Length, idsCount);
+        }
+
+        /// <summary>
         /// Decodes the Id to the mapped token.
         /// </summary>
         /// <param name="id">The id to map to the token.</param>
@@ -230,6 +301,56 @@ namespace Microsoft.ML.Tokenizers
                                                                 { "gpt2", ModelEncoding.GPT2 }
                                                             };
 
+        private static ModelEncoding GetModelEncoding(string modelName)
+        {
+            if (!_modelToEncoding.TryGetValue(modelName, out ModelEncoding encoder))
+            {
+                foreach ((string Prefix, ModelEncoding Encoding) in _modelPrefixToEncoding)
+                {
+                    if (modelName.StartsWith(Prefix, StringComparison.OrdinalIgnoreCase))
+                    {
+                        encoder = Encoding;
+                        break;
+                    }
+                }
+            }
+
+            if (encoder == ModelEncoding.None)
+            {
+                throw new NotImplementedException($"Doesn't support this model [{modelName}]");
+            }
+
+            return encoder;
+        }
+
+        internal static (Dictionary<string, int> SpecialTokens, Regex Regex) GetTiktokenConfigurations(string modelName)
+        {
+            ModelEncoding modelEncoding = GetModelEncoding(modelName);
+
+            switch (modelEncoding)
+            {
+                case ModelEncoding.Cl100kBase:
+                    return (new Dictionary<string, int>
+                        { { EndOfText, 100257}, { FimPrefix, 100258}, { FimMiddle, 100259}, { FimSuffix, 100260}, { EndOfPrompt, 100276} }, Cl100kBaseRegex());
+
+                case ModelEncoding.P50kBase:
+                    return (new Dictionary<string, int> { { EndOfText, 50256 } }, P50kBaseRegex());
+
+                case ModelEncoding.P50kEdit:
+                    return (new Dictionary<string, int>
+                        { { EndOfText, 50256 }, { FimPrefix, 50281 }, { FimMiddle, 50282 }, { FimSuffix, 50283 } }, P50kBaseRegex());
+
+                case ModelEncoding.R50kBase:
+                    return (new Dictionary<string, int> { { EndOfText, 50256 } }, P50kBaseRegex());
+
+                case ModelEncoding.GPT2:
+                    return (new Dictionary<string, int> { { EndOfText, 50256 }, }, P50kBaseRegex());
+
+                default:
+                    Debug.Assert(false, $"Unexpected encoder [{modelEncoding}]");
+                    throw new NotImplementedException($"Doesn't support model '{modelName}'");
+            }
+        }
 
         /// <summary>
         /// Create tokenizer based on model name
@@ -247,26 +368,7 @@ namespace Microsoft.ML.Tokenizers
         {
             try
             {
-                ModelEncoding encoder;
-
-                if (!_modelToEncoding.TryGetValue(modelName, out encoder))
-                {
-                    foreach ((string Prefix, ModelEncoding Encoding) in _modelPrefixToEncoding)
-                    {
-                        if (modelName.StartsWith(Prefix, StringComparison.OrdinalIgnoreCase))
-                        {
-                            encoder = Encoding;
-                            break;
-                        }
-                    }
-                }
-
-                if (encoder == ModelEncoding.None)
-                {
-                    throw new NotImplementedException($"Doesn't support this model [{modelName}]");
-                }
-
-                return CreateByEncoderNameAsync(encoder, extraSpecialTokens, normalizer, cancellationToken);
+                return CreateByEncoderNameAsync(GetModelEncoding(modelName), extraSpecialTokens, normalizer, cancellationToken);
             }
             catch (Exception ex)
             {

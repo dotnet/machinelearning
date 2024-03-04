@@ -61,6 +61,12 @@ namespace Microsoft.ML.Tokenizers.Tests
                     tokenizer = new Tokenizer(await Tiktoken.CreateAsync(stream, specialTokensEncoder), GPT4.PreTokenizer);
                 }
                 TestGPT4TokenizationEncoding(tokenizer);
+
+                using (Stream stream = File.OpenRead(tokenizerDataFileName))
+                {
+                    tokenizer = Tiktoken.CreateByModelName("gpt-4", stream);
+                }
+                TestGPT4TokenizationEncoding(tokenizer);
             }
             finally
             {
@@ -82,6 +88,8 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(new List<(int, int)> { (0, 5), (5, 6) }, result.Offsets);
             Assert.Equal(encoded.Count, idsCount);
             Assert.Equal(encoded, result.Ids);
+
+            TestGPT4Tokenizer(tokenizer);
         }
 
         [Fact]
@@ -101,13 +109,12 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(encoded, result.Ids);
         }
 
-        [Fact]
-        public void TestEncode2()
+        private void TestGPT4Tokenizer(Tokenizer gpt4Tokenizer)
         {
             string text = ReadAndSanitizeFile("./Data/lib.rs.txt");
-            IReadOnlyList<int> encoded = GPT4.EncodeToIds(text, considerSpecialTokens: false);
+            IReadOnlyList<int> encoded = gpt4Tokenizer.EncodeToIds(text, considerSpecialTokens: false);
             Assert.Equal(5584, encoded.Count);
-            int idsCount = GPT4.CountTokens(text, considerSpecialTokens: false);
+            int idsCount = gpt4Tokenizer.CountTokens(text, considerSpecialTokens: false);
             Assert.Equal(encoded.Count, idsCount);
 
             using (Stream stream = File.OpenRead("./Data/tokens.json"))
@@ -116,8 +123,10 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(expected!, encoded.ToArray());
             }
 
-            string? decoded = GPT4.Decode(encoded.ToArray());
+            string? decoded = gpt4Tokenizer.Decode(encoded.ToArray());
             Assert.Equal(text, decoded!);
+
+            TokenizerTests.TestTokenLimits(gpt4Tokenizer);
         }
 
         [Fact]

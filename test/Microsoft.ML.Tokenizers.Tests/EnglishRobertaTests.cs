@@ -96,6 +96,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
                 Tokenizer tokenizer = new Tokenizer(new EnglishRoberta(vocabFile, mergeFile, translationFile), RobertaPreTokenizer.Instance);
                 TestTokenizer(tokenizer);
+                TokenizerTests.TestTokenLimits(tokenizer);
 
                 tokenizer = new Tokenizer(new EnglishRoberta(vocabFile, mergeFile, translationFile, filterUnsupportedChars: false), RobertaPreTokenizer.Instance);
                 TestTokenizer(tokenizer);
