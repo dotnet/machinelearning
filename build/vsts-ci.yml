@@ -229,11 +229,11 @@ extends:
         parameters:
           name: Package
       ################################################################################
-          artifacts:
-            publish:
-              artifacts: false
-              logs: true
-              manifests: true
+          #artifacts:
+          #  publish:
+          #    artifacts: false
+          #    logs: true
+          #    manifests: true
           enableMicrobuild: true
           enablePublishUsingPipelines: true
           enableSourceIndex: true
