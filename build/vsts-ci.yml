@@ -224,61 +224,61 @@ extends:
         - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
           displayName: Dotnet Server Shutdown
 
-#      ################################################################################
-#      - template: /eng/common/templates-official/job/job.yml@self
-#        parameters:
-#          name: Package
-#      ################################################################################
-#          artifacts:
-#            publish:
-#              artifacts: false
-#              logs: true
-#              manifests: true
-#          enableMicrobuild: true
-#          enablePublishUsingPipelines: true
-#          enableSourceIndex: true
-#          dependsOn:
-#          - Linux_x64
-#          - Linux_arm
-#          - Linux_arm64
-#          - MacOS
-#          - Windows_x86
-#          - Windows_x64
-#          - MacOS_Apple_Silicon
-#          variables:
-#            - DotnetVersionKind: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
-#            - NUGET_PACKAGES: $(Build.SourcesDirectory)/.packages
-#            - _SignType: real
-#            - _TeamName: DotNetCore
-#            - _InternalBuildArgs: /p:DotNetSignType=$(_SignType)
-#                                  /p:TeamName=$(_TeamName)
-#                                  /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-#                                  /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
-#                                  /p:OfficialBuildId=$(OfficialBuildId)
-#                                  /p:DotNetPublishUsingPipelines=$true
-#          pool:
-#            name: $(DncEngInternalBuildPool)
-#            image: 1es-windows-2019-pt
-#            os: windows
-#          steps:
-#
-#          # Download all agent packages from all previous phases
-#          - task: DownloadBuildArtifacts@0
-#            displayName: Download package assets
-#            inputs:
-#              artifactName: pkgassets
-#              downloadPath: $(Build.SourcesDirectory)/artifacts
-#
-#          # Depending on the value of DotNetFinalVersionKind, the name of the package will change.
-#          # For our nightly builds we want it to be empty, and when creating the official nugets, we want it to be "release"
-#          # the value of the version kind is set when queuing the publishing job on AzureDevOps by adding a VERSIONKIND variable
-#          # See more info in: https://github.com/dotnet/arcade/blob/master/Documentation/CorePackages/Versioning.md#package-version
-#          - script: ./build.cmd -configuration $(BuildConfig) -pack -sign -publish -ci /p:DotNetFinalVersionKind=$(DotnetVersionKind) $(_InternalBuildArgs)
-#            displayName: Build Packages
-#
-#          # Terminate all dotnet build processes.
-#          - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
-#            displayName: Dotnet Server Shutdown
+      ################################################################################
+      - template: /eng/common/templates-official/job/job.yml@self
+        parameters:
+          name: Package
+      ################################################################################
+          artifacts:
+            publish:
+              artifacts: false
+              logs: true
+              manifests: true
+          enableMicrobuild: true
+          enablePublishUsingPipelines: true
+          enableSourceIndex: true
+          dependsOn:
+          - Linux_x64
+          - Linux_arm
+          - Linux_arm64
+          - MacOS
+          - Windows_x86
+          - Windows_x64
+          - MacOS_Apple_Silicon
+          variables:
+            - DotnetVersionKind: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
+            - NUGET_PACKAGES: $(Build.SourcesDirectory)/.packages
+            - _SignType: real
+            - _TeamName: DotNetCore
+            - _InternalBuildArgs: /p:DotNetSignType=$(_SignType)
+                                  /p:TeamName=$(_TeamName)
+                                  /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+                                  /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
+                                  /p:OfficialBuildId=$(OfficialBuildId)
+                                  /p:DotNetPublishUsingPipelines=$true
+          pool:
+            name: $(DncEngInternalBuildPool)
+            image: 1es-windows-2019-pt
+            os: windows
+          steps:
+
+          # Download all agent packages from all previous phases
+          - task: DownloadBuildArtifacts@0
+            displayName: Download package assets
+            inputs:
+              artifactName: pkgassets
+              downloadPath: $(Build.SourcesDirectory)/artifacts
+
+          # Depending on the value of DotNetFinalVersionKind, the name of the package will change.
+          # For our nightly builds we want it to be empty, and when creating the official nugets, we want it to be "release"
+          # the value of the version kind is set when queuing the publishing job on AzureDevOps by adding a VERSIONKIND variable
+          # See more info in: https://github.com/dotnet/arcade/blob/master/Documentation/CorePackages/Versioning.md#package-version
+          - script: ./build.cmd -configuration $(BuildConfig) -pack -sign -publish -ci /p:DotNetFinalVersionKind=$(DotnetVersionKind) $(_InternalBuildArgs)
+            displayName: Build Packages
+
+          # Terminate all dotnet build processes.
+          - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
+            displayName: Dotnet Server Shutdown
 
       - template: /eng/common/templates-official/job/publish-build-assets.yml@self
         parameters:
