@@ -39,6 +39,10 @@ endif()
 
 add_definitions(-DUSE_OMP)
 add_library(SymSgdNative SHARED ${SOURCES} ${RESOURCES})
+if (MSVC AND NOT MSVC_VERSION LESS 1900)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /guard:cf")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Qspectre")
+endif()
 target_link_libraries(SymSgdNative PUBLIC ${MKL_LIBRARY} PUBLIC ${OPENMP_LIBRARY})
 
 if(APPLE)
