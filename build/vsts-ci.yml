@@ -31,6 +31,10 @@ resources:
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
+    sdl:
+      binskim:
+        enabled: true
+        scanOutputDirectoryOnly: true
     pool:
       name: $(DncEngInternalBuildPool)
       image: 1es-windows-2019-pt
