@@ -426,7 +426,7 @@ namespace Microsoft.ML
             Contracts.CheckValue(catalog, nameof(catalog));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new AveragedPerceptronTrainer(env, labelColumnName, featureColumnName, lossFunction ?? new LogLoss(), learningRate, decreaseLearningRate, l2Regularization, numberOfIterations);
+            return new AveragedPerceptronTrainer(env, labelColumnName, featureColumnName, lossFunction, learningRate, decreaseLearningRate, l2Regularization, numberOfIterations);
         }
 
         /// <summary>
