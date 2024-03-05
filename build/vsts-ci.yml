@@ -235,6 +235,7 @@ extends:
         parameters:
           name: Package
       ################################################################################
+          #disable log upload for now, https://github.com/dotnet/dnceng/issues/2133
           #artifacts:
           #  publish:
           #    artifacts: false
