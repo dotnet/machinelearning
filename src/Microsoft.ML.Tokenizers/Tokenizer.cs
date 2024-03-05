@@ -138,54 +138,40 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Find the maximum encoding capacity from beginning within the input text without surpassing the token limit.
+        /// Find the index of the maximum encoding capacity from the start within the text without surpassing the token limit.
         /// </summary>
         /// <param name="text">The text to encode.</param>
         /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
+        /// <param name="processedText">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will remain unchanged as the input text.</param>
+        /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
-        /// <returns>
-        /// - The entire normalized text.
-        /// - The length of text from the beginning of the normalized which is limited by the maximum token count.
-        /// - The token count can be generated using the provided length which should be smaller than the maximum token count.
-        /// </returns>
+        /// <returns>The index of the maximum encoding capacity within the processed text without surpassing the token limit.</returns>
         /// <exception cref="ArgumentNullException">The input text is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">The maximum token count must be greater than 0.</exception>
         /// <remarks>
-        /// If the tokenizer has a normalizer, the returned text will be the normalized text. Otherwise the returned text will be the input text.
-        /// If the provided <paramref name="maxTokenCount"/> is greater than the token count of the input text, the returned length will be the length of the input text.
-        /// If the provided <paramref name="maxTokenCount"/> is smaller enough to hold smallest number of grouped Ids, the returned length will be 0 and returned TokenCount will be 0.
+        /// If the whole text can be encoded within the token limit, the returned index will be the length of the processed text.
         /// </remarks>
-        public (string Text, int Length, int TokenCount) TrimSuffixWithinTokenLimit(string text, int maxTokenCount, bool considerSpecialTokens = true)
-        {
-            (string Text, int Offset, int Length, int TokenCount) result = TrimWithinTokenLimit(text, maxTokenCount, trimSuffix: true, considerSpecialTokens);
-            return (result.Text, result.Length, result.TokenCount);
-        }
+        public int IndexOfTokenCount(string text, int maxTokenCount, out string processedText, out int tokenCount, bool considerSpecialTokens = true)
+            => IndexOF(text, maxTokenCount, fromStart: true, considerSpecialTokens, out processedText, out tokenCount);
 
         /// <summary>
-        /// Find the maximum encoding capacity from the end within the input text without surpassing the token limit.
+        /// Find the index of the maximum encoding capacity from the end within the text without surpassing the token limit.
         /// </summary>
         /// <param name="text">The text to encode.</param>
         /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
+        /// <param name="processedText">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will remain unchanged as the input text.</param>
+        /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
-        /// <returns>
-        /// - The entire normalized text.
-        /// - The starting offset within the returned normalized text for token counting.
-        /// - The token count can be generated which should be smaller than the maximum token count.
-        /// </returns>
+        /// <returns>The start index of the maximum encoding capacity within the processed text without surpassing the token limit.</returns>
         /// <exception cref="ArgumentNullException">The input text is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">The maximum token count must be greater than 0.</exception>
         /// <remarks>
-        /// If the tokenizer has a normalizer, the returned text will be the normalized text. Otherwise the returned text will be the input text.
-        /// If the provided <paramref name="maxTokenCount"/> is greater than the token count of the input text, the returned Offset will be 0.
-        /// If the provided <paramref name="maxTokenCount"/> is smaller enough to hold smallest number of grouped Ids, the returned Offset will be equal to normalized text length and the returned TokenCount will be 0.
+        /// If the whole text can be encoded within the token limit, the returned index will be 0.
         /// </remarks>
-        public (string Text, int Offset, int TokenCount) TrimPrefixWithinTokenLimit(string text, int maxTokenCount, bool considerSpecialTokens = true)
-        {
-            (string Text, int Offset, int Length, int TokenCount) result = TrimWithinTokenLimit(text, maxTokenCount, trimSuffix: false, considerSpecialTokens);
-            return (result.Text, result.Offset, result.TokenCount);
-        }
+        public int LastIndexOfTokenCount(string text, int maxTokenCount, out string processedText, out int tokenCount, bool considerSpecialTokens = true)
+            => IndexOF(text, maxTokenCount, fromStart: false, considerSpecialTokens, out processedText, out tokenCount);
 
-        private (string Text, int Offset, int Length, int TokenCount) TrimWithinTokenLimit(string text, int maxTokenCount, bool trimSuffix = true, bool considerSpecialTokens = true)
+        private int IndexOF(string text, int maxTokenCount, bool fromStart, bool considerSpecialTokens, out string processedText, out int tokenCount)
         {
             if (text is null)
             {
@@ -197,24 +183,22 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The max token count must be greater than 0.");
             }
 
-            string normalized = Normalizer is not null ? Normalizer.Normalize(text) : text;
-            int idsCount = 0;
+            processedText = Normalizer is not null ? Normalizer.Normalize(text) : text;
+            tokenCount = 0;
 
-            IEnumerable<Split> splits = PreTokenizer.PreTokenize(normalized, considerSpecialTokens);
-            foreach (Split split in (trimSuffix ? splits : splits.Reverse()))
+            IEnumerable<Split> splits = PreTokenizer.PreTokenize(processedText, considerSpecialTokens);
+            foreach (Split split in (fromStart ? splits : splits.Reverse()))
             {
-                int tokenCount = Model.CountTokens(split.TokenSpan, split.IsSpecialToken);
-                if (tokenCount > maxTokenCount - idsCount)
+                int count = Model.CountTokens(split.TokenSpan, split.IsSpecialToken);
+                if (tokenCount > maxTokenCount - count)
                 {
-                    return trimSuffix ?
-                        (normalized, 0, split.Offset.Index, idsCount) :
-                        (normalized, split.Offset.Index + split.Offset.Length, normalized.Length - split.Offset.Index - split.Offset.Length, idsCount);
+                    return fromStart ? split.Offset.Index : split.Offset.Index + split.Offset.Length;
                 }
 
-                idsCount += tokenCount;
+                tokenCount += count;
             }
 
-            return (normalized, 0, normalized.Length, idsCount);
+            return fromStart ? processedText.Length : 0;
         }
 
         /// <summary>
