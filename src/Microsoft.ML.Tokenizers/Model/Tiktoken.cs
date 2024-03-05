@@ -309,7 +309,7 @@ namespace Microsoft.ML.Tokenizers
         /// Encode a split text string to a list of tokens.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
+        /// <param name="isSpecialToken">Indicate if the text is a special token.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
         public override IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false)
         {
@@ -372,7 +372,7 @@ namespace Microsoft.ML.Tokenizers
         /// Encode text to a list of Ids.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
+        /// <param name="isSpecialToken">Indicate if the text is a special token.</param>
         /// <param name="accumulatedIds">The list of accumulated Ids.</param>
         public override void EncodeToIds(ReadOnlySpan<char> text, bool isSpecialToken, IList<int> accumulatedIds)
         {

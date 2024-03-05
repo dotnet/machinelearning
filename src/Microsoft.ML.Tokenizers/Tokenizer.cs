@@ -145,7 +145,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>
         /// - The entire normalized text.
-        /// - The length of text from the beginning of the normalized which is limited by the maximum token count
+        /// - The length of text from the beginning of the normalized which is limited by the maximum token count.
         /// - The token count can be generated using the provided length which should be smaller than the maximum token count.
         /// </returns>
         /// <exception cref="ArgumentNullException">The input text is null.</exception>

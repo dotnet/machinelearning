@@ -17,7 +17,7 @@ namespace Microsoft.ML.Tokenizers
         /// Encode a text to a list of tokens.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
+        /// <param name="isSpecialToken">Indicate if the text is a special token.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
         public abstract IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false);
 
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tokenizers
         /// Encode a text to a list of Ids and add them to the accumulatedIds list.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="isSpecialToken">Indicate if the token is a special token.</param>
+        /// <param name="isSpecialToken">Indicate if the text is a special token.</param>
         /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
         /// <remarks>
         /// This method does the default implementation that uses the Encode method to get the token's Ids.
