@@ -144,8 +144,9 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>
-        /// The entire normalized text, the starting offset within the returned text for token counting, the length of text constrained by the maximum token count,
-        /// and the token count can be generated using the provided subtext offset and length.
+        /// - The entire normalized text.
+        /// - The length of text from the beginning of the normalized which is limited by the maximum token count
+        /// - The token count can be generated using the provided length which should be smaller than the maximum token count.
         /// </returns>
         /// <exception cref="ArgumentNullException">The input text is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">The maximum token count must be greater than 0.</exception>
@@ -154,8 +155,11 @@ namespace Microsoft.ML.Tokenizers
         /// If the provided <paramref name="maxTokenCount"/> is greater than the token count of the input text, the returned length will be the length of the input text.
         /// If the provided <paramref name="maxTokenCount"/> is smaller enough to hold smallest number of grouped Ids, the returned length will be 0 and returned TokenCount will be 0.
         /// </remarks>
-        public (string Text, int Offset, int Length, int TokenCount) TrimSuffixWithinTokenLimit(string text, int maxTokenCount, bool considerSpecialTokens = true) =>
-            TrimWithinTokenLimit(text, maxTokenCount, trimSuffix: true, considerSpecialTokens);
+        public (string Text, int Length, int TokenCount) TrimSuffixWithinTokenLimit(string text, int maxTokenCount, bool considerSpecialTokens = true)
+        {
+            (string Text, int Offset, int Length, int TokenCount) result = TrimWithinTokenLimit(text, maxTokenCount, trimSuffix: true, considerSpecialTokens);
+            return (result.Text, result.Length, result.TokenCount);
+        }
 
         /// <summary>
         /// Find the maximum encoding capacity from the end within the input text without surpassing the token limit.
@@ -164,18 +168,22 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>
-        /// The entire normalized text, the starting offset within the returned text for token counting, the length of text constrained by the maximum token count,
-        /// and the token count can be generated using the provided subtext offset and length.
+        /// - The entire normalized text.
+        /// - The starting offset within the returned normalized text for token counting.
+        /// - The token count can be generated which should be smaller than the maximum token count.
         /// </returns>
         /// <exception cref="ArgumentNullException">The input text is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">The maximum token count must be greater than 0.</exception>
         /// <remarks>
         /// If the tokenizer has a normalizer, the returned text will be the normalized text. Otherwise the returned text will be the input text.
-        /// If the provided <paramref name="maxTokenCount"/> is greater than the token count of the input text, the returned length will be the length of the input text.
-        /// If the provided <paramref name="maxTokenCount"/> is smaller enough to hold smallest number of grouped Ids, the returned length will be 0 and returned TokenCount will be 0.
+        /// If the provided <paramref name="maxTokenCount"/> is greater than the token count of the input text, the returned Offset will be 0.
+        /// If the provided <paramref name="maxTokenCount"/> is smaller enough to hold smallest number of grouped Ids, the returned Offset will be equal to normalized text length and the returned TokenCount will be 0.
         /// </remarks>
-        public (string Text, int Offset, int Length, int TokenCount) TrimPrefixWithinTokenLimit(string text, int maxTokenCount, bool considerSpecialTokens = true) =>
-            TrimWithinTokenLimit(text, maxTokenCount, trimSuffix: false, considerSpecialTokens);
+        public (string Text, int Offset, int TokenCount) TrimPrefixWithinTokenLimit(string text, int maxTokenCount, bool considerSpecialTokens = true)
+        {
+            (string Text, int Offset, int Length, int TokenCount) result = TrimWithinTokenLimit(text, maxTokenCount, trimSuffix: false, considerSpecialTokens);
+            return (result.Text, result.Offset, result.TokenCount);
+        }
 
         private (string Text, int Offset, int Length, int TokenCount) TrimWithinTokenLimit(string text, int maxTokenCount, bool trimSuffix = true, bool considerSpecialTokens = true)
         {

@@ -26,16 +26,15 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             for (int i = 1; i <= fullIdsList.Count; i++)
             {
-                (string Text, int Offset, int Length, int TokenCount) result1 = tokenizer.TrimSuffixWithinTokenLimit(input, maxTokenCount: i);
-                (string Text, int Offset, int Length, int TokenCount) result2 = tokenizer.TrimPrefixWithinTokenLimit(input, maxTokenCount: i);
+                (string Text, int Length, int TokenCount) result1 = tokenizer.TrimSuffixWithinTokenLimit(input, maxTokenCount: i);
+                (string Text, int Offset, int TokenCount) result2 = tokenizer.TrimPrefixWithinTokenLimit(input, maxTokenCount: i);
 
                 IReadOnlyList<int>? prefixIds = null;
                 IReadOnlyList<int>? suffixIds = null;
 
                 if (result1.TokenCount > 0)
                 {
-                    Assert.Equal(0, result1.Offset);
-                    string prefixString = result1.Text.Substring(result1.Offset, result1.Length);
+                    string prefixString = result1.Text.Substring(0, result1.Length);
                     prefixIds = tokenizer.EncodeToIds(prefixString);
                     Assert.Equal(result1.TokenCount, prefixIds.Count);
                     Assert.Equal(prefixIds, fullIdsList.Take(prefixIds.Count));
@@ -43,8 +42,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
                 if (result2.TokenCount > 0)
                 {
-                    Assert.Equal(result2.Text.Length, result2.Offset + result2.Length);
-                    string suffixString = result2.Text.Substring(result2.Offset, result2.Length);
+                    string suffixString = result2.Text.Substring(result2.Offset);
                     suffixIds = tokenizer.EncodeToIds(suffixString);
                     Assert.Equal(result2.TokenCount, suffixIds.Count);
                     Assert.Equal(suffixIds, fullIdsList.Skip(fullIdsList.Count - suffixIds.Count));
@@ -53,7 +51,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 if (i == fullIdsList.Count)
                 {
                     Assert.Equal(result1.Text.Length, result1.Length);
-                    Assert.Equal(result2.Text.Length, result2.Length);
+                    Assert.Equal(0, result2.Offset);
                     Assert.Equal(fullIdsList, prefixIds);
                     Assert.Equal(fullIdsList, suffixIds);
                 }
