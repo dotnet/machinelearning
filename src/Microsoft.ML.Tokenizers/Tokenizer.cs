@@ -138,11 +138,10 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Find the maximum encoding capacity within the input text without surpassing the token limit.
+        /// Find the maximum encoding capacity from beginning within the input text without surpassing the token limit.
         /// </summary>
         /// <param name="text">The text to encode.</param>
         /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
-        /// <param name="fromStart">Indicate if want to trim from the start of the text.</param>
         /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>
         /// The entire normalized text, the starting offset within the returned text for token counting, the length of text constrained by the maximum token count,
@@ -152,11 +151,33 @@ namespace Microsoft.ML.Tokenizers
         /// <exception cref="ArgumentOutOfRangeException">The maximum token count must be greater than 0.</exception>
         /// <remarks>
         /// If the tokenizer has a normalizer, the returned text will be the normalized text. Otherwise the returned text will be the input text.
-        /// If <paramref name="fromStart"/> is true, the returned offset will be 0. Otherwise the returned offset will be the starting index of the subtext.
         /// If the provided <paramref name="maxTokenCount"/> is greater than the token count of the input text, the returned length will be the length of the input text.
         /// If the provided <paramref name="maxTokenCount"/> is smaller enough to hold smallest number of grouped Ids, the returned length will be 0 and returned TokenCount will be 0.
         /// </remarks>
-        public (string Text, int Offset, int Length, int TokenCount) TrimWithinTokenLimit(string text, int maxTokenCount, bool fromStart = true, bool considerSpecialTokens = true)
+        public (string Text, int Offset, int Length, int TokenCount) TrimSuffixWithinTokenLimit(string text, int maxTokenCount, bool considerSpecialTokens = true) =>
+            TrimWithinTokenLimit(text, maxTokenCount, trimSuffix: true, considerSpecialTokens);
+
+        /// <summary>
+        /// Find the maximum encoding capacity from the end within the input text without surpassing the token limit.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
+        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
+        /// <returns>
+        /// The entire normalized text, the starting offset within the returned text for token counting, the length of text constrained by the maximum token count,
+        /// and the token count can be generated using the provided subtext offset and length.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">The input text is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">The maximum token count must be greater than 0.</exception>
+        /// <remarks>
+        /// If the tokenizer has a normalizer, the returned text will be the normalized text. Otherwise the returned text will be the input text.
+        /// If the provided <paramref name="maxTokenCount"/> is greater than the token count of the input text, the returned length will be the length of the input text.
+        /// If the provided <paramref name="maxTokenCount"/> is smaller enough to hold smallest number of grouped Ids, the returned length will be 0 and returned TokenCount will be 0.
+        /// </remarks>
+        public (string Text, int Offset, int Length, int TokenCount) TrimPrefixWithinTokenLimit(string text, int maxTokenCount, bool considerSpecialTokens = true) =>
+            TrimWithinTokenLimit(text, maxTokenCount, trimSuffix: false, considerSpecialTokens);
+
+        private (string Text, int Offset, int Length, int TokenCount) TrimWithinTokenLimit(string text, int maxTokenCount, bool trimSuffix = true, bool considerSpecialTokens = true)
         {
             if (text is null)
             {
@@ -171,34 +192,15 @@ namespace Microsoft.ML.Tokenizers
             string normalized = Normalizer is not null ? Normalizer.Normalize(text) : text;
             int idsCount = 0;
 
-            if (fromStart)
+            IEnumerable<Split> splits = PreTokenizer.PreTokenize(normalized, considerSpecialTokens);
+            foreach (Split split in (trimSuffix ? splits : splits.Reverse()))
             {
-                foreach (Split split in PreTokenizer.PreTokenize(normalized, considerSpecialTokens))
-                {
-                    int tokenCount = Model.CountTokens(split.TokenSpan, split.IsSpecialToken);
-
-                    if (tokenCount + idsCount > maxTokenCount)
-                    {
-                        return (normalized, 0, split.Offset.Index, idsCount);
-                    }
-
-                    idsCount += tokenCount;
-                }
-
-                return (normalized, 0, normalized.Length, idsCount);
-            }
-
-            // from end
-            Split[] splits = PreTokenizer.PreTokenize(normalized, considerSpecialTokens).ToArray();
-
-            for (int i = splits.Length - 1; i >= 0; i--)
-            {
-                Split split = splits[i];
                 int tokenCount = Model.CountTokens(split.TokenSpan, split.IsSpecialToken);
-
-                if (tokenCount + idsCount > maxTokenCount)
+                if (tokenCount > maxTokenCount - idsCount)
                 {
-                    return (normalized, split.Offset.Index + split.Offset.Length, normalized.Length - split.Offset.Index - split.Offset.Length, idsCount);
+                    return trimSuffix ?
+                        (normalized, 0, split.Offset.Index, idsCount) :
+                        (normalized, split.Offset.Index + split.Offset.Length, normalized.Length - split.Offset.Index - split.Offset.Length, idsCount);
                 }
 
                 idsCount += tokenCount;
@@ -317,7 +319,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (encoder == ModelEncoding.None)
             {
-                throw new NotImplementedException($"Doesn't support this model [{modelName}]");
+                throw new NotSupportedException($"The model '{modelName}' is not supported.");
             }
 
             return encoder;
@@ -348,7 +350,7 @@ namespace Microsoft.ML.Tokenizers
 
                 default:
                     Debug.Assert(false, $"Unexpected encoder [{modelEncoding}]");
-                    throw new NotImplementedException($"Doesn't support model '{modelName}'");
+                    throw new NotSupportedException($"The model '{modelName}' is not supported.");
             }
         }
 
@@ -368,7 +370,7 @@ namespace Microsoft.ML.Tokenizers
         {
             try
             {
-                return CreateByEncoderNameAsync(GetModelEncoding(modelName), extraSpecialTokens, normalizer, cancellationToken);
+                return CreateByEncoderNameAsync(modelName, GetModelEncoding(modelName), extraSpecialTokens, normalizer, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -403,13 +405,15 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Create tokenizer based on encoder name and extra special tokens
         /// </summary>
+        /// <param name="modelName">Model name</param>
         /// <param name="modelEncoding">Encoder label</param>
         /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the encoder</param>
         /// <param name="normalizer">To normalize the text before tokenization</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>The tokenizer</returns>
-        /// <exception cref="NotImplementedException">Throws if the encoder is not supported</exception>
+        /// <exception cref="NotSupportedException">Throws if the model name is not supported</exception>
         private static Task<Tokenizer> CreateByEncoderNameAsync(
+                                                string modelName,
                                                 ModelEncoding modelEncoding,
                                                 IReadOnlyDictionary<string, int>? extraSpecialTokens,
                                                 Normalizer? normalizer,
@@ -441,7 +445,7 @@ namespace Microsoft.ML.Tokenizers
 
                 default:
                     Debug.Assert(false, $"Unexpected encoder [{modelEncoding}]");
-                    throw new NotImplementedException($"Doesn't support this encoder [{modelEncoding}]");
+                    throw new NotSupportedException($"The model '{modelName}' is not supported.");
             }
         }
 

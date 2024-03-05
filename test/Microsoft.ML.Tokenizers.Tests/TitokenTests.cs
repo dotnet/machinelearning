@@ -67,6 +67,12 @@ namespace Microsoft.ML.Tokenizers.Tests
                     tokenizer = Tiktoken.CreateByModelName("gpt-4", stream);
                 }
                 TestGPT4TokenizationEncoding(tokenizer);
+
+                using (Stream stream = File.OpenRead(tokenizerDataFileName))
+                {
+                    tokenizer = await Tiktoken.CreateByModelNameAsync("gpt-3.5-turbo", stream);
+                }
+                TestGPT4TokenizationEncoding(tokenizer);
             }
             finally
             {

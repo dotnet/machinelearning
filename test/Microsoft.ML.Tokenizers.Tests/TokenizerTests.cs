@@ -26,8 +26,8 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             for (int i = 1; i <= fullIdsList.Count; i++)
             {
-                (string Text, int Offset, int Length, int TokenCount) result1 = tokenizer.TrimWithinTokenLimit(input, maxTokenCount: i, fromStart: true);
-                (string Text, int Offset, int Length, int TokenCount) result2 = tokenizer.TrimWithinTokenLimit(input, maxTokenCount: i, fromStart: false);
+                (string Text, int Offset, int Length, int TokenCount) result1 = tokenizer.TrimSuffixWithinTokenLimit(input, maxTokenCount: i);
+                (string Text, int Offset, int Length, int TokenCount) result2 = tokenizer.TrimPrefixWithinTokenLimit(input, maxTokenCount: i);
 
                 IReadOnlyList<int>? prefixIds = null;
                 IReadOnlyList<int>? suffixIds = null;
@@ -59,9 +59,13 @@ namespace Microsoft.ML.Tokenizers.Tests
                 }
             }
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.TrimWithinTokenLimit(input, maxTokenCount: 0, fromStart: true));
-            Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.TrimWithinTokenLimit(input, maxTokenCount: -1, fromStart: true));
-            Assert.Throws<ArgumentNullException>(() => tokenizer.TrimWithinTokenLimit(null!, maxTokenCount: 0, fromStart: false));
+            Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.TrimSuffixWithinTokenLimit(input, maxTokenCount: 0));
+            Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.TrimSuffixWithinTokenLimit(input, maxTokenCount: -1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.TrimPrefixWithinTokenLimit(input, maxTokenCount: 0));
+            Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.TrimPrefixWithinTokenLimit(input, maxTokenCount: -1));
+
+            Assert.Throws<ArgumentNullException>(() => tokenizer.TrimSuffixWithinTokenLimit(null!, maxTokenCount: 0));
+            Assert.Throws<ArgumentNullException>(() => tokenizer.TrimPrefixWithinTokenLimit(null!, maxTokenCount: 0));
         }
     }
 }
