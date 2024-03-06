@@ -177,7 +177,7 @@ namespace Microsoft.ML.Tokenizers
         /// Encode a text string to a list of tokens.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="isSpecialToken">Indicate if the text is a special token.</param>
+        /// <param name="isSpecialToken">Indicate if the text is a special token. This parameter is ignored in this model.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
         public override IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false)
         {
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Tokenizers
         /// Encode a split text string to a list of Ids and add them to the accumulatedIds list.
         /// </summary>
         /// <param name="text">The text to split.</param>
-        /// <param name="isSpecialToken">Indicate if the text is a special token.</param>
+        /// <param name="isSpecialToken">Indicate if the text is a special token. This parameter is ignored in this model.</param>
         /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
         public override void EncodeToIds(ReadOnlySpan<char> text, bool isSpecialToken, IList<int> accumulatedIds) => EncodeToIds(text, accumulatedIds);
 
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Tokenizers
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="isSpecialToken">Indicate if the token is special token.</param>
+        /// <param name="isSpecialToken">Indicate if the token is special token. This parameter is ignored in this model.</param>
         /// <returns>The number of tokens that the input text will be encoded to.</returns>
         public override int CountTokens(ReadOnlySpan<char> text, bool isSpecialToken) => EncodeToIds(text, null);
 

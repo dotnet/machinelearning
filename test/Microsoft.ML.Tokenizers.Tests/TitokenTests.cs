@@ -25,11 +25,11 @@ namespace Microsoft.ML.Tokenizers.Tests
                                                     { IMEnd, 100265},
                                                 };
 
-        public static Tokenizer GPT4 { get; } = Tokenizer.CreateByModelNameAsync("gpt-4", _specialTokens).GetAwaiter().GetResult();
-        public static Tokenizer GPT2 { get; } = Tokenizer.CreateByModelNameAsync("gpt2").GetAwaiter().GetResult();
-        public static Tokenizer P50kBase { get; } = Tokenizer.CreateByModelNameAsync("text-davinci-003").GetAwaiter().GetResult();
-        public static Tokenizer R50kBase { get; } = Tokenizer.CreateByModelNameAsync("ada").GetAwaiter().GetResult();
-        public static Tokenizer P50kEdit { get; } = Tokenizer.CreateByModelNameAsync("text-davinci-edit-001").GetAwaiter().GetResult();
+        public static Tokenizer GPT4 { get; } = Tiktoken.CreateByModelNameAsync("gpt-4", _specialTokens).GetAwaiter().GetResult();
+        public static Tokenizer GPT2 { get; } = Tiktoken.CreateByModelNameAsync("gpt2").GetAwaiter().GetResult();
+        public static Tokenizer P50kBase { get; } = Tiktoken.CreateByModelNameAsync("text-davinci-003").GetAwaiter().GetResult();
+        public static Tokenizer R50kBase { get; } = Tiktoken.CreateByModelNameAsync("ada").GetAwaiter().GetResult();
+        public static Tokenizer P50kEdit { get; } = Tiktoken.CreateByModelNameAsync("text-davinci-edit-001").GetAwaiter().GetResult();
 
         [Fact]
         public async void TestTokenizerCreation()
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("gpt2")]
         public async void TestAllSupportedModelNames(string modelName)
         {
-            Tokenizer tokenizer = await Tokenizer.CreateByModelNameAsync(modelName);
+            Tokenizer tokenizer = await Tiktoken.CreateByModelNameAsync(modelName);
             Assert.NotNull(tokenizer.Model);
             Assert.NotNull(tokenizer.PreTokenizer);
         }
