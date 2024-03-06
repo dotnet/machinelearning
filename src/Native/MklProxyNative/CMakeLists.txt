@@ -18,6 +18,11 @@ endif()
 add_library(MklProxyNative SHARED ${SOURCES} ${RESOURCES})
 target_link_libraries(MklProxyNative PUBLIC ${MKL_LIBRARY})
 
+if (MSVC AND NOT MSVC_VERSION LESS 1900)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /guard:cf")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Qspectre")
+endif()
+
 if(APPLE)
     set_target_properties(MklProxyNative PROPERTIES INSTALL_RPATH "@loader_path")
 endif()
