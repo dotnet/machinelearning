@@ -24,7 +24,7 @@ variables:
 - name: WindowsImage
   value: 1es-windows-2019-pt
 - name: MacImage
-  value: macOS-1
+  value: macOS-12
 - template: /eng/common/templates-official/variables/pool-providers.yml@self
 
 resources:
