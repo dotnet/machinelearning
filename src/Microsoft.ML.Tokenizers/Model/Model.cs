@@ -16,16 +16,16 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Encode a text to a list of tokens.
         /// </summary>
-        /// <param name="text">The text to encode.</param>
-        /// <param name="isSpecialToken">Indicate if the text is a special token.</param>
+        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
+        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
         public abstract IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false);
 
         /// <summary>
         /// Encode a text to a list of Ids and add them to the accumulatedIds list.
         /// </summary>
-        /// <param name="text">The text to encode.</param>
-        /// <param name="isSpecialToken">Indicate if the text is a special token.</param>
+        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
+        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token.</param>
         /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
         /// <remarks>
         /// This method does the default implementation that uses the Encode method to get the token's Ids.
@@ -49,8 +49,8 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
-        /// <param name="text">The text to encode.</param>
-        /// <param name="isSpecialToken">Indicate if the token is special token.</param>
+        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
+        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token.</param>
         /// <returns>The number of tokens that the input text will be encoded to.</returns>
         /// <remarks>
         /// This method does the default implementation that uses the EncodeToIds method to get the number of token's Ids.
