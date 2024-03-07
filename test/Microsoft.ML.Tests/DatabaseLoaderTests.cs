@@ -271,21 +271,21 @@ namespace Microsoft.ML.Tests
         /// Non-Windows builds do not support SqlClientFactory/MSSQL databases. Hence, an equivalent
         /// SQLite database is used on Linux and MacOS builds.
         /// </summary>
-        /// <returns>Return the appropiate Iris DatabaseSource according to build OS.</returns>
+        /// <returns>Return the appropriate Iris DatabaseSource according to build OS.</returns>
         private DatabaseSource GetIrisDatabaseSource(string command, int commandTimeoutInSeconds = 30)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return new DatabaseSource(
-                    SqlClientFactory.Instance,
-                    GetMSSQLConnectionString(TestDatasets.irisDb.name),
-                    String.Format(command, $@"""{TestDatasets.irisDb.trainFilename}"""),
-                    commandTimeoutInSeconds);
-            else
-                return new DatabaseSource(
-                    SQLiteFactory.Instance,
-                    GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name),
-                    String.Format(command, TestDatasets.irisDbSQLite.trainFilename),
-                    commandTimeoutInSeconds);
+            //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            //    return new DatabaseSource(
+            //        SqlClientFactory.Instance,
+            //        GetMSSQLConnectionString(TestDatasets.irisDb.name),
+            //        String.Format(command, $@"""{TestDatasets.irisDb.trainFilename}"""),
+            //        commandTimeoutInSeconds);
+            //else
+            return new DatabaseSource(
+                SQLiteFactory.Instance,
+                GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name),
+                String.Format(command, TestDatasets.irisDbSQLite.trainFilename),
+                commandTimeoutInSeconds);
         }
 
         private string GetMSSQLConnectionString(string databaseName)
