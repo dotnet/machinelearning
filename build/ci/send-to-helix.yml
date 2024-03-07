@@ -44,5 +44,3 @@ steps:
       Creator: ${{ parameters.Creator }}
       HelixTargetQueues: ${{ parameters.HelixTargetQueues }}
     continueOnError: ${{ parameters.continueOnError }}
-    ${{ if and(contains(parameters.HelixTargetQueues, 'OSX.1100.Arm64.Open'), in(variables['Build.Reason'], 'PullRequest')) }}:
-      enabled: true
