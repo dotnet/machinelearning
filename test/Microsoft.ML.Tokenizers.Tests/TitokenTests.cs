@@ -25,11 +25,11 @@ namespace Microsoft.ML.Tokenizers.Tests
                                                     { IMEnd, 100265},
                                                 };
 
-        public static Tokenizer GPT4 { get; } = Tokenizer.CreateByModelNameAsync("gpt-4", _specialTokens).GetAwaiter().GetResult();
-        public static Tokenizer GPT2 { get; } = Tokenizer.CreateByModelNameAsync("gpt2").GetAwaiter().GetResult();
-        public static Tokenizer P50kBase { get; } = Tokenizer.CreateByModelNameAsync("text-davinci-003").GetAwaiter().GetResult();
-        public static Tokenizer R50kBase { get; } = Tokenizer.CreateByModelNameAsync("ada").GetAwaiter().GetResult();
-        public static Tokenizer P50kEdit { get; } = Tokenizer.CreateByModelNameAsync("text-davinci-edit-001").GetAwaiter().GetResult();
+        public static Tokenizer GPT4 { get; } = Tiktoken.CreateByModelNameAsync("gpt-4", _specialTokens).GetAwaiter().GetResult();
+        public static Tokenizer GPT2 { get; } = Tiktoken.CreateByModelNameAsync("gpt2").GetAwaiter().GetResult();
+        public static Tokenizer P50kBase { get; } = Tiktoken.CreateByModelNameAsync("text-davinci-003").GetAwaiter().GetResult();
+        public static Tokenizer R50kBase { get; } = Tiktoken.CreateByModelNameAsync("ada").GetAwaiter().GetResult();
+        public static Tokenizer P50kEdit { get; } = Tiktoken.CreateByModelNameAsync("text-davinci-edit-001").GetAwaiter().GetResult();
 
         [Fact]
         public async void TestTokenizerCreation()
@@ -61,6 +61,18 @@ namespace Microsoft.ML.Tokenizers.Tests
                     tokenizer = new Tokenizer(await Tiktoken.CreateAsync(stream, specialTokensEncoder), GPT4.PreTokenizer);
                 }
                 TestGPT4TokenizationEncoding(tokenizer);
+
+                using (Stream stream = File.OpenRead(tokenizerDataFileName))
+                {
+                    tokenizer = Tiktoken.CreateByModelName("gpt-4", stream);
+                }
+                TestGPT4TokenizationEncoding(tokenizer);
+
+                using (Stream stream = File.OpenRead(tokenizerDataFileName))
+                {
+                    tokenizer = await Tiktoken.CreateByModelNameAsync("gpt-3.5-turbo", stream);
+                }
+                TestGPT4TokenizationEncoding(tokenizer);
             }
             finally
             {
@@ -82,6 +94,8 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(new List<(int, int)> { (0, 5), (5, 6) }, result.Offsets);
             Assert.Equal(encoded.Count, idsCount);
             Assert.Equal(encoded, result.Ids);
+
+            TestGPT4Tokenizer(tokenizer);
         }
 
         [Fact]
@@ -101,13 +115,12 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(encoded, result.Ids);
         }
 
-        [Fact]
-        public void TestEncode2()
+        private void TestGPT4Tokenizer(Tokenizer gpt4Tokenizer)
         {
             string text = ReadAndSanitizeFile("./Data/lib.rs.txt");
-            IReadOnlyList<int> encoded = GPT4.EncodeToIds(text, considerSpecialTokens: false);
+            IReadOnlyList<int> encoded = gpt4Tokenizer.EncodeToIds(text, considerSpecialTokens: false);
             Assert.Equal(5584, encoded.Count);
-            int idsCount = GPT4.CountTokens(text, considerSpecialTokens: false);
+            int idsCount = gpt4Tokenizer.CountTokens(text, considerSpecialTokens: false);
             Assert.Equal(encoded.Count, idsCount);
 
             using (Stream stream = File.OpenRead("./Data/tokens.json"))
@@ -116,8 +129,10 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(expected!, encoded.ToArray());
             }
 
-            string? decoded = GPT4.Decode(encoded.ToArray());
+            string? decoded = gpt4Tokenizer.Decode(encoded.ToArray());
             Assert.Equal(text, decoded!);
+
+            TokenizerTests.TestTokenLimits(gpt4Tokenizer);
         }
 
         [Fact]
@@ -283,7 +298,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("gpt2")]
         public async void TestAllSupportedModelNames(string modelName)
         {
-            Tokenizer tokenizer = await Tokenizer.CreateByModelNameAsync(modelName);
+            Tokenizer tokenizer = await Tiktoken.CreateByModelNameAsync(modelName);
             Assert.NotNull(tokenizer.Model);
             Assert.NotNull(tokenizer.PreTokenizer);
         }

@@ -225,6 +225,8 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(12, encoding.Ids.Count);
             Assert.Equal(encoding.Ids, ids);
             Assert.Equal(12, tokenizer.CountTokens(text));
+
+            TokenizerTests.TestTokenLimits(tokenizer);
         }
 
         private static string WriteToMergeFile((string, string)[] mergeEntries)
