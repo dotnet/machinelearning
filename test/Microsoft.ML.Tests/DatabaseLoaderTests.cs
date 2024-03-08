@@ -40,9 +40,14 @@ namespace Microsoft.ML.Tests
         [LightGBMFact]
         public void IrisLightGbmWithTimeout()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) //sqlite does not have built-in command for sleep
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) //SQLite does not have built-in command for sleep
                 return;
             DatabaseSource dbs = GetIrisDatabaseSource("WAITFOR DELAY '00:00:01'; SELECT * FROM {0}", 1);
+
+            // If we are on windows but still on SQLite then skip this test.
+            if (dbs.ProviderFactory != SqlClientFactory.Instance)
+                return;
+
             var ex = Assert.Throws<System.Reflection.TargetInvocationException>(() => IrisLightGbmImpl(dbs));
             Assert.Contains("Timeout", ex.InnerException.Message);
         }
@@ -271,21 +276,33 @@ namespace Microsoft.ML.Tests
         /// Non-Windows builds do not support SqlClientFactory/MSSQL databases. Hence, an equivalent
         /// SQLite database is used on Linux and MacOS builds.
         /// </summary>
-        /// <returns>Return the appropiate Iris DatabaseSource according to build OS.</returns>
+        /// <returns>Return the appropriate Iris DatabaseSource according to build OS.</returns>
         private DatabaseSource GetIrisDatabaseSource(string command, int commandTimeoutInSeconds = 30)
         {
+            // If the windows machines have MSSQL setup we want to test with that, but if they don't we will fall back to SQLite.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return new DatabaseSource(
-                    SqlClientFactory.Instance,
-                    GetMSSQLConnectionString(TestDatasets.irisDb.name),
-                    String.Format(command, $@"""{TestDatasets.irisDb.trainFilename}"""),
-                    commandTimeoutInSeconds);
-            else
-                return new DatabaseSource(
-                    SQLiteFactory.Instance,
-                    GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name),
-                    String.Format(command, TestDatasets.irisDbSQLite.trainFilename),
-                    commandTimeoutInSeconds);
+            {
+                try
+                {
+                    return new DatabaseSource(
+                        SqlClientFactory.Instance,
+                        GetMSSQLConnectionString(TestDatasets.irisDb.name),
+                        String.Format(command, $@"""{TestDatasets.irisDb.trainFilename}"""),
+                        commandTimeoutInSeconds);
+                }
+                // Catch the exception and fall back to SQLite if the server is not found or not accessible.
+                catch (System.Data.SqlClient.SqlException e)
+                {
+                    if (!e.InnerException.Message.Contains("The server was not found or was not accessible"))
+                        throw;
+                }
+            }
+
+            return new DatabaseSource(
+            SQLiteFactory.Instance,
+            GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name),
+            String.Format(command, TestDatasets.irisDbSQLite.trainFilename),
+            commandTimeoutInSeconds);
         }
 
         private string GetMSSQLConnectionString(string databaseName)
