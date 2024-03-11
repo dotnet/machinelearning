@@ -16,7 +16,7 @@
     <MicrosoftBclAsyncInterfacesVersion>6.0.0</MicrosoftBclAsyncInterfacesVersion>
     <MicrosoftExtensionsVersion>2.1.0</MicrosoftExtensionsVersion>
     <MicrosoftExtensionsDependencyInjectionVersion>6.0.0</MicrosoftExtensionsDependencyInjectionVersion>
-    <NuGetVersion>6.7.0</NuGetVersion>
+    <NuGetVersion>6.9.1</NuGetVersion>
     <SkiaSharpVersion>2.88.6</SkiaSharpVersion>
     <SystemBuffersVersion>4.5.1</SystemBuffersVersion>
     <SystemCodeDomVersion>4.5.0</SystemCodeDomVersion>
@@ -55,7 +55,7 @@
     <OneDalMinorBinaryVersion>1</OneDalMinorBinaryVersion>
     <MSTestTestAdapterVersion>2.1.0</MSTestTestAdapterVersion>
     <MSTestTestFrameworkVersion>2.1.0</MSTestTestFrameworkVersion>
-    <NewtonsoftJsonVersion>13.0.1</NewtonsoftJsonVersion>
+    <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
     <ParquetDotNetVersion>2.1.3</ParquetDotNetVersion>
     <PlotlyNETCSharpVersion>0.0.1</PlotlyNETCSharpVersion>
     <SharpZipLibVersion>1.4.0</SharpZipLibVersion>
@@ -88,7 +88,7 @@
     <MicrosoftMLTensorFlowTestModelsVersion>0.0.13-test</MicrosoftMLTensorFlowTestModelsVersion>
     <MicrosoftMLTestDatabasesVersion>0.0.6-test</MicrosoftMLTestDatabasesVersion>
     <MicrosoftMLTestModelsVersion>0.0.7-test</MicrosoftMLTestModelsVersion>
-    <SystemDataSqlClientVersion>4.8.5</SystemDataSqlClientVersion>
+    <SystemDataSqlClientVersion>4.8.6</SystemDataSqlClientVersion>
     <SystemDataSQLiteCoreVersion>1.0.118</SystemDataSQLiteCoreVersion>
     <XunitCombinatorialVersion>1.2.7</XunitCombinatorialVersion>
     <XUnitVersion>2.6.3</XUnitVersion>
