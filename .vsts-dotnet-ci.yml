@@ -127,7 +127,7 @@ jobs:
     innerLoop: true
     pool:
       vmImage: macOS-12
-    helixQueue: OSX.1100.Arm64.Open
+    helixQueue: OSX.1200.Arm64.Open
 
 - template: /build/ci/job-template.yml
   parameters:
