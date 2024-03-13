@@ -313,7 +313,7 @@ namespace Microsoft.ML.RunTests
         private static readonly Regex _matchTempUnixDir = new Regex(@"\/(var\/)?tmp" + @"\/[^\\\t ]+", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex _matchTempDirServiceProfile = new Regex(@"[a-z]:\\Windows\\ServiceProfiles\\[a-z0-9_\.]+\\appdata\\local\\temp\\[a-z0-9_\.\\]+", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex _matchTempWindows = new Regex(@"[a-z]:\\Windows\\Temp\\[a-z0-9_\.]+", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex _matchDateTime = new Regex(@"[0-9]{1,4}[-/][0-9]{1,2}[-/][0-9]{1,4} [0-9]{1,2}:[0-9]{1,2}:[0-9]{1,4}(\.[0-9]+)?( [AP]M)?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex _matchDateTime = new Regex(@"[0-9]{1,4}[-/][0-9]{1,2}[-/][0-9]{1,4} [0-9]{1,2}:[0-9]{1,2}:[0-9]{1,4}(\.[0-9]+)?( *[AP]M)?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex _matchTime = new Regex(@"[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?", RegexOptions.Compiled);
         private static readonly Regex _matchShortTime = new Regex(@"\([0-9]{2}:[0-9]{2}(\.[0-9]+)?\)", RegexOptions.Compiled);
         private static readonly Regex _matchMemory = new Regex(@"memory usage\(MB\): [0-9]+", RegexOptions.Compiled);

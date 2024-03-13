@@ -24,9 +24,9 @@ TRUTH     ||======================
           ||======================
 Precision ||   0.9416 |   0.9770 |
 OVERALL 0/1 ACCURACY: 0.963277
-LOG LOSS/instance:  0.140964
+LOG LOSS/instance:  0.140963
 Test-set entropy (prior Log-Loss/instance): 0.956998
-LOG-LOSS REDUCTION (RIG): 0.852702
+LOG-LOSS REDUCTION (RIG): 0.852703
 AUC:                0.994437
 Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
 TEST POSITIVE RATIO:	0.3191 (105.0/(105.0+224.0))
@@ -68,23 +68,23 @@ Virtual memory usage(MB): %Number%
 [2] 'LBFGS Optimizer' started.
 [2] (%Time%)	0 iterations	Loss: 0.6931471824645996
 [2] (%Time%)	1 iterations	Loss: 0.6544521450996399	Improvement: 0.0387
-[2] (%Time%)	2 iterations	Loss: 0.6425679922103882	Improvement: 0.01725
+[2] (%Time%)	2 iterations	Loss: 0.642568051815033	Improvement: 0.01725
 [2] (%Time%)	3 iterations	Loss: 0.6358204483985901	Improvement: 0.009247
-[2] (%Time%)	4 iterations	Loss: 0.6251664161682129	Improvement: 0.01031
-[2] (%Time%)	5 iterations	Loss: 0.5822217464447021	Improvement: 0.03481
-[2] (%Time%)	6 iterations	Loss: 0.2409491091966629	Improvement: 0.2647
-[2] (%Time%)	7 iterations	Loss: 0.18065251410007477	Improvement: 0.1114
-[2] (%Time%)	8 iterations	Loss: 0.12022750824689865	Improvement: 0.07317
-[2] (%Time%)	9 iterations	Loss: 0.09626178443431854	Improvement: 0.03627
-[2] (%Time%)	10 iterations	Loss: 0.08480900526046753	Improvement: 0.01766
-[2] (%Time%)	11 iterations	Loss: 0.07748782634735107	Improvement: 0.009905
-[2] (%Time%)	12 iterations	Loss: 0.07508619874715805	Improvement: 0.004277
-[2] (%Time%)	13 iterations	Loss: 0.07309562712907791	Improvement: 0.002562
-[2] (%Time%)	14 iterations	Loss: 0.07258497178554535	Improvement: 0.001024
-[2] (%Time%)	15 iterations	Loss: 0.07184841483831406	Improvement: 0.0008083
-[2] (%Time%)	16 iterations	Loss: 0.07156649976968765	Improvement: 0.0004135
-[2] (%Time%)	17 iterations	Loss: 0.0715627521276474	Improvement: 0.0001062
-[2] (%Time%)	18 iterations	Loss: 0.07146956771612167	Improvement: 9.644E-05
+[2] (%Time%)	4 iterations	Loss: 0.6251663565635681	Improvement: 0.01031
+[2] (%Time%)	5 iterations	Loss: 0.5822214484214783	Improvement: 0.03481
+[2] (%Time%)	6 iterations	Loss: 0.24095411598682404	Improvement: 0.2647
+[2] (%Time%)	7 iterations	Loss: 0.18065451085567474	Improvement: 0.1114
+[2] (%Time%)	8 iterations	Loss: 0.12022408843040466	Improvement: 0.07317
+[2] (%Time%)	9 iterations	Loss: 0.09626226872205734	Improvement: 0.03626
+[2] (%Time%)	10 iterations	Loss: 0.08481403440237045	Improvement: 0.01765
+[2] (%Time%)	11 iterations	Loss: 0.07749200612306595	Improvement: 0.009905
+[2] (%Time%)	12 iterations	Loss: 0.07508934289216995	Improvement: 0.004278
+[2] (%Time%)	13 iterations	Loss: 0.07309532910585403	Improvement: 0.002565
+[2] (%Time%)	14 iterations	Loss: 0.07258453965187073	Improvement: 0.001024
+[2] (%Time%)	15 iterations	Loss: 0.07185003906488419	Improvement: 0.000807
+[2] (%Time%)	16 iterations	Loss: 0.07156690955162048	Improvement: 0.0004141
+[2] (%Time%)	17 iterations	Loss: 0.07156465202569962	Improvement: 0.0001052
+[2] (%Time%)	18 iterations	Loss: 0.07146970927715302	Improvement: 9.751E-05
 [2] 'LBFGS Optimizer' finished in %Time%.
 [3] 'LBFGS data prep #2' started.
 [3] 'LBFGS data prep #2' finished in %Time%.
@@ -92,30 +92,30 @@ Virtual memory usage(MB): %Number%
 [4] (%Time%)	0 iterations	Loss: 0.6931471824645996
 [4] (%Time%)	1 iterations	Loss: 0.6328520774841309	Improvement: 0.0603
 [4] (%Time%)	2 iterations	Loss: 0.620979368686676	Improvement: 0.02156
-[4] (%Time%)	3 iterations	Loss: 0.613497793674469	Improvement: 0.01083
+[4] (%Time%)	3 iterations	Loss: 0.6134979724884033	Improvement: 0.01083
 [4] (%Time%)	4 iterations	Loss: 0.6002617478370667	Improvement: 0.01264
 [4] (%Time%)	5 iterations	Loss: 0.5936987996101379	Improvement: 0.008078
-[4] (%Time%)	6 iterations	Loss: 0.5855146050453186	Improvement: 0.008158
-[4] (%Time%)	7 iterations	Loss: 0.557903528213501	Improvement: 0.02275
-[4] (%Time%)	8 iterations	Loss: 0.514011561870575	Improvement: 0.03861
-[4] (%Time%)	9 iterations	Loss: 0.47046783566474915	Improvement: 0.04231
-[4] (%Time%)	10 iterations	Loss: 0.3519411087036133	Improvement: 0.09947
-[4] (%Time%)	11 iterations	Loss: 0.24160850048065186	Improvement: 0.1076
-[4] (%Time%)	12 iterations	Loss: 0.15622486174106598	Improvement: 0.09094
-[4] (%Time%)	13 iterations	Loss: 0.13706204295158386	Improvement: 0.03711
-[4] (%Time%)	14 iterations	Loss: 0.12257859110832214	Improvement: 0.02014
-[4] (%Time%)	15 iterations	Loss: 0.112119160592556	Improvement: 0.01288
-[4] (%Time%)	16 iterations	Loss: 0.10575493425130844	Improvement: 0.007993
-[4] (%Time%)	17 iterations	Loss: 0.10021665692329407	Improvement: 0.006152
-[4] (%Time%)	18 iterations	Loss: 0.09684965759515762	Improvement: 0.004063
-[4] (%Time%)	19 iterations	Loss: 0.09285992383956909	Improvement: 0.004008
-[4] (%Time%)	20 iterations	Loss: 0.09131418168544769	Improvement: 0.002161
-[4] (%Time%)	21 iterations	Loss: 0.09053913503885269	Improvement: 0.001122
-[4] (%Time%)	22 iterations	Loss: 0.09002908319234848	Improvement: 0.0006629
-[4] (%Time%)	23 iterations	Loss: 0.08863696455955505	Improvement: 0.00121
-[4] (%Time%)	24 iterations	Loss: 0.08813063055276871	Improvement: 0.0006822
-[4] (%Time%)	25 iterations	Loss: 0.0875096321105957	Improvement: 0.0006363
-[4] (%Time%)	26 iterations	Loss: 0.08728791028261185	Improvement: 0.0003254
-[4] (%Time%)	27 iterations	Loss: 0.08721961826086044	Improvement: 0.0001326
-[4] (%Time%)	28 iterations	Loss: 0.08721006661653519	Improvement: 4.03E-05
+[4] (%Time%)	6 iterations	Loss: 0.5855143666267395	Improvement: 0.008158
+[4] (%Time%)	7 iterations	Loss: 0.5579032301902771	Improvement: 0.02275
+[4] (%Time%)	8 iterations	Loss: 0.514010488986969	Improvement: 0.03861
+[4] (%Time%)	9 iterations	Loss: 0.4704664349555969	Improvement: 0.04231
+[4] (%Time%)	10 iterations	Loss: 0.3519382178783417	Improvement: 0.09947
+[4] (%Time%)	11 iterations	Loss: 0.24160803854465485	Improvement: 0.1076
+[4] (%Time%)	12 iterations	Loss: 0.15622469782829285	Improvement: 0.09094
+[4] (%Time%)	13 iterations	Loss: 0.13706165552139282	Improvement: 0.03711
+[4] (%Time%)	14 iterations	Loss: 0.12257832288742065	Improvement: 0.02014
+[4] (%Time%)	15 iterations	Loss: 0.11211910843849182	Improvement: 0.01288
+[4] (%Time%)	16 iterations	Loss: 0.10575487464666367	Improvement: 0.007993
+[4] (%Time%)	17 iterations	Loss: 0.10021656006574631	Improvement: 0.006152
+[4] (%Time%)	18 iterations	Loss: 0.09685001522302628	Improvement: 0.004063
+[4] (%Time%)	19 iterations	Loss: 0.0928599014878273	Improvement: 0.004008
+[4] (%Time%)	20 iterations	Loss: 0.09131418913602829	Improvement: 0.002161
+[4] (%Time%)	21 iterations	Loss: 0.09053906053304672	Improvement: 0.001122
+[4] (%Time%)	22 iterations	Loss: 0.09002906829118729	Improvement: 0.0006629
+[4] (%Time%)	23 iterations	Loss: 0.08863715082406998	Improvement: 0.00121
+[4] (%Time%)	24 iterations	Loss: 0.0881308913230896	Improvement: 0.0006821
+[4] (%Time%)	25 iterations	Loss: 0.08750966191291809	Improvement: 0.0006364
+[4] (%Time%)	26 iterations	Loss: 0.08728768676519394	Improvement: 0.0003256
+[4] (%Time%)	27 iterations	Loss: 0.08721958100795746	Improvement: 0.0001325
+[4] (%Time%)	28 iterations	Loss: 0.08721008896827698	Improvement: 4.024E-05
 [4] 'LBFGS Optimizer #2' finished in %Time%.
