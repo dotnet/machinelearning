@@ -6,34 +6,33 @@ using System;
 
 #if CPUMATH_INFRASTRUCTURE
 // CpuMath has its own BestFriend and WantsToBeBestFriends attributes for making itself a standalone module
-namespace Microsoft.ML.Internal.CpuMath.Core
+namespace Microsoft.ML.Internal.CpuMath.Core;
 #else
 // This namespace contains the BestFriend and WantsToBeBestFriends attributes generally used in ML.NET project settings
-namespace Microsoft.ML
+namespace Microsoft.ML;
 #endif
-{
-    /// <summary>
-    /// Intended to be applied to types and members with internal scope to indicate that friend access of this
-    /// internal item is OK from another assembly. This restriction applies only to assemblies that declare the
-    /// <see cref="WantsToBeBestFriendsAttribute"/> assembly level attribute. Note that this attribute is not
-    /// transferable: an internal member with this attribute does not somehow make a containing internal type
-    /// accessible. Conversely, neither does marking an internal type make any unmarked internal members accessible.
-    /// </summary>
-    [BestFriend]
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Constructor
-        | AttributeTargets.Method | AttributeTargets.Interface | AttributeTargets.Enum | AttributeTargets.Delegate, AllowMultiple = false, Inherited = false)]
-    internal sealed class BestFriendAttribute : Attribute
-    {
-    }
 
-    /// <summary>
-    /// This is an assembly level attribute to signal that friend accesses on this assembly should be checked
-    /// for usage of <see cref="BestFriendAttribute"/>. If this attribute is missing, normal access rules for
-    /// friends should apply.
-    /// </summary>
-    [BestFriend]
-    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false, Inherited = false)]
-    internal sealed class WantsToBeBestFriendsAttribute : Attribute
-    {
-    }
+/// <summary>
+/// Intended to be applied to types and members with internal scope to indicate that friend access of this
+/// internal item is OK from another assembly. This restriction applies only to assemblies that declare the
+/// <see cref="WantsToBeBestFriendsAttribute"/> assembly level attribute. Note that this attribute is not
+/// transferable: an internal member with this attribute does not somehow make a containing internal type
+/// accessible. Conversely, neither does marking an internal type make any unmarked internal members accessible.
+/// </summary>
+[BestFriend]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Constructor
+    | AttributeTargets.Method | AttributeTargets.Interface | AttributeTargets.Enum | AttributeTargets.Delegate, AllowMultiple = false, Inherited = false)]
+internal sealed class BestFriendAttribute : Attribute
+{
+}
+
+/// <summary>
+/// This is an assembly level attribute to signal that friend accesses on this assembly should be checked
+/// for usage of <see cref="BestFriendAttribute"/>. If this attribute is missing, normal access rules for
+/// friends should apply.
+/// </summary>
+[BestFriend]
+[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false, Inherited = false)]
+internal sealed class WantsToBeBestFriendsAttribute : Attribute
+{
 }
