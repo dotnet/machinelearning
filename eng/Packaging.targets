@@ -1,9 +1,16 @@
 <Project>
+  <PropertyGroup>  
+    <PackageReadmeFile Condition="'$(PackageReadmeFile)' == '' and Exists('PACKAGE.md')">PACKAGE.md</PackageReadmeFile>
+  </PropertyGroup>
 
   <ItemGroup>
     <Content Include="$(RepositoryEngineeringDir)pkg\mlnetlogo.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(PackageReadmeFile)' != ''">
+    <None Include="$(PackageReadmeFile)" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  
   <ItemGroup Condition="'$(IncludeMLNetNotices)' != 'false'">
     <Content Include="$(RepoRoot)THIRD-PARTY-NOTICES.TXT" Pack="true" PackagePath="" />
     <Content Include="$(RepoRoot)LICENSE" Pack="true" PackagePath=""/>
