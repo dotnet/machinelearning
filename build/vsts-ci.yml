@@ -2,309 +2,321 @@
 # ML.NET's official, signed build
 ################################################################################
 
-resources:
-  containers:
-  - container: CentosContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8-mlnet
-
-  - container: UbuntuCrossArmContainer
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm
-
-  - container: UbuntuCrossArm64Container
-    image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64
-
 variables:
-  BuildConfig: Release
-  _BuildConfig: $(BuildConfig)
-  OfficialBuildId: $(BUILD.BUILDNUMBER)
-  DOTNET_CLI_TELEMETRY_OPTOUT: 1
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-  DOTNET_MULTILEVEL_LOOKUP: 0
-  Codeql.Enabled: true
-  Codeql.SkipTaskAutoInjection: True  #default to not inject CodeQL tasks, we'll enable it in a single job.
+- name: BuildConfig
+  value: Release
+- name: _BuildConfig
+  value: $(BuildConfig)
+- name: OfficialBuildId
+  value: $(BUILD.BUILDNUMBER)
+- name: DOTNET_CLI_TELEMETRY_OPTOUT
+  value: 1
+- name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+  value: 1
+- name: DOTNET_MULTILEVEL_LOOKUP
+  value: 0
+- name: Codeql.Enabled
+  value: true
+- name: Codeql.SkipTaskAutoInjection
+  value: True  #default to not inject CodeQL tasks, we'll enable it in a single job.
+- name: LinuxImage
+  value: 1es-ubuntu-2204-pt
+- name: WindowsImage
+  value: 1es-windows-2019-pt
+- name: MacImage
+  value: macOS-12
+- template: /eng/common/templates-official/variables/pool-providers.yml@self
 
-stages:
-- stage: build
-  displayName: Build
-  jobs:
-  ################################################################################
-  - job: Linux_x64
-  ################################################################################
-    pool:
-      name: NetCore1ESPool-Internal
-      demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
-    container: CentosContainer
-    steps:
-    # Only build native assets to avoid conflicts.
-    - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
-      displayName: Build Native Assets
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
 
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Linux package assets
-      inputs:
-        pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-        artifactName: pkgassets
-        artifactType: container
-
-    - template: /eng/common/templates/steps/generate-sbom.yml
-
-  ################################################################################
-  - job: Linux_arm
-  ################################################################################
-    variables:
-      ROOTFS_DIR: '/crossrootfs/arm'
-    pool:
-      name: NetCore1ESPool-Internal
-      demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
-    container: UbuntuCrossArmContainer
-    steps:
-    # Only build native assets to avoid conflicts.
-    - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm /p:CopyPackageAssets=true
-      displayName: Build Native Assets
-
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Linux_arm package assets
-      inputs:
-        pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-        artifactName: pkgassets
-        artifactType: container
-
-    - template: /eng/common/templates/steps/generate-sbom.yml
-
-  ################################################################################
-  - job: Linux_arm64
-  ################################################################################
-    variables:
-      ROOTFS_DIR: '/crossrootfs/arm64'
-    pool:
-      name: NetCore1ESPool-Internal
-      demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
-    container: UbuntuCrossArm64Container
-    steps:
-    # Only build native assets to avoid conflicts.
-    - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
-      displayName: Build Native Assets
-
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Linux_arm64 package assets
-      inputs:
-        pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-        artifactName: pkgassets
-        artifactType: container
-
-    - template: /eng/common/templates/steps/generate-sbom.yml
-
-  ################################################################################
-  - job: MacOS
-  ################################################################################
-    pool:
-      vmImage: macOS-12
-    steps:
-    - script: export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 &&  rm '/usr/local/bin/2to3-3.11' && brew unlink libomp && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
-      displayName: Install build dependencies
-    # Only build native assets to avoid conflicts.
-    - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
-      displayName: Build Native Assets
-
-    - task: PublishBuildArtifacts@1
-      displayName: Publish macOS package assets
-      inputs:
-        pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-        artifactName: pkgassets
-        artifactType: container
-
-    - template: /eng/common/templates/steps/generate-sbom.yml
-
-  ################################################################################
-  - job: MacOS_Apple_Silicon
-  ################################################################################
-    pool:
-      vmImage: macOS-12
-    steps:
-    # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
-    - script: |
-        rm -rf /usr/local/bin/2to3
-      displayName: MacOS Homebrew bug Workaround
-      continueOnError: true
-    - script: brew update && brew install libomp && brew link libomp --force
-      displayName: Install build dependencies
-    # Only build native assets to avoid conflicts.
-    - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
-      displayName: Build Native Assets
-
-    - task: PublishBuildArtifacts@1
-      displayName: Publish macOS_M1 package assets
-      inputs:
-        pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-        artifactName: pkgassets
-        artifactType: container
-
-    - template: /eng/common/templates/steps/generate-sbom.yml
-
-  ################################################################################
-  - job: Windows_arm64
-  ################################################################################
-    pool:
-      name: NetCore1ESPool-Internal
-      demands: ImageOverride -equals windows.vs2019.amd64
-    steps:
-    # Only build native assets to avoid conflicts.
-    - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
-      displayName: Build Native Assets
-
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Windows_arm64 package assets
-      inputs:
-        pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-        artifactName: pkgassets
-        artifactType: container
-
-    - template: /eng/common/templates/steps/generate-sbom.yml
-
-    # Terminate all dotnet build processes.
-    - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
-      displayName: Dotnet Server Shutdown
-
-  ################################################################################
-  - job: Windows_x86
-  ################################################################################
-    variables:
-      _TeamName: DotNetCore
-    pool:
-      name: NetCore1ESPool-Internal
-      demands: ImageOverride -equals windows.vs2019.amd64
-    steps:
-    # Only build native assets to avoid conflicts.
-    - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:CopyPackageAssets=true
-      displayName: Build Native Assets
-
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Windows_x86 package assets
-      inputs:
-        pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-        artifactName: pkgassets
-        artifactType: container
-
-    - template: /eng/common/templates/steps/generate-sbom.yml
-
-    # Terminate all dotnet build processes.
-    - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
-      displayName: Dotnet Server Shutdown
-
-  ################################################################################
-  - job: Windows_x64
-  ################################################################################
-    variables:
-      Codeql.SkipTaskAutoInjection: False  # run CodeQL in this job
-      _TeamName: DotNetCore
-    pool:
-      name: NetCore1ESPool-Internal
-      demands: ImageOverride -equals windows.vs2019.amd64
-    steps:
-
-    # Build both native and managed assets.
-    - script: ./build.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
-      displayName: Build
-
-    - task: ComponentGovernanceComponentDetection@0
-      inputs:
-        scanType: 'Register'
-        verbosity: 'Verbose'
-        alertWarningLevel: 'High'
-
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Windows_x64 package assets
-      inputs:
-        pathToPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
-        artifactName: pkgassets
-        artifactType: container
-
-    - template: /eng/common/templates/steps/generate-sbom.yml
-
-    # Terminate all dotnet build processes.
-    - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
-      displayName: Dotnet Server Shutdown
-
-  ################################################################################
-  - template: /eng/common/templates/job/job.yml
-    parameters:
-      name: Package
-  ################################################################################
-      artifacts:
-        publish:
-          artifacts: false
-          logs: true
-          manifests: true
-      enableMicrobuild: true
-      enablePublishUsingPipelines: true
-      enableSourceIndex: true
-      dependsOn:
-      - Linux_x64
-      - Linux_arm
-      - Linux_arm64
-      - MacOS
-      - Windows_x86
-      - Windows_x64
-      - MacOS_Apple_Silicon
-      variables:
-        - DotnetVersionKind: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
-        - NUGET_PACKAGES: $(Build.SourcesDirectory)/.packages
-        - _SignType: real
-        - _TeamName: DotNetCore
-        - _InternalBuildArgs: /p:DotNetSignType=$(_SignType)
-                              /p:TeamName=$(_TeamName)
-                              /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-                              /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
-                              /p:OfficialBuildId=$(OfficialBuildId)
-                              /p:DotNetPublishUsingPipelines=$true
-      pool:
-        name: NetCore1ESPool-Internal
-        demands: ImageOverride -equals windows.vs2019.amd64
-      steps:
-
-      # Download all agent packages from all previous phases
-      - task: DownloadBuildArtifacts@0
-        displayName: Download package assets
-        inputs:
-          artifactName: pkgassets
-          downloadPath: $(Build.SourcesDirectory)/artifacts
-
-      # Depending on the value of DotNetFinalVersionKind, the name of the package will change.
-      # For our nightly builds we want it to be empty, and when creating the official nugets, we want it to be "release"
-      # the value of the version kind is set when queuing the publishing job on AzureDevOps by adding a VERSIONKIND variable
-      # See more info in: https://github.com/dotnet/arcade/blob/master/Documentation/CorePackages/Versioning.md#package-version
-      - script: ./build.cmd -configuration $(BuildConfig) -pack -sign -publish -ci /p:DotNetFinalVersionKind=$(DotnetVersionKind) $(_InternalBuildArgs)
-        displayName: Build Packages
-
-      # Terminate all dotnet build processes.
-      - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
-        displayName: Dotnet Server Shutdown
-
-  - template: /eng/common/templates/job/publish-build-assets.yml
-    parameters:
-      dependsOn: Package
-      enablePublishBuildArtifacts: true
-      publishAssetsImmediately: true
-      publishUsingPipelines: true
-      pool:
-        name: NetCore1ESPool-Svc-Internal
-        demands: ImageOverride -equals windows.vs2019.amd64
-
-- template: /eng/common/templates/post-build/post-build.yml
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
-    publishingInfraVersion: 3
-    # This is to enable SDL runs part of Post-Build Validation Stage
-    SDLValidationParameters:
-      enable: true
-      publishGdn: true
-      continueOnError: false
-      params: ' -SourceToolsList @("policheck","credscan")
-      -TsaInstanceURL https://devdiv.visualstudio.com/
-      -TsaProjectName DEVDIV
-      -TsaNotificationEmail mlnetcore@microsoft.com
-      -TsaCodebaseAdmin REDMOND\ericstj
-      -TsaBugAreaPath "DevDiv\Net Libraries"
-      -TsaIterationPath DevDiv
-      -TsaRepositoryName machinelearning
-      -TsaCodebaseName machinelearning
-      -TsaPublish $True'
+    featureFlags:
+      autoBaseline: true
+    sdl:
+      binskim:
+        enabled: true
+        scanOutputDirectoryOnly: true
+    pool:
+      name: $(DncEngInternalBuildPool)
+      image: $(WindowsImage)
+      os: windows
+    containers:
+      CentosContainer: 
+        image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8-mlnet
+      UbuntuCrossArmContainer: 
+        image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm
+      UbuntuCrossArm64Container:
+        image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-mlnet-cross-arm64
+    stages:
+    - stage: build
+      displayName: Build
+      jobs:
+      ################################################################################
+      - job: Linux_x64
+      ################################################################################
+        pool:
+          name: $(DncEngInternalBuildPool)
+          image: $(LinuxImage)
+          os: linux
+        container: CentosContainer
+        templateContext:
+          outputs:
+          - output: buildArtifacts
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+            ArtifactName: pkgassets
+        steps:
+        # Only build native assets to avoid conflicts.
+        - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
+          displayName: Build Native Assets
+
+      ################################################################################
+      - job: Linux_arm
+      ################################################################################
+        variables:
+          ROOTFS_DIR: '/crossrootfs/arm'
+        pool:
+          name: $(DncEngInternalBuildPool)
+          image: $(LinuxImage)
+          os: linux
+        container: UbuntuCrossArmContainer
+        templateContext:
+          outputs:
+          - output: buildArtifacts
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+            ArtifactName: pkgassets
+        steps:
+        # Only build native assets to avoid conflicts.
+        - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm /p:CopyPackageAssets=true
+          displayName: Build Native Assets
+
+      ################################################################################
+      - job: Linux_arm64
+      ################################################################################
+        variables:
+          ROOTFS_DIR: '/crossrootfs/arm64'
+        pool:
+          name: $(DncEngInternalBuildPool)
+          image: $(LinuxImage)
+          os: linux
+        container: UbuntuCrossArm64Container
+        templateContext:
+          outputs:
+          - output: buildArtifacts
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+            ArtifactName: pkgassets
+        steps:
+        # Only build native assets to avoid conflicts.
+        - script: ./build.sh -configuration $(BuildConfig) -projects $(Build.SourcesDirectory)/src/Native/Native.proj /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
+          displayName: Build Native Assets
+
+      ################################################################################
+      - job: MacOS
+      ################################################################################
+        pool:
+          name: Azure Pipelines
+          vmImage: $(MacImage)
+          os: macOS
+        templateContext:
+          outputs:
+          - output: buildArtifacts
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+            ArtifactName: pkgassets
+        steps:
+        - script: export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 &&  rm '/usr/local/bin/2to3-3.11' && brew unlink libomp && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
+          displayName: Install build dependencies
+        # Only build native assets to avoid conflicts.
+        - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
+          displayName: Build Native Assets
+
+      ################################################################################
+      - job: MacOS_Apple_Silicon
+      ################################################################################
+        pool:
+          name: Azure Pipelines
+          vmImage: $(MacImage)
+          os: macOS
+        templateContext:
+          outputs:
+          - output: buildArtifacts
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+            ArtifactName: pkgassets
+        steps:
+        # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
+        - script: |
+            rm -rf /usr/local/bin/2to3
+          displayName: MacOS Homebrew bug Workaround
+          continueOnError: true
+        - script: brew update && brew install -f --overwrite python@3.12 && brew install libomp && brew link libomp --force
+          displayName: Install build dependencies
+        # Only build native assets to avoid conflicts.
+        - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
+          displayName: Build Native Assets
+
+      ################################################################################
+      - job: Windows_arm64
+      ################################################################################
+        pool:
+          name: $(DncEngInternalBuildPool)
+          image: $(WindowsImage)
+          os: windows
+        templateContext:
+          outputs:
+          - output: buildArtifacts
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+            ArtifactName: pkgassets
+        steps:
+        # Only build native assets to avoid conflicts.
+        - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
+          displayName: Build Native Assets
+
+        # Terminate all dotnet build processes.
+        - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
+          displayName: Dotnet Server Shutdown
+
+      ################################################################################
+      - job: Windows_x86
+      ################################################################################
+        variables:
+          _TeamName: DotNetCore
+        pool:
+          name: $(DncEngInternalBuildPool)
+          image: $(WindowsImage)
+          os: windows
+        templateContext:
+          outputs:
+          - output: buildArtifacts
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+            ArtifactName: pkgassets
+        steps:
+        # Only build native assets to avoid conflicts.
+        - script: ./build.cmd -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x86 /p:CopyPackageAssets=true
+          displayName: Build Native Assets
+
+        # Terminate all dotnet build processes.
+        - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
+          displayName: Dotnet Server Shutdown
+
+      ################################################################################
+      - job: Windows_x64
+      ################################################################################
+        variables:
+          Codeql.SkipTaskAutoInjection: False  # run CodeQL in this job
+          _TeamName: DotNetCore
+        pool:
+          name: $(DncEngInternalBuildPool)
+          image: $(WindowsImage)
+          os: windows
+        templateContext:
+          outputs:
+          - output: buildArtifacts
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
+            ArtifactName: pkgassets
+        steps:
+
+        # Build both native and managed assets.
+        - script: ./build.cmd -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
+          displayName: Build
+
+        - task: ComponentGovernanceComponentDetection@0
+          inputs:
+            scanType: 'Register'
+            verbosity: 'Verbose'
+            alertWarningLevel: 'High'
+
+        # Terminate all dotnet build processes.
+        - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
+          displayName: Dotnet Server Shutdown
+
+      ################################################################################
+      - template: /eng/common/templates-official/job/job.yml@self
+        parameters:
+          name: Package
+      ################################################################################
+          #disable log upload for now, https://github.com/dotnet/dnceng/issues/2133
+          #artifacts:
+          #  publish:
+          #    artifacts: false
+          #    logs: true
+          #    manifests: true
+          enableMicrobuild: true
+          enablePublishUsingPipelines: true
+          enableSourceIndex: true
+          dependsOn:
+          - Linux_x64
+          - Linux_arm
+          - Linux_arm64
+          - MacOS
+          - Windows_x86
+          - Windows_x64
+          - MacOS_Apple_Silicon
+          variables:
+            - DotnetVersionKind: $[variables.VERSIONKIND] # If no "VERSIONKIND" variable is set when queuing the publishing task, this defaults to empty string.
+            - NUGET_PACKAGES: $(Build.SourcesDirectory)/.packages
+            - _SignType: real
+            - _TeamName: DotNetCore
+            - _InternalBuildArgs: /p:DotNetSignType=$(_SignType)
+                                  /p:TeamName=$(_TeamName)
+                                  /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+                                  /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
+                                  /p:OfficialBuildId=$(OfficialBuildId)
+                                  /p:DotNetPublishUsingPipelines=$true
+          pool:
+            name: $(DncEngInternalBuildPool)
+            image: $(WindowsImage)
+            os: windows
+          steps:
+
+          # Download all agent packages from all previous phases
+          - task: DownloadBuildArtifacts@0
+            displayName: Download package assets
+            inputs:
+              artifactName: pkgassets
+              downloadPath: $(Build.SourcesDirectory)/artifacts
+
+          # Depending on the value of DotNetFinalVersionKind, the name of the package will change.
+          # For our nightly builds we want it to be empty, and when creating the official nugets, we want it to be "release"
+          # the value of the version kind is set when queuing the publishing job on AzureDevOps by adding a VERSIONKIND variable
+          # See more info in: https://github.com/dotnet/arcade/blob/master/Documentation/CorePackages/Versioning.md#package-version
+          - script: ./build.cmd -configuration $(BuildConfig) -pack -sign -publish -ci /p:DotNetFinalVersionKind=$(DotnetVersionKind) $(_InternalBuildArgs)
+            displayName: Build Packages
+
+          # Terminate all dotnet build processes.
+          - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
+            displayName: Dotnet Server Shutdown
+
+      - template: /eng/common/templates-official/job/publish-build-assets.yml@self
+        parameters:
+          dependsOn: Package
+          enablePublishBuildArtifacts: true
+          publishAssetsImmediately: true
+          publishUsingPipelines: true
+          pool:
+            name: $(DncEngInternalBuildPool)
+            image: $(WindowsImage)
+            os: windows
+
+    - template: /eng/common/templates-official/post-build/post-build.yml@self
+      parameters:
+        publishingInfraVersion: 3
+        # This is to enable SDL runs part of Post-Build Validation Stage
+        SDLValidationParameters:
+          enable: true
+          publishGdn: true
+          continueOnError: false
+          params: ' -SourceToolsList @("policheck","credscan")
+          -TsaInstanceURL https://devdiv.visualstudio.com/
+          -TsaProjectName DEVDIV
+          -TsaNotificationEmail mlnetcore@microsoft.com
+          -TsaCodebaseAdmin REDMOND\ericstj
+          -TsaBugAreaPath "DevDiv\Net Libraries"
+          -TsaIterationPath DevDiv
+          -TsaRepositoryName machinelearning
+          -TsaCodebaseName machinelearning
+          -TsaPublish $True'

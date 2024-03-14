@@ -43,6 +43,11 @@ endif()
 
 add_library(MatrixFactorizationNative SHARED ${SOURCES} ${RESOURCES})
 
+if (MSVC AND NOT MSVC_VERSION LESS 1900)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /guard:cf")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Qspectre")
+endif()
+
 if (${ARCHITECTURE} STREQUAL "arm")
     if (WIN32)
         target_link_libraries(MatrixFactorizationNative shell32.lib)
