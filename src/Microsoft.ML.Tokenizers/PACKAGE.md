@@ -29,6 +29,10 @@ Console.WriteLine($"5 tokens from end: {processedText.Substring(trimIndex)}");
 trimIndex = tokenizer.IndexOfTokenCount(source, 5, out processedText, out _);
 Console.WriteLine($"5 tokens from start: {processedText.Substring(0, trimIndex)}");
 // 5 tokens from start: Text tokenization is the
+
+IReadOnlyList<int> ids = tokenizer.EncodeToIds(source);
+Console.WriteLine(string.Join(", ", ids));
+// prints: 1199, 4037, 2065, 374, 279, 1920, 315, 45473, 264, 925, 1139, 264, 1160, 315, 11460, 13
 ```
 
 ## Main Types
