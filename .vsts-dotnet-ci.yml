@@ -15,6 +15,15 @@ trigger:
     - main
     - feature/*
     - release/*
+  paths:
+    include:
+    - '*'
+    exclude:
+    - '**.md'
+    - .github/*
+    - docs/*
+    - LICENSE
+    - THIRD-PARTY-NOTICES.TXT
 
 resources:
   containers:

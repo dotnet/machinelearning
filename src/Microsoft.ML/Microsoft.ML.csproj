@@ -14,7 +14,6 @@
     <NoWarn>$(NoWarn);NU5127;NU5128</NoWarn>
     <IsPackable>true</IsPackable>
     <PackageDescription>ML.NET is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers.</PackageDescription>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Microsoft.ML.DataView/Microsoft.ML.DataView.csproj" />
@@ -36,7 +35,6 @@
   <ItemGroup>
     <Content Include="$(RepoRoot)eng\pkg\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
     <Content Include="build\**\*" Pack="true" PackagePath="build" />
-    <None Include="README.md" Pack="true" PackagePath="\"/> <!--NuGet PackageReadmeFile-->
   </ItemGroup>
 
 </Project>
