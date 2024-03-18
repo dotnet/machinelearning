@@ -80,7 +80,7 @@ namespace Microsoft.ML.Tokenizers
             int bufferIndex = 0;
             if (AddDummyPrefix && !TreatWhitespaceAsSuffix)
             {
-                buffer[bufferIndex++] = DummyPrefix;
+                buffer[bufferIndex++] = EscapeWhiteSpaces ? DummyPrefix : ' ';
             }
 
             while (startIndex <= endIndex)
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (AddDummyPrefix && TreatWhitespaceAsSuffix)
             {
-                buffer[bufferIndex++] = DummyPrefix;
+                buffer[bufferIndex++] = EscapeWhiteSpaces ? DummyPrefix : ' ';
             }
 
             string result = new string(buffer, 0, bufferIndex);

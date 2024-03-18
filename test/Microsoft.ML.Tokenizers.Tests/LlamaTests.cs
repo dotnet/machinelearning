@@ -235,5 +235,82 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(isEmptyInput ? Array.Empty<int>() : ids.Concat(new[] { bpe.EndOfSentenceId }), encodedIds);
             Assert.Equal(isEmptyInput ? 0 : ids.Length + 1, bpe.CountTokens(normalizedInput.AsSpan(), addBeginOfSentence: true, addEndOfSentence: true));
         }
+
+        public static IEnumerable<object[]> LlamaTokenizersListData()
+        {
+            yield return new object[] { _llamaTokenizer };
+            yield return new object[] { _llamaMistralTokenizer };
+        }
+
+        [Theory]
+        [MemberData(nameof(LlamaTokenizersListData))]
+        public void TestLlamaTokenizerWithInvalidInput(Tokenizer llamaTokenizer)
+        {
+            Assert.Throws<ArgumentNullException>(() => llamaTokenizer.Encode(null!));
+            Assert.Throws<ArgumentNullException>(() => llamaTokenizer.EncodeToIds(null!));
+            Assert.Throws<ArgumentNullException>(() => llamaTokenizer.CountTokens(null!));
+            Assert.Throws<ArgumentNullException>(() => llamaTokenizer.Decode(null!));
+            Assert.Throws<ArgumentNullException>(() => (llamaTokenizer.Model as SentencePieceBpe)!.Encode(null!));
+        }
+
+        [Theory]
+        [MemberData(nameof(LlamaTokenizersListData))]
+        public void TestLlamaTokenizerProperties(Tokenizer llamaTokenizer)
+        {
+            SentencePieceBpe? bpe = llamaTokenizer.Model as SentencePieceBpe;
+            Assert.NotNull(bpe);
+            Assert.NotNull(llamaTokenizer.Normalizer);
+
+            Assert.Equal("▁Hello,▁World!", llamaTokenizer.Normalizer.Normalize("Hello, World!"));
+
+            Assert.True(bpe.Vocab.Count > 0);
+            Assert.True(bpe.Vocab.TryGetValue("▁", out _));
+
+            Assert.Equal(0, bpe.UnknownId);
+            Assert.Equal("<unk>", bpe.UnknownToken);
+            Assert.Equal(1, bpe.BeginningOfSentenceId);
+            Assert.Equal("<s>", bpe.BeginningOfSentenceToken);
+            Assert.Equal(2, bpe.EndOfSentenceId);
+            Assert.Equal("</s>", bpe.EndOfSentenceToken);
+
+            Assert.Equal(bpe.Vocab["▁"], bpe.MapTokenToId("▁".AsSpan()));
+            Assert.Equal("▁", bpe.MapIdToToken(bpe.Vocab["▁"]));
+
+            Assert.True(bpe.ByteFallback);
+            Assert.True(bpe.AddDummyPrefix);
+            Assert.True(bpe.EscapeWhiteSpaces);
+            Assert.False(bpe.TreatWhitespaceAsSuffix);
+        }
+
+        [Fact]
+        public void TestLlamaNormalizer()
+        {
+            LlamaNormalizer normalizer = new LlamaNormalizer(removeExtraWhiteSpaces: false, addDummyPrefix: false, escapeWhiteSpaces: false, treatWhitespaceAsSuffix: false);
+            Assert.Equal("Hello,      World!", normalizer.Normalize("Hello,      World!"));
+
+            normalizer = new LlamaNormalizer(removeExtraWhiteSpaces: true, addDummyPrefix: false, escapeWhiteSpaces: false, treatWhitespaceAsSuffix: false);
+            Assert.Equal("Hello, World!", normalizer.Normalize("Hello,      World!"));
+
+            normalizer = new LlamaNormalizer(removeExtraWhiteSpaces: true, addDummyPrefix: true, escapeWhiteSpaces: false, treatWhitespaceAsSuffix: false);
+            Assert.Equal(" Hello, World!", normalizer.Normalize("Hello,      World!"));
+
+            normalizer = new LlamaNormalizer(removeExtraWhiteSpaces: true, addDummyPrefix: true, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: false);
+            Assert.Equal("▁Hello,▁World!", normalizer.Normalize("Hello,      World!"));
+
+            normalizer = new LlamaNormalizer(removeExtraWhiteSpaces: false, addDummyPrefix: true, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: false);
+            Assert.Equal("▁Hello,▁▁▁▁▁▁World!", normalizer.Normalize("Hello,      World!"));
+
+            normalizer = new LlamaNormalizer(removeExtraWhiteSpaces: true, addDummyPrefix: true, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: true);
+            Assert.Equal("Hello,▁World!▁", normalizer.Normalize("Hello,      World!"));
+
+            normalizer = new LlamaNormalizer(removeExtraWhiteSpaces: true, addDummyPrefix: false, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: true);
+            Assert.Equal("Hello,▁World!", normalizer.Normalize("Hello,      World!"));
+
+            normalizer = new LlamaNormalizer(removeExtraWhiteSpaces: false, addDummyPrefix: true, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: true);
+            Assert.Equal("Hello,▁▁▁▁▁▁World!▁", normalizer.Normalize("Hello,      World!"));
+
+            normalizer = new LlamaNormalizer(removeExtraWhiteSpaces: false, addDummyPrefix: true, escapeWhiteSpaces: false, treatWhitespaceAsSuffix: true);
+            Assert.Equal("Hello,      World! ", normalizer.Normalize("Hello,      World!"));
+        }
     }
 }
