@@ -21,13 +21,13 @@ namespace Microsoft.ML.Tokenizers
     public sealed class SentencePieceBpe : Model
     {
         private const int UninitializedId = -2; // indicate if the symbol contains uninitialized id.
-        private const int ByteCodeToIdOffset = 3; // byte code is mapped to the to the Ids starting from 4.
-        const int OneUtf8ByteMaxId = 0x7F + ByteCodeToIdOffset; // 0x7F is the maximum value of the one byte UTF-8 character.
 
         private readonly Dictionary<StringSpanOrdinalKey, (int Id, float Score, byte Type)> _vocab = new();
         private readonly Dictionary<int, string> _vocabReverse = new();
         private Dictionary<string, int>? _publicVocab;
         private readonly int _maxByteId;
+        private readonly int _byteCodeToIdOffset; // offset of mapping byte code to the to the Ids.
+        private readonly int _oneByteUtf8EncodingMaxId; // the maximum value of the one byte UTF-8 character.
 
         internal SentencePieceBpe(ModelProto modelProto, bool addBos, bool addEos) :
                 this(modelProto is null ? throw new ArgumentNullException(nameof(modelProto)) : modelProto)
@@ -49,6 +49,9 @@ namespace Microsoft.ML.Tokenizers
                     _maxByteId = i;
                 }
             }
+
+            _byteCodeToIdOffset = _vocab.TryGetValue("<0x00>", out (int Id, float Score, byte Type) value) ? value.Id : _maxByteId;
+            _oneByteUtf8EncodingMaxId = _byteCodeToIdOffset + 0x7F; // 0x7F is the maximum value of the one byte UTF-8 character.
 
             BeginningOfSentenceToken = modelProto.TrainerSpec.BosPiece ?? "<s>";
             BeginningOfSentenceId = modelProto.TrainerSpec.BosId <= 0 ? 1 : modelProto.TrainerSpec.BosId;
@@ -280,7 +283,7 @@ namespace Microsoft.ML.Tokenizers
                     char c = text[i];
                     if (c <= 0x7F)
                     {
-                        int id = (int)c + ByteCodeToIdOffset; // byte code is mapped to the to the Ids starting from 4.
+                        int id = (int)c + _byteCodeToIdOffset; // byte code is mapped to the to the Ids starting from 4.
 
                         if (_vocabReverse.TryGetValue(id, out string? token))
                         {
@@ -304,7 +307,7 @@ namespace Microsoft.ML.Tokenizers
                         int length = text.Length - i;
                         for (int j = 0; j < bytesWritten; j++)
                         {
-                            int id = (int)utf8Bytes[j] + ByteCodeToIdOffset; // byte code is mapped to the to the Ids starting from 4.
+                            int id = (int)utf8Bytes[j] + _byteCodeToIdOffset; // byte code is mapped to the to the Ids starting from 4.
 
                             if (_vocabReverse.TryGetValue(id, out string? token))
                             {
@@ -437,7 +440,7 @@ namespace Microsoft.ML.Tokenizers
                     char c = text[i];
                     if (c <= 0x7F)
                     {
-                        accumulatedIds.Add((int)c + ByteCodeToIdOffset); // byte code is mapped to the to the Ids starting from 4.
+                        accumulatedIds.Add((int)c + _byteCodeToIdOffset); // byte code is mapped to the to the Ids starting from 4.
                     }
                     else
                     {
@@ -455,7 +458,7 @@ namespace Microsoft.ML.Tokenizers
                         int bytesWritten = Helpers.GetUtf8Bytes(text.Slice(i), utf8Bytes);
                         for (int j = 0; j < bytesWritten; j++)
                         {
-                            accumulatedIds.Add((int)utf8Bytes[j] + ByteCodeToIdOffset); // byte code is mapped to the to the Ids starting from 4.
+                            accumulatedIds.Add((int)utf8Bytes[j] + _byteCodeToIdOffset); // byte code is mapped to the to the Ids starting from 4.
                         }
 
                         if (arrayPoolArray is not null)
@@ -678,7 +681,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 // First token is a byte token.
 
-                while (enumerator.Current == EndOfSentenceId || enumerator.Current == BeginningOfSentenceId || enumerator.Current == UnknownId)
+                while (enumerator.Current < _byteCodeToIdOffset)
                 {
                     // Skip control tokens.
                     if (!enumerator.MoveNext())
@@ -689,7 +692,7 @@ namespace Microsoft.ML.Tokenizers
 
                 if (enumerator.Current <= _maxByteId)
                 {
-                    EncodeByte(enumerator.Current, ref bytesCount, ref bytesPoolArray, ref sb);
+                    EncodeByte(enumerator.Current, _oneByteUtf8EncodingMaxId, _byteCodeToIdOffset, ref bytesCount, ref bytesPoolArray, ref sb);
                 }
                 else if (_vocabReverse.TryGetValue(enumerator.Current, out string? token))
                 {
@@ -708,7 +711,7 @@ namespace Microsoft.ML.Tokenizers
 
             while (enumerator.MoveNext())
             {
-                if (enumerator.Current == EndOfSentenceId || enumerator.Current == BeginningOfSentenceId || enumerator.Current == UnknownId)
+                if (enumerator.Current < _byteCodeToIdOffset)
                 {
                     if (bytesCount >= 1)
                     {
@@ -728,11 +731,11 @@ namespace Microsoft.ML.Tokenizers
                             Helpers.ArrayPoolGrow(ref bytesPoolArray, bytesCount * 2);
                         }
 
-                        bytesPoolArray![bytesCount++] = (byte)(enumerator.Current - ByteCodeToIdOffset);
+                        bytesPoolArray![bytesCount++] = (byte)(enumerator.Current - _byteCodeToIdOffset);
                     }
                     else
                     {
-                        EncodeByte(enumerator.Current, ref bytesCount, ref bytesPoolArray, ref sb);
+                        EncodeByte(enumerator.Current, _oneByteUtf8EncodingMaxId, _byteCodeToIdOffset, ref bytesCount, ref bytesPoolArray, ref sb);
                     }
                 }
                 else
@@ -800,17 +803,17 @@ namespace Microsoft.ML.Tokenizers
                 bytesCount = -1;
             }
 
-            static void EncodeByte(int id, ref int bytesCount, ref byte[]? bytesPoolArray, ref ValueStringBuilder sb)
+            static void EncodeByte(int id, int oneByteUtf8EncodingMaxId, int byteCodeToIdOffset, ref int bytesCount, ref byte[]? bytesPoolArray, ref ValueStringBuilder sb)
             {
-                if (id <= OneUtf8ByteMaxId)
+                if (id <= oneByteUtf8EncodingMaxId)
                 {
-                    sb.Append((char)(id - ByteCodeToIdOffset));
+                    sb.Append((char)(id - byteCodeToIdOffset));
                 }
                 else
                 {
                     bytesCount = 1;
                     bytesPoolArray ??= ArrayPool<byte>.Shared.Rent(50);
-                    bytesPoolArray[0] = (byte)(id - ByteCodeToIdOffset);
+                    bytesPoolArray[0] = (byte)(id - byteCodeToIdOffset);
                 }
             }
         }
