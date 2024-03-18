@@ -5,12 +5,13 @@
 using System;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.ML.Tokenizers
 {
-    internal static class Helpers
+    internal static partial class Helpers
     {
         public static ValueTask<string> ReadLineAsync(StreamReader reader, CancellationToken cancellationToken)
         {
@@ -60,6 +61,48 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return hash;
+        }
+
+        internal static unsafe int GetUtf8Bytes(ReadOnlySpan<char> source, Span<byte> destination)
+        {
+            fixed (char* sourcePtr = source)
+            fixed (byte* destPtr = destination)
+            {
+                return Encoding.UTF8.GetBytes(sourcePtr, source.Length, destPtr, destination.Length);
+            }
+        }
+
+        internal static unsafe bool TryGetUtf8Bytes(ReadOnlySpan<char> source, Span<byte> destination, out int bytesWritten)
+        {
+            fixed (char* sourcePtr = source)
+            fixed (byte* destPtr = destination)
+            {
+                if (Encoding.UTF8.GetByteCount(sourcePtr, source.Length) <= destination.Length)
+                {
+                    bytesWritten = Encoding.UTF8.GetBytes(sourcePtr, source.Length, destPtr, destination.Length);
+                    return true;
+                }
+
+                bytesWritten = 0;
+                return false;
+            }
+        }
+
+        internal static unsafe string GetString(ReadOnlySpan<byte> utf8Bytes)
+        {
+            fixed (byte* sourcePtr = utf8Bytes)
+            {
+                return Encoding.UTF8.GetString(sourcePtr, utf8Bytes.Length);
+            }
+        }
+
+        internal static unsafe int GetChars(ReadOnlySpan<byte> bytes, Span<char> chars)
+        {
+            fixed (byte* bytesPtr = bytes)
+            fixed (char* charsPtr = chars)
+            {
+                return Encoding.UTF8.GetChars(bytesPtr, bytes.Length, charsPtr, chars.Length);
+            }
         }
     }
 }
