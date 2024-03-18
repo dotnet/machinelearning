@@ -18,7 +18,7 @@ namespace Microsoft.ML.Tokenizers
             return new ValueTask<string>(reader.ReadLineAsync());
         }
 
-        public static async Task<Stream> GetStreamAsync(HttpClient client, string url, CancellationToken cancellationToken)
+        public static async Task<Stream> GetStreamAsync(HttpClient client, string url, CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
