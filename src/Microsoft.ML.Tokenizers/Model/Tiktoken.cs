@@ -112,7 +112,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="cacheSize">The size of the cache to use.</param>
         /// <param name="normalizer">To normalize the text before tokenization</param>
         /// <returns>The tokenizer</returns>
-        public static Tokenizer CreateTokenizerByModelName(
+        public static Tokenizer CreateTokenizerForModel(
                                     string modelName,
                                     Stream vocabStream,
                                     IReadOnlyDictionary<string, int>? extraSpecialTokens = null,
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="normalizer">To normalize the text before tokenization</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>The tokenizer</returns>
-        public static async Task<Tokenizer> CreateTokenizerByModelNameAsync(
+        public static async Task<Tokenizer> CreateTokenizerForModelAsync(
                                     string modelName,
                                     Stream vocabStream,
                                     IReadOnlyDictionary<string, int>? extraSpecialTokens = null,
@@ -774,7 +774,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="normalizer">To normalize the text before tokenization</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>The tokenizer</returns>
-        public static Task<Tokenizer> CreateTokenizerByModelNameAsync(
+        public static Task<Tokenizer> CreateTokenizerForModelAsync(
                                                 string modelName,
                                                 IReadOnlyDictionary<string, int>? extraSpecialTokens = null,
                                                 Normalizer? normalizer = null,
@@ -797,7 +797,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the model</param>
         /// <param name="normalizer">To normalize the text before tokenization</param>
         /// <returns>The tokenizer</returns>
-        public static Tokenizer CreateTokenizerByModelName(
+        public static Tokenizer CreateTokenizerForModel(
                                                 string modelName,
                                                 IReadOnlyDictionary<string, int>? extraSpecialTokens = null,
                                                 Normalizer? normalizer = null)
@@ -820,7 +820,7 @@ namespace Microsoft.ML.Tokenizers
             if (!_tiktokenCache.TryGetValue(tiktokenConfiguration.Url,
                     out (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, int> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) cache))
             {
-                using Stream stream = Helpers.GetStreamAsync(_httpClient, tiktokenConfiguration.Url).GetAwaiter().GetResult();
+                using Stream stream = Helpers.GetStream(_httpClient, tiktokenConfiguration.Url);
                 cache = LoadTikTokenBpeAsync(stream, useAsync: false).GetAwaiter().GetResult();
 
                 _tiktokenCache.TryAdd(tiktokenConfiguration.Url, cache);

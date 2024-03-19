@@ -25,6 +25,8 @@ namespace Microsoft.ML.Tokenizers
             return await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
         }
 
+        public static Stream GetStream(HttpClient client, string url) => client.GetStreamAsync(url).GetAwaiter().GetResult();
+
         public static byte[] FromBase64String(string base64String, int offset, int length) => Convert.FromBase64String(base64String.Substring(offset, length));
 
         // Not support signed number
