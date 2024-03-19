@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.DotNet.RemoteExecutor;
 using Microsoft.ML.Tokenizers;
 using System;
 using System.Collections.Generic;
@@ -308,6 +309,29 @@ namespace Microsoft.ML.Tokenizers.Tests
             tokenizer = await Tiktoken.CreateTokenizerForModelAsync(modelName);
             Assert.NotNull(tokenizer.Model);
             Assert.NotNull(tokenizer.PreTokenizer);
+        }
+
+        [InlineData("gpt-4")]
+        [InlineData("text-davinci-003")]
+        [InlineData("text-curie-001")]
+        [InlineData("text-davinci-edit-001")]
+        [ConditionalTheory(typeof(RemoteExecutor), nameof(RemoteExecutor.IsSupported))]
+        public void TestCreationUsingModel(string modelName)
+        {
+            // Execute remotely to ensure no caching is used.
+            RemoteExecutor.Invoke(static async (name) =>
+            {
+                Tokenizer tokenizer = await Tiktoken.CreateTokenizerForModelAsync(name);
+                Assert.NotNull(tokenizer.Model);
+                Assert.NotNull(tokenizer.PreTokenizer);
+            }, modelName).Dispose();
+
+            RemoteExecutor.Invoke(static (name) =>
+            {
+                Tokenizer tokenizer = Tiktoken.CreateTokenizerForModel(name);
+                Assert.NotNull(tokenizer.Model);
+                Assert.NotNull(tokenizer.PreTokenizer);
+            }, modelName).Dispose();
         }
 
         // Test running copy the test data files to the output folder but sometimes the file content is mutated replacing '\n' with '\r\n'.
