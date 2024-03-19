@@ -181,6 +181,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 var labelCol = input.Schema.GetColumnOrNull(Option.LabelColumnName);
 
                 transformer = new ObjectDetectionTransformer(Host, Option, trainer.Model, new DataViewSchema.DetachedColumn(labelCol.Value));
+                trainer.Optimizer.Dispose();
 
                 transformer.GetOutputSchema(input.Schema);
             }

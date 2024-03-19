@@ -24,6 +24,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         private readonly LayerNorm norm1;
         private readonly LayerNorm norm2;
         private readonly LayerNorm norm3;
+        private bool _disposedValue;
 #pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
@@ -154,6 +155,24 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 return outs;
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    patch_embed.Dispose();
+                    layers.Dispose();
+                    norm1.Dispose();
+                    norm2.Dispose();
+                    norm3.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

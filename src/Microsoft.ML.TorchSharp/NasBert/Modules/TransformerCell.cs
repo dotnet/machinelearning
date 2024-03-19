@@ -36,6 +36,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly ModuleList<Layer> Operations;
+        private bool _disposedValue;
 
         public TransformerCellNonDiscrete(
             float dropout = 0.1f,
@@ -75,6 +76,21 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
                 (operation as Layer)!.CloseLayerNormTraining();
             }
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    _activationFn.Dispose();
+                    Operations.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
+        }
     }
 
     /// <summary>
@@ -87,6 +103,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly Layer Operation;
+        private bool _disposedValue;
 
         public TransformerCellDiscrete(
             int arch,
@@ -118,5 +135,20 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
         }
 
         public override void CloseLayerNormTraining() => Operation.CloseLayerNormTraining();
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    _activationFn.Dispose();
+                    Operation.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
+        }
     }
 }

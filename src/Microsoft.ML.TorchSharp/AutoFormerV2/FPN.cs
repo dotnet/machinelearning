@@ -20,6 +20,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         private readonly ModuleList<Module<Tensor, Tensor>> lateral_convs;
         private readonly ModuleList<Module<Tensor, Tensor>> fpn_convs;
         private readonly int numOuts;
+        private bool _disposedValue;
 #pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
@@ -99,6 +100,21 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 return outs;
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    lateral_convs.Dispose();
+                    fpn_convs.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

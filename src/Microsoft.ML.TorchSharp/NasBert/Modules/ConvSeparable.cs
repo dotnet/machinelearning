@@ -15,6 +15,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:Private field name not in: _camelCase format", Justification = "Have to match TorchSharp model.")]
         private readonly Sequential Conv;
+        private bool _disposedValue;
 
         public ConvSeparable(int inChannels, int outChannels, int kernelSize, int padding, double dropout)
             : base(nameof(ConvSeparable))
@@ -47,6 +48,20 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
             using var x1 = x.permute(1, 2, 0);
             using var conv = Conv.forward(x1);
             return conv.permute(2, 0, 1);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    Conv.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

@@ -22,6 +22,8 @@ namespace Microsoft.ML.TorchSharp.Roberta.Modules
         public readonly Linear value;
         public readonly Dropout attention_dropout;
 
+        private bool _disposedValue;
+
         public AttentionSelf(int numAttentionHeads, long hiddenSize, double layerNormEps, double attentionDropoutRate)
             : base(nameof(AttentionSelf))
         {
@@ -79,6 +81,23 @@ namespace Microsoft.ML.TorchSharp.Roberta.Modules
             x = x.view(newShape);
             x = x.permute(0, 2, 1, 3).contiguous();
             return x.MoveToOuterDisposeScope();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    query.Dispose();
+                    key.Dispose();
+                    value.Dispose();
+                    attention_dropout.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

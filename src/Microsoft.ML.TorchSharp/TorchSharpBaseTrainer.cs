@@ -118,6 +118,7 @@ namespace Microsoft.ML.TorchSharp
                 var labelCol = input.Schema.GetColumnOrNull(Option.LabelColumnName);
 
                 transformer = CreateTransformer(Host, Option, trainer.Model, new DataViewSchema.DetachedColumn(labelCol.Value));
+                trainer.Optimizer.Dispose();
 
                 transformer.GetOutputSchema(input.Schema);
             }

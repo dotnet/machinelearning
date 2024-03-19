@@ -88,35 +88,37 @@ namespace Microsoft.ML.TorchSharp.Tests
             var model = estimator.Fit(dataView);
             var transformedData = model.Transform(dataView);
 
-            var cursor = transformedData.GetRowCursor(transformedData.Schema["Answer"], transformedData.Schema["Score"], transformedData.Schema["TrainingAnswer"], transformedData.Schema["Context"], transformedData.Schema["Question"]);
-            var answerGetter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(transformedData.Schema["Answer"]);
-            var contextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(transformedData.Schema["Context"]);
-            var questionGetter = cursor.GetGetter<ReadOnlyMemory<char>>(transformedData.Schema["Question"]);
-            var trainingAnswerGetter = cursor.GetGetter<ReadOnlyMemory<char>>(transformedData.Schema["TrainingAnswer"]);
-            var scoreGetter = cursor.GetGetter<VBuffer<float>>(transformedData.Schema["Score"]);
-
-            VBuffer<ReadOnlyMemory<char>> answer = default;
-            ReadOnlyMemory<char> trainingAnswer = default;
-            ReadOnlyMemory<char> context = default;
-            ReadOnlyMemory<char> question = default;
-            VBuffer<float> score = default;
-            int correct = 0;
-            int incorrect = 0;
-
-            while (cursor.MoveNext())
+            using (var cursor = transformedData.GetRowCursor(transformedData.Schema["Answer"], transformedData.Schema["Score"], transformedData.Schema["TrainingAnswer"], transformedData.Schema["Context"], transformedData.Schema["Question"]))
             {
-                answerGetter(ref answer);
-                trainingAnswerGetter(ref trainingAnswer);
-                contextGetter(ref context);
-                questionGetter(ref question);
-                scoreGetter(ref score);
-                if (trainingAnswer.ToString().Contains(answer.GetValues()[0].ToString()) || answer.GetValues()[0].ToString().Contains(trainingAnswer.ToString()))
-                    correct++;
-                else
-                    incorrect++;
-            }
+                var answerGetter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(transformedData.Schema["Answer"]);
+                var contextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(transformedData.Schema["Context"]);
+                var questionGetter = cursor.GetGetter<ReadOnlyMemory<char>>(transformedData.Schema["Question"]);
+                var trainingAnswerGetter = cursor.GetGetter<ReadOnlyMemory<char>>(transformedData.Schema["TrainingAnswer"]);
+                var scoreGetter = cursor.GetGetter<VBuffer<float>>(transformedData.Schema["Score"]);
 
-            Assert.True(correct > incorrect);
+                VBuffer<ReadOnlyMemory<char>> answer = default;
+                ReadOnlyMemory<char> trainingAnswer = default;
+                ReadOnlyMemory<char> context = default;
+                ReadOnlyMemory<char> question = default;
+                VBuffer<float> score = default;
+                int correct = 0;
+                int incorrect = 0;
+
+                while (cursor.MoveNext())
+                {
+                    answerGetter(ref answer);
+                    trainingAnswerGetter(ref trainingAnswer);
+                    contextGetter(ref context);
+                    questionGetter(ref question);
+                    scoreGetter(ref score);
+                    if (trainingAnswer.ToString().Contains(answer.GetValues()[0].ToString()) || answer.GetValues()[0].ToString().Contains(trainingAnswer.ToString()))
+                        correct++;
+                    else
+                        incorrect++;
+                }
+
+                Assert.True(correct > incorrect);
+            }
             model.Dispose();
         }
     }

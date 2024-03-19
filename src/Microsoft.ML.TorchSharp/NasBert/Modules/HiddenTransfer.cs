@@ -25,6 +25,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
 #nullable enable
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:Private field name not in: _camelCase format", Justification = "Have to match TorchSharp.")]
         private readonly Linear? InHiddenTransfer;
+        private bool _disposedValue;
 #nullable disable
 
         public HiddenTransferDiscrete(int hiddenSize1, int hiddenSize2) : base(nameof(HiddenTransferDiscrete))
@@ -46,6 +47,20 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
             return (!inputTransfer && InHiddenTransfer != null)
                 ? InHiddenTransfer.forward(x)
                 : x.alias();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    InHiddenTransfer?.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

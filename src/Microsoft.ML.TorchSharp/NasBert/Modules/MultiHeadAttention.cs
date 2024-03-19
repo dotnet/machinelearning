@@ -362,6 +362,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
 
         #region Incremental State
         private readonly IIncrementalState _incrementalState = new IncrementalState();
+        private bool _disposedValue;
 
         public void InitIncrementalState()
         {
@@ -378,5 +379,25 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
             _incrementalState.SetIncrementalState(module, incrementalState, key, value);
         }
         #endregion
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    QProjection.Dispose();
+                    KProjection.Dispose();
+                    VProjection.Dispose();
+                    KBias?.Dispose();
+                    VBias?.Dispose();
+                    OutProjLinear.Dispose();
+                    DropoutLayer.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
+        }
     }
 }

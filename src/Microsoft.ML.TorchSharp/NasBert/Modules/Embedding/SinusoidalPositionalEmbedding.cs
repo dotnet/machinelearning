@@ -15,6 +15,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
         private readonly torch.Tensor _floatTensor = torch.tensor(1.0f);
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:Private field name not in: _camelCase format", Justification = "Has to match TorchSharp model.")]
         private Parameter Weight;
+        private bool _disposedValue;
 
         public SinusoidalPositionalEmbedding(int numEmbeddings, int embeddingDim, int padTokenIndex)
             : base(embeddingDim, padTokenIndex, nameof(SinusoidalPositionalEmbedding))
@@ -114,6 +115,21 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
 
             if (param.ContainsKey(IncrementalStateKey)) incrementalState = (bool)param[IncrementalStateKey];
             if (param.ContainsKey(TimeStepKey)) timeStep = (torch.Tensor)param[TimeStepKey];
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    _floatTensor.Dispose();
+                    Weight.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

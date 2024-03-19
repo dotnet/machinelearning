@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using TorchSharp;
+using TorchSharp.Modules;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Modules
 {
@@ -13,6 +14,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
     internal sealed class ActivationFunction : torch.nn.Module<torch.Tensor, torch.Tensor>
     {
         private readonly torch.nn.Module<torch.Tensor, torch.Tensor> _function;
+        private bool _disposedValue;
 
         public ActivationFunction(string name) : base(name)
         {
@@ -36,6 +38,20 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
         public override string GetName()
         {
             return _function.GetName();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    _function.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 

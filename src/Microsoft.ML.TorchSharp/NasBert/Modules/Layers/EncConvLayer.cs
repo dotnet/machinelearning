@@ -19,6 +19,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules.Layers
 
         private readonly Sequential Conv2;
         private readonly LayerNorm LayerNorm2;
+        private bool _disposedValue;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
 
         public EncConvLayer(int channel, int kernelSize, double dropoutRate, string activationFn,
@@ -81,6 +82,23 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules.Layers
 
             if (param.ContainsKey(PaddingMaskKey)) selfAttentionPaddingMask = (torch.Tensor)param[PaddingMaskKey];
             return true;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    Conv1.Dispose();
+                    LayerNorm1.Dispose();
+                    Conv2.Dispose();
+                    LayerNorm2.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

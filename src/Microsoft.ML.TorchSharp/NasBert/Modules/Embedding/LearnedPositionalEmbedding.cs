@@ -17,6 +17,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:Private field name not in: _camelCase format", Justification = "Has to match TorchSharp model.")]
         private readonly Embedding Embedding;
         private readonly int _numEmbeddings;
+        private bool _disposedValue;
 
         public LearnedPositionalEmbedding(int numEmbeddings, int embeddingDim, int padTokenIndex)
             : base(embeddingDim, padTokenIndex, nameof(LearnedPositionalEmbedding))
@@ -62,6 +63,20 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
 
             if (param.ContainsKey(IncrementalStateKey)) incrementalState = (bool)param[IncrementalStateKey];
             if (param.ContainsKey(PositionKey)) positions = (torch.Tensor)param[PositionKey];
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    Embedding.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }
