@@ -34,6 +34,8 @@ namespace Microsoft.ML.Tokenizers
             new ReadOnlySpan<char>(Ptr, Length) :
             Data.AsSpan();
 
+        public override string ToString() => Data ?? Span.ToString();
+
         public override bool Equals(object? obj) =>
             obj is StringSpanOrdinalKey wrapper && Equals(wrapper);
 
