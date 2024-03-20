@@ -25,9 +25,6 @@ namespace Microsoft.ML.Tokenizers
         private readonly Dictionary<ReadOnlyMemory<byte>, int> _encoder;
         private readonly Dictionary<int, ReadOnlyMemory<byte>> _decoder;
         private readonly LruCache<int[]> _cache;
-        private readonly Dictionary<StringSpanOrdinalKey, int>? _specialTokensEncoder;
-        private Dictionary<string, int>? _specialTokensEncoderOriginal;
-        private readonly Dictionary<int, string>? _specialTokensDecoder;
         private readonly Dictionary<StringSpanOrdinalKey, int> _vocab;
         private IReadOnlyDictionary<string, int>? _vocabOriginal;
 
@@ -83,7 +80,8 @@ namespace Microsoft.ML.Tokenizers
             _vocab = vocab!;
             _cache = new LruCache<int[]>(cacheSize);
 
-            (_specialTokensEncoder, _specialTokensDecoder) = CreateEncoderDecoder(specialTokens);
+            SpecialTokens = specialTokens;
+            CacheSpecialTokensEncoding(specialTokens);
         }
 
         private Tiktoken(Stream vocabStream, IReadOnlyDictionary<string, int>? specialTokens, int cacheSize, bool disposeStream)
@@ -92,7 +90,9 @@ namespace Microsoft.ML.Tokenizers
             {
                 _cache = new LruCache<int[]>(cacheSize);
                 (_encoder, _vocab, _decoder) = LoadTikTokenBpeAsync(vocabStream, useAsync: false).GetAwaiter().GetResult();
-                (_specialTokensEncoder, _specialTokensDecoder) = CreateEncoderDecoder(specialTokens);
+
+                SpecialTokens = specialTokens;
+                CacheSpecialTokensEncoding(specialTokens);
             }
             finally
             {
@@ -103,15 +103,19 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
-        private static (Dictionary<StringSpanOrdinalKey, int>?, Dictionary<int, string>?) CreateEncoderDecoder(IReadOnlyDictionary<string, int>? specialTokens)
+        private void CacheSpecialTokensEncoding(IReadOnlyDictionary<string, int>? specialTokens)
         {
+            Debug.Assert(_cache is not null);
+            Debug.Assert(_decoder is not null);
+
             if (specialTokens is not null)
             {
-                var encoder = specialTokens.ToDictionary(e => new StringSpanOrdinalKey(e.Key), e => e.Value);
-                return (encoder, encoder.ToDictionary(kvp => kvp.Value, kvp => kvp.Key.Data!));
+                foreach (KeyValuePair<string, int> specialToken in specialTokens)
+                {
+                    _decoder![specialToken.Value] = Encoding.UTF8.GetBytes(specialToken.Key);
+                    _cache!.Add(specialToken.Key, new[] { specialToken.Value });
+                }
             }
-
-            return (null, null);
         }
 
         /// <summary>
@@ -233,26 +237,15 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Encode a split text string to a list of tokens.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token.</param>
+        /// <param name="text">The text to encode.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
-        public override IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false)
+        public override IReadOnlyList<Token> Encode(string text)
         {
             Token[] tokens;
 
             if (string.IsNullOrEmpty(text))
             {
                 return Array.Empty<Token>();
-            }
-
-            if (isSpecialToken)
-            {
-                if (_specialTokensEncoder?.TryGetValue(text, out int id) is true)
-                {
-                    return new List<Token> { new(id, text, (0, text.Length)) };
-                }
-
-                throw new InvalidOperationException($"The special token {text} doesn't exist in the tokenizer");
             }
 
             if (_cache.TryGetValue(text, out int[]? ids))
@@ -296,23 +289,12 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Encode text to a list of Ids.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="accumulatedIds">The list of accumulated Ids.</param>
-        public override void EncodeToIds(ReadOnlySpan<char> text, bool isSpecialToken, IList<int> accumulatedIds)
+        public override void EncodeToIds(ReadOnlySpan<char> text, IList<int> accumulatedIds)
         {
             if (text.IsEmpty)
             {
-                return;
-            }
-
-            if (isSpecialToken)
-            {
-                if (_specialTokensEncoder?.TryGetValue(text, out int id) is true)
-                {
-                    accumulatedIds.Add(id);
-                }
-
                 return;
             }
 
@@ -343,19 +325,13 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token.</param>
+        /// <param name="text">The text to encode.</param>
         /// <returns>The number of tokens that the input text will be encoded to.</returns>
-        public override int CountTokens(ReadOnlySpan<char> text, bool isSpecialToken)
+        public override int CountTokens(ReadOnlySpan<char> text)
         {
             if (text.IsEmpty)
             {
                 return 0;
-            }
-
-            if (isSpecialToken && _specialTokensEncoder is not null)
-            {
-                return _specialTokensEncoder.TryGetValue(text, out _) ? 1 : 0;
             }
 
             if (_cache.TryGetValue(text, out int[] ids))
@@ -382,21 +358,12 @@ namespace Microsoft.ML.Tokenizers
         /// Map the token to encoded Id.
         /// </summary>
         /// <param name="token">The token to map to the Id.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public override int? MapTokenToId(ReadOnlySpan<char> token, bool considerSpecialTokens = true)
+        public override int? MapTokenToId(ReadOnlySpan<char> token)
         {
             if (token.IsEmpty)
             {
                 return 0;
-            }
-
-            if (considerSpecialTokens && _specialTokensEncoder is not null)
-            {
-                if (_specialTokensEncoder.TryGetValue(token, out int specialTokenId))
-                {
-                    return specialTokenId;
-                }
             }
 
             if (_cache.TryGetValue(token, out int[] ids))
@@ -439,15 +406,9 @@ namespace Microsoft.ML.Tokenizers
         /// Map the encoded Id to the token.
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public override string? MapIdToToken(int id, bool considerSpecialTokens = true)
+        public override string? MapIdToToken(int id)
         {
-            if (considerSpecialTokens && _specialTokensDecoder is not null && _specialTokensDecoder.TryGetValue(id, out string? token))
-            {
-                return token;
-            }
-
             if (_decoder.TryGetValue(id, out ReadOnlyMemory<byte> tokenBytes))
             {
                 return Helpers.GetString(tokenBytes.Span);
@@ -460,10 +421,9 @@ namespace Microsoft.ML.Tokenizers
         /// Decode the given ids, back to a String.
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
-        /// <param name="considerSpecialTokens">Whether the special tokens should be kept in the decoded string.</param>
         /// <param name="decoder">The optional Decoder to merge the given list of tokens in a string.</param>
         /// <returns>The decoded string.</returns>
-        public override string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null, bool considerSpecialTokens = true)
+        public override string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null)
         {
             // Tiktoken doesn't guarantee a one-to-one correspondence between IDs and UTF-16 words.
             // Consequently, decoding individual IDs into UTF-16 string is not supported; instead, decoding all IDs must be performed collectively.
@@ -483,8 +443,6 @@ namespace Microsoft.ML.Tokenizers
                 Span<byte> utf8Bytes = stackalloc byte[256];
                 int utf8ByteCount = 0;
 
-                bool useSpecialTokens = considerSpecialTokens && _specialTokensDecoder is not null;
-
                 foreach (int id in ids)
                 {
                     if (_decoder.TryGetValue(id, out ReadOnlyMemory<byte> tokenBytes))
@@ -496,19 +454,6 @@ namespace Microsoft.ML.Tokenizers
 
                         tokenBytes.Span.CopyTo(utf8Bytes.Slice(utf8ByteCount));
                         utf8ByteCount += tokenBytes.Length;
-                    }
-                    else if (useSpecialTokens && _specialTokensDecoder!.TryGetValue(id, out string? token))
-                    {
-                        while (true)
-                        {
-                            if (Helpers.TryGetUtf8Bytes(token.AsSpan(), utf8Bytes.Slice(utf8ByteCount), out int bytesWritten))
-                            {
-                                utf8ByteCount += bytesWritten;
-                                break;
-                            }
-
-                            ArrayPoolGrow(ref utf8Bytes, ref arrayPoolArray, utf8ByteCount + Encoding.UTF8.GetByteCount(token));
-                        }
                     }
                     else
                     {
@@ -548,7 +493,7 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the dictionary mapping special tokens to Ids.
         /// </summary>
-        public IReadOnlyDictionary<string, int>? SpecialTokensEncoder => _specialTokensEncoderOriginal ??= _specialTokensEncoder?.ToDictionary(kvp => kvp.Key.Data!, kvp => kvp.Value);
+        public IReadOnlyDictionary<string, int>? SpecialTokens { get; }
 
         /// <summary>
         /// Gets the dictionary mapping token bytes to Ids.

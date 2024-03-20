@@ -135,15 +135,9 @@ namespace Microsoft.ML.Tokenizers
         /// Map the encoded Id to the token.
         /// </summary>
         /// <param name="id">The Id to map to the string.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public override string? MapIdToToken(int id, bool considerSpecialTokens = true)
+        public override string? MapIdToToken(int id)
         {
-            if (!considerSpecialTokens && id < 0)
-            {
-                return null;
-            }
-
             if (_vocabReverse.TryGetValue(id, out var value))
             {
                 string v = value.Data!;
@@ -176,10 +170,9 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Encode a text string to a list of tokens.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token. This parameter is ignored in this model.</param>
+        /// <param name="text">The text to encode.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
-        public override IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false)
+        public override IReadOnlyList<Token> Encode(string text)
         {
             if (string.IsNullOrEmpty(text))
             {
@@ -224,20 +217,18 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Encode a split text string to a list of Ids and add them to the accumulatedIds list.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token. This parameter is ignored in this model.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
-        public override void EncodeToIds(ReadOnlySpan<char> text, bool isSpecialToken, IList<int> accumulatedIds) => EncodeToIds(text, accumulatedIds);
+        public override void EncodeToIds(ReadOnlySpan<char> text, IList<int> accumulatedIds) => EncodeToIdsInternal(text, accumulatedIds);
 
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token. This parameter is ignored in this model.</param>
+        /// <param name="text">The text to encode.</param>
         /// <returns>The number of tokens that the input text will be encoded to.</returns>
-        public override int CountTokens(ReadOnlySpan<char> text, bool isSpecialToken) => EncodeToIds(text, null);
+        public override int CountTokens(ReadOnlySpan<char> text) => EncodeToIdsInternal(text, null);
 
-        private int EncodeToIds(ReadOnlySpan<char> text, IList<int>? accumulatedIds)
+        private int EncodeToIdsInternal(ReadOnlySpan<char> text, IList<int>? accumulatedIds)
         {
             if (text.IsEmpty)
             {
@@ -298,9 +289,8 @@ namespace Microsoft.ML.Tokenizers
         /// Map the token to encoded Id.
         /// </summary>
         /// <param name="token">The token to map to the Id.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public override int? MapTokenToId(ReadOnlySpan<char> token, bool considerSpecialTokens = true) => _vocab.TryGetValue(token, out int value) ? value : null;
+        public override int? MapTokenToId(ReadOnlySpan<char> token) => _vocab.TryGetValue(token, out int value) ? value : null;
 
         /// <summary>
         /// Convert a list of tokens Ids to highest occurrence rankings.

@@ -40,26 +40,18 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="token">The token string</param>
         /// <param name="offset">The offset mapping to the original string</param>
-        /// <param name="isSpecialToken">Indicates whether the token is a special token</param>
-        public Split(string token, (int Index, int Length) offset, bool isSpecialToken = false)
+        public Split(string token, (int Index, int Length) offset)
         {
             _tokenString = token;
             Offset = offset;
-            IsSpecialToken = isSpecialToken;
         }
 
-        internal Split(string originalString, string? token, (int Index, int Length) offset, bool isSpecialToken = false)
+        internal Split(string originalString, string? token, (int Index, int Length) offset)
         {
             _originalString = originalString;
             _tokenString = token;
             Offset = offset;
-            IsSpecialToken = isSpecialToken;
         }
-
-        /// <summary>
-        /// Gets if the current Split is a special token.
-        /// </summary>
-        public bool IsSpecialToken { get; }
 
         /// <summary>
         /// Indicates whether the current Split object is equal to another Split object.
@@ -67,7 +59,6 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="other">The Split object to compare with the current object.</param>
         public bool Equals(Split other) =>
             (_originalString == other._originalString || TokenString == other.TokenString) &&
-            IsSpecialToken == other.IsSpecialToken &&
             Offset.Index == other.Offset.Index &&
             Offset.Length == other.Offset.Length;
     }
@@ -82,9 +73,8 @@ namespace Microsoft.ML.Tokenizers
         /// Splits the given string in multiple substrings at the word boundary, keeping track of the offsets of said substrings from the original string.
         /// </summary>
         /// <param name="text">The string to split into tokens.</param>
-        /// <param name="considerSpecialTokens">Indicates whether to consider the special tokens.</param>
         /// <returns>The list of the splits containing the tokens and the token's offsets to the original string.</returns>
-        public abstract IEnumerable<Split> PreTokenize(string text, bool considerSpecialTokens = true);
+        public abstract IEnumerable<Split> PreTokenize(string text);
 
         internal static IEnumerable<Split> SplitText(string text, Regex regex)
         {

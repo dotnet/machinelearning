@@ -16,22 +16,20 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Encode a text to a list of tokens.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token.</param>
+        /// <param name="text">The text to encode.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
-        public abstract IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false);
+        public abstract IReadOnlyList<Token> Encode(string text);
 
         /// <summary>
         /// Encode a text to a list of Ids and add them to the accumulatedIds list.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token.</param>
+        /// <param name="text">The text to encode. </param>
         /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
         /// <remarks>
         /// This method does the default implementation that uses the Encode method to get the token's Ids.
         /// Tokenizer's models which care about performance may choose to override this method to provide a more efficient implementation.
         /// </remarks>
-        public virtual void EncodeToIds(ReadOnlySpan<char> text, bool isSpecialToken, IList<int> accumulatedIds)
+        public virtual void EncodeToIds(ReadOnlySpan<char> text, IList<int> accumulatedIds)
         {
             if (accumulatedIds is null)
             {
@@ -49,17 +47,16 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token.</param>
+        /// <param name="text">The text to encode.</param>
         /// <returns>The number of tokens that the input text will be encoded to.</returns>
         /// <remarks>
         /// This method does the default implementation that uses the EncodeToIds method to get the number of token's Ids.
         /// Tokenizer's models which care about performance may choose to override this method to provide a more efficient implementation.
         /// </remarks>
-        public virtual int CountTokens(ReadOnlySpan<char> text, bool isSpecialToken)
+        public virtual int CountTokens(ReadOnlySpan<char> text)
         {
             var ids = new List<int>();
-            EncodeToIds(text, isSpecialToken, ids);
+            EncodeToIds(text, ids);
             return ids.Count;
         }
 
@@ -67,32 +64,29 @@ namespace Microsoft.ML.Tokenizers
         /// Map the token to encoded id with the option to skip the special tokens.
         /// </summary>
         /// <param name="token">The token to map to Id</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public abstract int? MapTokenToId(ReadOnlySpan<char> token, bool considerSpecialTokens = true);
+        public abstract int? MapTokenToId(ReadOnlySpan<char> token);
 
         /// <summary>
         /// Map the encoded Id to the token.
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public abstract string? MapIdToToken(int id, bool considerSpecialTokens = true);
+        public abstract string? MapIdToToken(int id);
 
         /// <summary>
         /// Decode the given ids, back to a String.
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
-        /// <param name="considerSpecialTokens">Whether the special tokens should be kept in the decoded string.</param>
         /// <param name="decoder">The optional Decoder to merge the given list of tokens in a string.</param>
         /// <returns>The decoded string.</returns>
-        public virtual string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null, bool considerSpecialTokens = true)
+        public virtual string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null)
         {
             List<string> tokens = new List<string>();
 
             foreach (int id in ids)
             {
-                if (MapIdToToken(id, considerSpecialTokens) is string s)
+                if (MapIdToToken(id) is string s)
                 {
                     tokens.Add(s);
                 }

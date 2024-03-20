@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tokenizers
         /// Initializes a new instance of the <see cref="TikTokenPreTokenizer"/> class.
         /// </summary>
         /// <param name="regex">The regex to use for splitting the text into smaller tokens in the pre-tokenization process.</param>
-        /// <param name="specialTokensEncoder">Encode the special token to Id.</param>
+        /// <param name="specialTokensEncoder">The dictionary containing the special tokens and their corresponding ids.</param>
         /// <exception cref="ArgumentNullException">When regex is null</exception>
         public TikTokenPreTokenizer(Regex regex, IReadOnlyDictionary<string, int>? specialTokensEncoder)
         {
@@ -42,16 +42,15 @@ namespace Microsoft.ML.Tokenizers
         /// Splits the given string in multiple substrings at the word boundary, keeping track of the offsets of said substrings from the original string.
         /// </summary>
         /// <param name="text">The string to split into tokens.</param>
-        /// <param name="considerSpecialTokens">Indicates whether to consider the special tokens.</param>
         /// <returns>The list of the splits containing the tokens and the token's offsets to the original string.</returns>
-        public override IEnumerable<Split> PreTokenize(string text, bool considerSpecialTokens = true)
+        public override IEnumerable<Split> PreTokenize(string text)
         {
             if (string.IsNullOrEmpty(text))
             {
                 return Array.Empty<Split>();
             }
 
-            return SplitText(text, _regex, considerSpecialTokens ? _specialTokensRegex : null);
+            return SplitText(text, _regex, _specialTokensRegex);
 
             static IEnumerable<Split> SplitText(string text, Regex regex, Regex? specialTokensRegex)
             {
@@ -74,7 +73,7 @@ namespace Microsoft.ML.Tokenizers
                             beginning = match.Offset + match.Length;
                         }
 
-                        yield return new Split(text, null, (specialMatch.Offset, specialMatch.Length), isSpecialToken: true);
+                        yield return new Split(text, null, (specialMatch.Offset, specialMatch.Length));
                         beginning = specialMatch.Offset + specialMatch.Length;
                     }
                 }

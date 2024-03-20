@@ -154,11 +154,10 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Encode a text to a list of tokens.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token.</param>
+        /// <param name="text">The text to encode.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
         /// <remarks>The input text has to be normalized before calling this method.</remarks>
-        public override IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false) => Encode(text, AddBeginningOfSentence, AddEndOfSentence);
+        public override IReadOnlyList<Token> Encode(string text) => Encode(text, AddBeginningOfSentence, AddEndOfSentence);
 
         /// <summary>
         /// Encode a text to a list of tokens.
@@ -314,11 +313,10 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Encode a text to a list of Ids and add them to the accumulatedIds list.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
         /// <remarks>The input text has to be normalized before calling this method.</remarks>
-        public override void EncodeToIds(ReadOnlySpan<char> text, bool isSpecialToken, IList<int> accumulatedIds) => EncodeToIds(text, AddBeginningOfSentence, AddEndOfSentence, accumulatedIds);
+        public override void EncodeToIds(ReadOnlySpan<char> text, IList<int> accumulatedIds) => EncodeToIds(text, AddBeginningOfSentence, AddEndOfSentence, accumulatedIds);
 
         /// <summary>
         /// Encode a text to a list of Ids and add them to the accumulatedIds list.
@@ -458,11 +456,10 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token.</param>
+        /// <param name="text">The text to encode.</param>
         /// <returns>The number of tokens that the input text will be encoded to.</returns>
         /// <remarks>The input text has to be normalized before calling this method.</remarks>
-        public override int CountTokens(ReadOnlySpan<char> text, bool isSpecialToken) => CountTokens(text, AddBeginningOfSentence, AddEndOfSentence);
+        public override int CountTokens(ReadOnlySpan<char> text) => CountTokens(text, AddBeginningOfSentence, AddEndOfSentence);
 
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
@@ -589,32 +586,28 @@ namespace Microsoft.ML.Tokenizers
         /// Map the token to encoded id with the option to skip the special tokens.
         /// </summary>
         /// <param name="token">The token to map to Id</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public override int? MapTokenToId(ReadOnlySpan<char> token, bool considerSpecialTokens = true)
+        public override int? MapTokenToId(ReadOnlySpan<char> token)
             => _vocab.TryGetValue(token, out (int Id, float Score, byte Type) value) ? value.Id : null;
 
         /// <summary>
         /// Map the encoded Id to the token.
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public override string? MapIdToToken(int id, bool considerSpecialTokens = true)
+        public override string? MapIdToToken(int id)
             => _vocabReverse.TryGetValue(id, out string? value) ? value : null;
 
         /// <summary>
         /// Decode the given ids, back to a String.
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
-        /// <param name="considerSpecialTokens">Whether the special tokens should be kept in the decoded string.</param>
         /// <param name="decoder">The optional Decoder to merge the given list of tokens in a string.</param>
         /// <returns>The decoded string.</returns>
         /// <remarks>
         /// The decoder is not used here because the SentencePiece Bpe model knows how to decode the ids in additions to avoid any performance overhead.
-        /// considerSpecialTokens is not used here because the SentencePiece Bpe model always remove unknown or control tokens during the decoding.
         /// </remarks>
-        public override string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null, bool considerSpecialTokens = true)
+        public override string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null)
         {
             if (ids is null)
             {

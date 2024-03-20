@@ -58,9 +58,8 @@ namespace Microsoft.ML.Tokenizers
         /// Encodes input text to object has the tokens list, tokens Ids, tokens offset mapping.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
-        public EncodingResult Encode(string text, bool considerSpecialTokens = true)
+        public EncodingResult Encode(string text)
         {
             if (text is null)
             {
@@ -70,11 +69,11 @@ namespace Microsoft.ML.Tokenizers
             string normalized = Normalizer is null ? text : Normalizer.Normalize(text);
             bool offsetsMappedToOriginal = true;
 
-            EncodingResult encoding = new(text, normalized, PreTokenizer.PreTokenize(normalized, considerSpecialTokens), offsetsMappedToOriginal);
+            EncodingResult encoding = new(text, normalized, PreTokenizer.PreTokenize(normalized), offsetsMappedToOriginal);
 
             foreach (Split split in encoding.Splits)
             {
-                IReadOnlyList<Token> tokens = Model.Encode(split.TokenString, split.IsSpecialToken);
+                IReadOnlyList<Token> tokens = Model.Encode(split.TokenString);
                 foreach (Token token in tokens)
                 {
                     token.Offset = (token.Offset.Index + split.Offset.Index, token.Offset.Length);
@@ -90,9 +89,8 @@ namespace Microsoft.ML.Tokenizers
         /// Encodes input text to tokens Ids.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
-        public IReadOnlyList<int> EncodeToIds(string text, bool considerSpecialTokens = true)
+        public IReadOnlyList<int> EncodeToIds(string text)
         {
             if (text is null)
             {
@@ -102,9 +100,9 @@ namespace Microsoft.ML.Tokenizers
             string normalized = Normalizer is not null ? Normalizer.Normalize(text) : text;
             List<int> idsList = new();
 
-            foreach (Split split in PreTokenizer.PreTokenize(normalized, considerSpecialTokens))
+            foreach (Split split in PreTokenizer.PreTokenize(normalized))
             {
-                Model.EncodeToIds(split.TokenSpan, split.IsSpecialToken, idsList);
+                Model.EncodeToIds(split.TokenSpan, idsList);
             }
 
             return idsList;
@@ -114,11 +112,10 @@ namespace Microsoft.ML.Tokenizers
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The number of tokens Ids that the input text will be encoded to.</returns>
         /// <exception cref="ArgumentNullException">The input text is null.</exception>
         /// <exception cref="ArgumentException">Unable to encode the text.</exception>
-        public int CountTokens(string text, bool considerSpecialTokens = true)
+        public int CountTokens(string text)
         {
             if (text is null)
             {
@@ -128,9 +125,9 @@ namespace Microsoft.ML.Tokenizers
             string normalized = Normalizer is not null ? Normalizer.Normalize(text) : text;
 
             int idsCount = 0;
-            foreach (Split split in PreTokenizer.PreTokenize(normalized, considerSpecialTokens))
+            foreach (Split split in PreTokenizer.PreTokenize(normalized))
             {
-                idsCount += Model.CountTokens(split.TokenSpan, split.IsSpecialToken);
+                idsCount += Model.CountTokens(split.TokenSpan);
             }
 
             return idsCount;
@@ -143,15 +140,14 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
         /// <param name="processedText">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will remain unchanged as the input text.</param>
         /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>
         /// The index of the maximum encoding capacity within the processed text without surpassing the token limit.
         /// It represents the index immediately following the last character to be included. In cases where no tokens fit, the result will be 0; conversely, if all tokens fit, the result will be length of the <paramref name="processedText"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">The input text is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">The maximum token count must be greater than 0.</exception>
-        public int IndexOfTokenCount(string text, int maxTokenCount, out string processedText, out int tokenCount, bool considerSpecialTokens = true)
-            => IndexOf(text, maxTokenCount, fromStart: true, considerSpecialTokens, out processedText, out tokenCount);
+        public int IndexOfTokenCount(string text, int maxTokenCount, out string processedText, out int tokenCount)
+            => IndexOf(text, maxTokenCount, fromStart: true, out processedText, out tokenCount);
 
         /// <summary>
         /// Find the index of the maximum encoding capacity from the end within the text without surpassing the token limit.
@@ -160,7 +156,6 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
         /// <param name="processedText">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will remain unchanged as the input text.</param>
         /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>
         /// The start index of the maximum encoding capacity within the processed text without surpassing the token limit.
         /// It represents the index at the first character to be included. In cases where no tokens fit, the result will be length of the <paramref name="processedText"/>; conversely, if all tokens fit, the result will be 0.
@@ -170,10 +165,10 @@ namespace Microsoft.ML.Tokenizers
         /// <remarks>
         /// If the whole text can be encoded within the token limit, the returned index will be 0.
         /// </remarks>
-        public int LastIndexOfTokenCount(string text, int maxTokenCount, out string processedText, out int tokenCount, bool considerSpecialTokens = true)
-            => IndexOf(text, maxTokenCount, fromStart: false, considerSpecialTokens, out processedText, out tokenCount);
+        public int LastIndexOfTokenCount(string text, int maxTokenCount, out string processedText, out int tokenCount)
+            => IndexOf(text, maxTokenCount, fromStart: false, out processedText, out tokenCount);
 
-        private int IndexOf(string text, int maxTokenCount, bool fromStart, bool considerSpecialTokens, out string processedText, out int tokenCount)
+        private int IndexOf(string text, int maxTokenCount, bool fromStart, out string processedText, out int tokenCount)
         {
             if (text is null)
             {
@@ -188,10 +183,10 @@ namespace Microsoft.ML.Tokenizers
             processedText = Normalizer is not null ? Normalizer.Normalize(text) : text;
             tokenCount = 0;
 
-            IEnumerable<Split> splits = PreTokenizer.PreTokenize(processedText, considerSpecialTokens);
+            IEnumerable<Split> splits = PreTokenizer.PreTokenize(processedText);
             foreach (Split split in (fromStart ? splits : splits.Reverse()))
             {
-                int count = Model.CountTokens(split.TokenSpan, split.IsSpecialToken);
+                int count = Model.CountTokens(split.TokenSpan);
                 if (tokenCount > maxTokenCount - count)
                 {
                     return fromStart ? split.Offset.Index : split.Offset.Index + split.Offset.Length;
@@ -207,17 +202,15 @@ namespace Microsoft.ML.Tokenizers
         /// Decodes the Id to the mapped token.
         /// </summary>
         /// <param name="id">The id to map to the token.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <returns>The decoded string or null if there is no token mapped to the input id.</returns>
-        public string? Decode(int id, bool considerSpecialTokens = true) => Model.MapIdToToken(id, considerSpecialTokens);
+        public string? Decode(int id) => Model.MapIdToToken(id);
 
         /// <summary>
         /// Decode the given ids, back to a String.
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
-        /// <param name="considerSpecialTokens">Whether the special tokens should be kept in the decoded string.</param>
         /// <returns>The decoded string.</returns>
-        public string? Decode(IEnumerable<int> ids, bool considerSpecialTokens = true) => Model.Decode(ids, Decoder, considerSpecialTokens);
+        public string? Decode(IEnumerable<int> ids) => Model.Decode(ids, Decoder);
 
         /// <summary>
         /// Create a Tiktoken tokenizer based on model name and vocab file.
