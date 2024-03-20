@@ -112,7 +112,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="cacheSize">The size of the cache to use.</param>
         /// <param name="normalizer">To normalize the text before tokenization</param>
         /// <returns>The tokenizer</returns>
-        public static Tokenizer CreateByModelName(
+        public static Tokenizer CreateTokenizerForModel(
                                     string modelName,
                                     Stream vocabStream,
                                     IReadOnlyDictionary<string, int>? extraSpecialTokens = null,
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(modelName));
             }
 
-            (Dictionary<string, int> SpecialTokens, Regex Regex) tiktokenConfiguration = GetTiktokenConfigurations(modelName);
+            (Dictionary<string, int> SpecialTokens, Regex Regex, string _) tiktokenConfiguration = GetTiktokenConfigurations(modelName);
 
             if (extraSpecialTokens is not null)
             {
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="normalizer">To normalize the text before tokenization</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>The tokenizer</returns>
-        public static async Task<Tokenizer> CreateByModelNameAsync(
+        public static async Task<Tokenizer> CreateTokenizerForModelAsync(
                                     string modelName,
                                     Stream vocabStream,
                                     IReadOnlyDictionary<string, int>? extraSpecialTokens = null,
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(modelName));
             }
 
-            (Dictionary<string, int> SpecialTokens, Regex Regex) tiktokenConfiguration = GetTiktokenConfigurations(modelName);
+            (Dictionary<string, int> SpecialTokens, Regex Regex, string _) tiktokenConfiguration = GetTiktokenConfigurations(modelName);
 
             if (extraSpecialTokens is not null)
             {
@@ -738,7 +738,7 @@ namespace Microsoft.ML.Tokenizers
             return encoder;
         }
 
-        internal static (Dictionary<string, int> SpecialTokens, Regex Regex) GetTiktokenConfigurations(string modelName)
+        internal static (Dictionary<string, int> SpecialTokens, Regex Regex, string Url) GetTiktokenConfigurations(string modelName)
         {
             ModelEncoding modelEncoding = GetModelEncoding(modelName);
 
@@ -746,23 +746,22 @@ namespace Microsoft.ML.Tokenizers
             {
                 case ModelEncoding.Cl100kBase:
                     return (new Dictionary<string, int>
-                        { { EndOfText, 100257}, { FimPrefix, 100258}, { FimMiddle, 100259}, { FimSuffix, 100260}, { EndOfPrompt, 100276} }, Cl100kBaseRegex());
+                        { { EndOfText, 100257}, { FimPrefix, 100258}, { FimMiddle, 100259}, { FimSuffix, 100260}, { EndOfPrompt, 100276} }, Cl100kBaseRegex(), Cl100kBaseVocabUrl);
 
                 case ModelEncoding.P50kBase:
-                    return (new Dictionary<string, int> { { EndOfText, 50256 } }, P50kBaseRegex());
+                    return (new Dictionary<string, int> { { EndOfText, 50256 } }, P50kBaseRegex(), P50RanksUrl);
 
                 case ModelEncoding.P50kEdit:
                     return (new Dictionary<string, int>
-                        { { EndOfText, 50256 }, { FimPrefix, 50281 }, { FimMiddle, 50282 }, { FimSuffix, 50283 } }, P50kBaseRegex());
+                        { { EndOfText, 50256 }, { FimPrefix, 50281 }, { FimMiddle, 50282 }, { FimSuffix, 50283 } }, P50kBaseRegex(), P50RanksUrl);
 
                 case ModelEncoding.R50kBase:
-                    return (new Dictionary<string, int> { { EndOfText, 50256 } }, P50kBaseRegex());
+                    return (new Dictionary<string, int> { { EndOfText, 50256 } }, P50kBaseRegex(), R50RanksUrl);
 
                 case ModelEncoding.GPT2:
-                    return (new Dictionary<string, int> { { EndOfText, 50256 }, }, P50kBaseRegex());
+                    return (new Dictionary<string, int> { { EndOfText, 50256 }, }, P50kBaseRegex(), GPT2Url);
 
                 default:
-                    Debug.Assert(false, $"Unexpected encoder [{modelEncoding}]");
                     throw new NotSupportedException($"The model '{modelName}' is not supported.");
             }
         }
@@ -775,7 +774,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="normalizer">To normalize the text before tokenization</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>The tokenizer</returns>
-        public static Task<Tokenizer> CreateByModelNameAsync(
+        public static Task<Tokenizer> CreateTokenizerForModelAsync(
                                                 string modelName,
                                                 IReadOnlyDictionary<string, int>? extraSpecialTokens = null,
                                                 Normalizer? normalizer = null,
@@ -783,12 +782,54 @@ namespace Microsoft.ML.Tokenizers
         {
             try
             {
-                return CreateByEncoderNameAsync(modelName, GetModelEncoding(modelName), extraSpecialTokens, normalizer, cancellationToken);
+                return CreateByEncoderNameAsync(GetModelEncoding(modelName), extraSpecialTokens, normalizer, cancellationToken);
             }
             catch (Exception ex)
             {
                 return Task.FromException<Tokenizer>(ex);
             }
+        }
+
+        /// <summary>
+        /// Create tokenizer based on model name
+        /// </summary>
+        /// <param name="modelName">Model name</param>
+        /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the model</param>
+        /// <param name="normalizer">To normalize the text before tokenization</param>
+        /// <returns>The tokenizer</returns>
+        public static Tokenizer CreateTokenizerForModel(
+                                                string modelName,
+                                                IReadOnlyDictionary<string, int>? extraSpecialTokens = null,
+                                                Normalizer? normalizer = null)
+        {
+            if (string.IsNullOrEmpty(modelName))
+            {
+                throw new ArgumentNullException(nameof(modelName));
+            }
+
+            (Dictionary<string, int> SpecialTokens, Regex Regex, string Url) tiktokenConfiguration = GetTiktokenConfigurations(modelName);
+
+            if (extraSpecialTokens is not null)
+            {
+                foreach (var extraSpecialToken in extraSpecialTokens)
+                {
+                    tiktokenConfiguration.SpecialTokens.Add(extraSpecialToken.Key, extraSpecialToken.Value);
+                }
+            }
+
+            if (!_tiktokenCache.TryGetValue(tiktokenConfiguration.Url,
+                    out (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, int> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) cache))
+            {
+                using Stream stream = Helpers.GetStream(_httpClient, tiktokenConfiguration.Url);
+                cache = LoadTikTokenBpeAsync(stream, useAsync: false).GetAwaiter().GetResult();
+
+                _tiktokenCache.TryAdd(tiktokenConfiguration.Url, cache);
+            }
+
+            return new Tokenizer(
+                            new Tiktoken(cache.encoder, cache.decoder, cache.vocab, tiktokenConfiguration.SpecialTokens, LruCache<int[]>.DefaultCacheSize),
+                            new TikTokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
+                            normalizer);
         }
 
         // Regex patterns based on https://github.com/openai/tiktoken/blob/main/tiktoken_ext/openai_public.py
@@ -818,7 +859,6 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Create tokenizer based on encoder name and extra special tokens
         /// </summary>
-        /// <param name="modelName">Model name</param>
         /// <param name="modelEncoding">Encoder label</param>
         /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the encoder</param>
         /// <param name="normalizer">To normalize the text before tokenization</param>
@@ -826,7 +866,6 @@ namespace Microsoft.ML.Tokenizers
         /// <returns>The tokenizer</returns>
         /// <exception cref="NotSupportedException">Throws if the model name is not supported</exception>
         private static Task<Tokenizer> CreateByEncoderNameAsync(
-                                                string modelName,
                                                 ModelEncoding modelEncoding,
                                                 IReadOnlyDictionary<string, int>? extraSpecialTokens,
                                                 Normalizer? normalizer,
@@ -857,8 +896,7 @@ namespace Microsoft.ML.Tokenizers
                     return CreateTikTokenTokenizerAsync(P50kBaseRegex(), GPT2Url, specialTokens, extraSpecialTokens, normalizer, cancellationToken);
 
                 default:
-                    Debug.Assert(false, $"Unexpected encoder [{modelEncoding}]");
-                    throw new NotSupportedException($"The model '{modelName}' is not supported.");
+                    throw new NotSupportedException($"The encoder '{modelEncoding}' is not supported.");
             }
         }
 
@@ -894,7 +932,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 using (Stream stream = await Helpers.GetStreamAsync(_httpClient, mergeableRanksFileUrl, cancellationToken).ConfigureAwait(false))
                 {
-                    cache = await Tiktoken.LoadTikTokenBpeAsync(stream, useAsync: true, cancellationToken).ConfigureAwait(false);
+                    cache = await LoadTikTokenBpeAsync(stream, useAsync: true, cancellationToken).ConfigureAwait(false);
                 }
 
                 _tiktokenCache.TryAdd(mergeableRanksFileUrl, cache);

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.DotNet.RemoteExecutor;
 using Microsoft.ML.Tokenizers;
 using System;
 using System.Collections.Generic;
@@ -25,11 +26,11 @@ namespace Microsoft.ML.Tokenizers.Tests
                                                     { IMEnd, 100265},
                                                 };
 
-        public static Tokenizer GPT4 { get; } = Tiktoken.CreateByModelNameAsync("gpt-4", _specialTokens).GetAwaiter().GetResult();
-        public static Tokenizer GPT2 { get; } = Tiktoken.CreateByModelNameAsync("gpt2").GetAwaiter().GetResult();
-        public static Tokenizer P50kBase { get; } = Tiktoken.CreateByModelNameAsync("text-davinci-003").GetAwaiter().GetResult();
-        public static Tokenizer R50kBase { get; } = Tiktoken.CreateByModelNameAsync("ada").GetAwaiter().GetResult();
-        public static Tokenizer P50kEdit { get; } = Tiktoken.CreateByModelNameAsync("text-davinci-edit-001").GetAwaiter().GetResult();
+        public static Tokenizer GPT4 { get; } = Tiktoken.CreateTokenizerForModelAsync("gpt-4", _specialTokens).GetAwaiter().GetResult();
+        public static Tokenizer GPT2 { get; } = Tiktoken.CreateTokenizerForModelAsync("gpt2").GetAwaiter().GetResult();
+        public static Tokenizer P50kBase { get; } = Tiktoken.CreateTokenizerForModelAsync("text-davinci-003").GetAwaiter().GetResult();
+        public static Tokenizer R50kBase { get; } = Tiktoken.CreateTokenizerForModelAsync("ada").GetAwaiter().GetResult();
+        public static Tokenizer P50kEdit { get; } = Tiktoken.CreateTokenizerForModelAsync("text-davinci-edit-001").GetAwaiter().GetResult();
 
         [Fact]
         public async void TestTokenizerCreation()
@@ -64,14 +65,17 @@ namespace Microsoft.ML.Tokenizers.Tests
 
                 using (Stream stream = File.OpenRead(tokenizerDataFileName))
                 {
-                    tokenizer = Tiktoken.CreateByModelName("gpt-4", stream);
+                    tokenizer = Tiktoken.CreateTokenizerForModel("gpt-4", stream);
                 }
                 TestGPT4TokenizationEncoding(tokenizer);
 
                 using (Stream stream = File.OpenRead(tokenizerDataFileName))
                 {
-                    tokenizer = await Tiktoken.CreateByModelNameAsync("gpt-3.5-turbo", stream);
+                    tokenizer = await Tiktoken.CreateTokenizerForModelAsync("gpt-3.5-turbo", stream);
                 }
+                TestGPT4TokenizationEncoding(tokenizer);
+
+                tokenizer = Tiktoken.CreateTokenizerForModel("gpt-4");
                 TestGPT4TokenizationEncoding(tokenizer);
             }
             finally
@@ -298,9 +302,36 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("gpt2")]
         public async void TestAllSupportedModelNames(string modelName)
         {
-            Tokenizer tokenizer = await Tiktoken.CreateByModelNameAsync(modelName);
+            Tokenizer tokenizer = Tiktoken.CreateTokenizerForModel(modelName);
             Assert.NotNull(tokenizer.Model);
             Assert.NotNull(tokenizer.PreTokenizer);
+
+            tokenizer = await Tiktoken.CreateTokenizerForModelAsync(modelName);
+            Assert.NotNull(tokenizer.Model);
+            Assert.NotNull(tokenizer.PreTokenizer);
+        }
+
+        [InlineData("gpt-4")]
+        [InlineData("text-davinci-003")]
+        [InlineData("text-curie-001")]
+        [InlineData("text-davinci-edit-001")]
+        [ConditionalTheory(typeof(RemoteExecutor), nameof(RemoteExecutor.IsSupported))]
+        public void TestCreationUsingModel(string modelName)
+        {
+            // Execute remotely to ensure no caching is used.
+            RemoteExecutor.Invoke(static async (name) =>
+            {
+                Tokenizer tokenizer = await Tiktoken.CreateTokenizerForModelAsync(name);
+                Assert.NotNull(tokenizer.Model);
+                Assert.NotNull(tokenizer.PreTokenizer);
+            }, modelName).Dispose();
+
+            RemoteExecutor.Invoke(static (name) =>
+            {
+                Tokenizer tokenizer = Tiktoken.CreateTokenizerForModel(name);
+                Assert.NotNull(tokenizer.Model);
+                Assert.NotNull(tokenizer.PreTokenizer);
+            }, modelName).Dispose();
         }
 
         // Test running copy the test data files to the output folder but sometimes the file content is mutated replacing '\n' with '\r\n'.

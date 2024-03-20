@@ -18,8 +18,15 @@ namespace Microsoft.ML.Tokenizers
         public static ValueTask<string?> ReadLineAsync(StreamReader reader, CancellationToken cancellationToken) =>
             reader.ReadLineAsync(cancellationToken);
 
-        public static Task<Stream> GetStreamAsync(HttpClient client, string url, CancellationToken cancellationToken) =>
+        public static Task<Stream> GetStreamAsync(HttpClient client, string url, CancellationToken cancellationToken = default) =>
             client.GetStreamAsync(url, cancellationToken);
+
+        public static Stream GetStream(HttpClient client, string url)
+        {
+            HttpResponseMessage response = client.Send(new HttpRequestMessage(HttpMethod.Get, url), HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+            return response.Content.ReadAsStream();
+        }
 
         public static byte[] FromBase64String(string base64String, int offset, int length)
         {
