@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Microsoft.ML.Tokenizers;
 
 #nullable enable
 
@@ -85,6 +86,16 @@ namespace System.Text
                 Debug.Assert(index < _pos);
                 return ref _chars[index];
             }
+        }
+
+        // Replace a char before returning the string
+        public string ToString(char oldValue, char newValue)
+        {
+            Span<char> span = _chars.Slice(0, _pos);
+            Helpers.Replace(span, oldValue, newValue);
+            string s = span.ToString();
+            Dispose();
+            return s;
         }
 
         public override string ToString()

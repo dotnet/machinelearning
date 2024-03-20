@@ -59,5 +59,7 @@ namespace Microsoft.ML.Tokenizers
 
         internal static int GetChars(ReadOnlySpan<byte> bytes, Span<char> chars)
             => Encoding.UTF8.GetChars(bytes, chars);
+
+        internal static void Replace(Span<char> span, char oldValue, char newValue) => span.Replace(oldValue, newValue);
     }
 }

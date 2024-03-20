@@ -104,6 +104,13 @@ namespace Microsoft.ML.Tokenizers
                 return Encoding.UTF8.GetChars(bytesPtr, bytes.Length, charsPtr, chars.Length);
             }
         }
+
+        internal static void Replace(Span<char> span, char oldValue, char newValue)
+        {
+            for (int i = 0; i < span.Length; i++)
+                if (span[i] == oldValue)
+                    span[i] = newValue;
+        }
     }
 }
 

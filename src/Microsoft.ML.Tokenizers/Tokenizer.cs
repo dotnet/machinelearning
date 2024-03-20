@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Sentencepiece;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -217,5 +218,156 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="considerSpecialTokens">Whether the special tokens should be kept in the decoded string.</param>
         /// <returns>The decoded string.</returns>
         public string? Decode(IEnumerable<int> ids, bool considerSpecialTokens = true) => Model.Decode(ids, Decoder, considerSpecialTokens);
+
+        /// <summary>
+        /// Create a Tiktoken tokenizer based on model name and vocab file.
+        /// </summary>
+        /// <param name="modelName">Model name</param>
+        /// <param name="vocabStream">The stream to the BPE vocab file.</param>
+        /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the model</param>
+        /// <param name="cacheSize">The size of the cache to use.</param>
+        /// <param name="normalizer">To normalize the text before tokenization</param>
+        /// <returns>The tokenizer</returns>
+        public static Tokenizer CreateTiktokenForModel(
+                                    string modelName,
+                                    Stream vocabStream,
+                                    IReadOnlyDictionary<string, int>? extraSpecialTokens = null,
+                                    int cacheSize = LruCache<int[]>.DefaultCacheSize,
+                                    Normalizer? normalizer = null)
+        {
+            if (string.IsNullOrEmpty(modelName))
+            {
+                throw new ArgumentNullException(nameof(modelName));
+            }
+
+            (Dictionary<string, int> SpecialTokens, Regex Regex, string _) tiktokenConfiguration = Tiktoken.GetTiktokenConfigurations(modelName);
+
+            if (extraSpecialTokens is not null)
+            {
+                foreach (var extraSpecialToken in extraSpecialTokens)
+                {
+                    tiktokenConfiguration.SpecialTokens.Add(extraSpecialToken.Key, extraSpecialToken.Value);
+                }
+            }
+
+            return new Tokenizer(
+                            new Tiktoken(vocabStream, tiktokenConfiguration.SpecialTokens, cacheSize),
+                            new TikTokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
+                            normalizer);
+        }
+
+        /// <summary>
+        /// Create a Tiktoken tokenizer based on model name and vocab file.
+        /// </summary>
+        /// <param name="modelName">Model name</param>
+        /// <param name="vocabStream">The stream to the BPE vocab file.</param>
+        /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the model</param>
+        /// <param name="cacheSize">The size of the cache to use.</param>
+        /// <param name="normalizer">To normalize the text before tokenization</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
+        /// <returns>The tokenizer</returns>
+        public static async Task<Tokenizer> CreateTiktokenForModelAsync(
+                                    string modelName,
+                                    Stream vocabStream,
+                                    IReadOnlyDictionary<string, int>? extraSpecialTokens = null,
+                                    int cacheSize = LruCache<int[]>.DefaultCacheSize,
+                                    Normalizer? normalizer = null,
+                                    CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrEmpty(modelName))
+            {
+                throw new ArgumentNullException(nameof(modelName));
+            }
+
+            (Dictionary<string, int> SpecialTokens, Regex Regex, string _) tiktokenConfiguration = Tiktoken.GetTiktokenConfigurations(modelName);
+
+            if (extraSpecialTokens is not null)
+            {
+                foreach (var extraSpecialToken in extraSpecialTokens)
+                {
+                    tiktokenConfiguration.SpecialTokens.Add(extraSpecialToken.Key, extraSpecialToken.Value);
+                }
+            }
+
+            return new Tokenizer(
+                            await Tiktoken.CreateAsync(vocabStream, tiktokenConfiguration.SpecialTokens, cacheSize, cancellationToken).ConfigureAwait(false),
+                            new TikTokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
+                            normalizer);
+        }
+
+        /// <summary>
+        /// Create tokenizer based on model name
+        /// </summary>
+        /// <param name="modelName">Model name</param>
+        /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the model</param>
+        /// <param name="normalizer">To normalize the text before tokenization</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
+        /// <returns>The tokenizer</returns>
+        public static Task<Tokenizer> CreateTiktokenForModelAsync(
+                                                string modelName,
+                                                IReadOnlyDictionary<string, int>? extraSpecialTokens = null,
+                                                Normalizer? normalizer = null,
+                                                CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                return Tiktoken.CreateByEncoderNameAsync(Tiktoken.GetModelEncoding(modelName), extraSpecialTokens, normalizer, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<Tokenizer>(ex);
+            }
+        }
+
+        /// <summary>
+        /// Create tokenizer based on model name
+        /// </summary>
+        /// <param name="modelName">Model name</param>
+        /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the model</param>
+        /// <param name="normalizer">To normalize the text before tokenization</param>
+        /// <returns>The tokenizer</returns>
+        public static Tokenizer CreateTiktokenForModel(string modelName, IReadOnlyDictionary<string, int>? extraSpecialTokens = null, Normalizer? normalizer = null)
+                        => Tiktoken.CreateTokenizerForModel(modelName, extraSpecialTokens, normalizer);
+
+        /// <summary>
+        /// Create a SentencePieceBpe tokenizer from the given model stream. The model stream should contain the SentencePiece Bpe model according to
+        /// https://github.com/google/sentencepiece/blob/master/src/sentencepiece_model.proto specification.
+        /// </summary>
+        /// <param name="modelStream">The stream containing the SentencePiece Bpe model.</param>
+        /// <param name="addBeginOfSentence">Indicate emitting the beginning of sentence token during the encoding.</param>
+        /// <param name="addEndOfSentence">Indicate emitting the end of sentence token during the encoding.</param>
+        public static Tokenizer CreateLlama(
+            Stream modelStream,
+            bool addBeginOfSentence = true,
+            bool addEndOfSentence = false)
+        {
+            ModelProto modelProto = ModelProto.Parser.ParseFrom(modelStream);
+
+            if (modelProto is null)
+            {
+                throw new ArgumentNullException(nameof(modelProto));
+            }
+
+            if (modelProto.TrainerSpec.ModelType != TrainerSpec.Types.ModelType.Bpe)
+            {
+                throw new ArgumentException("The model type is not Bpe.", nameof(modelProto));
+            }
+
+            if (modelProto.NormalizerSpec.Name != "identity" && !string.IsNullOrEmpty(modelProto.NormalizerSpec.Name))
+            {
+                throw new ArgumentException($"Normalization '{modelProto.NormalizerSpec.Name}' is not supported.", nameof(modelProto));
+            }
+
+            LlamaNormalizer normalizer = new(
+                                    modelProto.NormalizerSpec.RemoveExtraWhitespaces,
+                                    modelProto.NormalizerSpec.AddDummyPrefix,
+                                    modelProto.NormalizerSpec.EscapeWhitespaces,
+                                    modelProto.TrainerSpec.TreatWhitespaceAsSuffix);
+
+            return new Tokenizer(
+                        new SentencePieceBpe(modelProto, addBeginOfSentence, addEndOfSentence),
+                        SentencePiecePreTokenizer.Instance,
+                        normalizer);
+        }
     }
 }

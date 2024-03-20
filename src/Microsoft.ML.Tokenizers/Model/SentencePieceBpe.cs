@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 namespace Microsoft.ML.Tokenizers
 {
@@ -64,47 +65,6 @@ namespace Microsoft.ML.Tokenizers
             EscapeWhiteSpaces = modelProto.NormalizerSpec.EscapeWhitespaces;
             TreatWhitespaceAsSuffix = modelProto.TrainerSpec.TreatWhitespaceAsSuffix;
             ByteFallback = modelProto.TrainerSpec.ByteFallback;
-        }
-
-        /// <summary>
-        /// Create a SentencePieceBpe tokenizer from the given model stream. The model stream should contain the SentencePiece Bpe model according to
-        /// https://github.com/google/sentencepiece/blob/master/src/sentencepiece_model.proto specification.
-        /// </summary>
-        /// <param name="modelStream">The stream containing the SentencePiece Bpe model.</param>
-        /// <param name="addBeginOfSentence">Indicate emitting the beginning of sentence token during the encoding.</param>
-        /// <param name="addEndOfSentence">Indicate emitting the end of sentence token during the encoding.</param>
-        public static Tokenizer CreateLlamaTokenizer(
-            Stream modelStream,
-            bool addBeginOfSentence = true,
-            bool addEndOfSentence = false)
-        {
-            ModelProto modelProto = ModelProto.Parser.ParseFrom(modelStream);
-
-            if (modelProto is null)
-            {
-                throw new ArgumentNullException(nameof(modelProto));
-            }
-
-            if (modelProto.TrainerSpec.ModelType != TrainerSpec.Types.ModelType.Bpe)
-            {
-                throw new ArgumentException("The model type is not Bpe.", nameof(modelProto));
-            }
-
-            if (modelProto.NormalizerSpec.Name != "identity" && !string.IsNullOrEmpty(modelProto.NormalizerSpec.Name))
-            {
-                throw new ArgumentException($"Normalization '{modelProto.NormalizerSpec.Name}' is not supported.", nameof(modelProto));
-            }
-
-            LlamaNormalizer normalizer = new(
-                                    modelProto.NormalizerSpec.RemoveExtraWhitespaces,
-                                    modelProto.NormalizerSpec.AddDummyPrefix,
-                                    modelProto.NormalizerSpec.EscapeWhitespaces,
-                                    modelProto.TrainerSpec.TreatWhitespaceAsSuffix);
-
-            return new Tokenizer(
-                        new SentencePieceBpe(modelProto, addBeginOfSentence, addEndOfSentence),
-                        SentencePiecePreTokenizer.Instance,
-                        normalizer);
         }
 
         /// <summary>
@@ -170,11 +130,12 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// The vocabulary of the model.
         /// </summary>
-        public Dictionary<string, int> Vocab
+        public IReadOnlyDictionary<string, int> Vocab
         {
             get
             {
-                if (_publicVocab is null)
+                Dictionary<string, int>? publicVocab = Volatile.Read(ref _publicVocab);
+                if (publicVocab is null)
                 {
                     var vocab = new Dictionary<string, int>();
                     foreach (var item in _vocab)
@@ -182,9 +143,11 @@ namespace Microsoft.ML.Tokenizers
                         vocab.Add(item.Key.ToString(), item.Value.Id);
                     }
 
-                    _publicVocab = vocab;
+                    Interlocked.CompareExchange(ref _publicVocab, vocab, null);
+                    publicVocab = _publicVocab;
                 }
-                return _publicVocab;
+
+                return publicVocab;
             }
         }
 
@@ -228,7 +191,7 @@ namespace Microsoft.ML.Tokenizers
                 tokens.Add(new Token(BeginningOfSentenceId, BeginningOfSentenceToken, (0, 0)));
             }
 
-            for (int index = 0; index != -1 && index < symbols.Length; index = symbols[index].next)
+            for (int index = 0; (uint)index < (uint)symbols.Length; index = symbols[index].next)
             {
                 int id = symbols[index].id;
                 byte type = symbols[index].type;
@@ -292,7 +255,7 @@ namespace Microsoft.ML.Tokenizers
                     }
                     else
                     {
-                        Span<byte> utf8Bytes = stackalloc byte[100];
+                        Span<byte> utf8Bytes = stackalloc byte[256];
                         byte[]? arrayPoolArray = null;
 
                         int len = Encoding.UTF8.GetMaxByteCount(text.Length - i);
@@ -658,7 +621,7 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(ids));
             }
 
-            IEnumerator<int> enumerator = ids.GetEnumerator();
+            using IEnumerator<int> enumerator = ids.GetEnumerator();
             if (!enumerator.MoveNext())
             {
                 return string.Empty;
@@ -675,7 +638,7 @@ namespace Microsoft.ML.Tokenizers
 
             int bytesCount = -1;
             byte[]? bytesPoolArray = null;
-            ValueStringBuilder sb = new(200);
+            ValueStringBuilder sb = new(stackalloc char[256]);
 
             if (enumerator.Current <= _maxByteId)
             {
@@ -696,13 +659,13 @@ namespace Microsoft.ML.Tokenizers
                 }
                 else if (_vocabReverse.TryGetValue(enumerator.Current, out string? token))
                 {
-                    AppendSpan(ref sb, token.AsSpan());
+                    sb.Append(token);
                 }
             }
             else if (_vocabReverse.TryGetValue(enumerator.Current, out string? token))
             {
                 // escape the dummy prefix if needed.
-                AppendSpan(ref sb, AddDummyPrefix && !TreatWhitespaceAsSuffix && token.Length > 0 && token[0] == LlamaNormalizer.DummyPrefix ?
+                sb.Append(AddDummyPrefix && !TreatWhitespaceAsSuffix && token.Length > 0 && token[0] == LlamaNormalizer.DummyPrefix ?
                                     token.AsSpan(1) :
                                     token.AsSpan());
             }
@@ -747,7 +710,7 @@ namespace Microsoft.ML.Tokenizers
 
                     if (_vocabReverse.TryGetValue(enumerator.Current, out string? token))
                     {
-                        AppendSpan(ref sb, token.AsSpan());
+                        sb.Append(token);
                     }
                 }
             }
@@ -772,16 +735,7 @@ namespace Microsoft.ML.Tokenizers
                 ArrayPool<char>.Shared.Return(charPoolArray);
             }
 
-            return sb.ToString();
-
-            static void AppendSpan(ref ValueStringBuilder sb, ReadOnlySpan<char> span)
-            {
-                for (int i = 0; i < span.Length; i++)
-                {
-                    char c = span[i];
-                    sb.Append(c == LlamaNormalizer.DummyPrefix ? ' ' : c);
-                }
-            }
+            return sb.ToString(LlamaNormalizer.DummyPrefix, ' ');
 
             static void FlushBytes(ref int bytesCount, ref byte[]? bytesPoolArray, ref char[]? charPoolArray, ref ValueStringBuilder sb)
             {

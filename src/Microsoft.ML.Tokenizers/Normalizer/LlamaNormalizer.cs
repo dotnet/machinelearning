@@ -12,7 +12,7 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     public sealed class LlamaNormalizer : Normalizer
     {
-        internal const char DummyPrefix = '▁'; // U+2581 (LOWER ONE EIGHT BLOCK)
+        internal const char DummyPrefix = '\u2581'; // '▁' (LOWER ONE EIGHT BLOCK)
 
         /// <summary>
         /// Creates a LowerCaseNormalizer object.
@@ -74,13 +74,20 @@ namespace Microsoft.ML.Tokenizers
 
             int length = endIndex - startIndex + 1;
 
-            // Add dummy prefix if needed
-            char[] buffer = ArrayPool<char>.Shared.Rent(AddDummyPrefix ? length + 1 : length);
+            Span<char> span = stackalloc char[512];
+            char[]? buffer = null;
+
+            if (span.Length < length + 1)
+            {
+                // Add dummy prefix if needed
+                buffer = ArrayPool<char>.Shared.Rent(AddDummyPrefix ? length + 1 : length);
+                span = buffer;
+            }
 
             int bufferIndex = 0;
             if (AddDummyPrefix && !TreatWhitespaceAsSuffix)
             {
-                buffer[bufferIndex++] = EscapeWhiteSpaces ? DummyPrefix : ' ';
+                span[bufferIndex++] = EscapeWhiteSpaces ? DummyPrefix : ' ';
             }
 
             while (startIndex <= endIndex)
@@ -88,7 +95,7 @@ namespace Microsoft.ML.Tokenizers
                 char c = original[startIndex++];
                 if (c == ' ')
                 {
-                    buffer[bufferIndex++] = EscapeWhiteSpaces ? DummyPrefix : c;
+                    span[bufferIndex++] = EscapeWhiteSpaces ? DummyPrefix : c;
 
                     if (RemoveExtraWhiteSpaces)
                     {
@@ -100,17 +107,21 @@ namespace Microsoft.ML.Tokenizers
                 }
                 else
                 {
-                    buffer[bufferIndex++] = c;
+                    span[bufferIndex++] = c;
                 }
             }
 
             if (AddDummyPrefix && TreatWhitespaceAsSuffix)
             {
-                buffer[bufferIndex++] = EscapeWhiteSpaces ? DummyPrefix : ' ';
+                span[bufferIndex++] = EscapeWhiteSpaces ? DummyPrefix : ' ';
             }
 
-            string result = new string(buffer, 0, bufferIndex);
-            ArrayPool<char>.Shared.Return(buffer);
+            string result = span.Slice(0, bufferIndex).ToString();
+
+            if (buffer is not null)
+            {
+                ArrayPool<char>.Shared.Return(buffer);
+            }
             return result;
         }
     }

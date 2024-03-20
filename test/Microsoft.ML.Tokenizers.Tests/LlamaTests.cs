@@ -24,14 +24,14 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             const string modelUrl = @"https://huggingface.co/hf-internal-testing/llama-tokenizer/resolve/main/tokenizer.model";
             using Stream remoteStream = await _httpClient.GetStreamAsync(modelUrl);
-            return SentencePieceBpe.CreateLlamaTokenizer(remoteStream);
+            return Tokenizer.CreateLlama(remoteStream);
         }
 
         private static async Task<Tokenizer> CreateLMistralTokenizer()
         {
             const string modelUrl = @"https://huggingface.co/mistralai/Mistral-7B-v0.1/resolve/main/tokenizer.model?download=true";
             using Stream remoteStream = await _httpClient.GetStreamAsync(modelUrl);
-            return SentencePieceBpe.CreateLlamaTokenizer(remoteStream);
+            return Tokenizer.CreateLlama(remoteStream);
         }
 
         public static IEnumerable<object[]> LlamaTestData()

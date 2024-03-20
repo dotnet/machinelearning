@@ -26,11 +26,11 @@ namespace Microsoft.ML.Tokenizers.Tests
                                                     { IMEnd, 100265},
                                                 };
 
-        public static Tokenizer GPT4 { get; } = Tiktoken.CreateTokenizerForModelAsync("gpt-4", _specialTokens).GetAwaiter().GetResult();
-        public static Tokenizer GPT2 { get; } = Tiktoken.CreateTokenizerForModelAsync("gpt2").GetAwaiter().GetResult();
-        public static Tokenizer P50kBase { get; } = Tiktoken.CreateTokenizerForModelAsync("text-davinci-003").GetAwaiter().GetResult();
-        public static Tokenizer R50kBase { get; } = Tiktoken.CreateTokenizerForModelAsync("ada").GetAwaiter().GetResult();
-        public static Tokenizer P50kEdit { get; } = Tiktoken.CreateTokenizerForModelAsync("text-davinci-edit-001").GetAwaiter().GetResult();
+        public static Tokenizer GPT4 { get; } = Tokenizer.CreateTiktokenForModelAsync("gpt-4", _specialTokens).GetAwaiter().GetResult();
+        public static Tokenizer GPT2 { get; } = Tokenizer.CreateTiktokenForModelAsync("gpt2").GetAwaiter().GetResult();
+        public static Tokenizer P50kBase { get; } = Tokenizer.CreateTiktokenForModelAsync("text-davinci-003").GetAwaiter().GetResult();
+        public static Tokenizer R50kBase { get; } = Tokenizer.CreateTiktokenForModelAsync("ada").GetAwaiter().GetResult();
+        public static Tokenizer P50kEdit { get; } = Tokenizer.CreateTiktokenForModelAsync("text-davinci-edit-001").GetAwaiter().GetResult();
 
         [Fact]
         public async void TestTokenizerCreation()
@@ -65,17 +65,17 @@ namespace Microsoft.ML.Tokenizers.Tests
 
                 using (Stream stream = File.OpenRead(tokenizerDataFileName))
                 {
-                    tokenizer = Tiktoken.CreateTokenizerForModel("gpt-4", stream);
+                    tokenizer = Tokenizer.CreateTiktokenForModel("gpt-4", stream);
                 }
                 TestGPT4TokenizationEncoding(tokenizer);
 
                 using (Stream stream = File.OpenRead(tokenizerDataFileName))
                 {
-                    tokenizer = await Tiktoken.CreateTokenizerForModelAsync("gpt-3.5-turbo", stream);
+                    tokenizer = await Tokenizer.CreateTiktokenForModelAsync("gpt-3.5-turbo", stream);
                 }
                 TestGPT4TokenizationEncoding(tokenizer);
 
-                tokenizer = Tiktoken.CreateTokenizerForModel("gpt-4");
+                tokenizer = Tokenizer.CreateTiktokenForModel("gpt-4");
                 TestGPT4TokenizationEncoding(tokenizer);
             }
             finally
@@ -302,11 +302,11 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("gpt2")]
         public async void TestAllSupportedModelNames(string modelName)
         {
-            Tokenizer tokenizer = Tiktoken.CreateTokenizerForModel(modelName);
+            Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel(modelName);
             Assert.NotNull(tokenizer.Model);
             Assert.NotNull(tokenizer.PreTokenizer);
 
-            tokenizer = await Tiktoken.CreateTokenizerForModelAsync(modelName);
+            tokenizer = await Tokenizer.CreateTiktokenForModelAsync(modelName);
             Assert.NotNull(tokenizer.Model);
             Assert.NotNull(tokenizer.PreTokenizer);
         }
@@ -321,14 +321,14 @@ namespace Microsoft.ML.Tokenizers.Tests
             // Execute remotely to ensure no caching is used.
             RemoteExecutor.Invoke(static async (name) =>
             {
-                Tokenizer tokenizer = await Tiktoken.CreateTokenizerForModelAsync(name);
+                Tokenizer tokenizer = await Tokenizer.CreateTiktokenForModelAsync(name);
                 Assert.NotNull(tokenizer.Model);
                 Assert.NotNull(tokenizer.PreTokenizer);
             }, modelName).Dispose();
 
             RemoteExecutor.Invoke(static (name) =>
             {
-                Tokenizer tokenizer = Tiktoken.CreateTokenizerForModel(name);
+                Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel(name);
                 Assert.NotNull(tokenizer.Model);
                 Assert.NotNull(tokenizer.PreTokenizer);
             }, modelName).Dispose();
