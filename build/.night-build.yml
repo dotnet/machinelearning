@@ -37,12 +37,12 @@ jobs:
       Debug_Build:
         _configuration: Debug
         _config_short: DI
-        _targetFramework: net6.0
+        _targetFramework: net8.0
         _includeBenchmarkData: false
       Release_Build:
         _configuration: Release
         _config_short: RI
-        _targetFramework: net6.0
+        _targetFramework: net8.0
         _includeBenchmarkData: true
     nightlyBuild: true
     pool:

@@ -51,12 +51,12 @@ jobs:
             _configuration: Debug
             _config_short: D
             _includeBenchmarkData: false
-            _targetFramework: net6.0
+            _targetFramework: net8.0
           Release_Build:
             _configuration: Release
             _config_short: R
             _includeBenchmarkData: true
-            _targetFramework: net6.0
+            _targetFramework: net8.0
         ${{ if ne(parameters.customMatrixes, '') }}:
           ${{ insert }}: ${{ parameters.customMatrixes }}
 
