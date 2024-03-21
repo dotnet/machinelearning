@@ -892,6 +892,13 @@ namespace Microsoft.Data.Analysis
             switch (typeof(T))
             {
                 case Type boolType when boolType == typeof(bool):
+                    if (typeof(U) == typeof(bool))
+                    {
+                        PrimitiveDataFrameColumn<U> primitiveColumn = this as PrimitiveDataFrameColumn<U>;
+                        var newColumn = inPlace ? primitiveColumn : primitiveColumn.Clone();
+                        newColumn._columnContainer.HandleOperation(operation, column._columnContainer);
+                        return newColumn;
+                    }
                     throw new NotSupportedException();
                 case Type decimalType when decimalType == typeof(decimal):
                     if (typeof(U) == typeof(bool))

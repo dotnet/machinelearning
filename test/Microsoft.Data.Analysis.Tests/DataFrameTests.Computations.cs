@@ -473,5 +473,39 @@ namespace Microsoft.Data.Analysis.Tests
             // We need to iterate over all range with conversion to ushort due to negative numbers issue
             Assert.Equal((ushort)ushortColumn.Min(), range.Select(x => (ushort)x).Min());
         }
+
+        [Fact]
+        public void Test_Logical_Computation_And()
+        {
+            var col1 = new BooleanDataFrameColumn("col1", new Boolean[] { true, false, true });
+            var col2 = new BooleanDataFrameColumn("col2", new Boolean[] { false, true, true });
+            var dfTest = new DataFrame(col1, col2);
+            var col3 = dfTest["col1"].And(dfTest["col2"]);
+            var col4 = col1.And(col2);
+
+            for (int i = 0; i < col1.Length; i++)
+            {
+                var exprectedValue = col1[i] & col2[i];
+                Assert.Equal(exprectedValue, col3[i]);
+                Assert.Equal(exprectedValue, col4[i]);
+            }
+        }
+
+        [Fact]
+        public void Test_Logical_Computation_Or()
+        {
+            var col1 = new BooleanDataFrameColumn("col1", new Boolean[] { true, false, true });
+            var col2 = new BooleanDataFrameColumn("col2", new Boolean[] { false, true, true });
+            var dfTest = new DataFrame(col1, col2);
+            var col3 = dfTest["col1"].Or(dfTest["col2"]);
+            var col4 = col1.Or(col2);
+
+            for (int i = 0; i < col1.Length; i++)
+            {
+                var exprectedValue = col1[i] | col2[i];
+                Assert.Equal(exprectedValue, col3[i]);
+                Assert.Equal(exprectedValue, col4[i]);
+            }
+        }
     }
 }
