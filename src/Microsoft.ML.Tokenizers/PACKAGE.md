@@ -15,7 +15,7 @@ Microsoft.ML.Tokenizers supports various the implmentation of the tokenization u
 using Microsoft.ML.Tokenizers;
 
 // initialize the tokenizer for `gpt-4` model, downloading data files
-Tokenizer tokenizer = await Tiktoken.CreateByModelNameAsync("gpt-4");
+Tokenizer tokenizer = await Tokenizer.CreateTiktokenForModelAsync("gpt-4");
 
 string source = "Text tokenization is the process of splitting a string into a list of tokens.";
 
