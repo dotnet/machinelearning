@@ -14,7 +14,7 @@
 // You should build Microsoft.ML.FSharp.Tests in Debug mode for framework net462
 // before running this as a script with F# Interactive by editing the project
 // file to have:
-//    <TargetFrameworks>net6.0; net462</TargetFrameworks>
+//    <TargetFrameworks>net8.0; net462</TargetFrameworks>
 
 #if INTERACTIVE
 #r "netstandard"
