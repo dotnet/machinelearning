@@ -407,15 +407,26 @@ namespace Microsoft.Data.Analysis
         /// <returns>A preview of the contents of this <see cref="DataFrameColumn"/>.</returns>
         public override string ToString()
         {
-            var sb = new StringBuilder(Name);
-            sb.AppendLine();
+            return ToString(DataFrame.DefaultMaxRowsToShowInPreview);
+        }
 
-            var numberOfRows = Math.Min(Length, 25);
+        public string ToString(long rowsToShow)
+        {
+            var sb = new StringBuilder(Name);
+            var numberOfRows = Math.Min(Length, rowsToShow);
             for (long i = 0; i < numberOfRows; i++)
             {
                 sb.Append(this[i] ?? "null");
                 sb.AppendLine();
             }
+
+            if (numberOfRows < Length)
+            {
+                sb.Append($"... {rowsToShow} of total {Length}");
+                sb.AppendLine();
+            }
+
+            sb.Append($"Name: {Name}, Type: {DataType}");
 
             return sb.ToString();
         }
