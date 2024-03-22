@@ -42,7 +42,14 @@
   </UsingTask>
 
   <ItemGroup>
-    <FilesToCompress Include="Data\**\*.*" Destination="$(IntermediateOutputPath)%(FileName).zip"/>
+    <FilesToCompress Include="Data\cl100k_base.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate"
+      Source="https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken" />
+    <FilesToCompress Include="Data\gpt2.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate"
+      Source="https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken" />
+    <FilesToCompress Include="Data\p50k_base.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate"
+      Source="https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken" />
+    <FilesToCompress Include="Data\r50k_base.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate"
+      Source="https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken" />
   </ItemGroup>
 
   <Target Name="TestCompress"
@@ -52,7 +59,7 @@
 
     <CompressFile Files="@(FilesToCompress)" />
     <ItemGroup>
-      <EmbeddedResource Include="@(FilesToCompress->'%(Destination)')" LogicalName="%(FileName)%(Extension).zip" />
+      <EmbeddedResource Include="@(FilesToCompress->'%(Destination)')" LogicalName="%(FileName)%(Extension).deflate" />
     </ItemGroup>
   </Target>
 </Project>

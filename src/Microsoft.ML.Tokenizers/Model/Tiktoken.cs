@@ -181,43 +181,49 @@ namespace Microsoft.ML.Tokenizers
             {
                 using (StreamReader reader = new StreamReader(vocabStream))
                 {
-                    while (true)
+                    string? line;
+                    do
                     {
-                        string? line = useAsync ?
+                        line = useAsync ?
                             await Helpers.ReadLineAsync(reader, cancellationToken).ConfigureAwait(false) :
                             reader.ReadLine();
-                        if (string.IsNullOrWhiteSpace(line))
+                    } while (line is not null && line.Length == 0);
+
+                    if (line is not null && line.IndexOf(' ') < 0)
+                    {
+                        // We generate the ranking using the line number
+                        int lineNumber = 0;
+                        do
                         {
-                            if (line is null)
+                            if (line.Length > 0)
                             {
-                                break;
+                                AddData(Convert.FromBase64String(line), lineNumber++);
                             }
-                            continue;
-                        }
+                        } while ((line = useAsync ? await Helpers.ReadLineAsync(reader, cancellationToken).ConfigureAwait(false) : reader.ReadLine()) is not null);
+                    }
 
-                        int spaceIndex = line.IndexOf(' ');
-                        if (spaceIndex <= 0 || spaceIndex >= line.Length - 1 || line.IndexOf(' ', spaceIndex + 1) >= 0)
+                    while (line is not null)
+                    {
+                        if (line.Length > 0)
                         {
-                            throw new FormatException($"Invalid format in the BPE vocab file stream");
-                        }
-
-                        if (Helpers.TryParseInt32(line, spaceIndex + 1, out int rank))
-                        {
-                            byte[] tokenBytes = Helpers.FromBase64String(line, 0, spaceIndex);
-
-                            encoder[tokenBytes] = rank;
-                            decoder[rank] = tokenBytes;
-
-                            string decodedToken = Encoding.UTF8.GetString(tokenBytes);
-
-                            if (decodedToken.IndexOf('\uFFFD') < 0)
+                            int spaceIndex = line.IndexOf(' ');
+                            if (spaceIndex <= 0 || spaceIndex >= line.Length - 1 || line.IndexOf(' ', spaceIndex + 1) >= 0)
                             {
-                                vocab[new StringSpanOrdinalKey(decodedToken)] = rank;
+                                throw new FormatException($"Invalid format in the BPE vocab file stream");
                             }
-                        }
-                        else
-                        {
-                            throw new FormatException($"Can't parse {line.Substring(spaceIndex)} to integer");
+
+                            if (Helpers.TryParseInt32(line, spaceIndex + 1, out int rank))
+                            {
+                                AddData(Helpers.FromBase64String(line, 0, spaceIndex), rank);
+                            }
+                            else
+                            {
+                                throw new FormatException($"Can't parse {line.Substring(spaceIndex)} to integer");
+                            }
+
+                            line = useAsync ?
+                                await Helpers.ReadLineAsync(reader, cancellationToken).ConfigureAwait(false) :
+                                reader.ReadLine();
                         }
                     }
                 }
@@ -228,6 +234,19 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return (encoder, vocab, decoder);
+
+            void AddData(byte[] tokenBytes, int rank)
+            {
+                encoder[tokenBytes] = rank;
+                decoder[rank] = tokenBytes;
+
+                string decodedToken = Encoding.UTF8.GetString(tokenBytes);
+
+                if (decodedToken.IndexOf('\uFFFD') < 0)
+                {
+                    vocab[new StringSpanOrdinalKey(decodedToken)] = rank;
+                }
+            }
         }
 
         /// <summary>
@@ -691,10 +710,10 @@ namespace Microsoft.ML.Tokenizers
         private const string Cl100kBaseRegexPattern = /*lang=regex*/ @"'(?i:[sdmt]|re|ve|ll)|(?>[^\r\n\p{L}\p{N}]?)\p{L}+|\p{N}{1,3}| ?(?>[^\s\p{L}\p{N}]+)[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+";
         private const string P50kBaseRegexPattern = /*lang=regex*/ @"'(?:[sdmt]|re|ve|ll)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+";
 
-        private const string Cl100kBaseVocabFile = "cl100k_base.tiktoken.zip";  // "https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken"
-        private const string P50RanksFile = "p50k_base.tiktoken.zip";           // "https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken"
-        private const string R50RanksFile = "r50k_base.tiktoken.zip";           // "https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken"
-        private const string GPT2File = "gpt2.tiktoken.zip";                    // "https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken"
+        private const string Cl100kBaseVocabFile = "cl100k_base.tiktoken.deflate";  // "https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken"
+        private const string P50RanksFile = "p50k_base.tiktoken.deflate";           // "https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken"
+        private const string R50RanksFile = "r50k_base.tiktoken.deflate";           // "https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken"
+        private const string GPT2File = "gpt2.tiktoken.deflate";                    // "https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken"
 
 
 #if NET7_0_OR_GREATER

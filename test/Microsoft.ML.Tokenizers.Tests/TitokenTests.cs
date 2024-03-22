@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             IReadOnlyDictionary<string, int>? specialTokensEncoder = (GPT4.Model as Tiktoken)!.SpecialTokensEncoder;
 
             string tokenizerDataFileName = Utils.CreateTemporaryFile("tiktoken");
-            using (Stream tiktokenStream = await Helpers.OpenEmbeddedCompressedStreamAsync("cl100k_base.tiktoken.zip"))
+            using (Stream tiktokenStream = await Helpers.OpenEmbeddedCompressedStreamAsync("cl100k_base.tiktoken.deflate"))
             {
                 // await Utils.DownloadFile(@"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken", tokenizerDataFileName);
                 using Stream fileStream = File.OpenWrite(tokenizerDataFileName);
@@ -81,6 +81,31 @@ namespace Microsoft.ML.Tokenizers.Tests
                 TestGPT4TokenizationEncoding(tokenizer);
 
                 tokenizer = Tokenizer.CreateTiktokenForModel("gpt-4");
+                TestGPT4TokenizationEncoding(tokenizer);
+            }
+            finally
+            {
+                Utils.DeleteFile(tokenizerDataFileName);
+            }
+        }
+
+        [Fact]
+        public async void TestTokenizerUsingExternalVocab()
+        {
+            string tokenizerDataFileName = Utils.CreateTemporaryFile("tiktoken");
+            try
+            {
+                await Utils.DownloadFile(@"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken", tokenizerDataFileName);
+            }
+            catch
+            {
+                // Tolerate network issues.
+                return;
+            }
+
+            try
+            {
+                Tokenizer tokenizer = new Tokenizer(new Tiktoken(tokenizerDataFileName, (GPT4.Model as Tiktoken)!.SpecialTokensEncoder), GPT4.PreTokenizer);
                 TestGPT4TokenizationEncoding(tokenizer);
             }
             finally
