@@ -408,7 +408,7 @@ namespace Microsoft.Data.Analysis
                 else if (dataType == typeof(int))
                     clone = CloneImplementation(mapIndices as PrimitiveDataFrameColumn<int>, invertMapIndices);
                 else
-                    clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<bool>);
+                    clone = CloneImplementation(mapIndices as PrimitiveDataFrameColumn<bool>);
 
                 for (long i = 0; i < numberOfNullsToAppend; i++)
                     clone.Append(default);
@@ -421,7 +421,7 @@ namespace Microsoft.Data.Analysis
             return clone;
         }
 
-        private ArrowStringDataFrameColumn CloneInternal(PrimitiveDataFrameColumn<bool> boolColumn)
+        private ArrowStringDataFrameColumn CloneImplementation(PrimitiveDataFrameColumn<bool> boolColumn)
         {
             if (boolColumn.Length > Length)
                 throw new ArgumentException(Strings.MapIndicesExceedsColumnLenth, nameof(boolColumn));
