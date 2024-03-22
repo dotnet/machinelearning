@@ -41,7 +41,12 @@ namespace Microsoft.ML.Tokenizers.Tests
             IReadOnlyDictionary<string, int>? specialTokensEncoder = (GPT4.Model as Tiktoken)!.SpecialTokensEncoder;
 
             string tokenizerDataFileName = Utils.CreateTemporaryFile("tiktoken");
-            await Utils.DownloadFile(@"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken", tokenizerDataFileName);
+            using (Stream tiktokenStream = await Helpers.OpenEmbeddedCompressedStreamAsync("cl100k_base.tiktoken.zip"))
+            {
+                // await Utils.DownloadFile(@"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken", tokenizerDataFileName);
+                using Stream fileStream = File.OpenWrite(tokenizerDataFileName);
+                tiktokenStream.CopyTo(fileStream);
+            }
 
             try
             {

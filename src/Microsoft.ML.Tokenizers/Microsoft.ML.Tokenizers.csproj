@@ -21,4 +21,38 @@
     <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
   </ItemGroup>
 
+  <UsingTask TaskName="CompressFile"
+    TaskFactory="RoslynCodeTaskFactory"
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
+    <ParameterGroup>
+      <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.IO.Compression" />
+      <Code Type="Fragment" Language="cs">
+        foreach(var file in Files)
+        {
+            using var sourceStream = File.OpenRead(file.GetMetadata("FullPath"));
+            using var destStream = new DeflateStream(File.Create(file.GetMetadata("Destination")), CompressionLevel.Optimal);
+            sourceStream.CopyTo(destStream);
+        }
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <ItemGroup>
+    <FilesToCompress Include="Data\**\*.*" Destination="$(IntermediateOutputPath)%(FileName).zip"/>
+  </ItemGroup>
+
+  <Target Name="TestCompress"
+          BeforeTargets="AssignTargetPaths"
+          Inputs="@(FilesToCompress)"
+          Outputs="@(FilesToCompress->'%(Destination)')">
+
+    <CompressFile Files="@(FilesToCompress)" />
+    <ItemGroup>
+      <EmbeddedResource Include="@(FilesToCompress->'%(Destination)')" LogicalName="%(FileName)%(Extension).zip" />
+    </ItemGroup>
+  </Target>
 </Project>

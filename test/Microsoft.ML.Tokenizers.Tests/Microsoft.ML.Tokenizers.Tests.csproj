@@ -15,6 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\src\Microsoft.ML.Tokenizers\Utils\Helpers.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Data\lib.rs.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
