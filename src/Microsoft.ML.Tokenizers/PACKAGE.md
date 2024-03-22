@@ -46,9 +46,9 @@ Console.WriteLine(string.Join(", ", ids));
 //
 
 // Open stream of remote Llama tokenizer model data file
-HttpClient _httpClient = new HttpClient();
+using HttpClient httpClient = new();
 const string modelUrl = @"https://huggingface.co/hf-internal-testing/llama-tokenizer/resolve/main/tokenizer.model";
-using Stream remoteStream = await _httpClient.GetStreamAsync(modelUrl);
+using Stream remoteStream = await httpClient.GetStreamAsync(modelUrl);
 
 // Create the Llama tokenizer using the remote stream
 Tokenizer llamaTokenizer = Tokenizer.CreateLlama(remoteStream);
