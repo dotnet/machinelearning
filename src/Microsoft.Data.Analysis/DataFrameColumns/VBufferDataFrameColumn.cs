@@ -5,7 +5,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.ML;
@@ -210,7 +209,7 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        private VBufferDataFrameColumn<T> Clone(PrimitiveDataFrameColumn<bool> boolColumn)
+        private VBufferDataFrameColumn<T> CloneInternal(PrimitiveDataFrameColumn<bool> boolColumn)
         {
             if (boolColumn.Length > Length)
                 throw new ArgumentException(Strings.MapIndicesExceedsColumnLenth, nameof(boolColumn));
@@ -224,7 +223,7 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private VBufferDataFrameColumn<T> Clone(PrimitiveDataFrameColumn<long> mapIndices = null, bool invertMapIndex = false)
+        private VBufferDataFrameColumn<T> CloneInternal(PrimitiveDataFrameColumn<long> mapIndices = null, bool invertMapIndex = false)
         {
             if (mapIndices is null)
             {
@@ -237,16 +236,11 @@ namespace Microsoft.Data.Analysis
             }
             else
             {
-                return CloneImplementation(mapIndices, invertMapIndex);
+                return CloneInternal(mapIndices, invertMapIndex);
             }
         }
 
-        private VBufferDataFrameColumn<T> Clone(PrimitiveDataFrameColumn<int> mapIndices, bool invertMapIndex = false)
-        {
-            return CloneImplementation(mapIndices, invertMapIndex);
-        }
-
-        private VBufferDataFrameColumn<T> CloneImplementation<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
+        private VBufferDataFrameColumn<T> CloneInternal<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
            where U : unmanaged
         {
             mapIndices = mapIndices ?? throw new ArgumentNullException(nameof(mapIndices));
@@ -322,15 +316,15 @@ namespace Microsoft.Data.Analysis
                 if (dataType != typeof(long) && dataType != typeof(int) && dataType != typeof(bool))
                     throw new ArgumentException(String.Format(Strings.MultipleMismatchedValueType, typeof(long), typeof(int), typeof(bool)), nameof(mapIndices));
                 if (mapIndices.DataType == typeof(long))
-                    clone = Clone(mapIndices as PrimitiveDataFrameColumn<long>, invertMapIndices);
+                    clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<long>, invertMapIndices);
                 else if (dataType == typeof(int))
-                    clone = Clone(mapIndices as PrimitiveDataFrameColumn<int>, invertMapIndices);
+                    clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<int>, invertMapIndices);
                 else
-                    clone = Clone(mapIndices as PrimitiveDataFrameColumn<bool>);
+                    clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<bool>);
             }
             else
             {
-                clone = Clone();
+                clone = CloneInternal();
             }
 
             return clone;

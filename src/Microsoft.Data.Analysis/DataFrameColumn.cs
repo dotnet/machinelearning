@@ -201,14 +201,14 @@ namespace Microsoft.Data.Analysis
         /// <param name="length">The new length of the column</param>
         protected internal virtual void Resize(long length) => throw new NotImplementedException();
 
+        /*
         /// <summary>
-        /// Clone column to produce a copy potentially changing the order of values by supplying mapIndices and an invert flag
+        /// Clone column to produce a copy
         /// </summary>
-        /// <param name="mapIndices"></param>
-        /// <param name="invertMapIndices"></param>
         /// <param name="numberOfNullsToAppend"></param>
         /// <returns>A new <see cref="DataFrameColumn"/></returns>
-        public virtual DataFrameColumn Clone(DataFrameColumn mapIndices = null, bool invertMapIndices = false, long numberOfNullsToAppend = 0) => CloneImplementation(mapIndices, invertMapIndices, numberOfNullsToAppend);
+        public abstract DataFrameColumn Clone(long numberOfNullsToAppend = 0);
+        */
 
         /// <summary>
         /// Clone column to produce a copy potentially changing the order of values by supplying mapIndices and an invert flag
@@ -217,7 +217,16 @@ namespace Microsoft.Data.Analysis
         /// <param name="invertMapIndices"></param>
         /// <param name="numberOfNullsToAppend"></param>
         /// <returns>A new <see cref="DataFrameColumn"/></returns>
-        protected virtual DataFrameColumn CloneImplementation(DataFrameColumn mapIndices, bool invertMapIndices, long numberOfNullsToAppend) => throw new NotImplementedException();
+        public DataFrameColumn Clone(DataFrameColumn mapIndices = null, bool invertMapIndices = false, long numberOfNullsToAppend = 0) => CloneImplementation(mapIndices, invertMapIndices, numberOfNullsToAppend);
+
+        /// <summary>
+        /// Clone column to produce a copy potentially changing the order of values by supplying mapIndices and an invert flag
+        /// </summary>
+        /// <param name="mapIndices"></param>
+        /// <param name="invertMapIndices"></param>
+        /// <param name="numberOfNullsToAppend"></param>
+        /// <returns>A new <see cref="DataFrameColumn"/></returns>
+        protected abstract DataFrameColumn CloneImplementation(DataFrameColumn mapIndices, bool invertMapIndices, long numberOfNullsToAppend);
 
         /// <summary>
         /// Returns a copy of this column sorted by its values

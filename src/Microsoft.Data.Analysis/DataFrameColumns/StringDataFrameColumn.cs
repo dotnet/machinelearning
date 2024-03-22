@@ -257,15 +257,15 @@ namespace Microsoft.Data.Analysis
                 if (dataType != typeof(long) && dataType != typeof(int) && dataType != typeof(bool))
                     throw new ArgumentException(String.Format(Strings.MultipleMismatchedValueType, typeof(long), typeof(int), typeof(bool)), nameof(mapIndices));
                 if (mapIndices.DataType == typeof(long))
-                    clone = Clone(mapIndices as PrimitiveDataFrameColumn<long>, invertMapIndices);
+                    clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<long>, invertMapIndices);
                 else if (dataType == typeof(int))
-                    clone = Clone(mapIndices as PrimitiveDataFrameColumn<int>, invertMapIndices);
+                    clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<int>, invertMapIndices);
                 else
-                    clone = Clone(mapIndices as PrimitiveDataFrameColumn<bool>);
+                    clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<bool>);
             }
             else
             {
-                clone = Clone();
+                clone = CloneInternal();
             }
             for (long i = 0; i < numberOfNullsToAppend; i++)
             {
@@ -279,7 +279,7 @@ namespace Microsoft.Data.Analysis
             return Clone(mapIndices, invertMapIndices, numberOfNullsToAppend);
         }
 
-        private StringDataFrameColumn Clone(PrimitiveDataFrameColumn<bool> boolColumn)
+        private StringDataFrameColumn CloneInternal(PrimitiveDataFrameColumn<bool> boolColumn)
         {
             if (boolColumn.Length > Length)
                 throw new ArgumentException(Strings.MapIndicesExceedsColumnLenth, nameof(boolColumn));
@@ -293,7 +293,7 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private StringDataFrameColumn CloneImplementation<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false)
+        private StringDataFrameColumn CloneInternal<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false)
             where U : unmanaged
         {
             mapIndices = mapIndices ?? throw new ArgumentNullException(nameof(mapIndices));
@@ -376,7 +376,7 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private StringDataFrameColumn Clone(PrimitiveDataFrameColumn<long> mapIndices = null, bool invertMapIndex = false)
+        private StringDataFrameColumn CloneInternal(PrimitiveDataFrameColumn<long> mapIndices = null, bool invertMapIndex = false)
         {
             if (mapIndices is null)
             {
@@ -389,13 +389,8 @@ namespace Microsoft.Data.Analysis
             }
             else
             {
-                return CloneImplementation(mapIndices, invertMapIndex);
+                return CloneInternal<long>(mapIndices, invertMapIndex);
             }
-        }
-
-        private StringDataFrameColumn Clone(PrimitiveDataFrameColumn<int> mapIndices, bool invertMapIndex = false)
-        {
-            return CloneImplementation(mapIndices, invertMapIndex);
         }
 
         internal static DataFrame ValueCountsImplementation(Dictionary<string, ICollection<long>> groupedValues)
@@ -460,7 +455,7 @@ namespace Microsoft.Data.Analysis
         {
             if (value == null)
                 throw new ArgumentNullException(nameof(value));
-            StringDataFrameColumn column = inPlace ? this : Clone();
+            StringDataFrameColumn column = inPlace ? this : CloneInternal();
 
             for (long i = 0; i < column.Length; i++)
             {

@@ -19,7 +19,7 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(Strings.MismatchedColumnLengths, nameof(column));
             }
-            StringDataFrameColumn ret = inPlace ? this : Clone();
+            StringDataFrameColumn ret = inPlace ? this : CloneInternal();
             for (long i = 0; i < Length; i++)
             {
                 ret[i] += column[i].ToString();
@@ -39,7 +39,7 @@ namespace Microsoft.Data.Analysis
 
         public static StringDataFrameColumn Add(string value, StringDataFrameColumn right)
         {
-            StringDataFrameColumn ret = right.Clone();
+            StringDataFrameColumn ret = right.CloneInternal();
             for (int i = 0; i < ret._stringBuffers.Count; i++)
             {
                 IList<string> buffer = ret._stringBuffers[i];
@@ -54,7 +54,7 @@ namespace Microsoft.Data.Analysis
 
         public StringDataFrameColumn Add(string value, bool inPlace = false)
         {
-            StringDataFrameColumn ret = inPlace ? this : Clone();
+            StringDataFrameColumn ret = inPlace ? this : CloneInternal();
             for (int i = 0; i < ret._stringBuffers.Count; i++)
             {
                 IList<string> buffer = ret._stringBuffers[i];

@@ -372,7 +372,7 @@ namespace Microsoft.Data.Analysis
         public override DataFrameColumn Sort(bool ascending = true) => throw new NotSupportedException();
 
         /// <inheritdoc/>
-        public override DataFrameColumn Clone(DataFrameColumn mapIndices = null, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
+        protected override DataFrameColumn CloneImplementation(DataFrameColumn mapIndices, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
         {
             ArrowStringDataFrameColumn clone;
             if (!(mapIndices is null))
@@ -381,15 +381,15 @@ namespace Microsoft.Data.Analysis
                 if (dataType != typeof(long) && dataType != typeof(int) && dataType != typeof(bool))
                     throw new ArgumentException(String.Format(Strings.MultipleMismatchedValueType, typeof(long), typeof(int), typeof(bool)), nameof(mapIndices));
                 if (mapIndices.DataType == typeof(long))
-                    clone = Clone(mapIndices as PrimitiveDataFrameColumn<long>, invertMapIndices);
+                    clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<long>, invertMapIndices);
                 else if (dataType == typeof(int))
-                    clone = Clone(mapIndices as PrimitiveDataFrameColumn<int>, invertMapIndices);
+                    clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<int>, invertMapIndices);
                 else
-                    clone = Clone(mapIndices as PrimitiveDataFrameColumn<bool>);
+                    clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<bool>);
             }
             else
             {
-                clone = Clone();
+                clone = CloneInternal();
             }
             for (long i = 0; i < numberOfNullsToAppend; i++)
             {
@@ -398,7 +398,7 @@ namespace Microsoft.Data.Analysis
             return clone;
         }
 
-        private ArrowStringDataFrameColumn Clone(PrimitiveDataFrameColumn<bool> boolColumn)
+        private ArrowStringDataFrameColumn CloneInternal(PrimitiveDataFrameColumn<bool> boolColumn)
         {
             if (boolColumn.Length > Length)
                 throw new ArgumentException(Strings.MapIndicesExceedsColumnLenth, nameof(boolColumn));
@@ -412,7 +412,7 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private ArrowStringDataFrameColumn CloneImplementation<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false)
+        private ArrowStringDataFrameColumn CloneInternal<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false)
             where U : unmanaged
         {
             ArrowStringDataFrameColumn ret = new ArrowStringDataFrameColumn(Name);
@@ -437,7 +437,7 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private ArrowStringDataFrameColumn Clone(PrimitiveDataFrameColumn<long> mapIndices = null, bool invertMapIndex = false)
+        private ArrowStringDataFrameColumn CloneInternal(PrimitiveDataFrameColumn<long> mapIndices = null, bool invertMapIndex = false)
         {
             if (mapIndices is null)
             {
@@ -449,12 +449,7 @@ namespace Microsoft.Data.Analysis
                 return ret;
             }
             else
-                return CloneImplementation(mapIndices, invertMapIndex);
-        }
-
-        private ArrowStringDataFrameColumn Clone(PrimitiveDataFrameColumn<int> mapIndices, bool invertMapIndex = false)
-        {
-            return CloneImplementation(mapIndices, invertMapIndex);
+                return CloneInternal<long>(mapIndices, invertMapIndex);
         }
 
         /// <inheritdoc/>
