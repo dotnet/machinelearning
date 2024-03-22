@@ -1,5 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <SkipHelixTesting>true</SkipHelixTesting>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.PerformanceTests\Microsoft.ML.PerformanceTests.csproj" />
 

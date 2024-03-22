@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <ImplicitUsings>disable</ImplicitUsings>
-    <TargetFrameworks Condition="'$(TestTargetFramework)' == ''">$(NetMinimum);$(NetCurrent)</TargetFrameworks>
+    <TargetFrameworks>$(NetMinimum);$(NetCurrent)</TargetFrameworks>
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
 

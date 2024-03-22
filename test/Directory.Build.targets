@@ -11,4 +11,88 @@
   <!-- Coverlet publish causes problems with dependenies -->
   <Target Name="CopyCoverletDataCollectorFiles" AfterTargets="ComputeFilesToPublish"/>
 
+  <PropertyGroup>
+    <!-- Skip testing on net9.0 for now -->
+    <SkipHelixTesting Condition="'$(SkipHelixTesting)' == '' and '$(TargetFramework)' == 'net9.0'">true</SkipHelixTesting>
+    <!-- Skip testing .NETFramework on non-windows -->
+    <SkipHelixTesting Condition="'$(OS)' != 'Windows_NT' and $([MSBuild]::GetTargetFrameworkIdentifier('$(TargetFramework)')) == '.NETFramework'">true</SkipHelixTesting>
+
+    <HelixCorrelationPayloadPath Condition="'$(OS)' != 'Windows_NT'">$HELIX_CORRELATION_PAYLOAD</HelixCorrelationPayloadPath>
+    <HelixCorrelationPayloadPath Condition="'$(OS)' == 'Windows_NT'">%HELIX_CORRELATION_PAYLOAD%</HelixCorrelationPayloadPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GetHelixWorkItemsDepensOn Condition="'$(IsCrossTargetingBuild)' == 'true'">_GetHelixWorkItemsOuter</GetHelixWorkItemsDepensOn>
+    <GetHelixWorkItemsDepensOn Condition="'$(IsCrossTargetingBuild)' != 'true'">_GetHelixWorkItemsInner</GetHelixWorkItemsDepensOn>
+  </PropertyGroup>
+
+  <Target Name="GetHelixWorkItems" Returns="@(HelixWorkItem)" DependsOnTargets="$(GetHelixWorkItemsDepensOn)" />
+
+  <Target Name="_GetHelixWorkItemsOuter"          
+          DependsOnTargets="_ComputeTargetFrameworkItems">
+    <MSBuild Projects="@(_InnerBuildProjects)"
+             Condition="'@(_InnerBuildProjects)' != '' "
+             Targets="_GetHelixWorkItemsInner"
+             BuildInParallel="$(BuildInParallel)">
+      <Output TaskParameter="TargetOutputs" ItemName="HelixWorkItem" />
+    </MSBuild>
+  </Target>
+
+  <Target Name="_GetHelixWorkItemsInner" 
+          Returns="@(HelixWorkItem)"
+          Condition="'$(SkipHelixTesting)' != 'true'"
+          DependsOnTargets="_PrepareHelixTestDirectory">
+    <ItemGroup>
+      <HelixWorkItem Include="$(MSBuildProjectName) - $(TargetFramework)">
+        <PayloadDirectory>$(TargetDir)</PayloadDirectory>
+        <Command>dotnet exec --roll-forward Major --runtimeconfig $(TargetName).runtimeconfig.json --depsfile $(TargetName).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll $(TargetName)).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+        <Command Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">$(HelixCorrelationPayloadPath)/xunit-runner/tools/net462/xunit.console.exe $(TargetName).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+        <Timeout>01:00:00</Timeout>
+        <Timeout Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">00:30:00</Timeout>
+        <Timeout Condition="'$(WorkItemTimeout)' != ''">$(WorkItemTimeout)</Timeout>
+      </HelixWorkItem >
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_PrepareHelixTestDirectory">
+    <PropertyGroup>
+      <MacFilesToCopy>/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
+      <MacFilesToCopy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('arm64'))">/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
+    </PropertyGroup>
+
+    <!-- Copy libiomp5.dylib and libomp.dylib to the publish folders for OSX-->
+    <Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
+      SourceFiles = "$(MacFilesToCopy)"
+      Retries="10"
+      OverwriteReadOnlyFiles="true"
+      RetryDelayMilliseconds="10"
+      DestinationFolder="$(TargetDir)">
+    </Copy>
+
+    <Exec Condition="Exists('$$(TargetDir)libSymSgdNative.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
+    Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; $(TargetDir)libSymSgdNative.dylib" />
+    
+    <Exec Condition="Exists('$(TargetDir)runtimes/osx-x64/native/lib_lightgbm.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
+    Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; '$(TargetDir)runtimes/osx-x64/native/lib_lightgbm.dylib" />
+    
+    <Exec Condition="Exists('$(TargetDir)runtimes/osx-x64/native/libonnxruntime.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
+    Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; $(TargetDir)runtimes/osx-x64/native/libonnxruntime.dylib" />
+
+    <!-- Remove the native libraries for other OS to save on payload size -->
+    <ItemGroup>
+      <WindowsFiles Include="$(TargetDir)runtimes\win*\**\*.*"/>
+      <LinuxFiles Include="$(TargetDir)runtimes\linux*\**\*.*"/>
+      <OsxFiles Include="$(TargetDir)runtimes\osx*\**\*.*"/>
+    </ItemGroup>
+
+    <Delete Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('windows'))"
+      Files="@(LinuxFiles);@(OsxFiles)" />
+
+    <Delete Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
+      Files="@(LinuxFiles);@(WindowsFiles)" />
+
+    <Delete Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))"
+      Files="@(WindowsFiles);@(OsxFiles)" />
+  </Target>
+
 </Project>

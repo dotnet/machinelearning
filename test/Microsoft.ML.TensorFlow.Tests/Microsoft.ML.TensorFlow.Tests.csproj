@@ -4,6 +4,7 @@
     <AssemblyName>Microsoft.ML.TensorFlow.Tests</AssemblyName>
     <StrongNameKeyId>Test</StrongNameKeyId>
 
+    <SkipHelixTesting Condition="'$(TargetArchitecture)' != 'x64'">true</SkipHelixTesting>
   </PropertyGroup>
 
   <!-- Import the test signing certificate -->

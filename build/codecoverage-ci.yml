@@ -35,7 +35,6 @@ jobs:
         _configuration: Debug
         _config_short: D
         _includeBenchmarkData: false
-        _targetFramework: net8.0
     codeCoverage: true
     pool:
       name: NetCore-Public

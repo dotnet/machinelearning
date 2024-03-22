@@ -12,7 +12,6 @@ parameters:
   container: ''
   useVSTestTask: false
   helixQueue: ''
-  testTargetFramework: ''
 
 jobs:
   - job: ${{ parameters.name }}
@@ -37,7 +36,6 @@ jobs:
         hardLink: ''
       ${{ if eq(parameters.codeCoverage, 'false') }}:
         hardLink: '/p:CreateHardLinksForCopyLocalIfPossible=True'
-      testTargetFramework: '/p:TestTargetFramework=$(_targetFramework)'
     strategy:
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:
@@ -45,12 +43,10 @@ jobs:
             _configuration: Debug
             _config_short: D
             _includeBenchmarkData: false
-            _targetFramework: net8.0
           Release_Build:
             _configuration: Release
             _config_short: R
             _includeBenchmarkData: true
-            _targetFramework: net8.0
         ${{ if ne(parameters.customMatrixes, '') }}:
           ${{ insert }}: ${{ parameters.customMatrixes }}
 
@@ -67,7 +63,7 @@ jobs:
     - ${{ if and(contains(parameters.pool.vmImage, 'macOS'), contains(parameters.name, 'cross'))  }}:
       - script: brew update && brew install -f --overwrite python@3.12 && brew install libomp && brew link libomp --force
         displayName: Install MacOS ARM build dependencies
-    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }} $(testTargetFramework) /p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=True $(hardLink)
+    - script: ${{ parameters.buildScript }} -configuration $(_configuration) /p:TargetArchitecture=${{ parameters.architecture }} /p:TestArchitectures=${{ parameters.architecture }} /p:Coverage=${{ parameters.codeCoverage }} /p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=True $(hardLink)
       displayName: Build
     - ${{ if eq(parameters.pool.vmImage, 'macOS-10.15') }}:
       - task: Bash@3
