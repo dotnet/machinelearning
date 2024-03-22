@@ -425,6 +425,7 @@ namespace Microsoft.Data.Analysis
         {
             if (boolColumn.Length > Length)
                 throw new ArgumentException(Strings.MapIndicesExceedsColumnLenth, nameof(boolColumn));
+
             ArrowStringDataFrameColumn ret = new ArrowStringDataFrameColumn(Name);
             for (long i = 0; i < boolColumn.Length; i++)
             {
@@ -435,10 +436,11 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private ArrowStringDataFrameColumn CloneInternal<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false)
+        private ArrowStringDataFrameColumn CloneInternal<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices)
             where U : unmanaged
         {
             ArrowStringDataFrameColumn ret = new ArrowStringDataFrameColumn(Name);
+
             mapIndices.ApplyElementwise((U? mapIndex, long rowIndex) =>
             {
                 if (mapIndex == null)
@@ -446,26 +448,14 @@ namespace Microsoft.Data.Analysis
                     ret.Append(default);
                     return mapIndex;
                 }
-                if (invertMapIndices)
-                {
-                    long index = mapIndices.Length - 1 - rowIndex;
-                    ret.Append(IsValid(index) ? GetBytes(index) : default(ReadOnlySpan<byte>));
-                }
-                else
-                {
-                    ret.Append(IsValid(rowIndex) ? GetBytes(rowIndex) : default(ReadOnlySpan<byte>));
-                }
+
+                long index = invertMapIndices ? mapIndices.Length - 1 - rowIndex : rowIndex;
+                ret.Append(IsValid(index) ? GetBytes(index) : default(ReadOnlySpan<byte>));
+
                 return mapIndex;
             });
+
             return ret;
-        }
-
-        private ArrowStringDataFrameColumn CloneInternal(PrimitiveDataFrameColumn<long> mapIndices, bool invertMapIndex = false)
-        {
-            if (mapIndices is null)
-                return Clone();
-
-            return CloneInternal<long>(mapIndices, invertMapIndex);
         }
 
         /// <inheritdoc/>

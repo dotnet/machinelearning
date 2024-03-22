@@ -263,6 +263,7 @@ namespace Microsoft.Data.Analysis
             StringDataFrameColumn ret = new StringDataFrameColumn(Name, Length);
             for (long i = 0; i < Length; i++)
                 ret[i] = this[i];
+
             for (long i = 0; i < numberOfNullsToAppend; i++)
                 ret.Append(null);
 
