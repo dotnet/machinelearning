@@ -404,9 +404,9 @@ namespace Microsoft.Data.Analysis
                 if (dataType != typeof(long) && dataType != typeof(int) && dataType != typeof(bool))
                     throw new ArgumentException(String.Format(Strings.MultipleMismatchedValueType, typeof(long), typeof(int), typeof(bool)), nameof(mapIndices));
                 if (mapIndices.DataType == typeof(long))
-                    clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<long>, invertMapIndices);
+                    clone = CloneImplementation(mapIndices as PrimitiveDataFrameColumn<long>, invertMapIndices);
                 else if (dataType == typeof(int))
-                    clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<int>, invertMapIndices);
+                    clone = CloneImplementation(mapIndices as PrimitiveDataFrameColumn<int>, invertMapIndices);
                 else
                     clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<bool>);
 
@@ -436,7 +436,7 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private ArrowStringDataFrameColumn CloneInternal<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices)
+        private ArrowStringDataFrameColumn CloneImplementation<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices)
             where U : unmanaged
         {
             ArrowStringDataFrameColumn ret = new ArrowStringDataFrameColumn(Name);

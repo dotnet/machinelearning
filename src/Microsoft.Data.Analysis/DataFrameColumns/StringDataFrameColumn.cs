@@ -279,9 +279,9 @@ namespace Microsoft.Data.Analysis
                 if (dataType != typeof(long) && dataType != typeof(int) && dataType != typeof(bool))
                     throw new ArgumentException(String.Format(Strings.MultipleMismatchedValueType, typeof(long), typeof(int), typeof(bool)), nameof(mapIndices));
                 if (mapIndices.DataType == typeof(long))
-                    clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<long>, invertMapIndices);
+                    clone = CloneImplementation(mapIndices as PrimitiveDataFrameColumn<long>, invertMapIndices);
                 else if (dataType == typeof(int))
-                    clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<int>, invertMapIndices);
+                    clone = CloneImplementation(mapIndices as PrimitiveDataFrameColumn<int>, invertMapIndices);
                 else
                     clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<bool>);
 
@@ -310,7 +310,7 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private StringDataFrameColumn CloneInternal<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false)
+        private StringDataFrameColumn CloneImplementation<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false)
             where U : unmanaged
         {
             mapIndices = mapIndices ?? throw new ArgumentNullException(nameof(mapIndices));

@@ -440,7 +440,7 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private PrimitiveDataFrameColumn<T> CloneInternal<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false)
+        private PrimitiveDataFrameColumn<T> CloneImplementation<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false)
             where U : unmanaged
         {
             if (!mapIndices.IsNumericColumn())
@@ -467,7 +467,7 @@ namespace Microsoft.Data.Analysis
             if (mapIndices is null)
                 return Clone();
 
-            return CloneInternal(mapIndices, invertMapIndices);
+            return CloneImplementation(mapIndices, invertMapIndices);
         }
 
         public PrimitiveDataFrameColumn<T> Clone(PrimitiveDataFrameColumn<int> mapIndices, bool invertMapIndices = false)
@@ -475,7 +475,7 @@ namespace Microsoft.Data.Analysis
             if (mapIndices is null)
                 return Clone();
 
-            return CloneInternal(mapIndices, invertMapIndices);
+            return CloneImplementation(mapIndices, invertMapIndices);
         }
 
         public PrimitiveDataFrameColumn<T> Clone(IEnumerable<long> mapIndices)
