@@ -62,7 +62,6 @@ namespace Microsoft.Data.Analysis
             _nullBitMapBuffers.Add(nullBitMapBuffer);
 
             _nullCount = nullCount;
-
         }
 
         private long _nullCount;
@@ -371,6 +370,30 @@ namespace Microsoft.Data.Analysis
         /// <inheritdoc/>
         public override DataFrameColumn Sort(bool ascending = true) => throw new NotSupportedException();
 
+        public new ArrowStringDataFrameColumn Clone(long numberOfNullsToAppend = 0)
+        {
+            return (ArrowStringDataFrameColumn)CloneImplementation(numberOfNullsToAppend);
+        }
+
+        public new ArrowStringDataFrameColumn Clone(DataFrameColumn mapIndices, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
+        {
+            return (ArrowStringDataFrameColumn)CloneImplementation(mapIndices, invertMapIndices, numberOfNullsToAppend);
+        }
+
+        /// <inheritdoc/>
+        protected override DataFrameColumn CloneImplementation(long numberOfNullsToAppend)
+        {
+            var ret = new ArrowStringDataFrameColumn(Name);
+
+            for (long i = 0; i < Length; i++)
+                ret.Append(IsValid(i) ? GetBytes(i) : default(ReadOnlySpan<byte>));
+
+            for (long i = 0; i < numberOfNullsToAppend; i++)
+                ret.Append(default);
+
+            return ret;
+        }
+
         /// <inheritdoc/>
         protected override DataFrameColumn CloneImplementation(DataFrameColumn mapIndices, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
         {
@@ -386,15 +409,15 @@ namespace Microsoft.Data.Analysis
                     clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<int>, invertMapIndices);
                 else
                     clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<bool>);
+
+                for (long i = 0; i < numberOfNullsToAppend; i++)
+                    clone.Append(default);
             }
             else
             {
-                clone = CloneInternal();
+                clone = Clone(numberOfNullsToAppend);
             }
-            for (long i = 0; i < numberOfNullsToAppend; i++)
-            {
-                clone.Append(default);
-            }
+
             return clone;
         }
 
@@ -437,19 +460,12 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private ArrowStringDataFrameColumn CloneInternal(PrimitiveDataFrameColumn<long> mapIndices = null, bool invertMapIndex = false)
+        private ArrowStringDataFrameColumn CloneInternal(PrimitiveDataFrameColumn<long> mapIndices, bool invertMapIndex = false)
         {
             if (mapIndices is null)
-            {
-                ArrowStringDataFrameColumn ret = new ArrowStringDataFrameColumn(Name);
-                for (long i = 0; i < Length; i++)
-                {
-                    ret.Append(IsValid(i) ? GetBytes(i) : default(ReadOnlySpan<byte>));
-                }
-                return ret;
-            }
-            else
-                return CloneInternal<long>(mapIndices, invertMapIndex);
+                return Clone();
+
+            return CloneInternal<long>(mapIndices, invertMapIndex);
         }
 
         /// <inheritdoc/>

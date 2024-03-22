@@ -6,8 +6,6 @@
 // Generated from PrimitiveDataFrameColumn.BinaryOperations.tt. Do not modify directly
 
 using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 namespace Microsoft.Data.Analysis
 {

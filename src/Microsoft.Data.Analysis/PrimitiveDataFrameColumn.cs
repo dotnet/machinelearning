@@ -371,6 +371,11 @@ namespace Microsoft.Data.Analysis
             return $"{Name}: {_columnContainer.ToString()}";
         }
 
+        public new PrimitiveDataFrameColumn<T> Clone(long numberOfNullsToAppend = 0)
+        {
+            return (PrimitiveDataFrameColumn<T>)CloneImplementation(numberOfNullsToAppend);
+        }
+
         /// <summary>
         /// Returns a clone of this column
         /// </summary>
@@ -378,7 +383,13 @@ namespace Microsoft.Data.Analysis
         /// <param name="invertMapIndices"></param>
         /// <param name="numberOfNullsToAppend"></param>
         /// <returns></returns>
-        public new PrimitiveDataFrameColumn<T> Clone(DataFrameColumn mapIndices, bool invertMapIndices, long numberOfNullsToAppend)
+        public new PrimitiveDataFrameColumn<T> Clone(DataFrameColumn mapIndices, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
+        {
+            return (PrimitiveDataFrameColumn<T>)CloneImplementation(mapIndices, invertMapIndices, numberOfNullsToAppend);
+        }
+
+        /// <inheritdoc/>
+        protected override DataFrameColumn CloneImplementation(DataFrameColumn mapIndices, bool invertMapIndices, long numberOfNullsToAppend)
         {
             PrimitiveDataFrameColumn<T> clone;
             if (!(mapIndices is null))
@@ -391,24 +402,31 @@ namespace Microsoft.Data.Analysis
                 else if (dataType == typeof(int))
                     clone = Clone(mapIndices as PrimitiveDataFrameColumn<int>, invertMapIndices);
                 else
-                    clone = Clone(mapIndices as PrimitiveDataFrameColumn<bool>);
+                    clone = CloneInternal(mapIndices as PrimitiveDataFrameColumn<bool>);
+
+                if (numberOfNullsToAppend != 0)
+                    clone.AppendMany(null, numberOfNullsToAppend);
             }
             else
             {
                 clone = Clone();
             }
-            Debug.Assert(!ReferenceEquals(clone, null));
-            clone.AppendMany(null, numberOfNullsToAppend);
+
             return clone;
         }
 
-        /// <inheritdoc/>
-        protected override DataFrameColumn CloneImplementation(DataFrameColumn mapIndices, bool invertMapIndices, long numberOfNullsToAppend)
+        protected override DataFrameColumn CloneImplementation(long numberOfNullsToAppend)
         {
-            return Clone(mapIndices, invertMapIndices, numberOfNullsToAppend);
+            var newColumnContainer = _columnContainer.Clone();
+            var clone = CreateNewColumn(Name, newColumnContainer);
+
+            if (numberOfNullsToAppend != 0)
+                clone.AppendMany(null, numberOfNullsToAppend);
+
+            return clone;
         }
 
-        private PrimitiveDataFrameColumn<T> Clone(PrimitiveDataFrameColumn<bool> boolColumn)
+        private PrimitiveDataFrameColumn<T> CloneInternal(PrimitiveDataFrameColumn<bool> boolColumn)
         {
             if (boolColumn.Length > Length)
                 throw new ArgumentException(Strings.MapIndicesExceedsColumnLenth, nameof(boolColumn));
@@ -422,7 +440,7 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private PrimitiveDataFrameColumn<T> CloneImplementation<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false)
+        private PrimitiveDataFrameColumn<T> CloneInternal<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false)
             where U : unmanaged
         {
             if (!mapIndices.IsNumericColumn())
@@ -444,22 +462,20 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        public PrimitiveDataFrameColumn<T> Clone(PrimitiveDataFrameColumn<long> mapIndices = null, bool invertMapIndices = false)
+        public PrimitiveDataFrameColumn<T> Clone(PrimitiveDataFrameColumn<long> mapIndices, bool invertMapIndices = false)
         {
             if (mapIndices is null)
-            {
-                PrimitiveColumnContainer<T> newColumnContainer = _columnContainer.Clone();
-                return CreateNewColumn(Name, newColumnContainer);
-            }
-            else
-            {
-                return CloneImplementation(mapIndices, invertMapIndices);
-            }
+                return Clone();
+
+            return CloneInternal(mapIndices, invertMapIndices);
         }
 
         public PrimitiveDataFrameColumn<T> Clone(PrimitiveDataFrameColumn<int> mapIndices, bool invertMapIndices = false)
         {
-            return CloneImplementation(mapIndices, invertMapIndices);
+            if (mapIndices is null)
+                return Clone();
+
+            return CloneInternal(mapIndices, invertMapIndices);
         }
 
         public PrimitiveDataFrameColumn<T> Clone(IEnumerable<long> mapIndices)

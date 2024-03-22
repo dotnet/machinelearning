@@ -223,23 +223,6 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private VBufferDataFrameColumn<T> CloneInternal(PrimitiveDataFrameColumn<long> mapIndices = null, bool invertMapIndex = false)
-        {
-            if (mapIndices is null)
-            {
-                VBufferDataFrameColumn<T> ret = new VBufferDataFrameColumn<T>(Name, Length);
-                for (long i = 0; i < Length; i++)
-                {
-                    ret[i] = this[i];
-                }
-                return ret;
-            }
-            else
-            {
-                return CloneInternal(mapIndices, invertMapIndex);
-            }
-        }
-
         private VBufferDataFrameColumn<T> CloneInternal<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
            where U : unmanaged
         {
@@ -309,6 +292,16 @@ namespace Microsoft.Data.Analysis
 
         public new VBufferDataFrameColumn<T> Clone(DataFrameColumn mapIndices, bool invertMapIndices, long numberOfNullsToAppend)
         {
+            return (VBufferDataFrameColumn<T>)CloneImplementation(mapIndices, invertMapIndices, numberOfNullsToAppend);
+        }
+
+        public new VBufferDataFrameColumn<T> Clone(long numberOfNullsToAppend = 0)
+        {
+            return (VBufferDataFrameColumn<T>)CloneImplementation(numberOfNullsToAppend);
+        }
+
+        protected override DataFrameColumn CloneImplementation(DataFrameColumn mapIndices, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
+        {
             VBufferDataFrameColumn<T> clone;
             if (!(mapIndices is null))
             {
@@ -324,15 +317,20 @@ namespace Microsoft.Data.Analysis
             }
             else
             {
-                clone = CloneInternal();
+                clone = Clone();
             }
 
             return clone;
         }
 
-        protected override DataFrameColumn CloneImplementation(DataFrameColumn mapIndices = null, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
+        protected override DataFrameColumn CloneImplementation(long numberOfNullsToAppend)
         {
-            return Clone(mapIndices, invertMapIndices, numberOfNullsToAppend);
+            var ret = new VBufferDataFrameColumn<T>(Name, Length);
+
+            for (long i = 0; i < Length; i++)
+                ret[i] = this[i];
+
+            return ret;
         }
 
         private static VectorDataViewType GetDataViewType()
