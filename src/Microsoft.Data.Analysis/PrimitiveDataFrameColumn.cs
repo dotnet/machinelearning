@@ -364,14 +364,6 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Returns a preview of the column contents as a formatted string.
-        /// </summary>
-        public override string ToString()
-        {
-            return $"{Name}: {_columnContainer.ToString()}";
-        }
-
-        /// <summary>
         /// Returns a clone of this column
         /// </summary>
         /// <param name="mapIndices">A column who values are used as indices </param>

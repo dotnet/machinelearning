@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using Apache.Arrow;
 using Microsoft.ML;
 
@@ -399,6 +400,25 @@ namespace Microsoft.Data.Analysis
         /// Returns a <see cref= "DataFrameColumn"/> with statistics that describe the column
         /// </summary>
         public virtual DataFrameColumn Description() => throw new NotImplementedException();
+
+        /// <summary>
+        /// A preview of the contents of this <see cref="DataFrameColumn"/> as a string.
+        /// </summary>
+        /// <returns>A preview of the contents of this <see cref="DataFrameColumn"/>.</returns>
+        public override string ToString()
+        {
+            var sb = new StringBuilder(Name);
+            sb.AppendLine();
+
+            var numberOfRows = Math.Min(Length, 25);
+            for (long i = 0; i < numberOfRows; i++)
+            {
+                sb.Append(this[i] ?? "null");
+                sb.AppendLine();
+            }
+
+            return sb.ToString();
+        }
 
         /// <summary>
         /// Returns the indices of non-null values that, when applied, result in this column being sorted in ascending order. Also returns the indices of null values in <paramref name="nullIndices"/>.
