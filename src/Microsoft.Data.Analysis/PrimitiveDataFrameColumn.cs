@@ -403,7 +403,7 @@ namespace Microsoft.Data.Analysis
         private PrimitiveDataFrameColumn<T> Clone(PrimitiveDataFrameColumn<bool> boolColumn)
         {
             if (boolColumn.Length > Length)
-                throw new ArgumentException(Strings.MapIndicesExceedsColumnLenth, nameof(boolColumn));
+                throw new ArgumentException(Strings.MapIndicesExceedsColumnLength, nameof(boolColumn));
             PrimitiveDataFrameColumn<T> ret = CreateNewColumn(Name);
             for (long i = 0; i < boolColumn.Length; i++)
             {

@@ -422,7 +422,7 @@ namespace Microsoft.Data.Analysis
 
             if (numberOfRows < Length)
             {
-                sb.Append($"... {rowsToShow} of total {Length}");
+                sb.Append(String.Format(Strings.AmountOfRowsShown, rowsToShow, Length));
                 sb.AppendLine();
             }
 
