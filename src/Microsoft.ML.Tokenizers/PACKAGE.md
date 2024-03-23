@@ -68,7 +68,7 @@ The main types provided by this library are:
 * `Microsoft.ML.Tokenizers.Tokenizer`
 * `Microsoft.ML.Tokenizers.Bpe`
 * `Microsoft.ML.Tokenizers.EnglishRoberta`
-* `Microsoft.ML.Tokenizers.TikToken`
+* `Microsoft.ML.Tokenizers.Tiktoken`
 * `Microsoft.ML.Tokenizers.TokenizerDecoder`
 * `Microsoft.ML.Tokenizers.Normalizer`
 * `Microsoft.ML.Tokenizers.PreTokenizer`

@@ -12,18 +12,18 @@ namespace Microsoft.ML.Tokenizers
     /// <summary>
     /// The pre-tokenizer for Tiktoken tokenizer.
     /// </summary>
-    public sealed class TikTokenPreTokenizer : PreTokenizer
+    public sealed class TiktokenPreTokenizer : PreTokenizer
     {
         private readonly Regex? _specialTokensRegex;
         private readonly Regex _regex;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TikTokenPreTokenizer"/> class.
+        /// Initializes a new instance of the <see cref="TiktokenPreTokenizer"/> class.
         /// </summary>
         /// <param name="regex">The regex to use for splitting the text into smaller tokens in the pre-tokenization process.</param>
         /// <param name="specialTokensEncoder">The dictionary containing the special tokens and their corresponding ids.</param>
         /// <exception cref="ArgumentNullException">When regex is null</exception>
-        public TikTokenPreTokenizer(Regex regex, IReadOnlyDictionary<string, int>? specialTokensEncoder)
+        public TiktokenPreTokenizer(Regex regex, IReadOnlyDictionary<string, int>? specialTokensEncoder)
         {
             if (regex is null)
             {
