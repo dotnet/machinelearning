@@ -7,6 +7,7 @@ using Microsoft.ML.Tokenizers;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -41,11 +42,14 @@ namespace Microsoft.ML.Tokenizers.Tests
             IReadOnlyDictionary<string, int>? specialTokensEncoder = (GPT4.Model as Tiktoken)!.SpecialTokensEncoder;
 
             string tokenizerDataFileName = Utils.CreateTemporaryFile("tiktoken");
-            using (Stream tiktokenStream = await Helpers.OpenEmbeddedCompressedStreamAsync("cl100k_base.tiktoken.deflate"))
+
+            using Stream compressedStream = typeof(Tokenizer).Assembly.GetManifestResourceStream("cl100k_base.tiktoken.deflate")!;
+            using Stream deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress);
+
+            // await Utils.DownloadFile(@"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken", tokenizerDataFileName);
+            using (Stream fileStream = File.OpenWrite(tokenizerDataFileName))
             {
-                // await Utils.DownloadFile(@"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken", tokenizerDataFileName);
-                using Stream fileStream = File.OpenWrite(tokenizerDataFileName);
-                tiktokenStream.CopyTo(fileStream);
+                deflateStream.CopyTo(fileStream);
             }
 
             try
@@ -89,24 +93,40 @@ namespace Microsoft.ML.Tokenizers.Tests
             }
         }
 
-        [Fact]
-        public async void TestTokenizerUsingExternalVocab()
+        public static IEnumerable<object[]> ModelUrlData()
+        {
+            yield return new object[] { GPT4, @"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken" };
+            yield return new object[] { GPT2, @"https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken" };
+            yield return new object[] { P50kBase, @"https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken" };
+            yield return new object[] { R50kBase, @"https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken" };
+        }
+
+        [Theory]
+        [MemberData(nameof(ModelUrlData))]
+        public async void TestTokenizerUsingExternalVocab(Tokenizer tokenizer, string url)
         {
             string tokenizerDataFileName = Utils.CreateTemporaryFile("tiktoken");
-            try
+            bool result = await Utils.DownloadFile(url, tokenizerDataFileName);
+            if (!result)
             {
-                await Utils.DownloadFile(@"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken", tokenizerDataFileName);
-            }
-            catch
-            {
-                // Tolerate network issues.
+                // tolerate network issues
                 return;
             }
 
             try
             {
-                Tokenizer tokenizer = new Tokenizer(new Tiktoken(tokenizerDataFileName, (GPT4.Model as Tiktoken)!.SpecialTokensEncoder), GPT4.PreTokenizer);
-                TestGPT4TokenizationEncoding(tokenizer);
+                Tiktoken tiktoken = (tokenizer.Model as Tiktoken)!;
+                Tokenizer externalTokenizer = new Tokenizer(new Tiktoken(tokenizerDataFileName, tiktoken.SpecialTokensEncoder), tokenizer.PreTokenizer);
+
+                IReadOnlyDictionary<ReadOnlyMemory<byte>, int> encoder = tiktoken.Encoder;
+                IReadOnlyDictionary<ReadOnlyMemory<byte>, int> externalEncoder = (externalTokenizer.Model as Tiktoken)!.Encoder;
+
+                Assert.Equal(externalEncoder.Count, encoder.Count);
+                foreach (KeyValuePair<ReadOnlyMemory<byte>, int> kvp in encoder)
+                {
+                    Assert.True(externalEncoder.TryGetValue(kvp.Key, out int value));
+                    Assert.Equal(kvp.Value, value);
+                }
             }
             finally
             {

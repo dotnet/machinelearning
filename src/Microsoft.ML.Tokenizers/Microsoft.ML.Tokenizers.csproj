@@ -42,14 +42,25 @@
   </UsingTask>
 
   <ItemGroup>
-    <FilesToCompress Include="Data\cl100k_base.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate"
-      Source="https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken" />
-    <FilesToCompress Include="Data\gpt2.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate"
-      Source="https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken" />
-    <FilesToCompress Include="Data\p50k_base.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate"
-      Source="https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken" />
-    <FilesToCompress Include="Data\r50k_base.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate"
-      Source="https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken" />
+    <!--
+      The following files are compressed using the DeflateStream and embedded as resources in the assembly.
+      The files are downloaded from the following sources and compressed to the Destination.
+        1. cl100k_base.tiktoken: https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken
+        2. gpt2.tiktoken:        https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken
+        3. p50k_base.tiktoken:   https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken
+        4. r50k_base.tiktoken:   https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken
+
+      These files under MIT copyright license https://github.com/openai/tiktoken/blob/main/LICENSE
+
+      Prior to compressing the files, we modify their content to eliminate the ranks, thus reducing the file size,
+      since the rank corresponds to the line number in the file. For the file p50k_base.tiktoken,
+      we introduce empty lines to replace any missing ranks, ensuring that the rank consistently aligns with the line number.
+      Take note of the empty line at number 50,257 in the file p50k_base.tiktoken.
+    -->
+    <FilesToCompress Include="Data\cl100k_base.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate" />
+    <FilesToCompress Include="Data\gpt2.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate" />
+    <FilesToCompress Include="Data\p50k_base.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate" />
+    <FilesToCompress Include="Data\r50k_base.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate" />
   </ItemGroup>
 
   <Target Name="TestCompress"

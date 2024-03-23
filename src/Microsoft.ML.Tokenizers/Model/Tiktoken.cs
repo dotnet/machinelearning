@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -197,8 +198,9 @@ namespace Microsoft.ML.Tokenizers
                         {
                             if (line.Length > 0)
                             {
-                                AddData(Convert.FromBase64String(line), lineNumber++);
+                                AddData(Convert.FromBase64String(line), lineNumber);
                             }
+                            lineNumber++;
                         } while ((line = useAsync ? await Helpers.ReadLineAsync(reader, cancellationToken).ConfigureAwait(false) : reader.ReadLine()) is not null);
                     }
 
@@ -804,10 +806,10 @@ namespace Microsoft.ML.Tokenizers
 
             if (!_tiktokenCache.TryGetValue(mergeableRanksFile, out (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, int> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) cache))
             {
-                using (Stream stream = await Helpers.OpenEmbeddedCompressedStreamAsync(mergeableRanksFile, cancellationToken).ConfigureAwait(false))
-                {
-                    cache = await LoadTikTokenBpeAsync(stream, useAsync: true, cancellationToken).ConfigureAwait(false);
-                }
+                using Stream compressedStream = typeof(Tokenizer).Assembly.GetManifestResourceStream(mergeableRanksFile)!;
+                using Stream deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress);
+
+                cache = await LoadTikTokenBpeAsync(deflateStream, useAsync: true, cancellationToken).ConfigureAwait(false);
 
                 _tiktokenCache.TryAdd(mergeableRanksFile, cache);
             }
@@ -838,8 +840,10 @@ namespace Microsoft.ML.Tokenizers
             if (!_tiktokenCache.TryGetValue(tiktokenConfiguration.VocabFile,
                     out (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, int> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) cache))
             {
-                using Stream stream = Helpers.OpenEmbeddedCompressedStreamAsync(tiktokenConfiguration.VocabFile).GetAwaiter().GetResult();
-                cache = LoadTikTokenBpeAsync(stream, useAsync: false).GetAwaiter().GetResult();
+                using Stream compressedStream = typeof(Tokenizer).Assembly.GetManifestResourceStream(tiktokenConfiguration.VocabFile)!;
+                using Stream deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress);
+
+                cache = LoadTikTokenBpeAsync(deflateStream, useAsync: false).GetAwaiter().GetResult();
 
                 _tiktokenCache.TryAdd(tiktokenConfiguration.VocabFile, cache);
             }
