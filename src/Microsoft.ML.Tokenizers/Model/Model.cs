@@ -18,7 +18,7 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="text">The text to encode.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
-        public abstract IReadOnlyList<Token> Encode(string text);
+        public abstract IReadOnlyList<Token> Encode(ReadOnlySpan<char> text);
 
         /// <summary>
         /// Encode a text to a list of Ids and add them to the accumulatedIds list.
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             // Default implementation is not optimized for memory allocation. It is recommended to override this method for the sake of the performance.
-            var tokens = Encode(text.ToString());
+            var tokens = Encode(text);
             foreach (var token in tokens)
             {
                 accumulatedIds.Add(token.Id);

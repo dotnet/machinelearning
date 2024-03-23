@@ -178,7 +178,7 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="text">The text to encode.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
-        public override IReadOnlyList<Token> Encode(string text)
+        public override IReadOnlyList<Token> Encode(ReadOnlySpan<char> text)
         {
             if (text.Length == 0)
             {
@@ -429,7 +429,7 @@ namespace Microsoft.ML.Tokenizers
 
         internal List<Token> WordToTokens(ref Word word) => word.ToTokens(VocabReverse);
 
-        internal List<Token> EncodeWithCache(string text)
+        internal List<Token> EncodeWithCache(ReadOnlySpan<char> text)
         {
             Word word;
             if (Cache is not null)
@@ -439,12 +439,12 @@ namespace Microsoft.ML.Tokenizers
                     return WordToTokens(ref word);
                 }
 
-                word = MergeWord(text.AsSpan());
-                Cache.Set(text, word);
+                word = MergeWord(text);
+                Cache.Set(text.ToString(), word);
             }
             else
             {
-                word = MergeWord(text.AsSpan());
+                word = MergeWord(text);
             }
 
             return WordToTokens(ref word);

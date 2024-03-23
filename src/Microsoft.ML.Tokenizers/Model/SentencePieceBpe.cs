@@ -157,7 +157,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="text">The text to encode.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
         /// <remarks>The input text has to be normalized before calling this method.</remarks>
-        public override IReadOnlyList<Token> Encode(string text) => Encode(text, AddBeginningOfSentence, AddEndOfSentence);
+        public override IReadOnlyList<Token> Encode(ReadOnlySpan<char> text) => Encode(text, AddBeginningOfSentence, AddEndOfSentence);
 
         /// <summary>
         /// Encode a text to a list of tokens.
@@ -167,13 +167,8 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="addEndOfSentence">Indicate emitting the end of sentence token during the encoding.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
         /// <remarks>The input text has to be normalized before calling this method.</remarks>
-        public IReadOnlyList<Token> Encode(string text, bool addBeginOfSentence, bool addEndOfSentence)
+        public IReadOnlyList<Token> Encode(ReadOnlySpan<char> text, bool addBeginOfSentence, bool addEndOfSentence)
         {
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
             if (text.Length == 0)
             {
                 return Array.Empty<Token>();
@@ -181,7 +176,7 @@ namespace Microsoft.ML.Tokenizers
 
             BpeSymbol[] symbols = ArrayPool<BpeSymbol>.Shared.Rent(text.Length);
 
-            Dictionary<(int Index, int Len), (int LeftIndex, int LeftLen, int RightIndex, int RightLen)>? revMerge = Encode(text.AsSpan(), symbols);
+            Dictionary<(int Index, int Len), (int LeftIndex, int LeftLen, int RightIndex, int RightLen)>? revMerge = Encode(text, symbols);
 
             List<Token> tokens = new();
 
@@ -197,7 +192,7 @@ namespace Microsoft.ML.Tokenizers
 
                 if (id == UninitializedId)
                 {
-                    if (_vocab.TryGetValue(text.AsSpan().Slice(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length), out (int Id, float Score, byte Type) tokenInfo))
+                    if (_vocab.TryGetValue(text.Slice(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length), out (int Id, float Score, byte Type) tokenInfo))
                     {
                         id = tokenInfo.Id;
                         type = tokenInfo.Type;
@@ -213,19 +208,19 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (id == UnknownId && ByteFallback)
                     {
-                        EncodeAsBytes(text.AsSpan().Slice(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length), symbols[index].pieceSpan.Index);
+                        EncodeAsBytes(text.Slice(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length), symbols[index].pieceSpan.Index);
                     }
                     else
                     {
                         tokens.Add(new Token(
                                     id,
-                                    GetTokenString(id, symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length, text.AsSpan()),
+                                    GetTokenString(id, symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length, text),
                                     (symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length)));
                     }
                     continue;
                 }
 
-                Segment(symbols[index].pieceSpan, text.AsSpan());
+                Segment(symbols[index].pieceSpan, text);
             }
 
             ArrayPool<BpeSymbol>.Shared.Return(symbols);

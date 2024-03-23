@@ -172,9 +172,9 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="text">The text to encode.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
-        public override IReadOnlyList<Token> Encode(string text)
+        public override IReadOnlyList<Token> Encode(ReadOnlySpan<char> text)
         {
-            if (string.IsNullOrEmpty(text))
+            if (text.IsEmpty)
             {
                 return Bpe.EmptyTokensList;
             }
@@ -208,7 +208,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             List<Token> result = EncodeToTokens(token.AsSpan().Slice(0, newTokenIndex), indexMapping);
-            _cache.Set(text, result);
+            _cache.Set(text.ToString(), result);
             ArrayPool<char>.Shared.Return(token);
             ArrayPool<int>.Shared.Return(indexMapping);
             return result;
