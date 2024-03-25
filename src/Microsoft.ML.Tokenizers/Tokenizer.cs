@@ -102,7 +102,7 @@ namespace Microsoft.ML.Tokenizers
 
             foreach (Split split in PreTokenizer.PreTokenize(normalized))
             {
-                Model.EncodeToIds(split.TokenSpan, idsList);
+                Model.EncodeToIds(split.TokenSpan, idsList, out _);
             }
 
             return idsList;
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Tokenizers
             int idsCount = 0;
             foreach (Split split in PreTokenizer.PreTokenize(normalized))
             {
-                idsCount += Model.CountTokens(split.TokenSpan);
+                idsCount += Model.CountTokens(split.TokenSpan, out _);
             }
 
             return idsCount;
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Tokenizers
         /// <exception cref="ArgumentNullException">The input text is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">The maximum token count must be greater than 0.</exception>
         public int IndexOfTokenCount(string text, int maxTokenCount, out string processedText, out int tokenCount)
-            => IndexOf(text, maxTokenCount, fromStart: true, out processedText, out tokenCount);
+            => IndexOf(text, maxTokenCount, out processedText, out tokenCount);
 
         /// <summary>
         /// Find the index of the maximum encoding capacity from the end within the text without surpassing the token limit.
@@ -166,9 +166,9 @@ namespace Microsoft.ML.Tokenizers
         /// If the whole text can be encoded within the token limit, the returned index will be 0.
         /// </remarks>
         public int LastIndexOfTokenCount(string text, int maxTokenCount, out string processedText, out int tokenCount)
-            => IndexOf(text, maxTokenCount, fromStart: false, out processedText, out tokenCount);
+            => LastIndexOf(text, maxTokenCount, out processedText, out tokenCount);
 
-        private int IndexOf(string text, int maxTokenCount, bool fromStart, out string processedText, out int tokenCount)
+        private int IndexOf(string text, int maxTokenCount, out string processedText, out int tokenCount)
         {
             if (text is null)
             {
@@ -184,18 +184,44 @@ namespace Microsoft.ML.Tokenizers
             tokenCount = 0;
 
             IEnumerable<Split> splits = PreTokenizer.PreTokenize(processedText);
-            foreach (Split split in (fromStart ? splits : splits.Reverse()))
+            foreach (Split split in splits)
             {
-                int count = Model.CountTokens(split.TokenSpan);
-                if (tokenCount > maxTokenCount - count)
+                tokenCount += Model.CountTokens(split.TokenSpan, out int textLength, maxTokenCount - tokenCount);
+                if (textLength < split.Offset.Length || tokenCount >= maxTokenCount)
                 {
-                    return fromStart ? split.Offset.Index : split.Offset.Index + split.Offset.Length;
+                    return split.Offset.Index + textLength;
                 }
-
-                tokenCount += count;
             }
 
-            return fromStart ? processedText.Length : 0;
+            return processedText.Length;
+        }
+
+        private int LastIndexOf(string text, int maxTokenCount, out string processedText, out int tokenCount)
+        {
+            if (text is null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (maxTokenCount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The max token count must be greater than 0.");
+            }
+
+            processedText = Normalizer is not null ? Normalizer.Normalize(text) : text;
+            tokenCount = 0;
+
+            IEnumerable<Split> splits = PreTokenizer.PreTokenize(processedText);
+            foreach (Split split in splits.Reverse())
+            {
+                tokenCount += Model.CountTokensFromEnd(split.TokenSpan, out int textIndex, maxTokenCount - tokenCount);
+                if (textIndex > 0 || tokenCount >= maxTokenCount)
+                {
+                    return split.Offset.Index + textIndex;
+                }
+            }
+
+            return 0;
         }
 
         /// <summary>

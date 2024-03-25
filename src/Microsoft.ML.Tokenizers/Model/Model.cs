@@ -25,11 +25,14 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="text">The text to encode. </param>
         /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
         /// <remarks>
         /// This method does the default implementation that uses the Encode method to get the token's Ids.
         /// Tokenizer's models which care about performance may choose to override this method to provide a more efficient implementation.
         /// </remarks>
-        public virtual void EncodeToIds(ReadOnlySpan<char> text, IList<int> accumulatedIds)
+        public virtual int EncodeToIds(ReadOnlySpan<char> text, IList<int> accumulatedIds, out int textLength, int maxTokens = int.MaxValue)
         {
             if (accumulatedIds is null)
             {
@@ -37,27 +40,94 @@ namespace Microsoft.ML.Tokenizers
             }
 
             // Default implementation is not optimized for memory allocation. It is recommended to override this method for the sake of the performance.
+            textLength = 0;
             var tokens = Encode(text);
-            foreach (var token in tokens)
+
+            int count = Math.Min(tokens.Count, maxTokens);
+
+            for (int i = 0; i < count; i++)
             {
-                accumulatedIds.Add(token.Id);
+                textLength += tokens[i].Offset.Length;
+                accumulatedIds.Add(tokens[i].Id);
             }
+
+            return count;
         }
 
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
         /// <param name="text">The text to encode.</param>
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
         /// <returns>The number of tokens that the input text will be encoded to.</returns>
         /// <remarks>
         /// This method does the default implementation that uses the EncodeToIds method to get the number of token's Ids.
         /// Tokenizer's models which care about performance may choose to override this method to provide a more efficient implementation.
         /// </remarks>
-        public virtual int CountTokens(ReadOnlySpan<char> text)
+        public virtual int CountTokens(ReadOnlySpan<char> text, out int textLength, int maxTokens = int.MaxValue)
         {
+            if (maxTokens <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxTokens), "The maximum number of tokens must be greater than 0.");
+            }
+
             var ids = new List<int>();
-            EncodeToIds(text, ids);
-            return ids.Count;
+
+            if (maxTokens == int.MaxValue)
+            {
+                EncodeToIds(text, ids, out _);
+                textLength = text.Length;
+                return ids.Count;
+            }
+
+            IReadOnlyList<Token> tokens = Encode(text);
+            textLength = 0;
+            int count = Math.Min(tokens.Count, maxTokens);
+            for (int i = 0; i < count; i++)
+            {
+                textLength += tokens[i].Offset.Length;
+            }
+
+            return count;
+        }
+
+        /// <summary>
+        /// Get the number of tokens that the input text will be encoded to.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="textIndex">Starting from this index to the end of the text will encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        /// <remarks>
+        /// This method does the default implementation that uses the EncodeToIds method to get the number of token's Ids.
+        /// Tokenizer's models which care about performance may choose to override this method to provide a more efficient implementation.
+        /// </remarks>
+        public virtual int CountTokensFromEnd(ReadOnlySpan<char> text, out int textIndex, int maxTokens = int.MaxValue)
+        {
+            if (maxTokens <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxTokens), "The maximum number of tokens must be greater than 0.");
+            }
+
+            var ids = new List<int>();
+
+            if (maxTokens == int.MaxValue)
+            {
+                EncodeToIds(text, ids, out _);
+                textIndex = 0;
+                return ids.Count;
+            }
+
+            IReadOnlyList<Token> tokens = Encode(text);
+            textIndex = text.Length;
+            int count = Math.Min(tokens.Count, maxTokens);
+            for (int i = tokens.Count - 1; i >= tokens.Count - count; i--)
+            {
+                textIndex -= tokens[i].Offset.Length;
+            }
+
+            return count;
         }
 
         /// <summary>

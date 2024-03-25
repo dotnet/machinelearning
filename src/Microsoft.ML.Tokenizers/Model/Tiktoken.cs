@@ -292,57 +292,36 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="text">The text to encode.</param>
         /// <param name="accumulatedIds">The list of accumulated Ids.</param>
-        public override void EncodeToIds(ReadOnlySpan<char> text, IList<int> accumulatedIds)
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        public override int EncodeToIds(ReadOnlySpan<char> text, IList<int> accumulatedIds, out int textLength, int maxTokens = int.MaxValue)
         {
+            Debug.Assert(maxTokens > 0);
+
             if (text.IsEmpty)
             {
-                return;
+                textLength = 0;
+                return 0;
             }
 
             if (_cache.TryGetValue(text, out (int[] Bytes, string Token) tokenIds))
             {
-                accumulatedIds.AddRange(tokenIds.Bytes);
-                return;
+                if (tokenIds.Bytes.Length <= maxTokens)
+                {
+                    accumulatedIds.AddRange(tokenIds.Bytes);
+                    textLength = text.Length;
+                    return tokenIds.Bytes.Length;
+                }
+
+                textLength = 0;
+                return 0;
             }
 
             if (_vocab.TryGetValue(text, out (int Id, string Token) mappedId))
             {
+                textLength = text.Length;
                 accumulatedIds.Add(mappedId.Id);
-                return;
-            }
-
-            byte[] arrayPoolArray = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(text.Length));
-            int encodedLength = Helpers.GetUtf8Bytes(text, arrayPoolArray);
-
-            int[] encodedIds = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
-            string textAsString = text.ToString();
-            _cache.Add(textAsString, (encodedIds, textAsString));
-
-            accumulatedIds.AddRange(encodedIds);
-
-            ArrayPool<byte>.Shared.Return(arrayPoolArray);
-            return;
-        }
-
-        /// <summary>
-        /// Get the number of tokens that the input text will be encoded to.
-        /// </summary>
-        /// <param name="text">The text to encode.</param>
-        /// <returns>The number of tokens that the input text will be encoded to.</returns>
-        public override int CountTokens(ReadOnlySpan<char> text)
-        {
-            if (text.IsEmpty)
-            {
-                return 0;
-            }
-
-            if (_cache.TryGetValue(text, out (int[] Bytes, string Token) ids))
-            {
-                return ids.Bytes.Length;
-            }
-
-            if (_vocab.TryGetValue(text, out _))
-            {
                 return 1;
             }
 
@@ -353,8 +332,137 @@ namespace Microsoft.ML.Tokenizers
             string textAsString = text.ToString();
             _cache.Add(textAsString, (encodedIds, textAsString));
 
+            int result;
+            if (encodedIds.Length <= maxTokens)
+            {
+                accumulatedIds.AddRange(encodedIds);
+                textLength = text.Length;
+                result = encodedIds.Length;
+            }
+            else
+            {
+                textLength = 0;
+                result = 0;
+            }
+
             ArrayPool<byte>.Shared.Return(arrayPoolArray);
-            return encodedIds.Length;
+            return result;
+        }
+
+        /// <summary>
+        /// Get the number of tokens that the input text will be encoded to.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        public override int CountTokens(ReadOnlySpan<char> text, out int textLength, int maxTokens = int.MaxValue)
+        {
+            Debug.Assert(maxTokens > 0);
+
+            if (text.IsEmpty)
+            {
+                textLength = 0;
+                return 0;
+            }
+
+            if (_cache.TryGetValue(text, out (int[] Bytes, string Token) ids))
+            {
+                if (ids.Bytes.Length <= maxTokens)
+                {
+                    textLength = text.Length;
+                    return ids.Bytes.Length;
+                }
+
+                textLength = 0;
+                return 0;
+            }
+
+            if (_vocab.TryGetValue(text, out _))
+            {
+                textLength = text.Length;
+                return 1;
+            }
+
+            byte[] arrayPoolArray = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(text.Length));
+            int encodedLength = Helpers.GetUtf8Bytes(text, arrayPoolArray);
+
+            int[] encodedIds = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
+            string textAsString = text.ToString();
+            _cache.Add(textAsString, (encodedIds, textAsString));
+
+            int result;
+            if (encodedIds.Length <= maxTokens)
+            {
+                textLength = text.Length;
+                result = encodedIds.Length;
+            }
+            else
+            {
+                textLength = 0;
+                result = 0;
+            }
+
+            ArrayPool<byte>.Shared.Return(arrayPoolArray);
+            return result;
+        }
+
+        /// <summary>
+        /// Get the number of tokens that the input text will be encoded to.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="textIndex">Starting from this index to the end of the text will encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        public override int CountTokensFromEnd(ReadOnlySpan<char> text, out int textIndex, int maxTokens = int.MaxValue)
+        {
+            Debug.Assert(maxTokens > 0);
+
+            if (text.IsEmpty)
+            {
+                textIndex = 0;
+                return 0;
+            }
+
+            if (_cache.TryGetValue(text, out (int[] Bytes, string Token) ids))
+            {
+                if (ids.Bytes.Length <= maxTokens)
+                {
+                    textIndex = 0;
+                    return ids.Bytes.Length;
+                }
+
+                textIndex = text.Length;
+                return 0;
+            }
+
+            if (_vocab.TryGetValue(text, out _))
+            {
+                textIndex = 0;
+                return 1;
+            }
+
+            byte[] arrayPoolArray = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(text.Length));
+            int encodedLength = Helpers.GetUtf8Bytes(text, arrayPoolArray);
+
+            int[] encodedIds = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
+            string textAsString = text.ToString();
+            _cache.Add(textAsString, (encodedIds, textAsString));
+
+            int result;
+            if (encodedIds.Length <= maxTokens)
+            {
+                textIndex = 0;
+                result = encodedIds.Length;
+            }
+            else
+            {
+                textIndex = text.Length;
+                result = 0;
+            }
+
+            ArrayPool<byte>.Shared.Return(arrayPoolArray);
+            return result;
         }
 
         /// <summary>

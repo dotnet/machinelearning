@@ -193,14 +193,28 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="text">The text to encode.</param>
         /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
-        public override void EncodeToIds(ReadOnlySpan<char> text, IList<int> accumulatedIds) => EncodeToIdsWithCache(text, accumulatedIds);
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        public override int EncodeToIds(ReadOnlySpan<char> text, IList<int> accumulatedIds, out int textLength, int maxTokens = int.MaxValue) => EncodeToIdsWithCache(text, accumulatedIds, maxTokens, out textLength);
 
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <returns>The number of tokens that the input text will be encoded to. This parameter is ignored in this model.</returns>
-        public override int CountTokens(ReadOnlySpan<char> text) => EncodeToIdsWithCache(text, null);
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        public override int CountTokens(ReadOnlySpan<char> text, out int textLength, int maxTokens = int.MaxValue) => EncodeToIdsWithCache(text, null, maxTokens, out textLength);
+
+        /// <summary>
+        /// Get the number of tokens that the input text will be encoded to.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="textIndex">Starting from this index to the end of the text will encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        public override int CountTokensFromEnd(ReadOnlySpan<char> text, out int textIndex, int maxTokens = int.MaxValue) => EncodeToIdsFromEndWithCache(text, null, maxTokens, out textIndex);
 
         /// <summary>
         /// Map the token to encoded Id.
@@ -450,17 +464,49 @@ namespace Microsoft.ML.Tokenizers
             return WordToTokens(ref word);
         }
 
-        internal int WordToIds(ref Word word, IList<int>? accumulatedIds)
+        internal int WordToIds(ref Word word, IList<int>? accumulatedIds, out int textLength, int fullTextLength, int maxTokens)
         {
-            if (accumulatedIds is not null)
+            if (word.SymbolsCount < maxTokens)
             {
-                word.PopulateIds(accumulatedIds);
+                textLength = fullTextLength;
+                if (accumulatedIds is not null)
+                {
+                    word.PopulateIds(accumulatedIds);
+                }
+
+                return word.SymbolsCount;
             }
 
-            return word.SymbolsCount;
+            if (accumulatedIds is not null)
+            {
+                return word.PopulateIdsUpToMax(accumulatedIds, maxTokens, out textLength);
+            }
+
+            return word.CountIdsUpToMax(maxTokens, out textLength);
         }
 
-        internal int EncodeToIdsWithCache(ReadOnlySpan<char> text, IList<int>? accumulatedIds)
+        internal int WordToIdsFromEnd(ref Word word, IList<int>? accumulatedIds, out int textIndex, int fullTextLength, int maxTokens)
+        {
+            if (word.SymbolsCount < maxTokens)
+            {
+                textIndex = 0;
+                if (accumulatedIds is not null)
+                {
+                    word.PopulateIds(accumulatedIds);
+                }
+
+                return word.SymbolsCount;
+            }
+
+            if (accumulatedIds is not null)
+            {
+                return word.PopulateIdsUpToMaxFromEnd(accumulatedIds, maxTokens, fullTextLength, out textIndex);
+            }
+
+            return word.CountIdsUpToMaxFromEnd(maxTokens, fullTextLength, out textIndex);
+        }
+
+        internal int EncodeToIdsWithCache(ReadOnlySpan<char> text, IList<int>? accumulatedIds, int maxTokens, out int textLength)
         {
             Word word;
 
@@ -468,7 +514,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (Cache.TryGetValue(text, out Word hit))
                 {
-                    return WordToIds(ref hit, accumulatedIds);
+                    return WordToIds(ref hit, accumulatedIds, out textLength, text.Length, maxTokens);
                 }
 
                 word = MergeWord(text);
@@ -479,7 +525,29 @@ namespace Microsoft.ML.Tokenizers
                 word = MergeWord(text);
             }
 
-            return WordToIds(ref word, accumulatedIds);
+            return WordToIds(ref word, accumulatedIds, out textLength, text.Length, maxTokens);
+        }
+
+        internal int EncodeToIdsFromEndWithCache(ReadOnlySpan<char> text, IList<int>? accumulatedIds, int maxTokens, out int textIndex)
+        {
+            Word word;
+
+            if (Cache is not null)
+            {
+                if (Cache.TryGetValue(text, out Word hit))
+                {
+                    return WordToIdsFromEnd(ref hit, accumulatedIds, out textIndex, text.Length, maxTokens);
+                }
+
+                word = MergeWord(text);
+                Cache.Set(text.ToString(), word);
+            }
+            else
+            {
+                word = MergeWord(text);
+            }
+
+            return WordToIdsFromEnd(ref word, accumulatedIds, out textIndex, text.Length, maxTokens);
         }
 
         internal static readonly List<Token> EmptyTokensList = new();
