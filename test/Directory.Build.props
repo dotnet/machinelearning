@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(NetMinimum);$(NetCurrent);$(NetFrameworkMinimum)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimum)</TargetFrameworks>
     <RuntimeIdentifier Condition="'$(TargetFramework)' == '$(NetFrameworkMinimum)'">win-x64</RuntimeIdentifier>
     <IsTestProject>true</IsTestProject>
     <IsPackable>false</IsPackable>
