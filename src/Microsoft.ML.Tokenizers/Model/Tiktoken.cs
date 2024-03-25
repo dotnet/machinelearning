@@ -73,8 +73,6 @@ namespace Microsoft.ML.Tokenizers
             _decoder = decoder ?? throw new ArgumentNullException(nameof(decoder));
             _vocab = vocab ?? throw new ArgumentNullException(nameof(vocab));
 
-            Debug.Assert(encoder.Count == decoder.Count);
-
             _encoder = encoder!;
             _decoder = decoder!;
             _vocab = vocab!;
