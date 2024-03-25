@@ -90,15 +90,9 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             try
             {
-                bool result = await Utils.DownloadFile(_vocabUrl, vocabFile);
-                result = result && await Utils.DownloadFile(_mergeUrl, mergeFile);
-                result = result && await Utils.DownloadFile(_dictUrl, translationFile);
-
-                if (!result)
-                {
-                    // tolerate network issues
-                    return;
-                }
+                await Utils.DownloadFile(_vocabUrl, vocabFile);
+                await Utils.DownloadFile(_mergeUrl, mergeFile);
+                await Utils.DownloadFile(_dictUrl, translationFile);
 
                 Tokenizer tokenizer = new Tokenizer(new EnglishRoberta(vocabFile, mergeFile, translationFile), RobertaPreTokenizer.Instance);
                 TestTokenizer(tokenizer);

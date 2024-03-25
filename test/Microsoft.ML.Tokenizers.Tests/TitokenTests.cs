@@ -46,7 +46,6 @@ namespace Microsoft.ML.Tokenizers.Tests
             using Stream compressedStream = typeof(Tokenizer).Assembly.GetManifestResourceStream("cl100k_base.tiktoken.deflate")!;
             using Stream deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress);
 
-            // await Utils.DownloadFile(@"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken", tokenizerDataFileName);
             using (Stream fileStream = File.OpenWrite(tokenizerDataFileName))
             {
                 deflateStream.CopyTo(fileStream);
@@ -106,12 +105,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         public async void TestTokenizerUsingExternalVocab(Tokenizer tokenizer, string url)
         {
             string tokenizerDataFileName = Utils.CreateTemporaryFile("tiktoken");
-            bool result = await Utils.DownloadFile(url, tokenizerDataFileName);
-            if (!result)
-            {
-                // tolerate network issues
-                return;
-            }
+            await Utils.DownloadFile(url, tokenizerDataFileName);
 
             try
             {

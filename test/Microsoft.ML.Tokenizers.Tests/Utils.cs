@@ -12,46 +12,28 @@ namespace Microsoft.ML.Tokenizers.Tests
 {
     public class Utils
     {
-        public static async Task DownloadFileNoBackoff(string url, string fileName)
+        public static async Task DownloadFile(string url, string fileName)
         {
             using (var client = new HttpClient() { Timeout = TimeSpan.FromMinutes(5) })
             {
-                var response = await client.GetAsync(url);
-                if (response.IsSuccessStatusCode)
+                await RetryHelper.ExecuteAsync(async () =>
                 {
-                    var stream = await response.Content.ReadAsStreamAsync();
-                    var fileInfo = new FileInfo(fileName);
-                    using (var fileStream = fileInfo.OpenWrite())
+                    var response = await client.GetAsync(url);
+                    if (response.IsSuccessStatusCode)
                     {
-                        await stream.CopyToAsync(fileStream);
+                        var stream = await response.Content.ReadAsStreamAsync();
+                        var fileInfo = new FileInfo(fileName);
+                        using (var fileStream = fileInfo.OpenWrite())
+                        {
+                            await stream.CopyToAsync(fileStream);
+                        }
                     }
-                }
-                else
-                {
-                    throw new Exception("File not found");
-                }
-            }
-        }
-
-        public static async Task<bool> DownloadFile(string url, string fileName, int numberOfTries = 3, int delayInSeconds = 1, bool exponentialBackoff = true)
-        {
-            for (int i = 0; i < numberOfTries; i++)
-            {
-                try
-                {
-                    await DownloadFileNoBackoff(url, fileName);
-                    return true;
-                }
-                catch
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(delayInSeconds));
-                    if (exponentialBackoff)
+                    else
                     {
-                        delayInSeconds *= 2;
+                        throw new Exception("File not found");
                     }
-                }
+                });
             }
-            return false;
         }
 
         public static void DeleteFile(string file)
