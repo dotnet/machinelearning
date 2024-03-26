@@ -31,12 +31,49 @@
       <Using Namespace="System.IO" />
       <Using Namespace="System.IO.Compression" />
       <Code Type="Fragment" Language="cs">
+			<![CDATA[
+		    byte[] newLine = new byte[] { (byte)'\n' };
+
         foreach(var file in Files)
         {
             using var sourceStream = File.OpenRead(file.GetMetadata("FullPath"));
+
+            string line;
+            int lineNumber = 0;
+            using MemoryStream ms = new MemoryStream();
+            using StreamReader reader = new StreamReader(sourceStream);
+
+            while ((line = reader.ReadLine()) != null)
+            {
+                if (line.Length == 0) { continue; }
+                int index = line.IndexOf(' ');
+
+                if (index <= 0 || index == line.Length - 1 || !int.TryParse(line.Substring(index + 1), out int id) || id < lineNumber)
+                {
+                    Log.LogError($"Invalid format in the file {file.GetMetadata("FullPath")} line {line}");
+                    break;
+                }
+
+                while (lineNumber < id)
+                {
+                    // ensure id always aligns with the line number
+                    ms.Write(newLine, 0 , 1);
+                    lineNumber++;
+                }
+
+                lineNumber++;
+
+                var buffer = Encoding.UTF8.GetBytes(line.Substring(0, index));
+                ms.Write(buffer, 0, buffer.Length);
+                ms.Write(newLine, 0 , 1);
+            }
+
+            ms.Position = 0;
+
             using var destStream = new DeflateStream(File.Create(file.GetMetadata("Destination")), CompressionLevel.Optimal);
-            sourceStream.CopyTo(destStream);
+            ms.CopyTo(destStream);
         }
+      ]]>
       </Code>
     </Task>
   </UsingTask>

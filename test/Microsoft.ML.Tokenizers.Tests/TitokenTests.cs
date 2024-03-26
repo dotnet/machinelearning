@@ -27,11 +27,11 @@ namespace Microsoft.ML.Tokenizers.Tests
                                                     { IMEnd, 100265},
                                                 };
 
-        public static Tokenizer GPT4 { get; } = Tokenizer.CreateTiktokenForModelAsync("gpt-4", _specialTokens).GetAwaiter().GetResult();
-        public static Tokenizer GPT2 { get; } = Tokenizer.CreateTiktokenForModelAsync("gpt2").GetAwaiter().GetResult();
-        public static Tokenizer P50kBase { get; } = Tokenizer.CreateTiktokenForModelAsync("text-davinci-003").GetAwaiter().GetResult();
-        public static Tokenizer R50kBase { get; } = Tokenizer.CreateTiktokenForModelAsync("ada").GetAwaiter().GetResult();
-        public static Tokenizer P50kEdit { get; } = Tokenizer.CreateTiktokenForModelAsync("text-davinci-edit-001").GetAwaiter().GetResult();
+        public static Tokenizer GPT4 { get; } = Tokenizer.CreateTiktokenForModel("gpt-4", _specialTokens);
+        public static Tokenizer GPT2 { get; } = Tokenizer.CreateTiktokenForModel("gpt2");
+        public static Tokenizer P50kBase { get; } = Tokenizer.CreateTiktokenForModel("text-davinci-003");
+        public static Tokenizer R50kBase { get; } = Tokenizer.CreateTiktokenForModel("ada");
+        public static Tokenizer P50kEdit { get; } = Tokenizer.CreateTiktokenForModel("text-davinci-edit-001");
 
         [Fact]
         public async void TestTokenizerCreation()
@@ -344,13 +344,9 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("code-search-babbage-code-001")]
         [InlineData("code-search-ada-code-001")]
         [InlineData("gpt2")]
-        public async void TestAllSupportedModelNames(string modelName)
+        public void TestAllSupportedModelNames(string modelName)
         {
             Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel(modelName);
-            Assert.NotNull(tokenizer.Model);
-            Assert.NotNull(tokenizer.PreTokenizer);
-
-            tokenizer = await Tokenizer.CreateTiktokenForModelAsync(modelName);
             Assert.NotNull(tokenizer.Model);
             Assert.NotNull(tokenizer.PreTokenizer);
         }
@@ -362,14 +358,6 @@ namespace Microsoft.ML.Tokenizers.Tests
         [ConditionalTheory(typeof(RemoteExecutor), nameof(RemoteExecutor.IsSupported))]
         public void TestCreationUsingModel(string modelName)
         {
-            // Execute remotely to ensure no caching is used.
-            RemoteExecutor.Invoke(static async (name) =>
-            {
-                Tokenizer tokenizer = await Tokenizer.CreateTiktokenForModelAsync(name);
-                Assert.NotNull(tokenizer.Model);
-                Assert.NotNull(tokenizer.PreTokenizer);
-            }, modelName).Dispose();
-
             RemoteExecutor.Invoke(static (name) =>
             {
                 Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel(name);
