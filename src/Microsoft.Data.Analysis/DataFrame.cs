@@ -680,10 +680,7 @@ namespace Microsoft.Data.Analysis
         /// A preview of the contents of this <see cref="DataFrame"/> as a string.
         /// </summary>
         /// <returns>A preview of the contents of this <see cref="DataFrame"/>.</returns>
-        public override string ToString()
-        {
-            return ToString(DefaultMaxRowsToShowInPreview);
-        }
+        public override string ToString() => ToString(DefaultMaxRowsToShowInPreview);
 
         /// <summary>
         /// A preview of the contents of this <see cref="DataFrame"/> as a string.
