@@ -35,7 +35,6 @@ namespace Microsoft.Data.Analysis
                     buffer.Add(default);
                 }
             }
-
             _nullCount = length;
         }
 
