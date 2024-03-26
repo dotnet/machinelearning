@@ -63,8 +63,7 @@ namespace Microsoft.Data.Analysis
         {
             for (int i = 0; i < _columnContainer.Buffers.Count; i++)
             {
-                ReadOnlyDataFrameBuffer<T> buffer = _columnContainer.Buffers[i];
-                yield return buffer.ReadOnlyMemory;
+                yield return _columnContainer.Buffers[i].ReadOnlyMemory;
             }
         }
 
