@@ -55,7 +55,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(0, strCol.NullCount);
 
             StringDataFrameColumn strCol1 = new StringDataFrameColumn("String1", 5);
-            Assert.Equal(0, strCol1.NullCount);
+            Assert.Equal(5, strCol1.NullCount);
 
             StringDataFrameColumn strCol2 = new StringDataFrameColumn("String", Enumerable.Range(0, 10).Select(x => x.ToString()));
             Assert.Equal(0, strCol2.NullCount);
@@ -255,7 +255,7 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void TestClone()
+        public void TestClone_PrimitiveColumn()
         {
             PrimitiveDataFrameColumn<int> intColumn = new PrimitiveDataFrameColumn<int>("Int1", new int?[] { 1, 2, 3, 4, null });
             var copy = intColumn.Clone();
@@ -263,9 +263,25 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(intColumn.Name, copy.Name);
             Assert.Equal(intColumn.Length, copy.Length);
             Assert.Equal(intColumn.DataType, copy.DataType);
+            Assert.Equal(intColumn.NullCount, copy.NullCount);
 
             for (int i = 0; i < intColumn.Length; i++)
                 Assert.Equal(intColumn[i], copy[i]);
+        }
+
+        [Fact]
+        public void TestClone_StringColumn()
+        {
+            var strColumn = new StringDataFrameColumn("Str", ["str1", "str2", "srt3", null]);
+            var copy = strColumn.Clone();
+
+            Assert.Equal(strColumn.Name, copy.Name);
+            Assert.Equal(strColumn.Length, copy.Length);
+            Assert.Equal(strColumn.DataType, copy.DataType);
+            Assert.Equal(strColumn.NullCount, copy.NullCount);
+
+            for (int i = 0; i < strColumn.Length; i++)
+                Assert.Equal(strColumn[i], copy[i]);
         }
 
         [Fact]
