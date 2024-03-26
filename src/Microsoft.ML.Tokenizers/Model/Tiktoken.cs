@@ -27,6 +27,7 @@ namespace Microsoft.ML.Tokenizers
         private readonly LruCache<(int[] Bytes, string Token)> _cache;
         private readonly Dictionary<StringSpanOrdinalKey, (int Id, string Token)> _vocab;
         private IReadOnlyDictionary<string, int>? _vocabOriginal;
+        private const int MaxWordLengthToCache = 15;
 
         /// <summary>
         /// Create a new Tiktoken tokenizer's model object.
@@ -246,14 +247,14 @@ namespace Microsoft.ML.Tokenizers
                 return Array.Empty<Token>();
             }
 
-            if (_cache.TryGetValue(text, out (int[] Bytes, string Token) ids))
+            if (_cache.TryGetValue(text, out (int[] Ids, string Token) value))
             {
-                tokens = new Token[ids.Bytes.Length];
-                tokens[0] = new Token(ids.Bytes[0], ids.Token, (0, ids.Token.Length));
-                for (int i = 1; i < ids.Bytes.Length; i++)
+                tokens = new Token[value.Ids.Length];
+                tokens[0] = new Token(value.Ids[0], value.Token, (0, value.Token.Length));
+                for (int i = 1; i < value.Ids.Length; i++)
                 {
                     // One word split mapped to multiple Ids. Make the offset of the remaining token point at the end with zero width.
-                    tokens[i] = new Token(ids.Bytes[i], "", (text.Length, 0));
+                    tokens[i] = new Token(value.Ids[i], "", (text.Length, 0));
                 }
 
                 return tokens;
@@ -269,9 +270,15 @@ namespace Microsoft.ML.Tokenizers
             int encodedLength = Helpers.GetUtf8Bytes(text, arrayPoolArray);
 
             int[] encodedIds = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
+            ArrayPool<byte>.Shared.Return(arrayPoolArray);
+
             Debug.Assert(encodedIds.Length > 0);
             string textAsString = text.ToString();
-            _cache.Add(textAsString, (encodedIds, textAsString));
+
+            if (text.Length <= MaxWordLengthToCache)
+            {
+                _cache.Add(textAsString, (encodedIds, textAsString));
+            }
 
             tokens = new Token[encodedIds.Length];
             tokens[0] = new Token(encodedIds[0], textAsString, (0, text.Length));
@@ -281,7 +288,6 @@ namespace Microsoft.ML.Tokenizers
                 tokens[i] = new Token(encodedIds[i], "", (text.Length, 0));
             }
 
-            ArrayPool<byte>.Shared.Return(arrayPoolArray);
             return tokens;
         }
 
@@ -303,13 +309,13 @@ namespace Microsoft.ML.Tokenizers
                 return 0;
             }
 
-            if (_cache.TryGetValue(text, out (int[] Bytes, string Token) tokenIds))
+            if (_cache.TryGetValue(text, out (int[] Ids, string Token) value))
             {
-                if (tokenIds.Bytes.Length <= maxTokens)
+                if (value.Ids.Length <= maxTokens)
                 {
-                    accumulatedIds.AddRange(tokenIds.Bytes);
+                    accumulatedIds.AddRange(value.Ids);
                     textLength = text.Length;
-                    return tokenIds.Bytes.Length;
+                    return value.Ids.Length;
                 }
 
                 textLength = 0;
@@ -327,8 +333,12 @@ namespace Microsoft.ML.Tokenizers
             int encodedLength = Helpers.GetUtf8Bytes(text, arrayPoolArray);
 
             int[] encodedIds = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
-            string textAsString = text.ToString();
-            _cache.Add(textAsString, (encodedIds, textAsString));
+
+            if (text.Length <= MaxWordLengthToCache)
+            {
+                string textAsString = text.ToString();
+                _cache.Add(textAsString, (encodedIds, textAsString));
+            }
 
             int result;
             if (encodedIds.Length <= maxTokens)
@@ -364,12 +374,12 @@ namespace Microsoft.ML.Tokenizers
                 return 0;
             }
 
-            if (_cache.TryGetValue(text, out (int[] Bytes, string Token) ids))
+            if (_cache.TryGetValue(text, out (int[] Ids, string Token) value))
             {
-                if (ids.Bytes.Length <= maxTokens)
+                if (value.Ids.Length <= maxTokens)
                 {
                     textLength = text.Length;
-                    return ids.Bytes.Length;
+                    return value.Ids.Length;
                 }
 
                 textLength = 0;
@@ -386,8 +396,11 @@ namespace Microsoft.ML.Tokenizers
             int encodedLength = Helpers.GetUtf8Bytes(text, arrayPoolArray);
 
             int[] encodedIds = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
-            string textAsString = text.ToString();
-            _cache.Add(textAsString, (encodedIds, textAsString));
+            if (text.Length <= MaxWordLengthToCache)
+            {
+                string textAsString = text.ToString();
+                _cache.Add(textAsString, (encodedIds, textAsString));
+            }
 
             int result;
             if (encodedIds.Length <= maxTokens)
@@ -422,12 +435,12 @@ namespace Microsoft.ML.Tokenizers
                 return 0;
             }
 
-            if (_cache.TryGetValue(text, out (int[] Bytes, string Token) ids))
+            if (_cache.TryGetValue(text, out (int[] Ids, string Token) value))
             {
-                if (ids.Bytes.Length <= maxTokens)
+                if (value.Ids.Length <= maxTokens)
                 {
                     textIndex = 0;
-                    return ids.Bytes.Length;
+                    return value.Ids.Length;
                 }
 
                 textIndex = text.Length;
@@ -444,8 +457,12 @@ namespace Microsoft.ML.Tokenizers
             int encodedLength = Helpers.GetUtf8Bytes(text, arrayPoolArray);
 
             int[] encodedIds = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
-            string textAsString = text.ToString();
-            _cache.Add(textAsString, (encodedIds, textAsString));
+
+            if (text.Length <= MaxWordLengthToCache)
+            {
+                string textAsString = text.ToString();
+                _cache.Add(textAsString, (encodedIds, textAsString));
+            }
 
             int result;
             if (encodedIds.Length <= maxTokens)
@@ -475,11 +492,11 @@ namespace Microsoft.ML.Tokenizers
                 return 0;
             }
 
-            if (_cache.TryGetValue(token, out (int[] Bytes, string Token) ids))
+            if (_cache.TryGetValue(token, out (int[] Ids, string Token) value))
             {
-                if (ids.Bytes.Length == 1)
+                if (value.Ids.Length == 1)
                 {
-                    return ids.Bytes[0];
+                    return value.Ids[0];
                 }
 
                 return null;
@@ -496,8 +513,12 @@ namespace Microsoft.ML.Tokenizers
                 int encodedLength = Helpers.GetUtf8Bytes(token, arrayPoolArray);
 
                 int[] idsToCache = BytePairEncoder.BytePairEncode(arrayPoolArray.AsMemory(0, encodedLength), _encoder);
-                string tokenAsString = token.ToString();
-                _cache.Add(tokenAsString, (idsToCache, tokenAsString));
+
+                if (token.Length <= MaxWordLengthToCache)
+                {
+                    string tokenAsString = token.ToString();
+                    _cache.Add(tokenAsString, (idsToCache, tokenAsString));
+                }
 
                 if (idsToCache.Length == 1)
                 {

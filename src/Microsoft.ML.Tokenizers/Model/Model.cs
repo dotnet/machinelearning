@@ -122,7 +122,10 @@ namespace Microsoft.ML.Tokenizers
             IReadOnlyList<Token> tokens = Encode(text);
             textIndex = text.Length;
             int count = Math.Min(tokens.Count, maxTokens);
-            for (int i = tokens.Count - 1; i >= tokens.Count - count; i--)
+
+            int tokensCount = tokens.Count;
+            int end = tokensCount - count;
+            for (int i = tokensCount - 1; i >= end; i--)
             {
                 textIndex -= tokens[i].Offset.Length;
             }

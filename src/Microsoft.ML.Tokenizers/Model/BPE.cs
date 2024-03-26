@@ -20,6 +20,7 @@ namespace Microsoft.ML.Tokenizers
     {
         /// A [Byte Pair Encoding](https://www.aclweb.org/anthology/P16-1162/) model.
 
+        private const int MaxWordLengthToCache = 15;
         private string? _unknownToken;
 
         /// <summary>
@@ -454,7 +455,11 @@ namespace Microsoft.ML.Tokenizers
                 }
 
                 word = MergeWord(text);
-                Cache.Set(text.ToString(), word);
+
+                if (text.Length <= MaxWordLengthToCache)
+                {
+                    Cache.Set(text.ToString(), word);
+                }
             }
             else
             {
@@ -518,7 +523,11 @@ namespace Microsoft.ML.Tokenizers
                 }
 
                 word = MergeWord(text);
-                Cache.Set(text.ToString(), word);
+
+                if (text.Length <= MaxWordLengthToCache)
+                {
+                    Cache.Set(text.ToString(), word);
+                }
             }
             else
             {
@@ -540,7 +549,11 @@ namespace Microsoft.ML.Tokenizers
                 }
 
                 word = MergeWord(text);
-                Cache.Set(text.ToString(), word);
+
+                if (text.Length <= MaxWordLengthToCache)
+                {
+                    Cache.Set(text.ToString(), word);
+                }
             }
             else
             {
