@@ -45,7 +45,7 @@
     <ItemGroup>
       <HelixWorkItem Include="$(MSBuildProjectName) - $(TargetFramework)">
         <PayloadDirectory>$(TargetDir)</PayloadDirectory>
-        <Command>dotnet exec --roll-forward Major --runtimeconfig $(TargetName).runtimeconfig.json --depsfile $(TargetName).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll $(TargetName)).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+        <Command>dotnet exec --roll-forward Major --runtimeconfig $(TargetName).runtimeconfig.json --depsfile $(TargetName).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll $(TargetName).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
         <Command Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">$(HelixCorrelationPayloadPath)/xunit-runner/tools/net462/xunit.console.exe $(TargetName).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
         <Timeout>01:00:00</Timeout>
         <Timeout Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">00:30:00</Timeout>
