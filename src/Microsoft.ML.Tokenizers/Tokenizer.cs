@@ -320,30 +320,6 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="modelName">Model name</param>
         /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the model</param>
         /// <param name="normalizer">To normalize the text before tokenization</param>
-        /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
-        /// <returns>The tokenizer</returns>
-        public static Task<Tokenizer> CreateTiktokenForModelAsync(
-                                                string modelName,
-                                                IReadOnlyDictionary<string, int>? extraSpecialTokens = null,
-                                                Normalizer? normalizer = null,
-                                                CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                return Tiktoken.CreateByEncoderNameAsync(Tiktoken.GetModelEncoding(modelName), extraSpecialTokens, normalizer, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                return Task.FromException<Tokenizer>(ex);
-            }
-        }
-
-        /// <summary>
-        /// Create tokenizer based on model name
-        /// </summary>
-        /// <param name="modelName">Model name</param>
-        /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the model</param>
-        /// <param name="normalizer">To normalize the text before tokenization</param>
         /// <returns>The tokenizer</returns>
         public static Tokenizer CreateTiktokenForModel(string modelName, IReadOnlyDictionary<string, int>? extraSpecialTokens = null, Normalizer? normalizer = null)
                         => Tiktoken.CreateTokenizerForModel(modelName, extraSpecialTokens, normalizer);

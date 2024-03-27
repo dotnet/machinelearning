@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -184,43 +185,50 @@ namespace Microsoft.ML.Tokenizers
             {
                 using (StreamReader reader = new StreamReader(vocabStream))
                 {
-                    while (true)
+                    string? line;
+                    do
                     {
-                        string? line = useAsync ?
+                        line = useAsync ?
                             await Helpers.ReadLineAsync(reader, cancellationToken).ConfigureAwait(false) :
                             reader.ReadLine();
-                        if (string.IsNullOrWhiteSpace(line))
+                    } while (line is not null && line.Length == 0);
+
+                    if (line is not null && line.IndexOf(' ') < 0)
+                    {
+                        // We generate the ranking using the line number
+                        int lineNumber = 0;
+                        do
                         {
-                            if (line is null)
+                            if (line.Length > 0)
                             {
-                                break;
+                                AddData(Convert.FromBase64String(line), lineNumber);
                             }
-                            continue;
-                        }
+                            lineNumber++;
+                        } while ((line = useAsync ? await Helpers.ReadLineAsync(reader, cancellationToken).ConfigureAwait(false) : reader.ReadLine()) is not null);
+                    }
 
-                        int spaceIndex = line.IndexOf(' ');
-                        if (spaceIndex <= 0 || spaceIndex >= line.Length - 1 || line.IndexOf(' ', spaceIndex + 1) >= 0)
+                    while (line is not null)
+                    {
+                        if (line.Length > 0)
                         {
-                            throw new FormatException($"Invalid format in the BPE vocab file stream");
-                        }
-
-                        if (Helpers.TryParseInt32(line, spaceIndex + 1, out int rank))
-                        {
-                            byte[] tokenBytes = Helpers.FromBase64String(line, 0, spaceIndex);
-
-                            encoder[tokenBytes] = rank;
-                            decoder[rank] = tokenBytes;
-
-                            string decodedToken = Encoding.UTF8.GetString(tokenBytes);
-
-                            if (decodedToken.IndexOf('\uFFFD') < 0)
+                            int spaceIndex = line.IndexOf(' ');
+                            if (spaceIndex <= 0 || spaceIndex >= line.Length - 1 || line.IndexOf(' ', spaceIndex + 1) >= 0)
                             {
-                                vocab[new StringSpanOrdinalKey(decodedToken)] = (rank, decodedToken);
+                                throw new FormatException($"Invalid format in the BPE vocab file stream");
                             }
-                        }
-                        else
-                        {
-                            throw new FormatException($"Can't parse {line.Substring(spaceIndex)} to integer");
+
+                            if (Helpers.TryParseInt32(line, spaceIndex + 1, out int rank))
+                            {
+                                AddData(Helpers.FromBase64String(line, 0, spaceIndex), rank);
+                            }
+                            else
+                            {
+                                throw new FormatException($"Can't parse {line.Substring(spaceIndex)} to integer");
+                            }
+
+                            line = useAsync ?
+                                await Helpers.ReadLineAsync(reader, cancellationToken).ConfigureAwait(false) :
+                                reader.ReadLine();
                         }
                     }
                 }
@@ -231,6 +239,19 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return (encoder, vocab, decoder);
+
+            void AddData(byte[] tokenBytes, int rank)
+            {
+                encoder[tokenBytes] = rank;
+                decoder[rank] = tokenBytes;
+
+                string decodedToken = Encoding.UTF8.GetString(tokenBytes);
+
+                if (decodedToken.IndexOf('\uFFFD') < 0)
+                {
+                    vocab[new StringSpanOrdinalKey(decodedToken)] = (rank, decodedToken);
+                }
+            }
         }
 
         /// <summary>
@@ -642,8 +663,6 @@ namespace Microsoft.ML.Tokenizers
         private const string FimSuffix = "<|fim_suffix|>";
         private const string EndOfPrompt = "<|endofprompt|>";
 
-        private static readonly HttpClient _httpClient = new HttpClient();
-
         internal enum ModelEncoding
         {
             None,
@@ -736,7 +755,7 @@ namespace Microsoft.ML.Tokenizers
             return encoder;
         }
 
-        internal static (Dictionary<string, int> SpecialTokens, Regex Regex, string Url) GetTiktokenConfigurations(string modelName)
+        internal static (Dictionary<string, int> SpecialTokens, Regex Regex, string VocabFile) GetTiktokenConfigurations(string modelName)
         {
             ModelEncoding modelEncoding = GetModelEncoding(modelName);
 
@@ -744,20 +763,20 @@ namespace Microsoft.ML.Tokenizers
             {
                 case ModelEncoding.Cl100kBase:
                     return (new Dictionary<string, int>
-                        { { EndOfText, 100257}, { FimPrefix, 100258}, { FimMiddle, 100259}, { FimSuffix, 100260}, { EndOfPrompt, 100276} }, Cl100kBaseRegex(), Cl100kBaseVocabUrl);
+                        { { EndOfText, 100257}, { FimPrefix, 100258}, { FimMiddle, 100259}, { FimSuffix, 100260}, { EndOfPrompt, 100276} }, Cl100kBaseRegex(), Cl100kBaseVocabFile);
 
                 case ModelEncoding.P50kBase:
-                    return (new Dictionary<string, int> { { EndOfText, 50256 } }, P50kBaseRegex(), P50RanksUrl);
+                    return (new Dictionary<string, int> { { EndOfText, 50256 } }, P50kBaseRegex(), P50RanksFile);
 
                 case ModelEncoding.P50kEdit:
                     return (new Dictionary<string, int>
-                        { { EndOfText, 50256 }, { FimPrefix, 50281 }, { FimMiddle, 50282 }, { FimSuffix, 50283 } }, P50kBaseRegex(), P50RanksUrl);
+                        { { EndOfText, 50256 }, { FimPrefix, 50281 }, { FimMiddle, 50282 }, { FimSuffix, 50283 } }, P50kBaseRegex(), P50RanksFile);
 
                 case ModelEncoding.R50kBase:
-                    return (new Dictionary<string, int> { { EndOfText, 50256 } }, P50kBaseRegex(), R50RanksUrl);
+                    return (new Dictionary<string, int> { { EndOfText, 50256 } }, P50kBaseRegex(), R50RanksFile);
 
                 case ModelEncoding.GPT2:
-                    return (new Dictionary<string, int> { { EndOfText, 50256 }, }, P50kBaseRegex(), GPT2Url);
+                    return (new Dictionary<string, int> { { EndOfText, 50256 }, }, P50kBaseRegex(), GPT2File);
 
                 default:
                     throw new NotSupportedException($"The model '{modelName}' is not supported.");
@@ -769,10 +788,11 @@ namespace Microsoft.ML.Tokenizers
         private const string Cl100kBaseRegexPattern = /*lang=regex*/ @"'(?i:[sdmt]|re|ve|ll)|(?>[^\r\n\p{L}\p{N}]?)\p{L}+|\p{N}{1,3}| ?(?>[^\s\p{L}\p{N}]+)[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+";
         private const string P50kBaseRegexPattern = /*lang=regex*/ @"'(?:[sdmt]|re|ve|ll)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+";
 
-        private const string Cl100kBaseVocabUrl = @"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken";
-        private const string P50RanksUrl = @"https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken";
-        private const string R50RanksUrl = @"https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken";
-        private const string GPT2Url = @"https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken";
+        private const string Cl100kBaseVocabFile = "cl100k_base.tiktoken.deflate";  // "https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken"
+        private const string P50RanksFile = "p50k_base.tiktoken.deflate";           // "https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken"
+        private const string R50RanksFile = "r50k_base.tiktoken.deflate";           // "https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken"
+        private const string GPT2File = "gpt2.tiktoken.deflate";                    // "https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken"
+
 
 #if NET7_0_OR_GREATER
         [GeneratedRegex(Cl100kBaseRegexPattern)]
@@ -788,90 +808,7 @@ namespace Microsoft.ML.Tokenizers
         internal static Regex P50kBaseRegex() => _p50kBaseRegex ??= new Regex(P50kBaseRegexPattern, RegexOptions.Compiled);
 #endif
 
-        /// <summary>
-        /// Create tokenizer based on encoder name and extra special tokens
-        /// </summary>
-        /// <param name="modelEncoding">Encoder label</param>
-        /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the encoder</param>
-        /// <param name="normalizer">To normalize the text before tokenization</param>
-        /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
-        /// <returns>The tokenizer</returns>
-        /// <exception cref="NotSupportedException">Throws if the model name is not supported</exception>
-        internal static Task<Tokenizer> CreateByEncoderNameAsync(
-                                                ModelEncoding modelEncoding,
-                                                IReadOnlyDictionary<string, int>? extraSpecialTokens,
-                                                Normalizer? normalizer,
-                                                CancellationToken cancellationToken)
-        {
-            switch (modelEncoding)
-            {
-                case ModelEncoding.Cl100kBase:
-                    var specialTokens = new Dictionary<string, int>
-                        { { EndOfText, 100257}, { FimPrefix, 100258}, { FimMiddle, 100259}, { FimSuffix, 100260}, { EndOfPrompt, 100276} };
-                    return CreateTiktokenTokenizerAsync(Cl100kBaseRegex(), Cl100kBaseVocabUrl, specialTokens, extraSpecialTokens, normalizer, cancellationToken);
-
-                case ModelEncoding.P50kBase:
-                    specialTokens = new Dictionary<string, int> { { EndOfText, 50256 } };
-                    return CreateTiktokenTokenizerAsync(P50kBaseRegex(), P50RanksUrl, specialTokens, extraSpecialTokens, normalizer, cancellationToken);
-
-                case ModelEncoding.P50kEdit:
-                    specialTokens = new Dictionary<string, int>
-                        { { EndOfText, 50256 }, { FimPrefix, 50281 }, { FimMiddle, 50282 }, { FimSuffix, 50283 } };
-                    return CreateTiktokenTokenizerAsync(P50kBaseRegex(), P50RanksUrl, specialTokens, extraSpecialTokens, normalizer, cancellationToken);
-
-                case ModelEncoding.R50kBase:
-                    specialTokens = new Dictionary<string, int> { { EndOfText, 50256 } };
-                    return CreateTiktokenTokenizerAsync(P50kBaseRegex(), R50RanksUrl, specialTokens, extraSpecialTokens, normalizer, cancellationToken);
-
-                case ModelEncoding.GPT2:
-                    specialTokens = new Dictionary<string, int> { { EndOfText, 50256 }, };
-                    return CreateTiktokenTokenizerAsync(P50kBaseRegex(), GPT2Url, specialTokens, extraSpecialTokens, normalizer, cancellationToken);
-
-                default:
-                    throw new NotSupportedException($"The encoder '{modelEncoding}' is not supported.");
-            }
-        }
-
         private static readonly ConcurrentDictionary<string, (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, (int Id, string Token)> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder)> _tiktokenCache = new(StringComparer.OrdinalIgnoreCase);
-
-        /// <summary>
-        /// Create tokenizer based on regex pattern, BPE rank file and special tokens
-        /// </summary>
-        /// <param name="regex">Regex to break a long string</param>
-        /// <param name="mergeableRanksFileUrl">BPE rank file</param>
-        /// <param name="specialTokens">Special tokens mapping. This may be mutated by the method.</param>
-        /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the encoder</param>
-        /// <param name="normalizer">To normalize the text before tokenization</param>
-        /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
-        /// <returns>The tokenizer</returns>
-        private static async Task<Tokenizer> CreateTiktokenTokenizerAsync(
-            Regex regex,
-            string mergeableRanksFileUrl,
-            Dictionary<string, int> specialTokens,
-            IReadOnlyDictionary<string, int>? extraSpecialTokens,
-            Normalizer? normalizer,
-            CancellationToken cancellationToken)
-        {
-            if (extraSpecialTokens is not null)
-            {
-                foreach (var extraSpecialToken in extraSpecialTokens)
-                {
-                    specialTokens.Add(extraSpecialToken.Key, extraSpecialToken.Value);
-                }
-            }
-
-            if (!_tiktokenCache.TryGetValue(mergeableRanksFileUrl, out (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, (int Id, string Token)> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) cache))
-            {
-                using (Stream stream = await Helpers.GetStreamAsync(_httpClient, mergeableRanksFileUrl, cancellationToken).ConfigureAwait(false))
-                {
-                    cache = await LoadTiktokenBpeAsync(stream, useAsync: true, cancellationToken).ConfigureAwait(false);
-                }
-
-                _tiktokenCache.TryAdd(mergeableRanksFileUrl, cache);
-            }
-
-            return new Tokenizer(new Tiktoken(cache.encoder, cache.decoder, cache.vocab, specialTokens), new TiktokenPreTokenizer(regex, specialTokens), normalizer);
-        }
 
         internal static Tokenizer CreateTokenizerForModel(
                                                 string modelName,
@@ -883,7 +820,7 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(modelName));
             }
 
-            (Dictionary<string, int> SpecialTokens, Regex Regex, string Url) tiktokenConfiguration = Tiktoken.GetTiktokenConfigurations(modelName);
+            (Dictionary<string, int> SpecialTokens, Regex Regex, string VocabFile) tiktokenConfiguration = Tiktoken.GetTiktokenConfigurations(modelName);
 
             if (extraSpecialTokens is not null)
             {
@@ -893,13 +830,16 @@ namespace Microsoft.ML.Tokenizers
                 }
             }
 
-            if (!_tiktokenCache.TryGetValue(tiktokenConfiguration.Url,
-                    out (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, (int I, string Token)> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) cache))
+            if (!_tiktokenCache.TryGetValue(
+                    tiktokenConfiguration.VocabFile,
+                    out (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, (int Id, string Token)> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) cache))
             {
-                using Stream stream = Helpers.GetStream(_httpClient, tiktokenConfiguration.Url);
-                cache = LoadTiktokenBpeAsync(stream, useAsync: false).GetAwaiter().GetResult();
+                using Stream compressedStream = typeof(Tokenizer).Assembly.GetManifestResourceStream(tiktokenConfiguration.VocabFile)!;
+                using Stream deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress);
 
-                _tiktokenCache.TryAdd(tiktokenConfiguration.Url, cache);
+                cache = LoadTiktokenBpeAsync(deflateStream, useAsync: false).GetAwaiter().GetResult();
+
+                _tiktokenCache.TryAdd(tiktokenConfiguration.VocabFile, cache);
             }
 
             return new Tokenizer(
