@@ -401,7 +401,7 @@ namespace Microsoft.Data.Analysis
         private ArrowStringDataFrameColumn Clone(PrimitiveDataFrameColumn<bool> boolColumn)
         {
             if (boolColumn.Length > Length)
-                throw new ArgumentException(Strings.MapIndicesExceedsColumnLenth, nameof(boolColumn));
+                throw new ArgumentException(Strings.MapIndicesExceedsColumnLength, nameof(boolColumn));
             ArrowStringDataFrameColumn ret = new ArrowStringDataFrameColumn(Name);
             for (long i = 0; i < boolColumn.Length; i++)
             {

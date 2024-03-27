@@ -213,7 +213,7 @@ namespace Microsoft.Data.Analysis
         private VBufferDataFrameColumn<T> Clone(PrimitiveDataFrameColumn<bool> boolColumn)
         {
             if (boolColumn.Length > Length)
-                throw new ArgumentException(Strings.MapIndicesExceedsColumnLenth, nameof(boolColumn));
+                throw new ArgumentException(Strings.MapIndicesExceedsColumnLength, nameof(boolColumn));
             VBufferDataFrameColumn<T> ret = new VBufferDataFrameColumn<T>(Name, 0);
             for (long i = 0; i < boolColumn.Length; i++)
             {

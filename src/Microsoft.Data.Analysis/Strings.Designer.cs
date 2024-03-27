@@ -61,6 +61,15 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to   ... {0} of total {1}.
+        /// </summary>
+        internal static string AmountOfRowsShown {
+            get {
+                return ResourceManager.GetString("AmountOfRowsShown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot cast column holding {0} values to type {1}.
         /// </summary>
         internal static string BadColumnCast {
@@ -306,9 +315,9 @@ namespace Microsoft.Data {
         /// <summary>
         ///   Looks up a localized string similar to MapIndices exceeds column length.
         /// </summary>
-        internal static string MapIndicesExceedsColumnLenth {
+        internal static string MapIndicesExceedsColumnLength {
             get {
-                return ResourceManager.GetString("MapIndicesExceedsColumnLenth", resourceCulture);
+                return ResourceManager.GetString("MapIndicesExceedsColumnLength", resourceCulture);
             }
         }
         

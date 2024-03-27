@@ -282,7 +282,7 @@ namespace Microsoft.Data.Analysis
         private StringDataFrameColumn Clone(PrimitiveDataFrameColumn<bool> boolColumn)
         {
             if (boolColumn.Length > Length)
-                throw new ArgumentException(Strings.MapIndicesExceedsColumnLenth, nameof(boolColumn));
+                throw new ArgumentException(Strings.MapIndicesExceedsColumnLength, nameof(boolColumn));
             StringDataFrameColumn ret = new StringDataFrameColumn(Name, 0);
             for (long i = 0; i < boolColumn.Length; i++)
             {
