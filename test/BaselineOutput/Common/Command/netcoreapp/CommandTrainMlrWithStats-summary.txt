@@ -1,18 +1,18 @@
 LbfgsMaximumEntropyMulticlassTrainer bias and non-zero weights
-	Iris-setosa+(Bias)	2.2461631
-	Iris-versicolor+(Bias)	0.77507037
-	Iris-virginica+(Bias)	-3.0212474
-	Iris-setosa+f3	-3.1763735
-	Iris-setosa+f2	-2.8875842
-	Iris-setosa+f1	0.51886666
-	Iris-setosa+f0	-0.0041847904
-	Iris-versicolor+f1	-0.73153543
-	Iris-virginica+f3	3.147383
-	Iris-virginica+f2	1.9020821
-	Iris-virginica+f0	0.0012227822
+	Iris-setosa+(Bias)	2.293142
+	Iris-versicolor+(Bias)	0.76599276
+	Iris-virginica+(Bias)	-3.0591424
+	Iris-setosa+f3	-3.1762753
+	Iris-setosa+f2	-2.8880758
+	Iris-setosa+f1	0.5144032
+	Iris-setosa+f0	-0.05904869
+	Iris-versicolor+f1	-0.70699453
+	Iris-virginica+f3	3.154204
+	Iris-virginica+f2	1.9121273
+	Iris-virginica+f0	0.036154807
 
 *** MODEL STATISTICS SUMMARY ***   
 Count of training examples:	150
-Residual Deviance:         	132.25266
+Residual Deviance:         	132.04128
 Null Deviance:             	329.58368
-AIC:                       	154.25266
+AIC:                       	154.04128
