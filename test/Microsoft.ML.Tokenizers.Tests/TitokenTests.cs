@@ -110,7 +110,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             try
             {
                 Tiktoken tiktoken = (tokenizer.Model as Tiktoken)!;
-                Tokenizer externalTokenizer = new Tokenizer(new Tiktoken(tokenizerDataFileName, tiktoken.SpecialTokensEncoder), tokenizer.PreTokenizer);
+                Tokenizer externalTokenizer = new Tokenizer(new Tiktoken(tokenizerDataFileName, tiktoken.SpecialTokens), tokenizer.PreTokenizer);
 
                 IReadOnlyDictionary<ReadOnlyMemory<byte>, int> encoder = tiktoken.Encoder;
                 IReadOnlyDictionary<ReadOnlyMemory<byte>, int> externalEncoder = (externalTokenizer.Model as Tiktoken)!.Encoder;

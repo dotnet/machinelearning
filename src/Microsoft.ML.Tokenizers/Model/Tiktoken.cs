@@ -830,13 +830,14 @@ namespace Microsoft.ML.Tokenizers
                 }
             }
 
-            if (!_tiktokenCache.TryGetValue(tiktokenConfiguration.VocabFile,
+            if (!_tiktokenCache.TryGetValue(
+                    tiktokenConfiguration.VocabFile,
                     out (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, (int Id, string Token)> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) cache))
             {
                 using Stream compressedStream = typeof(Tokenizer).Assembly.GetManifestResourceStream(tiktokenConfiguration.VocabFile)!;
                 using Stream deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress);
 
-                cache = LoadTikTokenBpeAsync(deflateStream, useAsync: false).GetAwaiter().GetResult();
+                cache = LoadTiktokenBpeAsync(deflateStream, useAsync: false).GetAwaiter().GetResult();
 
                 _tiktokenCache.TryAdd(tiktokenConfiguration.VocabFile, cache);
             }
