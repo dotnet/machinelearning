@@ -39,7 +39,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             TestGPT4TokenizationEncoding(GPT4);
 
             Assert.True(GPT4.Model is Tiktoken);
-            IReadOnlyDictionary<string, int>? specialTokensEncoder = (GPT4.Model as Tiktoken)!.SpecialTokensEncoder;
+            IReadOnlyDictionary<string, int>? specialTokensEncoder = (GPT4.Model as Tiktoken)!.SpecialTokens;
 
             string tokenizerDataFileName = Utils.CreateTemporaryFile("tiktoken");
 
@@ -166,9 +166,9 @@ namespace Microsoft.ML.Tokenizers.Tests
         private void TestGPT4Tokenizer(Tokenizer gpt4Tokenizer)
         {
             string text = ReadAndSanitizeFile("./Data/lib.rs.txt");
-            IReadOnlyList<int> encoded = gpt4Tokenizer.EncodeToIds(text, considerSpecialTokens: false);
+            IReadOnlyList<int> encoded = gpt4Tokenizer.EncodeToIds(text);
             Assert.Equal(5584, encoded.Count);
-            int idsCount = gpt4Tokenizer.CountTokens(text, considerSpecialTokens: false);
+            int idsCount = gpt4Tokenizer.CountTokens(text);
             Assert.Equal(encoded.Count, idsCount);
 
             using (Stream stream = File.OpenRead("./Data/tokens.json"))
