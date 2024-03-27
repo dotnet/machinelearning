@@ -151,6 +151,12 @@ namespace Microsoft.ML.RunTests
 
             // This needs to come after win-arm but before win-x64 and win-x86
 #if NETCOREAPP
+#if NET9_0_OR_GREATER
+            configurationDirs.Add("net9.0");
+#endif
+#if NET8_0_OR_GREATER
+            configurationDirs.Add("net8.0");
+#endif
             // Use netcoreapp result file if necessary.
             // The small difference comes from CPUMath using different instruction SSE (in CpuMathNative) vs
             // AVX, SSE or direct floating point calculation depending on hardware availability 
@@ -427,6 +433,11 @@ namespace Microsoft.ML.RunTests
 
 
             bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
+
+            if (!res && Environment.GetEnvironmentVariable("UpdateBaselines") == "1")
+            {
+                File.Copy(outPath, basePath, overwrite: true);
+            }
 
             // No need to keep the raw (unnormalized) output file.
             if (normalize && res)
