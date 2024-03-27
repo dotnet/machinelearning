@@ -193,13 +193,13 @@ namespace Microsoft.ML.Tokenizers.Tests
                     if (robertaModel.FilterUnsupportedChars)
                     {
                         string[]? filteredToken = p[5] as string[];
-                        Assert.Equal(filteredToken![i], tokenizer.Model.MapIdToToken(encoding.Ids[i], considerSpecialTokens: false));
+                        Assert.Equal(filteredToken![i], tokenizer.Model.MapIdToToken(encoding.Ids[i]));
                     }
                     else
                     {
-                        Assert.Equal(encoding.Tokens[i], tokenizer.Model.MapIdToToken(encoding.Ids[i], considerSpecialTokens: false));
+                        Assert.Equal(encoding.Tokens[i], tokenizer.Model.MapIdToToken(encoding.Ids[i]));
                         string[]? unfilteredToken = p[2] as string[];
-                        Assert.Equal(unfilteredToken![i], tokenizer.Model.MapIdToToken(encoding.Ids[i], considerSpecialTokens: false));
+                        Assert.Equal(unfilteredToken![i], tokenizer.Model.MapIdToToken(encoding.Ids[i]));
                     }
 
                     Assert.Equal(encoding.Ids[i], tokenizer.Model.MapTokenToId(encoding.Tokens[i].AsSpan()));

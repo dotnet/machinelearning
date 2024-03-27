@@ -208,32 +208,32 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             bool isEmptyInput = string.IsNullOrEmpty(input);
 
-            IReadOnlyList<Token> bpeTokens = bpe.Encode(normalizedInput, addBeginOfSentence: false, addEndOfSentence: false);
+            IReadOnlyList<Token> bpeTokens = bpe.Encode(normalizedInput.AsSpan(), addBeginOfSentence: false, addEndOfSentence: false);
             Assert.Equal(ids.Skip(1), bpeTokens.Select(token => token.Id));
             Assert.Equal(tokens.Skip(1), bpeTokens.Select(token => token.Value));
             Assert.Equal(input, llamaTokenizer.Decode(bpeTokens.Select(token => token.Id)));
             List<int> encodedIds = new();
-            bpe.EncodeToIds(normalizedInput.AsSpan(), addBeginOfSentence: false, addEndOfSentence: false, accumulatedIds: encodedIds);
+            bpe.EncodeToIds(normalizedInput.AsSpan(), addBeginOfSentence: false, addEndOfSentence: false, accumulatedIds: encodedIds, out _);
             Assert.Equal(ids.Skip(1), encodedIds);
-            Assert.Equal(isEmptyInput ? 0 : ids.Length - 1, bpe.CountTokens(normalizedInput.AsSpan(), addBeginOfSentence: false, addEndOfSentence: false));
+            Assert.Equal(isEmptyInput ? 0 : ids.Length - 1, bpe.CountTokens(normalizedInput.AsSpan(), addBeginOfSentence: false, addEndOfSentence: false, out _));
 
-            bpeTokens = bpe.Encode(normalizedInput, addBeginOfSentence: false, addEndOfSentence: true);
+            bpeTokens = bpe.Encode(normalizedInput.AsSpan(), addBeginOfSentence: false, addEndOfSentence: true);
             Assert.Equal(isEmptyInput ? Array.Empty<int>() : ids.Skip(1).Concat(new[] { bpe.EndOfSentenceId }), bpeTokens.Select(token => token.Id));
             Assert.Equal(isEmptyInput ? Array.Empty<string>() : tokens.Skip(1).Concat(new[] { bpe.EndOfSentenceToken }), bpeTokens.Select(token => token.Value));
             Assert.Equal(input, llamaTokenizer.Decode(bpeTokens.Select(token => token.Id)));
             encodedIds.Clear();
-            bpe.EncodeToIds(normalizedInput.AsSpan(), addBeginOfSentence: false, addEndOfSentence: true, accumulatedIds: encodedIds);
+            bpe.EncodeToIds(normalizedInput.AsSpan(), addBeginOfSentence: false, addEndOfSentence: true, accumulatedIds: encodedIds, out _);
             Assert.Equal(isEmptyInput ? Array.Empty<int>() : ids.Skip(1).Concat(new[] { bpe.EndOfSentenceId }), encodedIds);
-            Assert.Equal(isEmptyInput ? 0 : ids.Length, bpe.CountTokens(normalizedInput.AsSpan(), addBeginOfSentence: false, addEndOfSentence: true));
+            Assert.Equal(isEmptyInput ? 0 : ids.Length, bpe.CountTokens(normalizedInput.AsSpan(), addBeginOfSentence: false, addEndOfSentence: true, out _));
 
-            bpeTokens = bpe.Encode(normalizedInput, addBeginOfSentence: true, addEndOfSentence: true);
+            bpeTokens = bpe.Encode(normalizedInput.AsSpan(), addBeginOfSentence: true, addEndOfSentence: true);
             Assert.Equal(isEmptyInput ? Array.Empty<int>() : ids.Concat(new[] { bpe.EndOfSentenceId }), bpeTokens.Select(token => token.Id));
             Assert.Equal(isEmptyInput ? Array.Empty<string>() : tokens.Concat(new[] { bpe.EndOfSentenceToken }), bpeTokens.Select(token => token.Value));
             Assert.Equal(input, llamaTokenizer.Decode(bpeTokens.Select(token => token.Id)));
             encodedIds.Clear();
-            bpe.EncodeToIds(normalizedInput.AsSpan(), addBeginOfSentence: true, addEndOfSentence: true, accumulatedIds: encodedIds);
+            bpe.EncodeToIds(normalizedInput.AsSpan(), addBeginOfSentence: true, addEndOfSentence: true, accumulatedIds: encodedIds, out _);
             Assert.Equal(isEmptyInput ? Array.Empty<int>() : ids.Concat(new[] { bpe.EndOfSentenceId }), encodedIds);
-            Assert.Equal(isEmptyInput ? 0 : ids.Length + 1, bpe.CountTokens(normalizedInput.AsSpan(), addBeginOfSentence: true, addEndOfSentence: true));
+            Assert.Equal(isEmptyInput ? 0 : ids.Length + 1, bpe.CountTokens(normalizedInput.AsSpan(), addBeginOfSentence: true, addEndOfSentence: true, out _));
         }
 
         public static IEnumerable<object[]> LlamaTokenizersListData()
@@ -250,7 +250,6 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Throws<ArgumentNullException>(() => llamaTokenizer.EncodeToIds(null!));
             Assert.Throws<ArgumentNullException>(() => llamaTokenizer.CountTokens(null!));
             Assert.Throws<ArgumentNullException>(() => llamaTokenizer.Decode(null!));
-            Assert.Throws<ArgumentNullException>(() => (llamaTokenizer.Model as SentencePieceBpe)!.Encode(null!));
         }
 
         [Theory]
@@ -280,6 +279,8 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.True(bpe.AddDummyPrefix);
             Assert.True(bpe.EscapeWhiteSpaces);
             Assert.False(bpe.TreatWhitespaceAsSuffix);
+
+            TokenizerTests.TestTokenLimits(llamaTokenizer);
         }
 
         [Fact]

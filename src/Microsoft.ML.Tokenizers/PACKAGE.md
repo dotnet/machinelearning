@@ -1,10 +1,10 @@
 ## About
 
-Microsoft.ML.Tokenizers supports various the implmentation of the tokenization used in the NLP transforms.
+Microsoft.ML.Tokenizers supports various the implementation of the tokenization used in the NLP transforms.
 
 ## Key Features
 
-* Extensisble tokenizer architecture that allows for specialization of Normalizer, PreTokenizer, Model/Encoder, Decoder
+* Extensible tokenizer architecture that allows for specialization of Normalizer, PreTokenizer, Model/Encoder, Decoder
 * BPE - Byte pair encoding model
 * English Roberta model
 * Tiktoken model
@@ -21,8 +21,8 @@ using System.IO;
 // Using Tiktoken Tokenizer
 //
 
-// initialize the tokenizer for `gpt-4` model, downloading data files
-Tokenizer tokenizer = await Tokenizer.CreateTiktokenForModelAsync("gpt-4");
+// initialize the tokenizer for `gpt-4` model
+Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel("gpt-4");
 
 string source = "Text tokenization is the process of splitting a string into a list of tokens.";
 
@@ -68,7 +68,7 @@ The main types provided by this library are:
 * `Microsoft.ML.Tokenizers.Tokenizer`
 * `Microsoft.ML.Tokenizers.Bpe`
 * `Microsoft.ML.Tokenizers.EnglishRoberta`
-* `Microsoft.ML.Tokenizers.TikToken`
+* `Microsoft.ML.Tokenizers.Tiktoken`
 * `Microsoft.ML.Tokenizers.TokenizerDecoder`
 * `Microsoft.ML.Tokenizers.Normalizer`
 * `Microsoft.ML.Tokenizers.PreTokenizer`

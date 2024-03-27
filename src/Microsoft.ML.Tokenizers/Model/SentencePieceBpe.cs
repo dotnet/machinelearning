@@ -154,11 +154,10 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Encode a text to a list of tokens.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token.</param>
+        /// <param name="text">The text to encode.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
         /// <remarks>The input text has to be normalized before calling this method.</remarks>
-        public override IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false) => Encode(text, AddBeginningOfSentence, AddEndOfSentence);
+        public override IReadOnlyList<Token> Encode(ReadOnlySpan<char> text) => Encode(text, AddBeginningOfSentence, AddEndOfSentence);
 
         /// <summary>
         /// Encode a text to a list of tokens.
@@ -168,13 +167,8 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="addEndOfSentence">Indicate emitting the end of sentence token during the encoding.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
         /// <remarks>The input text has to be normalized before calling this method.</remarks>
-        public IReadOnlyList<Token> Encode(string text, bool addBeginOfSentence, bool addEndOfSentence)
+        public IReadOnlyList<Token> Encode(ReadOnlySpan<char> text, bool addBeginOfSentence, bool addEndOfSentence)
         {
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
             if (text.Length == 0)
             {
                 return Array.Empty<Token>();
@@ -182,7 +176,7 @@ namespace Microsoft.ML.Tokenizers
 
             BpeSymbol[] symbols = ArrayPool<BpeSymbol>.Shared.Rent(text.Length);
 
-            Dictionary<(int Index, int Len), (int LeftIndex, int LeftLen, int RightIndex, int RightLen)>? revMerge = Encode(text.AsSpan(), symbols);
+            Dictionary<(int Index, int Len), (int LeftIndex, int LeftLen, int RightIndex, int RightLen)>? revMerge = Encode(text, symbols);
 
             List<Token> tokens = new();
 
@@ -198,7 +192,7 @@ namespace Microsoft.ML.Tokenizers
 
                 if (id == UninitializedId)
                 {
-                    if (_vocab.TryGetValue(text.AsSpan().Slice(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length), out (int Id, float Score, byte Type) tokenInfo))
+                    if (_vocab.TryGetValue(text.Slice(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length), out (int Id, float Score, byte Type) tokenInfo))
                     {
                         id = tokenInfo.Id;
                         type = tokenInfo.Type;
@@ -214,19 +208,19 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (id == UnknownId && ByteFallback)
                     {
-                        EncodeAsBytes(text.AsSpan().Slice(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length), symbols[index].pieceSpan.Index);
+                        EncodeAsBytes(text.Slice(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length), symbols[index].pieceSpan.Index);
                     }
                     else
                     {
                         tokens.Add(new Token(
                                     id,
-                                    GetTokenString(id, symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length, text.AsSpan()),
+                                    GetTokenString(id, symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length, text),
                                     (symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length)));
                     }
                     continue;
                 }
 
-                Segment(symbols[index].pieceSpan, text.AsSpan());
+                Segment(symbols[index].pieceSpan, text);
             }
 
             ArrayPool<BpeSymbol>.Shared.Return(symbols);
@@ -314,11 +308,14 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Encode a text to a list of Ids and add them to the accumulatedIds list.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
         /// <remarks>The input text has to be normalized before calling this method.</remarks>
-        public override void EncodeToIds(ReadOnlySpan<char> text, bool isSpecialToken, IList<int> accumulatedIds) => EncodeToIds(text, AddBeginningOfSentence, AddEndOfSentence, accumulatedIds);
+        public override int EncodeToIds(ReadOnlySpan<char> text, IList<int> accumulatedIds, out int textLength, int maxTokens = int.MaxValue)
+            => EncodeToIds(text, AddBeginningOfSentence, AddEndOfSentence, accumulatedIds, out textLength, maxTokens);
 
         /// <summary>
         /// Encode a text to a list of Ids and add them to the accumulatedIds list.
@@ -327,26 +324,29 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="addBeginOfSentence">Indicate emitting the beginning of sentence token during the encoding.</param>
         /// <param name="addEndOfSentence">Indicate emitting the end of sentence token during the encoding.</param>
         /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
         /// <remarks>The input text has to be normalized before calling this method.</remarks>
-        public void EncodeToIds(ReadOnlySpan<char> text, bool addBeginOfSentence, bool addEndOfSentence, IList<int> accumulatedIds)
+        public int EncodeToIds(ReadOnlySpan<char> text, bool addBeginOfSentence, bool addEndOfSentence, IList<int> accumulatedIds, out int textLength, int maxTokens = int.MaxValue)
         {
+            if (maxTokens <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxTokens), "The maximum number of tokens must be greater than 0.");
+            }
+
+            textLength = 0;
             if (text.IsEmpty)
             {
-                return;
+                return 0;
             }
+
+            int idsCount = 0;
 
             if (addBeginOfSentence)
             {
                 accumulatedIds.Add(BeginningOfSentenceId);
-            }
-
-            if (text.IsEmpty)
-            {
-                if (addEndOfSentence)
-                {
-                    accumulatedIds.Add(EndOfSentenceId);
-                }
-                return;
+                idsCount++;
             }
 
             BpeSymbol[] symbols = ArrayPool<BpeSymbol>.Shared.Rent(text.Length);
@@ -376,34 +376,64 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (id == UnknownId && ByteFallback)
                     {
-                        EncodeAsBytes(text.Slice(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length), symbols[index].pieceSpan.Index);
+                        if (!EncodeAsBytes(text.Slice(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length), symbols[index].pieceSpan.Index, ref textLength))
+                        {
+                            break;
+                        }
                     }
                     else
                     {
-                        accumulatedIds.Add(id);
+                        if (idsCount < maxTokens)
+                        {
+                            accumulatedIds.Add(id);
+                            textLength += symbols[index].pieceSpan.Length;
+                            idsCount++;
+                        }
+                        else
+                        {
+                            return idsCount;
+                        }
                     }
                     continue;
                 }
 
-                Segment(symbols[index].pieceSpan, text);
+                if (!Segment(symbols[index].pieceSpan, text, ref textLength))
+                {
+                    break;
+                }
             }
 
             ArrayPool<BpeSymbol>.Shared.Return(symbols);
 
             if (addEndOfSentence)
             {
-                accumulatedIds.Add(EndOfSentenceId);
+                if (idsCount < maxTokens)
+                {
+                    accumulatedIds.Add(EndOfSentenceId);
+                    idsCount++;
+                }
             }
 
+            return idsCount;
+
             // Encode the Unknown token to bytes.
-            void EncodeAsBytes(ReadOnlySpan<char> text, int index)
+            bool EncodeAsBytes(ReadOnlySpan<char> text, int index, ref int textLength)
             {
                 for (int i = 0; i < text.Length; i++)
                 {
                     char c = text[i];
                     if (c <= 0x7F)
                     {
-                        accumulatedIds.Add((int)c + _byteCodeToIdOffset); // byte code is mapped to the to the Ids starting from 4.
+                        if (idsCount < maxTokens)
+                        {
+                            textLength++;
+                            accumulatedIds.Add((int)c + _byteCodeToIdOffset); // byte code is mapped to the to the Ids starting from 4.
+                            idsCount++;
+                        }
+                        else
+                        {
+                            return false;
+                        }
                     }
                     else
                     {
@@ -419,9 +449,21 @@ namespace Microsoft.ML.Tokenizers
 
                         // Need to convert the text into UTF-8 bytes and then encode the bytes.
                         int bytesWritten = Helpers.GetUtf8Bytes(text.Slice(i), utf8Bytes);
-                        for (int j = 0; j < bytesWritten; j++)
+
+                        bool ret;
+                        if (idsCount + bytesWritten <= maxTokens)
                         {
-                            accumulatedIds.Add((int)utf8Bytes[j] + _byteCodeToIdOffset); // byte code is mapped to the to the Ids starting from 4.
+                            for (int j = 0; j < bytesWritten; j++)
+                            {
+                                accumulatedIds.Add((int)utf8Bytes[j] + _byteCodeToIdOffset); // byte code is mapped to the to the Ids starting from 4.
+                            }
+
+                            textLength += text.Length - i;
+                            ret = true;
+                        }
+                        else
+                        {
+                            ret = false;
                         }
 
                         if (arrayPoolArray is not null)
@@ -429,40 +471,60 @@ namespace Microsoft.ML.Tokenizers
                             ArrayPool<byte>.Shared.Return(arrayPoolArray);
                         }
 
-                        break;
+                        return ret;
                     }
                 }
+
+                return true;
             }
 
-            void Segment((int Index, int Length) pieceSpan, ReadOnlySpan<char> text)
+            bool Segment((int Index, int Length) pieceSpan, ReadOnlySpan<char> text, ref int textLength)
             {
                 if (!_vocab.TryGetValue(text.Slice(pieceSpan.Index, pieceSpan.Length), out (int Id, float Score, byte Type) id))
                 {
-                    EncodeAsBytes(text.Slice(pieceSpan.Index, pieceSpan.Length), pieceSpan.Index);
-                    return;
+                    return EncodeAsBytes(text.Slice(pieceSpan.Index, pieceSpan.Length), pieceSpan.Index, ref textLength);
                 }
 
                 if (id.Type != (byte)ModelProto.Types.SentencePiece.Types.Type.Unused ||
                     revMerge is null ||
                     !revMerge.TryGetValue((pieceSpan.Index, pieceSpan.Length), out (int LeftIndex, int LeftLen, int RightIndex, int RightLen) merge))
                 {
-                    accumulatedIds.Add(id.Id);
-                    return;
+                    if (idsCount < maxTokens)
+                    {
+                        accumulatedIds.Add(id.Id);
+                        textLength += pieceSpan.Length;
+                        idsCount++;
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
 
-                Segment((merge.LeftIndex, merge.LeftLen), text);
-                Segment((merge.RightIndex, merge.RightLen), text);
+                return Segment((merge.LeftIndex, merge.LeftLen), text, ref textLength) && Segment((merge.RightIndex, merge.RightLen), text, ref textLength);
             }
         }
 
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token.</param>
+        /// <param name="text">The text to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
         /// <returns>The number of tokens that the input text will be encoded to.</returns>
         /// <remarks>The input text has to be normalized before calling this method.</remarks>
-        public override int CountTokens(ReadOnlySpan<char> text, bool isSpecialToken) => CountTokens(text, AddBeginningOfSentence, AddEndOfSentence);
+        public override int CountTokens(ReadOnlySpan<char> text, out int textLength, int maxTokens = int.MaxValue) => CountTokens(text, AddBeginningOfSentence, AddEndOfSentence, out textLength, maxTokens);
+
+        /// <summary>
+        /// Get the number of tokens that the input text will be encoded to.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="textIndex">Starting from this index to the end of the text will encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        public override int CountTokensFromEnd(ReadOnlySpan<char> text, out int textIndex, int maxTokens = int.MaxValue) => CountTokensFromEnd(text, AddBeginningOfSentence, AddEndOfSentence, out textIndex, maxTokens);
 
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
@@ -470,10 +532,13 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="text">The text to encode.</param>
         /// <param name="addBeginOfSentence">Indicate emitting the beginning of sentence token during the encoding.</param>
         /// <param name="addEndOfSentence">Indicate emitting the end of sentence token during the encoding.</param>
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
         /// <returns>The number of tokens that the input text will be encoded to.</returns>
         /// <remarks>The input text has to be normalized before calling this method.</remarks>
-        public int CountTokens(ReadOnlySpan<char> text, bool addBeginOfSentence, bool addEndOfSentence)
+        public int CountTokens(ReadOnlySpan<char> text, bool addBeginOfSentence, bool addEndOfSentence, out int textLength, int maxTokens = int.MaxValue)
         {
+            textLength = 0;
             if (text.IsEmpty)
             {
                 return 0;
@@ -508,36 +573,61 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (id == UnknownId && ByteFallback)
                     {
-                        EncodeAsBytes(text.Slice(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length), symbols[index].pieceSpan.Index);
+                        if (!EncodeAsBytes(text.Slice(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length), symbols[index].pieceSpan.Index, ref textLength))
+                        {
+                            break;
+                        }
                     }
                     else
                     {
-                        tokenCount++;
+                        if (tokenCount < maxTokens)
+                        {
+                            tokenCount++;
+                            textLength += symbols[index].pieceSpan.Length;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
                     continue;
                 }
 
-                Segment(symbols[index].pieceSpan, text);
+                if (!Segment(symbols[index].pieceSpan, text, ref textLength))
+                {
+                    break;
+                }
             }
 
             ArrayPool<BpeSymbol>.Shared.Return(symbols);
 
             if (addEndOfSentence)
             {
-                tokenCount++;
+                if (tokenCount < maxTokens)
+                {
+                    tokenCount++;
+                }
             }
 
             return tokenCount;
 
             // Encode the Unknown token to bytes.
-            void EncodeAsBytes(ReadOnlySpan<char> text, int index)
+            bool EncodeAsBytes(ReadOnlySpan<char> text, int index, ref int textLength)
             {
                 for (int i = 0; i < text.Length; i++)
                 {
                     char c = text[i];
                     if (c <= 0x7F)
                     {
-                        tokenCount++;
+                        if (tokenCount < maxTokens)
+                        {
+                            tokenCount++;
+                            textLength++;
+                        }
+                        else
+                        {
+                            return false;
+                        }
                     }
                     else
                     {
@@ -552,36 +642,233 @@ namespace Microsoft.ML.Tokenizers
                         }
 
                         // Need to convert the text into UTF-8 bytes and then encode the bytes.
-                        tokenCount += Helpers.GetUtf8Bytes(text.Slice(i), utf8Bytes);
+                        int encodedCount = Helpers.GetUtf8Bytes(text.Slice(i), utf8Bytes);
+                        bool ret;
+
+                        if (tokenCount + encodedCount <= maxTokens)
+                        {
+                            tokenCount += encodedCount;
+                            textLength += text.Length - i;
+                            ret = true;
+                        }
+                        else
+                        {
+                            ret = false;
+                        }
 
                         if (arrayPoolArray is not null)
                         {
                             ArrayPool<byte>.Shared.Return(arrayPoolArray);
                         }
 
-                        break;
+                        return ret;
                     }
                 }
+
+                return true;
             }
 
-            void Segment((int Index, int Length) pieceSpan, ReadOnlySpan<char> text)
+            bool Segment((int Index, int Length) pieceSpan, ReadOnlySpan<char> text, ref int textLength)
             {
                 if (!_vocab.TryGetValue(text.Slice(pieceSpan.Index, pieceSpan.Length), out (int Id, float Score, byte Type) id))
                 {
-                    EncodeAsBytes(text.Slice(pieceSpan.Index, pieceSpan.Length), pieceSpan.Index);
-                    return;
+                    return EncodeAsBytes(text.Slice(pieceSpan.Index, pieceSpan.Length), pieceSpan.Index, ref textLength);
                 }
 
                 if (id.Type != (byte)ModelProto.Types.SentencePiece.Types.Type.Unused ||
                     revMerge is null ||
                     !revMerge.TryGetValue((pieceSpan.Index, pieceSpan.Length), out (int LeftIndex, int LeftLen, int RightIndex, int RightLen) merge))
                 {
-                    tokenCount++;
-                    return;
+                    if (tokenCount < maxTokens)
+                    {
+                        tokenCount++;
+                        textLength += pieceSpan.Length;
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
 
-                Segment((merge.LeftIndex, merge.LeftLen), text);
-                Segment((merge.RightIndex, merge.RightLen), text);
+                return Segment((merge.LeftIndex, merge.LeftLen), text, ref textLength) && Segment((merge.RightIndex, merge.RightLen), text, ref textLength);
+            }
+        }
+
+        /// <summary>
+        /// Get the number of tokens that the input text will be encoded to.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="addBeginOfSentence">Indicate emitting the beginning of sentence token during the encoding.</param>
+        /// <param name="addEndOfSentence">Indicate emitting the end of sentence token during the encoding.</param>
+        /// <param name="textIndex">Starting from this index to the end of the text will encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        /// <remarks>The input text has to be normalized before calling this method.</remarks>
+        public int CountTokensFromEnd(ReadOnlySpan<char> text, bool addBeginOfSentence, bool addEndOfSentence, out int textIndex, int maxTokens = int.MaxValue)
+        {
+            textIndex = text.Length;
+            if (text.IsEmpty)
+            {
+                return 0;
+            }
+
+            int tokenCount = addEndOfSentence ? 1 : 0;
+
+            BpeSymbol[] symbols = ArrayPool<BpeSymbol>.Shared.Rent(text.Length);
+
+            Dictionary<(int Index, int Len), (int LeftIndex, int LeftLen, int RightIndex, int RightLen)>? revMerge = Encode(text, symbols);
+
+            // Move to the last symbol.
+            int lastSymbolIndex = 0;
+            while (symbols[lastSymbolIndex].next != -1 && lastSymbolIndex < symbols.Length)
+            {
+                lastSymbolIndex = symbols[lastSymbolIndex].next;
+            }
+
+            for (int index = lastSymbolIndex; index >= 0; index = symbols[index].prev)
+            {
+                int id = symbols[index].id;
+                byte type = symbols[index].type;
+
+                if (id == UninitializedId)
+                {
+                    if (_vocab.TryGetValue(text.Slice(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length), out (int Id, float Score, byte Type) tokenInfo))
+                    {
+                        id = tokenInfo.Id;
+                        type = tokenInfo.Type;
+                    }
+                    else
+                    {
+                        id = UnknownId;
+                        type = 0;
+                    }
+                }
+
+                if (type != (byte)ModelProto.Types.SentencePiece.Types.Type.Unused)
+                {
+                    if (id == UnknownId && ByteFallback)
+                    {
+                        if (!EncodeAsBytesFromEnd(text.Slice(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length), symbols[index].pieceSpan.Index, ref textIndex))
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (tokenCount < maxTokens)
+                        {
+                            tokenCount++;
+                            textIndex -= symbols[index].pieceSpan.Length;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    continue;
+                }
+
+                if (!SegmentFromEnd(symbols[index].pieceSpan, text, ref textIndex))
+                {
+                    break;
+                }
+            }
+
+            ArrayPool<BpeSymbol>.Shared.Return(symbols);
+
+            if (AddBeginningOfSentence)
+            {
+                if (tokenCount < maxTokens)
+                {
+                    tokenCount++;
+                }
+            }
+
+            return tokenCount;
+
+            // Encode the Unknown token to bytes.
+            bool EncodeAsBytesFromEnd(ReadOnlySpan<char> text, int index, ref int textIndex)
+            {
+                for (int i = text.Length - 1; i >= 0; i--)
+                {
+                    char c = text[i];
+                    if (c <= 0x7F)
+                    {
+                        if (tokenCount < maxTokens)
+                        {
+                            tokenCount++;
+                            textIndex--;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        Span<byte> utf8Bytes = stackalloc byte[100];
+                        byte[]? arrayPoolArray = null;
+
+                        int len = Encoding.UTF8.GetMaxByteCount(text.Length - i);
+                        if (len > utf8Bytes.Length)
+                        {
+                            arrayPoolArray = ArrayPool<byte>.Shared.Rent(len);
+                            utf8Bytes = arrayPoolArray;
+                        }
+
+                        // Need to convert the text into UTF-8 bytes and then encode the bytes.
+                        int encodedCount = Helpers.GetUtf8Bytes(text.Slice(0, i + 1), utf8Bytes);
+                        bool ret;
+
+                        if (tokenCount + encodedCount <= maxTokens)
+                        {
+                            tokenCount += encodedCount;
+                            textIndex -= i + 1;
+                            ret = true;
+                        }
+                        else
+                        {
+                            ret = false;
+                        }
+
+                        if (arrayPoolArray is not null)
+                        {
+                            ArrayPool<byte>.Shared.Return(arrayPoolArray);
+                        }
+
+                        return ret;
+                    }
+                }
+
+                return true;
+            }
+
+            bool SegmentFromEnd((int Index, int Length) pieceSpan, ReadOnlySpan<char> text, ref int textIndex)
+            {
+                if (!_vocab.TryGetValue(text.Slice(pieceSpan.Index, pieceSpan.Length), out (int Id, float Score, byte Type) id))
+                {
+                    return EncodeAsBytesFromEnd(text.Slice(pieceSpan.Index, pieceSpan.Length), pieceSpan.Index, ref textIndex);
+                }
+
+                if (id.Type != (byte)ModelProto.Types.SentencePiece.Types.Type.Unused ||
+                    revMerge is null ||
+                    !revMerge.TryGetValue((pieceSpan.Index, pieceSpan.Length), out (int LeftIndex, int LeftLen, int RightIndex, int RightLen) merge))
+                {
+                    if (tokenCount < maxTokens)
+                    {
+                        tokenCount++;
+                        textIndex -= pieceSpan.Length;
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                // Segment the right part first.
+                return SegmentFromEnd((merge.RightIndex, merge.RightLen), text, ref textIndex) && SegmentFromEnd((merge.LeftIndex, merge.LeftLen), text, ref textIndex);
             }
         }
 
@@ -589,32 +876,28 @@ namespace Microsoft.ML.Tokenizers
         /// Map the token to encoded id with the option to skip the special tokens.
         /// </summary>
         /// <param name="token">The token to map to Id</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public override int? MapTokenToId(ReadOnlySpan<char> token, bool considerSpecialTokens = true)
+        public override int? MapTokenToId(ReadOnlySpan<char> token)
             => _vocab.TryGetValue(token, out (int Id, float Score, byte Type) value) ? value.Id : null;
 
         /// <summary>
         /// Map the encoded Id to the token.
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public override string? MapIdToToken(int id, bool considerSpecialTokens = true)
+        public override string? MapIdToToken(int id)
             => _vocabReverse.TryGetValue(id, out string? value) ? value : null;
 
         /// <summary>
         /// Decode the given ids, back to a String.
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
-        /// <param name="considerSpecialTokens">Whether the special tokens should be kept in the decoded string.</param>
         /// <param name="decoder">The optional Decoder to merge the given list of tokens in a string.</param>
         /// <returns>The decoded string.</returns>
         /// <remarks>
         /// The decoder is not used here because the SentencePiece Bpe model knows how to decode the ids in additions to avoid any performance overhead.
-        /// considerSpecialTokens is not used here because the SentencePiece Bpe model always remove unknown or control tokens during the decoding.
         /// </remarks>
-        public override string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null, bool considerSpecialTokens = true)
+        public override string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null)
         {
             if (ids is null)
             {

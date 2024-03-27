@@ -135,15 +135,9 @@ namespace Microsoft.ML.Tokenizers
         /// Map the encoded Id to the token.
         /// </summary>
         /// <param name="id">The Id to map to the string.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public override string? MapIdToToken(int id, bool considerSpecialTokens = true)
+        public override string? MapIdToToken(int id)
         {
-            if (!considerSpecialTokens && id < 0)
-            {
-                return null;
-            }
-
             if (_vocabReverse.TryGetValue(id, out var value))
             {
                 string v = value.Data!;
@@ -176,12 +170,11 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Encode a text string to a list of tokens.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token. This parameter is ignored in this model.</param>
+        /// <param name="text">The text to encode.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
-        public override IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false)
+        public override IReadOnlyList<Token> Encode(ReadOnlySpan<char> text)
         {
-            if (string.IsNullOrEmpty(text))
+            if (text.IsEmpty)
             {
                 return Bpe.EmptyTokensList;
             }
@@ -215,7 +208,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             List<Token> result = EncodeToTokens(token.AsSpan().Slice(0, newTokenIndex), indexMapping);
-            _cache.Set(text, result);
+            _cache.Set(text.ToString(), result);
             ArrayPool<char>.Shared.Return(token);
             ArrayPool<int>.Shared.Return(indexMapping);
             return result;
@@ -224,37 +217,116 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Encode a split text string to a list of Ids and add them to the accumulatedIds list.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token. This parameter is ignored in this model.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
-        public override void EncodeToIds(ReadOnlySpan<char> text, bool isSpecialToken, IList<int> accumulatedIds) => EncodeToIds(text, accumulatedIds);
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        public override int EncodeToIds(ReadOnlySpan<char> text, IList<int> accumulatedIds, out int textLength, int maxTokens = int.MaxValue) => EncodeToIdsInternal(text, accumulatedIds, out textLength, maxTokens);
 
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token. This parameter is ignored in this model.</param>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
         /// <returns>The number of tokens that the input text will be encoded to.</returns>
-        public override int CountTokens(ReadOnlySpan<char> text, bool isSpecialToken) => EncodeToIds(text, null);
+        public override int CountTokens(ReadOnlySpan<char> text, out int textLength, int maxTokens = int.MaxValue) => EncodeToIdsInternal(text, null, out textLength, maxTokens);
 
-        private int EncodeToIds(ReadOnlySpan<char> text, IList<int>? accumulatedIds)
+        /// <summary>
+        /// Get the number of tokens that the input text will be encoded to.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="textIndex">Starting from this index to the end of the text will encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        public override int CountTokensFromEnd(ReadOnlySpan<char> text, out int textIndex, int maxTokens = int.MaxValue) => EncodeToIdsFromEndInternal(text, null, out textIndex, maxTokens);
+
+        private int EncodeToIdsResult(List<Token> tokens, IList<int>? accumulatedIds, int maxTokens, int fullTextLength, out int textLength)
         {
-            if (text.IsEmpty)
-            {
-                return 0;
-            }
+            textLength = 0;
 
-            if (_cache.TryGetValue(text, out List<Token>? hit))
+            if (tokens.Count <= maxTokens)
             {
                 if (accumulatedIds is not null)
                 {
-                    foreach (var t in hit)
+                    foreach (var t in tokens)
                     {
                         accumulatedIds.Add(t.Id);
                     }
                 }
 
-                return hit.Count;
+                textLength = fullTextLength;
+                return tokens.Count;
+            }
+
+            if (accumulatedIds is not null)
+            {
+                for (int i = 0; i < maxTokens; i++)
+                {
+                    accumulatedIds.Add(tokens[i].Id);
+                    textLength += tokens[i].Offset.Length;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < maxTokens; i++)
+                {
+                    textLength += tokens[i].Offset.Length;
+                }
+            }
+
+            return maxTokens;
+        }
+
+        private int EncodeToIdsFromEndResult(List<Token> tokens, IList<int>? accumulatedIds, int maxTokens, int fullTextLength, out int textIndex)
+        {
+            textIndex = fullTextLength;
+
+            if (tokens.Count <= maxTokens)
+            {
+                if (accumulatedIds is not null)
+                {
+                    foreach (var t in tokens)
+                    {
+                        accumulatedIds.Add(t.Id);
+                    }
+                }
+
+                textIndex = 0;
+                return tokens.Count;
+            }
+
+            if (accumulatedIds is not null)
+            {
+                for (int i = tokens.Count - maxTokens; i < tokens.Count; i++)
+                {
+                    accumulatedIds.Add(tokens[i].Id);
+                    textIndex -= tokens[i].Offset.Length;
+                }
+            }
+            else
+            {
+                for (int i = tokens.Count - maxTokens; i < tokens.Count; i++)
+                {
+                    textIndex -= tokens[i].Offset.Length;
+                }
+            }
+
+            return maxTokens;
+        }
+
+        private int EncodeToIdsInternal(ReadOnlySpan<char> text, IList<int>? accumulatedIds, out int textLength, int maxTokens)
+        {
+            if (text.IsEmpty)
+            {
+                textLength = 0;
+                return 0;
+            }
+
+            if (_cache.TryGetValue(text, out List<Token>? hit))
+            {
+                return EncodeToIdsResult(hit, accumulatedIds, maxTokens, text.Length, out textLength);
             }
 
             char[] token = ArrayPool<char>.Shared.Rent(text.Length);
@@ -275,6 +347,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 ArrayPool<char>.Shared.Return(token);
                 ArrayPool<int>.Shared.Return(indexMapping);
+                textLength = 0;
                 return 0;
             }
 
@@ -283,24 +356,58 @@ namespace Microsoft.ML.Tokenizers
             ArrayPool<char>.Shared.Return(token);
             ArrayPool<int>.Shared.Return(indexMapping);
 
-            if (accumulatedIds is not null)
+            return EncodeToIdsResult(result, accumulatedIds, maxTokens, text.Length, out textLength);
+        }
+
+        private int EncodeToIdsFromEndInternal(ReadOnlySpan<char> text, IList<int>? accumulatedIds, out int textIndex, int maxTokens)
+        {
+            if (text.IsEmpty)
             {
-                foreach (var t in result)
+                textIndex = text.Length;
+                return 0;
+            }
+
+            if (_cache.TryGetValue(text, out List<Token>? hit))
+            {
+                return EncodeToIdsFromEndResult(hit, accumulatedIds, maxTokens, text.Length, out textIndex);
+            }
+
+            char[] token = ArrayPool<char>.Shared.Rent(text.Length);
+            int[] indexMapping = ArrayPool<int>.Shared.Rent(text.Length);
+
+            int newTokenIndex = 0;
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (_byteToUnicode.TryGetValue(text[i], out var value))
                 {
-                    accumulatedIds.Add(t.Id);
+                    token[newTokenIndex] = value;
+                    indexMapping[newTokenIndex] = i;
+                    newTokenIndex++;
                 }
             }
 
-            return result.Count;
+            if (newTokenIndex == 0)
+            {
+                ArrayPool<char>.Shared.Return(token);
+                ArrayPool<int>.Shared.Return(indexMapping);
+                textIndex = text.Length;
+                return 0;
+            }
+
+            List<Token> result = EncodeToTokens(token.AsSpan().Slice(0, newTokenIndex), indexMapping);
+            _cache.Set(text.ToString(), result);
+            ArrayPool<char>.Shared.Return(token);
+            ArrayPool<int>.Shared.Return(indexMapping);
+
+            return EncodeToIdsFromEndResult(result, accumulatedIds, maxTokens, text.Length, out textIndex);
         }
 
         /// <summary>
         /// Map the token to encoded Id.
         /// </summary>
         /// <param name="token">The token to map to the Id.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public override int? MapTokenToId(ReadOnlySpan<char> token, bool considerSpecialTokens = true) => _vocab.TryGetValue(token, out int value) ? value : null;
+        public override int? MapTokenToId(ReadOnlySpan<char> token) => _vocab.TryGetValue(token, out int value) ? value : null;
 
         /// <summary>
         /// Convert a list of tokens Ids to highest occurrence rankings.
