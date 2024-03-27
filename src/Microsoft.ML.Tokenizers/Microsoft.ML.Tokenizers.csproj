@@ -35,12 +35,12 @@
         foreach(var file in Files)
         {
             using var sourceStream = File.OpenRead(file.GetMetadata("FullPath"));
+            using var reader = new StreamReader(sourceStream);
             using var destStream = new DeflateStream(File.Create(file.GetMetadata("Destination")), CompressionLevel.Optimal);
             using var streamWriter = new StreamWriter(destStream);
 
             string line;
             int destLineNumber = 0;
-            using StreamReader reader = new StreamReader(sourceStream);
 
             while ((line = reader.ReadLine()) != null)
             {
@@ -56,13 +56,12 @@
                 while (destLineNumber < id)
                 {
                     // ensure id always aligns with the line number
-                    streamWriter.WriteLine(string.Empty);
+                    streamWriter.WriteLine();
                     destLineNumber++;
                 }
 
-                destLineNumber++;
-
                 streamWriter.WriteLine(line.Substring(0, index));
+                destLineNumber++;
             }
         }
       ]]>
@@ -81,10 +80,10 @@
 
       These files under MIT copyright license https://github.com/openai/tiktoken/blob/main/LICENSE
 
-      Prior to compressing the files, we modify their content to eliminate the ranks, thus reducing the file size,
+      In the CompressFile task above we modify the file's content to elimenate the ranks, thus reducing the file size,
       since the rank corresponds to the line number in the file. For the file p50k_base.tiktoken,
       we introduce empty lines to replace any missing ranks, ensuring that the rank consistently aligns with the line number.
-      Take note of the empty line at number 50,257 in the file p50k_base.tiktoken.
+      After we eleminate the ranks from the file, we compress the file using the DeflateStream and embed it as a resource in the assembly.
     -->
     <FilesToCompress Include="Data\cl100k_base.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate" />
     <FilesToCompress Include="Data\gpt2.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate" />
