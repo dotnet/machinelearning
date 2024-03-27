@@ -3,11 +3,9 @@
     "dotnet": "9.0.100-preview.1.24101.2",
     "runtimes": {
       "dotnet": [
-        "$(DotNetRuntime60Version)",
         "$(DotNetRuntime80Version)"
       ],
       "dotnet/x86": [
-        "$(DotNetRuntime60Version)",
         "$(DotNetRuntime80Version)"
       ]
     }

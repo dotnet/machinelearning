@@ -5,6 +5,7 @@
     <GenerateProgramFile>false</GenerateProgramFile>
     <IsUnitTestProject>false</IsUnitTestProject>
     <IsPerformanceTestProject>true</IsPerformanceTestProject>
+    <SkipHelixTesting>true</SkipHelixTesting>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="BenchmarkDotNet.Artifacts\**" />

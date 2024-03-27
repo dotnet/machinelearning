@@ -23,11 +23,10 @@
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>812d978c303174dc1aa305d7359e79053d7d4971</Sha>
     </Dependency>
-    <!-- Stay on package 8.0 until we stop testing for net6.0
     <Dependency Name="Microsoft.DotNet.RemoteExecutor" Version="9.0.0-beta.24165.3">
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>812d978c303174dc1aa305d7359e79053d7d4971</Sha>
-    </Dependency> -->
+    </Dependency>
     <Dependency Name="Microsoft.DotNet.SwaggerGenerator.MSBuild" Version="9.0.0-beta.24165.3">
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>812d978c303174dc1aa305d7359e79053d7d4971</Sha>

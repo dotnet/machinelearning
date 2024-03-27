@@ -25,23 +25,23 @@ TRUTH     ||======================
           ||======================
 Precision ||   0.9585 |   0.9819 |
 OVERALL 0/1 ACCURACY: 0.973646
-LOG LOSS/instance:  0.112168
+LOG LOSS/instance:  0.110238
 Test-set entropy (prior Log-Loss/instance): 0.934003
-LOG-LOSS REDUCTION (RIG): 0.879907
-AUC:                0.996240
+LOG-LOSS REDUCTION (RIG): 0.881972
+AUC:                0.996325
 
 OVERALL RESULTS
 ---------------------------------------
-AUC:                0.996240 (0.0000)
+AUC:                0.996325 (0.0000)
 Accuracy:           0.973646 (0.0000)
 Positive precision: 0.958506 (0.0000)
 Positive recall:    0.966527 (0.0000)
 Negative precision: 0.981900 (0.0000)
 Negative recall:    0.977477 (0.0000)
-Log-loss:           0.112168 (0.0000)
-Log-loss reduction: 0.879907 (0.0000)
+Log-loss:           0.110238 (0.0000)
+Log-loss reduction: 0.881972 (0.0000)
 F1 Score:           0.962500 (0.0000)
-AUPRC:              0.992400 (0.0000)
+AUPRC:              0.992721 (0.0000)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

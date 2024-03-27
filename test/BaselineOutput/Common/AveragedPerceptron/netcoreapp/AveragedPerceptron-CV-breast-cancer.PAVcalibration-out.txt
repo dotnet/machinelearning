@@ -13,15 +13,15 @@ Confusion table
           ||======================
 PREDICTED || positive | negative | Recall
 TRUTH     ||======================
- positive ||      131 |        3 | 0.9776
- negative ||        8 |      212 | 0.9636
+ positive ||      133 |        1 | 0.9925
+ negative ||        9 |      211 | 0.9591
           ||======================
-Precision ||   0.9424 |   0.9860 |
-OVERALL 0/1 ACCURACY: 0.968927
+Precision ||   0.9366 |   0.9953 |
+OVERALL 0/1 ACCURACY: 0.971751
 LOG LOSS/instance:  Infinity
 Test-set entropy (prior Log-Loss/instance): 0.956998
 LOG-LOSS REDUCTION (RIG): -Infinity
-AUC:                0.994437
+AUC:                0.994403
 Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
 TEST POSITIVE RATIO:	0.3191 (105.0/(105.0+224.0))
 Confusion table
@@ -40,16 +40,16 @@ AUC:                0.997619
 
 OVERALL RESULTS
 ---------------------------------------
-AUC:                0.996028 (0.0016)
-Accuracy:           0.972305 (0.0034)
-Positive precision: 0.956660 (0.0142)
-Positive recall:    0.964996 (0.0126)
-Negative precision: 0.981961 (0.0041)
-Negative recall:    0.975122 (0.0115)
+AUC:                0.996011 (0.0016)
+Accuracy:           0.973718 (0.0020)
+Positive precision: 0.953747 (0.0171)
+Positive recall:    0.972459 (0.0201)
+Negative precision: 0.986580 (0.0087)
+Negative recall:    0.972849 (0.0138)
 Log-loss:           Infinity (NaN)
 Log-loss reduction: -Infinity (NaN)
-F1 Score:           0.960623 (0.0009)
-AUPRC:              0.992280 (0.0025)
+F1 Score:           0.962653 (0.0011)
+AUPRC:              0.992269 (0.0025)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%
