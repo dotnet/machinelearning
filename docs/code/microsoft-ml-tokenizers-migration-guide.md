@@ -14,11 +14,7 @@ This guide provides general guidance on how to migrate from various tokenizer li
 
 ### General Guidance
 
-- To avoid embedding the tokenizer's vocabulary files in the code assembly or downloading them at runtime when using one of the standard Tiktoken vocabulary files, utilize the [`CreateTiktokenForModel`](https://github.com/dotnet/machinelearning/blob/4d5317e8090e158dc7c3bc6c435926ccf1cbd8e2/src/Microsoft.ML.Tokenizers/Tokenizer.cs#L324) function. This API allows you to select one of the following vocabulary files based on the model name:
-    - [cl100k_base.tiktoken](https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken) for models like `gpt-4` and `gpt-3.5-turbo`.
-    - [gpt2.tiktoken](https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken) for model like `gpt2`.
-    - [p50k_base.tiktoken](https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken) for models like `text-davinci-003` and `code-davinci-002`.
-    - [r50k_base.tiktoken](https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken) for models like `text-curie-001` and `davinci`..
+- To avoid embedding the tokenizer's vocabulary files in the code assembly or downloading them at runtime when using one of the standard Tiktoken vocabulary files, utilize the [`CreateTiktokenForModel`](https://github.com/dotnet/machinelearning/blob/4d5317e8090e158dc7c3bc6c435926ccf1cbd8e2/src/Microsoft.ML.Tokenizers/Tokenizer.cs#L324) function. The [table](https://github.com/dotnet/machinelearning/blob/4d5317e8090e158dc7c3bc6c435926ccf1cbd8e2/src/Microsoft.ML.Tokenizers/Model/Tiktoken.cs#L683-L734) lists the mapping of model names to the corresponding vocabulary files used with each model. This table offers clarity regarding the vocabulary file linked with each model, alleviating users from the concern of carrying or downloading such vocabulary files if they utilize one of the models listed.
 - Avoid hard-coding tiktoken regexes and special tokens.  Instead use the appropriate Tiktoken.`CreateTiktokenForModel/Async` method to create the tokenizer using the model name, or a provided stream.
 - Avoid doing encoding if you need the token count or encoded Ids. Instead use `Tokenizer.CountTokens` for getting the token count and `Tokenizer.EncodeToIds` for getting the encode ids.
 - Avoid doing encoding if all you need is to truncate to a token budget.  Instead use `Tokenizer.IndexOfCount` or `LastIndexOfCount` to find the index to truncate from the start or end of a string, respectively.
