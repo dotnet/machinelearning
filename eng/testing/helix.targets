@@ -10,7 +10,7 @@
     <HelixCorrelationPayloadPath Condition="'$(OS)' == 'Windows_NT'">%HELIX_CORRELATION_PAYLOAD%</HelixCorrelationPayloadPath>
 
     <RunTestScript Condition="'$(OS)' != 'Windows_NT'">runTests.sh</RunTestScript>
-    <RunTestScript Condition="'$(OS)' == 'Windows_NT'">runTests.cmd</RunTestScript>
+    <RunTestScript Condition="'$(OS)' == 'Windows_NT'">./runTests.cmd</RunTestScript>
 
     <RunCommand>dotnet exec --roll-forward Major --runtimeconfig $(TargetName).runtimeconfig.json --depsfile $(TargetName).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll $(TargetName).dll -notrait Category=SkipInCI -xml testResults.xml</RunCommand>
     <RunCommand Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">$(HelixCorrelationPayloadPath)/xunit-runner/tools/net462/xunit.console.exe $(TargetName).dll -notrait Category=SkipInCI -xml testResults.xml</RunCommand>
@@ -44,7 +44,8 @@
     <ItemGroup>
       <HelixWorkItem Include="$(MSBuildProjectName) - $(TargetFramework)">
         <PayloadDirectory>$(TargetDir)</PayloadDirectory>
-        <Command>$(RunTestScript)</Command>
+        <Command  Condition="'$(OS)' != 'Windows_NT'">./$(RunTestScript)</Command>
+        <Command  Condition="'$(OS)' == 'Windows_NT'">call $(RunTestScript)</Command>
         <Timeout>01:00:00</Timeout>
         <Timeout Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">00:30:00</Timeout>
         <Timeout Condition="'$(WorkItemTimeout)' != ''">$(WorkItemTimeout)</Timeout>
