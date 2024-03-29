@@ -5,6 +5,7 @@
     <GenerateProgramFile>false</GenerateProgramFile>
     <IsUnitTestProject>false</IsUnitTestProject>
     <IsPerformanceTestProject>true</IsPerformanceTestProject>
+    <PlatformTarget Condition="$([MSBuild]::GetTargetFrameworkIdentifier('$(TargetFramework)')) == '.NETFramework'">x64</PlatformTarget>
     <SkipHelixTesting>true</SkipHelixTesting>
   </PropertyGroup>
   <ItemGroup>

@@ -5,6 +5,8 @@
     <SkipHelixTesting Condition="'$(SkipHelixTesting)' == '' and '$(TargetFramework)' == 'net9.0'">true</SkipHelixTesting>
     <!-- Skip testing .NETFramework on non-windows -->
     <SkipHelixTesting Condition="'$(OS)' != 'Windows_NT' and $([MSBuild]::GetTargetFrameworkIdentifier('$(TargetFramework)')) == '.NETFramework'">true</SkipHelixTesting>
+    <!-- Skip testing .NETFramework on non-x64 -->
+    <SkipHelixTesting Condition="'$(TargetArchitecture)' != 'x64' and $([MSBuild]::GetTargetFrameworkIdentifier('$(TargetFramework)')) == '.NETFramework'">true</SkipHelixTesting>
 
     <HelixCorrelationPayloadPath Condition="'$(OS)' != 'Windows_NT'">$HELIX_CORRELATION_PAYLOAD</HelixCorrelationPayloadPath>
     <HelixCorrelationPayloadPath Condition="'$(OS)' == 'Windows_NT'">%HELIX_CORRELATION_PAYLOAD%</HelixCorrelationPayloadPath>
