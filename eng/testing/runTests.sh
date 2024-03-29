@@ -23,7 +23,7 @@ fi
 # ========================= END Test Execution ===============================
 
 # The tests either failed or crashed, copy output files
-if [[ "$test_exitcode" != "0" && "$HELIX_WORKITEM_UPLOAD_ROOT" != ""]]; then
+if [[ "$test_exitcode" != "0" && "$HELIX_WORKITEM_UPLOAD_ROOT" != "" ]]; then
   zip -vr $HELIX_WORKITEM_UPLOAD_ROOT/TestOutput.zip $EXECUTION_DIR/TestOutput/
 fi
 
