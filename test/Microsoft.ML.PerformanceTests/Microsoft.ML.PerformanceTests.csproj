@@ -5,8 +5,9 @@
     <GenerateProgramFile>false</GenerateProgramFile>
     <IsUnitTestProject>false</IsUnitTestProject>
     <IsPerformanceTestProject>true</IsPerformanceTestProject>
-    <PlatformTarget Condition="$([MSBuild]::GetTargetFrameworkIdentifier('$(TargetFramework)')) == '.NETFramework'">x64</PlatformTarget>
     <SkipHelixTesting>true</SkipHelixTesting>
+    <!-- LightGBM only supports x64 -->
+    <EnableLightGBMUnsupportedPlatformTargetCheck Condition="'$(TargetArchitecture)' != 'x64'">false</EnableLightGBMUnsupportedPlatformTargetCheck>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="BenchmarkDotNet.Artifacts\**" />
