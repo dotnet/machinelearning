@@ -676,8 +676,9 @@ namespace Microsoft.ML.Tokenizers
         private static readonly (string Prefix, ModelEncoding Encoding)[] _modelPrefixToEncoding =
                                                             [
                                                                 // chat
-                                                                ("gpt-4-", ModelEncoding.Cl100kBase),  // e.g., gpt-4-0314, etc., plus gpt-4-32k
-                                                                ("gpt-3.5-turbo-", ModelEncoding.Cl100kBase) // e.g, gpt-3.5-turbo-0301, -0401, etc.
+                                                                ( "gpt-4-", ModelEncoding.Cl100kBase),          // e.g., gpt-4-0314, etc., plus gpt-4-32k
+                                                                ( "gpt-3.5-turbo-", ModelEncoding.Cl100kBase),  // e.g, gpt-3.5-turbo-0301, -0401, etc.
+                                                                ( "gpt-35-turbo-", ModelEncoding.Cl100kBase )   // Azure deployment name
                                                             ];
 
         private static readonly Dictionary<string, ModelEncoding> _modelToEncoding =
@@ -686,6 +687,9 @@ namespace Microsoft.ML.Tokenizers
                                                                 // chat
                                                                 { "gpt-4", ModelEncoding.Cl100kBase },
                                                                 { "gpt-3.5-turbo", ModelEncoding.Cl100kBase },
+                                                                { "gpt-3.5-turbo-16k", ModelEncoding.Cl100kBase },
+                                                                { "gpt-35-turbo", ModelEncoding.Cl100kBase },     // Azure deployment name
+                                                                { "gpt-35-turbo-16k", ModelEncoding.Cl100kBase }, // Azure deployment name
 
                                                                 // text
                                                                 { "text-davinci-003", ModelEncoding.P50kBase },
