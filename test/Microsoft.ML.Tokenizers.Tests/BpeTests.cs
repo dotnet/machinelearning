@@ -18,31 +18,59 @@ namespace Microsoft.ML.Tokenizers.Tests
     {
         private const string UnknownToken = "[unk]";
 
+        private readonly static Dictionary<string, int> _vocabDataWithWordPrefixAndEndOfWordSuffix =
+            new Dictionary<string, int>() { { UnknownToken, 0 }, { "!", 5 }, { ",", 6 }, { ".", 7 }, { "B", 8 }, { "H", 9 }, { "T", 10 }, { "W", 11 }, { "a", 12 }, { "b", 13 }, { "c", 14 }, { "d", 15 }, { "e", 16 },
+                        { "f", 17 }, { "g", 18 }, { "h", 19 }, { "i", 20 }, { "k", 21 }, { "l", 22 }, { "m", 23 }, { "n", 24 }, { "o", 25 }, { "p", 26 }, { "r", 27 }, { "s", 28 }, { "t", 29 }, { "u", 30 }, { "v", 31 },
+                        { "z", 32 }, { ".</w>", 33 }, { "##o", 34 }, { "##r", 35 }, { "##l", 36 }, { "##d</w>", 37 }, { "##h", 38 }, { "##i", 39 }, { "##s</w>", 40 }, { "##s", 41 }, { "##e</w>", 42 }, { "a</w>", 43 },
+                        { "##a", 44 }, { "##n</w>", 45 }, { "##e", 46 }, { "##n", 47 }, { "##t", 48 }, { "##k", 49 }, { "##z", 50 }, { "##r</w>", 51 }, { "##c", 52 }, { "##b</w>", 53 }, { "##u", 54 }, { "##m", 55 },
+                        { "##t</w>", 56 }, { "##p", 57 }, { "##o</w>", 58 }, { ",</w>", 59 }, { "!</w>", 60 }, { "##g", 61 }, { "to</w>", 62 }, { "##en", 63 }, { "##oc", 64 }, { "##ra", 65 }, { "Bp", 66 }, { "He", 67 },
+                        { "Th", 68 }, { "Wo", 69 }, { "an", 70 }, { "doc", 71 }, { "fi", 72 }, { "gen", 73 }, { "is</w>", 74 }, { "me", 75 }, { "to", 76 }, { "th", 77 }, { "tra", 78 }, { "us", 79 }, { "voc", 80 },
+                        { "##rl", 81 }, { "##rg", 82 }, { "##ll", 83 }, { "##le", 84 }, { "##is</w>", 85 }, { "##in</w>", 86 }, { "##iz", 87 }, { "##ab</w>", 88 }, { "##er</w>", 89 }, { "##era", 90 }, { "##te</w>", 91 },
+                        { "##ken", 92 }, { "##um", 93 }, { "##ent</w>", 94 }, { "Bpe</w>", 95 }, { "Hell", 96 }, { "This</w>", 97 }, { "Worl", 98 }, { "and</w>", 99 }, { "docum", 100 }, { "file", 101 }, { "genera", 102 },
+                        { "merg", 103 }, { "token", 104 }, { "the</w>", 105 }, { "train</w>", 106 }, { "use</w>", 107 }, { "vocab</w>", 108 }, { "##izer</w>", 109 }, { "Hello</w>", 110 }, { "World</w>", 111 },
+                        { "document</w>", 112 }, { "files</w>", 113 }, { "generate</w>", 114 }, { "merge</w>", 115 }, { "tokenizer</w>", 116 } };
+        private readonly static (string, string)[] _mergeDataWithWordPrefixAndEndOfWordSuffix =
+                    new (string, string)[] {  ("t", "##o</w>"), ("##e", "##n"), ("##o", "##c"), ("##r", "##a"), ("B", "##p"), ("H", "##e"), ("T", "##h"), ("W", "##o"), ("a", "##n"),
+                        ("d", "##oc"), ("f", "##i"), ("g", "##en"), ("i", "##s</w>"), ("m", "##e"), ("t", "##o"), ("t", "##h"), ("t", "##ra"), ("u", "##s"), ("v", "##oc"), ("##r", "##l"), ("##r", "##g"), ("##l", "##l"),
+                        ("##l", "##e"), ("##i", "##s</w>"), ("##i", "##n</w>"), ("##i", "##z"), ("##a", "##b</w>"), ("##e", "##r</w>"), ("##e", "##ra"), ("##t", "##e</w>"), ("##k", "##en"), ("##u", "##m"), ("##en", "##t</w>"),
+                        ("Bp", "##e</w>"), ("He", "##ll"), ("Th", "##is</w>"), ("Wo", "##rl"), ("an", "##d</w>"), ("doc", "##um"), ("fi", "##le"), ("gen", "##era"), ("me", "##rg"), ("to", "##ken"), ("th", "##e</w>"),
+                        ("tra", "##in</w>"), ("us", "##e</w>"), ("voc", "##ab</w>"), ("##iz", "##er</w>"), ("Hell", "##o</w>"), ("Worl", "##d</w>"), ("docum", "##ent</w>"), ("file", "##s</w>"), ("genera", "##te</w>"),
+                        ("merg", "##e</w>"), ("token", "##izer</w>") };
+
+
         public static IEnumerable<object?[]> BpeData
         {
             get
             {
-                // vocab, merges, sentence, offsets, ids, expectedTokens, fuseUnknownToken
+                // vocab, merges, sentence, unknownToken, continuingSubwordPrefix , endOfWordSuffix, offsets, ids, expectedTokens, fuseUnknownToken, decodedTokens, decodedTokensWithoutUnknownToken
                 yield return new object?[]
                 {
-                    new Dictionary<string, int>() { { "a", 1 }, { "b", 2 } },
+                    new Dictionary<string, int>() { { "a", 1 }, { "b", 2 }, { UnknownToken, 3} },
                     null,
                     "c",
+                    UnknownToken,
+                    null,
+                    null,
                     new (int, int)[] { (0, 1) },
-                    new int[] { 0 },
+                    new int[] { 3 },
                     new string[] { UnknownToken },
                     false,
-                    "[unk]"
+                    UnknownToken,
+                    ""
                 };
                 yield return new object?[]
                 {
                     new Dictionary<string, int>() { { "a", 1 }, { "b", 2 } },
                     null,
                     "a",
+                    null,
+                    null,
+                    null,
                     new (int, int)[] { (0, 1) },
                     new int[] { 1 },
                     new string[] { "a" },
                     false,
+                    "a",
                     "a"
                 };
                 yield return new object?[]
@@ -50,95 +78,178 @@ namespace Microsoft.ML.Tokenizers.Tests
                     new Dictionary<string, int>() { { "a", 1 }, { "b", 2 } },
                     null,
                     "b",
+                    null,
+                    null,
+                    null,
                     new (int, int)[] { (0, 1) },
                     new int[] { 2 },
                     new string[] { "b" },
                     false,
+                    "b",
                     "b"
                 };
                 yield return new object?[]
                 {
-                    new Dictionary<string, int>() { { "a", 1 }, { "b", 2 } },
+                    new Dictionary<string, int>() { { "a", 1 }, { "b", 2 }, { UnknownToken, 3} },
                     null,
                     "abc",
+                    UnknownToken,
+                    null,
+                    null,
                     new (int, int)[] { (0, 1), (1, 1), (2, 1) },
-                    new int[] { 1, 2, 0 },
+                    new int[] { 1, 2, 3 },
                     new string[] { "a", "b", UnknownToken },
                     false,
-                    "ab[unk]"
+                    $"ab{UnknownToken}",
+                    "ab"
                 };
                 yield return new object?[]
                 {
-                    new Dictionary<string, int>() { { "a", 1 }, { "b", 2 } },
+                    new Dictionary<string, int>() { { "a", 1 }, { "b", 2 }, { UnknownToken, 3} },
                     null,
                     "a b c",
+                    UnknownToken,
+                    null,
+                    null,
                     new (int, int)[] { (0, 1), (2, 1), (4, 1) },
-                    new int[] { 1, 2, 0 },
+                    new int[] { 1, 2, 3 },
                     new string[] { "a", "b", UnknownToken },
                     false,
-                    "ab[unk]"
+                    $"ab{UnknownToken}",
+                    "ab"
                 };
                 yield return new object?[]
                 {
-                    new Dictionary<string, int>() { { "a", 1 }, { "b", 2 }, { "ab", 3 } },
+                    new Dictionary<string, int>() { { "a", 1 }, { "b", 2 }, { "ab", 3 }, { UnknownToken, 4} },
                     new (string, string)[] { ("a", "b") },
                     "ab c",
+                    UnknownToken,
+                    null,
+                    null,
                     new (int, int)[] { (0, 2), (3, 1) },
-                    new int[] { 3, 0 },
+                    new int[] { 3, 4 },
                     new string[] { "ab", UnknownToken },
                     false,
-                    "ab[unk]"
+                    $"ab{UnknownToken}",
+                    "ab"
                 };
                 yield return new object?[]
                 {
                     new Dictionary<string, int>() { { "a", 1 }, { "b", 2 }, { "c", 3 }, { "ab", 4 }, { "abc", 5 } },
                     new (string, string)[] { ("a", "b"), ("ab", "c") },
                     "abc",
+                    null,
+                    null,
+                    null,
                     new (int, int)[] { (0, 3) },
                     new int[] { 5 },
                     new string[] { "abc" },
                     false,
+                    "abc",
                     "abc"
                 };
                 yield return new object?[]
                 {
-                    new Dictionary<string, int>(),
+                    new Dictionary<string, int>(){ { UnknownToken, 0} },
                     null,
                     "abc",
+                    UnknownToken,
+                    null,
+                    null,
                     new (int, int)[] { (0, 1), (1, 1), (2, 1) },
                     new int[] { 0, 0, 0 },
                     new string[] { UnknownToken, UnknownToken, UnknownToken },
                     false,
-                    "[unk][unk][unk]"
+                    $"{UnknownToken}{UnknownToken}{UnknownToken}",
+                    ""
                 };
                 yield return new object?[]
                 {
-                    new Dictionary<string, int>(),
+                    new Dictionary<string, int>(){ { UnknownToken, 0} },
                     null,
                     "abc",
+                    UnknownToken,
+                    null,
+                    null,
                     new (int, int)[] { (0, 3) },
                     new int[] { 0 },
                     new string[] { UnknownToken },
                     true,
-                    "[unk]"
+                    $"{UnknownToken}",
+                    ""
+                };
+                yield return new object?[]
+                {
+                    new Dictionary<string, int>() { { UnknownToken, 0}, { "H", 1 }, { "e", 2 }, { "l", 3 }, { "o", 4 }, { "!", 5 }, { "He", 6 }, { "lo", 7}, { "llo", 8 },
+                                                    { "w", 9 }, { "r", 10 }, { "d", 11 }, { "wo", 12 }, { "rl", 13 }, { "rld", 14 }, {",", 15} },
+                    new (string, string)[] { ("H", "e"), ("l", "o"), ("l", "lo"), ("w", "o"), ("r", "l"), ("rl", "d") },
+                    "Hello, world!",
+                    UnknownToken,
+                    null,
+                    null,
+                    new (int, int)[] { (0, 2), (2, 3), (5, 1), (7, 2), (9, 3), (12, 1) },
+                    new int[] { 6, 8, 15, 12, 14, 5 },
+                    new string[] { "He", "llo", ",", "wo", "rld", "!" },
+                    false,
+                    $"Hello,world!",
+                    $"Hello,world!"
+                };
+                yield return new object?[]
+                {
+                    _vocabDataWithWordPrefixAndEndOfWordSuffix,
+                    _mergeDataWithWordPrefixAndEndOfWordSuffix,
+                    "Hello, World!",
+                    UnknownToken,
+                    "##",
+                    "</w>",
+                    new (int, int)[] { (0, 5), (5, 1), (7, 5), (12, 1) },
+                    new int[] { 110, 59, 111, 60 },
+                    new string[] { "Hello</w>", ",</w>", "World</w>", "!</w>" },
+                    false,
+                    $"Hello , World !",
+                    $"Hello , World !"
+                };
+                yield return new object?[]
+                {
+                    _vocabDataWithWordPrefixAndEndOfWordSuffix,
+                    _mergeDataWithWordPrefixAndEndOfWordSuffix,
+                    "This is a generalizer to tokenize!",
+                    UnknownToken,
+                    "##",
+                    "</w>",
+                    new (int, int)[] { (0, 4), (5, 2), (8, 1), (10, 6), (16, 1), (17, 4), (22, 2), (25, 5), (30, 2), (32, 1), (33, 1) },
+                    new int[] { 97, 74, 43, 102, 36, 109, 62, 104, 87, 42, 60 },
+                    new string[] { "This</w>", "is</w>", "a</w>", "genera", "##l", "##izer</w>", "to</w>", "token", "##iz", "##e</w>", "!</w>" },
+                    false,
+                    $"This is a generalizer to tokenize !",
+                    $"This is a generalizer to tokenize !"
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(BpeData))]
-        public void SimpleTestWithUnknownToken(Dictionary<string, int> vocab, (string, string)[]? merges, string sentence, (int, int)[] offsets, int[] ids, string[] expectedTokens, bool fuseUnknownToken, string decodedTokens)
+        public void SimpleTestWithUnknownToken(
+                        Dictionary<string, int> vocab,
+                        (string, string)[]? merges,
+                        string sentence,
+                        string unknownToken,
+                        string? continuingSubwordPrefix,
+                        string? endOfWordSuffix,
+                        (int, int)[] offsets,
+                        int[] ids,
+                        string[] expectedTokens,
+                        bool fuseUnknownToken,
+                        string decodedTokens,
+                        string decodedTokensWithoutUnknownToken)
         {
             string vocabFile = WriteToVocabFile(vocab);
             string? mergesFile = merges is null ? null : WriteToMergeFile(merges);
 
             try
             {
-                Bpe bpe = new Bpe(vocabFile, mergesFile, UnknownToken, null, null, fuseUnknownToken);
-
-                Assert.Equal(vocab.Count + 1u, bpe.Vocab.Count);
+                Bpe bpe = new Bpe(vocabFile, mergesFile, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownToken);
                 Tokenizer tokenizer = new Tokenizer(bpe);
-
                 EncodingResult encoding = tokenizer.Encode(sentence);
                 IReadOnlyList<int> idsList = tokenizer.EncodeToIds(sentence);
 
@@ -148,6 +259,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(ids.Length, idsList.Count);
                 Assert.Equal(ids.Length, tokenizer.CountTokens(sentence));
                 Assert.Equal(decodedTokens, tokenizer.Decode(encoding.Ids));
+                Assert.Equal(decodedTokensWithoutUnknownToken, bpe.Decode(encoding.Ids, considerSpecialTokens: false));
 
                 for (int i = 0; i < encoding.Tokens.Count; i++)
                 {
@@ -252,11 +364,11 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             using MemoryStream emptyVocabStream = new MemoryStream();
             using StreamWriter writer = new StreamWriter(emptyVocabStream);
-            writer.Write("{}");
+            writer.Write("{ \"Ukn\": 0 }");
             writer.Flush();
             emptyVocabStream.Position = 0;
 
-            return new Bpe(vocabStream: emptyVocabStream, mergesStream: null, UnknownToken);
+            return new Bpe(vocabStream: emptyVocabStream, mergesStream: null, unknownToken: "Ukn");
         }
     }
 }

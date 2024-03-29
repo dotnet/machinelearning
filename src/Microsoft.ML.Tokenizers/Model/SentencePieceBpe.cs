@@ -892,12 +892,8 @@ namespace Microsoft.ML.Tokenizers
         /// Decode the given ids, back to a String.
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
-        /// <param name="decoder">The optional Decoder to merge the given list of tokens in a string.</param>
         /// <returns>The decoded string.</returns>
-        /// <remarks>
-        /// The decoder is not used here because the SentencePiece Bpe model knows how to decode the ids in additions to avoid any performance overhead.
-        /// </remarks>
-        public override string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null)
+        public override string? Decode(IEnumerable<int> ids)
         {
             if (ids is null)
             {
