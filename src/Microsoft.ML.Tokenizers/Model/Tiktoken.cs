@@ -797,6 +797,10 @@ namespace Microsoft.ML.Tokenizers
         private const string R50RanksFile = "r50k_base.tiktoken.deflate";           // "https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken"
         private const string GPT2File = "gpt2.tiktoken.deflate";                    // "https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken"
 
+        internal const string Cl100kBaseEncodingName = "cl100k_base";
+        internal const string P50kBaseEncodingName = "p50k_base";
+        internal const string P50kEditEncodingName = "p50k_edit";
+        internal const string R50kBaseEncodingName = "r50k_base";
 
 #if NET7_0_OR_GREATER
         [GeneratedRegex(Cl100kBaseRegexPattern)]

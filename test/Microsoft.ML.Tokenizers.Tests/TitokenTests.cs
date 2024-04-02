@@ -355,6 +355,49 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.NotNull(tokenizer.PreTokenizer);
         }
 
+        [Theory]
+        [InlineData("r50k_base")]
+        [InlineData("p50k_base")]
+        [InlineData("p50k_edit")]
+        [InlineData("cl100k_base")]
+        public void TestAllSupportedEncodingNames(string encodingName)
+        {
+            Tokenizer tokenizer = Tokenizer.CreateTiktokenForEncoding(encodingName);
+            Assert.NotNull(tokenizer.Model);
+            Assert.NotNull(tokenizer.PreTokenizer);
+
+            string modelName = encodingName.ToLowerInvariant() switch
+            {
+                "r50k_base" => "text-davinci-001",
+                "p50k_base" => "text-davinci-003",
+                "p50k_edit" => "text-davinci-edit-001",
+                "cl100k_base" => "gpt-4",
+                _ => throw new ArgumentException("Invalid encoding name"),
+            };
+
+            Tokenizer tokenizer1 = Tokenizer.CreateTiktokenForModel(modelName);
+
+            Tiktoken? model1 = tokenizer.Model as Tiktoken;
+            Tiktoken? model2 = tokenizer1.Model as Tiktoken;
+            Assert.NotNull(model1);
+            Assert.NotNull(model2);
+
+            Assert.Equal(model2.Encoder, model1.Encoder);
+            Assert.Equal(model2.Decoder, model1.Decoder);
+            Assert.Equal(model2.SpecialTokens, model1.SpecialTokens);
+            Assert.Equal(model2.Vocab, model1.Vocab);
+        }
+
+        [Fact]
+        public void TestEncodingNamesNegativeCases()
+        {
+            Assert.Throws<ArgumentNullException>(() => Tokenizer.CreateTiktokenForEncoding(null!));
+            Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("r50k_base_"));
+            Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("p50k_base_"));
+            Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("p50k_edit_"));
+            Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("cl100k_base_"));
+        }
+
         [InlineData("gpt-4")]
         [InlineData("text-davinci-003")]
         [InlineData("text-curie-001")]
