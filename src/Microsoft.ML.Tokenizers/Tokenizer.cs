@@ -380,29 +380,29 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(encodingName));
             }
 
-            string modelName;
+            Tiktoken.ModelEncoding modelEncoding;
             if (encodingName.Equals(Tiktoken.Cl100kBaseEncodingName, StringComparison.OrdinalIgnoreCase))
             {
-                modelName = "gpt-4";
+                modelEncoding = Tiktoken.ModelEncoding.Cl100kBase;
             }
             else if (encodingName.Equals(Tiktoken.P50kBaseEncodingName, StringComparison.OrdinalIgnoreCase))
             {
-                modelName = "text-davinci-003";
+                modelEncoding = Tiktoken.ModelEncoding.P50kBase;
             }
             else if (encodingName.Equals(Tiktoken.P50kEditEncodingName, StringComparison.OrdinalIgnoreCase))
             {
-                modelName = "text-davinci-edit-001";
+                modelEncoding = Tiktoken.ModelEncoding.P50kEdit;
             }
             else if (encodingName.Equals(Tiktoken.R50kBaseEncodingName, StringComparison.OrdinalIgnoreCase))
             {
-                modelName = "text-davinci-001";
+                modelEncoding = Tiktoken.ModelEncoding.R50kBase;
             }
             else
             {
                 throw new ArgumentException($"The encoding name '{encodingName}' is not supported. The only supported encoding names are: {Tiktoken.Cl100kBaseEncodingName}, {Tiktoken.P50kBaseEncodingName}, {Tiktoken.P50kEditEncodingName}, and {Tiktoken.R50kBaseEncodingName}.", nameof(encodingName));
             }
 
-            return Tiktoken.CreateTokenizerForModel(modelName, extraSpecialTokens, normalizer);
+            return Tiktoken.CreateTokenizerForModel(modelEncoding, modelName: null, extraSpecialTokens, normalizer);
         }
 
         /// <summary>
