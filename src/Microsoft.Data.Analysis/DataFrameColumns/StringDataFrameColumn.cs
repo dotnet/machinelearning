@@ -35,6 +35,7 @@ namespace Microsoft.Data.Analysis
                     buffer.Add(default);
                 }
             }
+            _nullCount = length;
         }
 
         public StringDataFrameColumn(string name, IEnumerable<string> values) : base(name, 0, typeof(string))
@@ -304,7 +305,7 @@ namespace Microsoft.Data.Analysis
         private StringDataFrameColumn CloneImplementation(PrimitiveDataFrameColumn<bool> boolColumn)
         {
             if (boolColumn.Length > Length)
-                throw new ArgumentException(Strings.MapIndicesExceedsColumnLenth, nameof(boolColumn));
+                throw new ArgumentException(Strings.MapIndicesExceedsColumnLength, nameof(boolColumn));
             StringDataFrameColumn ret = new StringDataFrameColumn(Name, 0);
             for (long i = 0; i < boolColumn.Length; i++)
             {
@@ -347,7 +348,6 @@ namespace Microsoft.Data.Analysis
                     if (mapIndex == null)
                     {
                         setBuffer[(int)index] = null;
-                        ret._nullCount++;
                         return mapIndex;
                     }
 
@@ -361,8 +361,8 @@ namespace Microsoft.Data.Analysis
                     int bufferLocalMapIndex = (int)(mapIndex - getBufferMinRange);
                     string value = getBuffer[bufferLocalMapIndex];
                     setBuffer[(int)index] = value;
-                    if (value == null)
-                        ret._nullCount++;
+                    if (value != null)
+                        ret._nullCount--;
 
                     return mapIndex;
                 });
@@ -379,13 +379,12 @@ namespace Microsoft.Data.Analysis
                     if (mapIndex == null)
                     {
                         setBuffer[(int)index] = null;
-                        ret._nullCount++;
                         return mapIndex;
                     }
                     string value = getBuffer[mapIndex.Value];
                     setBuffer[(int)index] = value;
-                    if (value == null)
-                        ret._nullCount++;
+                    if (value != null)
+                        ret._nullCount--;
 
                     return mapIndex;
                 });

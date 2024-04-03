@@ -21,9 +21,8 @@ namespace Microsoft.ML.Tokenizers
         /// Return the whole text as one chunk.
         /// </summary>
         /// <param name="text">The string to split into tokens.</param>
-        /// <param name="considerSpecialTokens">Indicates whether to keep the special tokens.</param>
         /// <returns>The original string as one chunk.</returns>
-        public override IEnumerable<Split> PreTokenize(string text, bool considerSpecialTokens = true)
+        public override IEnumerable<Split> PreTokenize(string text)
         {
             if (string.IsNullOrEmpty(text))
             {

@@ -202,6 +202,64 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
+        public int PopulateIdsUpToMax(IList<int> accumulatedIds, int maxTokens, out int textLength)
+        {
+            textLength = 0;
+
+            int count = Math.Min(SymbolsCount, maxTokens);
+
+            for (int i = 0; i < count; i++)
+            {
+                accumulatedIds.Add(_symbols[i].C);
+                textLength += _symbols[i].Len;
+            }
+
+            return count;
+        }
+
+        public int PopulateIdsUpToMaxFromEnd(IList<int> accumulatedIds, int maxTokens, int fullTextLength, out int textIndex)
+        {
+            textIndex = fullTextLength;
+
+            int count = Math.Min(SymbolsCount, maxTokens);
+
+            for (int i = SymbolsCount - count; i < SymbolsCount; i++)
+            {
+                accumulatedIds.Add(_symbols[i].C);
+                textIndex -= _symbols[i].Len;
+            }
+
+            return count;
+        }
+
+        public int CountIdsUpToMax(int maxTokens, out int textLength)
+        {
+            textLength = 0;
+
+            int count = Math.Min(SymbolsCount, maxTokens);
+
+            for (int i = 0; i < count; i++)
+            {
+                textLength += _symbols[i].Len;
+            }
+
+            return count;
+        }
+
+        public int CountIdsUpToMaxFromEnd(int maxTokens, int fullTextLength, out int textIndex)
+        {
+            textIndex = fullTextLength;
+
+            int count = Math.Min(SymbolsCount, maxTokens);
+
+            for (int i = SymbolsCount - count; i < SymbolsCount; i++)
+            {
+                textIndex -= _symbols[i].Len;
+            }
+
+            return count;
+        }
+
         public Vec<int> GetChars()
         {
             Vec<int> chars = new Vec<int>();
