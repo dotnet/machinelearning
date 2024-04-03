@@ -759,10 +759,10 @@ namespace Microsoft.ML.Tokenizers
             return encoder;
         }
 
-        internal static (Dictionary<string, int> SpecialTokens, Regex Regex, string VocabFile) GetTiktokenConfigurations(string modelName)
-        {
-            ModelEncoding modelEncoding = GetModelEncoding(modelName);
+        internal static (Dictionary<string, int> SpecialTokens, Regex Regex, string VocabFile) GetTiktokenConfigurations(string modelName) => GetTiktokenConfigurations(GetModelEncoding(modelName), modelName);
 
+        internal static (Dictionary<string, int> SpecialTokens, Regex Regex, string VocabFile) GetTiktokenConfigurations(ModelEncoding modelEncoding, string? modelName = null)
+        {
             switch (modelEncoding)
             {
                 case ModelEncoding.Cl100kBase:
@@ -783,7 +783,7 @@ namespace Microsoft.ML.Tokenizers
                     return (new Dictionary<string, int> { { EndOfText, 50256 }, }, P50kBaseRegex(), GPT2File);
 
                 default:
-                    throw new NotSupportedException($"The model '{modelName}' is not supported.");
+                    throw new NotSupportedException($"The model '{modelName ?? modelEncoding.ToString()}' is not supported.");
             }
         }
 
@@ -797,6 +797,10 @@ namespace Microsoft.ML.Tokenizers
         private const string R50RanksFile = "r50k_base.tiktoken.deflate";           // "https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken"
         private const string GPT2File = "gpt2.tiktoken.deflate";                    // "https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken"
 
+        internal const string Cl100kBaseEncodingName = "cl100k_base";
+        internal const string P50kBaseEncodingName = "p50k_base";
+        internal const string P50kEditEncodingName = "p50k_edit";
+        internal const string R50kBaseEncodingName = "r50k_base";
 
 #if NET7_0_OR_GREATER
         [GeneratedRegex(Cl100kBaseRegexPattern)]
@@ -824,7 +828,16 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(modelName));
             }
 
-            (Dictionary<string, int> SpecialTokens, Regex Regex, string VocabFile) tiktokenConfiguration = Tiktoken.GetTiktokenConfigurations(modelName);
+            return CreateTokenizerForModel(GetModelEncoding(modelName), modelName, extraSpecialTokens, normalizer);
+        }
+
+        internal static Tokenizer CreateTokenizerForModel(
+                                                ModelEncoding modelEncoding,
+                                                string? modelName = null,
+                                                IReadOnlyDictionary<string, int>? extraSpecialTokens = null,
+                                                Normalizer? normalizer = null)
+        {
+            (Dictionary<string, int> SpecialTokens, Regex Regex, string VocabFile) tiktokenConfiguration = Tiktoken.GetTiktokenConfigurations(modelEncoding, modelName);
 
             if (extraSpecialTokens is not null)
             {

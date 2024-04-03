@@ -89,7 +89,7 @@ namespace Microsoft.ML.Tokenizers
         /// Encodes input text to tokens Ids.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
+        /// <returns>The list of encoded Ids.</returns>
         public IReadOnlyList<int> EncodeToIds(string text)
         {
             if (text is null)
@@ -103,6 +103,48 @@ namespace Microsoft.ML.Tokenizers
             foreach (Split split in PreTokenizer.PreTokenize(normalized))
             {
                 Model.EncodeToIds(split.TokenSpan, idsList, out _);
+            }
+
+            return idsList;
+        }
+
+        /// <summary>
+        /// Encodes input text to tokens Ids up to maximum number of tokens.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="maxTokenCount">The maximum number of tokens to encode.</param>
+        /// <param name="processedText">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will remain unchanged as the input text.</param>
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <returns>The list of encoded Ids.</returns>
+        public IReadOnlyList<int> EncodeToIds(string text, int maxTokenCount, out string processedText, out int textLength)
+        {
+            processedText = text;
+            textLength = 0;
+
+            if (text is null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (maxTokenCount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The maximum number of tokens must be greater than 0.");
+            }
+
+            if (Normalizer is not null)
+            {
+                processedText = Normalizer.Normalize(text);
+            }
+
+            List<int> idsList = new();
+
+            foreach (Split split in PreTokenizer.PreTokenize(processedText))
+            {
+                Model.EncodeToIds(split.TokenSpan, idsList, out int length, maxTokenCount - idsList.Count);
+                if (length < split.Offset.Length || idsList.Count >= maxTokenCount)
+                {
+                    break;
+                }
             }
 
             return idsList;
@@ -323,6 +365,45 @@ namespace Microsoft.ML.Tokenizers
         /// <returns>The tokenizer</returns>
         public static Tokenizer CreateTiktokenForModel(string modelName, IReadOnlyDictionary<string, int>? extraSpecialTokens = null, Normalizer? normalizer = null)
                         => Tiktoken.CreateTokenizerForModel(modelName, extraSpecialTokens, normalizer);
+
+        /// <summary>
+        /// Create tokenizer based on encoding name
+        /// </summary>
+        /// <param name="encodingName">Encoding name</param>
+        /// <param name="extraSpecialTokens">Extra special tokens other than the built-in ones for the encoding</param>
+        /// <param name="normalizer">To normalize the text before tokenization</param>
+        /// <returns>The tokenizer</returns>
+        public static Tokenizer CreateTiktokenForEncoding(string encodingName, IReadOnlyDictionary<string, int>? extraSpecialTokens = null, Normalizer? normalizer = null)
+        {
+            if (string.IsNullOrEmpty(encodingName))
+            {
+                throw new ArgumentNullException(nameof(encodingName));
+            }
+
+            Tiktoken.ModelEncoding modelEncoding;
+            if (encodingName.Equals(Tiktoken.Cl100kBaseEncodingName, StringComparison.OrdinalIgnoreCase))
+            {
+                modelEncoding = Tiktoken.ModelEncoding.Cl100kBase;
+            }
+            else if (encodingName.Equals(Tiktoken.P50kBaseEncodingName, StringComparison.OrdinalIgnoreCase))
+            {
+                modelEncoding = Tiktoken.ModelEncoding.P50kBase;
+            }
+            else if (encodingName.Equals(Tiktoken.P50kEditEncodingName, StringComparison.OrdinalIgnoreCase))
+            {
+                modelEncoding = Tiktoken.ModelEncoding.P50kEdit;
+            }
+            else if (encodingName.Equals(Tiktoken.R50kBaseEncodingName, StringComparison.OrdinalIgnoreCase))
+            {
+                modelEncoding = Tiktoken.ModelEncoding.R50kBase;
+            }
+            else
+            {
+                throw new ArgumentException($"The encoding name '{encodingName}' is not supported. The only supported encoding names are: {Tiktoken.Cl100kBaseEncodingName}, {Tiktoken.P50kBaseEncodingName}, {Tiktoken.P50kEditEncodingName}, and {Tiktoken.R50kBaseEncodingName}.", nameof(encodingName));
+            }
+
+            return Tiktoken.CreateTokenizerForModel(modelEncoding, modelName: null, extraSpecialTokens, normalizer);
+        }
 
         /// <summary>
         /// Create a SentencePieceBpe tokenizer from the given model stream. The model stream should contain the SentencePiece Bpe model according to

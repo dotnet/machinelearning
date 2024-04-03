@@ -28,6 +28,12 @@ namespace Microsoft.ML.Tokenizers.Tests
             {
                 int index1 = tokenizer.IndexOfTokenCount(input, maxTokenCount: i, out string processedText1, out int tokenCount1);
                 int index2 = tokenizer.LastIndexOfTokenCount(input, maxTokenCount: i, out string processedText2, out int tokenCount2);
+                IReadOnlyList<int> partialIdsList = tokenizer.EncodeToIds(input, maxTokenCount: i, out string processedText, out int textLength);
+
+                Assert.True(textLength <= processedText.Length);
+                Assert.True(tokenizer.Normalizer is not null || processedText == input);
+
+                Assert.Equal(fullIdsList.Take(partialIdsList.Count), partialIdsList);
 
                 IReadOnlyList<int>? prefixIds = null;
                 IReadOnlyList<int>? suffixIds = null;
