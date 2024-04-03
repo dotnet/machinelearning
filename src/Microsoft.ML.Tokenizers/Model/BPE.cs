@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -22,6 +23,7 @@ namespace Microsoft.ML.Tokenizers
 
         private const int MaxWordLengthToCache = 15;
         private string? _unknownToken;
+        private int? _unknownTokenId;
 
         /// <summary>
         /// Gets or Sets unknown token. The unknown token to be used when we encounter an unknown char
@@ -35,25 +37,20 @@ namespace Microsoft.ML.Tokenizers
 
             private set
             {
+                if (value is null)
+                {
+                    _unknownToken = value;
+                    _unknownTokenId = null;
+                    return;
+                }
+
+                if (!_vocab.TryGetValue(value, out int id))
+                {
+                    throw new InvalidOperationException($"Unknown Token '{value}' was not present in '{nameof(Vocab)}'.");
+                }
+
+                _unknownTokenId = id;
                 _unknownToken = value;
-
-                if (VocabReverse.TryGetValue(0, out string? v))
-                {
-                    if (v == value)
-                    {
-                        return;
-                    }
-
-                    VocabReverse.Remove(0);
-                    _vocab.Remove(new StringSpanOrdinalKey(v));
-                }
-
-
-                if (value is not null)
-                {
-                    _vocab[new StringSpanOrdinalKey(value)] = 0;
-                    VocabReverse[0] = value;
-                }
             }
         }
 
@@ -125,8 +122,7 @@ namespace Microsoft.ML.Tokenizers
                     VocabReverse.Add(kvp.Value, kvp.Key.Data!);
                 }
 
-
-                UnknownToken = unknownToken ?? (VocabReverse.TryGetValue(0, out string? unkToken) ? unkToken : null);
+                UnknownToken = unknownToken;
 
                 int prefixLen = ContinuingSubwordPrefix is null ? 0 : ContinuingSubwordPrefix.Length;
 
@@ -168,11 +164,6 @@ namespace Microsoft.ML.Tokenizers
                 }
             }
         }
-
-        /// <summary>
-        /// Gets the Bpe decoder object.
-        /// </summary>
-        public static TokenizerDecoder Decoder { get; } = new BpeDecoder();
 
         /// <summary>
         /// Encode a text string to a list of tokens.
@@ -243,6 +234,71 @@ namespace Microsoft.ML.Tokenizers
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
         public IReadOnlyDictionary<string, int> Vocab => _vocabOriginal ??= _vocab.ToDictionary(kvp => kvp.Key.Data!, kvp => kvp.Value);
+
+        /// <summary>
+        /// Decode the given ids, back to a String.
+        /// </summary>
+        /// <param name="ids">The list of ids that we want to decode.</param>
+        /// <returns>The decoded string.</returns>
+        public override string? Decode(IEnumerable<int> ids) => Decode(ids, considerSpecialTokens: true);
+
+        /// <summary>
+        /// Decode the given ids, back to a String.
+        /// </summary>
+        /// <param name="ids">The list of ids that we want to decode.</param>
+        /// <param name="considerSpecialTokens">Indicate whether to consider special tokens or not.</param>
+        /// <returns>The decoded string.</returns>
+        public string? Decode(IEnumerable<int> ids, bool considerSpecialTokens)
+        {
+            if (ids is null)
+            {
+                throw new ArgumentNullException(nameof(ids));
+            }
+
+            ValueStringBuilder sb = new ValueStringBuilder();
+
+            bool decodeUnknownToken = _unknownTokenId.HasValue && considerSpecialTokens;
+
+            if (decodeUnknownToken)
+            {
+                foreach (int id in ids)
+                {
+                    if (MapIdToToken(id) is string s)
+                    {
+                        sb.Append(s);
+                    }
+                }
+            }
+            else
+            {
+                foreach (int id in ids)
+                {
+                    if (id == _unknownTokenId)
+                    {
+                        continue;
+                    }
+
+                    if (MapIdToToken(id) is string s)
+                    {
+                        sb.Append(s);
+                    }
+                }
+            }
+
+            if (EndOfWordSuffix is not null)
+            {
+                sb.RemoveSuffix(EndOfWordSuffix);
+
+                sb.Replace(EndOfWordSuffix, " ");
+            }
+
+            if (ContinuingSubwordPrefix is not null)
+            {
+                sb.Replace(ContinuingSubwordPrefix, string.Empty);
+            }
+
+            return sb.ToString();
+        }
 
         /// Read the given files to extract the vocab and merges
         internal static (Dictionary<StringSpanOrdinalKey, int>?, Vec<(string, string)>) ReadModelData(Stream vocab, Stream? merges)

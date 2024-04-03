@@ -25,13 +25,11 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="model">The Model in use by the Tokenizer.</param>
         /// <param name="preTokenizer">The optional PreTokenizer in use by the Tokenizer. WhiteSpace PreTokenizer will be used if this parameter is null.</param>
         /// <param name="normalizer">The optional Normalizer in use by the Tokenizer.</param>
-        /// <param name="decoder">The optional Decoder in use by the Tokenizer during the decoding operation to merge the given list of tokens in a string.</param>
-        public Tokenizer(Model model, PreTokenizer? preTokenizer = null, Normalizer? normalizer = null, TokenizerDecoder? decoder = null)
+        public Tokenizer(Model model, PreTokenizer? preTokenizer = null, Normalizer? normalizer = null)
         {
             Model = model;
             PreTokenizer = preTokenizer ?? WhiteSpace.Instance;
             Normalizer = normalizer;
-            Decoder = decoder;
         }
 
         /// <summary>
@@ -48,11 +46,6 @@ namespace Microsoft.ML.Tokenizers
         /// Gets or sets the Normalizer in use by the Tokenizer.
         /// </summary>
         public Normalizer? Normalizer { get; }
-
-        /// <summary>
-        /// Gets or sets the Decoder in use by the Tokenizer.
-        /// </summary>
-        public TokenizerDecoder? Decoder { get; }
 
         /// <summary>
         /// Encodes input text to object has the tokens list, tokens Ids, tokens offset mapping.
@@ -278,7 +271,7 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
         /// <returns>The decoded string.</returns>
-        public string? Decode(IEnumerable<int> ids) => Model.Decode(ids, Decoder);
+        public string? Decode(IEnumerable<int> ids) => Model.Decode(ids);
 
         /// <summary>
         /// Create a Tiktoken tokenizer based on model name and vocab file.

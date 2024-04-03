@@ -151,21 +151,30 @@ namespace Microsoft.ML.Tokenizers
         /// Decode the given ids, back to a String.
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
-        /// <param name="decoder">The optional Decoder to merge the given list of tokens in a string.</param>
         /// <returns>The decoded string.</returns>
-        public virtual string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null)
+        /// <remarks>
+        /// This method does the default implementation that uses the MapIdToToken method to get the token.
+        /// Tokenizer models may opt to override this method to ensure accurate results if the default implementation
+        /// provided here proves insufficient for the model's specific scenario.
+        /// </remarks>
+        public virtual string? Decode(IEnumerable<int> ids)
         {
-            List<string> tokens = new List<string>();
+            if (ids is null)
+            {
+                throw new ArgumentNullException(nameof(ids));
+            }
+
+            ValueStringBuilder sb = new ValueStringBuilder();
 
             foreach (int id in ids)
             {
                 if (MapIdToToken(id) is string s)
                 {
-                    tokens.Add(s);
+                    sb.Append(s);
                 }
             }
 
-            return decoder?.Decode(tokens) ?? string.Concat(tokens);
+            return sb.ToString();
         }
     }
 }

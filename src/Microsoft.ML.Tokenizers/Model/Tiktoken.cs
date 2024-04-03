@@ -573,9 +573,8 @@ namespace Microsoft.ML.Tokenizers
         /// Decode the given ids, back to a String.
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
-        /// <param name="decoder">The optional Decoder to merge the given list of tokens in a string.</param>
         /// <returns>The decoded string.</returns>
-        public override string? Decode(IEnumerable<int> ids, TokenizerDecoder? decoder = null)
+        public override string? Decode(IEnumerable<int> ids)
         {
             // Tiktoken doesn't guarantee a one-to-one correspondence between IDs and UTF-16 words.
             // Consequently, decoding individual IDs into UTF-16 string is not supported; instead, decoding all IDs must be performed collectively.
