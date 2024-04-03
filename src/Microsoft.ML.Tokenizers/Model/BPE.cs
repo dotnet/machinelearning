@@ -46,7 +46,7 @@ namespace Microsoft.ML.Tokenizers
 
                 if (!_vocab.TryGetValue(value, out int id))
                 {
-                    throw new InvalidOperationException($"Unknown Token '{value}' Out Of Vocabulary.");
+                    throw new InvalidOperationException($"Unknown Token '{value}' was not present in '{nameof(Vocab)}'.");
                 }
 
                 _unknownTokenId = id;
@@ -242,6 +242,12 @@ namespace Microsoft.ML.Tokenizers
         /// <returns>The decoded string.</returns>
         public override string? Decode(IEnumerable<int> ids) => Decode(ids, considerSpecialTokens: true);
 
+        /// <summary>
+        /// Decode the given ids, back to a String.
+        /// </summary>
+        /// <param name="ids">The list of ids that we want to decode.</param>
+        /// <param name="considerSpecialTokens">Indicate whether to consider special tokens or not.</param>
+        /// <returns>The decoded string.</returns>
         public string? Decode(IEnumerable<int> ids, bool considerSpecialTokens)
         {
             if (ids is null)
