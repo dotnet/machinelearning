@@ -363,12 +363,17 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
+        /// Returns a clone of this column.
+        /// </summary>
+        /// <param name="numberOfNullsToAppend"></param>
+        /// <returns></returns>
         public new PrimitiveDataFrameColumn<T> Clone(long numberOfNullsToAppend = 0)
         {
             return (PrimitiveDataFrameColumn<T>)CloneImplementation(numberOfNullsToAppend);
         }
 
-        /// Returns a clone of this column
+        /// <summary>
+        /// Returns a clone of this column.
         /// </summary>
         /// <param name="mapIndices">A column who values are used as indices </param>
         /// <param name="invertMapIndices"></param>
