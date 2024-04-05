@@ -227,29 +227,56 @@ namespace Microsoft.Data.Analysis.Tests
             df.Columns["Int"][19] = -1;
             df.Columns["Int"][5] = 2000;
 
-            // Sort by "Int" in ascending order
+            // Sort by "Int" in ascending order and nulls last
             var sortedDf = df.OrderBy("Int");
             Assert.Null(sortedDf.Columns["Int"][19]);
             Assert.Equal(-1, sortedDf.Columns["Int"][0]);
             Assert.Equal(100, sortedDf.Columns["Int"][17]);
             Assert.Equal(2000, sortedDf.Columns["Int"][18]);
 
-            // Sort by "Int" in descending order
+            // Sort by "Int" in descending order and nulls last
             sortedDf = df.OrderByDescending("Int");
+            Assert.Null(sortedDf.Columns["Int"][19]);
+            Assert.Equal(-1, sortedDf.Columns["Int"][18]);
+            Assert.Equal(100, sortedDf.Columns["Int"][1]);
+            Assert.Equal(2000, sortedDf.Columns["Int"][0]);
+
+            // Sort by "Int" in ascending order and nulls first
+            sortedDf = df.OrderBy("Int", putNullValuesLast: false);
+            Assert.Null(sortedDf.Columns["Int"][0]);
+            Assert.Equal(-1, sortedDf.Columns["Int"][1]);
+            Assert.Equal(100, sortedDf.Columns["Int"][18]);
+            Assert.Equal(2000, sortedDf.Columns["Int"][19]);
+
+            // Sort by "Int" in descending order and nulls first
+            sortedDf = df.OrderByDescending("Int", putNullValuesLast: false);
             Assert.Null(sortedDf.Columns["Int"][0]);
             Assert.Equal(-1, sortedDf.Columns["Int"][19]);
             Assert.Equal(100, sortedDf.Columns["Int"][2]);
             Assert.Equal(2000, sortedDf.Columns["Int"][1]);
 
-            // Sort by "String" in ascending order
+            // Sort by "String" in ascending order and nulls last
             sortedDf = df.OrderBy("String");
             Assert.Null(sortedDf.Columns["Int"][19]);
             Assert.Equal(1, sortedDf.Columns["Int"][1]);
             Assert.Equal(8, sortedDf.Columns["Int"][17]);
             Assert.Equal(9, sortedDf.Columns["Int"][18]);
 
-            // Sort by "String" in descending order
+            // Sort by "String" in descending order and nulls last
             sortedDf = df.OrderByDescending("String");
+            Assert.Null(sortedDf.Columns["Int"][19]);
+            Assert.Equal(8, sortedDf.Columns["Int"][1]);
+            Assert.Equal(9, sortedDf.Columns["Int"][0]);
+
+            // Sort by "String" in ascending order and nulls first
+            sortedDf = df.OrderBy("String", putNullValuesLast: false);
+            Assert.Null(sortedDf.Columns["Int"][0]);
+            Assert.Equal(1, sortedDf.Columns["Int"][2]);
+            Assert.Equal(8, sortedDf.Columns["Int"][18]);
+            Assert.Equal(9, sortedDf.Columns["Int"][19]);
+
+            // Sort by "String" in descending order and nulls first
+            sortedDf = df.OrderByDescending("String", putNullValuesLast: false);
             Assert.Null(sortedDf.Columns["Int"][0]);
             Assert.Equal(8, sortedDf.Columns["Int"][2]);
             Assert.Equal(9, sortedDf.Columns["Int"][1]);
@@ -1294,13 +1321,19 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void TestMeanMedian()
+        public void TestMean()
         {
             DataFrame df = MakeDataFrameWithNumericColumns(10, true, 0);
 
             Assert.Equal(40.0 / 9.0, df["Decimal"].Mean());
-            Assert.Equal(4, df["Decimal"].Median());
+        }
 
+        [Fact]
+        public void TestMedian()
+        {
+            DataFrame df = MakeDataFrameWithNumericColumns(10, true, 0);
+
+            Assert.Equal(4, df["Decimal"].Median());
         }
 
         [Fact]

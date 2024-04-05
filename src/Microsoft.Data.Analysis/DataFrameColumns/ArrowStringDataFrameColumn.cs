@@ -367,8 +367,7 @@ namespace Microsoft.Data.Analysis
             return new StringArray(numberOfRows, offsetsBuffer, dataBuffer, nullBuffer, nullCount, indexInBuffer);
         }
 
-        /// <inheritdoc/>
-        public override DataFrameColumn Sort(bool ascending = true) => throw new NotSupportedException();
+        internal override PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending, bool putNullValuesLast) => throw new NotSupportedException();
 
         public new ArrowStringDataFrameColumn Clone(long numberOfNullsToAppend = 0)
         {

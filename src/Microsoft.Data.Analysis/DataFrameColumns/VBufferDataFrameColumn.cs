@@ -394,5 +394,7 @@ namespace Microsoft.Data.Analysis
 
             throw new NotSupportedException();
         }
+
+        internal override PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending, bool putNullValuesLast) => throw new NotImplementedException();
     }
 }
