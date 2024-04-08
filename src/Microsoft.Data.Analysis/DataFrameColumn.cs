@@ -141,6 +141,13 @@ namespace Microsoft.Data.Analysis
         public void SetName(string newName, DataFrame dataFrame) => SetName(newName);
 
         /// <summary>
+        /// Indicates if the value at this <paramref name="index"/> is valid (not <see langword="null"/>).
+        /// </summary>
+        /// <param name="index">The index to look up.</param>
+        /// <returns>A boolean value indicating the validity at this <paramref name="index"/>.</returns>
+        public virtual bool IsValid(long index) => this[index] != null;
+
+        /// <summary>
         /// The type of data this column holds.
         /// </summary>
         public Type DataType { get; }

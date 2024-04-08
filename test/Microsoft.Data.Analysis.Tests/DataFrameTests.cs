@@ -743,9 +743,12 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestDropNulls()
         {
+            //Create dataframe with 20 rows, where 1 row has only 1 null value and 1 row has all null values
             DataFrame df = MakeDataFrameWithAllMutableColumnTypes(20);
+            df[0, 0] = null;
+
             DataFrame anyNulls = df.DropNulls();
-            Assert.Equal(19, anyNulls.Rows.Count);
+            Assert.Equal(18, anyNulls.Rows.Count);
 
             DataFrame allNulls = df.DropNulls(DropNullOptions.All);
             Assert.Equal(19, allNulls.Rows.Count);

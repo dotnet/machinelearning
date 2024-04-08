@@ -252,6 +252,7 @@ namespace Microsoft.Data.Analysis
             set => _columnContainer[rowIndex] = value;
         }
 
+        /// <inheritdoc/>
         public override double Median()
         {
             // Not the most efficient implementation. Using a selection algorithm here would be O(n) instead of O(nLogn)
@@ -271,6 +272,7 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        /// <inheritdoc/>
         public override double Mean()
         {
             if (Length == 0)
@@ -296,6 +298,7 @@ namespace Microsoft.Data.Analysis
             Length += count;
         }
 
+        /// <inheritdoc/>
         public override long NullCount
         {
             get
@@ -305,18 +308,29 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public bool IsValid(long index) => _columnContainer.IsValid(index);
+        /// <inheritdoc/>
+        public override bool IsValid(long index) => _columnContainer.IsValid(index);
 
         public IEnumerator<T?> GetEnumerator() => _columnContainer.GetEnumerator();
 
         protected override IEnumerator GetEnumeratorCore() => GetEnumerator();
 
+        /// <inheritdoc/>
         public override bool IsNumericColumn()
         {
-            bool ret = true;
-            if (typeof(T) == typeof(char) || typeof(T) == typeof(bool) || typeof(T) == typeof(DateTime))
-                ret = false;
-            return ret;
+            var type = typeof(T);
+
+            return type == typeof(byte)
+                || type == typeof(sbyte)
+                || type == typeof(ushort)
+                || type == typeof(short)
+                || type == typeof(uint)
+                || type == typeof(int)
+                || type == typeof(ulong)
+                || type == typeof(long)
+                || type == typeof(float)
+                || type == typeof(double)
+                || type == typeof(decimal);
         }
 
         /// <summary>
@@ -343,6 +357,7 @@ namespace Microsoft.Data.Analysis
             return FillNulls(convertedValue, inPlace);
         }
 
+        /// <inheritdoc/>
         public override DataFrame ValueCounts()
         {
             Dictionary<T, ICollection<long>> groupedValues = GroupColumnValues<T>(out HashSet<long> _);

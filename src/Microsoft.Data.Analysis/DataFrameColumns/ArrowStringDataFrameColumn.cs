@@ -69,12 +69,8 @@ namespace Microsoft.Data.Analysis
         /// <inheritdoc/>
         public override long NullCount => _nullCount;
 
-        /// <summary>
-        /// Indicates if the value at this <paramref name="index"/> is <see langword="null" />.
-        /// </summary>
-        /// <param name="index">The index to look up.</param>
-        /// <returns>A boolean value indicating the validity at this <paramref name="index"/>.</returns>
-        public bool IsValid(long index) => NullCount == 0 || GetValidityBit(index);
+        /// <inheritdoc/>
+        public override bool IsValid(long index) => NullCount == 0 || GetValidityBit(index);
 
         private bool GetValidityBit(long index)
         {
