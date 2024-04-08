@@ -305,88 +305,51 @@ namespace Microsoft.Data.Analysis
             for (long i = 0; i < boolColumn.Length; i++)
             {
                 bool? value = boolColumn[i];
-                if (value.HasValue && value.Value == true)
+                if (value.HasValue && value.Value)
                     ret.Append(this[i]);
             }
             return ret;
         }
 
-        private StringDataFrameColumn CloneImplementation<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false)
-            where U : unmanaged
+        private StringDataFrameColumn CloneImplementation(PrimitiveDataFrameColumn<int> mapIndices, bool invertMapIndices = false)
         {
             mapIndices = mapIndices ?? throw new ArgumentNullException(nameof(mapIndices));
-            StringDataFrameColumn ret = new StringDataFrameColumn(Name, mapIndices.Length);
+            var ret = new StringDataFrameColumn(Name, mapIndices.Length);
 
-            List<string> setBuffer = ret._stringBuffers[0];
-            long setBufferMinRange = 0;
-            long setBufferMaxRange = MaxCapacity;
-            List<string> getBuffer = _stringBuffers[0];
-            long getBufferMinRange = 0;
-            long getBufferMaxRange = MaxCapacity;
-            long maxCapacity = MaxCapacity;
-            if (mapIndices.DataType == typeof(long))
+            long rowIndex = 0;
+            for (int b = 0; b < mapIndices.ColumnContainer.Buffers.Count; b++)
             {
-                PrimitiveDataFrameColumn<long> longMapIndices = mapIndices as PrimitiveDataFrameColumn<long>;
-                longMapIndices.ApplyElementwise((long? mapIndex, long rowIndex) =>
+                var span = mapIndices.ColumnContainer.Buffers[b].ReadOnlySpan;
+                var validitySpan = mapIndices.ColumnContainer.NullBitMapBuffers[b].ReadOnlySpan;
+
+                for (int i = 0; i < span.Length; i++)
                 {
-                    long index = rowIndex;
-                    if (invertMapIndices)
-                        index = longMapIndices.Length - 1 - index;
-                    if (index < setBufferMinRange || index >= setBufferMaxRange)
-                    {
-                        int bufferIndex = (int)(index / maxCapacity);
-                        setBuffer = ret._stringBuffers[bufferIndex];
-                        setBufferMinRange = bufferIndex * maxCapacity;
-                        setBufferMaxRange = (bufferIndex + 1) * maxCapacity;
-                    }
-                    index -= setBufferMinRange;
-                    if (mapIndex == null)
-                    {
-                        setBuffer[(int)index] = null;
-                        return mapIndex;
-                    }
-
-                    if (mapIndex.Value < getBufferMinRange || mapIndex.Value >= getBufferMaxRange)
-                    {
-                        int bufferIndex = (int)(mapIndex.Value / maxCapacity);
-                        getBuffer = _stringBuffers[bufferIndex];
-                        getBufferMinRange = bufferIndex * maxCapacity;
-                        getBufferMaxRange = (bufferIndex + 1) * maxCapacity;
-                    }
-                    int bufferLocalMapIndex = (int)(mapIndex - getBufferMinRange);
-                    string value = getBuffer[bufferLocalMapIndex];
-                    setBuffer[(int)index] = value;
-                    if (value != null)
-                        ret._nullCount--;
-
-                    return mapIndex;
-                });
+                    long index = invertMapIndices ? mapIndices.Length - 1 - rowIndex : rowIndex;
+                    ret[index] = BitUtility.IsValid(validitySpan, i) ? this[span[i]] : null;
+                    rowIndex++;
+                }
             }
-            else if (mapIndices.DataType == typeof(int))
+
+            return ret;
+        }
+
+        private StringDataFrameColumn CloneImplementation(PrimitiveDataFrameColumn<long> mapIndices, bool invertMapIndices = false)
+        {
+            mapIndices = mapIndices ?? throw new ArgumentNullException(nameof(mapIndices));
+            var ret = new StringDataFrameColumn(Name, mapIndices.Length);
+
+            long rowIndex = 0;
+            for (int b = 0; b < mapIndices.ColumnContainer.Buffers.Count; b++)
             {
-                PrimitiveDataFrameColumn<int> intMapIndices = mapIndices as PrimitiveDataFrameColumn<int>;
-                intMapIndices.ApplyElementwise((int? mapIndex, long rowIndex) =>
+                var span = mapIndices.ColumnContainer.Buffers[b].ReadOnlySpan;
+                var validitySpan = mapIndices.ColumnContainer.NullBitMapBuffers[b].ReadOnlySpan;
+
+                for (int i = 0; i < span.Length; i++)
                 {
-                    long index = rowIndex;
-                    if (invertMapIndices)
-                        index = intMapIndices.Length - 1 - index;
-
-                    if (mapIndex == null)
-                    {
-                        setBuffer[(int)index] = null;
-                        return mapIndex;
-                    }
-                    string value = getBuffer[mapIndex.Value];
-                    setBuffer[(int)index] = value;
-                    if (value != null)
-                        ret._nullCount--;
-
-                    return mapIndex;
-                });
-            }
-            else
-            {
-                Debug.Assert(false, nameof(mapIndices.DataType));
+                    long index = invertMapIndices ? mapIndices.Length - 1 - rowIndex : rowIndex;
+                    ret[index] = BitUtility.IsValid(validitySpan, i) ? this[span[i]] : null;
+                    rowIndex++;
+                }
             }
 
             return ret;

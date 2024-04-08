@@ -178,20 +178,20 @@ namespace Microsoft.Data.Analysis
         public void ApplyElementwise(Func<T?, long, T?> func)
         {
             var bufferMaxCapacity = ReadOnlyDataFrameBuffer<T>.MaxCapacity;
+
+            long curIndex = 0;
             for (int b = 0; b < Buffers.Count; b++)
             {
-                long prevLength = checked(bufferMaxCapacity * b);
-
                 Span<T> mutableBuffer = Buffers.GetOrCreateMutable(b).Span;
                 Span<byte> mutableNullBitMapBuffer = NullBitMapBuffers.GetOrCreateMutable(b).Span;
 
                 for (int i = 0; i < mutableBuffer.Length; i++)
                 {
-                    long curIndex = i + prevLength;
                     bool isValid = BitUtility.IsValid(mutableNullBitMapBuffer, i);
                     T? value = func(isValid ? mutableBuffer[i] : null, curIndex);
                     mutableBuffer[i] = value.GetValueOrDefault();
                     SetValidityBit(mutableNullBitMapBuffer, i, value != null);
+                    curIndex++;
                 }
             }
         }
