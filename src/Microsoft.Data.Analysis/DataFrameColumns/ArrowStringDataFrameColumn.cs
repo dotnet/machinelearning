@@ -432,24 +432,42 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private ArrowStringDataFrameColumn CloneImplementation<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices)
-            where U : unmanaged
+        private ArrowStringDataFrameColumn CloneImplementation(PrimitiveDataFrameColumn<int> mapIndices, bool invertMapIndices)
         {
             ArrowStringDataFrameColumn ret = new ArrowStringDataFrameColumn(Name);
 
-            mapIndices.ApplyElementwise((U? mapIndex, long rowIndex) =>
+            for (long i = 0; i < mapIndices.Length; i++)
             {
-                if (mapIndex == null)
+                int? index = mapIndices[invertMapIndices ? mapIndices.Length - 1 - i : i];
+
+                if (index == null)
                 {
                     ret.Append(default);
-                    return mapIndex;
+                    continue;
                 }
 
-                long index = invertMapIndices ? mapIndices.Length - 1 - rowIndex : rowIndex;
-                ret.Append(IsValid(index) ? GetBytes(index) : default(ReadOnlySpan<byte>));
+                ret.Append(IsValid(index.Value) ? GetBytes(index.Value) : default(ReadOnlySpan<byte>));
+            }
 
-                return mapIndex;
-            });
+            return ret;
+        }
+
+        private ArrowStringDataFrameColumn CloneImplementation(PrimitiveDataFrameColumn<long> mapIndices, bool invertMapIndices)
+        {
+            ArrowStringDataFrameColumn ret = new ArrowStringDataFrameColumn(Name);
+
+            for (long i = 0; i < mapIndices.Length; i++)
+            {
+                long? index = mapIndices[invertMapIndices ? mapIndices.Length - 1 - i : i];
+
+                if (index == null)
+                {
+                    ret.Append(default);
+                    continue;
+                }
+
+                ret.Append(IsValid(index.Value) ? GetBytes(index.Value) : default(ReadOnlySpan<byte>));
+            }
 
             return ret;
         }
