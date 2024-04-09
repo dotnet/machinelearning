@@ -194,6 +194,24 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        public void Apply(Func<T, T> func)
+        {
+            for (int b = 0; b < Buffers.Count; b++)
+            {
+                var span = Buffers.GetOrCreateMutable(b).Span;
+                var validitySpan = NullBitMapBuffers.GetOrCreateMutable(b).Span;
+
+                for (int i = 0; i < span.Length; i++)
+                {
+                    if (NullCount == 0 || BitUtility.IsValid(validitySpan, i))
+                    {
+                        span[i] = func(span[i]);
+                    }
+                }
+            }
+        }
+
+        [Obsolete]
         public void Apply<TResult>(Func<T?, TResult?> func, PrimitiveColumnContainer<TResult> resultContainer)
             where TResult : unmanaged
         {

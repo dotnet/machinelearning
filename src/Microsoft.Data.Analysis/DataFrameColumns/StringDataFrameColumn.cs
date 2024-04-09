@@ -79,6 +79,27 @@ namespace Microsoft.Data.Analysis
             Length++;
         }
 
+        /// <summary>
+        /// Applies a function to all values in the column, that are not null.
+        /// </summary>
+        /// <param name="func">The function to apply.</param>
+        /// /// <param name="inPlace">A boolean flag to indicate if the operation should be in place.</param>
+        /// <returns>A new <see cref="PrimitiveDataFrameColumn{T}"/> if <paramref name="inPlace"/> is not set. Returns this column otherwise.</returns>
+        public StringDataFrameColumn Apply(Func<string, string> func, bool inPlace = false)
+        {
+            var column = inPlace ? this : Clone();
+
+            for (long i = 0; i < column.Length; i++)
+            {
+                var value = column[i];
+
+                if (value != null)
+                    column[i] = func(value);
+            }
+
+            return column;
+        }
+
         private int GetBufferIndexContainingRowIndex(long rowIndex)
         {
             if (rowIndex >= Length)

@@ -628,7 +628,21 @@ namespace Microsoft.Data.Analysis
         /// Applies a function to all column values in place.
         /// </summary>
         /// <param name="func">The function to apply</param>
+        [Obsolete]
         public void ApplyElementwise(Func<T?, long, T?> func) => _columnContainer.ApplyElementwise(func);
+
+        /// <summary>
+        /// Applies a function to all values in the column, that are not null.
+        /// </summary>
+        /// <param name="func">The function to apply.</param>
+        /// /// <param name="inPlace">A boolean flag to indicate if the operation should be in place.</param>
+        /// <returns>A new <see cref="PrimitiveDataFrameColumn{T}"/> if <paramref name="inPlace"/> is not set. Returns this column otherwise.</returns>
+        public PrimitiveDataFrameColumn<T> Apply(Func<T, T> func, bool inPlace = false)
+        {
+            var column = inPlace ? this : this.Clone();
+            column.ColumnContainer.Apply(func);
+            return column;
+        }
 
         /// <summary>
         /// Applies a function to all column values.
@@ -636,6 +650,7 @@ namespace Microsoft.Data.Analysis
         /// <typeparam name="TResult">The new column's type</typeparam>
         /// <param name="func">The function to apply</param>
         /// <returns>A new PrimitiveDataFrameColumn containing the new values</returns>
+        [Obsolete]
         public PrimitiveDataFrameColumn<TResult> Apply<TResult>(Func<T?, TResult?> func) where TResult : unmanaged
         {
             var resultColumn = new PrimitiveDataFrameColumn<TResult>("Result", Length);

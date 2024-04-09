@@ -306,7 +306,7 @@ namespace Microsoft.Data.Analysis
         /// <param name="inPlace">Indicates if the operation should be performed in place</param>
         public virtual DataFrameColumn FillNulls(object value, bool inPlace = false) => FillNullsImplementation(value, inPlace);
 
-        protected virtual DataFrameColumn FillNullsImplementation(object value, bool inPlace) => throw new NotImplementedException();
+        protected abstract DataFrameColumn FillNullsImplementation(object value, bool inPlace);
 
         // Arrow related APIs
         protected internal virtual Field GetArrowField() => throw new NotImplementedException();

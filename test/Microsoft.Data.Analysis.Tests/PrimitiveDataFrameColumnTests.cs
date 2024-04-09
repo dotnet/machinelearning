@@ -625,6 +625,23 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Null(div[3]); // null / null
         }
 
+        [Fact]
+        public void Test_Apply_InPlace()
+        {
+            // Arrange
+            var column = new Int32DataFrameColumn("int", new int?[] { 0, 1, 2, null, null, 5 });
+
+            column.Apply(x => x * 2, true);
+
+            // Assert
+            Assert.Equal(0, column[0]);
+            Assert.Equal(2, column[1]);
+            Assert.Equal(4, column[2]);
+            Assert.Null(column[3]);
+            Assert.Null(column[4]);
+            Assert.Equal(10, column[5]);
+        }
+
         //#if !NETFRAMEWORK // https://github.com/dotnet/corefxlab/issues/2796
         //        [Fact]
         //        public void TestPrimitiveColumnGetReadOnlyBuffers()

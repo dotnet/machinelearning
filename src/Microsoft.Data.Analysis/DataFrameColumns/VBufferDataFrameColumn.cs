@@ -371,5 +371,11 @@ namespace Microsoft.Data.Analysis
 
             throw new NotSupportedException();
         }
+
+        protected override DataFrameColumn FillNullsImplementation(object value, bool inPlace)
+        {
+            //Do nothing as VBufferColumn doesn't have null values
+            return inPlace ? this : Clone();
+        }
     }
 }
