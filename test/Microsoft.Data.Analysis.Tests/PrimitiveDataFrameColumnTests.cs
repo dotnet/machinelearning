@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Apache.Arrow;
 using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 
@@ -270,21 +267,6 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void TestClone_StringColumn()
-        {
-            var strColumn = new StringDataFrameColumn("Str", ["str1", "str2", "srt3", null]);
-            var copy = strColumn.Clone();
-
-            Assert.Equal(strColumn.Name, copy.Name);
-            Assert.Equal(strColumn.Length, copy.Length);
-            Assert.Equal(strColumn.DataType, copy.DataType);
-            Assert.Equal(strColumn.NullCount, copy.NullCount);
-
-            for (int i = 0; i < strColumn.Length; i++)
-                Assert.Equal(strColumn[i], copy[i]);
-        }
-
-        [Fact]
         public void TestNotNullableColumnClone()
         {
             //Arrange
@@ -326,7 +308,7 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void TestNotNullableColumnCloneWithIndicesMap()
+        public void TestNotNullableColumnClone_WithIntIndicesMap()
         {
             //Arrange
             var column = new Int32DataFrameColumn("Int column", values: new[] { 0, 5, 2, 4, 1, 3 });
@@ -344,6 +326,69 @@ namespace Microsoft.Data.Analysis.Tests
 
             for (int i = 0; i < indicesMap.Length; i++)
                 Assert.Equal(column[indicesMap[i].Value], clonedColumn[i]);
+        }
+
+        [Fact]
+        public void TestNotNullableColumnClone_WithIntIndicesMap_Invert()
+        {
+            //Arrange
+            var column = new Int32DataFrameColumn("Int column", values: new int?[] { 0, 5, null, 4, 1, 3 });
+            var indicesMap = new Int32DataFrameColumn("Indices", new[] { 0, 1, 2, 2, 5, 3, 4 });
+
+            //Act
+            var clonedColumn = column.Clone(indicesMap, true);
+
+            //Assert
+            Assert.NotSame(column, clonedColumn);
+            Assert.Equal(column.Name, clonedColumn.Name);
+            Assert.Equal(column.DataType, clonedColumn.DataType);
+            Assert.Equal(2, clonedColumn.NullCount);
+            Assert.Equal(indicesMap.Length, clonedColumn.Length);
+
+            for (int i = 0; i < indicesMap.Length; i++)
+                Assert.Equal(column[indicesMap[indicesMap.Length - 1 - i].Value], clonedColumn[i]);
+        }
+
+        [Fact]
+        public void TestNotNullableColumnClone_WithLongIndicesMap()
+        {
+            //Arrange
+            var column = new Int32DataFrameColumn("Int column", values: new[] { 0, 5, 2, 4, 1, 3 });
+            var indicesMap = new Int64DataFrameColumn("Indices", new long[] { 0, 1, 2, 5, 3, 4 });
+
+            //Act
+            var clonedColumn = column.Clone(indicesMap);
+
+            //Assert
+            Assert.NotSame(column, clonedColumn);
+            Assert.Equal(column.Name, clonedColumn.Name);
+            Assert.Equal(column.DataType, clonedColumn.DataType);
+            Assert.Equal(column.NullCount, clonedColumn.NullCount);
+            Assert.Equal(indicesMap.Length, clonedColumn.Length);
+
+            for (int i = 0; i < indicesMap.Length; i++)
+                Assert.Equal(column[indicesMap[i].Value], clonedColumn[i]);
+        }
+
+        [Fact]
+        public void TestNotNullableColumnClone_WithLongIndicesMap_Invert()
+        {
+            //Arrange
+            var column = new Int32DataFrameColumn("Int column", values: new int?[] { 0, 5, null, 4, 1, 3 });
+            var indicesMap = new Int64DataFrameColumn("Indices", new long[] { 0, 1, 2, 5, 3, 4, 4, 2 });
+
+            //Act
+            var clonedColumn = column.Clone(indicesMap, true);
+
+            //Assert
+            Assert.NotSame(column, clonedColumn);
+            Assert.Equal(column.Name, clonedColumn.Name);
+            Assert.Equal(column.DataType, clonedColumn.DataType);
+            Assert.Equal(2, clonedColumn.NullCount);
+            Assert.Equal(indicesMap.Length, clonedColumn.Length);
+
+            for (int i = 0; i < indicesMap.Length; i++)
+                Assert.Equal(column[indicesMap[indicesMap.Length - 1 - i].Value], clonedColumn[i]);
         }
 
         [Fact]

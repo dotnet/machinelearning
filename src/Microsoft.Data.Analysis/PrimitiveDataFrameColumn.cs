@@ -334,20 +334,14 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Returns a new column with nulls replaced by value
+        /// Returns a new column with <see langword="null" /> elements replaced by <paramref name="value"/>.
         /// </summary>
         /// <param name="value"></param>
-        /// <param name="inPlace">Indicates if the operation should be performed in place</param>
+        /// <param name="inPlace">Indicates if the operation should be performed in place.</param>
         public PrimitiveDataFrameColumn<T> FillNulls(T value, bool inPlace = false)
         {
             PrimitiveDataFrameColumn<T> column = inPlace ? this : Clone();
-            column.ApplyElementwise((T? columnValue, long index) =>
-            {
-                if (columnValue.HasValue == false)
-                    return value;
-                else
-                    return columnValue.Value;
-            });
+            column.ColumnContainer.FillNulls(value);
             return column;
         }
 
@@ -630,10 +624,14 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        /// <summary>
+        /// Applies a function to all column values in place.
+        /// </summary>
+        /// <param name="func">The function to apply</param>
         public void ApplyElementwise(Func<T?, long, T?> func) => _columnContainer.ApplyElementwise(func);
 
         /// <summary>
-        /// Applies a function to all the values
+        /// Applies a function to all column values.
         /// </summary>
         /// <typeparam name="TResult">The new column's type</typeparam>
         /// <param name="func">The function to apply</param>
