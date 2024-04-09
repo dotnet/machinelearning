@@ -145,7 +145,7 @@ namespace Microsoft.Data.Analysis
         /// </summary>
         /// <param name="index">The index to look up.</param>
         /// <returns>A boolean value indicating the validity at this <paramref name="index"/>.</returns>
-        public virtual bool IsValid(long index) => this[index] != null;
+        public virtual bool IsValid(long index) => NullCount == 0 || this[index] != null;
 
         /// <summary>
         /// The type of data this column holds.
@@ -307,6 +307,13 @@ namespace Microsoft.Data.Analysis
         public virtual DataFrameColumn FillNulls(object value, bool inPlace = false) => FillNullsImplementation(value, inPlace);
 
         protected abstract DataFrameColumn FillNullsImplementation(object value, bool inPlace);
+
+        /// <summary>
+        /// Returns a <see cref="DataFrameColumn"/> with no missing values.
+        /// </summary>
+        public virtual DataFrameColumn DropNulls() => DropNullsImplementation();
+
+        protected abstract DataFrameColumn DropNullsImplementation();
 
         // Arrow related APIs
         protected internal virtual Field GetArrowField() => throw new NotImplementedException();

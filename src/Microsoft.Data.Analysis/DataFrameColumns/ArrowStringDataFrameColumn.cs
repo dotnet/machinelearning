@@ -556,6 +556,25 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        /// <inheritdoc/>
+        public new ArrowStringDataFrameColumn DropNulls()
+        {
+            return (ArrowStringDataFrameColumn)DropNullsImplementation();
+        }
+
+        protected override DataFrameColumn DropNullsImplementation()
+        {
+            var ret = new ArrowStringDataFrameColumn(Name);
+
+            for (long i = 0; i < Length; i++)
+            {
+                if (IsValid(i))
+                    ret.Append(GetBytes(i));
+            }
+
+            return ret;
+        }
+
         public override DataFrameColumn Clamp<U>(U min, U max, bool inPlace = false) => throw new NotSupportedException();
 
         public override DataFrameColumn Filter<U>(U min, U max) => throw new NotSupportedException();

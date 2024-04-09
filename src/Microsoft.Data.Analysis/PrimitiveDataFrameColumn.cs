@@ -352,6 +352,32 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <inheritdoc/>
+        public new PrimitiveDataFrameColumn<T> DropNulls()
+        {
+            return (PrimitiveDataFrameColumn<T>)DropNullsImplementation();
+        }
+
+        protected override DataFrameColumn DropNullsImplementation()
+        {
+            var ret = CreateNewColumn(Name, Length - NullCount);
+
+            long j = 0;
+            for (int b = 0; b < ColumnContainer.NullBitMapBuffers.Count; b++)
+            {
+                var span = ColumnContainer.Buffers[b].ReadOnlySpan;
+                var validitySpan = ColumnContainer.NullBitMapBuffers[b].ReadOnlySpan;
+
+                for (int i = 0; i < span.Length; i++)
+                {
+                    if (BitUtility.IsValid(validitySpan, i))
+                        ret[j++] = span[i];
+                }
+            }
+
+            return ret;
+        }
+
+        /// <inheritdoc/>
         public override DataFrame ValueCounts()
         {
             Dictionary<T, ICollection<long>> groupedValues = GroupColumnValues<T>(out HashSet<long> _);
@@ -436,6 +462,7 @@ namespace Microsoft.Data.Analysis
             if (boolColumn.Length > Length)
                 throw new ArgumentException(Strings.MapIndicesExceedsColumnLength, nameof(boolColumn));
             PrimitiveDataFrameColumn<T> ret = CreateNewColumn(Name);
+
             for (long i = 0; i < boolColumn.Length; i++)
             {
                 bool? value = boolColumn[i];

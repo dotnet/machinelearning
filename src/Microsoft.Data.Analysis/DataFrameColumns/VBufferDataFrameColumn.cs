@@ -377,5 +377,11 @@ namespace Microsoft.Data.Analysis
             //Do nothing as VBufferColumn doesn't have null values
             return inPlace ? this : Clone();
         }
+
+        protected override DataFrameColumn DropNullsImplementation()
+        {
+            //Do nothing as VBufferColumn doesn't have null values
+            return Clone();
+        }
     }
 }

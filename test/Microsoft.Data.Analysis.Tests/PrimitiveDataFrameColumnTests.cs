@@ -626,7 +626,7 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void Test_Apply_InPlace()
+        public void TestApply_InPlace()
         {
             // Arrange
             var column = new Int32DataFrameColumn("int", new int?[] { 0, 1, 2, null, null, 5 });
@@ -640,6 +640,24 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Null(column[3]);
             Assert.Null(column[4]);
             Assert.Equal(10, column[5]);
+        }
+
+        [Fact]
+        public void TestDropNulls()
+        {
+            // Arrange
+            var column = new Int32DataFrameColumn("int", new int?[] { null, 0, 1, 2, null, null, 3, null });
+
+            var res = column.DropNulls();
+
+            // Assert
+            Assert.Equal(4, res.Length);
+            Assert.Equal(0, res.NullCount);
+
+            Assert.Equal(0, res[0]);
+            Assert.Equal(1, res[1]);
+            Assert.Equal(2, res[2]);
+            Assert.Equal(3, res[3]);
         }
 
         //#if !NETFRAMEWORK // https://github.com/dotnet/corefxlab/issues/2796

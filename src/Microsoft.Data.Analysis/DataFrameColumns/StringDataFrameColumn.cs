@@ -434,6 +434,12 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        /// <summary>
+        /// Returns a new column with <see langword="null" /> elements replaced by <paramref name="value"/>.
+        /// </summary>
+        /// <remarks>Tries to convert value to the column's DataType</remarks>
+        /// <param name="value"></param>
+        /// <param name="inPlace">Indicates if the operation should be performed in place</param>
         public StringDataFrameColumn FillNulls(string value, bool inPlace = false)
         {
             if (value == null)
@@ -454,6 +460,30 @@ namespace Microsoft.Data.Analysis
                 return FillNulls(valueString, inPlace);
             else
                 throw new ArgumentException(String.Format(Strings.MismatchedValueType, typeof(string)), nameof(value));
+        }
+
+        /// <inheritdoc/>
+        public new StringDataFrameColumn DropNulls()
+        {
+            return (StringDataFrameColumn)DropNullsImplementation();
+        }
+
+        protected override DataFrameColumn DropNullsImplementation()
+        {
+            var ret = new StringDataFrameColumn(Name, Length - NullCount);
+
+            long j = 0;
+            for (long i = 0; i < Length; i++)
+            {
+                var value = this[i];
+
+                if (value != null)
+                {
+                    ret[j++] = value;
+                }
+            }
+
+            return ret;
         }
 
         protected internal override void AddDataViewColumn(DataViewSchema.Builder builder)
