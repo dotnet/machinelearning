@@ -655,7 +655,7 @@ namespace Microsoft.Data.Analysis
         /// Applies a function to all column values in place.
         /// </summary>
         /// <param name="func">The function to apply</param>
-        [Obsolete]
+        [Obsolete("Method is obsolete, use Apply(Func<T, T> func, bool inPlace = false) instead")]
         public void ApplyElementwise(Func<T?, long, T?> func) => _columnContainer.ApplyElementwise(func);
 
         /// <summary>
@@ -677,7 +677,7 @@ namespace Microsoft.Data.Analysis
         /// <typeparam name="TResult">The new column's type</typeparam>
         /// <param name="func">The function to apply</param>
         /// <returns>A new PrimitiveDataFrameColumn containing the new values</returns>
-        [Obsolete]
+        [Obsolete("Method is obsolete, use Apply(Func<T, T> func, bool inPlace = false) instead")]
         public PrimitiveDataFrameColumn<TResult> Apply<TResult>(Func<T?, TResult?> func) where TResult : unmanaged
         {
             var resultColumn = new PrimitiveDataFrameColumn<TResult>("Result", Length);
