@@ -824,7 +824,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal((long)5, valueCounts.Columns["Counts"][1]);
         }
 
-#pragma warning disable CS0612 // Type or member is obsolete
+#pragma warning disable CS0612, CS0618  // Type or member is obsolete
         [Fact]
         public void TestApplyElementwiseNullCount()
         {
@@ -865,7 +865,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(0, column.NullCount);
 
         }
-#pragma warning restore CS0612 // Type or member is obsolete
+#pragma warning restore CS0612, CS0618 // Type or member is obsolete
 
         [Theory]
         [InlineData(10, 5)]
@@ -1176,7 +1176,7 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-#pragma warning disable CS0612 // Type or member is obsolete
+#pragma warning disable CS0612, CS0618 // Type or member is obsolete
         public void TestApply()
         {
             int[] values = { 1, 2, 3, 4, 5 };
@@ -1192,7 +1192,7 @@ namespace Microsoft.Data.Analysis.Tests
                 Assert.Equal(newCol[i], values[i] + 0.5d);
             }
         }
-#pragma warning disable CS0612 // Type or member is obsolete
+#pragma warning disable CS0612, CS0618 // Type or member is obsolete
 
         [Fact]
         public void TestDataFrameCreate()
