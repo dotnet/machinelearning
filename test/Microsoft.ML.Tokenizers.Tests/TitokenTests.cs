@@ -38,8 +38,8 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             TestGPT4TokenizationEncoding(GPT4);
 
-            Assert.True(GPT4.Model is Tiktoken);
-            IReadOnlyDictionary<string, int>? specialTokensEncoder = (GPT4.Model as Tiktoken)!.SpecialTokens;
+            Assert.True(GPT4 is Tiktoken);
+            IReadOnlyDictionary<string, int>? specialTokensEncoder = (GPT4 as Tiktoken)!.SpecialTokens;
 
             string tokenizerDataFileName = Utils.CreateTemporaryFile("tiktoken");
 
@@ -53,21 +53,21 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             try
             {
-                Tokenizer tokenizer = new Tokenizer(new Tiktoken(tokenizerDataFileName, specialTokensEncoder), GPT4.PreTokenizer);
+                Tokenizer tokenizer = new Tiktoken(tokenizerDataFileName, GPT4.PreTokenizer, specialTokensEncoder);
                 TestGPT4TokenizationEncoding(tokenizer);
 
                 using (Stream stream = File.OpenRead(tokenizerDataFileName))
                 {
-                    tokenizer = new Tokenizer(new Tiktoken(stream, specialTokensEncoder), GPT4.PreTokenizer);
+                    tokenizer = new Tiktoken(stream, GPT4.PreTokenizer, specialTokensEncoder);
                 }
                 TestGPT4TokenizationEncoding(tokenizer);
 
-                tokenizer = new Tokenizer(await Tiktoken.CreateAsync(tokenizerDataFileName, specialTokensEncoder), GPT4.PreTokenizer);
+                tokenizer = await Tokenizer.CreateTiktokenAsync(tokenizerDataFileName, GPT4.PreTokenizer, normalizer: null, specialTokensEncoder);
                 TestGPT4TokenizationEncoding(tokenizer);
 
                 using (Stream stream = File.OpenRead(tokenizerDataFileName))
                 {
-                    tokenizer = new Tokenizer(await Tiktoken.CreateAsync(stream, specialTokensEncoder), GPT4.PreTokenizer);
+                    tokenizer = await Tokenizer.CreateTiktokenAsync(stream, GPT4.PreTokenizer, normalizer: null, specialTokensEncoder);
                 }
                 TestGPT4TokenizationEncoding(tokenizer);
 
@@ -109,11 +109,11 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             try
             {
-                Tiktoken tiktoken = (tokenizer.Model as Tiktoken)!;
-                Tokenizer externalTokenizer = new Tokenizer(new Tiktoken(tokenizerDataFileName, tiktoken.SpecialTokens), tokenizer.PreTokenizer);
+                Tiktoken tiktoken = (tokenizer as Tiktoken)!;
+                Tokenizer externalTokenizer = new Tiktoken(tokenizerDataFileName, tokenizer.PreTokenizer, tiktoken.SpecialTokens);
 
                 IReadOnlyDictionary<ReadOnlyMemory<byte>, int> encoder = tiktoken.Encoder;
-                IReadOnlyDictionary<ReadOnlyMemory<byte>, int> externalEncoder = (externalTokenizer.Model as Tiktoken)!.Encoder;
+                IReadOnlyDictionary<ReadOnlyMemory<byte>, int> externalEncoder = (externalTokenizer as Tiktoken)!.Encoder;
 
                 Assert.Equal(externalEncoder.Count, encoder.Count);
                 foreach (KeyValuePair<ReadOnlyMemory<byte>, int> kvp in encoder)
@@ -135,13 +135,17 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(new List<int>() { 9906, 4435 }, encoded);
             Assert.Equal(text, tokenizer.Decode(encoded.ToArray())!);
 
-            EncodingResult result = tokenizer.Encode(text);
+            IReadOnlyList<Token> result = tokenizer.Encode(text, out string? normalizedString);
             int idsCount = tokenizer.CountTokens(text);
-            Assert.Equal(encoded, result.Ids);
-            Assert.Equal(new string[] { "Hello", " World" }, result.Tokens);
-            Assert.Equal(new List<(int, int)> { (0, 5), (5, 6) }, result.Offsets);
+
+            int[] ids = result.Select(token => token.Id).ToArray();
+            string[] tokens = result.Select(token => token.Value).ToArray();
+            (int, int)[] offsets = result.Select(token => token.Offset).ToArray();
+            Assert.Equal(encoded, ids);
+            Assert.Equal(new string[] { "Hello", " World" }, tokens);
+            Assert.Equal(new List<(int, int)> { (0, 5), (5, 6) }, offsets);
             Assert.Equal(encoded.Count, idsCount);
-            Assert.Equal(encoded, result.Ids);
+            Assert.Equal(encoded, ids);
 
             TestGPT4Tokenizer(tokenizer);
         }
@@ -154,13 +158,18 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(new List<int>() { 100264, 9906, 4435, 100265 }, encoded);
             Assert.Equal(text, GPT4.Decode(encoded.ToArray()));
 
-            EncodingResult result = GPT4.Encode(text);
+            IReadOnlyList<Token> result = GPT4.Encode(text, out string? normalizedString);
             int idsCount = GPT4.CountTokens(text);
-            Assert.Equal(encoded, result.Ids);
-            Assert.Equal(new string[] { "<|im_start|>", "Hello", " World", "<|im_end|>" }, result.Tokens);
-            Assert.Equal(new List<(int, int)> { (0, 12), (12, 5), (17, 6), (23, 10) }, result.Offsets);
+
+            int[] ids = result.Select(token => token.Id).ToArray();
+            string[] tokens = result.Select(token => token.Value).ToArray();
+            (int, int)[] offsets = result.Select(token => token.Offset).ToArray();
+
+            Assert.Equal(encoded, ids);
+            Assert.Equal(new string[] { "<|im_start|>", "Hello", " World", "<|im_end|>" }, tokens);
+            Assert.Equal(new List<(int, int)> { (0, 12), (12, 5), (17, 6), (23, 10) }, offsets);
             Assert.Equal(encoded.Count, idsCount);
-            Assert.Equal(encoded, result.Ids);
+            Assert.Equal(encoded, ids);
         }
 
         private void TestGPT4Tokenizer(Tokenizer gpt4Tokenizer)
@@ -192,12 +201,16 @@ namespace Microsoft.ML.Tokenizers.Tests
             string? decoded = GPT4.Decode(encoded.ToArray());
             Assert.Equal(text, decoded);
 
-            EncodingResult result = GPT4.Encode(text);
+            IReadOnlyList<Token> result = GPT4.Encode(text, out string? normalizedString);
+            int[] ids = result.Select(token => token.Id).ToArray();
+            string[] tokens = result.Select(token => token.Value).ToArray();
+            (int, int)[] offsets = result.Select(token => token.Offset).ToArray();
+
             int idsCount = GPT4.CountTokens(text);
-            Assert.Equal(encoded, result.Ids);
+            Assert.Equal(encoded, ids);
             Assert.Equal(encoded.Count, idsCount);
-            Assert.Equal(new string[] { "<|im_start|>", "Hello", "<|im_end|>", " World" }, result.Tokens);
-            Assert.Equal(new List<(int, int)> { (0, 12), (12, 5), (17, 10), (27, 6) }, result.Offsets);
+            Assert.Equal(new string[] { "<|im_start|>", "Hello", "<|im_end|>", " World" }, tokens);
+            Assert.Equal(new List<(int, int)> { (0, 12), (12, 5), (17, 10), (27, 6) }, offsets);
         }
 
         [Fact]
@@ -207,12 +220,10 @@ namespace Microsoft.ML.Tokenizers.Tests
             IReadOnlyList<int> encoded = GPT4.EncodeToIds(text);
             Assert.Empty(encoded);
 
-            EncodingResult result = GPT4.Encode(text);
+            IReadOnlyList<Token> result = GPT4.Encode(text, out string? normalizedString);
             int idsCount = GPT4.CountTokens(text);
-            Assert.Empty(result.Ids);
-            Assert.Empty(result.Tokens);
-            Assert.Empty(result.Offsets);
-            Assert.Equal(result.Ids.Count, idsCount);
+            Assert.Empty(result);
+            Assert.Equal(0, idsCount);
         }
 
         [Fact]
@@ -224,11 +235,11 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(new List<int>() { 100264, 9906, 2928, 99834, 4435, 100265 }, encoded);
             Assert.Equal(text, GPT4.Decode(encoded.ToArray()));
 
-            EncodingResult result = GPT4.Encode(text);
-            Assert.Equal(encoded, result.Ids);
+            IReadOnlyList<Token> result = GPT4.Encode(text, out string? normalizedString);
+            Assert.Equal(encoded, result.Select(token => token.Id).ToArray());
             Assert.Equal(encoded.Count, idsCount);
-            Assert.Equal(new string[] { "<|im_start|>", "Hello", " ⭐", "", " World", "<|im_end|>" }, result.Tokens);
-            Assert.Equal(new List<(int, int)> { (0, 12), (12, 5), (17, 2), (19, 0), (19, 6), (25, 10) }, result.Offsets);
+            Assert.Equal(new string[] { "<|im_start|>", "Hello", " ⭐", "", " World", "<|im_end|>" }, result.Select(token => token.Value).ToArray());
+            Assert.Equal(new List<(int, int)> { (0, 12), (12, 5), (17, 2), (19, 0), (19, 6), (25, 10) }, result.Select(token => token.Offset).ToArray());
         }
 
         [Fact]
@@ -313,6 +324,8 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("gpt-3.5-turbo")]
         [InlineData("gpt-3.5-turbo-")]
         [InlineData("gpt-3.5-turbo-16k")]
+        [InlineData("gpt-35")]
+        [InlineData("gpt-35-")]
         [InlineData("gpt-35-turbo")]
         [InlineData("gpt-35-turbo-16k")]
         [InlineData("gpt-35-turbo-")]
@@ -351,7 +364,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         public void TestAllSupportedModelNames(string modelName)
         {
             Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel(modelName);
-            Assert.NotNull(tokenizer.Model);
+            Assert.True(tokenizer is Tiktoken);
             Assert.NotNull(tokenizer.PreTokenizer);
         }
 
@@ -363,7 +376,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         public void TestAllSupportedEncodingNames(string encodingName)
         {
             Tokenizer tokenizer = Tokenizer.CreateTiktokenForEncoding(encodingName);
-            Assert.NotNull(tokenizer.Model);
+            Assert.True(tokenizer is Tiktoken);
             Assert.NotNull(tokenizer.PreTokenizer);
 
             string modelName = encodingName.ToLowerInvariant() switch
@@ -377,15 +390,16 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             Tokenizer tokenizer1 = Tokenizer.CreateTiktokenForModel(modelName);
 
-            Tiktoken? model1 = tokenizer.Model as Tiktoken;
-            Tiktoken? model2 = tokenizer1.Model as Tiktoken;
-            Assert.NotNull(model1);
-            Assert.NotNull(model2);
+            Assert.True(tokenizer is Tiktoken);
+            Assert.True(tokenizer1 is Tiktoken);
 
-            Assert.Equal(model2.Encoder, model1.Encoder);
-            Assert.Equal(model2.Decoder, model1.Decoder);
-            Assert.Equal(model2.SpecialTokens, model1.SpecialTokens);
-            Assert.Equal(model2.Vocab, model1.Vocab);
+            Tiktoken tiktoken = (tokenizer as Tiktoken)!;
+            Tiktoken tiktoken1 = (tokenizer1 as Tiktoken)!;
+
+            Assert.Equal(tiktoken1.Encoder, tiktoken.Encoder);
+            Assert.Equal(tiktoken1.Decoder, tiktoken.Decoder);
+            Assert.Equal(tiktoken1.SpecialTokens, tiktoken.SpecialTokens);
+            Assert.Equal(tiktoken1.Vocab, tiktoken.Vocab);
         }
 
         [Fact]
@@ -408,9 +422,97 @@ namespace Microsoft.ML.Tokenizers.Tests
             RemoteExecutor.Invoke(static (name) =>
             {
                 Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel(name);
-                Assert.NotNull(tokenizer.Model);
+                Assert.True(tokenizer is Tiktoken);
                 Assert.NotNull(tokenizer.PreTokenizer);
             }, modelName).Dispose();
+        }
+
+        public static IEnumerable<object?[]> TokenizerTestData
+        {
+            get
+            {
+                // string to tokenize, produced tokens, the token offsets
+                yield return new object?[]
+                {
+                    "the brown fox jumped over the lazy dog!",
+                    new string[] { "the", " brown", " fox", " jumped", " over", " the", " lazy", " dog", "!" },
+                    new (int Index, int Length)[] { (0, 3), (3, 6), (9, 4), (13, 7), (20, 5), (25, 4), (29, 5), (34, 4), (38, 1) },
+                    new int[] { 1820, 14198, 39935, 27096, 927, 279, 16053, 5679, 0 }
+                };
+                yield return new object?[]
+                {
+                    "he traveled to Egypt during the summer, the weather was hot and ammunition." ,
+                    new string[] { "he", " traveled", " to", " Egypt", " during", " the", " summer", ",", " the", " weather", " was", " hot", " and", " ammunition", "." },
+                    new (int Index, int Length)[] { (0, 2), (2, 9), (11, 3), (14, 6), (20, 7), (27, 4), (31, 7), (38, 1), (39, 4), (43, 8), (51, 4), (55, 4), (59, 4), (63, 11), (74, 1) },
+                    new int[] { 383, 31796, 311, 15212, 2391, 279, 7474, 11, 279, 9282, 574, 4106, 323, 37768, 13 }
+                };
+                yield return new object?[]
+                {
+                    "She played many games and she felt exhausted afterward",
+                    new string[] { "She", " played", " many", " games", " and", " she", " felt", " exhausted", " afterward" },
+                    new (int Index, int Length)[] { (0, 3), (3, 7), (10, 5), (15, 6), (21, 4), (25, 4), (29, 5), (34, 10), (44, 10) },
+                    new int[] { 8100, 6476, 1690, 3953, 323, 1364, 6612, 39019, 49043 }
+                };
+                yield return new object?[]
+                {
+                    "Hello, y'all! How are you 😁 ?",
+                    new string[] { "Hello", ",", " y", "'all", "!", " How", " are", " you", " 😁", "", " ?" },
+                    new (int Index, int Length)[] { (0, 5), (5, 1), (6, 2), (8, 4), (12, 1), (13, 4), (17, 4), (21, 4), (25, 3), (28, 0), (28, 2) },
+                    new int[] { 9906, 11, 379, 65948, 0, 2650, 527, 499, 27623, 223, 949 }
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(TokenizerTestData))]
+        public void TestTokenizerEncoding(string text, string[] expectedTokens, (int Index, int Length)[] expectedOffsets, int[] expectedIds)
+        {
+            Tokenizer tokenizer = GPT4;
+
+            IReadOnlyList<Token> encoding = tokenizer.Encode(text, out _);
+            IReadOnlyList<Token> encoding1 = tokenizer.Encode(text.AsSpan(), out _);
+
+            Assert.Equal(expectedTokens, encoding.Select(t => t.Value).ToArray());
+            Assert.Equal(expectedOffsets, encoding.Select(t => t.Offset).ToArray());
+            Assert.Equal(expectedIds, encoding.Select(t => t.Id).ToArray());
+
+            Assert.Equal(expectedTokens, encoding1.Select(t => t.Value).ToArray());
+            Assert.Equal(expectedOffsets, encoding1.Select(t => t.Offset).ToArray());
+            Assert.Equal(expectedIds, encoding1.Select(t => t.Id).ToArray());
+
+            Assert.Equal(expectedIds, tokenizer.EncodeToIds(text));
+            Assert.Equal(expectedIds, tokenizer.EncodeToIds(text.AsSpan()));
+            Assert.Equal(expectedIds, tokenizer.EncodeToIds(text, expectedIds.Length, out string? normalizedString, out int length));
+            Assert.Null(normalizedString);
+            Assert.Equal(text.Length, length);
+            Assert.Equal(expectedIds, tokenizer.EncodeToIds(text.AsSpan(), expectedIds.Length, out normalizedString, out length));
+            Assert.Null(normalizedString);
+            Assert.Equal(text.Length, length);
+
+            Assert.Equal(expectedIds.Take(expectedIds.Length - 4), tokenizer.EncodeToIds(text, expectedIds.Length - 4, out normalizedString, out length));
+            Assert.Null(normalizedString);
+            int expectedLength = expectedOffsets[expectedOffsets.Length - 5].Index + expectedOffsets[expectedOffsets.Length - 5].Length;
+            Assert.Equal(expectedLength, length);
+            Assert.Equal(expectedIds.Take(expectedIds.Length - 4), tokenizer.EncodeToIds(text.AsSpan(), expectedIds.Length - 4, out normalizedString, out length));
+            Assert.Null(normalizedString);
+            Assert.Equal(expectedLength, length);
+
+            Assert.Equal(expectedIds.Length, tokenizer.CountTokens(text));
+            Assert.Equal(expectedIds.Length, tokenizer.CountTokens(text.AsSpan()));
+
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 4].Index + expectedOffsets[expectedOffsets.Length - 4].Length, tokenizer.IndexOfTokenCount(text, expectedIds.Length - 3, out normalizedString, out int tokenCount));
+            Assert.Null(normalizedString);
+            Assert.Equal(expectedIds.Length - 3, tokenCount);
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 4].Index + expectedOffsets[expectedOffsets.Length - 4].Length, tokenizer.IndexOfTokenCount(text.AsSpan(), expectedIds.Length - 3, out normalizedString, out tokenCount));
+            Assert.Null(normalizedString);
+            Assert.Equal(expectedIds.Length - 3, tokenCount);
+
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 3].Index, tokenizer.LastIndexOfTokenCount(text, 3, out normalizedString, out tokenCount));
+            Assert.Null(normalizedString);
+            Assert.Equal(3, tokenCount);
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 3].Index, tokenizer.LastIndexOfTokenCount(text.AsSpan(), 3, out normalizedString, out tokenCount));
+            Assert.Null(normalizedString);
+            Assert.Equal(3, tokenCount);
         }
 
         // Test running copy the test data files to the output folder but sometimes the file content is mutated replacing '\n' with '\r\n'.

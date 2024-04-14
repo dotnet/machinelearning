@@ -26,12 +26,12 @@ namespace Microsoft.ML.TorchSharp.Extensions
                 // "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/dict.txt"
                 Assembly assembly = typeof(TokenizerExtensions).Assembly;
 
-                EnglishRoberta model = new EnglishRoberta(
+                _instance = new EnglishRoberta(
                                             assembly.GetManifestResourceStream("encoder.json"),
                                             assembly.GetManifestResourceStream("vocab.bpe"),
-                                            assembly.GetManifestResourceStream("dict.txt"));
-                model.AddMaskSymbol();
-                _instance = new Tokenizer(model, new RobertaPreTokenizer());
+                                            assembly.GetManifestResourceStream("dict.txt"),
+                                            new RobertaPreTokenizer());
+                (_instance as EnglishRoberta).AddMaskSymbol();
             }
 
             return _instance;
@@ -40,7 +40,7 @@ namespace Microsoft.ML.TorchSharp.Extensions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static EnglishRoberta RobertaModel(this Tokenizer tokenizer)
         {
-            EnglishRoberta model = tokenizer.Model as EnglishRoberta;
+            EnglishRoberta model = tokenizer as EnglishRoberta;
             if (model is null)
             {
                 throw new InvalidOperationException($"The input tokenizer is not using the EnglishRoberta model.");
@@ -51,8 +51,7 @@ namespace Microsoft.ML.TorchSharp.Extensions
 
         internal static IReadOnlyList<int> EncodeToConverted(this Tokenizer tokenizer, string sentence)
         {
-            EncodingResult encoding = tokenizer.Encode(sentence);
-            return tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(encoding.Ids);
+            return tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(tokenizer.EncodeToIds(sentence));
         }
     }
 }

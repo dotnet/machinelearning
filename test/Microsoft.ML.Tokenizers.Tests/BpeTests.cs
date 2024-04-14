@@ -248,28 +248,28 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             try
             {
-                Bpe bpe = new Bpe(vocabFile, mergesFile, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownToken);
-                Tokenizer tokenizer = new Tokenizer(bpe);
-                EncodingResult encoding = tokenizer.Encode(sentence);
+                Bpe bpe = new Bpe(vocabFile, mergesFile, unknownToken: unknownToken, continuingSubwordPrefix: continuingSubwordPrefix, endOfWordSuffix: endOfWordSuffix, fuseUnknownTokens: fuseUnknownToken);
+                Tokenizer tokenizer = bpe;
+                IReadOnlyList<Token> encoding = tokenizer.Encode(sentence, out _);
+                int[] encodingIds = encoding.Select(t => t.Id).ToArray();
                 IReadOnlyList<int> idsList = tokenizer.EncodeToIds(sentence);
 
-                Assert.Equal(expectedTokens.Length, encoding.Tokens.Count);
-                Assert.Equal(offsets.Length, encoding.Offsets.Count);
-                Assert.Equal(ids.Length, encoding.Ids.Count);
+                Assert.Equal(expectedTokens.Length, encoding.Count);
+                Assert.Equal(offsets.Length, encoding.Count);
+                Assert.Equal(ids.Length, encoding.Count);
                 Assert.Equal(ids.Length, idsList.Count);
                 Assert.Equal(ids.Length, tokenizer.CountTokens(sentence));
-                Assert.Equal(decodedTokens, tokenizer.Decode(encoding.Ids));
-                Assert.Equal(decodedTokensWithoutUnknownToken, bpe.Decode(encoding.Ids, considerSpecialTokens: false));
+                Assert.Equal(decodedTokens, tokenizer.Decode(encodingIds));
+                Assert.Equal(decodedTokensWithoutUnknownToken, bpe.Decode(encodingIds, considerSpecialTokens: false));
 
-                for (int i = 0; i < encoding.Tokens.Count; i++)
+                for (int i = 0; i < encoding.Count; i++)
                 {
-                    Assert.Equal(expectedTokens[i], encoding.Tokens[i]);
-                    Assert.Equal(offsets[i], encoding.Offsets[i]);
-                    Assert.Equal(ids[i], encoding.Ids[i]);
+                    Assert.Equal(expectedTokens[i], encoding[i].Value);
+                    Assert.Equal(offsets[i], encoding[i].Offset);
+                    Assert.Equal(ids[i], encoding[i].Id);
                     Assert.Equal(ids[i], idsList[i]);
-                    Assert.Equal(encoding.Tokens[i], tokenizer.Model.MapIdToToken(encoding.Ids[i]));
-                    Assert.Equal(encoding.Ids[i], tokenizer.Model.MapTokenToId(encoding.Tokens[i].AsSpan()));
-                    Assert.Equal(encoding.Tokens[i], tokenizer.Decode(encoding.Ids[i]));
+                    Assert.Equal(encoding[i].Value, tokenizer.MapIdToToken(encodingIds[i]));
+                    Assert.Equal(encodingIds[i], tokenizer.MapTokenToId(encoding[i].Value.AsSpan()));
                 }
             }
             finally
@@ -282,6 +282,42 @@ namespace Microsoft.ML.Tokenizers.Tests
             }
         }
 
+
+        private const string Gpt2VocabUrl = "https://huggingface.co/openai-community/gpt2/raw/main/vocab.json";
+        private const string Gpt2MergesUrl = "https://huggingface.co/openai-community/gpt2/raw/main/merges.txt";
+        private static Tokenizer? _gpt2Tokenizer = null;
+
+        private static Tokenizer GetGpt2Tokenizer()
+        {
+            if (_gpt2Tokenizer is null)
+            {
+                using HttpClient httpClient = new HttpClient();
+                using Stream vocabStream = httpClient.GetStreamAsync(Gpt2VocabUrl).Result;
+                using Stream mergesStream = httpClient.GetStreamAsync(Gpt2MergesUrl).Result;
+                _gpt2Tokenizer = new Bpe(vocabStream, mergesStream);
+            }
+
+            return _gpt2Tokenizer;
+        }
+
+        [Fact]
+        public void TestGpt2Vocab()
+        {
+            Tokenizer tokenizer = GetGpt2Tokenizer();
+
+            string text = "The quick brown fox jumps over the lazy dog!";
+
+            IReadOnlyList<Token> encoding = tokenizer.Encode(text, out _);
+            IReadOnlyList<int> ids = tokenizer.EncodeToIds(text);
+
+            Assert.Equal(12, encoding.Count);
+            Assert.Equal(encoding.Select(t => t.Id).ToArray(), ids);
+            Assert.Equal(12, tokenizer.CountTokens(text));
+
+            TokenizerTests.TestTokenLimits(tokenizer);
+        }
+
+
         public static IEnumerable<object?[]> BpeTestData
         {
             get
@@ -290,55 +326,84 @@ namespace Microsoft.ML.Tokenizers.Tests
                 yield return new object?[]
                 {
                     "the brown fox jumped over the lazy dog!",
-                    new string[] {"the", "brown", "fox", "jumped", "over", "the", "lazy", "dog", "!"},
-                    new (int, int)[] {(0, 3), (4, 9), (10, 13), (14, 20), (21, 25), (26, 29), (30, 34), (35, 38), (38, 39)}
+                    new string[] { "the", "brown", "fox", "j", "umped", "over", "the", "l", "azy", "dog", "!" },
+                    new (int Index, int Length)[] { (0, 3), (4, 5), (10, 3), (14, 1), (15, 5), (21, 4), (26, 3), (30, 1), (31, 3), (35, 3), (38, 1) },
+                    new int[] { 1169, 33282, 12792, 73, 27073, 2502, 1169, 75, 12582, 9703, 0 }
                 };
                 yield return new object?[]
                 {
                     "he traveled to Egypt during the summer, the weather was hot and ammunition." ,
-                    new string[] {"he", "traveled", "to", "Egypt", "during", "the", "summer", ",", "the", "weather", "was", "hot", "and", "ammunition", "."},
-                    new (int, int)[] {(0, 2), (3, 11), (12, 14), (15, 20), (21, 27), (28, 31), (32, 38), (38, 39), (40, 43), (44, 51), (52, 55), (56, 59), (60, 63), (64, 74), (74, 75)}
+                    new string[] { "he", "travel", "ed", "to", "Egypt", "during", "the", "sum", "mer", ",", "the", "weather", "was", "hot", "and", "am", "munition", "." },
+                    new (int Index, int Length)[] { (0, 2), (3, 6), (9, 2), (12, 2), (15, 5), (21, 6), (28, 3), (32, 3), (35, 3), (38, 1), (40, 3), (44, 7), (52, 3), (56, 3), (60, 3), (64, 2), (66, 8), (74, 1) },
+                    new int[] { 258, 35927, 276, 1462, 39299, 42122, 1169, 16345, 647, 11, 1169, 23563, 9776, 8940, 392, 321, 12640, 13 }
                 };
                 yield return new object?[]
                 {
                     "She played many games and she felt exhausted afterward",
-                    new string[] {"She", "played", "many", "games", "and", "she", "felt", "exhausted", "afterward"},
-                    new (int, int)[] {(0, 3), (4, 10), (11, 15), (16, 21), (22, 25), (26, 29), (30, 34), (35, 44), (45, 54)}
+                    new string[] { "She", "played", "many", "games", "and", "she", "felt", "ex", "ha", "usted", "after", "ward" },
+                    new (int Index, int Length)[] { (0, 3), (4, 6), (11, 4), (16, 5), (22, 3), (26, 3), (30, 4), (35, 2), (37, 2), (39, 5), (45, 5), (50, 4) },
+                    new int[] { 3347, 21542, 21834, 19966, 392, 7091, 31985, 1069, 3099, 8459, 8499, 904 }
                 };
                 yield return new object?[]
                 {
                     "Hello, y'all! How are you 😁 ?",
-                    new string[] {"Hello", ",", "y", "'", "all", "!", "How", "are", "you", "[UNK]", "?"},
-                    new (int, int)[] {(0, 5), (5, 6), (7, 8), (8, 9), (9, 12), (12, 13), (14, 17), (18, 21), (22, 25), (26, 28), (29, 30)}
+                    new string[] { "Hello", ",", "y", "'", "all", "!", "How", "are", "you", "?" },
+                    new (int Index, int Length)[] { (0, 5), (5, 1), (7, 1), (8, 1), (9, 3), (12, 1), (14, 3), (18, 3), (22, 3), (29, 1) },
+                    new int[] { 15496, 11, 88, 6, 439, 0, 2437, 533, 5832, 30 }
                 };
             }
         }
 
-        private const string Gpt2VocabUrl = "https://huggingface.co/openai-community/gpt2/raw/main/vocab.json";
-        private const string Gpt2MergesUrl = "https://huggingface.co/openai-community/gpt2/raw/main/merges.txt";
-
-        [Fact]
-        public async void TestGpt2Vocab()
+        [Theory]
+        [MemberData(nameof(BpeTestData))]
+        public void TestBpeTokenizer(string text, string[] expectedTokens, (int Index, int Length)[] expectedOffsets, int[] expectedIds)
         {
-            using HttpClient httpClient = new HttpClient();
-            using Stream vocabStream = await httpClient.GetStreamAsync(Gpt2VocabUrl);
-            using Stream mergesStream = await httpClient.GetStreamAsync(Gpt2MergesUrl);
+            Tokenizer tokenizer = GetGpt2Tokenizer();
 
-            Bpe bpe = new Bpe(vocabStream, mergesStream);
-            Tokenizer tokenizer = new Tokenizer(bpe);
+            IReadOnlyList<Token> encoding = tokenizer.Encode(text, out _);
+            IReadOnlyList<Token> encoding1 = tokenizer.Encode(text.AsSpan(), out _);
 
-            string text = "The quick brown fox jumps over the lazy dog!";
+            Assert.Equal(expectedTokens, encoding.Select(t => t.Value).ToArray());
+            Assert.Equal(expectedOffsets, encoding.Select(t => t.Offset).ToArray());
+            Assert.Equal(expectedIds, encoding.Select(t => t.Id).ToArray());
 
-            EncodingResult encoding = tokenizer.Encode(text);
-            IReadOnlyList<int> ids = tokenizer.EncodeToIds(text);
+            Assert.Equal(expectedTokens, encoding1.Select(t => t.Value).ToArray());
+            Assert.Equal(expectedOffsets, encoding1.Select(t => t.Offset).ToArray());
+            Assert.Equal(expectedIds, encoding1.Select(t => t.Id).ToArray());
 
-            Assert.Equal(12, encoding.Tokens.Count);
-            Assert.Equal(12, encoding.Offsets.Count);
-            Assert.Equal(12, encoding.Ids.Count);
-            Assert.Equal(encoding.Ids, ids);
-            Assert.Equal(12, tokenizer.CountTokens(text));
+            Assert.Equal(expectedIds, tokenizer.EncodeToIds(text));
+            Assert.Equal(expectedIds, tokenizer.EncodeToIds(text.AsSpan()));
+            Assert.Equal(expectedIds, tokenizer.EncodeToIds(text, expectedIds.Length, out string? normalizedString, out int length));
+            Assert.Null(normalizedString);
+            Assert.Equal(text.Length, length);
+            Assert.Equal(expectedIds, tokenizer.EncodeToIds(text.AsSpan(), expectedIds.Length, out normalizedString, out length));
+            Assert.Null(normalizedString);
+            Assert.Equal(text.Length, length);
 
-            TokenizerTests.TestTokenLimits(tokenizer);
+            Assert.Equal(expectedIds.Take(expectedIds.Length - 2), tokenizer.EncodeToIds(text, expectedIds.Length - 2, out normalizedString, out length));
+            Assert.Null(normalizedString);
+            int expectedLength = expectedOffsets[expectedOffsets.Length - 3].Index + expectedOffsets[expectedOffsets.Length - 3].Length;
+            Assert.Equal(expectedLength, length);
+            Assert.Equal(expectedIds.Take(expectedIds.Length - 2), tokenizer.EncodeToIds(text.AsSpan(), expectedIds.Length - 2, out normalizedString, out length));
+            Assert.Null(normalizedString);
+            Assert.Equal(expectedLength, length);
+
+            Assert.Equal(expectedIds.Length, tokenizer.CountTokens(text));
+            Assert.Equal(expectedIds.Length, tokenizer.CountTokens(text.AsSpan()));
+
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 4].Index + expectedOffsets[expectedOffsets.Length - 4].Length, tokenizer.IndexOfTokenCount(text, expectedIds.Length - 3, out normalizedString, out int tokenCount));
+            Assert.Null(normalizedString);
+            Assert.Equal(expectedIds.Length - 3, tokenCount);
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 4].Index + expectedOffsets[expectedOffsets.Length - 4].Length, tokenizer.IndexOfTokenCount(text.AsSpan(), expectedIds.Length - 3, out normalizedString, out tokenCount));
+            Assert.Null(normalizedString);
+            Assert.Equal(expectedIds.Length - 3, tokenCount);
+
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 3].Index, tokenizer.LastIndexOfTokenCount(text, 3, out normalizedString, out tokenCount));
+            Assert.Null(normalizedString);
+            Assert.Equal(3, tokenCount);
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 3].Index, tokenizer.LastIndexOfTokenCount(text.AsSpan(), 3, out normalizedString, out tokenCount));
+            Assert.Null(normalizedString);
+            Assert.Equal(3, tokenCount);
         }
 
         private static string WriteToMergeFile((string, string)[] mergeEntries)
@@ -360,7 +425,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             return fileName;
         }
 
-        internal static Bpe CreateEmptyBpe()
+        internal static Bpe CreateEmptyBpe(PreTokenizer? preTokenizer = null, Normalizer? normalizer = null)
         {
             using MemoryStream emptyVocabStream = new MemoryStream();
             using StreamWriter writer = new StreamWriter(emptyVocabStream);
@@ -368,7 +433,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             writer.Flush();
             emptyVocabStream.Position = 0;
 
-            return new Bpe(vocabStream: emptyVocabStream, mergesStream: null, unknownToken: "Ukn");
+            return new Bpe(vocabStream: emptyVocabStream, mergesStream: null, preTokenizer: preTokenizer ?? WhiteSpace.Instance, normalizer: normalizer, unknownToken: "Ukn");
         }
     }
 }

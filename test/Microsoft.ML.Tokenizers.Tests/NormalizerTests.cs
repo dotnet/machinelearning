@@ -61,10 +61,9 @@ namespace Microsoft.ML.Tokenizers.Tests
             string normalizedText = normalizer.Normalize(text);
             Assert.Equal(normalized, normalizedText);
 
-            Tokenizer tokenizer = new Tokenizer(BpeTests.CreateEmptyBpe(), WhiteSpace.Instance, normalizer);
-            EncodingResult encoding = tokenizer.Encode(text);
-            Assert.Equal(text, encoding.OriginalString);
-            Assert.Equal(normalized, encoding.NormalizedString);
+            Tokenizer tokenizer = BpeTests.CreateEmptyBpe(preTokenizer: null, normalizer);
+            IReadOnlyList<Token> tokens = tokenizer.Encode(text, out string? normalizedString);
+            Assert.Equal(normalized, normalizedString);
         }
 
         public class RemoveQuotesNormalizer : Normalizer

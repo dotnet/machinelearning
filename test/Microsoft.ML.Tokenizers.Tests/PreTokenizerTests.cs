@@ -54,16 +54,16 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(splits, splitParts);
 
             // Empty tokenizer which tokenize all parts as unknown tokens.
-            Tokenizer tokenizer = new Tokenizer(BpeTests.CreateEmptyBpe(), preTokenizer);
+            Tokenizer tokenizer = BpeTests.CreateEmptyBpe(normalizer: null, preTokenizer: preTokenizer);
 
-            EncodingResult encoding = tokenizer.Encode(text);
-            Assert.True(encoding.Tokens.Count >= splitParts.Length, $"Expected to have {encoding.Tokens.Count} >= {splitParts.Length}");
+            IReadOnlyList<Token> encoding = tokenizer.Encode(text, out _);
+            Assert.True(encoding.Count >= splitParts.Length, $"Expected to have {encoding.Count} >= {splitParts.Length}");
         }
 
         [Fact]
         public void TestWhiteSpacePreTokenizer()
         {
-            Assert.Empty(WhiteSpace.Instance.PreTokenize(null!));
+            Assert.Empty(WhiteSpace.Instance.PreTokenize((string)null!));
         }
 
         public class SpacePreTokenizer : PreTokenizer

@@ -97,24 +97,24 @@ namespace Microsoft.ML.Tokenizers
             return changes;
         }
 
-        public void MergeAll(Dictionary<Pair<int>, (int, int)> merges, float? dropout)
+        public void MergeAll(Dictionary<Pair<int>, (int, int)> merges, float? dropout, ref PriorityQueue<Merge>? priorityQueue)
         {
-            // Queue<Merge> queue = new Queue<Merge>(_symbols.Count);
-            PriorityQueue<Merge> queue = new PriorityQueue<Merge>(_symbols.Count);
+            priorityQueue ??= new PriorityQueue<Merge>(_symbols.Count);
+            priorityQueue.Clear();
 
-            Vec<Merge> skip = new Vec<Merge>(queue.Count);
+            Vec<Merge> skip = new Vec<Merge>(priorityQueue.Count);
 
             for (int i = 0; i < _symbols.Count - 1; i++)
             {
                 if (merges.TryGetValue(Pair<int>.Create(_symbols[i].C, _symbols[i + 1].C), out (int m1, int m2) value))
                 {
-                    queue.Enqueue(new Merge(i, value.m1, value.m2));
+                    priorityQueue.Enqueue(new Merge(i, value.m1, value.m2));
                 }
             }
 
-            while (queue.Count > 0)
+            while (priorityQueue.Count > 0)
             {
-                Merge top = queue.Dequeue();
+                Merge top = priorityQueue.Dequeue();
                 if (dropout.HasValue && (_random ??= new()).NextDouble() < dropout)
                 {
                     skip.Push(top);
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Tokenizers
                     // Re-insert the skipped elements
                     for (int i = 0; i < skip.Count; i++)
                     {
-                        queue.Enqueue(skip[i]);
+                        priorityQueue.Enqueue(skip[i]);
                     }
                     skip.Clear();
 
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Tokenizers
 
                         if (merges.TryGetValue(newPair, out value))
                         {
-                            queue.Enqueue(new Merge(current.Prev, value.m1, value.m2));
+                            priorityQueue.Enqueue(new Merge(current.Prev, value.m1, value.m2));
                         }
                     }
 
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Tokenizers
                         Pair<int> newPair = Pair<int>.Create(current.C, nextSymbol.C);
                         if (merges.TryGetValue(newPair, out value))
                         {
-                            queue.Enqueue(new Merge(top.Pos, value.m1, value.m2));
+                            priorityQueue.Enqueue(new Merge(top.Pos, value.m1, value.m2));
                         }
                     }
                 }
@@ -289,19 +289,16 @@ namespace Microsoft.ML.Tokenizers
             return sb.ToString();
         }
 
-        public List<Token> ToTokens(SortedDictionary<int, string> vocabReverse)
+        public void ToTokens(SortedDictionary<int, string> vocabReverse, List<Token> tokens, int offset)
         {
-            List<Token> tokens = new(SymbolsCount);
             int index = 0;
 
             for (int i = 0; i < SymbolsCount; i++)
             {
                 int endIndex = index + _symbols[i].Len;
-                tokens.Add(new Token(_symbols[i].C, vocabReverse[_symbols[i].C], (index, _symbols[i].Len)));
+                tokens.Add(new Token(_symbols[i].C, vocabReverse[_symbols[i].C], (index + offset, _symbols[i].Len)));
                 index += _symbols[i].Len;
             }
-
-            return tokens;
         }
     }
 }

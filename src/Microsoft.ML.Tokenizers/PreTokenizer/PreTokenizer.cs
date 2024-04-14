@@ -76,6 +76,13 @@ namespace Microsoft.ML.Tokenizers
         /// <returns>The list of the splits containing the tokens and the token's offsets to the original string.</returns>
         public abstract IEnumerable<Split> PreTokenize(string text);
 
+        /// <summary>
+        /// Splits the given character span in multiple spans at the word boundary, keeping track of the offsets of said substrings from the original span.
+        /// </summary>
+        /// <param name="text">The character span to split into tokens.</param>
+        /// <returns>The list of the splits containing the tokens and the token's offsets to the original character span.</returns>
+        public virtual IEnumerable<Split> PreTokenize(ReadOnlySpan<char> text) => PreTokenize(text.ToString());
+
         internal static IEnumerable<Split> SplitText(string text, Regex regex)
         {
             (int Offset, int Length) match;

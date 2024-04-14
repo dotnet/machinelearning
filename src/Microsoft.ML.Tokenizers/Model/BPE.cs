@@ -17,13 +17,15 @@ namespace Microsoft.ML.Tokenizers
     /// <summary>
     /// Represent the Byte Pair Encoding model.
     /// </summary>
-    public sealed class Bpe : Model
+    public sealed class Bpe : Tokenizer
     {
         /// A [Byte Pair Encoding](https://www.aclweb.org/anthology/P16-1162/) model.
 
         private const int MaxWordLengthToCache = 15;
         private string? _unknownToken;
         private int? _unknownTokenId;
+        private readonly PreTokenizer? _preTokenizer;
+        private readonly Normalizer? _normalizer;
 
         /// <summary>
         /// Gets or Sets unknown token. The unknown token to be used when we encounter an unknown char
@@ -74,13 +76,15 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="vocabFile">The JSON file path containing the dictionary of string keys and their ids.</param>
         /// <param name="mergesFile">The file path containing the tokens's pairs list.</param>
+        /// <param name="preTokenizer">The pre-tokenizer to use.</param>
+        /// <param name="normalizer">The normalizer to use.</param>
         /// <param name="unknownToken"> The unknown token to be used by the model.</param>
         /// <param name="continuingSubwordPrefix">The prefix to attach to sub-word units that don’t represent a beginning of word.</param>
         /// <param name="endOfWordSuffix">The suffix to attach to sub-word units that represent an end of word.</param>
         /// <param name="fuseUnknownTokens">Indicate whether allowing multiple unknown tokens get fused.</param>
-        public Bpe(string vocabFile, string? mergesFile, string? unknownToken = null, string? continuingSubwordPrefix = null, string? endOfWordSuffix = null, bool fuseUnknownTokens = false) :
+        public Bpe(string vocabFile, string? mergesFile, PreTokenizer? preTokenizer = null, Normalizer? normalizer = null, string? unknownToken = null, string? continuingSubwordPrefix = null, string? endOfWordSuffix = null, bool fuseUnknownTokens = false) :
             this(vocabFile is null ? throw new ArgumentNullException(nameof(vocabFile)) : File.Open(vocabFile, FileMode.Open, FileAccess.Read),
-                mergesFile is null ? null : File.Open(mergesFile, FileMode.Open, FileAccess.Read), unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens, disposeStreams: true)
+                mergesFile is null ? null : File.Open(mergesFile, FileMode.Open, FileAccess.Read), preTokenizer, normalizer, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens, disposeStreams: true)
         {
         }
 
@@ -89,16 +93,18 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="vocabStream">The JSON stream containing the dictionary of string keys and their ids.</param>
         /// <param name="mergesStream">The stream containing the tokens's pairs list.</param>
+        /// <param name="preTokenizer">The pre-tokenizer to use.</param>
+        /// <param name="normalizer">The normalizer to use.</param>
         /// <param name="unknownToken"> The unknown token to be used by the model.</param>
         /// <param name="continuingSubwordPrefix">The prefix to attach to sub-word units that don’t represent a beginning of word.</param>
         /// <param name="endOfWordSuffix">The suffix to attach to sub-word units that represent an end of word.</param>
         /// <param name="fuseUnknownTokens">Indicate whether allowing multiple unknown tokens get fused.</param>
-        public Bpe(Stream vocabStream, Stream? mergesStream, string? unknownToken = null, string? continuingSubwordPrefix = null, string? endOfWordSuffix = null, bool fuseUnknownTokens = false) :
-                this(vocabStream, mergesStream, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens, disposeStreams: false)
+        public Bpe(Stream vocabStream, Stream? mergesStream, PreTokenizer? preTokenizer = null, Normalizer? normalizer = null, string? unknownToken = null, string? continuingSubwordPrefix = null, string? endOfWordSuffix = null, bool fuseUnknownTokens = false) :
+                this(vocabStream, mergesStream, preTokenizer, normalizer, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens, disposeStreams: false)
         {
         }
 
-        private Bpe(Stream vocabStream, Stream? mergesStream, string? unknownToken, string? continuingSubwordPrefix, string? endOfWordSuffix, bool fuseUnknownTokens, bool disposeStreams)
+        private Bpe(Stream vocabStream, Stream? mergesStream, PreTokenizer? preTokenizer, Normalizer? normalizer, string? unknownToken, string? continuingSubwordPrefix, string? endOfWordSuffix, bool fuseUnknownTokens, bool disposeStreams)
         {
             try
             {
@@ -110,6 +116,8 @@ namespace Microsoft.ML.Tokenizers
                 FuseUnknownTokens = fuseUnknownTokens;
                 ContinuingSubwordPrefix = continuingSubwordPrefix;
                 EndOfWordSuffix = endOfWordSuffix;
+                _preTokenizer = preTokenizer ?? WhiteSpace.Instance; // Default to WhiteSpace pre-tokenizer
+                _normalizer = normalizer;
 
                 (Dictionary<StringSpanOrdinalKey, int>? vocab1, Vec<(string, string)> merges) = ReadModelData(vocabStream, mergesStream);
                 _vocab = vocab1 ?? new Dictionary<StringSpanOrdinalKey, int>();
@@ -166,47 +174,326 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Encode a text string to a list of tokens.
+        /// Gets the PreTokenizer used by the Tokenizer.
+        /// </summary>
+        public override PreTokenizer? PreTokenizer => _preTokenizer;
+
+        /// <summary>
+        /// Gets the Normalizer in use by the Tokenizer.
+        /// </summary>
+        public override Normalizer? Normalizer => _normalizer;
+
+        /// <summary>
+        /// Encodes input text to object has the tokens list, tokens Ids, tokens offset mapping.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <returns>The list of tokens generated from the text tokenization.</returns>
-        public override IReadOnlyList<Token> Encode(ReadOnlySpan<char> text)
+        /// <param name="normalizedString">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will null.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
+        public override IReadOnlyList<Token> Encode(string text, out string? normalizedString, bool considerPreTokenization = true, bool considerNormalization = true) => Encode(text, Span<char>.Empty, out normalizedString, considerPreTokenization, considerNormalization);
+
+        /// <summary>
+        /// Encodes input text to object has the tokens list, tokens Ids, tokens offset mapping.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="normalizedString">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will null.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
+        public override IReadOnlyList<Token> Encode(ReadOnlySpan<char> text, out string? normalizedString, bool considerPreTokenization = true, bool considerNormalization = true) => Encode(null, text, out normalizedString, considerPreTokenization, considerNormalization);
+
+        private IReadOnlyList<Token> Encode(string? text, ReadOnlySpan<char> textSpan, out string? normalizedString, bool considerPreTokenization, bool considerNormalization)
         {
-            if (text.Length == 0)
+            if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
             {
-                return EmptyTokensList;
+                normalizedString = null;
+                return [];
             }
 
-            return EncodeWithCache(text);
+            IEnumerable<Split>? splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out ReadOnlySpan<char> textSpanToEncode);
+
+            List<Token> tokens = new();
+            PriorityQueue<Merge>? priorityQueue = null;
+
+            if (splits is not null)
+            {
+                foreach (Split split in splits)
+                {
+                    EncodeWithCache(split.TokenSpan, tokens, split.Offset.Index, ref priorityQueue);
+                }
+            }
+            else
+            {
+                EncodeWithCache(textSpanToEncode, tokens, 0, ref priorityQueue);
+            }
+
+            return tokens;
         }
 
         /// <summary>
-        /// Encode a split text string to a list of Ids and add them to the accumulatedIds list.
+        /// Encodes input text to tokens Ids.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>The list of encoded Ids.</returns>
+        public override IReadOnlyList<int> EncodeToIds(string text, bool considerPreTokenization = true, bool considerNormalization = true)
+            => EncodeToIds(text, Span<char>.Empty, considerPreTokenization, considerNormalization, out _, out _);
+
+        /// <summary>
+        /// Encodes input text to tokens Ids.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>The list of encoded Ids.</returns>
+        public override IReadOnlyList<int> EncodeToIds(ReadOnlySpan<char> text, bool considerPreTokenization = true, bool considerNormalization = true)
+            => EncodeToIds(null, text, considerPreTokenization, considerNormalization, out _, out _);
+
+        /// <summary>
+        /// Encodes input text to tokens Ids up to maximum number of tokens.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="maxTokenCount">The maximum number of tokens to encode.</param>
+        /// <param name="normalizedString">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
         /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
-        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
-        /// <returns>The number of tokens that the input text will be encoded to.</returns>
-        public override int EncodeToIds(ReadOnlySpan<char> text, IList<int> accumulatedIds, out int textLength, int maxTokens = int.MaxValue) => EncodeToIdsWithCache(text, accumulatedIds, maxTokens, out textLength);
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>The list of encoded Ids.</returns>
+        public override IReadOnlyList<int> EncodeToIds(string text, int maxTokenCount, out string? normalizedString, out int textLength, bool considerPreTokenization = true, bool considerNormalization = true)
+            => EncodeToIds(text, Span<char>.Empty, considerPreTokenization, considerNormalization, out normalizedString, out textLength, maxTokenCount);
+
+        /// <summary>
+        /// Encodes input text to tokens Ids up to maximum number of tokens.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="maxTokenCount">The maximum number of tokens to encode.</param>
+        /// <param name="normalizedString">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>The list of encoded Ids.</returns>
+        public override IReadOnlyList<int> EncodeToIds(ReadOnlySpan<char> text, int maxTokenCount, out string? normalizedString, out int textLength, bool considerPreTokenization = true, bool considerNormalization = true)
+            => EncodeToIds(null, text, considerPreTokenization, considerNormalization, out normalizedString, out textLength, maxTokenCount);
+
+        private IReadOnlyList<int> EncodeToIds(string? text, ReadOnlySpan<char> textSpan, bool considerPreTokenization, bool considerNormalization, out string? normalizedString, out int textLength, int maxTokenCount = int.MaxValue)
+        {
+            if (maxTokenCount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The maximum number of tokens must be greater than zero.");
+            }
+
+            if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
+            {
+                textLength = 0;
+                normalizedString = null;
+                return [];
+            }
+
+            IEnumerable<Split>? splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out ReadOnlySpan<char> textSpanToEncode);
+
+            List<int> ids = new();
+            PriorityQueue<Merge>? priorityQueue = null;
+
+            if (splits is not null)
+            {
+                textLength = 0;
+                foreach (Split split in splits)
+                {
+                    EncodeToIdsWithCache(split.TokenSpan, ids, maxTokenCount - ids.Count, out int length, ref priorityQueue);
+                    textLength = split.Offset.Index + length;
+
+                    if (length < split.Offset.Length || ids.Count >= maxTokenCount)
+                    {
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                EncodeToIdsWithCache(textSpanToEncode, ids, maxTokenCount, out textLength, ref priorityQueue);
+            }
+
+            return ids;
+        }
 
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
-        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
-        /// <returns>The number of tokens that the input text will be encoded to.</returns>
-        public override int CountTokens(ReadOnlySpan<char> text, out int textLength, int maxTokens = int.MaxValue) => EncodeToIdsWithCache(text, null, maxTokens, out textLength);
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>The number of tokens Ids that the input text will be encoded to.</returns>
+        public override int CountTokens(string text, bool considerPreTokenization = true, bool considerNormalization = true)
+            => CountTokens(text, Span<char>.Empty, considerPreTokenization, considerNormalization, out _, out _);
 
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="textIndex">Starting from this index to the end of the text will encompasses the maximum encoded tokens.</param>
-        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
-        /// <returns>The number of tokens that the input text will be encoded to.</returns>
-        public override int CountTokensFromEnd(ReadOnlySpan<char> text, out int textIndex, int maxTokens = int.MaxValue) => EncodeToIdsFromEndWithCache(text, null, maxTokens, out textIndex);
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>The number of tokens Ids that the input text will be encoded to.</returns>
+        public override int CountTokens(ReadOnlySpan<char> text, bool considerPreTokenization = true, bool considerNormalization = true)
+            => CountTokens(null, text, considerPreTokenization, considerNormalization, out _, out _);
+
+        /// <summary>
+        /// Find the index of the maximum encoding capacity from the start within the text without surpassing the token limit.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
+        /// <param name="normalizedString">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
+        /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>
+        /// The index of the maximum encoding capacity within the processed text without surpassing the token limit.
+        /// It represents the index immediately following the last character to be included. In cases where no tokens fit, the result will be 0; conversely,
+        /// if all tokens fit, the result will be length of the text or the <paramref name="normalizedString"/> if the normalization is enabled.
+        /// </returns>
+        public override int IndexOfTokenCount(string text, int maxTokenCount, out string? normalizedString, out int tokenCount, bool considerPreTokenization = true, bool considerNormalization = true)
+        {
+            tokenCount = CountTokens(text, Span<char>.Empty, considerPreTokenization, considerNormalization, out normalizedString, out int textLength, maxTokenCount);
+            return textLength;
+        }
+
+        /// <summary>
+        /// Find the index of the maximum encoding capacity from the start within the text without surpassing the token limit.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
+        /// <param name="normalizedString">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
+        /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>
+        /// The index of the maximum encoding capacity within the processed text without surpassing the token limit.
+        /// It represents the index immediately following the last character to be included. In cases where no tokens fit, the result will be 0; conversely,
+        /// if all tokens fit, the result will be length of the text or the <paramref name="normalizedString"/> if the normalization is enabled.
+        /// </returns>
+        public override int IndexOfTokenCount(ReadOnlySpan<char> text, int maxTokenCount, out string? normalizedString, out int tokenCount, bool considerPreTokenization = true, bool considerNormalization = true)
+        {
+            tokenCount = CountTokens(null, text, considerPreTokenization, considerNormalization, out normalizedString, out int textLength, maxTokenCount);
+            return textLength;
+        }
+
+        private int CountTokens(string? text, ReadOnlySpan<char> textSpan, bool considerPreTokenization, bool considerNormalization, out string? normalizedString, out int textLength, int maxTokenCount = int.MaxValue)
+        {
+            if (maxTokenCount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The maximum number of tokens must be greater than zero.");
+            }
+
+            textLength = 0;
+            if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
+            {
+                normalizedString = null;
+                return 0;
+            }
+
+            IEnumerable<Split>? splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out ReadOnlySpan<char> textSpanToEncode);
+
+            PriorityQueue<Merge>? priorityQueue = null;
+            int count = 0;
+            if (splits is not null)
+            {
+                foreach (Split split in splits)
+                {
+                    count += EncodeToIdsWithCache(split.TokenSpan, null, maxTokenCount - count, out int length, ref priorityQueue);
+                    textLength = split.Offset.Index + length;
+
+                    if (length < split.Offset.Length || count >= maxTokenCount)
+                    {
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                count = EncodeToIdsWithCache(textSpanToEncode, null, maxTokenCount, out textLength, ref priorityQueue);
+            }
+
+            return count;
+        }
+
+        /// <summary>
+        /// Find the index of the maximum encoding capacity from the end within the text without surpassing the token limit.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
+        /// <param name="normalizedString">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
+        /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>
+        /// The start index of the maximum encoding capacity within the processed text without surpassing the token limit.
+        /// It represents the index at the first character to be included. In cases where no tokens fit, the result will be length of the text or the <paramref name="normalizedString"/> if normalization is enabled;
+        /// conversely, if all tokens fit, the result will be 0.
+        /// </returns>
+        /// <remarks>
+        /// If the whole text can be encoded within the token limit, the returned index will be 0.
+        /// </remarks>
+        public override int LastIndexOfTokenCount(string text, int maxTokenCount, out string? normalizedString, out int tokenCount, bool considerPreTokenization = true, bool considerNormalization = true)
+            => LastIndexOf(text, Span<char>.Empty, maxTokenCount, considerPreTokenization, considerNormalization, out normalizedString, out tokenCount);
+
+        /// <summary>
+        /// Find the index of the maximum encoding capacity from the end within the text without surpassing the token limit.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
+        /// <param name="normalizedString">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
+        /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>
+        /// The start index of the maximum encoding capacity within the processed text without surpassing the token limit.
+        /// It represents the index at the first character to be included. In cases where no tokens fit, the result will be length of the <paramref name="normalizedString"/>; conversely, if all tokens fit, the result will be 0.
+        /// </returns>
+        /// <remarks>
+        /// If the whole text can be encoded within the token limit, the returned index will be 0.
+        /// </remarks>
+        public override int LastIndexOfTokenCount(ReadOnlySpan<char> text, int maxTokenCount, out string? normalizedString, out int tokenCount, bool considerPreTokenization = true, bool considerNormalization = true)
+            => LastIndexOf(null, text, maxTokenCount, considerPreTokenization, considerNormalization, out normalizedString, out tokenCount);
+
+        private int LastIndexOf(string? text, ReadOnlySpan<char> textSpan, int maxTokenCount, bool considerPreTokenization, bool considerNormalization, out string? normalizedString, out int tokenCount)
+        {
+            if (maxTokenCount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The max token count must be greater than 0.");
+            }
+
+            if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
+            {
+                normalizedString = null;
+                tokenCount = 0;
+                return 0;
+            }
+
+            IEnumerable<Split>? splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out ReadOnlySpan<char> textSpanToEncode);
+
+            PriorityQueue<Merge>? priorityQueue = null;
+
+            if (splits is not null)
+            {
+                tokenCount = 0;
+                foreach (Split split in splits.Reverse())
+                {
+                    tokenCount += EncodeToIdsFromEndWithCache(split.TokenSpan, null, maxTokenCount - tokenCount, out int textIndex, ref priorityQueue);
+                    if (textIndex > 0 || tokenCount >= maxTokenCount)
+                    {
+                        return split.Offset.Index + textIndex;
+                    }
+                }
+            }
+            else
+            {
+                tokenCount = EncodeToIdsFromEndWithCache(textSpanToEncode, null, maxTokenCount, out int textLength, ref priorityQueue);
+                return textLength;
+            }
+
+            return 0;
+        }
 
         /// <summary>
         /// Map the token to encoded Id.
@@ -383,7 +670,7 @@ namespace Microsoft.ML.Tokenizers
             return s;
         }
 
-        internal Word MergeWord(ReadOnlySpan<char> w)
+        internal Word MergeWord(ReadOnlySpan<char> w, ref PriorityQueue<Merge>? priorityQueue)
         {
             Word word = Word.WithCapacity(w.Length);
             (int Id, int Len)? unk = null;
@@ -494,23 +781,24 @@ namespace Microsoft.ML.Tokenizers
                 word.Add(unk.Value.Id, unk.Value.Len);
             }
 
-            word.MergeAll(Merges, Dropout);
+            word.MergeAll(Merges, Dropout, ref priorityQueue);
             return word;
         }
 
-        internal List<Token> WordToTokens(ref Word word) => word.ToTokens(VocabReverse);
+        internal void WordToTokens(ref Word word, List<Token> tokens, int offset) => word.ToTokens(VocabReverse, tokens, offset);
 
-        internal List<Token> EncodeWithCache(ReadOnlySpan<char> text)
+        internal void EncodeWithCache(ReadOnlySpan<char> text, List<Token> tokens, int offset, ref PriorityQueue<Merge>? priorityQueue)
         {
             Word word;
             if (Cache is not null)
             {
                 if (Cache.TryGetValue(text, out word))
                 {
-                    return WordToTokens(ref word);
+                    WordToTokens(ref word, tokens, offset);
+                    return;
                 }
 
-                word = MergeWord(text);
+                word = MergeWord(text, ref priorityQueue);
 
                 if (text.Length <= MaxWordLengthToCache)
                 {
@@ -519,15 +807,15 @@ namespace Microsoft.ML.Tokenizers
             }
             else
             {
-                word = MergeWord(text);
+                word = MergeWord(text, ref priorityQueue);
             }
 
-            return WordToTokens(ref word);
+            WordToTokens(ref word, tokens, offset);
         }
 
         internal int WordToIds(ref Word word, IList<int>? accumulatedIds, out int textLength, int fullTextLength, int maxTokens)
         {
-            if (word.SymbolsCount < maxTokens)
+            if (word.SymbolsCount <= maxTokens)
             {
                 textLength = fullTextLength;
                 if (accumulatedIds is not null)
@@ -548,7 +836,7 @@ namespace Microsoft.ML.Tokenizers
 
         internal int WordToIdsFromEnd(ref Word word, IList<int>? accumulatedIds, out int textIndex, int fullTextLength, int maxTokens)
         {
-            if (word.SymbolsCount < maxTokens)
+            if (word.SymbolsCount <= maxTokens)
             {
                 textIndex = 0;
                 if (accumulatedIds is not null)
@@ -567,7 +855,7 @@ namespace Microsoft.ML.Tokenizers
             return word.CountIdsUpToMaxFromEnd(maxTokens, fullTextLength, out textIndex);
         }
 
-        internal int EncodeToIdsWithCache(ReadOnlySpan<char> text, IList<int>? accumulatedIds, int maxTokens, out int textLength)
+        private int EncodeToIdsWithCache(ReadOnlySpan<char> text, List<int>? accumulatedIds, int maxTokens, out int textLength, ref PriorityQueue<Merge>? priorityQueue)
         {
             Word word;
 
@@ -578,7 +866,7 @@ namespace Microsoft.ML.Tokenizers
                     return WordToIds(ref hit, accumulatedIds, out textLength, text.Length, maxTokens);
                 }
 
-                word = MergeWord(text);
+                word = MergeWord(text, ref priorityQueue);
 
                 if (text.Length <= MaxWordLengthToCache)
                 {
@@ -587,13 +875,13 @@ namespace Microsoft.ML.Tokenizers
             }
             else
             {
-                word = MergeWord(text);
+                word = MergeWord(text, ref priorityQueue);
             }
 
             return WordToIds(ref word, accumulatedIds, out textLength, text.Length, maxTokens);
         }
 
-        internal int EncodeToIdsFromEndWithCache(ReadOnlySpan<char> text, IList<int>? accumulatedIds, int maxTokens, out int textIndex)
+        internal int EncodeToIdsFromEndWithCache(ReadOnlySpan<char> text, IList<int>? accumulatedIds, int maxTokens, out int textIndex, ref PriorityQueue<Merge>? priorityQueue)
         {
             Word word;
 
@@ -604,7 +892,7 @@ namespace Microsoft.ML.Tokenizers
                     return WordToIdsFromEnd(ref hit, accumulatedIds, out textIndex, text.Length, maxTokens);
                 }
 
-                word = MergeWord(text);
+                word = MergeWord(text, ref priorityQueue);
 
                 if (text.Length <= MaxWordLengthToCache)
                 {
@@ -613,12 +901,10 @@ namespace Microsoft.ML.Tokenizers
             }
             else
             {
-                word = MergeWord(text);
+                word = MergeWord(text, ref priorityQueue);
             }
 
             return WordToIdsFromEnd(ref word, accumulatedIds, out textIndex, text.Length, maxTokens);
         }
-
-        internal static readonly List<Token> EmptyTokensList = new();
     }
 }
