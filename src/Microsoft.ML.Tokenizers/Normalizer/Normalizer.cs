@@ -23,6 +23,6 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="original">The original string to normalize.</param>
         /// <returns>The normalized string.</returns>
-        public virtual string Normalize(ReadOnlySpan<char> original) => Normalize(original.ToString());
+        public abstract string Normalize(ReadOnlySpan<char> original);
     }
 }

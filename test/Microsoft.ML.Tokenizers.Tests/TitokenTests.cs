@@ -321,6 +321,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [Theory]
         [InlineData("gpt-4")]
         [InlineData("gpt-4-")]
+        [InlineData("gpt-3.5-")]
         [InlineData("gpt-3.5-turbo")]
         [InlineData("gpt-3.5-turbo-")]
         [InlineData("gpt-3.5-turbo-16k")]
