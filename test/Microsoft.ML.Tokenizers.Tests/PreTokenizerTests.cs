@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
         public class SpacePreTokenizer : PreTokenizer
         {
-            public override IEnumerable<Split> PreTokenize(string text, bool considerSpecialTokens = true)
+            public override IEnumerable<Split> PreTokenize(string text)
             {
                 List<Split> splits = new();
                 if (string.IsNullOrEmpty(text))

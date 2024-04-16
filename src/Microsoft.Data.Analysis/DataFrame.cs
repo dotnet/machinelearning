@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -32,6 +32,8 @@ namespace Microsoft.Data.Analysis
     /// </summary>
     public partial class DataFrame
     {
+        internal const int DefaultMaxRowsToShowInPreview = 25;
+
         private readonly DataFrameColumnCollection _columnCollection;
         private readonly DataFrameRowCollection _rowCollection;
 
@@ -678,7 +680,14 @@ namespace Microsoft.Data.Analysis
         /// A preview of the contents of this <see cref="DataFrame"/> as a string.
         /// </summary>
         /// <returns>A preview of the contents of this <see cref="DataFrame"/>.</returns>
-        public override string ToString()
+        public override string ToString() => ToString(DefaultMaxRowsToShowInPreview);
+
+        /// <summary>
+        /// A preview of the contents of this <see cref="DataFrame"/> as a string.
+        /// </summary>
+        /// <param name="rowsToShow">Max amount of rows to show in preview.</param>
+        /// <returns></returns>
+        public string ToString(long rowsToShow)
         {
             StringBuilder sb = new StringBuilder();
             int longestColumnName = 0;
@@ -694,8 +703,8 @@ namespace Microsoft.Data.Analysis
                 sb.Append(string.Format(Columns[i].Name.PadRight(padding)));
             }
             sb.AppendLine();
-            long numberOfRows = Math.Min(Rows.Count, 25);
-            for (int i = 0; i < numberOfRows; i++)
+            long numberOfRows = Math.Min(Rows.Count, rowsToShow);
+            for (long i = 0; i < numberOfRows; i++)
             {
                 foreach (object obj in Rows[i])
                 {
@@ -703,6 +712,13 @@ namespace Microsoft.Data.Analysis
                 }
                 sb.AppendLine();
             }
+
+            if (numberOfRows < Rows.Count)
+            {
+                sb.Append(String.Format(Strings.AmountOfRowsShown, rowsToShow, Rows.Count));
+                sb.AppendLine();
+            }
+
             return sb.ToString();
         }
     }

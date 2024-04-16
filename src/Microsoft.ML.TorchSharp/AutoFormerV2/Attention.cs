@@ -31,6 +31,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         private readonly Parameter attention_biases;
         private readonly TensorIndex attention_bias_idxs;
         private readonly Softmax softmax;
+        private bool _disposedValue;
 #pragma warning restore MSML_PrivateFieldName
 
 
@@ -130,6 +131,24 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 return x.MoveToOuterDisposeScope();
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    norm.Dispose();
+                    qkv.Dispose();
+                    proj.Dispose();
+                    attention_biases.Dispose();
+                    softmax.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

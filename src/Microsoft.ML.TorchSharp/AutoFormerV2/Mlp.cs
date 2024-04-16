@@ -21,6 +21,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         private readonly Linear fc2;
         private readonly GELU act;
         private readonly Dropout drop;
+        private bool _disposedValue;
 #pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
@@ -57,6 +58,24 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 return x.MoveToOuterDisposeScope();
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    norm.Dispose();
+                    fc1.Dispose();
+                    fc2.Dispose();
+                    act.Dispose();
+                    drop.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

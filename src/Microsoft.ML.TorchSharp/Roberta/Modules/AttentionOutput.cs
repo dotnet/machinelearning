@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using TorchSharp;
 using TorchSharp.Modules;
+using static Microsoft.ML.Runtime.ComponentCatalog.LoadableClassInfo;
 
 namespace Microsoft.ML.TorchSharp.Roberta.Modules
 {
@@ -13,6 +15,8 @@ namespace Microsoft.ML.TorchSharp.Roberta.Modules
         public readonly Linear dense;
         public readonly Dropout dropout;
         public readonly LayerNorm LayerNorm;
+
+        private bool _disposedValue;
 
         public AttentionOutput(long hiddenSize, double layerNormEps, double attentionDropoutRate, double outputDropoutRate)
             : base(nameof(AttentionOutput))
@@ -30,6 +34,22 @@ namespace Microsoft.ML.TorchSharp.Roberta.Modules
             hiddenStates = dropout.forward(hiddenStates);
             hiddenStates = LayerNorm.forward(hiddenStates + inputTensor);
             return hiddenStates.MoveToOuterDisposeScope();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    dense.Dispose();
+                    dropout.Dispose();
+                    LayerNorm.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

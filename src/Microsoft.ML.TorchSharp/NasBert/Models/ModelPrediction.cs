@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using TorchSharp;
+using TorchSharp.Modules;
 
 namespace Microsoft.ML.TorchSharp.NasBert.Models
 {
@@ -12,6 +13,8 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
         private readonly PredictionHead PredictionHead;
 
         public override BaseHead GetHead() => PredictionHead;
+
+        private bool _disposedValue;
 
         public ModelForPrediction(NasBertTrainer.NasBertOptions options, int padIndex, int symbolsCount, int numClasses)
             : base(options, padIndex, symbolsCount)
@@ -31,6 +34,20 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
             var x = ExtractFeatures(srcTokens);
             x = PredictionHead.call(x);
             return x.MoveToOuterDisposeScope();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    PredictionHead.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

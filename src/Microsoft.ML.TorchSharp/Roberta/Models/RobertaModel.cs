@@ -18,6 +18,8 @@ namespace Microsoft.ML.TorchSharp.Roberta.Models
     /// </summary>
     internal abstract class RobertaModel : BaseModel
     {
+        private bool _disposedValue;
+
 #pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format
         private readonly int[] Positions;
         private readonly int[] Zeros;
@@ -127,6 +129,21 @@ namespace Microsoft.ML.TorchSharp.Roberta.Models
             return (torch.cat(positions, dim: 0).MoveToOuterDisposeScope(),
                 torch.cat(segments, dim: 0).MoveToOuterDisposeScope(),
                 torch.cat(attentionMasks, dim: 0).MoveToOuterDisposeScope());
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    LayerNorm?.Dispose();
+                    Encoder.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

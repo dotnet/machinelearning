@@ -12,6 +12,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:Private field name not in: _camelCase format", Justification = "Has to match TorchSharp model.")]
         private readonly Sequential Classifier;
+        private bool _disposedValue;
 
         public PredictionHead(int inputDim, int numClasses, double dropoutRate)
             : base(nameof(PredictionHead))
@@ -37,6 +38,20 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
             // take <s> token (equiv. to [CLS])
             using var x = features[torch.TensorIndex.Colon, torch.TensorIndex.Single(0), torch.TensorIndex.Colon];
             return Classifier.forward(x);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    Classifier.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

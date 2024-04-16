@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using TorchSharp;
 using TorchSharp.Modules;
 
@@ -15,6 +16,7 @@ namespace Microsoft.ML.TorchSharp.Roberta.Modules
         public readonly Embedding token_type_embeddings;
         public readonly LayerNorm LayerNorm;
         public readonly Dropout dropout;
+        private bool _disposedValue;
 
         public Embeddings(long numEmbeddings, long embeddingSize, long maxPositions, long maxTokenTypes,
             double layerNormEps, double dropoutRate)
@@ -39,6 +41,24 @@ namespace Microsoft.ML.TorchSharp.Roberta.Modules
             var output = LayerNorm.forward(tokenEmbedding);
             output = dropout.forward(output);
             return output.MoveToOuterDisposeScope();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    word_embeddings.Dispose();
+                    position_embeddings.Dispose();
+                    token_type_embeddings.Dispose();
+                    LayerNorm.Dispose();
+                    dropout.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

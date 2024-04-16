@@ -23,6 +23,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         private readonly FPN neck;
         private readonly RetinaHead bbox_head;
         private readonly Anchors anchors;
+        private bool _disposedValue;
 #pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
@@ -133,6 +134,23 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                     module.bias.requires_grad = biasRequiresGrad;
                 }
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    backbone.Dispose();
+                    neck.Dispose();
+                    bbox_head.Dispose();
+                    anchors.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

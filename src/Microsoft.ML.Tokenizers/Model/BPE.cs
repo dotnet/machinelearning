@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -20,7 +21,9 @@ namespace Microsoft.ML.Tokenizers
     {
         /// A [Byte Pair Encoding](https://www.aclweb.org/anthology/P16-1162/) model.
 
+        private const int MaxWordLengthToCache = 15;
         private string? _unknownToken;
+        private int? _unknownTokenId;
 
         /// <summary>
         /// Gets or Sets unknown token. The unknown token to be used when we encounter an unknown char
@@ -34,25 +37,20 @@ namespace Microsoft.ML.Tokenizers
 
             private set
             {
+                if (value is null)
+                {
+                    _unknownToken = value;
+                    _unknownTokenId = null;
+                    return;
+                }
+
+                if (!_vocab.TryGetValue(value, out int id))
+                {
+                    throw new InvalidOperationException($"Unknown Token '{value}' was not present in '{nameof(Vocab)}'.");
+                }
+
+                _unknownTokenId = id;
                 _unknownToken = value;
-
-                if (VocabReverse.TryGetValue(0, out string? v))
-                {
-                    if (v == value)
-                    {
-                        return;
-                    }
-
-                    VocabReverse.Remove(0);
-                    _vocab.Remove(new StringSpanOrdinalKey(v));
-                }
-
-
-                if (value is not null)
-                {
-                    _vocab[new StringSpanOrdinalKey(value)] = 0;
-                    VocabReverse[0] = value;
-                }
             }
         }
 
@@ -124,8 +122,7 @@ namespace Microsoft.ML.Tokenizers
                     VocabReverse.Add(kvp.Value, kvp.Key.Data!);
                 }
 
-
-                UnknownToken = unknownToken ?? (VocabReverse.TryGetValue(0, out string? unkToken) ? unkToken : null);
+                UnknownToken = unknownToken;
 
                 int prefixLen = ContinuingSubwordPrefix is null ? 0 : ContinuingSubwordPrefix.Length;
 
@@ -169,17 +166,11 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Gets the Bpe decoder object.
-        /// </summary>
-        public static TokenizerDecoder Decoder { get; } = new BpeDecoder();
-
-        /// <summary>
         /// Encode a text string to a list of tokens.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token. This parameter is ignored in this model.</param>
+        /// <param name="text">The text to encode.</param>
         /// <returns>The list of tokens generated from the text tokenization.</returns>
-        public override IReadOnlyList<Token> Encode(string text, bool isSpecialToken = false)
+        public override IReadOnlyList<Token> Encode(ReadOnlySpan<char> text)
         {
             if (text.Length == 0)
             {
@@ -192,34 +183,44 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Encode a split text string to a list of Ids and add them to the accumulatedIds list.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token. This parameter is ignored in this model.</param>
+        /// <param name="text">The text to encode.</param>
         /// <param name="accumulatedIds">The list of accumulated encoded Ids.</param>
-        public override void EncodeToIds(ReadOnlySpan<char> text, bool isSpecialToken, IList<int> accumulatedIds) => EncodeToIdsWithCache(text, accumulatedIds);
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        public override int EncodeToIds(ReadOnlySpan<char> text, IList<int> accumulatedIds, out int textLength, int maxTokens = int.MaxValue) => EncodeToIdsWithCache(text, accumulatedIds, maxTokens, out textLength);
 
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
-        /// <param name="text">The text to encode. If the value of the parameter <paramref name="isSpecialToken"/> is true, the entire text will be treated as a special token.</param>
-        /// <param name="isSpecialToken">Specifies whether the entire <paramref name="text"/> is considered a special token. This parameter is ignored in this model.</param>
-        /// <returns>The number of tokens that the input text will be encoded to. This parameter is ignored in this model.</returns>
-        public override int CountTokens(ReadOnlySpan<char> text, bool isSpecialToken) => EncodeToIdsWithCache(text, null);
+        /// <param name="text">The text to encode.</param>
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        public override int CountTokens(ReadOnlySpan<char> text, out int textLength, int maxTokens = int.MaxValue) => EncodeToIdsWithCache(text, null, maxTokens, out textLength);
+
+        /// <summary>
+        /// Get the number of tokens that the input text will be encoded to.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="textIndex">Starting from this index to the end of the text will encompasses the maximum encoded tokens.</param>
+        /// <param name="maxTokens">The maximum number of tokens to encode.</param>
+        /// <returns>The number of tokens that the input text will be encoded to.</returns>
+        public override int CountTokensFromEnd(ReadOnlySpan<char> text, out int textIndex, int maxTokens = int.MaxValue) => EncodeToIdsFromEndWithCache(text, null, maxTokens, out textIndex);
 
         /// <summary>
         /// Map the token to encoded Id.
         /// </summary>
         /// <param name="token">The token to map to the Id.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the encoding.</param>
         /// <returns>The mapped Id of the token.</returns>
-        public override int? MapTokenToId(ReadOnlySpan<char> token, bool considerSpecialTokens = true) => _vocab.TryGetValue(token, out int value) ? value : null;
+        public override int? MapTokenToId(ReadOnlySpan<char> token) => _vocab.TryGetValue(token, out int value) ? value : null;
 
         /// <summary>
         /// Map the encoded Id to the token.
         /// </summary>
         /// <param name="id">The Id to map to the token.</param>
-        /// <param name="considerSpecialTokens">Indicate if want to consider the special tokens during the decoding.</param>
         /// <returns>The mapped token of the Id.</returns>
-        public override string? MapIdToToken(int id, bool considerSpecialTokens = true)
+        public override string? MapIdToToken(int id)
         {
             if (VocabReverse.TryGetValue(id, out string? value))
             {
@@ -233,6 +234,71 @@ namespace Microsoft.ML.Tokenizers
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
         public IReadOnlyDictionary<string, int> Vocab => _vocabOriginal ??= _vocab.ToDictionary(kvp => kvp.Key.Data!, kvp => kvp.Value);
+
+        /// <summary>
+        /// Decode the given ids, back to a String.
+        /// </summary>
+        /// <param name="ids">The list of ids that we want to decode.</param>
+        /// <returns>The decoded string.</returns>
+        public override string? Decode(IEnumerable<int> ids) => Decode(ids, considerSpecialTokens: true);
+
+        /// <summary>
+        /// Decode the given ids, back to a String.
+        /// </summary>
+        /// <param name="ids">The list of ids that we want to decode.</param>
+        /// <param name="considerSpecialTokens">Indicate whether to consider special tokens or not.</param>
+        /// <returns>The decoded string.</returns>
+        public string? Decode(IEnumerable<int> ids, bool considerSpecialTokens)
+        {
+            if (ids is null)
+            {
+                throw new ArgumentNullException(nameof(ids));
+            }
+
+            ValueStringBuilder sb = new ValueStringBuilder();
+
+            bool decodeUnknownToken = _unknownTokenId.HasValue && considerSpecialTokens;
+
+            if (decodeUnknownToken)
+            {
+                foreach (int id in ids)
+                {
+                    if (MapIdToToken(id) is string s)
+                    {
+                        sb.Append(s);
+                    }
+                }
+            }
+            else
+            {
+                foreach (int id in ids)
+                {
+                    if (id == _unknownTokenId)
+                    {
+                        continue;
+                    }
+
+                    if (MapIdToToken(id) is string s)
+                    {
+                        sb.Append(s);
+                    }
+                }
+            }
+
+            if (EndOfWordSuffix is not null)
+            {
+                sb.RemoveSuffix(EndOfWordSuffix);
+
+                sb.Replace(EndOfWordSuffix, " ");
+            }
+
+            if (ContinuingSubwordPrefix is not null)
+            {
+                sb.Replace(ContinuingSubwordPrefix, string.Empty);
+            }
+
+            return sb.ToString();
+        }
 
         /// Read the given files to extract the vocab and merges
         internal static (Dictionary<StringSpanOrdinalKey, int>?, Vec<(string, string)>) ReadModelData(Stream vocab, Stream? merges)
@@ -434,7 +500,7 @@ namespace Microsoft.ML.Tokenizers
 
         internal List<Token> WordToTokens(ref Word word) => word.ToTokens(VocabReverse);
 
-        internal List<Token> EncodeWithCache(string text)
+        internal List<Token> EncodeWithCache(ReadOnlySpan<char> text)
         {
             Word word;
             if (Cache is not null)
@@ -444,28 +510,64 @@ namespace Microsoft.ML.Tokenizers
                     return WordToTokens(ref word);
                 }
 
-                word = MergeWord(text.AsSpan());
-                Cache.Set(text, word);
+                word = MergeWord(text);
+
+                if (text.Length <= MaxWordLengthToCache)
+                {
+                    Cache.Set(text.ToString(), word);
+                }
             }
             else
             {
-                word = MergeWord(text.AsSpan());
+                word = MergeWord(text);
             }
 
             return WordToTokens(ref word);
         }
 
-        internal int WordToIds(ref Word word, IList<int>? accumulatedIds)
+        internal int WordToIds(ref Word word, IList<int>? accumulatedIds, out int textLength, int fullTextLength, int maxTokens)
         {
-            if (accumulatedIds is not null)
+            if (word.SymbolsCount < maxTokens)
             {
-                word.PopulateIds(accumulatedIds);
+                textLength = fullTextLength;
+                if (accumulatedIds is not null)
+                {
+                    word.PopulateIds(accumulatedIds);
+                }
+
+                return word.SymbolsCount;
             }
 
-            return word.SymbolsCount;
+            if (accumulatedIds is not null)
+            {
+                return word.PopulateIdsUpToMax(accumulatedIds, maxTokens, out textLength);
+            }
+
+            return word.CountIdsUpToMax(maxTokens, out textLength);
         }
 
-        internal int EncodeToIdsWithCache(ReadOnlySpan<char> text, IList<int>? accumulatedIds)
+        internal int WordToIdsFromEnd(ref Word word, IList<int>? accumulatedIds, out int textIndex, int fullTextLength, int maxTokens)
+        {
+            if (word.SymbolsCount < maxTokens)
+            {
+                textIndex = 0;
+                if (accumulatedIds is not null)
+                {
+                    word.PopulateIds(accumulatedIds);
+                }
+
+                return word.SymbolsCount;
+            }
+
+            if (accumulatedIds is not null)
+            {
+                return word.PopulateIdsUpToMaxFromEnd(accumulatedIds, maxTokens, fullTextLength, out textIndex);
+            }
+
+            return word.CountIdsUpToMaxFromEnd(maxTokens, fullTextLength, out textIndex);
+        }
+
+        internal int EncodeToIdsWithCache(ReadOnlySpan<char> text, IList<int>? accumulatedIds, int maxTokens, out int textLength)
         {
             Word word;
 
@@ -473,18 +575,48 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (Cache.TryGetValue(text, out Word hit))
                 {
-                    return WordToIds(ref hit, accumulatedIds);
+                    return WordToIds(ref hit, accumulatedIds, out textLength, text.Length, maxTokens);
                 }
 
                 word = MergeWord(text);
-                Cache.Set(text.ToString(), word);
+
+                if (text.Length <= MaxWordLengthToCache)
+                {
+                    Cache.Set(text.ToString(), word);
+                }
             }
             else
             {
                 word = MergeWord(text);
             }
 
-            return WordToIds(ref word, accumulatedIds);
+            return WordToIds(ref word, accumulatedIds, out textLength, text.Length, maxTokens);
+        }
+
+        internal int EncodeToIdsFromEndWithCache(ReadOnlySpan<char> text, IList<int>? accumulatedIds, int maxTokens, out int textIndex)
+        {
+            Word word;
+
+            if (Cache is not null)
+            {
+                if (Cache.TryGetValue(text, out Word hit))
+                {
+                    return WordToIdsFromEnd(ref hit, accumulatedIds, out textIndex, text.Length, maxTokens);
+                }
+
+                word = MergeWord(text);
+
+                if (text.Length <= MaxWordLengthToCache)
+                {
+                    Cache.Set(text.ToString(), word);
+                }
+            }
+            else
+            {
+                word = MergeWord(text);
+            }
+
+            return WordToIdsFromEnd(ref word, accumulatedIds, out textIndex, text.Length, maxTokens);
         }
 
         internal static readonly List<Token> EmptyTokensList = new();

@@ -42,6 +42,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
         private readonly Dropout DropoutLayer;
         private readonly ModuleList<TransformerCell> Layers;
         private readonly ModuleList<HiddenTransfer> HiddenTransferList;
+        private bool _disposedValue;
 
         public Parameter TokenEmbeddingMatrix => TokenEmbedding.weight;
 
@@ -282,6 +283,27 @@ namespace Microsoft.ML.TorchSharp.NasBert.Models
             {
                 layer.CloseLayerNormTraining();
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    TokenEmbedding.Dispose();
+                    PositionalEmbedding.Dispose();
+                    SegmentEmbedding?.Dispose();
+                    EmbeddingLayerNorm.Dispose();
+                    EmbedTransfer.Dispose();
+                    DropoutLayer.Dispose();
+                    Layers.Dispose();
+                    HiddenTransferList.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

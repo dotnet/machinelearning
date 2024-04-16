@@ -21,6 +21,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         private readonly GELU act2;
         private readonly Conv2dBN conv3;
         private readonly GELU act3;
+        private bool _disposedValue;
 #pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
@@ -58,6 +59,25 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 return x.MoveToOuterDisposeScope();
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    conv1.Dispose();
+                    act1.Dispose();
+                    conv2.Dispose();
+                    act2.Dispose();
+                    conv3.Dispose();
+                    act3.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

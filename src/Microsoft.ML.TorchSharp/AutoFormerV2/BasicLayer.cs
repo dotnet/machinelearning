@@ -22,6 +22,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         private readonly int shiftSize;
         private readonly ModuleList<AutoFormerV2Block> blocks;
         private readonly PatchMerging downsample;
+        private bool _disposedValue;
 #pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
@@ -132,6 +133,21 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 return windows.MoveToOuterDisposeScope();
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    blocks.Dispose();
+                    downsample.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

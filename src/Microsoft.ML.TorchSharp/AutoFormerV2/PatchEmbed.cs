@@ -16,6 +16,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
     {
 #pragma warning disable MSML_PrivateFieldName // Need to match TorchSharp model names.
         private readonly ModuleList<Module<Tensor, Tensor>> seq;
+        private bool _disposedValue;
 #pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
@@ -45,6 +46,20 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 return x.MoveToOuterDisposeScope();
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    seq.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.DotNet.RemoteExecutor;
 using Microsoft.ML.Tokenizers;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -25,11 +27,11 @@ namespace Microsoft.ML.Tokenizers.Tests
                                                     { IMEnd, 100265},
                                                 };
 
-        public static Tokenizer GPT4 { get; } = Tiktoken.CreateByModelNameAsync("gpt-4", _specialTokens).GetAwaiter().GetResult();
-        public static Tokenizer GPT2 { get; } = Tiktoken.CreateByModelNameAsync("gpt2").GetAwaiter().GetResult();
-        public static Tokenizer P50kBase { get; } = Tiktoken.CreateByModelNameAsync("text-davinci-003").GetAwaiter().GetResult();
-        public static Tokenizer R50kBase { get; } = Tiktoken.CreateByModelNameAsync("ada").GetAwaiter().GetResult();
-        public static Tokenizer P50kEdit { get; } = Tiktoken.CreateByModelNameAsync("text-davinci-edit-001").GetAwaiter().GetResult();
+        public static Tokenizer GPT4 { get; } = Tokenizer.CreateTiktokenForModel("gpt-4", _specialTokens);
+        public static Tokenizer GPT2 { get; } = Tokenizer.CreateTiktokenForModel("gpt2");
+        public static Tokenizer P50kBase { get; } = Tokenizer.CreateTiktokenForModel("text-davinci-003");
+        public static Tokenizer R50kBase { get; } = Tokenizer.CreateTiktokenForModel("ada");
+        public static Tokenizer P50kEdit { get; } = Tokenizer.CreateTiktokenForModel("text-davinci-edit-001");
 
         [Fact]
         public async void TestTokenizerCreation()
@@ -37,10 +39,17 @@ namespace Microsoft.ML.Tokenizers.Tests
             TestGPT4TokenizationEncoding(GPT4);
 
             Assert.True(GPT4.Model is Tiktoken);
-            IReadOnlyDictionary<string, int>? specialTokensEncoder = (GPT4.Model as Tiktoken)!.SpecialTokensEncoder;
+            IReadOnlyDictionary<string, int>? specialTokensEncoder = (GPT4.Model as Tiktoken)!.SpecialTokens;
 
             string tokenizerDataFileName = Utils.CreateTemporaryFile("tiktoken");
-            await Utils.DownloadFile(@"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken", tokenizerDataFileName);
+
+            using Stream compressedStream = typeof(Tokenizer).Assembly.GetManifestResourceStream("cl100k_base.tiktoken.deflate")!;
+            using Stream deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress);
+
+            using (Stream fileStream = File.OpenWrite(tokenizerDataFileName))
+            {
+                deflateStream.CopyTo(fileStream);
+            }
 
             try
             {
@@ -64,15 +73,54 @@ namespace Microsoft.ML.Tokenizers.Tests
 
                 using (Stream stream = File.OpenRead(tokenizerDataFileName))
                 {
-                    tokenizer = Tiktoken.CreateByModelName("gpt-4", stream);
+                    tokenizer = Tokenizer.CreateTiktokenForModel("gpt-4", stream);
                 }
                 TestGPT4TokenizationEncoding(tokenizer);
 
                 using (Stream stream = File.OpenRead(tokenizerDataFileName))
                 {
-                    tokenizer = await Tiktoken.CreateByModelNameAsync("gpt-3.5-turbo", stream);
+                    tokenizer = await Tokenizer.CreateTiktokenForModelAsync("gpt-3.5-turbo", stream);
                 }
                 TestGPT4TokenizationEncoding(tokenizer);
+
+                tokenizer = Tokenizer.CreateTiktokenForModel("gpt-4");
+                TestGPT4TokenizationEncoding(tokenizer);
+            }
+            finally
+            {
+                Utils.DeleteFile(tokenizerDataFileName);
+            }
+        }
+
+        public static IEnumerable<object[]> ModelUrlData()
+        {
+            yield return new object[] { GPT4, @"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken" };
+            yield return new object[] { GPT2, @"https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken" };
+            yield return new object[] { P50kBase, @"https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken" };
+            yield return new object[] { R50kBase, @"https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken" };
+        }
+
+        [Theory]
+        [MemberData(nameof(ModelUrlData))]
+        public async void TestTokenizerUsingExternalVocab(Tokenizer tokenizer, string url)
+        {
+            string tokenizerDataFileName = Utils.CreateTemporaryFile("tiktoken");
+            await Utils.DownloadFile(url, tokenizerDataFileName);
+
+            try
+            {
+                Tiktoken tiktoken = (tokenizer.Model as Tiktoken)!;
+                Tokenizer externalTokenizer = new Tokenizer(new Tiktoken(tokenizerDataFileName, tiktoken.SpecialTokens), tokenizer.PreTokenizer);
+
+                IReadOnlyDictionary<ReadOnlyMemory<byte>, int> encoder = tiktoken.Encoder;
+                IReadOnlyDictionary<ReadOnlyMemory<byte>, int> externalEncoder = (externalTokenizer.Model as Tiktoken)!.Encoder;
+
+                Assert.Equal(externalEncoder.Count, encoder.Count);
+                foreach (KeyValuePair<ReadOnlyMemory<byte>, int> kvp in encoder)
+                {
+                    Assert.True(externalEncoder.TryGetValue(kvp.Key, out int value));
+                    Assert.Equal(kvp.Value, value);
+                }
             }
             finally
             {
@@ -118,9 +166,9 @@ namespace Microsoft.ML.Tokenizers.Tests
         private void TestGPT4Tokenizer(Tokenizer gpt4Tokenizer)
         {
             string text = ReadAndSanitizeFile("./Data/lib.rs.txt");
-            IReadOnlyList<int> encoded = gpt4Tokenizer.EncodeToIds(text, considerSpecialTokens: false);
+            IReadOnlyList<int> encoded = gpt4Tokenizer.EncodeToIds(text);
             Assert.Equal(5584, encoded.Count);
-            int idsCount = gpt4Tokenizer.CountTokens(text, considerSpecialTokens: false);
+            int idsCount = gpt4Tokenizer.CountTokens(text);
             Assert.Equal(encoded.Count, idsCount);
 
             using (Stream stream = File.OpenRead("./Data/tokens.json"))
@@ -264,6 +312,10 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("gpt-4-")]
         [InlineData("gpt-3.5-turbo")]
         [InlineData("gpt-3.5-turbo-")]
+        [InlineData("gpt-3.5-turbo-16k")]
+        [InlineData("gpt-35-turbo")]
+        [InlineData("gpt-35-turbo-16k")]
+        [InlineData("gpt-35-turbo-")]
         [InlineData("text-davinci-003")]
         [InlineData("text-davinci-002")]
         [InlineData("text-davinci-001")]
@@ -296,11 +348,69 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("code-search-babbage-code-001")]
         [InlineData("code-search-ada-code-001")]
         [InlineData("gpt2")]
-        public async void TestAllSupportedModelNames(string modelName)
+        public void TestAllSupportedModelNames(string modelName)
         {
-            Tokenizer tokenizer = await Tiktoken.CreateByModelNameAsync(modelName);
+            Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel(modelName);
             Assert.NotNull(tokenizer.Model);
             Assert.NotNull(tokenizer.PreTokenizer);
+        }
+
+        [Theory]
+        [InlineData("r50k_base")]
+        [InlineData("p50k_base")]
+        [InlineData("p50k_edit")]
+        [InlineData("cl100k_base")]
+        public void TestAllSupportedEncodingNames(string encodingName)
+        {
+            Tokenizer tokenizer = Tokenizer.CreateTiktokenForEncoding(encodingName);
+            Assert.NotNull(tokenizer.Model);
+            Assert.NotNull(tokenizer.PreTokenizer);
+
+            string modelName = encodingName.ToLowerInvariant() switch
+            {
+                "r50k_base" => "text-davinci-001",
+                "p50k_base" => "text-davinci-003",
+                "p50k_edit" => "text-davinci-edit-001",
+                "cl100k_base" => "gpt-4",
+                _ => throw new ArgumentException("Invalid encoding name"),
+            };
+
+            Tokenizer tokenizer1 = Tokenizer.CreateTiktokenForModel(modelName);
+
+            Tiktoken? model1 = tokenizer.Model as Tiktoken;
+            Tiktoken? model2 = tokenizer1.Model as Tiktoken;
+            Assert.NotNull(model1);
+            Assert.NotNull(model2);
+
+            Assert.Equal(model2.Encoder, model1.Encoder);
+            Assert.Equal(model2.Decoder, model1.Decoder);
+            Assert.Equal(model2.SpecialTokens, model1.SpecialTokens);
+            Assert.Equal(model2.Vocab, model1.Vocab);
+        }
+
+        [Fact]
+        public void TestEncodingNamesNegativeCases()
+        {
+            Assert.Throws<ArgumentNullException>(() => Tokenizer.CreateTiktokenForEncoding(null!));
+            Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("r50k_base_"));
+            Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("p50k_base_"));
+            Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("p50k_edit_"));
+            Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("cl100k_base_"));
+        }
+
+        [InlineData("gpt-4")]
+        [InlineData("text-davinci-003")]
+        [InlineData("text-curie-001")]
+        [InlineData("text-davinci-edit-001")]
+        [ConditionalTheory(typeof(RemoteExecutor), nameof(RemoteExecutor.IsSupported))]
+        public void TestCreationUsingModel(string modelName)
+        {
+            RemoteExecutor.Invoke(static (name) =>
+            {
+                Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel(name);
+                Assert.NotNull(tokenizer.Model);
+                Assert.NotNull(tokenizer.PreTokenizer);
+            }, modelName).Dispose();
         }
 
         // Test running copy the test data files to the output folder but sometimes the file content is mutated replacing '\n' with '\r\n'.

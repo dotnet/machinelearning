@@ -22,6 +22,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         private readonly Attention attn;
         private readonly MLP mlp;
         private readonly Conv2dBN local_conv;
+        private bool _disposedValue;
 #pragma warning restore MSML_PrivateFieldName
 
         /// <summary>
@@ -181,6 +182,22 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 return windows.MoveToOuterDisposeScope();
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    attn.Dispose();
+                    mlp.Dispose();
+                    local_conv.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

@@ -24,6 +24,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly ModuleList<Linear> HiddenTransfer;
+        private bool _disposedValue;
 
         public EmbedTransferNonDiscrete() : base(nameof(EmbedTransferNonDiscrete))
         {
@@ -44,6 +45,20 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
                 ? x.alias()
                 : HiddenTransfer[index].forward(x);
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    HiddenTransfer.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
+        }
     }
 
     internal sealed class EmbedTransferDiscrete : EmbedTransfer
@@ -51,6 +66,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
 #nullable enable
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly Linear? HiddenTransfer;
+        private bool _disposedValue;
 #nullable disable
 
         public EmbedTransferDiscrete(int embedSize, int hiddenSize) : base(nameof(EmbedTransferDiscrete))
@@ -72,6 +88,20 @@ namespace Microsoft.ML.TorchSharp.NasBert.Modules
             return HiddenTransfer == null
                 ? x.alias()
                 : HiddenTransfer.forward(x);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    HiddenTransfer?.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

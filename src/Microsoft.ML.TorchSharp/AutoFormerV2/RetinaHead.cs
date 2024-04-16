@@ -32,6 +32,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "MSML_PrivateFieldName:private field names not in _camelCase format", Justification = "Need to match TorchSharp.")]
         private readonly int numClasses;
+        private bool _disposedValue;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RetinaHead"/> class.
@@ -99,6 +100,24 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
 
                 return (clsOutputs, regOutputs);
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    cls_convs.Dispose();
+                    reg_convs.Dispose();
+                    retina_cls.Dispose();
+                    retina_reg.Dispose();
+                    output_act.Dispose();
+                    _disposedValue = true;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }
