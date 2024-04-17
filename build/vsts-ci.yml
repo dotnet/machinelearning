@@ -20,9 +20,9 @@ variables:
 - name: Codeql.SkipTaskAutoInjection
   value: True  #default to not inject CodeQL tasks, we'll enable it in a single job.
 - name: LinuxImage
-  value: 1es-ubuntu-2204-pt
+  value: 1es-ubuntu-2204
 - name: WindowsImage
-  value: 1es-windows-2019-pt
+  value: 1es-windows-2019
 - name: MacImage
   value: macOS-12
 - template: /eng/common/templates-official/variables/pool-providers.yml@self
