@@ -10,14 +10,14 @@ namespace Microsoft.ML.Tokenizers
     /// <summary>
     /// Normalize the string to lowercase form before processing it with the tokenizer.
     /// </summary>
-    public sealed class LlamaNormalizer : Normalizer
+    public sealed class SentencePieceNormalizer : Normalizer
     {
         internal const char DummyPrefix = '\u2581'; // '▁' (LOWER ONE EIGHT BLOCK)
 
         /// <summary>
         /// Creates a LowerCaseNormalizer object.
         /// </summary>
-        public LlamaNormalizer(bool removeExtraWhiteSpaces, bool addDummyPrefix, bool escapeWhiteSpaces, bool treatWhitespaceAsSuffix)
+        public SentencePieceNormalizer(bool removeExtraWhiteSpaces, bool addDummyPrefix, bool escapeWhiteSpaces, bool treatWhitespaceAsSuffix)
         {
             RemoveExtraWhiteSpaces = removeExtraWhiteSpaces;
             AddDummyPrefix = addDummyPrefix;
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tokenizers
         public bool TreatWhitespaceAsSuffix { get; }
 
         /// <summary>
-        /// Normalize the original string according to SentencePiece normalization with Llama model.
+        /// Normalize the original string according to SentencePiece normalization.
         /// </summary>
         /// <param name="original">The original string to normalize.</param>
         /// <returns>The normalized string.</returns>
@@ -51,6 +51,16 @@ namespace Microsoft.ML.Tokenizers
                 return string.Empty;
             }
 
+            return Normalize(original.AsSpan());
+        }
+
+        /// <summary>
+        /// Normalize the original string according to SentencePiece normalization.
+        /// </summary>
+        /// <param name="original">The original string to normalize.</param>
+        /// <returns>The normalized string.</returns>
+        public override string Normalize(ReadOnlySpan<char> original)
+        {
             int startIndex = 0;
             int endIndex = original.Length - 1;
 

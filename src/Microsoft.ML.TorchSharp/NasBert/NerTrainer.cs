@@ -167,16 +167,16 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 Sentence1Getter(ref sentenceRom);
                 var sentence = sentenceRom.ToString();
                 Tensor t;
-                var encoding = Tokenizer.Encode(sentence);
+                IReadOnlyList<Token> encoding = Tokenizer.Encode(sentence, out string normalizedString);
 
-                if (target.Length != encoding.Tokens.Count)
+                if (target.Length != encoding.Count)
                 {
                     var targetIndex = 0;
-                    var targetEditor = VBufferEditor.Create(ref target, encoding.Tokens.Count);
+                    var targetEditor = VBufferEditor.Create(ref target, encoding.Count);
                     var newValues = targetEditor.Values;
-                    for (var i = 0; i < encoding.Tokens.Count; i++)
+                    for (var i = 0; i < encoding.Count; i++)
                     {
-                        if (NerTrainer.TokenStartsWithSpace(encoding.Tokens[i]))
+                        if (NerTrainer.TokenStartsWithSpace(encoding[i].Value))
                         {
                             newValues[i] = target.GetItemOrDefault(++targetIndex);
                         }
@@ -187,7 +187,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                     }
                     target = targetEditor.Commit();
                 }
-                t = torch.tensor((ZeroArray).Concat(Tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(encoding.Ids)).ToList(), device: Device);
+                t = torch.tensor((ZeroArray).Concat(Tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(encoding.Select(t => t.Id).ToArray())).ToList(), device: Device);
 
                 if (t.NumberOfElements > 512)
                     t = t.slice(0, 0, 512, 1);
@@ -377,16 +377,16 @@ namespace Microsoft.ML.TorchSharp.NasBert
             private void CondenseOutput(ref VBuffer<UInt32> dst, string sentence, Tokenizer tokenizer, TensorCacher outputCacher)
             {
                 var pre = tokenizer.PreTokenizer.PreTokenize(sentence);
-                EncodingResult encoding = tokenizer.Encode(sentence);
+                IReadOnlyList<Token> encoding = tokenizer.Encode(sentence, out string normalizedString);
 
                 var argmax = (outputCacher as BertTensorCacher).Result.argmax(-1);
                 var prediction = argmax.ToArray<long>();
 
                 var targetIndex = 0;
                 // Figure out actual count of output tokens
-                for (var i = 0; i < encoding.Tokens.Count; i++)
+                for (var i = 0; i < encoding.Count; i++)
                 {
-                    if (NerTrainer.TokenStartsWithSpace(encoding.Tokens[i]))
+                    if (NerTrainer.TokenStartsWithSpace(encoding[i].Value))
                     {
                         targetIndex++;
                     }
@@ -398,9 +398,9 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
                 newValues[targetIndex++] = (uint)prediction[0];
 
-                for (var i = 1; i < encoding.Tokens.Count; i++)
+                for (var i = 1; i < encoding.Count; i++)
                 {
-                    if (NerTrainer.TokenStartsWithSpace(encoding.Tokens[i]))
+                    if (NerTrainer.TokenStartsWithSpace(encoding[i].Value))
                     {
                         newValues[targetIndex++] = (uint)prediction[i];
                     }

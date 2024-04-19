@@ -71,6 +71,8 @@ namespace Microsoft.ML.Tokenizers
             return s;
         }
 
+        public void Clear() => _data.Clear();
+
         public bool IsConsistent()
         {
             // is the heap property true for all data?

@@ -20,61 +20,62 @@ namespace Microsoft.ML.Tokenizers.Tests
                 {
                     WhiteSpace.Instance,
                     "How are you doing?",
-                    new Split[] { new Split("How", (0, 3)), new Split("are", (4, 3)), new Split("you", (8, 3)), new Split("doing", (12, 5)), new Split("?", (17, 1)),}
+                    new (int Offset, int Length)[] { (0, 3), (4, 3), (8, 3), (12, 5), (17, 1), }
                 };
 
                 yield return new object[]
                 {
                     WhiteSpace.Instance,
                     "I_am_Just_Fine!",
-                    new Split[] { new Split("I_am_Just_Fine", (0, 14)), new Split("!", (14, 1)) }
+                    new (int Offset, int Length)[] { (0, 14), (14, 1) }
                 };
 
                 yield return new object[]
                 {
                     new SpacePreTokenizer(),
                     "How are    you doing?!",
-                    new Split[] { new Split("How", (0, 3)), new Split("are", (4, 3)), new Split("you", (11, 3)), new Split("doing?!", (15, 7)) }
+                    new (int Offset, int Length)[] { (0, 3), (4, 3), (11, 3), (15, 7) }
                 };
 
                 yield return new object[]
                 {
                     new SpacePreTokenizer(),
                     new string(' ', 100),
-                    new Split[] { }
+                    new (int Offset, int Length)[] { }
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(PreTokenizerData))]
-        public void TestPreTokenizer(PreTokenizer preTokenizer, string text, Split[] splits)
+        public void TestPreTokenizer(PreTokenizer preTokenizer, string text, (int Offset, int Length)[] splits)
         {
-            Split[] splitParts = preTokenizer.PreTokenize(text).ToArray<Split>();
+            (int Offset, int Length)[] splitParts = preTokenizer.PreTokenize(text).ToArray<(int Offset, int Length)>();
             Assert.Equal(splits, splitParts);
 
             // Empty tokenizer which tokenize all parts as unknown tokens.
-            Tokenizer tokenizer = new Tokenizer(BpeTests.CreateEmptyBpe(), preTokenizer);
+            Tokenizer tokenizer = BpeTests.CreateEmptyBpe(normalizer: null, preTokenizer: preTokenizer);
 
-            EncodingResult encoding = tokenizer.Encode(text);
-            Assert.True(encoding.Tokens.Count >= splitParts.Length, $"Expected to have {encoding.Tokens.Count} >= {splitParts.Length}");
+            IReadOnlyList<Token> encoding = tokenizer.Encode(text, out _);
+            Assert.True(encoding.Count >= splitParts.Length, $"Expected to have {encoding.Count} >= {splitParts.Length}");
         }
 
         [Fact]
         public void TestWhiteSpacePreTokenizer()
         {
-            Assert.Empty(WhiteSpace.Instance.PreTokenize(null!));
+            Assert.Empty(WhiteSpace.Instance.PreTokenize((string)null!));
         }
 
         public class SpacePreTokenizer : PreTokenizer
         {
-            public override IEnumerable<Split> PreTokenize(string text)
+            public override IEnumerable<(int Offset, int Length)> PreTokenize(ReadOnlySpan<char> text)
             {
-                List<Split> splits = new();
-                if (string.IsNullOrEmpty(text))
+                if (text.IsEmpty)
                 {
-                    return splits;
+                    return [];
                 }
+
+                List<(int Offset, int Length)> splits = new();
 
                 int index = 0;
                 while (true)
@@ -92,7 +93,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
                     if (index < text.Length)
                     {
-                        splits.Add(new Split(text.Substring(index, end - index), (index, end - index)));
+                        splits.Add((index, end - index));
                     }
                     else
                     {
@@ -103,6 +104,16 @@ namespace Microsoft.ML.Tokenizers.Tests
                 }
 
                 return splits;
+            }
+
+            public override IEnumerable<(int Offset, int Length)> PreTokenize(string text)
+            {
+                if (string.IsNullOrEmpty(text))
+                {
+                    return [];
+                }
+
+                return PreTokenize(text.AsSpan());
             }
         }
     }
