@@ -17,20 +17,21 @@ namespace Microsoft.ML.Tokenizers.Tests
     public class LlamaTests
     {
         private static readonly HttpClient _httpClient = new HttpClient() { Timeout = TimeSpan.FromMinutes(5) };
-        private static Tokenizer _llamaTokenizer = CreateLlamaTokenizer().GetAwaiter().GetResult();
-        private static Tokenizer _llamaMistralTokenizer = CreateLMistralTokenizer().GetAwaiter().GetResult();
+        private static Tokenizer _llamaTokenizer = CreateLlamaTokenizer();
+        private static Tokenizer _llamaMistralTokenizer = CreateLMistralTokenizer();
 
-        private static async Task<Tokenizer> CreateLlamaTokenizer()
+        private static Tokenizer CreateLlamaTokenizer()
         {
-            const string modelUrl = @"https://huggingface.co/hf-internal-testing/llama-tokenizer/resolve/main/tokenizer.model";
-            using Stream remoteStream = await _httpClient.GetStreamAsync(modelUrl);
+            // @"https://huggingface.co/meta-llama/Llama-2-7b-chat-hf/resolve/main/tokenizer.model?download=true";
+            // @"https://huggingface.co/hf-internal-testing/llama-tokenizer/resolve/main/tokenizer.model";
+            using Stream remoteStream = File.OpenRead(Path.Combine(@"Llama", "tokenizer.model"));
             return Tokenizer.CreateLlama(remoteStream);
         }
 
-        private static async Task<Tokenizer> CreateLMistralTokenizer()
+        private static Tokenizer CreateLMistralTokenizer()
         {
-            const string modelUrl = @"https://huggingface.co/mistralai/Mistral-7B-v0.1/resolve/main/tokenizer.model?download=true";
-            using Stream remoteStream = await _httpClient.GetStreamAsync(modelUrl);
+            // @"https://huggingface.co/mistralai/Mistral-7B-v0.1/resolve/main/tokenizer.model?download=true";
+            using Stream remoteStream = File.OpenRead(Path.Combine(@"Mistral", "tokenizer.model"));
             return Tokenizer.CreateLlama(remoteStream);
         }
 

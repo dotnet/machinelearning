@@ -282,18 +282,17 @@ namespace Microsoft.ML.Tokenizers.Tests
             }
         }
 
-
-        private const string Gpt2VocabUrl = "https://huggingface.co/openai-community/gpt2/raw/main/vocab.json";
-        private const string Gpt2MergesUrl = "https://huggingface.co/openai-community/gpt2/raw/main/merges.txt";
         private static Tokenizer? _gpt2Tokenizer = null;
 
         private static Tokenizer GetGpt2Tokenizer()
         {
             if (_gpt2Tokenizer is null)
             {
-                using HttpClient httpClient = new HttpClient();
-                using Stream vocabStream = httpClient.GetStreamAsync(Gpt2VocabUrl).Result;
-                using Stream mergesStream = httpClient.GetStreamAsync(Gpt2MergesUrl).Result;
+                // "https://huggingface.co/openai-community/gpt2/raw/main/vocab.json";
+                // "https://huggingface.co/openai-community/gpt2/raw/main/merges.txt";
+                using Stream vocabStream = File.OpenRead(Path.Combine(@"Gpt-2", "vocab.json"));
+                using Stream mergesStream = File.OpenRead(Path.Combine(@"Gpt-2", "merges.txt"));
+
                 _gpt2Tokenizer = new Bpe(vocabStream, mergesStream);
             }
 

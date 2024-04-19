@@ -42,8 +42,9 @@ namespace Microsoft.ML.Tokenizers
             int length = original.ToLowerInvariant(arrayPoolArray);
             Debug.Assert(length == original.Length);
 
+            string result = new string(arrayPoolArray, 0, length);
             ArrayPool<char>.Shared.Return(arrayPoolArray);
-            return new string(arrayPoolArray, 0, length);
+            return result;
         }
     }
 }
