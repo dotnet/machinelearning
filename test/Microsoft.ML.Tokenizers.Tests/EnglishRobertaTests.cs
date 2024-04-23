@@ -6,20 +6,13 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 
 using Xunit;
-using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace Microsoft.ML.Tokenizers.Tests
 {
     public class EnglishRobertaTests
     {
-        private static readonly string _vocabUrl = "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/encoder.json";
-        private static readonly string _mergeUrl = "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/vocab.bpe";
-        private static readonly string _dictUrl = "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/dict.txt";
-
         public static IEnumerable<object[]> BertaData
         {
             get
@@ -83,82 +76,62 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         private static Tokenizer? _robertaTokenizer = null;
-        private async static Task<Tokenizer> GetRobertaTokenizer()
+        private static Tokenizer GetRobertaTokenizer()
         {
             if (_robertaTokenizer is null)
             {
-                string vocabFile = Utils.CreateTemporaryFile("json");
-                string mergeFile = Utils.CreateTemporaryFile("txt");
-                string translationFile = Utils.CreateTemporaryFile("txt");
+                // encoder.json is same as vocab.json
+                // vocab.bpe is same as merges.txt
+                // "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/encoder.json";
+                // "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/vocab.bpe";
+                // "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/dict.txt";
 
-                try
-                {
-                    await Utils.DownloadFile(_vocabUrl, vocabFile);
-                    await Utils.DownloadFile(_mergeUrl, mergeFile);
-                    await Utils.DownloadFile(_dictUrl, translationFile);
-
-                    _robertaTokenizer = new EnglishRoberta(vocabFile, mergeFile, translationFile, RobertaPreTokenizer.Instance);
-                }
-                finally
-                {
-                    Utils.DeleteFile(vocabFile);
-                    Utils.DeleteFile(mergeFile);
-                    Utils.DeleteFile(translationFile);
-                }
+                _robertaTokenizer = new EnglishRoberta(
+                                            Path.Combine(@"Gpt-2", "vocab.json"),
+                                            Path.Combine(@"Gpt-2", "merges.txt"),
+                                            Path.Combine(@"Gpt-2", "dict.txt"),
+                                            RobertaPreTokenizer.Instance);
             }
 
             return _robertaTokenizer;
         }
 
         [Fact]
-        public async void TokenizationTest()
+        public void TokenizationTest()
         {
-            string vocabFile = Utils.CreateTemporaryFile("json");
-            string mergeFile = Utils.CreateTemporaryFile("txt");
-            string translationFile = Utils.CreateTemporaryFile("txt");
-            string[]? paths = null; ;
+            // encoder.json is same as vocab.json
+            // vocab.bpe is same as merges.txt
+            // "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/encoder.json";
+            // "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/vocab.bpe";
+            // "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/dict.txt";
 
-            try
+            string vocabFile = Path.Combine(@"Gpt-2", "vocab.json");
+            string mergeFile = Path.Combine(@"Gpt-2", "merges.txt");
+            string translationFile = Path.Combine(@"Gpt-2", "dict.txt");
+
+            Tokenizer tokenizer = new EnglishRoberta(vocabFile, mergeFile, translationFile, RobertaPreTokenizer.Instance);
+
+            TestTokenizer(tokenizer);
+            TokenizerTests.TestTokenLimits(tokenizer);
+
+            tokenizer = new EnglishRoberta(vocabFile, mergeFile, translationFile, RobertaPreTokenizer.Instance, filterUnsupportedChars: false);
+
+            TestTokenizer(tokenizer);
+
+            using Stream vocabStream = File.OpenRead(vocabFile);
+            using Stream mergeStream = File.OpenRead(mergeFile);
+            using Stream translationStream = File.OpenRead(translationFile);
+            tokenizer = new EnglishRoberta(vocabStream, mergeStream, translationStream, RobertaPreTokenizer.Instance);
+            TestTokenizer(tokenizer);
+
+            // Ensure caching works regardless of which method is called first.
+            for (CallingOrder order = CallingOrder.Encode; order <= CallingOrder.CountTokens; order++)
             {
-                await Utils.DownloadFile(_vocabUrl, vocabFile);
-                await Utils.DownloadFile(_mergeUrl, mergeFile);
-                await Utils.DownloadFile(_dictUrl, translationFile);
-
-                Tokenizer tokenizer = new EnglishRoberta(vocabFile, mergeFile, translationFile, RobertaPreTokenizer.Instance);
-                TestTokenizer(tokenizer);
-                TokenizerTests.TestTokenLimits(tokenizer);
+                tokenizer = new EnglishRoberta(vocabFile, mergeFile, translationFile, RobertaPreTokenizer.Instance);
+                TestTokenizer(tokenizer, order);
 
                 tokenizer = new EnglishRoberta(vocabFile, mergeFile, translationFile, RobertaPreTokenizer.Instance, filterUnsupportedChars: false);
-                TestTokenizer(tokenizer);
-
-                using Stream vocabStream = File.OpenRead(vocabFile);
-                using Stream mergeStream = File.OpenRead(mergeFile);
-                using Stream translationStream = File.OpenRead(translationFile);
-                tokenizer = new EnglishRoberta(vocabStream, mergeStream, translationStream, RobertaPreTokenizer.Instance);
-                TestTokenizer(tokenizer);
-
-                // Ensure caching works regardless of which method is called first.
-                for (CallingOrder order = CallingOrder.Encode; order <= CallingOrder.CountTokens; order++)
-                {
-                    tokenizer = new EnglishRoberta(vocabFile, mergeFile, translationFile, RobertaPreTokenizer.Instance);
-                    TestTokenizer(tokenizer, order);
-
-                    tokenizer = new EnglishRoberta(vocabFile, mergeFile, translationFile, RobertaPreTokenizer.Instance, filterUnsupportedChars: false);
-                    TestTokenizer(tokenizer, order);
-                }
-            }
-            finally
-            {
-                Utils.DeleteFile(vocabFile);
-                Utils.DeleteFile(mergeFile);
-                Utils.DeleteFile(translationFile);
-
-                if (paths is not null)
-                {
-                    Utils.DeleteFile(paths[0]);
-                    Utils.DeleteFile(paths[1]);
-                    Utils.DeleteFile(paths[2]);
-                }
+                TestTokenizer(tokenizer, order);
             }
         }
 
@@ -200,9 +173,9 @@ namespace Microsoft.ML.Tokenizers.Tests
 
         [Theory]
         [MemberData(nameof(RobertaTestData))]
-        public async void TestTokenizerEncoding(string text, string[] expectedTokens, (int Index, int Length)[] expectedOffsets, int[] expectedIds)
+        public void TestTokenizerEncoding(string text, string[] expectedTokens, (int Index, int Length)[] expectedOffsets, int[] expectedIds)
         {
-            Tokenizer tokenizer = await GetRobertaTokenizer();
+            Tokenizer tokenizer = GetRobertaTokenizer();
 
             IReadOnlyList<Token> encoding = tokenizer.Encode(text, out _);
             IReadOnlyList<Token> encoding1 = tokenizer.Encode(text.AsSpan(), out _);

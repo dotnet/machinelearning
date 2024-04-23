@@ -45,6 +45,31 @@ namespace Microsoft.ML.Tokenizers
         public override int GetHashCode() => Helpers.GetHashCode(Span);
     }
 
+    internal unsafe readonly struct StringSpanOrdinalKeyPair : IEquatable<StringSpanOrdinalKeyPair>
+    {
+        private readonly StringSpanOrdinalKey _left;
+        private readonly StringSpanOrdinalKey _right;
+
+        public StringSpanOrdinalKeyPair(char* ptr1, int length1, char* ptr2, int length2)
+        {
+            _left = new StringSpanOrdinalKey(ptr1, length1);
+            _right = new StringSpanOrdinalKey(ptr2, length2);
+        }
+
+        public StringSpanOrdinalKeyPair(string data1, string data2)
+        {
+            _left = new StringSpanOrdinalKey(data1);
+            _right = new StringSpanOrdinalKey(data2);
+        }
+        public override bool Equals(object? obj) =>
+            obj is StringSpanOrdinalKeyPair wrapper && wrapper._left.Equals(_left) && wrapper._right.Equals(_right);
+
+        public bool Equals(StringSpanOrdinalKeyPair other) => other._left.Equals(_left) && other._right.Equals(_right);
+
+        public override int GetHashCode() => _left.GetHashCode() + _right.GetHashCode();
+    }
+
+
     internal sealed class StringSpanOrdinalKeyCache<TValue>
     {
         private readonly int _capacity;
@@ -115,6 +140,34 @@ namespace Microsoft.ML.Tokenizers
         public override void Write(Utf8JsonWriter writer, StringSpanOrdinalKey value, JsonSerializerOptions options) => writer.WriteStringValue(value.Data!);
     }
 
+    internal class StringSpanOrdinalKeyCustomConverter : JsonConverter<Dictionary<StringSpanOrdinalKey, (int, string)>>
+    {
+        public static StringSpanOrdinalKeyCustomConverter Instance { get; } = new StringSpanOrdinalKeyCustomConverter();
+
+        public override Dictionary<StringSpanOrdinalKey, (int, string)> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var dictionary = new Dictionary<StringSpanOrdinalKey, (int, string)>();
+            while (reader.Read())
+            {
+                if (reader.TokenType == JsonTokenType.EndObject)
+                {
+                    return dictionary;
+                }
+
+                if (reader.TokenType == JsonTokenType.PropertyName)
+                {
+                    var key = reader.GetString();
+                    reader.Read();
+                    var value = reader.GetInt32();
+                    dictionary.Add(new StringSpanOrdinalKey(key!), (value, key!));
+                }
+            }
+            throw new JsonException("Invalid JSON.");
+        }
+
+        public override void Write(Utf8JsonWriter writer, Dictionary<StringSpanOrdinalKey, (int, string)> value, JsonSerializerOptions options) => throw new NotImplementedException();
+    }
+
     /// <summary>
     /// Extension methods for <see cref="StringSpanOrdinalKey"/>.
     /// </summary>
@@ -130,5 +183,17 @@ namespace Microsoft.ML.Tokenizers
 
         public static bool TryGetValue<TValue>(this Dictionary<StringSpanOrdinalKey, TValue> map, string key, out TValue value) =>
             map.TryGetValue(new StringSpanOrdinalKey(key), out value!);
+
+        public unsafe static bool TryGetValue<TValue>(this Dictionary<StringSpanOrdinalKeyPair, TValue> map, ReadOnlySpan<char> key1, ReadOnlySpan<char> key2, out TValue value)
+        {
+            fixed (char* ptr1 = key1)
+            fixed (char* ptr2 = key2)
+            {
+                return map.TryGetValue(new StringSpanOrdinalKeyPair(ptr1, key1.Length, ptr2, key2.Length), out value!);
+            }
+        }
+
+        public static bool TryGetValue<TValue>(this Dictionary<StringSpanOrdinalKeyPair, TValue> map, string key1, string key2, out TValue value) =>
+            map.TryGetValue(new StringSpanOrdinalKeyPair(key1, key2), out value!);
     }
 }
