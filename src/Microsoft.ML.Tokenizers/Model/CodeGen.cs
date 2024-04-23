@@ -1379,7 +1379,7 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
-        public static int EncodeNonAnsiCodePointToUtf8(ReadOnlySpan<char> text, int textIndex, ref byte[] destination, ref int bytesIndex)
+        private static int EncodeNonAnsiCodePointToUtf8(ReadOnlySpan<char> text, int textIndex, ref byte[] destination, ref int bytesIndex)
         {
             Debug.Assert(!text.IsEmpty);
             Debug.Assert(text[textIndex] >= (ByteToUnicodeEncoding.Instance.Count));
