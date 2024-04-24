@@ -10,13 +10,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 
 namespace Microsoft.ML.Tokenizers
 {
     /// <summary>
     /// Represent the Byte Pair Encoding model.
-    /// Implement the tokenizer https://github.com/huggingface/transformers/blob/main/src/transformers/models/codegen/tokenization_codegen.py described in
-    /// https://huggingface.co/docs/transformers/main/en/model_doc/codegen#overview
+    /// Implement the CodeGen tokenizer described in https://huggingface.co/docs/transformers/main/en/model_doc/codegen#overview
     /// </summary>
     public sealed class CodeGen : Tokenizer
     {
@@ -248,7 +248,21 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
-        public IReadOnlyDictionary<string, int> Vocab => _vocabOriginal ??= _vocab.ToDictionary(kvp => kvp.Value.Token, kvp => kvp.Value.Id);
+        public IReadOnlyDictionary<string, int> Vocab
+        {
+            get
+            {
+                Dictionary<string, int>? publicVocab = Volatile.Read(ref _vocabOriginal);
+                if (publicVocab is null)
+                {
+                    var vocab = _vocab.ToDictionary(kvp => kvp.Value.Token, kvp => kvp.Value.Id);
+                    Interlocked.CompareExchange(ref _vocabOriginal, vocab, null);
+                    publicVocab = _vocabOriginal;
+                }
+
+                return publicVocab;
+            }
+        }
 
         //
         // Public Model interfaces implementation
