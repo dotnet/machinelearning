@@ -1065,28 +1065,42 @@ namespace Microsoft.ML.Tokenizers
                 return tokens.Count;
             }
 
-            if (accumulatedIds is not null)
+            int tokenCount;
+            for (tokenCount = 0; tokenCount < maxTokens; tokenCount++)
             {
-                accumulatedIds.Add(tokens[0].Id);
-                textLength += tokens[0].Offset.Length;
-
-                for (int i = 1; i < maxTokens; i++)
+                // maxTokens is less than tokens.Count, so it is safe to
+                if (tokens[tokenCount].Offset.Index == tokens[tokenCount + 1].Offset.Index)
                 {
-                    accumulatedIds.Add(tokens[i].Id);
-                    textLength += tokens[i].Offset.Length;
+                    // Ensure we'll not break the text in the middle of a code-point
+                    int j = tokenCount + 2;
+                    while (j < tokens.Count && tokens[j].Offset.Index == tokens[tokenCount].Offset.Index)
+                    {
+                        j++;
+                    }
+
+                    if (j <= maxTokens)
+                    {
+                        // append encountered tokens to the accumulatedIds
+                        for (int k = tokenCount; k < j; k++)
+                        {
+                            accumulatedIds?.Add(tokens[k].Id);
+                            textLength += tokens[k].Offset.Length;
+                        }
+                        tokenCount = j - 1;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    accumulatedIds?.Add(tokens[tokenCount].Id);
+                    textLength += tokens[tokenCount].Offset.Length;
                 }
             }
-            else
-            {
-                textLength += tokens[0].Offset.Length;
 
-                for (int i = 1; i < maxTokens; i++)
-                {
-                    textLength += tokens[i].Offset.Length;
-                }
-            }
-
-            return maxTokens;
+            return tokenCount;
         }
 
         private int EncodeToIdsFromEndResult(List<Token> tokens, IList<int>? accumulatedIds, int maxTokens, int fullTextLength, out int textIndex)
@@ -1107,23 +1121,23 @@ namespace Microsoft.ML.Tokenizers
                 return tokens.Count;
             }
 
-            if (accumulatedIds is not null)
+            int index = tokens.Count - maxTokens;
+            if (index > 0)
             {
-                for (int i = tokens.Count - maxTokens; i < tokens.Count; i++)
+                // avoid breaking the text in the middle of a code-point
+                while (index < tokens.Count && tokens[index].Offset.Index == tokens[index - 1].Offset.Index)
                 {
-                    accumulatedIds.Add(tokens[i].Id);
-                    textIndex -= tokens[i].Offset.Length;
-                }
-            }
-            else
-            {
-                for (int i = tokens.Count - maxTokens; i < tokens.Count; i++)
-                {
-                    textIndex -= tokens[i].Offset.Length;
+                    index++;
                 }
             }
 
-            return maxTokens;
+            for (int i = index; i < tokens.Count; i++)
+            {
+                accumulatedIds?.Add(tokens[i].Id);
+                textIndex -= tokens[i].Offset.Length;
+            }
+
+            return tokens.Count - index;
         }
 
         private int EncodeToIdsInternal(string? text, scoped ReadOnlySpan<char> textSpan, IList<int>? accumulatedIds, PriorityQueue<SymbolPair> agenda, out int textLength, int maxTokens)

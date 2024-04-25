@@ -349,28 +349,27 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Null(normalizedString);
             Assert.Equal(text.Length, length);
 
-            Assert.Equal(ids.Take(ids.Length - 1), codeGenTokenizer.EncodeToIds(text, ids.Length - 1, out normalizedString, out length));
+            int expectedTokensToExclude = expectedOffsets.Length > 1 && expectedOffsets[expectedOffsets.Length - 1].Index == expectedOffsets[expectedOffsets.Length - 2].Index ? 2 : 1;
+            Assert.Equal(ids.Take(ids.Length - expectedTokensToExclude), codeGenTokenizer.EncodeToIds(text, ids.Length - 1, out normalizedString, out length));
             Assert.Null(normalizedString);
             var offsets = codeGenTokenizer.AddPrefixSpace ? expectedOffsetsWithSpace : expectedOffsets;
-            int expectedLength = offsets[offsets.Length - 2].Index + offsets[offsets.Length - 2].Length;
+            int expectedLength = offsets.Length > expectedTokensToExclude ? offsets[offsets.Length - expectedTokensToExclude - 1].Index + offsets[offsets.Length - expectedTokensToExclude - 1].Length : 0;
             Assert.Equal(expectedLength, length);
-            Assert.Equal(ids.Take(ids.Length - 1), codeGenTokenizer.EncodeToIds(text.AsSpan(), ids.Length - 1, out normalizedString, out length));
+            Assert.Equal(ids.Take(ids.Length - expectedTokensToExclude), codeGenTokenizer.EncodeToIds(text.AsSpan(), ids.Length - 1, out normalizedString, out length));
             Assert.Null(normalizedString);
             Assert.Equal(expectedLength, length);
 
-            Assert.Equal(expectedIds.Take(expectedIds.Length - 1), codeGenTokenizer.EncodeToIds(text, expectedIds.Length - 1, addPrefixSpace: false, addBeginningOfSentence: false, addEndOfSentence: false, out normalizedString, out length));
+            Assert.Equal(expectedIds.Take(expectedIds.Length - expectedTokensToExclude), codeGenTokenizer.EncodeToIds(text, expectedIds.Length - 1, addPrefixSpace: false, addBeginningOfSentence: false, addEndOfSentence: false, out normalizedString, out length));
             Assert.Null(normalizedString);
-            expectedLength = expectedOffsets[expectedOffsets.Length - 2].Index + expectedOffsets[expectedOffsets.Length - 2].Length;
             Assert.Equal(expectedLength, length);
-            Assert.Equal(expectedIds.Take(expectedIds.Length - 1), codeGenTokenizer.EncodeToIds(text.AsSpan(), expectedIds.Length - 1, addPrefixSpace: false, addBeginningOfSentence: false, addEndOfSentence: false, out normalizedString, out length));
+            Assert.Equal(expectedIds.Take(expectedIds.Length - expectedTokensToExclude), codeGenTokenizer.EncodeToIds(text.AsSpan(), expectedIds.Length - 1, addPrefixSpace: false, addBeginningOfSentence: false, addEndOfSentence: false, out normalizedString, out length));
             Assert.Null(normalizedString);
             Assert.Equal(expectedLength, length);
 
-            Assert.Equal(expectedIdsWithSpace.Take(expectedIdsWithSpace.Length - 1), codeGenTokenizer.EncodeToIds(text, expectedIdsWithSpace.Length - 1, addPrefixSpace: true, addBeginningOfSentence: false, addEndOfSentence: false, out normalizedString, out length));
+            Assert.Equal(expectedIdsWithSpace.Take(expectedIdsWithSpace.Length - expectedTokensToExclude), codeGenTokenizer.EncodeToIds(text, expectedIdsWithSpace.Length - 1, addPrefixSpace: true, addBeginningOfSentence: false, addEndOfSentence: false, out normalizedString, out length));
             Assert.Null(normalizedString);
-            expectedLength = expectedOffsetsWithSpace[expectedOffsetsWithSpace.Length - 2].Index + expectedOffsetsWithSpace[expectedOffsetsWithSpace.Length - 2].Length;
             Assert.Equal(expectedLength, length);
-            Assert.Equal(expectedIdsWithSpace.Take(expectedIdsWithSpace.Length - 1), codeGenTokenizer.EncodeToIds(text.AsSpan(), expectedIdsWithSpace.Length - 1, addPrefixSpace: true, addBeginningOfSentence: false, addEndOfSentence: false, out normalizedString, out length));
+            Assert.Equal(expectedIdsWithSpace.Take(expectedIdsWithSpace.Length - expectedTokensToExclude), codeGenTokenizer.EncodeToIds(text.AsSpan(), expectedIdsWithSpace.Length - 1, addPrefixSpace: true, addBeginningOfSentence: false, addEndOfSentence: false, out normalizedString, out length));
             Assert.Null(normalizedString);
             Assert.Equal(expectedLength, length);
 
@@ -418,26 +417,30 @@ namespace Microsoft.ML.Tokenizers.Tests
             // LastIndexOf
             //
 
-            Assert.Equal(offsets[offsets.Length - 1].Index, codeGenTokenizer.LastIndexOfTokenCount(text, 1, out normalizedString, out tokenCount));
+            int expectedIndex = offsets.Length > 1 && offsets[offsets.Length - 1].Index == offsets[offsets.Length - 2].Index ? text.Length : offsets[offsets.Length - 1].Index;
+            int expectedTokenCount = expectedIndex == text.Length ? 0 : 1;
+            Assert.Equal(expectedIndex, codeGenTokenizer.LastIndexOfTokenCount(text, 1, out normalizedString, out tokenCount));
             Assert.Null(normalizedString);
-            Assert.Equal(1, tokenCount);
-            Assert.Equal(offsets[offsets.Length - 1].Index, codeGenTokenizer.LastIndexOfTokenCount(text.AsSpan(), 1, out normalizedString, out tokenCount));
+            Assert.Equal(expectedTokenCount, tokenCount);
+            Assert.Equal(expectedIndex, codeGenTokenizer.LastIndexOfTokenCount(text.AsSpan(), 1, out normalizedString, out tokenCount));
             Assert.Null(normalizedString);
-            Assert.Equal(1, tokenCount);
+            Assert.Equal(expectedTokenCount, tokenCount);
 
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 1].Index, codeGenTokenizer.LastIndexOfTokenCount(text, 1, addPrefixSpace: false, addBeginningOfSentence: false, addEndOfSentence: false, out normalizedString, out tokenCount));
+            Assert.Equal(expectedIndex, codeGenTokenizer.LastIndexOfTokenCount(text, 1, addPrefixSpace: false, addBeginningOfSentence: false, addEndOfSentence: false, out normalizedString, out tokenCount));
             Assert.Null(normalizedString);
-            Assert.Equal(1, tokenCount);
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 1].Index, codeGenTokenizer.LastIndexOfTokenCount(text.AsSpan(), 1, addPrefixSpace: false, addBeginningOfSentence: false, addEndOfSentence: false, out normalizedString, out tokenCount));
+            Assert.Equal(expectedTokenCount, tokenCount);
+            Assert.Equal(expectedIndex, codeGenTokenizer.LastIndexOfTokenCount(text.AsSpan(), 1, addPrefixSpace: false, addBeginningOfSentence: false, addEndOfSentence: false, out normalizedString, out tokenCount));
             Assert.Null(normalizedString);
-            Assert.Equal(1, tokenCount);
+            Assert.Equal(expectedTokenCount, tokenCount);
 
-            Assert.Equal(expectedOffsetsWithSpace[expectedOffsetsWithSpace.Length - 1].Index, codeGenTokenizer.LastIndexOfTokenCount(text, 1, addPrefixSpace: true, addBeginningOfSentence: false, addEndOfSentence: false, out normalizedString, out tokenCount));
+            expectedIndex = offsets.Length > 1 && expectedOffsetsWithSpace[expectedOffsetsWithSpace.Length - 1].Index == expectedOffsetsWithSpace[expectedOffsetsWithSpace.Length - 2].Index ? text.Length : expectedOffsetsWithSpace[expectedOffsetsWithSpace.Length - 1].Index;
+            expectedTokenCount = expectedIndex == text.Length ? 0 : 1;
+            Assert.Equal(expectedIndex, codeGenTokenizer.LastIndexOfTokenCount(text, 1, addPrefixSpace: true, addBeginningOfSentence: false, addEndOfSentence: false, out normalizedString, out tokenCount));
             Assert.Null(normalizedString);
-            Assert.Equal(1, tokenCount);
-            Assert.Equal(expectedOffsetsWithSpace[expectedOffsetsWithSpace.Length - 1].Index, codeGenTokenizer.LastIndexOfTokenCount(text.AsSpan(), 1, addPrefixSpace: true, addBeginningOfSentence: false, addEndOfSentence: false, out normalizedString, out tokenCount));
+            Assert.Equal(expectedTokenCount, tokenCount);
+            Assert.Equal(expectedIndex, codeGenTokenizer.LastIndexOfTokenCount(text.AsSpan(), 1, addPrefixSpace: true, addBeginningOfSentence: false, addEndOfSentence: false, out normalizedString, out tokenCount));
             Assert.Null(normalizedString);
-            Assert.Equal(1, tokenCount);
+            Assert.Equal(expectedTokenCount, tokenCount);
 
             //
             // Id to Token and Token to Id mapping
@@ -904,6 +907,51 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(DefaultSpecialToken, codeGenTokenizer.BeginningOfSentenceToken);
             Assert.Equal(DefaultSpecialToken, codeGenTokenizer.EndOfSentenceToken);
             Assert.Equal(DefaultSpecialToken, codeGenTokenizer.UnknownToken);
+        }
+
+        [Theory]
+        [InlineData(1, 0, 0, 0, 3)]
+        [InlineData(2, 2, 1, 2, 1)]
+        [InlineData(3, 2, 1, 2, 1)]
+        [InlineData(4, 4, 3, 4, 0)]
+        [InlineData(5, 4, 3, 4, 0)]
+        public void TestTokenLimits(int maxTokenCount, int expectedTokenCount, int expectedTextLength, int expectedTokenCountFromEnd, int expectedTextIndexFromEnd)
+        {
+            // cannot split between the first two tokens nor last two tokens
+            string input = "δ😀";
+            int[] encodingIds = [138, 112, 47249, 222];
+            (int Index, int Length)[] offsets = [(0, 0), (0, 1), (1, 0), (1, 2)];
+            int calculatedLengthUsingOffsets = expectedTokenCount > 0 ? offsets[expectedTokenCount - 1].Index + offsets[expectedTokenCount - 1].Length : 0;
+
+            IReadOnlyList<int> ids = _codegen350MMonoTokenizer.EncodeToIds(input, maxTokenCount, out _, out int textLength);
+            Assert.Equal(expectedTokenCount, ids.Count);
+            Assert.Equal(expectedTextLength, textLength);
+            Assert.Equal(encodingIds.Take(expectedTokenCount), ids);
+            Assert.Equal(calculatedLengthUsingOffsets, textLength);
+            ids = _codegen350MMonoTokenizer.EncodeToIds(input.AsSpan(), maxTokenCount, out _, out textLength);
+            Assert.Equal(expectedTokenCount, ids.Count);
+            Assert.Equal(expectedTextLength, textLength);
+            Assert.Equal(encodingIds.Take(expectedTokenCount), ids);
+            Assert.Equal(calculatedLengthUsingOffsets, textLength);
+
+            textLength = _codegen350MMonoTokenizer.IndexOfTokenCount(input, maxTokenCount, out _, out int tokenCount);
+            Assert.Equal(expectedTokenCount, tokenCount);
+            Assert.Equal(expectedTextLength, textLength);
+            Assert.Equal(calculatedLengthUsingOffsets, textLength);
+            textLength = _codegen350MMonoTokenizer.IndexOfTokenCount(input.AsSpan(), maxTokenCount, out _, out tokenCount);
+            Assert.Equal(expectedTokenCount, tokenCount);
+            Assert.Equal(expectedTextLength, textLength);
+            Assert.Equal(calculatedLengthUsingOffsets, textLength);
+
+            calculatedLengthUsingOffsets = expectedTokenCountFromEnd > 0 ? offsets[offsets.Length - expectedTokenCountFromEnd].Index : input.Length;
+            textLength = _codegen350MMonoTokenizer.LastIndexOfTokenCount(input, maxTokenCount, out _, out tokenCount);
+            Assert.Equal(expectedTokenCountFromEnd, tokenCount);
+            Assert.Equal(expectedTextIndexFromEnd, textLength);
+            Assert.Equal(calculatedLengthUsingOffsets, textLength);
+            textLength = _codegen350MMonoTokenizer.LastIndexOfTokenCount(input.AsSpan(), maxTokenCount, out _, out tokenCount);
+            Assert.Equal(expectedTokenCountFromEnd, tokenCount);
+            Assert.Equal(expectedTextIndexFromEnd, textLength);
+            Assert.Equal(calculatedLengthUsingOffsets, textLength);
         }
     }
 }
