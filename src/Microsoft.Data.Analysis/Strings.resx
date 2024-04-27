@@ -195,7 +195,7 @@
   <data name="InvalidFieldWidths" xml:space="preserve">
     <value>All field widths, except the last element, must be greater than zero. A field width less than or equal to zero in the last element indicates the last field is of variable length.</value>
   </data>
-  <data name="LessColumnsThanExpected" xml:space="preserve">
+  <data name="LessColumnsThatExpected" xml:space="preserve">
     <value>Line {0} has less columns than expected</value>
   </data>
   <data name="LineExceedsMaxLineSize" xml:space="preserve">

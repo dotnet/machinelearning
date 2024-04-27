@@ -297,9 +297,9 @@ namespace Microsoft.Data {
         /// <summary>
         ///   Looks up a localized string similar to Line {0} has less columns than expected.
         /// </summary>
-        internal static string LessColumnsThanExpected {
+        internal static string LessColumnsThatExpected {
             get {
-                return ResourceManager.GetString("LessColumnsThanExpected", resourceCulture);
+                return ResourceManager.GetString("LessColumnsThatExpected", resourceCulture);
             }
         }
         
