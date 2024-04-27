@@ -1652,5 +1652,21 @@ CMT,";
 
             customResultVerifyingHelper.VerifyLoadCsv(customDf);
         }
+
+        [Fact]
+        public void TestLoadCsvWithMismatchedNumberOfColumnsInDataRows()
+        {
+            // Victor line is missing the "LargeNumber" row
+            string csvString = """
+                Name,Age,Description,UpdatedOn,Weight,LargeNumber
+                Paul,34,"Paul lives in Vermont, VA.",2024-01-23T05:06:15.028,195.48,123
+                Victor,29,"Victor: Funny guy",2023-11-04T17:27:59.167,175.3
+                Clara,,,,,
+                Ellie,null,null,null,null,null
+                Maria,31,,2024-03-31T07:20:47.250,126,456
+                """;
+
+            Assert.Throws<FormatException>(() => DataFrame.LoadCsvFromString(csvString));
+        }
     }
 }
