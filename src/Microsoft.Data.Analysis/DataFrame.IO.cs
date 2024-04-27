@@ -60,7 +60,7 @@ namespace Microsoft.Data.Analysis
 
         private static Type GuessKind(int col, List<(long LineNumber, string[] Line)> read, Func<IEnumerable<string>, Type> guessTypeFunction)
         {
-            IEnumerable<string> lines = read.Select(line => col < line.Line.Length ? line.Line[col] : throw new FormatException(string.Format(Strings.LessColumnsThatExpected, line.LineNumber)));
+            IEnumerable<string> lines = read.Select(line => col < line.Line.Length ? line.Line[col] : throw new FormatException(string.Format(Strings.LessColumnsThanExpected, line.LineNumber)));
 
             return guessTypeFunction != null
                 ? guessTypeFunction.Invoke(lines)
