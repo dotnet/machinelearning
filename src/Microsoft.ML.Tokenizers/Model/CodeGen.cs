@@ -1068,7 +1068,7 @@ namespace Microsoft.ML.Tokenizers
             int tokenCount;
             for (tokenCount = 0; tokenCount < maxTokens; tokenCount++)
             {
-                // maxTokens is less than tokens.Count, so it is safe to
+                // maxTokens is less than tokens.Count, so it is safe to index maxTokens.
                 if (tokens[tokenCount].Offset.Index == tokens[tokenCount + 1].Offset.Index)
                 {
                     // Ensure we'll not break the text in the middle of a code-point
@@ -1122,13 +1122,11 @@ namespace Microsoft.ML.Tokenizers
             }
 
             int index = tokens.Count - maxTokens;
-            if (index > 0)
+
+            // avoid breaking the text in the middle of a code-point
+            while (index < tokens.Count && tokens[index].Offset.Index == tokens[index - 1].Offset.Index)
             {
-                // avoid breaking the text in the middle of a code-point
-                while (index < tokens.Count && tokens[index].Offset.Index == tokens[index - 1].Offset.Index)
-                {
-                    index++;
-                }
+                index++;
             }
 
             for (int i = index; i < tokens.Count; i++)
