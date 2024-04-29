@@ -1517,41 +1517,41 @@ CMT,";
         public void TestLoadCsvWithGuessTypes()
         {
             string csvString = """
-                Name,Age,Description,UpdatedOn,Weight,LargeNumber
-                Paul,34,"Paul lives in Vermont, VA.",2024-01-23T05:06:15.028,195.48,123
-                Victor,29,"Victor: Funny guy",2023-11-04T17:27:59.167,175.3,2147483648
-                Clara,,,,,
-                Ellie,null,null,null,null,null
-                Maria,31,,2024-03-31T07:20:47.250,126,456
+                Name,Age,Description,UpdatedOn,Weight,LargeNumber,NullColumn
+                Paul,34,"Paul lives in Vermont, VA.",2024-01-23T05:06:15.028,195.48,123,null
+                Victor,29,"Victor: Funny guy",2023-11-04T17:27:59.167,175.3,2147483648,null
+                Clara,,,,,,null
+                Ellie,null,null,null,null,null,null
+                Maria,31,,2024-03-31T07:20:47.250,126,456,null
                 """;
 
             var defaultResultVerifyingHelper = new LoadCsvVerifyingHelper(
-                    6,
+                    7,
                     5,
-                    new string[] { "Name", "Age", "Description", "UpdatedOn", "Weight", "LargeNumber" },
-                    new Type[] { typeof(string), typeof(float), typeof(string), typeof(DateTime), typeof(float), typeof(float) },
+                    new string[] { "Name", "Age", "Description", "UpdatedOn", "Weight", "LargeNumber", "NullColumn" },
+                    new Type[] { typeof(string), typeof(float), typeof(string), typeof(DateTime), typeof(float), typeof(float), typeof(string) },
                     new object[][]
                     {
-                        new object[] { "Paul", 34f, "Paul lives in Vermont, VA.",  DateTime.Parse("2024-01-23T05:06:15.028"), 195.48f, 123f },
-                        new object[] { "Victor", 29f, "Victor: Funny guy", DateTime.Parse("2023-11-04T17:27:59.167"), 175.3f, 2147483648f },
-                        new object[] { "Clara", null, "", null, null, null },
-                        new object[] { "Ellie", null, null, null, null, null },
-                        new object[] { "Maria", 31f, "", DateTime.Parse("2024-03-31T07:20:47.250"), 126f, 456f }
+                        new object[] { "Paul", 34f, "Paul lives in Vermont, VA.",  DateTime.Parse("2024-01-23T05:06:15.028"), 195.48f, 123f, null },
+                        new object[] { "Victor", 29f, "Victor: Funny guy", DateTime.Parse("2023-11-04T17:27:59.167"), 175.3f, 2147483648f, null },
+                        new object[] { "Clara", null, "", null, null, null, null },
+                        new object[] { "Ellie", null, null, null, null, null, null },
+                        new object[] { "Maria", 31f, "", DateTime.Parse("2024-03-31T07:20:47.250"), 126f, 456f, null }
                     }
                 );
 
             var customResultVerifyingHelper = new LoadCsvVerifyingHelper(
-                    6,
+                    7,
                     5,
-                    new string[] { "Name", "Age", "Description", "UpdatedOn", "Weight", "LargeNumber" },
-                    new Type[] { typeof(string), typeof(int), typeof(string), typeof(DateTime), typeof(double), typeof(long) },
+                    new string[] { "Name", "Age", "Description", "UpdatedOn", "Weight", "LargeNumber", "NullColumn" },
+                    new Type[] { typeof(string), typeof(int), typeof(string), typeof(DateTime), typeof(double), typeof(long), typeof(string) },
                     new object[][]
                     {
-                        new object[] { "Paul", 34, "Paul lives in Vermont, VA.",  DateTime.Parse("2024-01-23T05:06:15.028"), 195.48, 123L },
-                        new object[] { "Victor", 29, "Victor: Funny guy", DateTime.Parse("2023-11-04T17:27:59.167"), 175.3, 2147483648L },
-                        new object[] { "Clara", null, "", null, null, null },
-                        new object[] { "Ellie", null, null, null, null, null },
-                        new object[] { "Maria", 31, "", DateTime.Parse("2024-03-31T07:20:47.250"), 126.0, 456L }
+                        new object[] { "Paul", 34, "Paul lives in Vermont, VA.",  DateTime.Parse("2024-01-23T05:06:15.028"), 195.48, 123L, null },
+                        new object[] { "Victor", 29, "Victor: Funny guy", DateTime.Parse("2023-11-04T17:27:59.167"), 175.3, 2147483648L, null },
+                        new object[] { "Clara", null, "", null, null, null, null },
+                        new object[] { "Ellie", null, null, null, null, null, null },
+                        new object[] { "Maria", 31, "", DateTime.Parse("2024-03-31T07:20:47.250"), 126.0, 456L, null }
                     }
                 );
 
