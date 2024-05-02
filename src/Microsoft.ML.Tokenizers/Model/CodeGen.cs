@@ -5,6 +5,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -21,8 +22,8 @@ namespace Microsoft.ML.Tokenizers
     public sealed class CodeGen : Tokenizer
     {
         private readonly Dictionary<StringSpanOrdinalKey, (int Id, string Token)> _vocab;
-        private Dictionary<string, int>? _vocabOriginal;
-        private readonly Dictionary<int, string> _vocabReverse;
+        private IReadOnlyDictionary<string, int>? _vocabOriginal;
+        private readonly IReadOnlyDictionary<int, string> _vocabReverse;
         private readonly Dictionary<StringSpanOrdinalKey, (int, string)>? _addedTokens;
         private readonly Dictionary<int, string>? _addedTokensReverse;
         private readonly Dictionary<StringSpanOrdinalKeyPair, int> _mergeRanks;
@@ -31,6 +32,7 @@ namespace Microsoft.ML.Tokenizers
         private readonly Normalizer? _normalizer;
         private const int MaxTokenLengthToCache = 15;
         private const string DefaultSpecialToken = "<|endoftext|>";
+        private const int BufferLength = 128;
 
         /// <summary>
         /// Construct tokenizer's model object to use with the English Robert model.
@@ -123,65 +125,70 @@ namespace Microsoft.ML.Tokenizers
             _mergeRanks = GetMergeRanks(mergeStream);
             _cache = new StringSpanOrdinalKeyCache<List<Token>>();
 
-            if (addedTokens is not null)
+            try
             {
-                AddedTokens = addedTokens;
-                _addedTokens = addedTokens.ToDictionary(kvp => new StringSpanOrdinalKey(kvp.Key), kvp => (kvp.Value, kvp.Key));
-                _addedTokensReverse = addedTokens.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
-            }
-
-            UnknownToken = unknownToken;
-            BeginningOfSentenceToken = beginningOfSentenceToken;
-            EndOfSentenceToken = endOfSentenceToken;
-
-            AddPrefixSpace = addPrefixSpace;
-            AddBeginningOfSentence = addBeginningOfSentence;
-            AddEndOfSentence = addEndOfSentence;
-
-            if (!string.IsNullOrEmpty(UnknownToken))
-            {
-                if (!_vocab.TryGetValue(UnknownToken!, out (int unknownId, string token) value))
+                if (addedTokens is not null)
                 {
-                    throw new ArgumentException($"The Unknown token '{UnknownToken}' is not found in the vocabulary.");
+                    AddedTokens = addedTokens;
+                    _addedTokens = addedTokens.ToDictionary(kvp => new StringSpanOrdinalKey(kvp.Key), kvp => (kvp.Value, kvp.Key));
+                    _addedTokensReverse = addedTokens.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
                 }
 
-                UnknownTokenId = value.unknownId;
-            }
+                UnknownToken = unknownToken;
+                BeginningOfSentenceToken = beginningOfSentenceToken;
+                EndOfSentenceToken = endOfSentenceToken;
 
-            if (!string.IsNullOrEmpty(BeginningOfSentenceToken))
-            {
-                if (!_vocab.TryGetValue(BeginningOfSentenceToken!, out (int beggingOfSentenceId, string token) value))
+                AddPrefixSpace = addPrefixSpace;
+                AddBeginningOfSentence = addBeginningOfSentence;
+                AddEndOfSentence = addEndOfSentence;
+
+                if (!string.IsNullOrEmpty(UnknownToken))
                 {
-                    throw new ArgumentException($"The beginning of sentence token '{BeginningOfSentenceToken}' is not found in the vocabulary.");
+                    if (!_vocab.TryGetValue(UnknownToken!, out (int unknownId, string token) value))
+                    {
+                        throw new ArgumentException($"The Unknown token '{UnknownToken}' is not found in the vocabulary.");
+                    }
+
+                    UnknownTokenId = value.unknownId;
                 }
 
-                BeginningOfSentenceId = value.beggingOfSentenceId;
-            }
-
-            if (!string.IsNullOrEmpty(EndOfSentenceToken))
-            {
-                if (!_vocab.TryGetValue(EndOfSentenceToken!, out (int endOfSentenceId, string token) value))
+                if (!string.IsNullOrEmpty(BeginningOfSentenceToken))
                 {
-                    throw new ArgumentException($"The end of sentence token '{EndOfSentenceToken}' is not found in the vocabulary.");
+                    if (!_vocab.TryGetValue(BeginningOfSentenceToken!, out (int beggingOfSentenceId, string token) value))
+                    {
+                        throw new ArgumentException($"The beginning of sentence token '{BeginningOfSentenceToken}' is not found in the vocabulary.");
+                    }
+
+                    BeginningOfSentenceId = value.beggingOfSentenceId;
                 }
 
-                EndOfSentenceId = value.endOfSentenceId;
-            }
+                if (!string.IsNullOrEmpty(EndOfSentenceToken))
+                {
+                    if (!_vocab.TryGetValue(EndOfSentenceToken!, out (int endOfSentenceId, string token) value))
+                    {
+                        throw new ArgumentException($"The end of sentence token '{EndOfSentenceToken}' is not found in the vocabulary.");
+                    }
 
-            if (AddBeginningOfSentence && string.IsNullOrEmpty(BeginningOfSentenceToken))
-            {
-                throw new ArgumentException("The beginning of sentence token must be provided when the flag is set to include it in the encoding.");
-            }
+                    EndOfSentenceId = value.endOfSentenceId;
+                }
 
-            if (AddEndOfSentence && string.IsNullOrEmpty(EndOfSentenceToken))
-            {
-                throw new ArgumentException("The end of sentence token must be provided when the flag is set to include it in the encoding.");
-            }
+                if (AddBeginningOfSentence && string.IsNullOrEmpty(BeginningOfSentenceToken))
+                {
+                    throw new ArgumentException("The beginning of sentence token must be provided when the flag is set to include it in the encoding.");
+                }
 
-            if (disposeStream)
+                if (AddEndOfSentence && string.IsNullOrEmpty(EndOfSentenceToken))
+                {
+                    throw new ArgumentException("The end of sentence token must be provided when the flag is set to include it in the encoding.");
+                }
+            }
+            finally
             {
-                vocabularyStream.Dispose();
-                mergeStream.Dispose();
+                if (disposeStream)
+                {
+                    vocabularyStream.Dispose();
+                    mergeStream.Dispose();
+                }
             }
         }
 
@@ -252,10 +259,10 @@ namespace Microsoft.ML.Tokenizers
         {
             get
             {
-                Dictionary<string, int>? publicVocab = Volatile.Read(ref _vocabOriginal);
+                IReadOnlyDictionary<string, int>? publicVocab = Volatile.Read(ref _vocabOriginal);
                 if (publicVocab is null)
                 {
-                    var vocab = _vocab.ToDictionary(kvp => kvp.Value.Token, kvp => kvp.Value.Id);
+                    var vocab = new ReadOnlyDictionary<string, int>(_vocab.ToDictionary(kvp => kvp.Value.Token, kvp => kvp.Value.Id));
                     Interlocked.CompareExchange(ref _vocabOriginal, vocab, null);
                     publicVocab = _vocabOriginal;
                 }
@@ -326,61 +333,65 @@ namespace Microsoft.ML.Tokenizers
                 return [];
             }
 
-            const int bufferLength = 128;
             char[]? mutatedInputText = null;
-            Span<char> mutatedInputSpan = stackalloc char[bufferLength];
-            scoped ReadOnlySpan<char> textSpanToEncode;
-            IEnumerable<(int Offset, int Length)>? splits;
-            if (addPrefixSpace)
+            try
             {
-                ReadOnlySpan<char> span = text is null ? textSpan : text.AsSpan();
-                if (span.Length + 1 > bufferLength)
+                Span<char> mutatedInputSpan = stackalloc char[BufferLength];
+                scoped ReadOnlySpan<char> textSpanToEncode;
+                IEnumerable<(int Offset, int Length)>? splits;
+                if (addPrefixSpace)
                 {
-                    mutatedInputText = ArrayPool<char>.Shared.Rent(span.Length + 1);
-                    mutatedInputSpan = mutatedInputText;
+                    ReadOnlySpan<char> span = text is null ? textSpan : text.AsSpan();
+                    if (span.Length + 1 > BufferLength)
+                    {
+                        mutatedInputText = ArrayPool<char>.Shared.Rent(span.Length + 1);
+                        mutatedInputSpan = mutatedInputText;
+                    }
+                    mutatedInputSpan[0] = ' ';
+                    span.CopyTo(mutatedInputSpan.Slice(1));
+                    span = mutatedInputSpan.Slice(0, span.Length + 1);
+
+                    splits = InitializeForEncoding(null, span, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode);
                 }
-                mutatedInputSpan[0] = ' ';
-                span.CopyTo(mutatedInputSpan.Slice(1));
-                span = mutatedInputSpan.Slice(0, span.Length + 1);
-
-                splits = InitializeForEncoding(null, span, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode);
-            }
-            else
-            {
-                splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode);
-            }
-
-            List<Token> tokens = new();
-            if (addBos && BeginningOfSentenceId.HasValue)
-            {
-                tokens.Add(new Token(BeginningOfSentenceId.Value, BeginningOfSentenceToken!, (0, 0)));
-            }
-
-            PriorityQueue<SymbolPair> agenda = new(textSpanToEncode.Length);
-
-            if (splits is not null)
-            {
-                foreach ((int Offset, int Length) split in splits)
+                else
                 {
-                    EncodeInternal(null, textSpanToEncode.Slice(split.Offset, split.Length), tokens, addPrefixSpace, split.Offset, agenda);
+                    splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode);
+                }
+
+                List<Token> tokens = new();
+                if (addBos && BeginningOfSentenceId.HasValue)
+                {
+                    tokens.Add(new Token(BeginningOfSentenceId.Value, BeginningOfSentenceToken!, (0, 0)));
+                }
+
+                PriorityQueue<SymbolPair> agenda = new(textSpanToEncode.Length);
+
+                if (splits is not null)
+                {
+                    foreach ((int Offset, int Length) split in splits)
+                    {
+                        EncodeInternal(null, textSpanToEncode.Slice(split.Offset, split.Length), tokens, addPrefixSpace, split.Offset, agenda);
+                    }
+                }
+                else
+                {
+                    EncodeInternal(addPrefixSpace ? null : (normalizedString ?? text), textSpanToEncode, tokens, addPrefixSpace, 0, agenda);
+                }
+
+                if (addEos && EndOfSentenceId.HasValue)
+                {
+                    tokens.Add(new Token(EndOfSentenceId.Value, EndOfSentenceToken!, (addPrefixSpace ? Math.Max(0, textSpanToEncode.Length - 1) : textSpanToEncode.Length, 0)));
+                }
+
+                return tokens;
+            }
+            finally
+            {
+                if (mutatedInputText is not null)
+                {
+                    ArrayPool<char>.Shared.Return(mutatedInputText);
                 }
             }
-            else
-            {
-                EncodeInternal(addPrefixSpace ? null : (normalizedString ?? text), textSpanToEncode, tokens, addPrefixSpace, 0, agenda);
-            }
-
-            if (addEos && EndOfSentenceId.HasValue)
-            {
-                tokens.Add(new Token(EndOfSentenceId.Value, EndOfSentenceToken!, (addPrefixSpace ? Math.Max(0, textSpanToEncode.Length - 1) : textSpanToEncode.Length, 0)));
-            }
-
-            if (mutatedInputText is not null)
-            {
-                ArrayPool<char>.Shared.Return(mutatedInputText);
-            }
-
-            return tokens;
         }
 
         /// <summary>
@@ -411,39 +422,43 @@ namespace Microsoft.ML.Tokenizers
                 return;
             }
 
-            const int bufferLength = 64;
-            Span<char> token = stackalloc char[bufferLength];
-            Span<int> mapping = stackalloc int[bufferLength];
+            Span<char> token = stackalloc char[BufferLength];
+            Span<int> mapping = stackalloc int[BufferLength];
             char[]? tokenBuffer = null;
             int[]? mappingBuffer = null;
 
-            int destinationMaxSize = Encoding.UTF8.GetMaxByteCount(textSpan.Length);
-            if (destinationMaxSize > bufferLength)
+            try
             {
-                tokenBuffer = ArrayPool<char>.Shared.Rent(destinationMaxSize);
-                token = tokenBuffer;
+                int destinationMaxSize = Encoding.UTF8.GetMaxByteCount(textSpan.Length);
+                if (destinationMaxSize > BufferLength)
+                {
+                    tokenBuffer = ArrayPool<char>.Shared.Rent(destinationMaxSize);
+                    token = tokenBuffer;
 
-                mappingBuffer = ArrayPool<int>.Shared.Rent(destinationMaxSize);
-                mapping = mappingBuffer;
+                    mappingBuffer = ArrayPool<int>.Shared.Rent(destinationMaxSize);
+                    mapping = mappingBuffer;
+                }
+
+                int encodedLength = Helpers.EncodeToUtf8AndTransform(textSpan, token, mapping);
+
+                List<Token> result = EncodeToTokens(token.Slice(0, encodedLength), mapping.Slice(0, encodedLength), textSpan, agenda);
+
+                if (textSpan.Length <= MaxTokenLengthToCache)
+                {
+                    _cache.Set(text is null ? textSpan.ToString() : text, result);
+                }
+
+                AppendTokenWithOffsetAdjusting(result, tokens, offset, addPrefixSpace);
             }
-
-            int encodedLength = Helpers.EncodeToUtf8AndTransform(textSpan, token, mapping);
-
-            List<Token> result = EncodeToTokens(token.Slice(0, encodedLength), mapping.Slice(0, encodedLength), textSpan, agenda);
-
-            if (textSpan.Length <= MaxTokenLengthToCache)
+            finally
             {
-                _cache.Set(text is null ? textSpan.ToString() : text, result);
+                if (tokenBuffer is not null)
+                {
+                    ArrayPool<char>.Shared.Return(tokenBuffer);
+                    Debug.Assert(mappingBuffer is not null);
+                    ArrayPool<int>.Shared.Return(mappingBuffer);
+                }
             }
-
-            if (tokenBuffer is not null)
-            {
-                ArrayPool<char>.Shared.Return(tokenBuffer);
-                Debug.Assert(mappingBuffer is not null);
-                ArrayPool<int>.Shared.Return(mappingBuffer);
-            }
-
-            AppendTokenWithOffsetAdjusting(result, tokens, offset, addPrefixSpace);
         }
 
         /// <summary>
@@ -574,74 +589,79 @@ namespace Microsoft.ML.Tokenizers
                 return [];
             }
 
-            const int bufferLength = 128;
             char[]? mutatedInputText = null;
-            Span<char> mutatedInputSpan = stackalloc char[bufferLength];
-            scoped ReadOnlySpan<char> textSpanToEncode;
-            IEnumerable<(int Offset, int Length)>? splits;
-            if (addPrefixSpace)
+
+            try
             {
-                ReadOnlySpan<char> span = text is null ? textSpan : text.AsSpan();
-                if (span.Length + 1 > bufferLength)
+                Span<char> mutatedInputSpan = stackalloc char[BufferLength];
+                scoped ReadOnlySpan<char> textSpanToEncode;
+                IEnumerable<(int Offset, int Length)>? splits;
+                if (addPrefixSpace)
                 {
-                    mutatedInputText = ArrayPool<char>.Shared.Rent(span.Length + 1);
-                    mutatedInputSpan = mutatedInputText;
-                }
-                mutatedInputSpan[0] = ' ';
-                span.CopyTo(mutatedInputSpan.Slice(1));
-                span = mutatedInputSpan.Slice(0, span.Length + 1);
-
-                splits = InitializeForEncoding(null, span, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode);
-            }
-            else
-            {
-                splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode);
-            }
-
-            List<int> ids = new();
-
-            if (addBeginningOfSentence && BeginningOfSentenceId.HasValue)
-            {
-                ids.Add(BeginningOfSentenceId.Value);
-            }
-
-            PriorityQueue<SymbolPair> agenda = new(textSpanToEncode.Length);
-
-            if (splits is not null)
-            {
-                textLength = 0;
-                foreach ((int Offset, int Length) split in splits)
-                {
-                    EncodeToIdsInternal(null, textSpanToEncode.Slice(split.Offset, split.Length), ids, agenda, out int length, maxTokenCount - ids.Count);
-                    textLength = split.Offset + length;
-
-                    if (length < split.Length || ids.Count >= maxTokenCount)
+                    ReadOnlySpan<char> span = text is null ? textSpan : text.AsSpan();
+                    if (span.Length + 1 > BufferLength)
                     {
-                        break;
+                        mutatedInputText = ArrayPool<char>.Shared.Rent(span.Length + 1);
+                        mutatedInputSpan = mutatedInputText;
+                    }
+                    mutatedInputSpan[0] = ' ';
+                    span.CopyTo(mutatedInputSpan.Slice(1));
+                    span = mutatedInputSpan.Slice(0, span.Length + 1);
+
+                    splits = InitializeForEncoding(null, span, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode);
+                }
+                else
+                {
+                    splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode);
+                }
+
+                List<int> ids = new();
+
+                if (addBeginningOfSentence && BeginningOfSentenceId.HasValue)
+                {
+                    ids.Add(BeginningOfSentenceId.Value);
+                }
+
+                PriorityQueue<SymbolPair> agenda = new(textSpanToEncode.Length);
+
+                if (splits is not null)
+                {
+                    textLength = 0;
+                    foreach ((int Offset, int Length) split in splits)
+                    {
+                        EncodeToIdsInternal(null, textSpanToEncode.Slice(split.Offset, split.Length), ids, agenda, out int length, maxTokenCount - ids.Count);
+                        textLength = split.Offset + length;
+
+                        if (length < split.Length || ids.Count >= maxTokenCount)
+                        {
+                            break;
+                        }
                     }
                 }
-            }
-            else
-            {
-                EncodeToIdsInternal(addPrefixSpace ? null : (normalizedString ?? text), textSpanToEncode, ids, agenda, out textLength, maxTokenCount - ids.Count);
-            }
+                else
+                {
+                    EncodeToIdsInternal(addPrefixSpace ? null : (normalizedString ?? text), textSpanToEncode, ids, agenda, out textLength, maxTokenCount - ids.Count);
+                }
 
-            if (mutatedInputText is not null)
-            {
-                ArrayPool<char>.Shared.Return(mutatedInputText);
-            }
+                if (addEndOfSentence && EndOfSentenceId.HasValue && ids.Count < maxTokenCount)
+                {
+                    ids.Add(EndOfSentenceId.Value);
+                }
 
-            if (addEndOfSentence && EndOfSentenceId.HasValue && ids.Count < maxTokenCount)
-            {
-                ids.Add(EndOfSentenceId.Value);
-            }
+                if (addPrefixSpace && textLength > 0)
+                {
+                    textLength--;
+                }
 
-            if (addPrefixSpace && textLength > 0)
-            {
-                textLength--;
+                return ids;
             }
-
-            return ids;
+            finally
+            {
+                if (mutatedInputText is not null)
+                {
+                    ArrayPool<char>.Shared.Return(mutatedInputText);
+                }
+            }
         }
 
         /// <summary>
@@ -809,67 +829,73 @@ namespace Microsoft.ML.Tokenizers
                 return 0;
             }
 
-            const int bufferLength = 128;
             char[]? mutatedInputText = null;
-            Span<char> mutatedInputSpan = stackalloc char[bufferLength];
-            scoped ReadOnlySpan<char> textSpanToEncode;
-            IEnumerable<(int Offset, int Length)>? splits;
-            if (addPrefixSpace)
+
+            try
             {
-                ReadOnlySpan<char> span = text is null ? textSpan : text.AsSpan();
-                if (span.Length + 1 > bufferLength)
+
+                Span<char> mutatedInputSpan = stackalloc char[BufferLength];
+                scoped ReadOnlySpan<char> textSpanToEncode;
+                IEnumerable<(int Offset, int Length)>? splits;
+                if (addPrefixSpace)
                 {
-                    mutatedInputText = ArrayPool<char>.Shared.Rent(span.Length + 1);
-                    mutatedInputSpan = mutatedInputText;
-                }
-                mutatedInputSpan[0] = ' ';
-                span.CopyTo(mutatedInputSpan.Slice(1));
-                span = mutatedInputSpan.Slice(0, span.Length + 1);
-
-                splits = InitializeForEncoding(null, span, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode);
-            }
-            else
-            {
-                splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode);
-            }
-
-            PriorityQueue<SymbolPair> agenda = new(textSpanToEncode.Length);
-
-            int count = (addBeginningOfSentence && BeginningOfSentenceId.HasValue) ? 1 : 0;
-            if (splits is not null)
-            {
-                foreach ((int Offset, int Length) split in splits)
-                {
-                    count += EncodeToIdsInternal(null, textSpanToEncode.Slice(split.Offset, split.Length), null, agenda, out int length, maxTokenCount - count);
-                    textLength = split.Offset + length;
-
-                    if (length < split.Length || count >= maxTokenCount)
+                    ReadOnlySpan<char> span = text is null ? textSpan : text.AsSpan();
+                    if (span.Length + 1 > BufferLength)
                     {
-                        break;
+                        mutatedInputText = ArrayPool<char>.Shared.Rent(span.Length + 1);
+                        mutatedInputSpan = mutatedInputText;
+                    }
+                    mutatedInputSpan[0] = ' ';
+                    span.CopyTo(mutatedInputSpan.Slice(1));
+                    span = mutatedInputSpan.Slice(0, span.Length + 1);
+
+                    splits = InitializeForEncoding(null, span, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode);
+                }
+                else
+                {
+                    splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode);
+                }
+
+                PriorityQueue<SymbolPair> agenda = new(textSpanToEncode.Length);
+
+                int count = (addBeginningOfSentence && BeginningOfSentenceId.HasValue) ? 1 : 0;
+                if (splits is not null)
+                {
+                    foreach ((int Offset, int Length) split in splits)
+                    {
+                        count += EncodeToIdsInternal(null, textSpanToEncode.Slice(split.Offset, split.Length), null, agenda, out int length, maxTokenCount - count);
+                        textLength = split.Offset + length;
+
+                        if (length < split.Length || count >= maxTokenCount)
+                        {
+                            break;
+                        }
                     }
                 }
-            }
-            else
-            {
-                count = EncodeToIdsInternal(addPrefixSpace ? null : text, textSpanToEncode, null, agenda, out textLength, maxTokenCount - count);
-            }
+                else
+                {
+                    count = EncodeToIdsInternal(addPrefixSpace ? null : text, textSpanToEncode, null, agenda, out textLength, maxTokenCount - count);
+                }
 
-            if (mutatedInputText is not null)
-            {
-                ArrayPool<char>.Shared.Return(mutatedInputText);
-            }
+                if (addEndOfSentence && EndOfSentenceId.HasValue && count < maxTokenCount)
+                {
+                    count++;
+                }
 
-            if (addEndOfSentence && EndOfSentenceId.HasValue && count < maxTokenCount)
-            {
-                count++;
-            }
+                if (addPrefixSpace && textLength > 0)
+                {
+                    textLength--;
+                }
 
-            if (addPrefixSpace && textLength > 0)
-            {
-                textLength--;
+                return count;
             }
-
-            return count;
+            finally
+            {
+                if (mutatedInputText is not null)
+                {
+                    ArrayPool<char>.Shared.Return(mutatedInputText);
+                }
+            }
         }
 
         /// <summary>
@@ -980,71 +1006,69 @@ namespace Microsoft.ML.Tokenizers
                 return 0;
             }
 
-            const int bufferLength = 128;
             char[]? mutatedInputText = null;
-            Span<char> mutatedInputSpan = stackalloc char[bufferLength];
-            scoped ReadOnlySpan<char> textSpanToEncode;
-            IEnumerable<(int Offset, int Length)>? splits;
-            if (addPrefixSpace)
+
+            try
             {
-                ReadOnlySpan<char> span = text is null ? textSpan : text.AsSpan();
-                if (span.Length + 1 > bufferLength)
+                Span<char> mutatedInputSpan = stackalloc char[BufferLength];
+                scoped ReadOnlySpan<char> textSpanToEncode;
+                IEnumerable<(int Offset, int Length)>? splits;
+                if (addPrefixSpace)
                 {
-                    mutatedInputText = ArrayPool<char>.Shared.Rent(span.Length + 1);
-                    mutatedInputSpan = mutatedInputText;
-                }
-                mutatedInputSpan[0] = ' ';
-                span.CopyTo(mutatedInputSpan.Slice(1));
-                span = mutatedInputSpan.Slice(0, span.Length + 1);
-
-                splits = InitializeForEncoding(null, span, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode);
-            }
-            else
-            {
-                splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode);
-            }
-
-            PriorityQueue<SymbolPair> agenda = new(textSpanToEncode.Length);
-
-            tokenCount = (addEndOfSentence && EndOfSentenceId.HasValue) ? 1 : 0;
-
-            if (splits is not null)
-            {
-                foreach ((int Offset, int Length) split in splits.Reverse())
-                {
-                    tokenCount += EncodeToIdsFromEndInternal(null, textSpanToEncode.Slice(split.Offset, split.Length), null, agenda, out int textIndex, maxTokenCount - tokenCount);
-                    if (textIndex > 0 || tokenCount >= maxTokenCount)
+                    ReadOnlySpan<char> span = text is null ? textSpan : text.AsSpan();
+                    if (span.Length + 1 > BufferLength)
                     {
-                        if (mutatedInputText is not null)
+                        mutatedInputText = ArrayPool<char>.Shared.Rent(span.Length + 1);
+                        mutatedInputSpan = mutatedInputText;
+                    }
+                    mutatedInputSpan[0] = ' ';
+                    span.CopyTo(mutatedInputSpan.Slice(1));
+                    span = mutatedInputSpan.Slice(0, span.Length + 1);
+
+                    splits = InitializeForEncoding(null, span, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode);
+                }
+                else
+                {
+                    splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode);
+                }
+
+                PriorityQueue<SymbolPair> agenda = new(textSpanToEncode.Length);
+
+                tokenCount = (addEndOfSentence && EndOfSentenceId.HasValue) ? 1 : 0;
+
+                int retIndex = -1;
+                if (splits is not null)
+                {
+                    foreach ((int Offset, int Length) split in splits.Reverse())
+                    {
+                        tokenCount += EncodeToIdsFromEndInternal(null, textSpanToEncode.Slice(split.Offset, split.Length), null, agenda, out int textIndex, maxTokenCount - tokenCount);
+                        if (textIndex > 0 || tokenCount >= maxTokenCount)
                         {
-                            ArrayPool<char>.Shared.Return(mutatedInputText);
+                            retIndex = addPrefixSpace ? split.Offset + textIndex - 1 : split.Offset + textIndex;
+                            break;
                         }
-                        return addPrefixSpace ? split.Offset + textIndex - 1 : split.Offset + textIndex;
                     }
                 }
+                else
+                {
+                    tokenCount = EncodeToIdsFromEndInternal(addPrefixSpace ? null : text, textSpanToEncode, null, agenda, out int textLength, maxTokenCount - tokenCount);
+                    retIndex = addPrefixSpace ? Math.Max(0, textLength - 1) : textLength;
+                }
+
+                if (addBeginningOfSentence && BeginningOfSentenceId.HasValue && tokenCount < maxTokenCount)
+                {
+                    tokenCount++;
+                }
+
+                return Math.Max(retIndex, 0);
             }
-            else
+            finally
             {
-                tokenCount = EncodeToIdsFromEndInternal(addPrefixSpace ? null : text, textSpanToEncode, null, agenda, out int textLength, maxTokenCount - tokenCount);
                 if (mutatedInputText is not null)
                 {
                     ArrayPool<char>.Shared.Return(mutatedInputText);
                 }
-
-                return addPrefixSpace ? Math.Max(0, textLength - 1) : textLength;
             }
-
-            if (mutatedInputText is not null)
-            {
-                ArrayPool<char>.Shared.Return(mutatedInputText);
-            }
-
-            if (addBeginningOfSentence && BeginningOfSentenceId.HasValue && tokenCount < maxTokenCount)
-            {
-                tokenCount++;
-            }
-
-            return 0;
         }
 
         private int EncodeToIdsResult(List<Token> tokens, IList<int>? accumulatedIds, int maxTokens, int fullTextLength, out int textLength)
@@ -1146,8 +1170,6 @@ namespace Microsoft.ML.Tokenizers
                 return 0;
             }
 
-            const int bufferLength = 100;
-
             if (_addedTokens is not null && _addedTokens.TryGetValue(textSpan, out (int addedTokenId, string addedToken) value) && maxTokens > 0)
             {
                 if (accumulatedIds is not null)
@@ -1164,39 +1186,44 @@ namespace Microsoft.ML.Tokenizers
                 return EncodeToIdsResult(hit, accumulatedIds, maxTokens, textSpan.Length, out textLength);
             }
 
-            Span<char> token = stackalloc char[bufferLength];
-            Span<int> mapping = stackalloc int[bufferLength];
+            Span<char> token = stackalloc char[BufferLength];
+            Span<int> mapping = stackalloc int[BufferLength];
             char[]? tokenBuffer = null;
             int[]? mappingBuffer = null;
 
-            int destinationMaxSize = Encoding.UTF8.GetMaxByteCount(textSpan.Length);
-            if (destinationMaxSize > token.Length)
+            try
             {
-                tokenBuffer = ArrayPool<char>.Shared.Rent(destinationMaxSize);
-                token = tokenBuffer;
+                int destinationMaxSize = Encoding.UTF8.GetMaxByteCount(textSpan.Length);
+                if (destinationMaxSize > token.Length)
+                {
+                    tokenBuffer = ArrayPool<char>.Shared.Rent(destinationMaxSize);
+                    token = tokenBuffer;
 
-                mappingBuffer = ArrayPool<int>.Shared.Rent(destinationMaxSize);
-                mapping = mappingBuffer;
+                    mappingBuffer = ArrayPool<int>.Shared.Rent(destinationMaxSize);
+                    mapping = mappingBuffer;
+                }
+
+                int encodedLength = Helpers.EncodeToUtf8AndTransform(textSpan, token, mapping);
+
+                List<Token> result = EncodeToTokens(token.Slice(0, encodedLength), mapping.Slice(0, encodedLength), textSpan, agenda);
+
+                int length = text is not null ? text.Length : textSpan.Length;
+                if (length <= MaxTokenLengthToCache)
+                {
+                    _cache.Set(text ?? textSpan.ToString(), result);
+                }
+
+                return EncodeToIdsResult(result, accumulatedIds, maxTokens, textSpan.Length, out textLength);
             }
-
-            int encodedLength = Helpers.EncodeToUtf8AndTransform(textSpan, token, mapping);
-
-            List<Token> result = EncodeToTokens(token.Slice(0, encodedLength), mapping.Slice(0, encodedLength), textSpan, agenda);
-
-            int length = text is not null ? text.Length : textSpan.Length;
-            if (length <= MaxTokenLengthToCache)
+            finally
             {
-                _cache.Set(text ?? textSpan.ToString(), result);
+                if (tokenBuffer is not null)
+                {
+                    ArrayPool<char>.Shared.Return(tokenBuffer);
+                    Debug.Assert(mappingBuffer is not null);
+                    ArrayPool<int>.Shared.Return(mappingBuffer);
+                }
             }
-
-            if (tokenBuffer is not null)
-            {
-                ArrayPool<char>.Shared.Return(tokenBuffer);
-                Debug.Assert(mappingBuffer is not null);
-                ArrayPool<int>.Shared.Return(mappingBuffer);
-            }
-
-            return EncodeToIdsResult(result, accumulatedIds, maxTokens, textSpan.Length, out textLength);
         }
 
         private int EncodeToIdsFromEndInternal(string? text, scoped ReadOnlySpan<char> textSpan, IList<int>? accumulatedIds, PriorityQueue<SymbolPair> agenda, out int textIndex, int maxTokens)
@@ -1228,34 +1255,39 @@ namespace Microsoft.ML.Tokenizers
             char[]? tokenBuffer = null;
             int[]? mappingBuffer = null;
 
-            int destinationMaxSize = Encoding.UTF8.GetMaxByteCount(textSpan.Length);
-            if (destinationMaxSize > token.Length)
+            try
             {
-                tokenBuffer = ArrayPool<char>.Shared.Rent(destinationMaxSize);
-                token = tokenBuffer;
+                int destinationMaxSize = Encoding.UTF8.GetMaxByteCount(textSpan.Length);
+                if (destinationMaxSize > token.Length)
+                {
+                    tokenBuffer = ArrayPool<char>.Shared.Rent(destinationMaxSize);
+                    token = tokenBuffer;
 
-                mappingBuffer = ArrayPool<int>.Shared.Rent(destinationMaxSize);
-                mapping = mappingBuffer;
+                    mappingBuffer = ArrayPool<int>.Shared.Rent(destinationMaxSize);
+                    mapping = mappingBuffer;
+                }
+
+                int encodedLength = Helpers.EncodeToUtf8AndTransform(textSpan, token, mapping);
+
+                List<Token> result = EncodeToTokens(token.Slice(0, encodedLength), mapping.Slice(0, encodedLength), textSpan, agenda);
+
+                int length = text is not null ? text.Length : textSpan.Length;
+                if (length <= MaxTokenLengthToCache)
+                {
+                    _cache.Set(text ?? textSpan.ToString(), result);
+                }
+
+                return EncodeToIdsFromEndResult(result, accumulatedIds, maxTokens, textSpan.Length, out textIndex);
             }
-
-            int encodedLength = Helpers.EncodeToUtf8AndTransform(textSpan, token, mapping);
-
-            List<Token> result = EncodeToTokens(token.Slice(0, encodedLength), mapping.Slice(0, encodedLength), textSpan, agenda);
-
-            int length = text is not null ? text.Length : textSpan.Length;
-            if (length <= MaxTokenLengthToCache)
+            finally
             {
-                _cache.Set(text ?? textSpan.ToString(), result);
+                if (tokenBuffer is not null)
+                {
+                    ArrayPool<char>.Shared.Return(tokenBuffer);
+                    Debug.Assert(mappingBuffer is not null);
+                    ArrayPool<int>.Shared.Return(mappingBuffer);
+                }
             }
-
-            if (tokenBuffer is not null)
-            {
-                ArrayPool<char>.Shared.Return(tokenBuffer);
-                Debug.Assert(mappingBuffer is not null);
-                ArrayPool<int>.Shared.Return(mappingBuffer);
-            }
-
-            return EncodeToIdsFromEndResult(result, accumulatedIds, maxTokens, textSpan.Length, out textIndex);
         }
 
         /// <summary>
@@ -1322,136 +1354,93 @@ namespace Microsoft.ML.Tokenizers
             }
 
             byte[] bytes = ArrayPool<byte>.Shared.Rent(128);
-            int bytesIndex = 0;
-            bool firstToken = true;
 
-            foreach (int id in ids)
+            try
             {
-                if (BeginningOfSentenceId.HasValue && id == BeginningOfSentenceId.Value)
-                {
-                    if (considerSpecialTokens)
-                    {
-                        AppendToBytesArray(BeginningOfSentenceToken!.AsSpan(), ref bytes, ref bytesIndex);
-                    }
-                    continue;
-                }
+                int bytesIndex = 0;
+                bool firstToken = true;
 
-                if (EndOfSentenceId.HasValue && id == EndOfSentenceId.Value)
+                foreach (int id in ids)
                 {
-                    if (considerSpecialTokens)
+                    if (BeginningOfSentenceId.HasValue && id == BeginningOfSentenceId.Value)
                     {
-                        AppendToBytesArray(EndOfSentenceToken!.AsSpan(), ref bytes, ref bytesIndex);
-                    }
-                    continue;
-                }
-
-                if (UnknownTokenId.HasValue && id == UnknownTokenId.Value)
-                {
-                    if (considerSpecialTokens)
-                    {
-                        AppendToBytesArray(UnknownToken!.AsSpan(), ref bytes, ref bytesIndex);
-                    }
-                    continue;
-                }
-
-                if (_addedTokensReverse is not null && _addedTokensReverse.TryGetValue(id, out string? addedToken))
-                {
-                    int bytesCountToEncode = Encoding.UTF8.GetMaxByteCount(addedToken.Length);
-                    if (bytes.Length - bytesIndex < bytesCountToEncode)
-                    {
-                        Helpers.ArrayPoolGrow(ref bytes, (bytes.Length + bytesCountToEncode) * 2);
+                        if (considerSpecialTokens)
+                        {
+                            AppendToBytesArray(BeginningOfSentenceToken!.AsSpan(), ref bytes, ref bytesIndex);
+                        }
+                        continue;
                     }
 
-                    bool removePrefixSpace = firstToken && hasPrefixSpace && addedToken.Length > 0 && addedToken[0] == ' ';
-                    bytesIndex += Helpers.GetUtf8Bytes(removePrefixSpace ? addedToken.AsSpan().Slice(1) : addedToken.AsSpan(), bytes.AsSpan().Slice(bytesIndex));
-                    firstToken = false;
-                    continue;
+                    if (EndOfSentenceId.HasValue && id == EndOfSentenceId.Value)
+                    {
+                        if (considerSpecialTokens)
+                        {
+                            AppendToBytesArray(EndOfSentenceToken!.AsSpan(), ref bytes, ref bytesIndex);
+                        }
+                        continue;
+                    }
+
+                    if (UnknownTokenId.HasValue && id == UnknownTokenId.Value)
+                    {
+                        if (considerSpecialTokens)
+                        {
+                            AppendToBytesArray(UnknownToken!.AsSpan(), ref bytes, ref bytesIndex);
+                        }
+                        continue;
+                    }
+
+                    if (_addedTokensReverse is not null && _addedTokensReverse.TryGetValue(id, out string? addedToken))
+                    {
+                        int bytesCountToEncode = Encoding.UTF8.GetMaxByteCount(addedToken.Length);
+                        if (bytes.Length - bytesIndex < bytesCountToEncode)
+                        {
+                            Helpers.ArrayPoolGrow(ref bytes, (bytes.Length + bytesCountToEncode) * 2);
+                        }
+
+                        bool removePrefixSpace = firstToken && hasPrefixSpace && addedToken.Length > 0 && addedToken[0] == ' ';
+                        bytesIndex += Helpers.GetUtf8Bytes(removePrefixSpace ? addedToken.AsSpan().Slice(1) : addedToken.AsSpan(), bytes.AsSpan().Slice(bytesIndex));
+                        firstToken = false;
+                        continue;
+                    }
+
+                    // vocabularies are stored in UTF-8 form with escaping the control characters.
+                    // Need to convert the vocabulary to the original UTF-16 form.
+                    if (MapIdToToken(id) is string s)
+                    {
+                        ReadOnlySpan<char> span = firstToken && hasPrefixSpace && s.Length > 0 && s[0] == _transformedSpace ? s.AsSpan(1) : s.AsSpan();
+                        firstToken = false;
+                        AppendToBytesArray(span, ref bytes, ref bytesIndex);
+                    }
                 }
 
-                // vocabularies are stored in UTF-8 form with escaping the control characters.
-                // Need to convert the vocabulary to the original UTF-16 form.
-
-                if (MapIdToToken(id) is string s)
-                {
-                    ReadOnlySpan<char> span = firstToken && hasPrefixSpace && s.Length > 0 && s[0] == _transformedSpace ? s.AsSpan(1) : s.AsSpan();
-                    firstToken = false;
-                    AppendToBytesArray(span, ref bytes, ref bytesIndex);
-                }
+                string result = Encoding.UTF8.GetString(bytes, 0, bytesIndex);
+                return result;
             }
-
-            string result = Encoding.UTF8.GetString(bytes, 0, bytesIndex);
-            ArrayPool<byte>.Shared.Return(bytes);
-            return result;
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(bytes);
+            }
         }
 
         private void AppendToBytesArray(ReadOnlySpan<char> text, ref byte[] bytes, ref int bytesIndex)
         {
+            IReadOnlyDictionary<char, char> unicodeToByte = ByteToUnicodeEncoding.Instance.UnicodeToByte;
             for (int i = 0; i < text.Length; i++)
             {
-                char c = text[i];
-                if ((uint)c < ByteToUnicodeEncoding.Instance.Count)
+                if (unicodeToByte.TryGetValue(text[i], out char c))
                 {
                     if (bytesIndex >= bytes.Length)
                     {
                         Helpers.ArrayPoolGrow<byte>(ref bytes, bytes.Length * 2);
                     }
 
-                    bytes[bytesIndex++] = (byte)ByteToUnicodeEncoding.Instance.UnicodeToByte[c];
+                    bytes[bytesIndex++] = (byte)c;
                     continue;
                 }
 
                 // rare cases
-                i += EncodeNonAnsiCodePointToUtf8(text, i, ref bytes, ref bytesIndex);
+                i += Helpers.EncodeCodePointToUtf8(text, i, ref bytes, ref bytesIndex) - 1;
             }
-        }
-
-        private static int EncodeNonAnsiCodePointToUtf8(ReadOnlySpan<char> text, int textIndex, ref byte[] destination, ref int bytesIndex)
-        {
-            Debug.Assert(!text.IsEmpty);
-            Debug.Assert(text[textIndex] >= (ByteToUnicodeEncoding.Instance.Count));
-
-            uint c = (uint)text[textIndex];
-            if (c <= 0x7FFu)
-            {
-                // Scalar 00000yyy yyxxxxxx -> bytes [ 110yyyyy 10xxxxxx ]
-                if (bytesIndex + 2 > destination.Length)
-                {
-                    Helpers.ArrayPoolGrow(ref destination, destination.Length * 2);
-                }
-                destination[bytesIndex] = (byte)((c + (0b110u << 11)) >> 6);
-                destination[bytesIndex + 1] = (byte)((c & 0x3Fu) + 0x80u);
-                bytesIndex += 2;
-                return 0;
-            }
-
-            if (textIndex < text.Length - 1 && char.IsSurrogatePair((char)c, text[textIndex + 1]))
-            {
-                // Scalar 000uuuuu zzzzyyyy yyxxxxxx -> bytes [ 11110uuu 10uuzzzz 10yyyyyy 10xxxxxx ]
-                if (bytesIndex + 4 > destination.Length)
-                {
-                    Helpers.ArrayPoolGrow(ref destination, Math.Max(destination.Length, 4) * 2);
-                }
-
-                uint value = (uint)char.ConvertToUtf32((char)c, text[textIndex + 1]);
-                destination[bytesIndex] = (byte)((value + (0b11110 << 21)) >> 18);
-                destination[bytesIndex + 1] = (byte)(((value & (0x3Fu << 12)) >> 12) + 0x80u);
-                destination[bytesIndex + 2] = (byte)(((value & (0x3Fu << 6)) >> 6) + 0x80u);
-                destination[bytesIndex + 3] = (byte)((value & 0x3Fu) + 0x80u);
-                bytesIndex += 4;
-                return 3;
-            }
-
-            if (bytesIndex + 3 > destination.Length)
-            {
-                Helpers.ArrayPoolGrow(ref destination, Math.Max(destination.Length, 3) * 2);
-            }
-
-            // Scalar zzzzyyyy yyxxxxxx -> bytes [ 1110zzzz 10yyyyyy 10xxxxxx ]
-            destination[bytesIndex] = (byte)((c + (0b1110 << 16)) >> 12);
-            destination[bytesIndex + 1] = (byte)(((c & (0x3Fu << 6)) >> 6) + 0x80u);
-            destination[bytesIndex + 2] = (byte)((c & 0x3Fu) + 0x80u);
-            bytesIndex += 3;
-            return 2;
         }
 
         //
@@ -1493,71 +1482,78 @@ namespace Microsoft.ML.Tokenizers
 
             if (text.Length == 1)
             {
-                string tokenValue = ByteToUnicodeEncoding.Instance.CharToString[text[0]];
+                char c = text[0];
+                string[] charToString = ByteToUnicodeEncoding.Instance.CharToString;
+                string tokenValue = (uint)c < charToString.Length ? charToString[c] : c.ToString();
                 return new List<Token> { new Token(_vocab[new StringSpanOrdinalKey(tokenValue)].Id, tokenValue, (mapping[0], 1)) };
             }
 
             BpeSymbol[] symbols = ArrayPool<BpeSymbol>.Shared.Rent(text.Length);
 
-            for (int i = 0; i < text.Length; i++)
+            try
             {
-                symbols[i] = new BpeSymbol(
-                                    prev: i == 0 ? -1 : i - 1,
-                                    next: i == text.Length - 1 ? -1 : i + 1,
-                                    pieceSpan: (i, 1));
-
-            }
-
-            agenda.Clear();
-            for (int i = 1; i < text.Length; i++)
-            {
-                TryMerge(i - 1, i, text);
-            }
-
-            while (agenda.Count > 0)
-            {
-                SymbolPair top = agenda.Dequeue();
-
-                if (symbols[top.Left].pieceSpan.Length == 0 || symbols[top.Right].pieceSpan.Length == 0 ||
-                    symbols[top.Left].pieceSpan.Length + symbols[top.Right].pieceSpan.Length != top.Length)
+                for (int i = 0; i < text.Length; i++)
                 {
-                    continue;
+                    symbols[i] = new BpeSymbol(
+                                        prev: i == 0 ? -1 : i - 1,
+                                        next: i == text.Length - 1 ? -1 : i + 1,
+                                        pieceSpan: (i, 1));
+
                 }
 
-                // Replaces symbols with `top` rule.
-                symbols[top.Left].pieceSpan = (symbols[top.Left].pieceSpan.Index, symbols[top.Left].pieceSpan.Length + symbols[top.Right].pieceSpan.Length);
-
-                // Updates prev/next pointers.
-                symbols[top.Left].next = symbols[top.Right].next;
-
-                if (symbols[top.Right].next >= 0)
+                agenda.Clear();
+                for (int i = 1; i < text.Length; i++)
                 {
-                    symbols[symbols[top.Right].next].prev = top.Left;
+                    TryMerge(i - 1, i, text);
                 }
-                symbols[top.Right].pieceSpan = (0, 0);
 
-                // Adds new symbol pairs which are newly added after symbol replacement.
-                TryMerge(symbols[top.Left].prev, top.Left, text);
-                TryMerge(top.Left, symbols[top.Left].next, text);
+                while (agenda.Count > 0)
+                {
+                    SymbolPair top = agenda.Dequeue();
+
+                    if (symbols[top.Left].pieceSpan.Length == 0 || symbols[top.Right].pieceSpan.Length == 0 ||
+                        symbols[top.Left].pieceSpan.Length + symbols[top.Right].pieceSpan.Length != top.Length)
+                    {
+                        continue;
+                    }
+
+                    // Replaces symbols with `top` rule.
+                    symbols[top.Left].pieceSpan = (symbols[top.Left].pieceSpan.Index, symbols[top.Left].pieceSpan.Length + symbols[top.Right].pieceSpan.Length);
+
+                    // Updates prev/next pointers.
+                    symbols[top.Left].next = symbols[top.Right].next;
+
+                    if (symbols[top.Right].next >= 0)
+                    {
+                        symbols[symbols[top.Right].next].prev = top.Left;
+                    }
+                    symbols[top.Right].pieceSpan = (0, 0);
+
+                    // Adds new symbol pairs which are newly added after symbol replacement.
+                    TryMerge(symbols[top.Left].prev, top.Left, text);
+                    TryMerge(top.Left, symbols[top.Left].next, text);
+                }
+
+                List<Token> result = new List<Token>(text.Length);
+
+                for (int index = 0; (uint)index < (uint)text.Length; index = symbols[index].next)
+                {
+                    if (_vocab.TryGetValue(text.Slice(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length), out (int Id, string Token) value))
+                    {
+                        result.Add(GetToken(value.Id, value.Token, symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length, originalText, mapping));
+                    }
+                    else if (UnknownTokenId.HasValue)
+                    {
+                        result.Add(GetToken(UnknownTokenId.Value, UnknownToken!, symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length, originalText, mapping));
+                    }
+                }
+
+                return result;
             }
-
-            List<Token> result = new List<Token>(text.Length);
-
-            for (int index = 0; (uint)index < (uint)text.Length; index = symbols[index].next)
+            finally
             {
-                if (_vocab.TryGetValue(text.Slice(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length), out (int Id, string Token) value))
-                {
-                    result.Add(GetToken(value.Id, value.Token, symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length, originalText, mapping));
-                }
-                else if (UnknownTokenId.HasValue)
-                {
-                    result.Add(GetToken(UnknownTokenId.Value, UnknownToken!, symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length, originalText, mapping));
-                }
+                ArrayPool<BpeSymbol>.Shared.Return(symbols);
             }
-
-            ArrayPool<BpeSymbol>.Shared.Return(symbols);
-
-            return result;
 
             static Token GetToken(int id, string token, int index, int length, ReadOnlySpan<char> originalText, Span<int> mapping)
             {
@@ -1668,7 +1664,7 @@ namespace Microsoft.ML.Tokenizers
                     int index = line.IndexOf(' ');
                     if (index < 1 || index == line.Length - 1 || line.IndexOf(' ', index + 1) != -1)
                     {
-                        throw new Exception($"Invalid format of merge file: \"{line}\"");
+                        throw new FormatException($"Invalid format of merge file at line: \"{line}\"");
                     }
 
                     mergeRanks.Add(new StringSpanOrdinalKeyPair(line.Substring(0, index), line.Substring(index + 1)), rank++);
@@ -1676,6 +1672,7 @@ namespace Microsoft.ML.Tokenizers
             }
             catch (Exception e)
             {
+                // Report any issues encountered while consuming a data file as IOExceptions.
                 throw new IOException($"Cannot read the file Merge file.{Environment.NewLine}Error message: {e.Message}", e);
             }
 
@@ -1715,6 +1712,8 @@ namespace Microsoft.ML.Tokenizers
                 return hashCode;
             }
 
+            // If the Left is identical, comparing the Score alone is sufficient.
+            // This is because the Left cannot merge into a different Right and yield the same Score.
             public bool Equals(SymbolPair other) => Left == other.Left && Score == other.Score;
         }
 

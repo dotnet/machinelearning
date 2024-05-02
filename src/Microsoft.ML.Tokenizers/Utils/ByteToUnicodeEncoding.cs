@@ -35,10 +35,10 @@ namespace Microsoft.ML.Tokenizers
             ByteToUnicode = byteToUnicodeMapping;
             UnicodeToByte = ByteToUnicode.ToDictionary(kv => kv.Value, kv => kv.Key);
 
-            Count = numChars + n;
+            int count = numChars + n;
 
-            CharToString = new string[Count];
-            for (char c = (char)0; c < (char)Count; c++)
+            CharToString = new string[count];
+            for (char c = (char)0; c < (char)count; c++)
             {
                 CharToString[c] = c.ToString();
             }
@@ -46,7 +46,6 @@ namespace Microsoft.ML.Tokenizers
 
         public IReadOnlyDictionary<char, char> ByteToUnicode { get; }
         public IReadOnlyDictionary<char, char> UnicodeToByte { get; }
-        public int Count { get; }
         public string[] CharToString { get; }
     }
 }

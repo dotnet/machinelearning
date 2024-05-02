@@ -144,7 +144,7 @@ namespace Microsoft.ML.Tokenizers
                     int index = line.IndexOf(' ');
                     if (index < 1 || index == line.Length - 1 || line.IndexOf(' ', index + 1) != -1)
                     {
-                        throw new Exception($"Invalid format of merge file: \"{line}\"");
+                        throw new FormatException($"Invalid format of merge file at line: \"{line}\"");
                     }
 
                     mergeRanks.Set((line.Substring(0, index), line.Substring(index + 1)), rank++);
@@ -152,6 +152,7 @@ namespace Microsoft.ML.Tokenizers
             }
             catch (Exception e)
             {
+                // Report any issues encountered while consuming a data file as IOExceptions.
                 throw new IOException($"Cannot read the file Merge file.{Environment.NewLine}Error message: {e.Message}", e);
             }
 
@@ -913,6 +914,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (token.Length == 1)
             {
+                Debug.Assert(token[0] < charToString.Length);
                 string tokenValue = charToString[token[0]];
                 return new List<Token> { new Token(_vocab[new StringSpanOrdinalKey(tokenValue)], tokenValue, (indexMapping[0], 1)) };
             }

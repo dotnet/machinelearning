@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tokenizers
             arrayPoolArray = tmp;
         }
 
-        public static int EncodeToUtf8(ReadOnlySpan<char> text, Span<byte> destination, Span<int> indexMapping)
+        internal static int EncodeToUtf8(ReadOnlySpan<char> text, Span<byte> destination, Span<int> indexMapping)
         {
             Debug.Assert(!text.IsEmpty);
             Debug.Assert(Encoding.UTF8.GetMaxByteCount(text.Length) <= destination.Length);
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Tokenizers
             return targetIndex;
         }
 
-        public static int EncodeToUtf8AndTransform(ReadOnlySpan<char> text, Span<char> destination, Span<int> indexMapping)
+        internal static int EncodeToUtf8AndTransform(ReadOnlySpan<char> text, Span<char> destination, Span<int> indexMapping)
         {
             Debug.Assert(!text.IsEmpty);
             Debug.Assert(Encoding.UTF8.GetMaxByteCount(text.Length) <= destination.Length);

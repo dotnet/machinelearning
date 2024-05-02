@@ -66,7 +66,7 @@ namespace Microsoft.ML.Tokenizers
 
         public bool Equals(StringSpanOrdinalKeyPair other) => other._left.Equals(_left) && other._right.Equals(_right);
 
-        public override int GetHashCode() => _left.GetHashCode() + _right.GetHashCode();
+        public override int GetHashCode() => HashCode.Combine(_left.GetHashCode(), _right.GetHashCode());
     }
 
 
