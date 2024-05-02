@@ -30,7 +30,7 @@ namespace Microsoft.ML.TorchSharp.Extensions
                                             assembly.GetManifestResourceStream("encoder.json"),
                                             assembly.GetManifestResourceStream("vocab.bpe"),
                                             assembly.GetManifestResourceStream("dict.txt"),
-                                            new RobertaPreTokenizer());
+                                            RobertaPreTokenizer.Instance);
                 (_instance as EnglishRoberta).AddMaskSymbol();
             }
 

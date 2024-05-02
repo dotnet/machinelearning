@@ -238,8 +238,8 @@ namespace Microsoft.ML.Tokenizers.Tests
             IReadOnlyList<Token> result = GPT4.Encode(text, out string? normalizedString);
             Assert.Equal(encoded, result.Select(token => token.Id).ToArray());
             Assert.Equal(encoded.Count, idsCount);
-            Assert.Equal(new string[] { "<|im_start|>", "Hello", " ⭐", "", " World", "<|im_end|>" }, result.Select(token => token.Value).ToArray());
-            Assert.Equal(new List<(int, int)> { (0, 12), (12, 5), (17, 2), (19, 0), (19, 6), (25, 10) }, result.Select(token => token.Offset).ToArray());
+            Assert.Equal(new string[] { "<|im_start|>", "Hello", " ⭐", "⭐", " World", "<|im_end|>" }, result.Select(token => token.Value).ToArray());
+            Assert.Equal(new List<(int, int)> { (0, 12), (12, 5), (17, 2), (18, 1), (19, 6), (25, 10) }, result.Select(token => token.Offset).ToArray());
         }
 
         [Fact]
@@ -457,8 +457,8 @@ namespace Microsoft.ML.Tokenizers.Tests
                 yield return new object?[]
                 {
                     "Hello, y'all! How are you 😁 ?",
-                    new string[] { "Hello", ",", " y", "'all", "!", " How", " are", " you", " 😁", "", " ?" },
-                    new (int Index, int Length)[] { (0, 5), (5, 1), (6, 2), (8, 4), (12, 1), (13, 4), (17, 4), (21, 4), (25, 3), (28, 0), (28, 2) },
+                    new string[] { "Hello", ",", " y", "'all", "!", " How", " are", " you", " 😁", "😁", " ?" },
+                    new (int Index, int Length)[] { (0, 5), (5, 1), (6, 2), (8, 4), (12, 1), (13, 4), (17, 4), (21, 4), (25, 3), (26, 2), (28, 2) },
                     new int[] { 9906, 11, 379, 65948, 0, 2650, 527, 499, 27623, 223, 949 }
                 };
             }
@@ -532,6 +532,106 @@ namespace Microsoft.ML.Tokenizers.Tests
                 }
             }
             return sb.ToString();
+        }
+
+        public static IEnumerable<object?[]> TokenizerLimitsTestData
+        {
+            get
+            {
+                // string to tokenize, produced tokens, the token offsets, the token ids
+                yield return new object?[]
+                {
+                    "Hello ⭐ World",
+                    new string[] { "Hello", " ⭐", "⭐", " World" },
+                    new (int Index, int Length)[] { (0, 5), (5, 2), (6, 1), (7, 6) },
+                    new int[] { 9906, 2928, 99834, 4435 }
+                };
+
+                yield return new object?[]
+                {
+                    "⭐", // encoded to multiple tokens
+                    new string[] { "⭐", "⭐" },
+                    new (int Index, int Length)[] { (0, 1), (0, 1) },
+                    new int[] { 158, 99834 }
+                };
+
+                yield return new object?[]
+                {
+                    "Hi 😀", // Surrogates
+                    new string[] { "Hi", " 😀" },
+                    new (int Index, int Length)[] { (0, 2), (2, 3) },
+                    new int[] { 13347, 91416 }
+                };
+
+                yield return new object?[]
+                {
+                    "⭐😀", // character encoded to multiple tokens and surrogates
+                    new string[] { "⭐", "⭐", "😀", "😀" },
+                    new (int Index, int Length)[] { (0, 1), (0, 1), (1, 2), (1, 2) },
+                    new int[] { 158, 99834, 76460, 222 }
+                };
+
+                yield return new object?[]
+                {
+                    "From: Adele Vance\nSubject: TestSubject\nTestBodyContent",
+                    new string[] { "From", ":", " Ade", "le", " Vance", "\n", "Subject", ":", " Test", "Subject", "\n", "Test", "Body", "Content" },
+                    new (int Index, int Length)[] { (0, 4), (4, 1), (5, 4), (9, 2), (11, 6), (17, 1), (18, 7), (25, 1), (26, 5), (31, 7), (38, 1), (39, 4), (43, 4), (47, 7)},
+                    new int[] { 3915, 25, 63140, 273, 92368, 198, 13317, 25, 3475, 13317, 198, 2323, 5561, 2831 }
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(TokenizerLimitsTestData))]
+        public void TestPreciseTokenLimits(string text, string[] expectedTokens, (int Index, int Length)[] expectedOffsets, int[] expectedIds)
+        {
+            IReadOnlyList<Token> result = GPT4.Encode(text, out _);
+            int[] ids = result.Select(r => r.Id).ToArray();
+            (int Index, int Length)[] offsets = result.Select(r => r.Offset).ToArray();
+            Assert.Equal(expectedTokens, result.Select(r => r.Value));
+            Assert.Equal(expectedIds, ids);
+            Assert.Equal(expectedOffsets, offsets);
+            Assert.Equal(expectedIds, GPT4.EncodeToIds(text));
+            Assert.Equal(expectedIds.Length, GPT4.CountTokens(text));
+
+            for (int tokenCount = 1; tokenCount <= ids.Length; tokenCount++)
+            {
+                int length = GPT4.IndexOfTokenCount(text, tokenCount, out _, out int count);
+                Assert.True(count <= ids.Length);
+
+                if (count < tokenCount)
+                {
+                    Assert.True(count < ids.Length - 1);
+                    Assert.True(offsets[count + 1].Index < offsets[count].Index + offsets[count].Length);
+                }
+
+                if (count > 0)
+                {
+                    Assert.Equal(offsets[count - 1].Index + offsets[count - 1].Length, length);
+                }
+                else
+                {
+                    Assert.Equal(0, length);
+                }
+
+                int index = GPT4.LastIndexOfTokenCount(text, tokenCount, out _, out count);
+                Assert.True(count <= ids.Length);
+
+                if (count < tokenCount)
+                {
+                    Assert.True(ids.Length - tokenCount > 0);
+                    Assert.True(offsets[offsets.Length - tokenCount].Index < offsets[offsets.Length - tokenCount - 1].Index + offsets[offsets.Length - tokenCount - 1].Length);
+                }
+
+                if (count > 0)
+                {
+                    Assert.Equal(offsets[offsets.Length - count].Index, index);
+                }
+                else
+                {
+                    Assert.Equal(text.Length, index);
+                }
+            }
         }
     }
 }

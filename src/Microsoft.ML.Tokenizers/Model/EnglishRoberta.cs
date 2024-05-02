@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 
 namespace Microsoft.ML.Tokenizers
 {
@@ -23,9 +24,6 @@ namespace Microsoft.ML.Tokenizers
         private Dictionary<string, int>? _vocabOriginal;
         private readonly SortedDictionary<int, StringSpanOrdinalKey> _vocabReverse;
         private readonly Cache<(string, string), int> _mergeRanks;
-        private readonly IReadOnlyDictionary<char, char> _byteToUnicode;
-        private readonly IReadOnlyDictionary<char, char> _unicodeToByte;
-        private readonly string[] _charToString;
         private readonly StringSpanOrdinalKeyCache<List<Token>> _cache;
         private readonly PreTokenizer? _preTokenizer;
         private readonly Normalizer? _normalizer;
@@ -95,14 +93,6 @@ namespace Microsoft.ML.Tokenizers
             _vocab = GetVocabulary(vocabularyStream);
             _vocabReverse = _vocab.ReverseSorted();
             _mergeRanks = GetMergeRanks(mergeStream);
-            int maxCharValue = GetByteToUnicode(out _byteToUnicode);
-            _charToString = new string[maxCharValue];
-            for (char c = (char)0; c < (char)maxCharValue; c++)
-            {
-                _charToString[c] = c.ToString();
-            }
-
-            _unicodeToByte = _byteToUnicode.Reverse();
             _cache = new StringSpanOrdinalKeyCache<List<Token>>();
 
             if (disposeStream)
@@ -111,6 +101,80 @@ namespace Microsoft.ML.Tokenizers
                 mergeStream.Dispose();
                 highestOccurrenceMappingStream.Dispose();
             }
+        }
+
+        private static Dictionary<StringSpanOrdinalKey, int> GetVocabulary(Stream vocabularyStream)
+        {
+            Dictionary<StringSpanOrdinalKey, int>? vocab;
+            try
+            {
+                JsonSerializerOptions options = new() { Converters = { StringSpanOrdinalKeyConverter.Instance } };
+                vocab = JsonSerializer.Deserialize<Dictionary<StringSpanOrdinalKey, int>>(vocabularyStream, options) as Dictionary<StringSpanOrdinalKey, int>;
+            }
+            catch (Exception e)
+            {
+                throw new ArgumentException($"Problems met when parsing JSON vocabulary object.{Environment.NewLine}Error message: {e.Message}");
+            }
+
+            if (vocab is null)
+            {
+                throw new ArgumentException($"Failed to read the vocabulary file.");
+            }
+
+            return vocab;
+        }
+
+        private static Cache<(string, string), int> GetMergeRanks(Stream mergeStream)
+        {
+            var mergeRanks = new Cache<(string, string), int>(60_000);
+            try
+            {
+                using StreamReader reader = new StreamReader(mergeStream);
+
+                // We ignore the first and last line in the file
+                if (reader.Peek() >= 0)
+                {
+                    string ignored = reader.ReadLine()!;
+                }
+
+                int rank = 1;
+                while (reader.Peek() >= 0)
+                {
+                    string line = reader.ReadLine()!;
+                    int index = line.IndexOf(' ');
+                    if (index < 1 || index == line.Length - 1 || line.IndexOf(' ', index + 1) != -1)
+                    {
+                        throw new FormatException($"Invalid format of merge file at line: \"{line}\"");
+                    }
+
+                    mergeRanks.Set((line.Substring(0, index), line.Substring(index + 1)), rank++);
+                }
+            }
+            catch (Exception e)
+            {
+                // Report any issues encountered while consuming a data file as IOExceptions.
+                throw new IOException($"Cannot read the file Merge file.{Environment.NewLine}Error message: {e.Message}", e);
+            }
+
+            return mergeRanks;
+        }
+
+        private Dictionary<string, int> GetVocab()
+        {
+            Dictionary<string, int>? publicVocab = Volatile.Read(ref _vocabOriginal);
+            if (publicVocab is null)
+            {
+                var vocab = new Dictionary<string, int>();
+                foreach (var item in _vocab)
+                {
+                    vocab.Add(item.Key.ToString(), item.Value);
+                }
+
+                Interlocked.CompareExchange(ref _vocabOriginal, vocab, null);
+                publicVocab = _vocabOriginal;
+            }
+
+            return publicVocab;
         }
 
         /// <summary>
@@ -126,7 +190,7 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the dictionary mapping tokens to Ids.
         /// </summary>
-        public IReadOnlyDictionary<string, int> Vocab => _vocabOriginal ??= _vocab.ToDictionary(kvp => kvp.Key.Data!, kvp => kvp.Value);
+        public IReadOnlyDictionary<string, int> Vocab => GetVocab();
 
         //
         // Public Model interfaces implementation
@@ -147,9 +211,10 @@ namespace Microsoft.ML.Tokenizers
                     char[] buffer = ArrayPool<char>.Shared.Rent(v.Length);
                     int i = 0;
 
+                    IReadOnlyDictionary<char, char> unicodeToByte = ByteToUnicodeEncoding.Instance.UnicodeToByte;
                     for (int j = 0; j < v.Length; j++)
                     {
-                        if (_unicodeToByte.TryGetValue(v[j], out var c))
+                        if (unicodeToByte.TryGetValue(v[j], out var c))
                         {
                             buffer[i++] = c;
                         }
@@ -232,9 +297,11 @@ namespace Microsoft.ML.Tokenizers
             int[] indexMapping = ArrayPool<int>.Shared.Rent(text.Length);
 
             int newTokenIndex = 0;
+            IReadOnlyDictionary<char, char> byteToUnicode = ByteToUnicodeEncoding.Instance.ByteToUnicode;
+
             for (int i = 0; i < text.Length; i++)
             {
-                if (_byteToUnicode.TryGetValue(text[i], out var value))
+                if (byteToUnicode.TryGetValue(text[i], out var value))
                 {
                     token[newTokenIndex] = value;
                     indexMapping[newTokenIndex] = i;
@@ -607,9 +674,11 @@ namespace Microsoft.ML.Tokenizers
             int[] indexMapping = ArrayPool<int>.Shared.Rent(text.Length);
 
             int newTokenIndex = 0;
+            IReadOnlyDictionary<char, char> byteToUnicode = ByteToUnicodeEncoding.Instance.ByteToUnicode;
+
             for (int i = 0; i < text.Length; i++)
             {
-                if (_byteToUnicode.TryGetValue(text[i], out var value))
+                if (byteToUnicode.TryGetValue(text[i], out var value))
                 {
                     token[newTokenIndex] = value;
                     indexMapping[newTokenIndex] = i;
@@ -650,9 +719,11 @@ namespace Microsoft.ML.Tokenizers
             int[] indexMapping = ArrayPool<int>.Shared.Rent(text.Length);
 
             int newTokenIndex = 0;
+            IReadOnlyDictionary<char, char> byteToUnicode = ByteToUnicodeEncoding.Instance.ByteToUnicode;
+
             for (int i = 0; i < text.Length; i++)
             {
-                if (_byteToUnicode.TryGetValue(text[i], out var value))
+                if (byteToUnicode.TryGetValue(text[i], out var value))
                 {
                     token[newTokenIndex] = value;
                     indexMapping[newTokenIndex] = i;
@@ -829,107 +900,6 @@ namespace Microsoft.ML.Tokenizers
         private static HighestOccurrenceMapping GetHighestOccurrenceMapping(Stream highestOccurrenceMappingStream) =>
             HighestOccurrenceMapping.Load(highestOccurrenceMappingStream);
 
-        private Dictionary<StringSpanOrdinalKey, int> GetVocabulary(Stream vocabularyStream)
-        {
-            Dictionary<StringSpanOrdinalKey, int>? vocab;
-            try
-            {
-                JsonSerializerOptions options = new() { Converters = { StringSpanOrdinalKeyConverter.Instance } };
-                vocab = JsonSerializer.Deserialize<Dictionary<StringSpanOrdinalKey, int>>(vocabularyStream, options) as Dictionary<StringSpanOrdinalKey, int>;
-            }
-            catch (Exception e)
-            {
-                throw new ArgumentException($"Problems met when parsing JSON vocabulary object.{Environment.NewLine}Error message: {e.Message}");
-            }
-
-            if (vocab is null)
-            {
-                throw new ArgumentException($"Failed to read the vocabulary file.");
-            }
-
-            if (_vocabIdToHighestOccurrence.BosWord is not null)
-            {
-                vocab[new StringSpanOrdinalKey(_vocabIdToHighestOccurrence.BosWord)] = -_vocabIdToHighestOccurrence.BosIndex;
-            }
-
-            if (_vocabIdToHighestOccurrence.EosWord is not null)
-            {
-                vocab[new StringSpanOrdinalKey(_vocabIdToHighestOccurrence.EosWord)] = -_vocabIdToHighestOccurrence.EosIndex;
-            }
-
-            if (_vocabIdToHighestOccurrence.UnkWord is not null)
-            {
-                vocab[new StringSpanOrdinalKey(_vocabIdToHighestOccurrence.UnkWord)] = -_vocabIdToHighestOccurrence.UnkIndex;
-            }
-
-            if (_vocabIdToHighestOccurrence.PadWord is not null)
-            {
-                vocab[new StringSpanOrdinalKey(_vocabIdToHighestOccurrence.PadWord)] = -_vocabIdToHighestOccurrence.PadIndex;
-            }
-
-            return vocab;
-        }
-
-        private Cache<(string, string), int> GetMergeRanks(Stream mergeStream)
-        {
-            var mergeRanks = new Cache<(string, string), int>(60_000);
-            try
-            {
-                using StreamReader reader = new StreamReader(mergeStream);
-
-                // We ignore the first and last line in the file
-                if (reader.Peek() >= 0)
-                {
-                    string ignored = reader.ReadLine()!;
-                }
-
-                int rank = 1;
-                while (reader.Peek() >= 0)
-                {
-                    string line = reader.ReadLine()!;
-                    int index = line.IndexOf(' ');
-                    if (index < 1 || index == line.Length - 1 || line.IndexOf(' ', index + 1) != -1)
-                    {
-                        throw new Exception($"Invalid format of merge file: \"{line}\"");
-                    }
-
-                    mergeRanks.Set((line.Substring(0, index), line.Substring(index + 1)), rank++);
-                }
-            }
-            catch (Exception e)
-            {
-                throw new IOException($"Cannot read the file Merge file.{Environment.NewLine}Error message: {e.Message}", e);
-            }
-
-            return mergeRanks;
-        }
-
-        /// <summary>
-        /// Returns list of utf-8 bytes and a corresponding list of unicode chars.
-        /// This mapping is to make unseen characters (such as control characters) displayable.
-        /// </summary>
-        private static int GetByteToUnicode(out IReadOnlyDictionary<char, char> byteToUnicode)
-        {
-            var byteToUnicodeMapping = Enumerable.Range('!', '~' - '!' + 1)
-                .Concat(Enumerable.Range('¡', '¬' - '¡' + 1))
-                .Concat(Enumerable.Range('®', 'ÿ' - '®' + 1))
-                .ToDictionary(b => (char)b, b => (char)b);
-
-            const int numChars = 256;
-            var n = 0;
-            foreach (var b in Enumerable.Range(0, numChars))
-            {
-                if (!byteToUnicodeMapping.ContainsKey((char)b))
-                {
-                    byteToUnicodeMapping.Add((char)b, (char)(numChars + n));
-                    ++n;
-                }
-            }
-
-            byteToUnicode = byteToUnicodeMapping;
-            return numChars + n;
-        }
-
         /// <summary>
         /// Encode a token into BPE-ed sub-tokens. E.g., "playing" into ["play", "ing"].
         /// </summary>
@@ -940,17 +910,20 @@ namespace Microsoft.ML.Tokenizers
                 return [];
             }
 
+            string[] charToString = ByteToUnicodeEncoding.Instance.CharToString;
+
             if (token.Length == 1)
             {
-                string tokenValue = _charToString[token[0]];
+                Debug.Assert(token[0] < charToString.Length);
+                string tokenValue = charToString[token[0]];
                 return new List<Token> { new Token(_vocab[new StringSpanOrdinalKey(tokenValue)], tokenValue, (indexMapping[0], 1)) };
             }
 
             List<string> word = new(token.Length);
             foreach (char c in token)
             {
-                Debug.Assert(c < _charToString.Length);
-                word.Add(_charToString[c]);
+                Debug.Assert(c < charToString.Length);
+                word.Add(charToString[c]);
             }
 
             HashSet<(string, string)> pairs = new();
@@ -1065,10 +1038,7 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="ch">The character to check.</param>
         /// <returns>True if the character is supported, otherwise false.</returns>
-        public bool IsSupportedChar(char ch)
-        {
-            return _byteToUnicode.ContainsKey(ch);
-        }
+        public bool IsSupportedChar(char ch) => ByteToUnicodeEncoding.Instance.ByteToUnicode.ContainsKey(ch);
     }
 
     /// <summary>

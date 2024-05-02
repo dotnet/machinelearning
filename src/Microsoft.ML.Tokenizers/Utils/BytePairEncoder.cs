@@ -13,11 +13,11 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     internal static class BytePairEncoder
     {
-        public static int[] BytePairEncode(ReadOnlyMemory<byte> mergingBytes, IReadOnlyDictionary<ReadOnlyMemory<byte>, int> ranks)
+        public static (int Id, int TokenIndex, int TokenLength)[] BytePairEncode(ReadOnlyMemory<byte> mergingBytes, IReadOnlyDictionary<ReadOnlyMemory<byte>, int> ranks, ReadOnlySpan<int> indexMappingSpan)
         {
             if (mergingBytes.Length == 1)
             {
-                return [ranks[mergingBytes]];
+                return [(ranks[mergingBytes], 0, 1)];
             }
 
             (int Index, int Rank)[]? arrayPoolArray = null;
@@ -84,10 +84,28 @@ namespace Microsoft.ML.Tokenizers
                 }
             }
 
-            var result = new int[byteIndicesAndRanks.Length - 1];
+            var result = new (int Id, int TokenIndex, int TokenLength)[byteIndicesAndRanks.Length - 1];
             for (int i = 0; i < result.Length; i++)
             {
-                result[i] = ranks[mergingBytes.SliceStartEnd(byteIndicesAndRanks[i].Index, byteIndicesAndRanks[i + 1].Index)];
+                int startIndex = byteIndicesAndRanks[i].Index;
+                int endIndex = byteIndicesAndRanks[i + 1].Index;
+
+                int mappedStartIndex = indexMappingSpan[startIndex];
+                int mappedEndIndex = indexMappingSpan[endIndex];
+
+                int finalEndIndex = endIndex;
+
+                if (finalEndIndex > 0 && indexMappingSpan[finalEndIndex - 1] == mappedEndIndex)
+                {
+                    // The partial character/element should be included in the current token.
+                    finalEndIndex++;
+                    while (finalEndIndex < indexMappingSpan.Length && indexMappingSpan[finalEndIndex] == mappedEndIndex)
+                    {
+                        finalEndIndex++;
+                    }
+                }
+
+                result[i] = (ranks[mergingBytes.SliceStartEnd(startIndex, endIndex)], mappedStartIndex, indexMappingSpan[finalEndIndex] - mappedStartIndex);
             }
 
             if (arrayPoolArray is not null)

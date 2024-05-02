@@ -455,6 +455,74 @@ namespace Microsoft.ML.Tokenizers
             return new SentencePieceBpe(modelProto, addBeginOfSentence, addEndOfSentence);
         }
 
+        /// <summary>
+        /// Create a CodeGen tokenizer from the given vocab and merges streams.
+        /// </summary>
+        /// <param name="vocabStream">The stream containing the vocab file.</param>
+        /// <param name="mergesStream">The stream containing the merges file.</param>
+        /// <param name="addPrefixSpace">Indicate whether to add a space before the token.</param>
+        /// <param name="addBeginOfSentence">Indicate emitting the beginning of sentence token during the encoding.</param>
+        /// <param name="addEndOfSentence">Indicate emitting the end of sentence token during the encoding.</param>
+        /// <returns>The CodeGen tokenizer object.</returns>
+        /// <remarks>
+        /// The tokenizer will be created according to the configuration specified in https://huggingface.co/Salesforce/codegen-350M-mono/raw/main/tokenizer.json.
+        /// It is important to provide the similar vocab and merges files to the ones used in the training of the model.
+        /// The vocab and merges files can be downloaded from the following links:
+        ///     https://huggingface.co/Salesforce/codegen-350M-mono/resolve/main/vocab.json?download=true
+        ///     https://huggingface.co/Salesforce/codegen-350M-mono/resolve/main/merges.txt?download=true
+        /// </remarks>
+        public static Tokenizer CreateCodeGen(
+            Stream vocabStream,
+            Stream mergesStream,
+            bool addPrefixSpace = false,
+            bool addBeginOfSentence = false,
+            bool addEndOfSentence = false)
+        {
+            if (vocabStream is null)
+            {
+                throw new ArgumentNullException(nameof(vocabStream));
+            }
+
+            if (mergesStream is null)
+            {
+                throw new ArgumentNullException(nameof(mergesStream));
+            }
+
+            return new CodeGen(
+                        vocabStream,
+                        mergesStream,
+                        new TiktokenPreTokenizer(Tiktoken.P50kBaseRegex(), CodeGen.CodeGenAddedTokens),
+                        normalizer: null,
+                        CodeGen.CodeGenAddedTokens,
+                        addPrefixSpace: addPrefixSpace,
+                        addBeginningOfSentence: addBeginOfSentence,
+                        addEndOfSentence: addEndOfSentence);
+        }
+
+        /// <summary>
+        /// Create a CodeGen Phi2 tokenizer from the given vocab and merges streams.
+        /// </summary>
+        /// <param name="vocabStream">The stream containing the vocab file.</param>
+        /// <param name="mergesStream">The stream containing the merges file.</param>
+        /// <param name="addPrefixSpace">Indicate whether to add a space before the token.</param>
+        /// <param name="addBeginOfSentence">Indicate emitting the beginning of sentence token during the encoding.</param>
+        /// <param name="addEndOfSentence">Indicate emitting the end of sentence token during the encoding.</param>
+        /// <returns>The CodeGen tokenizer object.</returns>
+        /// <remarks>
+        /// The tokenizer will be created according to the configuration specified in https://huggingface.co/microsoft/phi-2/raw/main/tokenizer.json.
+        /// It is important to provide the similar vocab and merges files to the ones used in the training of the model.
+        /// The vocab and merges files can be downloaded from the following links:
+        ///     https://huggingface.co/microsoft/phi-2/resolve/main/vocab.json?download=true
+        ///     https://huggingface.co/microsoft/phi-2/resolve/main/merges.txt?download=true
+        /// </remarks>
+        public static Tokenizer CreatePhi2(
+            Stream vocabStream,
+            Stream mergesStream,
+            bool addPrefixSpace = false,
+            bool addBeginOfSentence = false,
+            bool addEndOfSentence = false)
+            => CreateCodeGen(vocabStream, mergesStream, addPrefixSpace, addBeginOfSentence, addEndOfSentence);
+
         internal static IEnumerable<(int Offset, int Length)>? InitializeForEncoding(
                                                 string? text,
                                                 ReadOnlySpan<char> textSpan,
