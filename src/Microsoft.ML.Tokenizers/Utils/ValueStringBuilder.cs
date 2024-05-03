@@ -153,6 +153,66 @@ namespace System.Text
             }
         }
 
+        public void Replace(string oldValue, string newValue)
+        {
+            int oldLength = oldValue.Length;
+            int newLength = newValue.Length;
+            int index = 0;
+
+            while (index <= _pos - oldLength)
+            {
+                ReadOnlySpan<char> buffer = _chars.Slice(index);
+                int subIndex = buffer.IndexOf(oldValue.AsSpan(), StringComparison.Ordinal);
+                if (subIndex < 0)
+                {
+                    break;
+                }
+
+                index += subIndex;
+
+                if (oldLength >= newLength)
+                {
+                    newValue.AsSpan().CopyTo(_chars.Slice(index));
+                    if (oldLength > newLength)
+                    {
+                        _chars.Slice(index + oldLength).CopyTo(_chars.Slice(index + newLength));
+                        _pos -= oldLength - newLength;
+                    }
+                }
+                else
+                {
+                    Insert(index, newValue);
+
+                    _chars.Slice(index + newLength + oldLength).CopyTo(_chars.Slice(index + newLength));
+                    _pos -= oldLength;
+                }
+
+                index += newLength;
+            }
+        }
+
+        public bool RemoveSuffix(string value)
+        {
+            if (EndsWith(value))
+            {
+                _pos -= value.Length;
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool EndsWith(string value)
+        {
+            int valueLength = value.Length;
+            if (valueLength > _pos)
+            {
+                return false;
+            }
+
+            return _chars.Slice(_pos - valueLength, valueLength).SequenceEqual(value.AsSpan());
+        }
+
         public void Insert(int index, char value, int count)
         {
             if (_pos > _chars.Length - count)

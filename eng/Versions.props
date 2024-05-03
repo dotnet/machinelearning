@@ -36,12 +36,13 @@
     <ApacheArrowVersion>11.0.0</ApacheArrowVersion>
     <GoogleProtobufVersion>3.19.6</GoogleProtobufVersion>
     <LightGBMVersion>3.3.5</LightGBMVersion>
+    <MicrosoftBclHashCodeVersion>1.1.1</MicrosoftBclHashCodeVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.3.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisCSharpVersion>3.9.0</MicrosoftCodeAnalysisCSharpVersion>
     <MicrosoftDotNetInteractiveVersion>1.0.0-beta.23509.3</MicrosoftDotNetInteractiveVersion>
     <MicrosoftMLOnnxRuntimeVersion>1.16.3</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
-    <!--  
+    <!--
 @("inteltbb.devel", "win", "2021.7.1.15305")
     -->
     <OneDalPkgVersion Condition="'$(OS)' == 'Windows_NT'">2023.0.0.23189</OneDalPkgVersion>
@@ -78,15 +79,16 @@
     <DotNetRuntime80Version>8.0.1</DotNetRuntime80Version>
     <FluentAssertionVersion>5.10.2</FluentAssertionVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.23431.1</MicrosoftCodeAnalysisTestingVersion>
-    <MicrosoftDotNetBuildTasksTemplatingVersion>9.0.0-beta.24165.3</MicrosoftDotNetBuildTasksTemplatingVersion>
-    <MicrosoftDotNetRemoteExecutorVersion>9.0.0-beta.24165.3</MicrosoftDotNetRemoteExecutorVersion>
-    <MicrosoftDotNetXUnitExtensionsVersion>9.0.0-beta.24165.3</MicrosoftDotNetXUnitExtensionsVersion>
+    <MicrosoftDotNetBuildTasksTemplatingVersion>9.0.0-beta.24212.4</MicrosoftDotNetBuildTasksTemplatingVersion>
+    <MicrosoftDotNetRemoteExecutorVersion>9.0.0-beta.24212.4</MicrosoftDotNetRemoteExecutorVersion>
+    <MicrosoftDotNetXUnitExtensionsVersion>9.0.0-beta.24212.4</MicrosoftDotNetXUnitExtensionsVersion>
     <MicrosoftExtensionsDependencyModelVersion>2.1.0</MicrosoftExtensionsDependencyModelVersion>
     <MicrosoftExtensionsTestVersion>3.0.1</MicrosoftExtensionsTestVersion>
     <MicrosoftMLOnnxTestModelsVersion>0.0.6-test</MicrosoftMLOnnxTestModelsVersion>
     <MicrosoftMLTensorFlowTestModelsVersion>0.0.13-test</MicrosoftMLTensorFlowTestModelsVersion>
     <MicrosoftMLTestDatabasesVersion>0.0.6-test</MicrosoftMLTestDatabasesVersion>
     <MicrosoftMLTestModelsVersion>0.0.7-test</MicrosoftMLTestModelsVersion>
+    <MicrosoftMLTestTokenizersVersion>2.0.0-beta.24219.1</MicrosoftMLTestTokenizersVersion>
     <SystemDataSqlClientVersion>4.8.6</SystemDataSqlClientVersion>
     <SystemDataSQLiteCoreVersion>1.0.118</SystemDataSQLiteCoreVersion>
     <XunitCombinatorialVersion>1.2.7</XunitCombinatorialVersion>

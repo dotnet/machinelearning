@@ -61,10 +61,9 @@ namespace Microsoft.ML.Tokenizers.Tests
             string normalizedText = normalizer.Normalize(text);
             Assert.Equal(normalized, normalizedText);
 
-            Tokenizer tokenizer = new Tokenizer(BpeTests.CreateEmptyBpe(), WhiteSpace.Instance, normalizer);
-            EncodingResult encoding = tokenizer.Encode(text);
-            Assert.Equal(text, encoding.OriginalString);
-            Assert.Equal(normalized, encoding.NormalizedString);
+            Tokenizer tokenizer = BpeTests.CreateEmptyBpe(preTokenizer: null, normalizer);
+            IReadOnlyList<Token> tokens = tokenizer.Encode(text, out string? normalizedString);
+            Assert.Equal(normalized, normalizedString);
         }
 
         public class RemoveQuotesNormalizer : Normalizer
@@ -77,6 +76,22 @@ namespace Microsoft.ML.Tokenizers.Tests
                     return original;
                 }
 
+                return RemoveQuotes(original.AsSpan(), index);
+            }
+
+            public override string Normalize(ReadOnlySpan<char> original)
+            {
+                int index = original.IndexOf('"');
+                if (index <= 0)
+                {
+                    return original.ToString();
+                }
+
+                return RemoveQuotes(original, index);
+            }
+
+            private string RemoveQuotes(ReadOnlySpan<char> original, int index)
+            {
                 StringBuilder sb = new StringBuilder(original.Length);
                 List<int> mapping = new List<int>();
 
@@ -97,7 +112,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                         break;
                     }
 
-                    index = original.IndexOf('"', start);
+                    index = original.Slice(start).IndexOf('"');
                     if (index <= 0)
                     {
                         for (int i = start; i < original.Length; i++)
@@ -107,6 +122,8 @@ namespace Microsoft.ML.Tokenizers.Tests
                         }
                         break;
                     }
+
+                    index += start;
                 } while (true);
 
                 return sb.ToString();
@@ -129,6 +146,16 @@ namespace Microsoft.ML.Tokenizers.Tests
                 }
 
                 return original.Normalize(_normalizationForm);
+            }
+
+            public override string Normalize(ReadOnlySpan<char> original)
+            {
+                if (original.IsEmpty)
+                {
+                    return string.Empty;
+                }
+
+                return original.ToString().Normalize(_normalizationForm);
             }
         }
     }

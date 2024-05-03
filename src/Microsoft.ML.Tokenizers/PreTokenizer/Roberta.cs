@@ -18,16 +18,30 @@ namespace Microsoft.ML.Tokenizers
         public static RobertaPreTokenizer Instance { get; } = new RobertaPreTokenizer();
 
         /// <summary>
-        /// Splits the given string in multiple substrings at the word boundary, keeping track of the offsets of said substrings from the original string.
+        /// Get the offsets and lengths of the tokens relative to the <paramref name="text"/>.
         /// </summary>
         /// <param name="text">The string to split into tokens.</param>
-        /// <param name="considerSpecialTokens">Indicates whether to keep the special tokens.</param>
-        /// <returns>The list of the splits containing the tokens and the token's offsets to the original string.</returns>
-        public override IEnumerable<Split> PreTokenize(string text, bool considerSpecialTokens = true)
+        /// <returns>The offsets and lengths of the tokens, expressed as pairs, are relative to the original string.</returns>
+        public override IEnumerable<(int Offset, int Length)> PreTokenize(string text)
         {
             if (string.IsNullOrEmpty(text))
             {
-                return Array.Empty<Split>();
+                return [];
+            }
+
+            return SplitText(text, Tiktoken.P50kBaseRegex());
+        }
+
+        /// <summary>
+        /// Get the offsets and lengths of the tokens relative to the <paramref name="text"/>.
+        /// </summary>
+        /// <param name="text">The string to split into tokens.</param>
+        /// <returns>The offsets and lengths of the tokens, expressed as pairs, are relative to the original string.</returns>
+        public override IEnumerable<(int Offset, int Length)> PreTokenize(ReadOnlySpan<char> text)
+        {
+            if (text.IsEmpty)
+            {
+                return [];
             }
 
             return SplitText(text, Tiktoken.P50kBaseRegex());

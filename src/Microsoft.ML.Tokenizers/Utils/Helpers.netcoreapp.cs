@@ -61,5 +61,32 @@ namespace Microsoft.ML.Tokenizers
             => Encoding.UTF8.GetChars(bytes, chars);
 
         internal static void Replace(Span<char> span, char oldValue, char newValue) => span.Replace(oldValue, newValue);
+
+        /// <summary>
+        /// Encode the next code point in the text to UTF-8.
+        /// </summary>
+        /// <param name="text">The text to encode the first code point from.</param>
+        /// <param name="textIndex">The index of the first code point to encode.</param>
+        /// <param name="destination">The buffer to write the UTF-8 bytes to.</param>
+        /// <param name="bytesIndex">The index in the buffer to write the UTF-8 encoded bytes to.</param>
+        /// <returns>The number of characters consumed from the text.</returns>
+        internal static int EncodeCodePointToUtf8(ReadOnlySpan<char> text, int textIndex, ref byte[] destination, ref int bytesIndex)
+        {
+            Debug.Assert(textIndex < text.Length);
+
+            Rune.DecodeFromUtf16(text.Slice(textIndex), out Rune rune, out int charsConsumed);
+
+            Span<byte> buffer = stackalloc byte[4]; // max number of bytes for a single code point utf-8 encoding.
+            int bytesWritten = rune.EncodeToUtf8(buffer);
+            if (bytesIndex + bytesWritten > destination.Length)
+            {
+                Helpers.ArrayPoolGrow(ref destination, destination.Length * 2);
+            }
+
+            buffer.Slice(0, bytesWritten).CopyTo(destination.AsSpan(bytesIndex));
+            bytesIndex += bytesWritten;
+
+            return charsConsumed;
+        }
     }
 }
