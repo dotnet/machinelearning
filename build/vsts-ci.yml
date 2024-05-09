@@ -309,18 +309,3 @@ extends:
     - template: /eng/common/templates-official/post-build/post-build.yml@self
       parameters:
         publishingInfraVersion: 3
-        # This is to enable SDL runs part of Post-Build Validation Stage
-        SDLValidationParameters:
-          enable: true
-          publishGdn: true
-          continueOnError: false
-          params: ' -SourceToolsList @("policheck","credscan")
-          -TsaInstanceURL https://devdiv.visualstudio.com/
-          -TsaProjectName DEVDIV
-          -TsaNotificationEmail mlnetcore@microsoft.com
-          -TsaCodebaseAdmin REDMOND\ericstj
-          -TsaBugAreaPath "DevDiv\Net Libraries"
-          -TsaIterationPath DevDiv
-          -TsaRepositoryName machinelearning
-          -TsaCodebaseName machinelearning
-          -TsaPublish $True'
