@@ -19,6 +19,11 @@ variables:
   value: true
 - name: Codeql.SkipTaskAutoInjection
   value: True  #default to not inject CodeQL tasks, we'll enable it in a single job.
+# Ignore test and infrastructure code.
+- Codeql.SourceRoot: src
+# CodeQL3000 needs this plumbed along as a variable to enable TSA.
+- Codeql.TSAEnabled: true
+# Default expects tsaoptions.json under SourceRoot.
 - name: LinuxImage
   value: 1es-ubuntu-2204
 - name: WindowsImage
