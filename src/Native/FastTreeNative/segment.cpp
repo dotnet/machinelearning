@@ -30,7 +30,7 @@ EXPORT_API(void) C_SegmentFindOptimalPath15(_In_reads_(valc) unsigned long* valv
 
     __m128i state0f = _mm_setzero_si128();
 
-    for (int i = 0; i < valc; ++i)
+    for (long i = 0; i < valc; ++i)
     {
         // The bit ops are a little goofy, but it's a lot better than running conditional tests.
         _BitScanReverse((unsigned long*)&bitindex, (((unsigned long)valv[i]) << 1) | 1);
@@ -61,7 +61,7 @@ EXPORT_API(void) C_SegmentFindOptimalPath15(_In_reads_(valc) unsigned long* valv
     }
 
     long back = 0, bitness = 0, transitions = 0;
-    for (int i = valc - 1; i >= 0; --i)
+    for (long i = valc - 1; i >= 0; --i)
     {
         bitness = back ? bitness : (valv[i] >> 27);
         transitions += 1 - back;
@@ -102,7 +102,7 @@ EXPORT_API(void) C_SegmentFindOptimalPath21(_In_reads_(valc) unsigned long* valv
         }
     }
 
-    for (int i = 0; i < valc; ++i)
+    for (long i = 0; i < valc; ++i)
     {
         // The bit ops are a little goofy, but it's a lot better than running conditional tests.
         _BitScanReverse((unsigned long*)&bitindex, (((unsigned long)valv[i]) << 1) | 1);
@@ -150,7 +150,7 @@ EXPORT_API(void) C_SegmentFindOptimalPath21(_In_reads_(valc) unsigned long* valv
     }
 
     long back = 0, bitness = 0, transitions = 0;
-    for (int i = valc - 1; i >= 0; --i)
+    for (long i = valc - 1; i >= 0; --i)
     {
         bitness = back ? bitness : (valv[i] >> 27);
         transitions += 1 - back;
@@ -192,7 +192,7 @@ EXPORT_API(void) C_SegmentFindOptimalPath7(_In_reads_(valc) unsigned long* valv,
         }
     }
 
-    for (int i = 0; i < valc; ++i)
+    for (long i = 0; i < valc; ++i)
     {
         // The bit ops are a little goofy, but it's a lot better than running conditional tests.
         _BitScanReverse((unsigned long*)&bitindex, (((unsigned long)valv[i]) << 1) | 1);
@@ -220,7 +220,7 @@ EXPORT_API(void) C_SegmentFindOptimalPath7(_In_reads_(valc) unsigned long* valv,
     }
 
     long back = 0, bitness = 0, transitions = 0;
-    for (int i = valc - 1; i >= 0; --i)
+    for (long i = valc - 1; i >= 0; --i)
     {
         bitness = back ? bitness : (valv[i] >> 27);
         transitions += 1 - back;
@@ -253,7 +253,7 @@ EXPORT_API(void) C_SegmentFindOptimalCost15(_In_reads_(valc) unsigned int* valv,
     stay = _mm_setr_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
     transition = _mm_add_epi8(_mm_set1_epi8(40), stay);
 
-    for (int i = 0; i < valc; ++i)
+    for (long i = 0; i < valc; ++i)
     {
         val = valv[i];
         bitindex = 0;
@@ -304,7 +304,7 @@ EXPORT_API(void) C_SegmentFindOptimalCost31(_In_reads_(valc) unsigned long* valv
         }
     }
 
-    for (int i = 0; i < valc; ++i)
+    for (long i = 0; i < valc; ++i)
     {
         // The bit ops are a little goofy, but it's a lot better than running conditional tests.
         _BitScanReverse((unsigned long*)&bitindex, (((unsigned long)valv[i]) << 1) | 1);
