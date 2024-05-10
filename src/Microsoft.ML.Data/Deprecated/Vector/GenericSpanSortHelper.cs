@@ -47,7 +47,6 @@ namespace Microsoft.ML.Numeric
     {
         public static void Sort<TValue>(Span<TKey> keys, Span<TValue> values, int index, int length)
         {
-            Contracts.Assert(keys != null, "Check the arguments in the caller!");
             Contracts.Assert(index >= 0 && length >= 0 && (keys.Length - index >= length), "Check the arguments in the caller!");
 
             IntrospectiveSort(keys, values, index, length);
@@ -89,8 +88,6 @@ namespace Microsoft.ML.Numeric
 
         internal static void IntrospectiveSort<TValue>(Span<TKey> keys, Span<TValue> values, int left, int length)
         {
-            Contracts.Assert(keys != null);
-            Contracts.Assert(values != null);
             Contracts.Assert(left >= 0);
             Contracts.Assert(length >= 0);
             Contracts.Assert(length <= keys.Length);
@@ -105,8 +102,6 @@ namespace Microsoft.ML.Numeric
 
         private static void IntroSort<TValue>(Span<TKey> keys, Span<TValue> values, int lo, int hi, int depthLimit)
         {
-            Contracts.Assert(keys != null);
-            Contracts.Assert(values != null);
             Contracts.Assert(lo >= 0);
             Contracts.Assert(hi < keys.Length);
 
@@ -152,8 +147,6 @@ namespace Microsoft.ML.Numeric
 
         private static int PickPivotAndPartition<TValue>(Span<TKey> keys, Span<TValue> values, int lo, int hi)
         {
-            Contracts.Assert(keys != null);
-            Contracts.Assert(values != null);
             Contracts.Assert(lo >= 0);
             Contracts.Assert(hi > lo);
             Contracts.Assert(hi < keys.Length);
@@ -197,8 +190,6 @@ namespace Microsoft.ML.Numeric
 
         private static void Heapsort<TValue>(Span<TKey> keys, Span<TValue> values, int lo, int hi)
         {
-            Contracts.Assert(keys != null);
-            Contracts.Assert(values != null);
             Contracts.Assert(lo >= 0);
             Contracts.Assert(hi > lo);
             Contracts.Assert(hi < keys.Length);
@@ -217,7 +208,6 @@ namespace Microsoft.ML.Numeric
 
         private static void DownHeap<TValue>(Span<TKey> keys, Span<TValue> values, int i, int n, int lo)
         {
-            Contracts.Assert(keys != null);
             Contracts.Assert(lo >= 0);
             Contracts.Assert(lo < keys.Length);
 
@@ -243,8 +233,6 @@ namespace Microsoft.ML.Numeric
 
         private static void InsertionSort<TValue>(Span<TKey> keys, Span<TValue> values, int lo, int hi)
         {
-            Contracts.Assert(keys != null);
-            Contracts.Assert(values != null);
             Contracts.Assert(lo >= 0);
             Contracts.Assert(hi >= lo);
             Contracts.Assert(hi <= keys.Length);
