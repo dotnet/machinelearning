@@ -19,6 +19,15 @@ variables:
   value: true
 - name: Codeql.SkipTaskAutoInjection
   value: True  #default to not inject CodeQL tasks, we'll enable it in a single job.
+# Ignore test and infrastructure code.
+- name: Codeql.SourceRoot
+  value: src
+# CodeQL3000 needs this plumbed along as a variable to enable TSA.
+- name: Codeql.TSAEnabled
+  value: true
+# Default expects tsaoptions.json under SourceRoot.
+- name: Codeql.TSAOptionsPath
+  value: '$(Build.SourcesDirectory)/.config/tsaoptions.json'
 - name: LinuxImage
   value: 1es-ubuntu-2204
 - name: WindowsImage
@@ -304,18 +313,3 @@ extends:
     - template: /eng/common/templates-official/post-build/post-build.yml@self
       parameters:
         publishingInfraVersion: 3
-        # This is to enable SDL runs part of Post-Build Validation Stage
-        SDLValidationParameters:
-          enable: true
-          publishGdn: true
-          continueOnError: false
-          params: ' -SourceToolsList @("policheck","credscan")
-          -TsaInstanceURL https://devdiv.visualstudio.com/
-          -TsaProjectName DEVDIV
-          -TsaNotificationEmail mlnetcore@microsoft.com
-          -TsaCodebaseAdmin REDMOND\ericstj
-          -TsaBugAreaPath "DevDiv\Net Libraries"
-          -TsaIterationPath DevDiv
-          -TsaRepositoryName machinelearning
-          -TsaCodebaseName machinelearning
-          -TsaPublish $True'
