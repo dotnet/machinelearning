@@ -9,7 +9,6 @@ parameters:
   Architecture: 'x64'
   MsBuildScript: ''
   WarnAsError: ''
-  TestTargetFramework: ''
   HelixConfiguration: ''                 # optional -- additional property attached to a job
   EnableXUnitReporter: true              # optional -- true enables XUnit result reporting to Mission Control
   WaitForWorkItemCompletion: true        # optional -- true will make the task wait until work items have been completed and fail the build if work items fail. False is "fire and forget."
@@ -27,7 +26,6 @@ steps:
             /p:Configuration=${{ parameters.Configuration }}
             /p:TargetArchitecture=${{ parameters.Architecture }}
             /p:BuildConfig=${{ parameters.Configuration }}
-            /p:BuildArchitecture=${{ parameters.Architecture }}
             /p:HelixSource=${{ parameters.HelixSource }}
             /p:HelixType=${{ parameters.HelixType }}
             /p:HelixBuild=${{ parameters.HelixBuild }}
@@ -37,7 +35,6 @@ steps:
             /p:WaitForWorkItemCompletion=${{ parameters.WaitForWorkItemCompletion }}
             /p:HelixBaseUri=${{ parameters.HelixBaseUri }}
             ${{ parameters.WarnAsError }}
-            ${{ parameters.TestTargetFramework }}
     displayName: ${{ parameters.DisplayNamePrefix }}
     env:
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)

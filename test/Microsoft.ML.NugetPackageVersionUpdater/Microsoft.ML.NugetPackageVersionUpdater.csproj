@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <StartupObject>Microsoft.ML.NugetPackageVersionUpdater.Program</StartupObject>
     <RunWorkingDirectory>$(MSBuildProjectDirectory)</RunWorkingDirectory>
+    <SkipHelixTesting>true</SkipHelixTesting>
   </PropertyGroup>
 
 </Project>

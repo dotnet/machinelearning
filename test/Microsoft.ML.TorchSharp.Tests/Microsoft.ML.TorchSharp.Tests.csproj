@@ -6,6 +6,7 @@
     <!-- Remove once we have resolved the TorchSharp issue. -->
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
 
+    <SkipHelixTesting Condition="'$(TargetArchitecture)' != 'x64'">true</SkipHelixTesting>
   </PropertyGroup>
 
   <!-- Import the test signing certificate -->

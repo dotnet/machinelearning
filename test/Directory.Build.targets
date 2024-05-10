@@ -1,6 +1,7 @@
 <Project>
 
   <Import Project="..\Directory.Build.targets" />
+  <Import Project="$(RepositoryEngineeringDir)testing\helix.targets" />
 
   <PropertyGroup>
     <!-- This needs to be in Directory.Build.targets or the default value for AllowedReferenceRelatedFileExtensions will not be applied.

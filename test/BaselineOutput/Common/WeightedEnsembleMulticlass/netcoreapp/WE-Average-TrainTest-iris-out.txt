@@ -44,15 +44,15 @@ TRUTH     ||========================
 Precision ||1.0000 |0.9375 |0.9038 |
 Accuracy(micro-avg): 0.946667
 Accuracy(macro-avg): 0.946667
-Log-loss:           0.433392
-Log-loss reduction: 0.605510
+Log-loss:           0.433400
+Log-loss reduction: 0.605503
 
 OVERALL RESULTS
 ---------------------------------------
 Accuracy(micro-avg): 0.946667 (0.0000)
 Accuracy(macro-avg): 0.946667 (0.0000)
-Log-loss:           0.433392 (0.0000)
-Log-loss reduction: 0.605510 (0.0000)
+Log-loss:           0.433400 (0.0000)
+Log-loss reduction: 0.605503 (0.0000)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%
