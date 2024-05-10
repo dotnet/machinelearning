@@ -196,7 +196,7 @@ namespace Microsoft.Data.Analysis
                 mutableOffsetsBuffer.Append(0);
             }
             Length++;
-            if (value == default)
+            if (value.IsEmpty)
             {
                 mutableOffsetsBuffer.Append(mutableOffsetsBuffer[mutableOffsetsBuffer.Length - 1]);
             }
@@ -217,7 +217,7 @@ namespace Microsoft.Data.Analysis
                 value.CopyTo(mutableDataBuffer.RawSpan.Slice(startIndex));
                 mutableOffsetsBuffer.Append(mutableOffsetsBuffer[mutableOffsetsBuffer.Length - 1] + value.Length);
             }
-            SetValidityBit(Length - 1, value != default);
+            SetValidityBit(Length - 1, !value.IsEmpty);
 
         }
 
