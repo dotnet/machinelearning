@@ -19,9 +19,6 @@ variables:
   value: true
 - name: Codeql.SkipTaskAutoInjection
   value: True  #default to not inject CodeQL tasks, we'll enable it in a single job.
-# Ignore test and infrastructure code.
-- name: Codeql.SourceRoot
-  value: src
 # CodeQL3000 needs this plumbed along as a variable to enable TSA.
 - name: Codeql.TSAEnabled
   value: true
