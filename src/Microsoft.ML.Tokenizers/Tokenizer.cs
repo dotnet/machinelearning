@@ -397,6 +397,10 @@ namespace Microsoft.ML.Tokenizers
             {
                 modelEncoding = Tiktoken.ModelEncoding.Cl100kBase;
             }
+            else if (encodingName.Equals(Tiktoken.O200kBaseEncodingName, StringComparison.OrdinalIgnoreCase))
+            {
+                modelEncoding = Tiktoken.ModelEncoding.O200kBase;
+            }
             else if (encodingName.Equals(Tiktoken.P50kBaseEncodingName, StringComparison.OrdinalIgnoreCase))
             {
                 modelEncoding = Tiktoken.ModelEncoding.P50kBase;
