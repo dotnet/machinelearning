@@ -1018,21 +1018,24 @@ namespace Microsoft.ML.Tokenizers
             P50kBase,
             P50kEdit,
             R50kBase,
-            GPT2
+            GPT2,
+            O200kBase
         }
 
         private static readonly (string Prefix, ModelEncoding Encoding)[] _modelPrefixToEncoding =
                                                             [
                                                                 // chat
-                                                                ( "gpt-4-", ModelEncoding.Cl100kBase),          // e.g., gpt-4-0314, etc., plus gpt-4-32k
+                                                                ( "gpt-4o-", ModelEncoding.O200kBase),    // e.g., gpt-4o-2024-05-13
+                                                                ( "gpt-4-", ModelEncoding.Cl100kBase),    // e.g., gpt-4-0314, etc., plus gpt-4-32k
                                                                 ( "gpt-3.5-", ModelEncoding.Cl100kBase),  // e.g, gpt-3.5-turbo-0301, -0401, etc.
-                                                                ( "gpt-35-", ModelEncoding.Cl100kBase )         // Azure deployment name
+                                                                ( "gpt-35-", ModelEncoding.Cl100kBase )   // Azure deployment name
                                                             ];
 
         private static readonly Dictionary<string, ModelEncoding> _modelToEncoding =
                                                             new Dictionary<string, ModelEncoding>(StringComparer.OrdinalIgnoreCase)
                                                             {
                                                                 // chat
+                                                                { "gpt-4o", ModelEncoding.O200kBase },
                                                                 { "gpt-4", ModelEncoding.Cl100kBase },
                                                                 { "gpt-3.5-turbo", ModelEncoding.Cl100kBase },
                                                                 { "gpt-3.5-turbo-16k", ModelEncoding.Cl100kBase },
@@ -1131,6 +1134,9 @@ namespace Microsoft.ML.Tokenizers
                 case ModelEncoding.GPT2:
                     return (new Dictionary<string, int> { { EndOfText, 50256 }, }, P50kBaseRegex(), GPT2File);
 
+                case ModelEncoding.O200kBase:
+                    return (new Dictionary<string, int> { { EndOfText, 199999 }, { EndOfPrompt, 200018 } }, O200kBaseRegex(), O200kBaseFile);
+
                 default:
                     throw new NotSupportedException($"The model '{modelName ?? modelEncoding.ToString()}' is not supported.");
             }
@@ -1140,16 +1146,19 @@ namespace Microsoft.ML.Tokenizers
 
         private const string Cl100kBaseRegexPattern = /*lang=regex*/ @"'(?i:[sdmt]|re|ve|ll)|(?>[^\r\n\p{L}\p{N}]?)\p{L}+|\p{N}{1,3}| ?(?>[^\s\p{L}\p{N}]+)[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+";
         private const string P50kBaseRegexPattern = /*lang=regex*/ @"'(?:[sdmt]|re|ve|ll)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+";
+        private const string O200kBaseRegexPattern = /*lang=regex*/ @"[^\r\n\p{L}\p{N}]?[\p{Lu}\p{Lt}\p{Lm}\p{Lo}\p{M}]*[\p{Ll}\p{Lm}\p{Lo}\p{M}]+(?i:'s|'t|'re|'ve|'m|'ll|'d)?|[^\r\n\p{L}\p{N}]?[\p{Lu}\p{Lt}\p{Lm}\p{Lo}\p{M}]+[\p{Ll}\p{Lm}\p{Lo}\p{M}]*(?i:'s|'t|'re|'ve|'m|'ll|'d)?|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n/]*|\s*[\r\n]+|\s+(?!\S)|\s+";
 
         private const string Cl100kBaseVocabFile = "cl100k_base.tiktoken.deflate";  // "https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken"
         private const string P50RanksFile = "p50k_base.tiktoken.deflate";           // "https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken"
         private const string R50RanksFile = "r50k_base.tiktoken.deflate";           // "https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken"
         private const string GPT2File = "gpt2.tiktoken.deflate";                    // "https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken"
+        private const string O200kBaseFile = "o200k_base.tiktoken.deflate";         // "https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken"
 
         internal const string Cl100kBaseEncodingName = "cl100k_base";
         internal const string P50kBaseEncodingName = "p50k_base";
         internal const string P50kEditEncodingName = "p50k_edit";
         internal const string R50kBaseEncodingName = "r50k_base";
+        internal const string O200kBaseEncodingName = "o200k_base";
 
 #if NET7_0_OR_GREATER
         [GeneratedRegex(Cl100kBaseRegexPattern)]
@@ -1157,12 +1166,18 @@ namespace Microsoft.ML.Tokenizers
 
         [GeneratedRegex(P50kBaseRegexPattern)]
         internal static partial Regex P50kBaseRegex();
+
+        [GeneratedRegex(O200kBaseRegexPattern)]
+        internal static partial Regex O200kBaseRegex();
 #else
         private static Regex? _cl100kBaseRegex;
         private static Regex Cl100kBaseRegex() => _cl100kBaseRegex ??= new Regex(Cl100kBaseRegexPattern, RegexOptions.Compiled);
 
         private static Regex? _p50kBaseRegex;
         internal static Regex P50kBaseRegex() => _p50kBaseRegex ??= new Regex(P50kBaseRegexPattern, RegexOptions.Compiled);
+
+        private static Regex? _o200kBaseRegex;
+        internal static Regex O200kBaseRegex() => _o200kBaseRegex ??= new Regex(O200kBaseRegexPattern, RegexOptions.Compiled);
 #endif
 
         private static readonly ConcurrentDictionary<string, (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, (int Id, string Token)> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder)> _tiktokenCache = new(StringComparer.OrdinalIgnoreCase);

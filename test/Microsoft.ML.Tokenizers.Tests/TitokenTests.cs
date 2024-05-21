@@ -32,6 +32,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         public static Tokenizer P50kBase { get; } = Tokenizer.CreateTiktokenForModel("text-davinci-003");
         public static Tokenizer R50kBase { get; } = Tokenizer.CreateTiktokenForModel("ada");
         public static Tokenizer P50kEdit { get; } = Tokenizer.CreateTiktokenForModel("text-davinci-edit-001");
+        public static Tokenizer GPT4o { get; } = Tokenizer.CreateTiktokenForModel("gpt-4o");
 
         [Fact]
         public async void TestTokenizerCreation()
@@ -98,6 +99,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             yield return new object[] { GPT2, @"https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken" };
             yield return new object[] { P50kBase, @"https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken" };
             yield return new object[] { R50kBase, @"https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken" };
+            yield return new object[] { GPT4o, @"https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken" };
         }
 
         [Theory]
@@ -133,7 +135,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             string text = "Hello World";
             IReadOnlyList<int> encoded = tokenizer.EncodeToIds(text);
             Assert.Equal(new List<int>() { 9906, 4435 }, encoded);
-            Assert.Equal(text, tokenizer.Decode(encoded.ToArray())!);
+            Assert.Equal(text, tokenizer.Decode(encoded)!);
 
             IReadOnlyList<Token> result = tokenizer.Encode(text, out string? normalizedString);
             int idsCount = tokenizer.CountTokens(text);
@@ -156,7 +158,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             var text = "<|im_start|>Hello World<|im_end|>";
             IReadOnlyList<int> encoded = GPT4.EncodeToIds(text);
             Assert.Equal(new List<int>() { 100264, 9906, 4435, 100265 }, encoded);
-            Assert.Equal(text, GPT4.Decode(encoded.ToArray()));
+            Assert.Equal(text, GPT4.Decode(encoded));
 
             IReadOnlyList<Token> result = GPT4.Encode(text, out string? normalizedString);
             int idsCount = GPT4.CountTokens(text);
@@ -183,10 +185,10 @@ namespace Microsoft.ML.Tokenizers.Tests
             using (Stream stream = File.OpenRead("./Data/tokens.json"))
             {
                 int[]? expected = JsonSerializer.Deserialize<int[]>(stream) as int[];
-                Assert.Equal(expected!, encoded.ToArray());
+                Assert.Equal(expected!, encoded);
             }
 
-            string? decoded = gpt4Tokenizer.Decode(encoded.ToArray());
+            string? decoded = gpt4Tokenizer.Decode(encoded);
             Assert.Equal(text, decoded!);
 
             TokenizerTests.TestTokenLimits(gpt4Tokenizer);
@@ -198,7 +200,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             string text = "<|im_start|>Hello<|im_end|> World";
             IReadOnlyList<int> encoded = GPT4.EncodeToIds(text);
             Assert.Equal(new List<int>() { 100264, 9906, 100265, 4435 }, encoded);
-            string? decoded = GPT4.Decode(encoded.ToArray());
+            string? decoded = GPT4.Decode(encoded);
             Assert.Equal(text, decoded);
 
             IReadOnlyList<Token> result = GPT4.Encode(text, out string? normalizedString);
@@ -233,13 +235,49 @@ namespace Microsoft.ML.Tokenizers.Tests
             IReadOnlyList<int> encoded = GPT4.EncodeToIds(text);
             int idsCount = GPT4.CountTokens(text);
             Assert.Equal(new List<int>() { 100264, 9906, 2928, 99834, 4435, 100265 }, encoded);
-            Assert.Equal(text, GPT4.Decode(encoded.ToArray()));
+            Assert.Equal(text, GPT4.Decode(encoded));
 
             IReadOnlyList<Token> result = GPT4.Encode(text, out string? normalizedString);
             Assert.Equal(encoded, result.Select(token => token.Id).ToArray());
             Assert.Equal(encoded.Count, idsCount);
             Assert.Equal(new string[] { "<|im_start|>", "Hello", " ⭐", "⭐", " World", "<|im_end|>" }, result.Select(token => token.Value).ToArray());
             Assert.Equal(new List<(int, int)> { (0, 12), (12, 5), (17, 2), (18, 1), (19, 6), (25, 10) }, result.Select(token => token.Offset).ToArray());
+        }
+
+        [Fact]
+        public void TestEncodeGpt4o()
+        {
+            string text = ReadAndSanitizeFile("./Data/lib.rs.txt");
+            IReadOnlyList<int> encoded = GPT4o.EncodeToIds(text);
+            int idsCount = GPT4o.CountTokens(text);
+
+            Assert.Equal(5609, encoded.Count);
+            Assert.Equal(encoded.Count, idsCount);
+
+            using (Stream stream = File.OpenRead("./Data/tokens_gpt4o.json"))
+            {
+                int[]? expected = JsonSerializer.Deserialize<int[]>(stream) as int[];
+                Assert.Equal(expected!, encoded);
+            }
+
+            string? decoded = GPT4o.Decode(encoded);
+            Assert.Equal(text, decoded);
+
+            text = "<|endoftext|>Hello ⭐ World<|endofprompt|>";
+
+            encoded = GPT4o.EncodeToIds(text);
+            idsCount = GPT4o.CountTokens(text);
+            Assert.Equal(new List<int>() { 199999, 13225, 161181, 5922, 200018 }, encoded);
+            Assert.Equal(text, GPT4o.Decode(encoded));
+
+            IReadOnlyList<Token> result = GPT4o.Encode(text, out string? normalizedString);
+
+            Assert.Equal(encoded, result.Select(token => token.Id).ToArray());
+            Assert.Equal(encoded.Count, idsCount);
+            Assert.Equal(new string[] { "<|endoftext|>", "Hello", " ⭐", " World", "<|endofprompt|>" }, result.Select(token => token.Value).ToArray());
+            Assert.Equal(new List<(int, int)> { (0, 13), (13, 5), (18, 2), (20, 6), (26, 15) }, result.Select(token => token.Offset).ToArray());
+
+            TokenizerTests.TestTokenLimits(GPT4o);
         }
 
         [Fact]
@@ -254,10 +292,10 @@ namespace Microsoft.ML.Tokenizers.Tests
             using (Stream stream = File.OpenRead("./Data/tokens_gpt2.json"))
             {
                 int[]? expected = JsonSerializer.Deserialize<int[]>(stream) as int[];
-                Assert.Equal(expected!, encoded.ToArray());
+                Assert.Equal(expected!, encoded);
             }
 
-            string? decoded = GPT2.Decode(encoded.ToArray());
+            string? decoded = GPT2.Decode(encoded);
             Assert.Equal(text, decoded);
         }
 
@@ -273,10 +311,10 @@ namespace Microsoft.ML.Tokenizers.Tests
             using (Stream stream = File.OpenRead("./Data/tokens_p50k_base.json"))
             {
                 int[]? expected = JsonSerializer.Deserialize<int[]>(stream) as int[];
-                Assert.Equal(expected!, encoded.ToArray());
+                Assert.Equal(expected!, encoded);
             }
 
-            string? decoded = P50kBase.Decode(encoded.ToArray());
+            string? decoded = P50kBase.Decode(encoded);
             Assert.Equal(text, decoded);
         }
 
@@ -292,10 +330,10 @@ namespace Microsoft.ML.Tokenizers.Tests
             using (Stream stream = File.OpenRead("./Data/tokens_p50k_edit.json"))
             {
                 int[]? expected = JsonSerializer.Deserialize<int[]>(stream) as int[];
-                Assert.Equal(expected!, encoded.ToArray());
+                Assert.Equal(expected!, encoded);
             }
 
-            string? decoded = P50kEdit.Decode(encoded.ToArray());
+            string? decoded = P50kEdit.Decode(encoded);
             Assert.Equal(text, decoded);
         }
 
@@ -311,14 +349,16 @@ namespace Microsoft.ML.Tokenizers.Tests
             using (Stream stream = File.OpenRead("./Data/tokens_r50k_base.json"))
             {
                 int[]? expected = JsonSerializer.Deserialize<int[]>(stream) as int[];
-                Assert.Equal(expected!, encoded.ToArray());
+                Assert.Equal(expected!, encoded);
             }
 
-            string? decoded = R50kBase.Decode(encoded.ToArray());
+            string? decoded = R50kBase.Decode(encoded);
             Assert.Equal(text, decoded);
         }
 
         [Theory]
+        [InlineData("gpt-4o")]
+        [InlineData("gpt-4o-")]
         [InlineData("gpt-4")]
         [InlineData("gpt-4-")]
         [InlineData("gpt-3.5-")]
@@ -374,6 +414,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("p50k_base")]
         [InlineData("p50k_edit")]
         [InlineData("cl100k_base")]
+        [InlineData("o200k_base")]
         public void TestAllSupportedEncodingNames(string encodingName)
         {
             Tokenizer tokenizer = Tokenizer.CreateTiktokenForEncoding(encodingName);
@@ -386,6 +427,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 "p50k_base" => "text-davinci-003",
                 "p50k_edit" => "text-davinci-edit-001",
                 "cl100k_base" => "gpt-4",
+                "o200k_base" => "gpt-4o",
                 _ => throw new ArgumentException("Invalid encoding name"),
             };
 
@@ -411,9 +453,11 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("p50k_base_"));
             Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("p50k_edit_"));
             Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("cl100k_base_"));
+            Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("o200k_base_"));
         }
 
         [InlineData("gpt-4")]
+        [InlineData("gpt-4o")]
         [InlineData("text-davinci-003")]
         [InlineData("text-curie-001")]
         [InlineData("text-davinci-edit-001")]
