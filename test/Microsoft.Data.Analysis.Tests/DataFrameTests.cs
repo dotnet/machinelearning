@@ -44,6 +44,17 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+        public void ColumnInsertTest()
+        {
+            var df = DataFrame.LoadCsvFromString("a1,a2\n1,2\n3,4");
+
+            var dc0 = DataFrameColumn.Create("a0", new int[] { 0, 0 });
+            df.Columns.Insert(0, dc0);
+            var dc = df.Columns["a1"];
+            Assert.Equal("a1", dc.Name);
+        }
+
+        [Fact]
         public void ColumnAndTableCreationTest()
         {
             const int rowCount = 10;
