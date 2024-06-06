@@ -110,7 +110,7 @@ namespace Microsoft.Data.Analysis.Tests
             }
             ArrowBuffer validityBitmap = validityBitmapBuilder.Build();
 
-            StructType structType = new StructType(originalBatch.Schema.Fields.Select((KeyValuePair<string, Field> pair) => pair.Value).ToList());
+            StructType structType = new StructType(originalBatch.Schema.FieldsList);
             StructArray structArray = new StructArray(structType, originalBatch.Length, originalBatch.Arrays.Cast<Apache.Arrow.Array>(), validityBitmap);
             Schema schema = new Schema.Builder().Field(new Field("Struct", structType, false)).Build();
             RecordBatch recordBatch = new RecordBatch(schema, new[] { structArray }, originalBatch.Length);

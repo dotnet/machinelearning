@@ -158,13 +158,13 @@ namespace Microsoft.Data.Analysis.Tests
             {
                 return true;
             }
-            if (s2 == null || s1 == null || s1.HasMetadata != s2.HasMetadata || s1.Fields.Count != s2.Fields.Count)
+            if (s2 == null || s1 == null || s1.HasMetadata != s2.HasMetadata || s1.FieldsList.Count != s2.FieldsList.Count)
             {
                 return false;
             }
 
-            if (!s1.Fields.Keys.All(k => s2.Fields.ContainsKey(k) && FieldComparer.Equals(s1.Fields[k], s2.Fields[k])) ||
-                !s2.Fields.Keys.All(k => s1.Fields.ContainsKey(k) && FieldComparer.Equals(s2.Fields[k], s1.Fields[k])))
+            if (!s1.FieldsList.All(field => s2.FieldsLookup.Contains(field.Name) && FieldComparer.Equals(field, s2.GetFieldByName(field.Name))) ||
+                !s2.FieldsList.All(field => s1.FieldsLookup.Contains(field.Name) && FieldComparer.Equals(field, s1.GetFieldByName(field.Name))))
             {
                 return false;
             }

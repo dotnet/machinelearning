@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SuppressFinalPackageVersion>false</SuppressFinalPackageVersion>
     <IsPackable>true</IsPackable>
@@ -45,11 +45,14 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Apache.Arrow" Version="$(ApacheArrowVersion)" />
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'">
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
     <PackageReference Include="System.Buffers" Version="$(SystemBuffersVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Apache.Arrow" Version="$(ApacheArrowVersion)" />
   </ItemGroup>
 
   <ItemGroup>
