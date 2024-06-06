@@ -237,13 +237,14 @@ namespace Microsoft.Data.Analysis
         protected abstract DataFrameColumn CloneImplementation(long numberOfNullsToAppend = 0);
 
         /// <summary>
-        /// Returns a copy of this column sorted by its values
+        /// Returns a copy of this column sorted by its values.
         /// </summary>
-        /// <param name="ascending"></param>
-        public virtual DataFrameColumn Sort(bool ascending = true)
+        /// <param name="ascending">Sorting order.</param>
+        /// <param name="putNullValuesLast">If true, null values are always put at the end.</param>
+        public DataFrameColumn Sort(bool ascending = true, bool putNullValuesLast = true)
         {
-            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices(out Int64DataFrameColumn _);
-            return Clone(sortIndices, !ascending, NullCount);
+            PrimitiveDataFrameColumn<long> sortIndices = GetSortIndices(ascending, putNullValuesLast);
+            return Clone(sortIndices);
         }
 
         /// <summary>
@@ -455,20 +456,30 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
-        /// Returns the indices of non-null values that, when applied, result in this column being sorted in ascending order. Also returns the indices of null values in <paramref name="nullIndices"/>.
+        /// Returns the indices that, when applied, result in this column being sorted./>.
         /// </summary>
-        /// <param name="nullIndices">Indices of values that are <see langword="null"/>.</param>
-        internal virtual PrimitiveDataFrameColumn<long> GetAscendingSortIndices(out Int64DataFrameColumn nullIndices) => throw new NotImplementedException();
+        /// <param name="ascending">Sorting order.</param>
+        /// <param name="putNullValuesLast">If true, null values are always put at the end.</param>
+        internal abstract PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending, bool putNullValuesLast);
 
-        internal delegate long GetBufferSortIndex(int bufferIndex, int sortIndex);
-        internal delegate ValueTuple<T, int> GetValueAndBufferSortIndexAtBuffer<T>(int bufferIndex, int valueIndex);
-        internal delegate int GetBufferLengthAtIndex(int bufferIndex);
-        internal void PopulateColumnSortIndicesWithHeap<T>(SortedDictionary<T, List<ValueTuple<int, int>>> heapOfValueAndListOfTupleOfSortAndBufferIndex,
+        protected delegate long GetBufferSortIndex(int bufferIndex, int sortIndex);
+        protected delegate ValueTuple<T, int> GetValueAndBufferSortIndexAtBuffer<T>(int bufferIndex, int valueIndex);
+        protected delegate int GetBufferLengthAtIndex(int bufferIndex);
+
+        protected static void PopulateColumnSortIndicesWithHeap<T>(SortedDictionary<T, List<ValueTuple<int, int>>> heapOfValueAndListOfTupleOfSortAndBufferIndex,
                                                             PrimitiveDataFrameColumn<long> columnSortIndices,
+                                                            PrimitiveDataFrameColumn<long> columnNullIndices,
+                                                            bool ascending,
+                                                            bool putNullValuesLast,
                                                             GetBufferSortIndex getBufferSortIndex,
                                                             GetValueAndBufferSortIndexAtBuffer<T> getValueAndBufferSortIndexAtBuffer,
                                                             GetBufferLengthAtIndex getBufferLengthAtIndex)
         {
+            long i = ascending ? columnNullIndices.Length : columnSortIndices.Length - 1;
+
+            if (putNullValuesLast)
+                i -= columnNullIndices.Length;
+
             while (heapOfValueAndListOfTupleOfSortAndBufferIndex.Count > 0)
             {
                 KeyValuePair<T, List<ValueTuple<int, int>>> minElement = heapOfValueAndListOfTupleOfSortAndBufferIndex.ElementAt(0);
@@ -487,7 +498,9 @@ namespace Microsoft.Data.Analysis
                 int sortIndex = sortAndBufferIndex.sortIndex;
                 int bufferIndex = sortAndBufferIndex.bufferIndex;
                 long bufferSortIndex = getBufferSortIndex(bufferIndex, sortIndex);
-                columnSortIndices.Append(bufferSortIndex);
+
+                columnSortIndices[ascending ? i++ : i--] = bufferSortIndex;
+
                 if (sortIndex + 1 < getBufferLengthAtIndex(bufferIndex))
                 {
                     int nextSortIndex = sortIndex + 1;
@@ -498,6 +511,14 @@ namespace Microsoft.Data.Analysis
                         heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(nextValue, new List<ValueTuple<int, int>>() { (nextValueAndBufferSortIndex.bufferSortIndex, bufferIndex) });
                     }
                 }
+            }
+
+            //Fill Nulls 
+            var start = putNullValuesLast ? columnSortIndices.Length - columnNullIndices.Length : 0;
+            for (long j = 0; j < columnNullIndices.Length; j++)
+            {
+
+                columnSortIndices[start + j] = columnNullIndices[j];
             }
 
         }

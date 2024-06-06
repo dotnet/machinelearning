@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -39,20 +40,20 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
-        /// Splits the given string in multiple substrings at the word boundary, keeping track of the offsets of said substrings from the original string.
+        /// Get the offsets and lengths of the tokens relative to the <paramref name="text"/>.
         /// </summary>
         /// <param name="text">The string to split into tokens.</param>
-        /// <returns>The list of the splits containing the tokens and the token's offsets to the original string.</returns>
-        public override IEnumerable<Split> PreTokenize(string text)
+        /// <returns>The offsets and lengths of the tokens, expressed as pairs, are relative to the original string.</returns>
+        public override IEnumerable<(int Offset, int Length)> PreTokenize(string text)
         {
             if (string.IsNullOrEmpty(text))
             {
-                return Array.Empty<Split>();
+                return [];
             }
 
             return SplitText(text, _regex, _specialTokensRegex);
 
-            static IEnumerable<Split> SplitText(string text, Regex regex, Regex? specialTokensRegex)
+            static IEnumerable<(int Offset, int Length)> SplitText(string text, Regex regex, Regex? specialTokensRegex)
             {
                 (int Offset, int Length) match;
                 int beginning = 0;
@@ -69,21 +70,77 @@ namespace Microsoft.ML.Tokenizers
 
                         while (TryGetMatch(regex, text, beginning, specialMatch.Offset - beginning, out match))
                         {
-                            yield return new Split(text, null, (match.Offset, match.Length));
+                            yield return (match.Offset, match.Length);
                             beginning = match.Offset + match.Length;
                         }
 
-                        yield return new Split(text, null, (specialMatch.Offset, specialMatch.Length));
+                        yield return (specialMatch.Offset, specialMatch.Length);
                         beginning = specialMatch.Offset + specialMatch.Length;
                     }
                 }
 
                 while (TryGetMatch(regex, text, beginning, text.Length - beginning, out match))
                 {
-                    yield return new Split(text, null, (match.Offset, match.Length));
+                    yield return (match.Offset, match.Length);
                     beginning = match.Length + match.Offset;
                 }
             }
+        }
+
+        /// <summary>
+        /// Get the offsets and lengths of the tokens relative to the <paramref name="text"/>.
+        /// </summary>
+        /// <param name="text">The string to split into tokens.</param>
+        /// <returns>The offsets and lengths of the tokens, expressed as pairs, are relative to the original string.</returns>
+        public override IEnumerable<(int Offset, int Length)> PreTokenize(ReadOnlySpan<char> text)
+        {
+            if (text.IsEmpty)
+            {
+                return [];
+            }
+
+#if NET7_0_OR_GREATER
+            char[] buffer = ArrayPool<char>.Shared.Rent(text.Length);
+            text.CopyTo(buffer);
+            return SplitText(buffer, _regex, _specialTokensRegex, text.Length);
+
+            static IEnumerable<(int Offset, int Length)> SplitText(char[] text, Regex regex, Regex? specialTokensRegex, int textLength)
+            {
+                (int Offset, int Length) match;
+                int beginning = 0;
+
+                if (specialTokensRegex is not null)
+                {
+                    while (true)
+                    {
+                        (int Offset, int Length) specialMatch;
+                        if (!TryGetMatch(specialTokensRegex, text.AsSpan(), beginning, textLength - beginning, out specialMatch))
+                        {
+                            break;
+                        }
+
+                        while (TryGetMatch(regex, text.AsSpan(), beginning, specialMatch.Offset - beginning, out match))
+                        {
+                            yield return (match.Offset, match.Length);
+                            beginning = match.Offset + match.Length;
+                        }
+
+                        yield return (specialMatch.Offset, specialMatch.Length);
+                        beginning = specialMatch.Offset + specialMatch.Length;
+                    }
+                }
+
+                while (TryGetMatch(regex, text.AsSpan(), beginning, textLength - beginning, out match))
+                {
+                    yield return (match.Offset, match.Length);
+                    beginning = match.Length + match.Offset;
+                }
+
+                ArrayPool<char>.Shared.Return(text);
+            }
+#else
+            return PreTokenize(text.ToString());
+#endif // NET7_0_OR_GREATER
         }
     }
 }

@@ -92,7 +92,7 @@ namespace Microsoft.Data.Analysis
             RowCount = column.Length;
 
             _columnNameToIndexDictionary[column.Name] = columnIndex;
-            for (int i = columnIndex + 1; i < Count; i++)
+            for (int i = columnIndex; i < Count; i++)
             {
                 _columnNameToIndexDictionary[this[i].Name]++;
             }

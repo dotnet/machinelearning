@@ -383,5 +383,7 @@ namespace Microsoft.Data.Analysis
             //Do nothing as VBufferColumn doesn't have null values
             return Clone();
         }
+
+        internal override PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending, bool putNullValuesLast) => throw new NotImplementedException();
     }
 }

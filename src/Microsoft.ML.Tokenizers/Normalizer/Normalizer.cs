@@ -17,5 +17,12 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="original">The original string to normalize.</param>
         /// <returns>The normalized string.</returns>
         public abstract string Normalize(string original);
+
+        /// <summary>
+        /// Process the original string to modify it and obtain a normalized string.
+        /// </summary>
+        /// <param name="original">The original string to normalize.</param>
+        /// <returns>The normalized string.</returns>
+        public abstract string Normalize(ReadOnlySpan<char> original);
     }
 }

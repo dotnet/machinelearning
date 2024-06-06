@@ -6,7 +6,7 @@ namespace Microsoft.ML.Samples
 {
     public static class Program
     {
-        public static void Main(string[] args) => RunAll(args == null || args.Length == 0 ? null : args[0]);
+        public static void Main(string[] args) => RunAll(args.Length == 0 ? null : args[0]);
 
         internal static void RunAll(string name = null)
         {
@@ -20,13 +20,22 @@ namespace Microsoft.ML.Samples
                     if (sample != null)
                     {
                         Console.WriteLine(type.Name);
-                        sample.Invoke(null, null);
-                        samples++;
+                        try
+                        {
+                            sample.Invoke(null, null);
+                            samples++;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"An error occurred while running {type.Name}: {ex.Message}");
+                        }
+
                     }
                 }
             }
 
-            Console.WriteLine("Number of samples that ran without any exception: " + samples);
+            Console.WriteLine($"Number of samples that ran without any exception: {samples}");
+
         }
     }
 }

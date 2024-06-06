@@ -1137,7 +1137,7 @@ namespace Microsoft.ML.RunTests
         private void TestHashTransformVectorHelper<T>(VBuffer<T> data, uint[][] results, NumberDataViewType type)
         {
             var builder = new ArrayDataViewBuilder(Env);
-            builder.AddColumn("F1V", type, data);
+            builder.AddColumn("F1V", type, new[] { data });
             TestHashTransformVectorHelper(builder, results);
         }
 

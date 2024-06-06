@@ -26,12 +26,12 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             for (int i = 1; i <= fullIdsList.Count; i++)
             {
-                int index1 = tokenizer.IndexOfTokenCount(input, maxTokenCount: i, out string processedText1, out int tokenCount1);
-                int index2 = tokenizer.LastIndexOfTokenCount(input, maxTokenCount: i, out string processedText2, out int tokenCount2);
-                IReadOnlyList<int> partialIdsList = tokenizer.EncodeToIds(input, maxTokenCount: i, out string processedText, out int textLength);
+                int index1 = tokenizer.IndexOfTokenCount(input, maxTokenCount: i, out string? processedText1, out int tokenCount1);
+                int index2 = tokenizer.LastIndexOfTokenCount(input, maxTokenCount: i, out string? processedText2, out int tokenCount2);
+                IReadOnlyList<int> partialIdsList = tokenizer.EncodeToIds(input, maxTokenCount: i, out string? processedText, out int textLength);
 
-                Assert.True(textLength <= processedText.Length);
-                Assert.True(tokenizer.Normalizer is not null || processedText == input);
+                Assert.True(processedText is null || textLength <= processedText.Length);
+                Assert.True(tokenizer.Normalizer is not null || processedText is null);
 
                 Assert.Equal(fullIdsList.Take(partialIdsList.Count), partialIdsList);
 
@@ -42,14 +42,13 @@ namespace Microsoft.ML.Tokenizers.Tests
                 // In this case, we'll get index1 equal to zero and nothing really will need to be tested.
                 if (tokenCount1 > 0 && index1 > 0)
                 {
-                    string prefixString = processedText1.Substring(0, index1);
+                    string prefixString = (processedText1 ?? input).Substring(0, index1);
 
-                    if (tokenizer.Model is SentencePieceBpe)
+                    if (tokenizer is SentencePieceBpe)
                     {
                         // SentencePieceBpe model normalize the text and insert more characters.
                         // We call the model directly to bypass the normalization step
-                        prefixIds = new List<int>();
-                        tokenizer.Model.EncodeToIds(prefixString.AsSpan(), (prefixIds as IList<int>)!, out _);
+                        prefixIds = tokenizer.EncodeToIds(prefixString.AsSpan(), considerNormalization: false);
                     }
                     else
                     {
@@ -61,14 +60,13 @@ namespace Microsoft.ML.Tokenizers.Tests
 
                 if (tokenCount2 > 0)
                 {
-                    string suffixString = processedText2.Substring(index2);
+                    string suffixString = (processedText2 ?? input).Substring(index2);
 
-                    if (tokenizer.Model is SentencePieceBpe)
+                    if (tokenizer is SentencePieceBpe)
                     {
                         // SentencePieceBpe model normalize the text and insert more characters.
                         // We call the model directly to bypass the normalization step
-                        suffixIds = new List<int>();
-                        tokenizer.Model.EncodeToIds(suffixString.AsSpan(), (suffixIds as IList<int>)!, out _);
+                        suffixIds = tokenizer.EncodeToIds(suffixString.AsSpan(), considerNormalization: false);
                         if (i < fullIdsList.Count)
                         {
                             suffixIds = suffixIds.Skip(1).ToList(); // Skip the start of sentence token <s>
@@ -85,12 +83,13 @@ namespace Microsoft.ML.Tokenizers.Tests
 
                 if (i == fullIdsList.Count)
                 {
-                    if (index1 != processedText1.Length)
+                    string s = processedText1 ?? input;
+                    if (index1 != s.Length)
                     {
                         // It's possible that the remaining text on the left doesn't produce any tokens, as in the case of BPE,
                         // where the pre-tokenizer removes spaces and the left text consists entirely of spaces.
-                        Assert.True(index1 < processedText1.Length);
-                        Assert.Equal(0, tokenizer.CountTokens(processedText1.Substring(index1)));
+                        Assert.True(index1 < s.Length);
+                        Assert.Equal(0, tokenizer.CountTokens(s.Substring(index1)));
                     }
 
                     if (index2 != 0)
@@ -98,7 +97,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                         // It's possible that the remaining text on the right doesn't produce any tokens, as in the case of BPE,
                         // where the pre-tokenizer removes spaces and the left text consists entirely of spaces.
                         Assert.True(index2 > 0);
-                        Assert.Equal(0, tokenizer.CountTokens(processedText1.Substring(0, index2)));
+                        Assert.Equal(0, tokenizer.CountTokens(s.Substring(0, index2)));
                     }
 
                     Assert.Equal(fullIdsList, prefixIds);
@@ -106,13 +105,15 @@ namespace Microsoft.ML.Tokenizers.Tests
                 }
             }
 
+            Assert.Equal(0, tokenizer.IndexOfTokenCount((string)null!, maxTokenCount: 10, out _, out _));
+            Assert.Equal(0, tokenizer.LastIndexOfTokenCount((string)null!, maxTokenCount: 10, out _, out _));
+            Assert.Equal(0, tokenizer.IndexOfTokenCount(Span<char>.Empty, maxTokenCount: 10, out _, out _));
+            Assert.Equal(0, tokenizer.LastIndexOfTokenCount(Span<char>.Empty, maxTokenCount: 10, out _, out _));
+
             Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.IndexOfTokenCount(input, maxTokenCount: 0, out _, out _));
             Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.IndexOfTokenCount(input, maxTokenCount: -1, out _, out _));
             Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.LastIndexOfTokenCount(input, maxTokenCount: 0, out _, out _));
             Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.LastIndexOfTokenCount(input, maxTokenCount: -1, out _, out _));
-
-            Assert.Throws<ArgumentNullException>(() => tokenizer.IndexOfTokenCount(null!, maxTokenCount: 10, out _, out _));
-            Assert.Throws<ArgumentNullException>(() => tokenizer.LastIndexOfTokenCount(null!, maxTokenCount: 10, out _, out _));
         }
     }
 }

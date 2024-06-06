@@ -401,9 +401,9 @@ namespace Microsoft.ML.TorchSharp.Roberta
                     answerIndexGetter(ref answerIndex);
 
                     var contextString = context.ToString();
-                    var contextTokens = Tokenizer.Encode(contextString);
-                    var contextToken = contextTokens.Tokens;
-                    var contextTokenId = Tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(contextTokens.Ids);
+                    var contextTokens = Tokenizer.Encode(contextString, out string normalized);
+                    var contextToken = contextTokens.Select(t => t.Value).ToArray();
+                    var contextTokenId = Tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(contextTokens.Select(t => t.Id).ToArray());
 
                     var mapping = AlignAnswerPosition(contextToken, contextString);
                     if (mapping == null)
@@ -437,7 +437,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
 
             private Dictionary<int, int> AlignAnswerPosition(IReadOnlyList<string> tokens, string text)
             {
-                EnglishRoberta robertaModel = Tokenizer.Model as EnglishRoberta;
+                EnglishRoberta robertaModel = Tokenizer as EnglishRoberta;
                 Debug.Assert(robertaModel is not null);
 
                 var mapping = new Dictionary<int, int>();
@@ -854,9 +854,9 @@ namespace Microsoft.ML.TorchSharp.Roberta
                 contextGetter(ref context);
                 questionGetter(ref question);
 
-                var contextTokenId = _parent.Tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(_parent.Tokenizer.Encode(context.ToString()).Ids);
+                var contextTokenId = _parent.Tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(_parent.Tokenizer.EncodeToIds(context.ToString()));
 
-                var questionTokenId = _parent.Tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(_parent.Tokenizer.Encode(question.ToString()).Ids);
+                var questionTokenId = _parent.Tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(_parent.Tokenizer.EncodeToIds(question.ToString()));
 
                 var srcTensor = torch.tensor((new[] { 0 /* InitToken */ }).Concat(questionTokenId).Concat(new[] { 2 /* SeparatorToken */ }).Concat(contextTokenId).ToList(), device: _parent.Device);
 

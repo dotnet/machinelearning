@@ -670,7 +670,7 @@ void logisticRegressionLBFGSComputeTemplate(FPType * featuresPtr, int * labelsPt
         predictionsTable->getBlockOfRows(0, nRows, readWrite, predictionsBlock);
         int * predictions = predictionsBlock.getBlockPtr();
         FPType accuracy = 0;
-        for (long i = 0; i < nRows; ++i)
+        for (long long i = 0; i < nRows; ++i)
         {
             if (predictions[i] == labelsPtr[i])
             {

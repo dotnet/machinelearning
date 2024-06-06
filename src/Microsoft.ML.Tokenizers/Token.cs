@@ -12,7 +12,7 @@ namespace Microsoft.ML.Tokenizers
     /// Represent the token produced from the tokenization process containing the token substring,
     /// the id associated to the token substring, and the offset mapping to the original string.
     /// </summary>
-    public sealed class Token
+    public readonly struct Token
     {
         /// <summary>
         /// Gets the Id value associated to the token.
@@ -22,12 +22,12 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the token string value.
         /// </summary>
-        public string Value { get; set; }
+        public string Value { get; }
 
         /// <summary>
         /// Gets the offset mapping to the original string.
         /// </summary>
-        public (int Index, int Length) Offset { get; internal set; }
+        public (int Index, int Length) Offset { get; }
 
         /// <summary>
         /// Construct a new Token object using the token value, Id, and the offset mapping to the original string.

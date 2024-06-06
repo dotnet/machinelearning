@@ -111,7 +111,6 @@ namespace Microsoft.ML.Internal.CpuMath
         public void CopyTo(Span<float> dst, int index, int count)
         {
             Contracts.Assert(0 <= count && count <= _size);
-            Contracts.Assert(dst != null);
             Contracts.Assert(0 <= index && index <= dst.Length - count);
             Items.AsSpan(_base, count).CopyTo(dst.Slice(index));
         }
@@ -120,7 +119,6 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.Assert(0 <= count);
             Contracts.Assert(0 <= start && start <= _size - count);
-            Contracts.Assert(dst != null);
             Contracts.Assert(0 <= index && index <= dst.Length - count);
             Items.AsSpan(start + _base, count).CopyTo(dst.Slice(index));
         }
@@ -143,8 +141,6 @@ namespace Microsoft.ML.Internal.CpuMath
         // rgposSrc runs parallel to the valuesSrc array.
         public void CopyFrom(ReadOnlySpan<int> rgposSrc, ReadOnlySpan<float> valuesSrc, int posMin, int iposMin, int iposLim, bool zeroItems)
         {
-            Contracts.Assert(rgposSrc != null);
-            Contracts.Assert(valuesSrc != null);
             Contracts.Assert(rgposSrc.Length <= valuesSrc.Length);
             Contracts.Assert(0 <= iposMin && iposMin <= iposLim && iposLim <= rgposSrc.Length);
 

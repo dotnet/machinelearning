@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,263 +16,279 @@ using System.Threading.Tasks;
 namespace Microsoft.ML.Tokenizers
 {
     /// <summary>
-    /// A Tokenizer works as a pipeline. It processes some raw text as input and outputs a EncodingResult object.
+    /// serves as an abstraction for concrete tokenizers, enabling the encoding of text into tokens and IDs, as well as the decoding of IDs back into text.
     /// </summary>
-    public partial class Tokenizer
+    public abstract class Tokenizer
     {
         /// <summary>
-        /// Create a new Tokenizer object.
+        /// Gets the PreTokenizer used by the Tokenizer.
         /// </summary>
-        /// <param name="model">The Model in use by the Tokenizer.</param>
-        /// <param name="preTokenizer">The optional PreTokenizer in use by the Tokenizer. WhiteSpace PreTokenizer will be used if this parameter is null.</param>
-        /// <param name="normalizer">The optional Normalizer in use by the Tokenizer.</param>
-        public Tokenizer(Model model, PreTokenizer? preTokenizer = null, Normalizer? normalizer = null)
-        {
-            Model = model;
-            PreTokenizer = preTokenizer ?? WhiteSpace.Instance;
-            Normalizer = normalizer;
-        }
+        public virtual PreTokenizer? PreTokenizer => null;
 
         /// <summary>
-        /// Gets the Model in use by the Tokenizer.
+        /// Gets the Normalizer in use by the Tokenizer.
         /// </summary>
-        public Model Model { get; }
+        public virtual Normalizer? Normalizer => null;
 
         /// <summary>
-        /// Gets or sets the PreTokenizer used by the Tokenizer.
-        /// </summary>
-        public PreTokenizer PreTokenizer { get; }
-
-        /// <summary>
-        /// Gets or sets the Normalizer in use by the Tokenizer.
-        /// </summary>
-        public Normalizer? Normalizer { get; }
-
-        /// <summary>
-        /// Encodes input text to object has the tokens list, tokens Ids, tokens offset mapping.
+        /// Encodes input text a list of <see cref="Token" />s with string value of the token, id, and offset.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
-        public EncodingResult Encode(string text)
-        {
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            string normalized = Normalizer is null ? text : Normalizer.Normalize(text);
-            bool offsetsMappedToOriginal = true;
-
-            EncodingResult encoding = new(text, normalized, PreTokenizer.PreTokenize(normalized), offsetsMappedToOriginal);
-
-            foreach (Split split in encoding.Splits)
-            {
-                IReadOnlyList<Token> tokens = Model.Encode(split.TokenString.AsSpan());
-                foreach (Token token in tokens)
-                {
-                    token.Offset = (token.Offset.Index + split.Offset.Index, token.Offset.Length);
-                }
-
-                encoding.AddTokens(tokens);
-            }
-
-            return encoding;
-        }
+        /// <param name="normalizedString">If the tokenizer's normalization is enabled or <paramRef name="considerNormalization" /> is false, this will be set to <paramRef name="text" /> in its normalized form; otherwise, this value will be set to null.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>The tokenization result includes a list of <see cref="Token" />s with string value of the token, id, and offset.</returns>
+        public virtual IReadOnlyList<Token> Encode(string text, out string? normalizedString, bool considerPreTokenization = true, bool considerNormalization = true) => Encode(text.AsSpan(), out normalizedString, considerPreTokenization, considerNormalization);
 
         /// <summary>
-        /// Encodes input text to tokens Ids.
+        /// Encodes input text a list of <see cref="Token" />s with string value of the token, id, and offset.
         /// </summary>
         /// <param name="text">The text to encode.</param>
+        /// <param name="normalizedString">If the tokenizer's normalization is enabled or <paramRef name="considerNormalization" /> is false, this will be set to <paramRef name="text" /> in its normalized form; otherwise, this value will be set to null.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>The tokenization result includes a list of <see cref="Token" />s with string value of the token, id, and offset.</returns>
+        public abstract IReadOnlyList<Token> Encode(ReadOnlySpan<char> text, out string? normalizedString, bool considerPreTokenization = true, bool considerNormalization = true);
+
+        /// <summary>
+        /// Encodes input text to token Ids.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
         /// <returns>The list of encoded Ids.</returns>
-        public IReadOnlyList<int> EncodeToIds(string text)
-        {
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            string normalized = Normalizer is not null ? Normalizer.Normalize(text) : text;
-            List<int> idsList = new();
-
-            foreach (Split split in PreTokenizer.PreTokenize(normalized))
-            {
-                Model.EncodeToIds(split.TokenSpan, idsList, out _);
-            }
-
-            return idsList;
-        }
+        public virtual IReadOnlyList<int> EncodeToIds(string text, bool considerPreTokenization = true, bool considerNormalization = true) => EncodeToIds(text.AsSpan(), considerPreTokenization, considerNormalization);
 
         /// <summary>
-        /// Encodes input text to tokens Ids up to maximum number of tokens.
+        /// Encodes input text to token Ids.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>The list of encoded Ids.</returns>
+        public abstract IReadOnlyList<int> EncodeToIds(ReadOnlySpan<char> text, bool considerPreTokenization = true, bool considerNormalization = true);
+
+        /// <summary>
+        /// Encodes input text to token Ids up to maximum number of tokens.
         /// </summary>
         /// <param name="text">The text to encode.</param>
         /// <param name="maxTokenCount">The maximum number of tokens to encode.</param>
-        /// <param name="processedText">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will remain unchanged as the input text.</param>
+        /// <param name="normalizedText">If the tokenizer's normalization is enabled or <paramRef name="considerNormalization" /> is false, this will be set to <paramRef name="text" /> in its normalized form; otherwise, this value will be set to null.</param>
         /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
         /// <returns>The list of encoded Ids.</returns>
-        public IReadOnlyList<int> EncodeToIds(string text, int maxTokenCount, out string processedText, out int textLength)
-        {
-            processedText = text;
-            textLength = 0;
+        public virtual IReadOnlyList<int> EncodeToIds(string text, int maxTokenCount, out string? normalizedText, out int textLength, bool considerPreTokenization = true, bool considerNormalization = true)
+            => EncodeToIds(text.AsSpan(), maxTokenCount, out normalizedText, out textLength, considerPreTokenization, considerNormalization);
 
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            if (maxTokenCount <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The maximum number of tokens must be greater than 0.");
-            }
-
-            if (Normalizer is not null)
-            {
-                processedText = Normalizer.Normalize(text);
-            }
-
-            List<int> idsList = new();
-
-            foreach (Split split in PreTokenizer.PreTokenize(processedText))
-            {
-                Model.EncodeToIds(split.TokenSpan, idsList, out int length, maxTokenCount - idsList.Count);
-                if (length < split.Offset.Length || idsList.Count >= maxTokenCount)
-                {
-                    break;
-                }
-            }
-
-            return idsList;
-        }
+        /// <summary>
+        /// Encodes input text to token Ids up to maximum number of tokens.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="maxTokenCount">The maximum number of tokens to encode.</param>
+        /// <param name="normalizedText">If the tokenizer's normalization is enabled or <paramRef name="considerNormalization" /> is false, this will be set to <paramRef name="text" /> in its normalized form; otherwise, this value will be set to null.</param>
+        /// <param name="textLength">The length of the text that encompasses the maximum encoded tokens.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>The list of encoded Ids.</returns>
+        public abstract IReadOnlyList<int> EncodeToIds(ReadOnlySpan<char> text, int maxTokenCount, out string? normalizedText, out int textLength, bool considerPreTokenization = true, bool considerNormalization = true);
 
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <returns>The number of tokens Ids that the input text will be encoded to.</returns>
-        /// <exception cref="ArgumentNullException">The input text is null.</exception>
-        /// <exception cref="ArgumentException">Unable to encode the text.</exception>
-        public int CountTokens(string text)
-        {
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>The number of token Ids that the input text will be encoded to.</returns>
+        public virtual int CountTokens(string text, bool considerPreTokenization = true, bool considerNormalization = true)
+            => CountTokens(text.AsSpan(), considerPreTokenization, considerNormalization);
 
-            string normalized = Normalizer is not null ? Normalizer.Normalize(text) : text;
-
-            int idsCount = 0;
-            foreach (Split split in PreTokenizer.PreTokenize(normalized))
-            {
-                idsCount += Model.CountTokens(split.TokenSpan, out _);
-            }
-
-            return idsCount;
-        }
+        /// <summary>
+        /// Get the number of tokens that the input text will be encoded to.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>The number of token Ids that the input text will be encoded to.</returns>
+        public abstract int CountTokens(ReadOnlySpan<char> text, bool considerPreTokenization = true, bool considerNormalization = true);
 
         /// <summary>
         /// Find the index of the maximum encoding capacity from the start within the text without surpassing the token limit.
         /// </summary>
         /// <param name="text">The text to encode.</param>
         /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
-        /// <param name="processedText">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will remain unchanged as the input text.</param>
+        /// <param name="normalizedString">If the tokenizer's normalization is enabled or <paramRef name="considerNormalization" /> is false, this will be set to <paramRef name="text" /> in its normalized form; otherwise, this value will be set to null.</param>
         /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
         /// <returns>
         /// The index of the maximum encoding capacity within the processed text without surpassing the token limit.
-        /// It represents the index immediately following the last character to be included. In cases where no tokens fit, the result will be 0; conversely, if all tokens fit, the result will be length of the <paramref name="processedText"/>.
+        /// It represents the index immediately following the last character to be included. In cases where no tokens fit, the result will be 0; conversely,
+        /// if all tokens fit, the result will be length of the text or the <paramref name="normalizedString"/> if the normalization is enabled.
         /// </returns>
-        /// <exception cref="ArgumentNullException">The input text is null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">The maximum token count must be greater than 0.</exception>
-        public int IndexOfTokenCount(string text, int maxTokenCount, out string processedText, out int tokenCount)
-            => IndexOf(text, maxTokenCount, out processedText, out tokenCount);
+        public virtual int IndexOfTokenCount(string text, int maxTokenCount, out string? normalizedString, out int tokenCount, bool considerPreTokenization = true, bool considerNormalization = true)
+            => IndexOfTokenCount(text.AsSpan(), maxTokenCount, out normalizedString, out tokenCount, considerPreTokenization, considerNormalization);
+
+        /// <summary>
+        /// Find the index of the maximum encoding capacity from the start within the text without surpassing the token limit.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
+        /// <param name="normalizedString">If the tokenizer's normalization is enabled or <paramRef name="considerNormalization" /> is false, this will be set to <paramRef name="text" /> in its normalized form; otherwise, this value will be set to null.</param>
+        /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>
+        /// The index of the maximum encoding capacity within the processed text without surpassing the token limit.
+        /// It represents the index immediately following the last character to be included. In cases where no tokens fit, the result will be 0; conversely,
+        /// if all tokens fit, the result will be length of the text or the <paramref name="normalizedString"/> if the normalization is enabled.
+        /// </returns>
+        public abstract int IndexOfTokenCount(ReadOnlySpan<char> text, int maxTokenCount, out string? normalizedString, out int tokenCount, bool considerPreTokenization = true, bool considerNormalization = true);
 
         /// <summary>
         /// Find the index of the maximum encoding capacity from the end within the text without surpassing the token limit.
         /// </summary>
         /// <param name="text">The text to encode.</param>
         /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
-        /// <param name="processedText">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will remain unchanged as the input text.</param>
+        /// <param name="processedText">If the tokenizer's normalization is enabled or <paramRef name="considerNormalization" /> is false, this will be set to <paramRef name="text" /> in its normalized form; otherwise, this value will be set to null.</param>
         /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
         /// <returns>
         /// The start index of the maximum encoding capacity within the processed text without surpassing the token limit.
         /// It represents the index at the first character to be included. In cases where no tokens fit, the result will be length of the <paramref name="processedText"/>; conversely, if all tokens fit, the result will be 0.
         /// </returns>
-        /// <exception cref="ArgumentNullException">The input text is null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">The maximum token count must be greater than 0.</exception>
-        /// <remarks>
-        /// If the whole text can be encoded within the token limit, the returned index will be 0.
-        /// </remarks>
-        public int LastIndexOfTokenCount(string text, int maxTokenCount, out string processedText, out int tokenCount)
-            => LastIndexOf(text, maxTokenCount, out processedText, out tokenCount);
+        public virtual int LastIndexOfTokenCount(string text, int maxTokenCount, out string? processedText, out int tokenCount, bool considerPreTokenization = true, bool considerNormalization = true)
+            => LastIndexOfTokenCount(text.AsSpan(), maxTokenCount, out processedText, out tokenCount, considerPreTokenization, considerNormalization);
 
-        private int IndexOf(string text, int maxTokenCount, out string processedText, out int tokenCount)
+        /// <summary>
+        /// Find the index of the maximum encoding capacity from the end within the text without surpassing the token limit.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <param name="maxTokenCount">The maximum token count to limit the encoding capacity.</param>
+        /// <param name="processedText">If the tokenizer's normalization is enabled or <paramRef name="considerNormalization" /> is false, this will be set to <paramRef name="text" /> in its normalized form; otherwise, this value will be set to null.</param>
+        /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
+        /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
+        /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <returns>
+        /// The start index of the maximum encoding capacity within the processed text without surpassing the token limit.
+        /// It represents the index at the first character to be included. In cases where no tokens fit, the result will be length of the <paramref name="processedText"/>; conversely, if all tokens fit, the result will be 0.
+        /// </returns>
+        public abstract int LastIndexOfTokenCount(ReadOnlySpan<char> text, int maxTokenCount, out string? processedText, out int tokenCount, bool considerPreTokenization = true, bool considerNormalization = true);
+
+        /// <summary>
+        /// Map the token to encoded Id.
+        /// </summary>
+        /// <param name="token">The token to map to the Id.</param>
+        /// <returns>The mapped Id of the token.</returns>
+        public virtual int? MapTokenToId(string token)
         {
-            if (text is null)
+            if (token is null)
             {
-                throw new ArgumentNullException(nameof(text));
+                throw new ArgumentNullException(nameof(token));
             }
 
-            if (maxTokenCount <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The max token count must be greater than 0.");
-            }
-
-            processedText = Normalizer is not null ? Normalizer.Normalize(text) : text;
-            tokenCount = 0;
-
-            IEnumerable<Split> splits = PreTokenizer.PreTokenize(processedText);
-            foreach (Split split in splits)
-            {
-                tokenCount += Model.CountTokens(split.TokenSpan, out int textLength, maxTokenCount - tokenCount);
-                if (textLength < split.Offset.Length || tokenCount >= maxTokenCount)
-                {
-                    return split.Offset.Index + textLength;
-                }
-            }
-
-            return processedText.Length;
+            return MapTokenToId(token.AsSpan());
         }
 
-        private int LastIndexOf(string text, int maxTokenCount, out string processedText, out int tokenCount)
-        {
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            if (maxTokenCount <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(maxTokenCount), "The max token count must be greater than 0.");
-            }
-
-            processedText = Normalizer is not null ? Normalizer.Normalize(text) : text;
-            tokenCount = 0;
-
-            IEnumerable<Split> splits = PreTokenizer.PreTokenize(processedText);
-            foreach (Split split in splits.Reverse())
-            {
-                tokenCount += Model.CountTokensFromEnd(split.TokenSpan, out int textIndex, maxTokenCount - tokenCount);
-                if (textIndex > 0 || tokenCount >= maxTokenCount)
-                {
-                    return split.Offset.Index + textIndex;
-                }
-            }
-
-            return 0;
-        }
+        /// <summary>
+        /// Map the token to encoded Id.
+        /// </summary>
+        /// <param name="token">The token to map to the Id.</param>
+        /// <returns>The mapped Id of the token.</returns>
+        public abstract int? MapTokenToId(ReadOnlySpan<char> token);
 
         /// <summary>
         /// Decodes the Id to the mapped token.
         /// </summary>
         /// <param name="id">The id to map to the token.</param>
         /// <returns>The decoded string or null if there is no token mapped to the input id.</returns>
-        public string? Decode(int id) => Model.MapIdToToken(id);
+        public abstract string? MapIdToToken(int id);
 
         /// <summary>
         /// Decode the given ids, back to a String.
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
         /// <returns>The decoded string.</returns>
-        public string? Decode(IEnumerable<int> ids) => Model.Decode(ids);
+        public virtual string? Decode(IEnumerable<int> ids)
+        {
+            if (ids is null)
+            {
+                throw new ArgumentNullException(nameof(ids));
+            }
+
+            ValueStringBuilder sb = new ValueStringBuilder();
+
+            foreach (int id in ids)
+            {
+                if (MapIdToToken(id) is string s)
+                {
+                    sb.Append(s);
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        //
+        // Factory Methods
+        //
+
+        /// <summary>
+        /// Create a new Tiktoken tokenizer's object asynchronously.
+        /// </summary>
+        /// <param name="vocabStream">The stream to the BPE vocab file.</param>
+        /// <param name="preTokenizer">The pre-tokenizer to use.</param>
+        /// <param name="normalizer">The normalizer to use.</param>
+        /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
+        /// <param name="cacheSize">The size of the cache to use.</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
+        /// <returns>The tokenizer's object.</returns>
+        public static async Task<Tokenizer> CreateTiktokenAsync(
+                            Stream vocabStream,
+                            PreTokenizer? preTokenizer,
+                            Normalizer? normalizer,
+                            IReadOnlyDictionary<string, int>? specialTokens = null,
+                            int cacheSize = LruCache<int[]>.DefaultCacheSize,
+                            CancellationToken cancellationToken = default)
+        {
+            if (vocabStream is null)
+            {
+                throw new ArgumentNullException(nameof(vocabStream));
+            }
+
+            (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, (int Id, string Token)> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) =
+                        await Tiktoken.LoadTiktokenBpeAsync(vocabStream, useAsync: true, cancellationToken).ConfigureAwait(false);
+
+            return new Tiktoken(encoder, decoder, vocab, preTokenizer, specialTokens, normalizer, cacheSize);
+        }
+
+        /// <summary>
+        /// Create a new Tiktoken tokenizer's object asynchronously.
+        /// </summary>
+        /// <param name="vocabFilePath">The BPE vocab file.</param>
+        /// <param name="preTokenizer">The pre-tokenizer to use.</param>
+        /// <param name="normalizer">The normalizer to use.</param>
+        /// <param name="specialTokensEncoder">The dictionary mapping special tokens to Ids.</param>
+        /// <param name="cacheSize">The size of the cache to use.</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
+        /// <returns>The tokenizer's object.</returns>
+        public static async Task<Tokenizer> CreateTiktokenAsync(
+                                string vocabFilePath,
+                                PreTokenizer? preTokenizer,
+                                Normalizer? normalizer,
+                                IReadOnlyDictionary<string, int>? specialTokensEncoder = null,
+                                int cacheSize = LruCache<int[]>.DefaultCacheSize,
+                                CancellationToken cancellationToken = default)
+        {
+            if (vocabFilePath is null)
+            {
+                throw new ArgumentNullException(nameof(vocabFilePath));
+            }
+
+            using Stream vocabStream = File.OpenRead(vocabFilePath);
+            return await CreateTiktokenAsync(vocabStream, preTokenizer, normalizer, specialTokensEncoder, cacheSize, cancellationToken).ConfigureAwait(false);
+        }
 
         /// <summary>
         /// Create a Tiktoken tokenizer based on model name and vocab file.
@@ -304,10 +321,11 @@ namespace Microsoft.ML.Tokenizers
                 }
             }
 
-            return new Tokenizer(
-                            new Tiktoken(vocabStream, tiktokenConfiguration.SpecialTokens, cacheSize),
-                            new TiktokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
-                            normalizer);
+            return new Tiktoken(vocabStream,
+                                new TiktokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
+                                tiktokenConfiguration.SpecialTokens,
+                                normalizer,
+                                cacheSize);
         }
 
         /// <summary>
@@ -343,10 +361,11 @@ namespace Microsoft.ML.Tokenizers
                 }
             }
 
-            return new Tokenizer(
-                            await Tiktoken.CreateAsync(vocabStream, tiktokenConfiguration.SpecialTokens, cacheSize, cancellationToken).ConfigureAwait(false),
-                            new TiktokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
-                            normalizer);
+            return await CreateTiktokenAsync(vocabStream,
+                                new TiktokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
+                                normalizer,
+                                tiktokenConfiguration.SpecialTokens,
+                                cacheSize, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -357,7 +376,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="normalizer">To normalize the text before tokenization</param>
         /// <returns>The tokenizer</returns>
         public static Tokenizer CreateTiktokenForModel(string modelName, IReadOnlyDictionary<string, int>? extraSpecialTokens = null, Normalizer? normalizer = null)
-                        => Tiktoken.CreateTokenizerForModel(modelName, extraSpecialTokens, normalizer);
+                        => Tiktoken.CreateForModel(Tiktoken.GetModelEncoding(modelName), modelName, extraSpecialTokens, normalizer);
 
         /// <summary>
         /// Create tokenizer based on encoding name
@@ -378,6 +397,10 @@ namespace Microsoft.ML.Tokenizers
             {
                 modelEncoding = Tiktoken.ModelEncoding.Cl100kBase;
             }
+            else if (encodingName.Equals(Tiktoken.O200kBaseEncodingName, StringComparison.OrdinalIgnoreCase))
+            {
+                modelEncoding = Tiktoken.ModelEncoding.O200kBase;
+            }
             else if (encodingName.Equals(Tiktoken.P50kBaseEncodingName, StringComparison.OrdinalIgnoreCase))
             {
                 modelEncoding = Tiktoken.ModelEncoding.P50kBase;
@@ -395,7 +418,7 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentException($"The encoding name '{encodingName}' is not supported. The only supported encoding names are: {Tiktoken.Cl100kBaseEncodingName}, {Tiktoken.P50kBaseEncodingName}, {Tiktoken.P50kEditEncodingName}, and {Tiktoken.R50kBaseEncodingName}.", nameof(encodingName));
             }
 
-            return Tiktoken.CreateTokenizerForModel(modelEncoding, modelName: null, extraSpecialTokens, normalizer);
+            return Tiktoken.CreateForModel(modelEncoding, modelName: null, extraSpecialTokens, normalizer);
         }
 
         /// <summary>
@@ -427,16 +450,138 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentException($"Normalization '{modelProto.NormalizerSpec.Name}' is not supported.", nameof(modelProto));
             }
 
-            LlamaNormalizer normalizer = new(
+            SentencePieceNormalizer normalizer = new(
                                     modelProto.NormalizerSpec.RemoveExtraWhitespaces,
                                     modelProto.NormalizerSpec.AddDummyPrefix,
                                     modelProto.NormalizerSpec.EscapeWhitespaces,
                                     modelProto.TrainerSpec.TreatWhitespaceAsSuffix);
 
-            return new Tokenizer(
-                        new SentencePieceBpe(modelProto, addBeginOfSentence, addEndOfSentence),
-                        SentencePiecePreTokenizer.Instance,
-                        normalizer);
+            return new SentencePieceBpe(modelProto, addBeginOfSentence, addEndOfSentence);
+        }
+
+        /// <summary>
+        /// Create a CodeGen tokenizer from the given vocab and merges streams.
+        /// </summary>
+        /// <param name="vocabStream">The stream containing the vocab file.</param>
+        /// <param name="mergesStream">The stream containing the merges file.</param>
+        /// <param name="addPrefixSpace">Indicate whether to add a space before the token.</param>
+        /// <param name="addBeginOfSentence">Indicate emitting the beginning of sentence token during the encoding.</param>
+        /// <param name="addEndOfSentence">Indicate emitting the end of sentence token during the encoding.</param>
+        /// <returns>The CodeGen tokenizer object.</returns>
+        /// <remarks>
+        /// The tokenizer will be created according to the configuration specified in https://huggingface.co/Salesforce/codegen-350M-mono/raw/main/tokenizer.json.
+        /// It is important to provide the similar vocab and merges files to the ones used in the training of the model.
+        /// The vocab and merges files can be downloaded from the following links:
+        ///     https://huggingface.co/Salesforce/codegen-350M-mono/resolve/main/vocab.json?download=true
+        ///     https://huggingface.co/Salesforce/codegen-350M-mono/resolve/main/merges.txt?download=true
+        /// </remarks>
+        public static Tokenizer CreateCodeGen(
+            Stream vocabStream,
+            Stream mergesStream,
+            bool addPrefixSpace = false,
+            bool addBeginOfSentence = false,
+            bool addEndOfSentence = false)
+        {
+            if (vocabStream is null)
+            {
+                throw new ArgumentNullException(nameof(vocabStream));
+            }
+
+            if (mergesStream is null)
+            {
+                throw new ArgumentNullException(nameof(mergesStream));
+            }
+
+            return new CodeGen(
+                        vocabStream,
+                        mergesStream,
+                        new TiktokenPreTokenizer(Tiktoken.P50kBaseRegex(), CodeGen.CodeGenAddedTokens),
+                        normalizer: null,
+                        CodeGen.CodeGenAddedTokens,
+                        addPrefixSpace: addPrefixSpace,
+                        addBeginningOfSentence: addBeginOfSentence,
+                        addEndOfSentence: addEndOfSentence);
+        }
+
+        /// <summary>
+        /// Create a CodeGen Phi2 tokenizer from the given vocab and merges streams.
+        /// </summary>
+        /// <param name="vocabStream">The stream containing the vocab file.</param>
+        /// <param name="mergesStream">The stream containing the merges file.</param>
+        /// <param name="addPrefixSpace">Indicate whether to add a space before the token.</param>
+        /// <param name="addBeginOfSentence">Indicate emitting the beginning of sentence token during the encoding.</param>
+        /// <param name="addEndOfSentence">Indicate emitting the end of sentence token during the encoding.</param>
+        /// <returns>The CodeGen tokenizer object.</returns>
+        /// <remarks>
+        /// The tokenizer will be created according to the configuration specified in https://huggingface.co/microsoft/phi-2/raw/main/tokenizer.json.
+        /// It is important to provide the similar vocab and merges files to the ones used in the training of the model.
+        /// The vocab and merges files can be downloaded from the following links:
+        ///     https://huggingface.co/microsoft/phi-2/resolve/main/vocab.json?download=true
+        ///     https://huggingface.co/microsoft/phi-2/resolve/main/merges.txt?download=true
+        /// </remarks>
+        public static Tokenizer CreatePhi2(
+            Stream vocabStream,
+            Stream mergesStream,
+            bool addPrefixSpace = false,
+            bool addBeginOfSentence = false,
+            bool addEndOfSentence = false)
+            => CreateCodeGen(vocabStream, mergesStream, addPrefixSpace, addBeginOfSentence, addEndOfSentence);
+
+        internal static IEnumerable<(int Offset, int Length)>? InitializeForEncoding(
+                                                string? text,
+                                                ReadOnlySpan<char> textSpan,
+                                                bool considerPreTokenization,
+                                                bool considerNormalization,
+                                                Normalizer? normalizer,
+                                                PreTokenizer? preTokenizer,
+                                                out string? normalizedString,
+                                                out ReadOnlySpan<char> textSpanToEncode)
+        {
+            normalizedString = null;
+            IEnumerable<(int Offset, int Length)>? splits = null;
+
+            if (text is null)
+            {
+                if (considerNormalization && (normalizer is not null))
+                {
+                    normalizedString = normalizer.Normalize(textSpan.ToString());
+                    textSpanToEncode = normalizedString.AsSpan();
+                    if (considerPreTokenization && preTokenizer is not null)
+                    {
+                        splits = preTokenizer.PreTokenize(normalizedString);
+                    }
+                }
+                else
+                {
+                    textSpanToEncode = textSpan;
+                    if (considerPreTokenization && preTokenizer is not null)
+                    {
+                        splits = preTokenizer.PreTokenize(textSpan);
+                    }
+                }
+            }
+            else
+            {
+                if (considerNormalization && (normalizer is not null))
+                {
+                    normalizedString = normalizer.Normalize(text);
+                    textSpanToEncode = normalizedString.AsSpan();
+                    if (considerPreTokenization && preTokenizer is not null)
+                    {
+                        splits = preTokenizer.PreTokenize(normalizedString);
+                    }
+                }
+                else
+                {
+                    textSpanToEncode = text.AsSpan();
+                    if (considerPreTokenization && preTokenizer is not null)
+                    {
+                        splits = preTokenizer.PreTokenize(text);
+                    }
+                }
+            }
+
+            return splits;
         }
     }
 }

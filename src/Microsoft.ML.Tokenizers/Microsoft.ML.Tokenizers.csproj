@@ -21,6 +21,10 @@
     <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Bcl.HashCode" Version="$(MicrosoftBclHashCodeVersion)" />
+  </ItemGroup>
+
   <UsingTask TaskName="CompressFile"
     TaskFactory="RoslynCodeTaskFactory"
     AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
@@ -77,6 +81,7 @@
         2. gpt2.tiktoken:        https://pythia.blob.core.windows.net/public/encoding/gpt2.tiktoken
         3. p50k_base.tiktoken:   https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken
         4. r50k_base.tiktoken:   https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken
+        5. o200k_base.tiktoken   https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken
 
       These files under MIT copyright license https://github.com/openai/tiktoken/blob/main/LICENSE
 
@@ -89,6 +94,7 @@
     <FilesToCompress Include="Data\gpt2.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate" />
     <FilesToCompress Include="Data\p50k_base.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate" />
     <FilesToCompress Include="Data\r50k_base.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate" />
+    <FilesToCompress Include="Data\o200k_base.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate" />
   </ItemGroup>
 
   <Target Name="TestCompress"
