@@ -260,19 +260,22 @@ namespace Microsoft.Data.Analysis
         /// <summary>
         /// Orders the data frame by a specified column.
         /// </summary>
-        /// <param name="columnName">The column name to order by</param>
-        public DataFrame OrderBy(string columnName)
+        /// <param name="columnName">The column name to order by.</param>
+        /// <param name="ascending">Sorting order.</param>
+        /// <param name="putNullValuesLast">If true, null values are always put at the end.</param>
+        public DataFrame OrderBy(string columnName, bool ascending = true, bool putNullValuesLast = true)
         {
-            return Sort(columnName, isAscending: true);
+            return Sort(columnName, ascending, putNullValuesLast);
         }
 
         /// <summary>
         /// Orders the data frame by a specified column in descending order.
         /// </summary>
-        /// <param name="columnName">The column name to order by</param>
-        public DataFrame OrderByDescending(string columnName)
+        /// <param name="columnName">The column name to order by.</param>
+        /// <param name="putNullValuesLast">If true, null values are always put at the end.</param>
+        public DataFrame OrderByDescending(string columnName, bool putNullValuesLast = true)
         {
-            return Sort(columnName, isAscending: false);
+            return Sort(columnName, false, putNullValuesLast);
         }
 
         /// <summary>
@@ -657,19 +660,16 @@ namespace Microsoft.Data.Analysis
             _schema = null;
         }
 
-        private DataFrame Sort(string columnName, bool isAscending)
+        private DataFrame Sort(string columnName, bool ascending, bool putNullValuesLast)
         {
             DataFrameColumn column = Columns[columnName];
-            PrimitiveDataFrameColumn<long> sortIndices = column.GetAscendingSortIndices(out Int64DataFrameColumn nullIndices);
-            for (long i = 0; i < nullIndices.Length; i++)
-            {
-                sortIndices.Append(nullIndices[i]);
-            }
+            PrimitiveDataFrameColumn<long> sortIndices = column.GetSortIndices(ascending, putNullValuesLast);
+
             List<DataFrameColumn> newColumns = new List<DataFrameColumn>(Columns.Count);
             for (int i = 0; i < Columns.Count; i++)
             {
                 DataFrameColumn oldColumn = Columns[i];
-                DataFrameColumn newColumn = oldColumn.Clone(sortIndices, !isAscending);
+                DataFrameColumn newColumn = oldColumn.Clone(sortIndices);
                 Debug.Assert(newColumn.NullCount == oldColumn.NullCount);
                 newColumns.Add(newColumn);
             }

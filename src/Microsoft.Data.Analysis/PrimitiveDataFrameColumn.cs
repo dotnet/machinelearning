@@ -255,20 +255,20 @@ namespace Microsoft.Data.Analysis
         public override double Median()
         {
             // Not the most efficient implementation. Using a selection algorithm here would be O(n) instead of O(nLogn)
-            if (Length == 0)
+            var notNullValuesCount = Length - NullCount;
+            if (notNullValuesCount == 0)
                 return 0;
-            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices(out Int64DataFrameColumn _);
-            long middle = sortIndices.Length / 2;
+
+            PrimitiveDataFrameColumn<long> sortIndices = GetSortIndices();
+            long middle = notNullValuesCount / 2;
             double middleValue = (double)Convert.ChangeType(this[sortIndices[middle].Value].Value, typeof(double));
-            if (sortIndices.Length % 2 == 0)
+            if (notNullValuesCount % 2 == 0)
             {
                 double otherMiddleValue = (double)Convert.ChangeType(this[sortIndices[middle - 1].Value].Value, typeof(double));
                 return (middleValue + otherMiddleValue) / 2;
             }
-            else
-            {
-                return middleValue;
-            }
+
+            return middleValue;
         }
 
         public override double Mean()

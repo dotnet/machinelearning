@@ -12,22 +12,18 @@ namespace Microsoft.Data.Analysis
     public partial class PrimitiveDataFrameColumn<T> : DataFrameColumn
         where T : unmanaged
     {
-        public new PrimitiveDataFrameColumn<T> Sort(bool ascending = true)
+        /// <inheritdoc/>
+        public new PrimitiveDataFrameColumn<T> Sort(bool ascending = true, bool putNullValuesLast = true)
         {
-            PrimitiveDataFrameColumn<long> sortIndices = GetAscendingSortIndices(out Int64DataFrameColumn _);
-            return Clone(sortIndices, !ascending, NullCount);
+            return (PrimitiveDataFrameColumn<T>)base.Sort(ascending, putNullValuesLast);
         }
 
-        internal override PrimitiveDataFrameColumn<long> GetAscendingSortIndices(out Int64DataFrameColumn nullIndices)
+        internal override PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending = true, bool putNullValuesLast = true)
         {
-            Int64DataFrameColumn sortIndices = GetSortIndices(Comparer<T>.Default, out nullIndices);
-            return sortIndices;
-        }
+            var comparer = Comparer<T>.Default;
 
-        private Int64DataFrameColumn GetSortIndices(IComparer<T> comparer, out Int64DataFrameColumn columnNullIndices)
-        {
             List<List<int>> bufferSortIndices = new List<List<int>>(_columnContainer.Buffers.Count);
-            columnNullIndices = new Int64DataFrameColumn("NullIndices", NullCount);
+            var columnNullIndices = new Int64DataFrameColumn("NullIndices", NullCount);
             long nullIndicesSlot = 0;
             // Sort each buffer first
             for (int b = 0; b < _columnContainer.Buffers.Count; b++)
@@ -57,6 +53,7 @@ namespace Microsoft.Data.Analysis
                 }
                 bufferSortIndices.Add(nonNullSortIndices);
             }
+
             // Simple merge sort to build the full column's sort indices
             ValueTuple<T, int> GetFirstNonNullValueAndBufferIndexStartingAtIndex(int bufferIndex, int startIndex)
             {
@@ -80,6 +77,7 @@ namespace Microsoft.Data.Analysis
                 }
                 return (value, startIndex);
             }
+
             SortedDictionary<T, List<ValueTuple<int, int>>> heapOfValueAndListOfTupleOfSortAndBufferIndex = new SortedDictionary<T, List<ValueTuple<int, int>>>(comparer);
             IList<ReadOnlyDataFrameBuffer<T>> buffers = _columnContainer.Buffers;
             for (int i = 0; i < buffers.Count; i++)
@@ -100,11 +98,20 @@ namespace Microsoft.Data.Analysis
                     heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(valueAndBufferIndex.Item1, new List<ValueTuple<int, int>>() { (valueAndBufferIndex.Item2, i) });
                 }
             }
-            Int64DataFrameColumn columnSortIndices = new Int64DataFrameColumn("SortIndices");
+            Int64DataFrameColumn columnSortIndices = new Int64DataFrameColumn("SortIndices", Length);
+
             GetBufferSortIndex getBufferSortIndex = new GetBufferSortIndex((int bufferIndex, int sortIndex) => (bufferSortIndices[bufferIndex][sortIndex]) + bufferIndex * bufferSortIndices[0].Count);
             GetValueAndBufferSortIndexAtBuffer<T> getValueAndBufferSortIndexAtBuffer = new GetValueAndBufferSortIndexAtBuffer<T>((int bufferIndex, int sortIndex) => GetFirstNonNullValueAndBufferIndexStartingAtIndex(bufferIndex, sortIndex));
             GetBufferLengthAtIndex getBufferLengthAtIndex = new GetBufferLengthAtIndex((int bufferIndex) => bufferSortIndices[bufferIndex].Count);
-            PopulateColumnSortIndicesWithHeap(heapOfValueAndListOfTupleOfSortAndBufferIndex, columnSortIndices, getBufferSortIndex, getValueAndBufferSortIndexAtBuffer, getBufferLengthAtIndex);
+
+            PopulateColumnSortIndicesWithHeap(heapOfValueAndListOfTupleOfSortAndBufferIndex,
+                columnSortIndices,
+                columnNullIndices,
+                ascending,
+                putNullValuesLast,
+                getBufferSortIndex,
+                getValueAndBufferSortIndexAtBuffer,
+                getBufferLengthAtIndex);
 
             return columnSortIndices;
         }

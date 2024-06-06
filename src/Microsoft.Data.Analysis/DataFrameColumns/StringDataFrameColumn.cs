@@ -176,22 +176,17 @@ namespace Microsoft.Data.Analysis
 
         public override DataFrameColumn Filter<U>(U min, U max) => throw new NotSupportedException();
 
-        public new StringDataFrameColumn Sort(bool ascending = true)
+        public new StringDataFrameColumn Sort(bool ascending = true, bool putNullValuesLast = true)
         {
-            PrimitiveDataFrameColumn<long> columnSortIndices = GetAscendingSortIndices(out Int64DataFrameColumn _);
-            return Clone(columnSortIndices, !ascending, NullCount);
+            return (StringDataFrameColumn)base.Sort(ascending, putNullValuesLast);
         }
 
-        internal override PrimitiveDataFrameColumn<long> GetAscendingSortIndices(out Int64DataFrameColumn nullIndices)
+        internal override PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending, bool putNullValuesLast)
         {
-            PrimitiveDataFrameColumn<long> columnSortIndices = GetSortIndices(Comparer<string>.Default, out nullIndices);
-            return columnSortIndices;
-        }
+            var comparer = Comparer<string>.Default;
 
-        private PrimitiveDataFrameColumn<long> GetSortIndices(Comparer<string> comparer, out Int64DataFrameColumn columnNullIndices)
-        {
             List<int[]> bufferSortIndices = new List<int[]>(_stringBuffers.Count);
-            columnNullIndices = new Int64DataFrameColumn("NullIndices", NullCount);
+            var columnNullIndices = new Int64DataFrameColumn("NullIndices", NullCount);
             long nullIndicesSlot = 0;
             foreach (List<string> buffer in _stringBuffers)
             {
@@ -241,11 +236,21 @@ namespace Microsoft.Data.Analysis
                     heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(valueAndBufferSortIndex.Item1, new List<ValueTuple<int, int>>() { (valueAndBufferSortIndex.Item2, i) });
                 }
             }
-            PrimitiveDataFrameColumn<long> columnSortIndices = new PrimitiveDataFrameColumn<long>("SortIndices");
+            var columnSortIndices = new Int64DataFrameColumn("SortIndices", Length);
+
             GetBufferSortIndex getBufferSortIndex = new GetBufferSortIndex((int bufferIndex, int sortIndex) => (bufferSortIndices[bufferIndex][sortIndex]) + bufferIndex * bufferSortIndices[0].Length);
             GetValueAndBufferSortIndexAtBuffer<string> getValueAtBuffer = new GetValueAndBufferSortIndexAtBuffer<string>((int bufferIndex, int sortIndex) => GetFirstNonNullValueStartingAtIndex(bufferIndex, sortIndex));
             GetBufferLengthAtIndex getBufferLengthAtIndex = new GetBufferLengthAtIndex((int bufferIndex) => bufferSortIndices[bufferIndex].Length);
-            PopulateColumnSortIndicesWithHeap(heapOfValueAndListOfTupleOfSortAndBufferIndex, columnSortIndices, getBufferSortIndex, getValueAtBuffer, getBufferLengthAtIndex);
+
+            PopulateColumnSortIndicesWithHeap(heapOfValueAndListOfTupleOfSortAndBufferIndex,
+                columnSortIndices,
+                columnNullIndices,
+                ascending,
+                putNullValuesLast,
+                getBufferSortIndex,
+                getValueAtBuffer,
+                getBufferLengthAtIndex);
+
             return columnSortIndices;
         }
 
