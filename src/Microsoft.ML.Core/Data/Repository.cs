@@ -125,7 +125,7 @@ internal abstract class Repository : IDisposable
             Path.GetTempPath();
         int dirNumber = 0;
         string mlNetTempDir = null!;
-        while (Directory.Exists(mlNetTempDir = Path.Combine(Path.GetFullPath(tempPath), $"ml_dotnet{dirNumber}"))) ;
+        while (Directory.Exists(mlNetTempDir = Path.Combine(Path.GetFullPath(tempPath), $"ml_dotnet{dirNumber++}"))) ;
         var path = Path.Combine(mlNetTempDir, Path.GetRandomFileName());
         Directory.CreateDirectory(path);
         return path;
