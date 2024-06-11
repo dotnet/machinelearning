@@ -252,6 +252,7 @@ namespace Microsoft.Data.Analysis
             set => _columnContainer[rowIndex] = value;
         }
 
+        /// <inheritdoc/>
         public override double Median()
         {
             // Not the most efficient implementation. Using a selection algorithm here would be O(n) instead of O(nLogn)
@@ -271,6 +272,7 @@ namespace Microsoft.Data.Analysis
             return middleValue;
         }
 
+        /// <inheritdoc/>
         public override double Mean()
         {
             if (Length == 0)
@@ -296,6 +298,7 @@ namespace Microsoft.Data.Analysis
             Length += count;
         }
 
+        /// <inheritdoc/>
         public override long NullCount
         {
             get
@@ -305,35 +308,40 @@ namespace Microsoft.Data.Analysis
             }
         }
 
-        public bool IsValid(long index) => _columnContainer.IsValid(index);
+        /// <inheritdoc/>
+        public override bool IsValid(long index) => _columnContainer.IsValid(index);
 
         public IEnumerator<T?> GetEnumerator() => _columnContainer.GetEnumerator();
 
         protected override IEnumerator GetEnumeratorCore() => GetEnumerator();
 
+        /// <inheritdoc/>
         public override bool IsNumericColumn()
         {
-            bool ret = true;
-            if (typeof(T) == typeof(char) || typeof(T) == typeof(bool) || typeof(T) == typeof(DateTime))
-                ret = false;
-            return ret;
+            var type = typeof(T);
+
+            return type == typeof(byte)
+                || type == typeof(sbyte)
+                || type == typeof(ushort)
+                || type == typeof(short)
+                || type == typeof(uint)
+                || type == typeof(int)
+                || type == typeof(ulong)
+                || type == typeof(long)
+                || type == typeof(float)
+                || type == typeof(double)
+                || type == typeof(decimal);
         }
 
         /// <summary>
-        /// Returns a new column with nulls replaced by value
+        /// Returns a new column with <see langword="null" /> elements replaced by <paramref name="value"/>.
         /// </summary>
         /// <param name="value"></param>
-        /// <param name="inPlace">Indicates if the operation should be performed in place</param>
+        /// <param name="inPlace">Indicates if the operation should be performed in place.</param>
         public PrimitiveDataFrameColumn<T> FillNulls(T value, bool inPlace = false)
         {
             PrimitiveDataFrameColumn<T> column = inPlace ? this : Clone();
-            column.ApplyElementwise((T? columnValue, long index) =>
-            {
-                if (columnValue.HasValue == false)
-                    return value;
-                else
-                    return columnValue.Value;
-            });
+            column.ColumnContainer.FillNulls(value);
             return column;
         }
 
@@ -343,6 +351,33 @@ namespace Microsoft.Data.Analysis
             return FillNulls(convertedValue, inPlace);
         }
 
+        /// <inheritdoc/>
+        public new PrimitiveDataFrameColumn<T> DropNulls()
+        {
+            return (PrimitiveDataFrameColumn<T>)DropNullsImplementation();
+        }
+
+        protected override DataFrameColumn DropNullsImplementation()
+        {
+            var ret = CreateNewColumn(Name, Length - NullCount);
+
+            long j = 0;
+            for (int b = 0; b < ColumnContainer.NullBitMapBuffers.Count; b++)
+            {
+                var span = ColumnContainer.Buffers[b].ReadOnlySpan;
+                var validitySpan = ColumnContainer.NullBitMapBuffers[b].ReadOnlySpan;
+
+                for (int i = 0; i < span.Length; i++)
+                {
+                    if (BitUtility.IsValid(validitySpan, i))
+                        ret[j++] = span[i];
+                }
+            }
+
+            return ret;
+        }
+
+        /// <inheritdoc/>
         public override DataFrame ValueCounts()
         {
             Dictionary<T, ICollection<long>> groupedValues = GroupColumnValues<T>(out HashSet<long> _);
@@ -427,6 +462,7 @@ namespace Microsoft.Data.Analysis
             if (boolColumn.Length > Length)
                 throw new ArgumentException(Strings.MapIndicesExceedsColumnLength, nameof(boolColumn));
             PrimitiveDataFrameColumn<T> ret = CreateNewColumn(Name);
+
             for (long i = 0; i < boolColumn.Length; i++)
             {
                 bool? value = boolColumn[i];
@@ -615,14 +651,33 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        /// <summary>
+        /// Applies a function to all column values in place.
+        /// </summary>
+        /// <param name="func">The function to apply</param>
+        [Obsolete("Method is obsolete, use Apply(Func<T, T> func, bool inPlace = false) instead")]
         public void ApplyElementwise(Func<T?, long, T?> func) => _columnContainer.ApplyElementwise(func);
 
         /// <summary>
-        /// Applies a function to all the values
+        /// Applies a function to all values in the column, that are not null.
+        /// </summary>
+        /// <param name="func">The function to apply.</param>
+        /// /// <param name="inPlace">A boolean flag to indicate if the operation should be in place.</param>
+        /// <returns>A new <see cref="PrimitiveDataFrameColumn{T}"/> if <paramref name="inPlace"/> is not set. Returns this column otherwise.</returns>
+        public PrimitiveDataFrameColumn<T> Apply(Func<T, T> func, bool inPlace = false)
+        {
+            var column = inPlace ? this : this.Clone();
+            column.ColumnContainer.Apply(func);
+            return column;
+        }
+
+        /// <summary>
+        /// Applies a function to all column values.
         /// </summary>
         /// <typeparam name="TResult">The new column's type</typeparam>
         /// <param name="func">The function to apply</param>
         /// <returns>A new PrimitiveDataFrameColumn containing the new values</returns>
+        [Obsolete("Method is obsolete, use Apply(Func<T, T> func, bool inPlace = false) instead")]
         public PrimitiveDataFrameColumn<TResult> Apply<TResult>(Func<T?, TResult?> func) where TResult : unmanaged
         {
             var resultColumn = new PrimitiveDataFrameColumn<TResult>("Result", Length);

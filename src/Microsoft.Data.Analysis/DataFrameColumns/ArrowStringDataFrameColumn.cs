@@ -69,12 +69,8 @@ namespace Microsoft.Data.Analysis
         /// <inheritdoc/>
         public override long NullCount => _nullCount;
 
-        /// <summary>
-        /// Indicates if the value at this <paramref name="index"/> is <see langword="null" />.
-        /// </summary>
-        /// <param name="index">The index to look up.</param>
-        /// <returns>A boolean value indicating the validity at this <paramref name="index"/>.</returns>
-        public bool IsValid(long index) => NullCount == 0 || GetValidityBit(index);
+        /// <inheritdoc/>
+        public override bool IsValid(long index) => NullCount == 0 || GetValidityBit(index);
 
         private bool GetValidityBit(long index)
         {
@@ -435,24 +431,42 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private ArrowStringDataFrameColumn CloneImplementation<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices)
-            where U : unmanaged
+        private ArrowStringDataFrameColumn CloneImplementation(PrimitiveDataFrameColumn<int> mapIndices, bool invertMapIndices)
         {
             ArrowStringDataFrameColumn ret = new ArrowStringDataFrameColumn(Name);
 
-            mapIndices.ApplyElementwise((U? mapIndex, long rowIndex) =>
+            for (long i = 0; i < mapIndices.Length; i++)
             {
-                if (mapIndex == null)
+                int? index = mapIndices[invertMapIndices ? mapIndices.Length - 1 - i : i];
+
+                if (index == null)
                 {
                     ret.Append(default);
-                    return mapIndex;
+                    continue;
                 }
 
-                long index = invertMapIndices ? mapIndices.Length - 1 - rowIndex : rowIndex;
-                ret.Append(IsValid(index) ? GetBytes(index) : default(ReadOnlySpan<byte>));
+                ret.Append(IsValid(index.Value) ? GetBytes(index.Value) : default(ReadOnlySpan<byte>));
+            }
 
-                return mapIndex;
-            });
+            return ret;
+        }
+
+        private ArrowStringDataFrameColumn CloneImplementation(PrimitiveDataFrameColumn<long> mapIndices, bool invertMapIndices)
+        {
+            ArrowStringDataFrameColumn ret = new ArrowStringDataFrameColumn(Name);
+
+            for (long i = 0; i < mapIndices.Length; i++)
+            {
+                long? index = mapIndices[invertMapIndices ? mapIndices.Length - 1 - i : i];
+
+                if (index == null)
+                {
+                    ret.Append(default);
+                    continue;
+                }
+
+                ret.Append(IsValid(index.Value) ? GetBytes(index.Value) : default(ReadOnlySpan<byte>));
+            }
 
             return ret;
         }
@@ -539,6 +553,25 @@ namespace Microsoft.Data.Analysis
             {
                 throw new ArgumentException(String.Format(Strings.MismatchedValueType, typeof(string)), nameof(value));
             }
+        }
+
+        /// <inheritdoc/>
+        public new ArrowStringDataFrameColumn DropNulls()
+        {
+            return (ArrowStringDataFrameColumn)DropNullsImplementation();
+        }
+
+        protected override DataFrameColumn DropNullsImplementation()
+        {
+            var ret = new ArrowStringDataFrameColumn(Name);
+
+            for (long i = 0; i < Length; i++)
+            {
+                if (IsValid(i))
+                    ret.Append(GetBytes(i));
+            }
+
+            return ret;
         }
 
         public override DataFrameColumn Clamp<U>(U min, U max, bool inPlace = false) => throw new NotSupportedException();

@@ -223,68 +223,45 @@ namespace Microsoft.Data.Analysis
             return ret;
         }
 
-        private VBufferDataFrameColumn<T> CloneImplementation<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false, long numberOfNullsToAppend = 0)
-           where U : unmanaged
+        private VBufferDataFrameColumn<T> CloneImplementation(PrimitiveDataFrameColumn<long> mapIndices, bool invertMapIndices = false)
         {
             mapIndices = mapIndices ?? throw new ArgumentNullException(nameof(mapIndices));
-            VBufferDataFrameColumn<T> ret = new VBufferDataFrameColumn<T>(Name, mapIndices.Length);
+            var ret = new VBufferDataFrameColumn<T>(Name, mapIndices.Length);
 
-            List<VBuffer<T>> setBuffer = ret._vBuffers[0];
-            long setBufferMinRange = 0;
-            long setBufferMaxRange = MaxCapacity;
-            List<VBuffer<T>> getBuffer = _vBuffers[0];
-            long getBufferMinRange = 0;
-            long getBufferMaxRange = MaxCapacity;
-            long maxCapacity = MaxCapacity;
-            if (mapIndices.DataType == typeof(long))
+            long rowIndex = 0;
+            for (int b = 0; b < mapIndices.ColumnContainer.Buffers.Count; b++)
             {
-                PrimitiveDataFrameColumn<long> longMapIndices = mapIndices as PrimitiveDataFrameColumn<long>;
-                longMapIndices.ApplyElementwise((long? mapIndex, long rowIndex) =>
+                var span = mapIndices.ColumnContainer.Buffers[b].ReadOnlySpan;
+                var validitySpan = mapIndices.ColumnContainer.NullBitMapBuffers[b].ReadOnlySpan;
+
+                for (int i = 0; i < span.Length; i++)
                 {
-                    long index = rowIndex;
-                    if (invertMapIndices)
-                        index = longMapIndices.Length - 1 - index;
-                    if (index < setBufferMinRange || index >= setBufferMaxRange)
-                    {
-                        int bufferIndex = (int)(index / maxCapacity);
-                        setBuffer = ret._vBuffers[bufferIndex];
-                        setBufferMinRange = bufferIndex * maxCapacity;
-                        setBufferMaxRange = (bufferIndex + 1) * maxCapacity;
-                    }
-                    index -= setBufferMinRange;
-
-                    if (mapIndex.Value < getBufferMinRange || mapIndex.Value >= getBufferMaxRange)
-                    {
-                        int bufferIndex = (int)(mapIndex.Value / maxCapacity);
-                        getBuffer = _vBuffers[bufferIndex];
-                        getBufferMinRange = bufferIndex * maxCapacity;
-                        getBufferMaxRange = (bufferIndex + 1) * maxCapacity;
-                    }
-                    int bufferLocalMapIndex = (int)(mapIndex - getBufferMinRange);
-                    VBuffer<T> value = getBuffer[bufferLocalMapIndex];
-                    setBuffer[(int)index] = value;
-
-                    return mapIndex;
-                });
+                    long index = invertMapIndices ? mapIndices.Length - 1 - rowIndex : rowIndex;
+                    ret[index] = BitUtility.IsValid(validitySpan, i) ? this[span[i]] : default;
+                    rowIndex++;
+                }
             }
-            else if (mapIndices.DataType == typeof(int))
+
+            return ret;
+        }
+
+        private VBufferDataFrameColumn<T> CloneImplementation(PrimitiveDataFrameColumn<int> mapIndices, bool invertMapIndices = false)
+        {
+            mapIndices = mapIndices ?? throw new ArgumentNullException(nameof(mapIndices));
+            var ret = new VBufferDataFrameColumn<T>(Name, mapIndices.Length);
+
+            long rowIndex = 0;
+            for (int b = 0; b < mapIndices.ColumnContainer.Buffers.Count; b++)
             {
-                PrimitiveDataFrameColumn<int> intMapIndices = mapIndices as PrimitiveDataFrameColumn<int>;
-                intMapIndices.ApplyElementwise((int? mapIndex, long rowIndex) =>
+                var span = mapIndices.ColumnContainer.Buffers[b].ReadOnlySpan;
+                var validitySpan = mapIndices.ColumnContainer.NullBitMapBuffers[b].ReadOnlySpan;
+
+                for (int i = 0; i < span.Length; i++)
                 {
-                    long index = rowIndex;
-                    if (invertMapIndices)
-                        index = intMapIndices.Length - 1 - index;
-
-                    VBuffer<T> value = getBuffer[mapIndex.Value];
-                    setBuffer[(int)index] = value;
-
-                    return mapIndex;
-                });
-            }
-            else
-            {
-                Debug.Assert(false, nameof(mapIndices.DataType));
+                    long index = invertMapIndices ? mapIndices.Length - 1 - rowIndex : rowIndex;
+                    ret[index] = BitUtility.IsValid(validitySpan, i) ? this[span[i]] : default;
+                    rowIndex++;
+                }
             }
 
             return ret;
@@ -393,6 +370,18 @@ namespace Microsoft.Data.Analysis
             }
 
             throw new NotSupportedException();
+        }
+
+        protected override DataFrameColumn FillNullsImplementation(object value, bool inPlace)
+        {
+            //Do nothing as VBufferColumn doesn't have null values
+            return inPlace ? this : Clone();
+        }
+
+        protected override DataFrameColumn DropNullsImplementation()
+        {
+            //Do nothing as VBufferColumn doesn't have null values
+            return Clone();
         }
 
         internal override PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending, bool putNullValuesLast) => throw new NotImplementedException();

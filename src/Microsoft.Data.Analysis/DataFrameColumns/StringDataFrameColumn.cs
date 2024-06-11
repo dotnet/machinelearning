@@ -79,6 +79,27 @@ namespace Microsoft.Data.Analysis
             Length++;
         }
 
+        /// <summary>
+        /// Applies a function to all values in the column, that are not null.
+        /// </summary>
+        /// <param name="func">The function to apply.</param>
+        /// /// <param name="inPlace">A boolean flag to indicate if the operation should be in place.</param>
+        /// <returns>A new <see cref="PrimitiveDataFrameColumn{T}"/> if <paramref name="inPlace"/> is not set. Returns this column otherwise.</returns>
+        public StringDataFrameColumn Apply(Func<string, string> func, bool inPlace = false)
+        {
+            var column = inPlace ? this : Clone();
+
+            for (long i = 0; i < column.Length; i++)
+            {
+                var value = column[i];
+
+                if (value != null)
+                    column[i] = func(value);
+            }
+
+            return column;
+        }
+
         private int GetBufferIndexContainingRowIndex(long rowIndex)
         {
             if (rowIndex >= Length)
@@ -310,88 +331,51 @@ namespace Microsoft.Data.Analysis
             for (long i = 0; i < boolColumn.Length; i++)
             {
                 bool? value = boolColumn[i];
-                if (value.HasValue && value.Value == true)
+                if (value.HasValue && value.Value)
                     ret.Append(this[i]);
             }
             return ret;
         }
 
-        private StringDataFrameColumn CloneImplementation<U>(PrimitiveDataFrameColumn<U> mapIndices, bool invertMapIndices = false)
-            where U : unmanaged
+        private StringDataFrameColumn CloneImplementation(PrimitiveDataFrameColumn<int> mapIndices, bool invertMapIndices = false)
         {
             mapIndices = mapIndices ?? throw new ArgumentNullException(nameof(mapIndices));
-            StringDataFrameColumn ret = new StringDataFrameColumn(Name, mapIndices.Length);
+            var ret = new StringDataFrameColumn(Name, mapIndices.Length);
 
-            List<string> setBuffer = ret._stringBuffers[0];
-            long setBufferMinRange = 0;
-            long setBufferMaxRange = MaxCapacity;
-            List<string> getBuffer = _stringBuffers[0];
-            long getBufferMinRange = 0;
-            long getBufferMaxRange = MaxCapacity;
-            long maxCapacity = MaxCapacity;
-            if (mapIndices.DataType == typeof(long))
+            long rowIndex = 0;
+            for (int b = 0; b < mapIndices.ColumnContainer.Buffers.Count; b++)
             {
-                PrimitiveDataFrameColumn<long> longMapIndices = mapIndices as PrimitiveDataFrameColumn<long>;
-                longMapIndices.ApplyElementwise((long? mapIndex, long rowIndex) =>
+                var span = mapIndices.ColumnContainer.Buffers[b].ReadOnlySpan;
+                var validitySpan = mapIndices.ColumnContainer.NullBitMapBuffers[b].ReadOnlySpan;
+
+                for (int i = 0; i < span.Length; i++)
                 {
-                    long index = rowIndex;
-                    if (invertMapIndices)
-                        index = longMapIndices.Length - 1 - index;
-                    if (index < setBufferMinRange || index >= setBufferMaxRange)
-                    {
-                        int bufferIndex = (int)(index / maxCapacity);
-                        setBuffer = ret._stringBuffers[bufferIndex];
-                        setBufferMinRange = bufferIndex * maxCapacity;
-                        setBufferMaxRange = (bufferIndex + 1) * maxCapacity;
-                    }
-                    index -= setBufferMinRange;
-                    if (mapIndex == null)
-                    {
-                        setBuffer[(int)index] = null;
-                        return mapIndex;
-                    }
-
-                    if (mapIndex.Value < getBufferMinRange || mapIndex.Value >= getBufferMaxRange)
-                    {
-                        int bufferIndex = (int)(mapIndex.Value / maxCapacity);
-                        getBuffer = _stringBuffers[bufferIndex];
-                        getBufferMinRange = bufferIndex * maxCapacity;
-                        getBufferMaxRange = (bufferIndex + 1) * maxCapacity;
-                    }
-                    int bufferLocalMapIndex = (int)(mapIndex - getBufferMinRange);
-                    string value = getBuffer[bufferLocalMapIndex];
-                    setBuffer[(int)index] = value;
-                    if (value != null)
-                        ret._nullCount--;
-
-                    return mapIndex;
-                });
+                    long index = invertMapIndices ? mapIndices.Length - 1 - rowIndex : rowIndex;
+                    ret[index] = BitUtility.IsValid(validitySpan, i) ? this[span[i]] : null;
+                    rowIndex++;
+                }
             }
-            else if (mapIndices.DataType == typeof(int))
+
+            return ret;
+        }
+
+        private StringDataFrameColumn CloneImplementation(PrimitiveDataFrameColumn<long> mapIndices, bool invertMapIndices = false)
+        {
+            mapIndices = mapIndices ?? throw new ArgumentNullException(nameof(mapIndices));
+            var ret = new StringDataFrameColumn(Name, mapIndices.Length);
+
+            long rowIndex = 0;
+            for (int b = 0; b < mapIndices.ColumnContainer.Buffers.Count; b++)
             {
-                PrimitiveDataFrameColumn<int> intMapIndices = mapIndices as PrimitiveDataFrameColumn<int>;
-                intMapIndices.ApplyElementwise((int? mapIndex, long rowIndex) =>
+                var span = mapIndices.ColumnContainer.Buffers[b].ReadOnlySpan;
+                var validitySpan = mapIndices.ColumnContainer.NullBitMapBuffers[b].ReadOnlySpan;
+
+                for (int i = 0; i < span.Length; i++)
                 {
-                    long index = rowIndex;
-                    if (invertMapIndices)
-                        index = intMapIndices.Length - 1 - index;
-
-                    if (mapIndex == null)
-                    {
-                        setBuffer[(int)index] = null;
-                        return mapIndex;
-                    }
-                    string value = getBuffer[mapIndex.Value];
-                    setBuffer[(int)index] = value;
-                    if (value != null)
-                        ret._nullCount--;
-
-                    return mapIndex;
-                });
-            }
-            else
-            {
-                Debug.Assert(false, nameof(mapIndices.DataType));
+                    long index = invertMapIndices ? mapIndices.Length - 1 - rowIndex : rowIndex;
+                    ret[index] = BitUtility.IsValid(validitySpan, i) ? this[span[i]] : null;
+                    rowIndex++;
+                }
             }
 
             return ret;
@@ -455,6 +439,12 @@ namespace Microsoft.Data.Analysis
             }
         }
 
+        /// <summary>
+        /// Returns a new column with <see langword="null" /> elements replaced by <paramref name="value"/>.
+        /// </summary>
+        /// <remarks>Tries to convert value to the column's DataType</remarks>
+        /// <param name="value"></param>
+        /// <param name="inPlace">Indicates if the operation should be performed in place</param>
         public StringDataFrameColumn FillNulls(string value, bool inPlace = false)
         {
             if (value == null)
@@ -475,6 +465,30 @@ namespace Microsoft.Data.Analysis
                 return FillNulls(valueString, inPlace);
             else
                 throw new ArgumentException(String.Format(Strings.MismatchedValueType, typeof(string)), nameof(value));
+        }
+
+        /// <inheritdoc/>
+        public new StringDataFrameColumn DropNulls()
+        {
+            return (StringDataFrameColumn)DropNullsImplementation();
+        }
+
+        protected override DataFrameColumn DropNullsImplementation()
+        {
+            var ret = new StringDataFrameColumn(Name, Length - NullCount);
+
+            long j = 0;
+            for (long i = 0; i < Length; i++)
+            {
+                var value = this[i];
+
+                if (value != null)
+                {
+                    ret[j++] = value;
+                }
+            }
+
+            return ret;
         }
 
         protected internal override void AddDataViewColumn(DataViewSchema.Builder builder)

@@ -177,46 +177,84 @@ namespace Microsoft.Data.Analysis
 
         public void ApplyElementwise(Func<T?, long, T?> func)
         {
-            var bufferMaxCapacity = ReadOnlyDataFrameBuffer<T>.MaxCapacity;
+            long curIndex = 0;
             for (int b = 0; b < Buffers.Count; b++)
             {
-                long prevLength = checked(bufferMaxCapacity * b);
-
                 Span<T> mutableBuffer = Buffers.GetOrCreateMutable(b).Span;
                 Span<byte> mutableNullBitMapBuffer = NullBitMapBuffers.GetOrCreateMutable(b).Span;
 
                 for (int i = 0; i < mutableBuffer.Length; i++)
                 {
-                    long curIndex = i + prevLength;
                     bool isValid = BitUtility.IsValid(mutableNullBitMapBuffer, i);
                     T? value = func(isValid ? mutableBuffer[i] : null, curIndex);
                     mutableBuffer[i] = value.GetValueOrDefault();
                     SetValidityBit(mutableNullBitMapBuffer, i, value != null);
+                    curIndex++;
                 }
             }
         }
 
+        public void Apply(Func<T, T> func)
+        {
+            for (int b = 0; b < Buffers.Count; b++)
+            {
+                var span = Buffers.GetOrCreateMutable(b).Span;
+                var validitySpan = NullBitMapBuffers.GetOrCreateMutable(b).Span;
+
+                for (int i = 0; i < span.Length; i++)
+                {
+                    if (NullCount == 0 || BitUtility.IsValid(validitySpan, i))
+                    {
+                        span[i] = func(span[i]);
+                    }
+                }
+            }
+        }
+
+        [Obsolete]
         public void Apply<TResult>(Func<T?, TResult?> func, PrimitiveColumnContainer<TResult> resultContainer)
             where TResult : unmanaged
         {
-            var bufferMaxCapacity = ReadOnlyDataFrameBuffer<T>.MaxCapacity;
             for (int b = 0; b < Buffers.Count; b++)
             {
-                long prevLength = checked(bufferMaxCapacity * b);
                 var sourceBuffer = Buffers[b];
                 var sourceNullBitMap = NullBitMapBuffers[b].ReadOnlySpan;
 
                 Span<TResult> mutableResultBuffer = resultContainer.Buffers.GetOrCreateMutable(b).Span;
-                Span<byte> mutableResultNullBitMapBuffers = resultContainer.NullBitMapBuffers.GetOrCreateMutable(b).Span;
+                Span<byte> mutableResultNullBitMapBuffer = resultContainer.NullBitMapBuffers.GetOrCreateMutable(b).Span;
 
                 for (int i = 0; i < sourceBuffer.Length; i++)
                 {
                     bool isValid = BitUtility.IsValid(sourceNullBitMap, i);
                     TResult? value = func(isValid ? sourceBuffer[i] : null);
                     mutableResultBuffer[i] = value.GetValueOrDefault();
-                    resultContainer.SetValidityBit(mutableResultNullBitMapBuffers, i, value != null);
+                    //Actually there is a bug in the previouse line. This code will not work correctly with containers having more than 1 buffers
+                    //As buffer size for type T (sourceBuffer) is different from the size of buffer for type TResult (mutableResultBuffer) in case sizeof(T) not equal to sizeof(TResult)
+                    //TODO fix (https://github.com/dotnet/machinelearning/issues/7122)
+                    resultContainer.SetValidityBit(mutableResultNullBitMapBuffer, i, value != null);
                 }
             }
+        }
+
+        public void FillNulls(T value)
+        {
+
+            for (int b = 0; b < Buffers.Count; b++)
+            {
+                var span = Buffers.GetOrCreateMutable(b).Span;
+                var validitySpan = NullBitMapBuffers.GetOrCreateMutable(b).Span;
+
+                for (int i = 0; i < span.Length; i++)
+                {
+                    if (BitUtility.IsValid(validitySpan, i))
+                        continue;
+
+                    span[i] = value;
+                    BitUtility.SetBit(validitySpan, i, true);
+                }
+            }
+
+            NullCount = 0;
         }
 
         public bool IsValid(long index) => NullCount == 0 || GetValidityBit(index);
