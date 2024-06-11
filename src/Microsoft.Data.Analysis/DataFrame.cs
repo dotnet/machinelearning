@@ -192,15 +192,15 @@ namespace Microsoft.Data.Analysis
         /// </summary>
         public DataFrame Clone()
         {
-            return Clone(mapIndices: null, invertMapIndices: false);
+            return Clone(mapIndices: null);
         }
 
-        private DataFrame Clone(DataFrameColumn mapIndices = null, bool invertMapIndices = false)
+        private DataFrame Clone(DataFrameColumn mapIndices = null)
         {
             List<DataFrameColumn> newColumns = new List<DataFrameColumn>(Columns.Count);
             for (int i = 0; i < Columns.Count; i++)
             {
-                newColumns.Add(Columns[i].Clone(mapIndices, invertMapIndices));
+                newColumns.Add(Columns[i].Clone(mapIndices));
             }
             return new DataFrame(newColumns);
         }
@@ -411,31 +411,46 @@ namespace Microsoft.Data.Analysis
         /// <param name="options"></param>
         public DataFrame DropNulls(DropNullOptions options = DropNullOptions.Any)
         {
-            DataFrame ret = new DataFrame();
-            PrimitiveDataFrameColumn<bool> filter = new PrimitiveDataFrameColumn<bool>("Filter");
+            var filter = new BooleanDataFrameColumn("Filter");
+
             if (options == DropNullOptions.Any)
             {
                 filter.AppendMany(true, Rows.Count);
+                var buffers = filter.ColumnContainer.Buffers;
 
-                for (int i = 0; i < Columns.Count; i++)
+                foreach (var column in Columns)
                 {
-                    DataFrameColumn column = Columns[i];
-                    filter.ApplyElementwise((bool? value, long index) =>
+                    long index = 0;
+                    for (int b = 0; b < buffers.Count; b++)
                     {
-                        return value.Value && (column[index] == null ? false : true);
-                    });
+                        var span = buffers.GetOrCreateMutable(b).Span;
+
+                        for (int i = 0; i < span.Length; i++)
+                        {
+                            span[i] = span[i] && column.IsValid(index);
+                            index++;
+                        }
+                    }
                 }
             }
             else
             {
                 filter.AppendMany(false, Rows.Count);
-                for (int i = 0; i < Columns.Count; i++)
+                var buffers = filter.ColumnContainer.Buffers;
+
+                foreach (var column in Columns)
                 {
-                    DataFrameColumn column = Columns[i];
-                    filter.ApplyElementwise((bool? value, long index) =>
+                    long index = 0;
+                    for (int b = 0; b < buffers.Count; b++)
                     {
-                        return value.Value || (column[index] == null ? false : true);
-                    });
+                        var span = buffers.GetOrCreateMutable(b).Span;
+
+                        for (int i = 0; i < span.Length; i++)
+                        {
+                            span[i] = span[i] || column.IsValid(index);
+                            index++;
+                        }
+                    }
                 }
             }
             return this[filter];

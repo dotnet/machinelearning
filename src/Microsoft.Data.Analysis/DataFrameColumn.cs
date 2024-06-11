@@ -141,6 +141,13 @@ namespace Microsoft.Data.Analysis
         public void SetName(string newName, DataFrame dataFrame) => SetName(newName);
 
         /// <summary>
+        /// Indicates if the value at this <paramref name="index"/> is valid (not <see langword="null"/>).
+        /// </summary>
+        /// <param name="index">The index to look up.</param>
+        /// <returns>A boolean value indicating the validity at this <paramref name="index"/>.</returns>
+        public virtual bool IsValid(long index) => NullCount == 0 || this[index] != null;
+
+        /// <summary>
         /// The type of data this column holds.
         /// </summary>
         public Type DataType { get; }
@@ -300,7 +307,14 @@ namespace Microsoft.Data.Analysis
         /// <param name="inPlace">Indicates if the operation should be performed in place</param>
         public virtual DataFrameColumn FillNulls(object value, bool inPlace = false) => FillNullsImplementation(value, inPlace);
 
-        protected virtual DataFrameColumn FillNullsImplementation(object value, bool inPlace) => throw new NotImplementedException();
+        protected abstract DataFrameColumn FillNullsImplementation(object value, bool inPlace);
+
+        /// <summary>
+        /// Returns a <see cref="DataFrameColumn"/> with no missing values.
+        /// </summary>
+        public virtual DataFrameColumn DropNulls() => DropNullsImplementation();
+
+        protected abstract DataFrameColumn DropNullsImplementation();
 
         // Arrow related APIs
         protected internal virtual Field GetArrowField() => throw new NotImplementedException();

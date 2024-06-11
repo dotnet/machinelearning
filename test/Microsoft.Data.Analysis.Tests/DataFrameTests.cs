@@ -781,9 +781,12 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestDropNulls()
         {
+            //Create dataframe with 20 rows, where 1 row has only 1 null value and 1 row has all null values
             DataFrame df = MakeDataFrameWithAllMutableColumnTypes(20);
+            df[0, 0] = null;
+
             DataFrame anyNulls = df.DropNulls();
-            Assert.Equal(19, anyNulls.Rows.Count);
+            Assert.Equal(18, anyNulls.Rows.Count);
 
             DataFrame allNulls = df.DropNulls(DropNullOptions.All);
             Assert.Equal(19, allNulls.Rows.Count);
@@ -859,6 +862,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal((long)5, valueCounts.Columns["Counts"][1]);
         }
 
+#pragma warning disable CS0612, CS0618  // Type or member is obsolete
         [Fact]
         public void TestApplyElementwiseNullCount()
         {
@@ -867,12 +871,14 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(1, column.NullCount);
 
             // Change all existing values to null
+
             column.ApplyElementwise((int? value, long rowIndex) =>
             {
                 if (!(value is null))
                     return null;
                 return value;
             });
+
             Assert.Equal(column.Length, column.NullCount);
 
             // Don't change null values
@@ -897,6 +903,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(0, column.NullCount);
 
         }
+#pragma warning restore CS0612, CS0618 // Type or member is obsolete
 
         [Theory]
         [InlineData(10, 5)]
@@ -1207,10 +1214,12 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
+#pragma warning disable CS0612, CS0618 // Type or member is obsolete
         public void TestApply()
         {
             int[] values = { 1, 2, 3, 4, 5 };
             var col = new Int32DataFrameColumn("Ints", values);
+
             PrimitiveDataFrameColumn<double> newCol = col.Apply(i => i + 0.5d);
 
             Assert.Equal(values.Length, newCol.Length);
@@ -1221,6 +1230,7 @@ namespace Microsoft.Data.Analysis.Tests
                 Assert.Equal(newCol[i], values[i] + 0.5d);
             }
         }
+#pragma warning disable CS0612, CS0618 // Type or member is obsolete
 
         [Fact]
         public void TestDataFrameCreate()
