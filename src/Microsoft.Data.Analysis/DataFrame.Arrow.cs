@@ -124,6 +124,15 @@ namespace Microsoft.Data.Analysis
                     }
                     break;
                 case ArrowTypeId.Decimal128:
+                    {
+                        Decimal128Array arrowDecimal128Array = (Decimal128Array)arrowArray;
+                        var decimal128DataFrameColumn = new DecimalDataFrameColumn(fieldName, arrowDecimal128Array.Data.Length);
+                        for (int i = 0; i < arrowDecimal128Array.Data.Length; i++)
+                        {
+                            decimal128DataFrameColumn[i] = arrowDecimal128Array.GetValue(i);
+                        }
+                    }
+                    break;
                 case ArrowTypeId.Decimal256:
                 case ArrowTypeId.Binary:
                 case ArrowTypeId.Date32:
