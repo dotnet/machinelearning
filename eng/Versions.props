@@ -33,7 +33,7 @@
     <SystemTextJsonVersion>6.0.1</SystemTextJsonVersion>
     <SystemThreadingChannelsVersion>4.7.1</SystemThreadingChannelsVersion>
     <!-- Other product dependencies -->
-    <ApacheArrowVersion>11.0.0</ApacheArrowVersion>
+    <ApacheArrowVersion>14.0.2</ApacheArrowVersion>
     <GoogleProtobufVersion>3.19.6</GoogleProtobufVersion>
     <LightGBMVersion>3.3.5</LightGBMVersion>
     <MicrosoftBclHashCodeVersion>1.1.1</MicrosoftBclHashCodeVersion>
