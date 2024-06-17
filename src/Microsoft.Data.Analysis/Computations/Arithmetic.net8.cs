@@ -3,9 +3,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// Generated from Arithmetic.tt. Do not modify directly
-
-#if !NET8_0_OR_GREATER
+#if NET8_0_OR_GREATER
 
 using System;
 using System.Numerics;
@@ -22,40 +20,36 @@ namespace Microsoft.Data.Analysis
         public static IArithmetic<T> GetArithmetic<T>()
             where T : unmanaged
         {
-            if (typeof(T) == typeof(bool))
-                return (IArithmetic<T>)new BoolArithmetic();
-            else if (typeof(T) == typeof(byte))
-                return (IArithmetic<T>)new ByteArithmetic();
-            else if (typeof(T) == typeof(char))
-                return (IArithmetic<T>)new CharArithmetic();
-            else if (typeof(T) == typeof(decimal))
-                return (IArithmetic<T>)new DecimalArithmetic();
-            else if (typeof(T) == typeof(double))
-                return (IArithmetic<T>)new DoubleArithmetic();
-            else if (typeof(T) == typeof(float))
-                return (IArithmetic<T>)new FloatArithmetic();
-            else if (typeof(T) == typeof(int))
-                return (IArithmetic<T>)new IntArithmetic();
-            else if (typeof(T) == typeof(long))
-                return (IArithmetic<T>)new LongArithmetic();
-            else if (typeof(T) == typeof(sbyte))
-                return (IArithmetic<T>)new SByteArithmetic();
-            else if (typeof(T) == typeof(short))
-                return (IArithmetic<T>)new ShortArithmetic();
-            else if (typeof(T) == typeof(uint))
-                return (IArithmetic<T>)new UIntArithmetic();
-            else if (typeof(T) == typeof(ulong))
-                return (IArithmetic<T>)new ULongArithmetic();
-            else if (typeof(T) == typeof(ushort))
-                return (IArithmetic<T>)new UShortArithmetic();
-            else if (typeof(T) == typeof(DateTime))
+            if (typeof(T) == typeof(double))
+                return (IArithmetic<T>)new NumericArithmetic<double>();
+            if (typeof(T) == typeof(float))
+                return (IArithmetic<T>)new NumericArithmetic<float>();
+            if (typeof(T) == typeof(int))
+                return (IArithmetic<T>)new NumericArithmetic<int>();
+            if (typeof(T) == typeof(long))
+                return (IArithmetic<T>)new NumericArithmetic<long>();
+            if (typeof(T) == typeof(sbyte))
+                return (IArithmetic<T>)new NumericArithmetic<sbyte>();
+            if (typeof(T) == typeof(short))
+                return (IArithmetic<T>)new NumericArithmetic<short>();
+            if (typeof(T) == typeof(uint))
+                return (IArithmetic<T>)new NumericArithmetic<uint>();
+            if (typeof(T) == typeof(ulong))
+                return (IArithmetic<T>)new NumericArithmetic<ulong>();
+            if (typeof(T) == typeof(ushort))
+                return (IArithmetic<T>)new NumericArithmetic<ushort>();
+            if (typeof(T) == typeof(byte))
+                return (IArithmetic<T>)new NumericArithmetic<byte>();
+            if (typeof(T) == typeof(char))
+                return (IArithmetic<T>)new NumericArithmetic<char>();
+            //if (typeof(T) == typeof(decimal))
+            //    return (IArithmetic<T>)new NumericArithmetic<decimal>();
+            if (typeof(T) == typeof(DateTime))
                 return (IArithmetic<T>)new DateTimeArithmetic();
+            //if (typeof(T) == typeof(bool))
+            //    return (IArithmetic<T>)new BoolArithmetic();
             throw new NotSupportedException();
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref Vector<T> AsVector<T>(ref T start, int offset)
-            where T : struct => ref Unsafe.As<T, Vector<T>>(ref Unsafe.Add(ref start, offset));
     }
 
 
@@ -243,7 +237,6 @@ namespace Microsoft.Data.Analysis
                     break;
             }
         }
-
 
         //Protected methods
 

@@ -12,6 +12,8 @@
 
 // Generated from Arithmetic.tt. Do not modify directly
 
+#if !NET8_0_OR_GREATER
+
 using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -183,3 +185,4 @@ namespace Microsoft.Data.Analysis
         protected virtual T Modulo(T x, T y) => throw new NotSupportedException();
     }
 }
+#endif

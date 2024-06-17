@@ -5,6 +5,8 @@
 
 // Generated from Arithmetics.tt. Do not modify directly
 
+#if !NET8_0_OR_GREATER
+
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -5392,3 +5394,4 @@ namespace Microsoft.Data.Analysis
         }
     }
 }
+#endif
