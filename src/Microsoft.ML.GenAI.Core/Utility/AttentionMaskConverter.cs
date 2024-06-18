@@ -1,9 +1,13 @@
-﻿using static TorchSharp.torch.nn;
-using static TorchSharp.torch;
-using TorchSharp.Modules;
-using TorchSharp;
-using System.Threading.Tasks;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
+using System.Threading.Tasks;
+using TorchSharp;
+using TorchSharp.Modules;
+using static TorchSharp.torch;
+using static TorchSharp.torch.nn;
 
 namespace Microsoft.ML.GenAI.Core;
 
