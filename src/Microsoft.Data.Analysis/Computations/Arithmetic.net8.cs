@@ -17,51 +17,281 @@ namespace Microsoft.Data.Analysis
 
     internal static class Arithmetic
     {
+        #region Nested CompositeAritmetic class
+        private class CompositeArithmetic<T>(INumericOperations<T> numericOps, IBitwiseOperations<T> bitwiseOps = null, IShiftOperations<T> shiftOps = null) : IArithmetic<T>
+        where T : unmanaged
+        {
+            private readonly INumericOperations<T> _numericOps = numericOps;
+            private readonly IBitwiseOperations<T> _bitwiseOps = bitwiseOps;
+            private readonly IShiftOperations<T> _shiftOps = shiftOps;
+
+            //Binary operations
+
+            public void HandleOperation(BinaryOperation operation, ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination)
+            {
+                if (_numericOps != null)
+                {
+                    switch (operation)
+                    {
+                        case BinaryOperation.Add:
+                            _numericOps.Add(x, y, destination);
+                            return;
+                        case BinaryOperation.Subtract:
+                            _numericOps.Subtract(x, y, destination);
+                            return;
+                        case BinaryOperation.Multiply:
+                            _numericOps.Multiply(x, y, destination);
+                            return;
+                        case BinaryOperation.Divide:
+                            _numericOps.Divide(x, y, destination);
+                            return;
+                        case BinaryOperation.Modulo:
+                            _numericOps.Modulo(x, y, destination);
+                            return;
+                    }
+                }
+
+                if (_bitwiseOps != null)
+                {
+                    switch (operation)
+                    {
+                        case BinaryOperation.And:
+                            _bitwiseOps.And(x, y, destination);
+                            return;
+                        case BinaryOperation.Or:
+                            _bitwiseOps.Or(x, y, destination);
+                            return;
+                        case BinaryOperation.Xor:
+                            _bitwiseOps.Xor(x, y, destination);
+                            return;
+                    }
+                }
+
+                throw new NotSupportedException();
+            }
+
+            public void HandleOperation(BinaryOperation operation, ReadOnlySpan<T> x, T y, Span<T> destination)
+            {
+                if (_numericOps != null)
+                {
+                    switch (operation)
+                    {
+                        case BinaryOperation.Add:
+                            _numericOps.Add(x, y, destination);
+                            return;
+                        case BinaryOperation.Subtract:
+                            _numericOps.Subtract(x, y, destination);
+                            return;
+                        case BinaryOperation.Multiply:
+                            _numericOps.Multiply(x, y, destination);
+                            return;
+                        case BinaryOperation.Divide:
+                            _numericOps.Divide(x, y, destination);
+                            return;
+                        case BinaryOperation.Modulo:
+                            _numericOps.Modulo(x, y, destination);
+                            return;
+                    }
+                }
+
+                if (_bitwiseOps != null)
+                {
+                    switch (operation)
+                    {
+                        case BinaryOperation.And:
+                            _bitwiseOps.And(x, y, destination);
+                            return;
+                        case BinaryOperation.Or:
+                            _bitwiseOps.Or(x, y, destination);
+                            return;
+                        case BinaryOperation.Xor:
+                            _bitwiseOps.Xor(x, y, destination);
+                            return;
+                    }
+                }
+
+                throw new NotSupportedException();
+            }
+
+            public void HandleOperation(BinaryOperation operation, T x, ReadOnlySpan<T> y, Span<T> destination)
+            {
+                if (_numericOps != null)
+                {
+                    switch (operation)
+                    {
+                        case BinaryOperation.Add:
+                            _numericOps.Add(x, y, destination);
+                            return;
+                        case BinaryOperation.Subtract:
+                            _numericOps.Subtract(x, y, destination);
+                            return;
+                        case BinaryOperation.Multiply:
+                            _numericOps.Multiply(x, y, destination);
+                            return;
+                        case BinaryOperation.Divide:
+                            _numericOps.Divide(x, y, destination);
+                            return;
+                        case BinaryOperation.Modulo:
+                            _numericOps.Modulo(x, y, destination);
+                            return;
+                    }
+                }
+
+                if (_bitwiseOps != null)
+                {
+                    switch (operation)
+                    {
+                        case BinaryOperation.And:
+                            _bitwiseOps.And(x, y, destination);
+                            return;
+                        case BinaryOperation.Or:
+                            _bitwiseOps.Or(x, y, destination);
+                            return;
+                        case BinaryOperation.Xor:
+                            _bitwiseOps.Xor(x, y, destination);
+                            return;
+                    }
+                }
+
+                throw new NotSupportedException();
+            }
+
+            public T HandleOperation(BinaryOperation operation, T x, T y)
+            {
+                if (_numericOps == null)
+                    throw new NotSupportedException();
+
+                if (operation == BinaryOperation.Divide)
+                    return _numericOps.Divide(x, y);
+
+                if (operation == BinaryOperation.Modulo)
+                    return _numericOps.Modulo(x, y);
+
+                throw new NotSupportedException();
+            }
+
+
+            //Binary Int operations
+
+            public void HandleOperation(BinaryIntOperation operation, ReadOnlySpan<T> x, int y, Span<T> destination)
+            {
+                if (_shiftOps == null)
+                    throw new NotSupportedException();
+
+                switch (operation)
+                {
+                    case BinaryIntOperation.LeftShift:
+                        _shiftOps.LeftShift(x, y, destination);
+                        break;
+                    case BinaryIntOperation.RightShift:
+                        _shiftOps.RightShift(x, y, destination);
+                        break;
+                }
+            }
+
+            //Comparison operations
+
+            public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination)
+            {
+                if (_numericOps == null)
+                    throw new NotSupportedException();
+
+                switch (operation)
+                {
+                    case ComparisonOperation.ElementwiseEquals:
+                        _numericOps.ElementwiseEquals(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseNotEquals:
+                        _numericOps.ElementwiseNotEquals(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseGreaterThanOrEqual:
+                        _numericOps.ElementwiseGreaterThanOrEqual(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseLessThanOrEqual:
+                        _numericOps.ElementwiseLessThanOrEqual(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseGreaterThan:
+                        _numericOps.ElementwiseGreaterThan(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseLessThan:
+                        _numericOps.ElementwiseLessThan(x, y, destination);
+                        break;
+                }
+            }
+
+            public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, T y, Span<bool> destination)
+            {
+                if (_numericOps == null)
+                    throw new NotSupportedException();
+
+                switch (operation)
+                {
+                    case ComparisonOperation.ElementwiseEquals:
+                        _numericOps.ElementwiseEquals(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseNotEquals:
+                        _numericOps.ElementwiseNotEquals(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseGreaterThanOrEqual:
+                        _numericOps.ElementwiseGreaterThanOrEqual(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseLessThanOrEqual:
+                        _numericOps.ElementwiseLessThanOrEqual(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseGreaterThan:
+                        _numericOps.ElementwiseGreaterThan(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseLessThan:
+                        _numericOps.ElementwiseLessThan(x, y, destination);
+                        break;
+                }
+            }
+        }
+        #endregion
+
         public static IArithmetic<T> GetArithmetic<T>()
             where T : unmanaged
         {
+
             if (typeof(T) == typeof(double))
-                return (IArithmetic<T>)new NumericArithmetic<double>();
+                return (IArithmetic<T>)new CompositeArithmetic<double>(new NumericOperations<double>(), new BitwiseOperations<double>());
             if (typeof(T) == typeof(float))
-                return (IArithmetic<T>)new NumericArithmetic<float>();
+                return (IArithmetic<T>)new CompositeArithmetic<float>(new NumericOperations<float>(), new BitwiseOperations<float>());
             if (typeof(T) == typeof(int))
-                return (IArithmetic<T>)new NumericArithmetic<int>();
+                return (IArithmetic<T>)new CompositeArithmetic<int>(new NumericOperations<int>(), new BitwiseOperations<int>(), new ShiftOperations<int>());
             if (typeof(T) == typeof(long))
-                return (IArithmetic<T>)new NumericArithmetic<long>();
+                return (IArithmetic<T>)new CompositeArithmetic<long>(new NumericOperations<long>(), new BitwiseOperations<long>(), new ShiftOperations<long>());
             if (typeof(T) == typeof(sbyte))
-                return (IArithmetic<T>)new NumericArithmetic<sbyte>();
+                return (IArithmetic<T>)new CompositeArithmetic<sbyte>(new NumericOperations<sbyte>(), new BitwiseOperations<sbyte>(), new ShiftOperations<sbyte>());
             if (typeof(T) == typeof(short))
-                return (IArithmetic<T>)new NumericArithmetic<short>();
+                return (IArithmetic<T>)new CompositeArithmetic<short>(new NumericOperations<short>(), new BitwiseOperations<short>(), new ShiftOperations<short>());
             if (typeof(T) == typeof(uint))
-                return (IArithmetic<T>)new NumericArithmetic<uint>();
+                return (IArithmetic<T>)new CompositeArithmetic<uint>(new NumericOperations<uint>(), new BitwiseOperations<uint>(), new ShiftOperations<uint>());
             if (typeof(T) == typeof(ulong))
-                return (IArithmetic<T>)new NumericArithmetic<ulong>();
+                return (IArithmetic<T>)new CompositeArithmetic<ulong>(new NumericOperations<ulong>(), new BitwiseOperations<ulong>(), new ShiftOperations<ulong>());
             if (typeof(T) == typeof(ushort))
-                return (IArithmetic<T>)new NumericArithmetic<ushort>();
+                return (IArithmetic<T>)new CompositeArithmetic<ushort>(new NumericOperations<ushort>(), new BitwiseOperations<ushort>(), new ShiftOperations<ushort>());
             if (typeof(T) == typeof(byte))
-                return (IArithmetic<T>)new NumericArithmetic<byte>();
+                return (IArithmetic<T>)new CompositeArithmetic<byte>(new NumericOperations<byte>(), new BitwiseOperations<byte>(), new ShiftOperations<byte>());
             if (typeof(T) == typeof(char))
-                return (IArithmetic<T>)new NumericArithmetic<char>();
-            //if (typeof(T) == typeof(decimal))
-            //    return (IArithmetic<T>)new NumericArithmetic<decimal>();
+                return (IArithmetic<T>)new CompositeArithmetic<char>(new NumericOperations<char>(), new BitwiseOperations<char>(), new ShiftOperations<char>());
+            if (typeof(T) == typeof(decimal))
+                return (IArithmetic<T>)new CompositeArithmetic<decimal>(new NumericOperations<decimal>());
             if (typeof(T) == typeof(DateTime))
                 return (IArithmetic<T>)new DateTimeArithmetic();
-            //if (typeof(T) == typeof(bool))
-            //    return (IArithmetic<T>)new BoolArithmetic();
+            if (typeof(T) == typeof(bool))
+                return (IArithmetic<T>)new BoolArithmetic();
             throw new NotSupportedException();
         }
     }
 
-
     ////////////////////////////////////////
     //Base Class for Arithmetic           //
     ////////////////////////////////////////
-
     internal class Arithmetic<T> : IArithmetic<T>
         where T : unmanaged
     {
         public static IArithmetic<T> Instance { get; } = Arithmetic.GetArithmetic<T>();
-
 
         //Binary operations
 
@@ -237,6 +467,7 @@ namespace Microsoft.Data.Analysis
                     break;
             }
         }
+
 
         //Protected methods
 
