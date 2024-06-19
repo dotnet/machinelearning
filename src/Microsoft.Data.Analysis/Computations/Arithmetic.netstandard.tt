@@ -1,0 +1,199 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#@ include file="$(ProjectDir)\ColumnArithmeticTemplate.ttinclude" #>
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// Generated from Arithmetic.tt. Do not modify directly
+
+#if !NET8_0_OR_GREATER
+
+using System;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace Microsoft.Data.Analysis
+{
+    ////////////////////////////////////////
+    //Factory Class                       //
+    ////////////////////////////////////////
+
+    internal static partial class Arithmetic
+    {
+        #region Nested classes for Arithmetics
+
+<# foreach (TypeConfiguration type in typeConfiguration) { #>
+        internal class <#=type.ClassPrefix#>Arithmetic : Arithmetic<<#=type.TypeName#>>
+        {
+<# foreach (MethodConfiguration method in methodConfiguration) { #>
+<# if (!((method.IsNumeric && !type.SupportsNumeric) || (method.IsBitwise && !type.SupportsBitwise) || (type.UnsupportedMethods.Contains(method.MethodName))) && method.Operator != null) { #>
+<# if (method.MethodType == MethodType.Comparison) { #>
+
+            protected override void <#=method.MethodName#>(ReadOnlySpan<<#=type.TypeName#>> x, ReadOnlySpan<<#=type.TypeName#>> y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] <#= method.Operator #> y[i]);
+                }
+            }
+<# } else if (method.MethodType == MethodType.ComparisonScalar) {#>
+
+            protected override void <#=method.MethodName#>(ReadOnlySpan<<#=type.TypeName#>> x, <#=type.TypeName#> y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] <#= method.Operator #> y);
+                }
+            }
+<# } else if (method.MethodType == MethodType.Binary) { #>
+<# if (method.MethodName == "Divide" || method.MethodName == "Modulo") { #>
+
+            protected override <#=type.TypeName#> <#=method.MethodName#>(<#=type.TypeName#> x, <#=type.TypeName#> y)
+            {
+                return (<#=type.TypeName#>)(x <#= method.Operator #> y);
+            }
+<# } #>
+
+            protected override void <#=method.MethodName#>(ReadOnlySpan<<#=type.TypeName#>> x, ReadOnlySpan<<#=type.TypeName#>> y, Span<<#=type.TypeName#>> destination)
+            {
+                int i = 0;
+<# if (method.SupportsVectorization && type.SupportsVectorization) { #>
+                if (Vector.IsHardwareAccelerated)
+                {
+                    ref <#=type.TypeName#> xRef = ref MemoryMarshal.GetReference(x);
+                    ref <#=type.TypeName#> yRef = ref MemoryMarshal.GetReference(y);
+                    ref <#=type.TypeName#> dRef = ref MemoryMarshal.GetReference(destination);
+
+                    var vectorSize = Vector<<#=type.TypeName#>>.Count;
+                    var oneVectorFromEnd = x.Length - vectorSize;
+
+                    if (oneVectorFromEnd >= 0)
+                    {
+                        // Loop handling one vector at a time.
+                        do
+                        {
+                            Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) <#= method.Operator #> Arithmetic.AsVector(ref yRef, i));
+
+                            i += vectorSize;
+                        }
+                        while (i <= oneVectorFromEnd);
+                    }
+                }
+<# } #>
+
+                while (i < x.Length)
+                {
+                    destination[i] = (<#=type.TypeName#>)(x[i] <#= method.Operator #> y[i]);
+                    i++;
+                }
+            }
+<# } #>
+<# else if (method.MethodType == MethodType.BinaryScalar) { #>
+
+            protected override void <#=method.MethodName#>(ReadOnlySpan<<#=type.TypeName#>> x, <#=type.TypeName#> y, Span<<#=type.TypeName#>> destination)
+            {
+                int i = 0;
+<# if (method.SupportsVectorization && type.SupportsVectorization) { #>
+                if (Vector.IsHardwareAccelerated)
+                {
+                    ref <#=type.TypeName#> xRef = ref MemoryMarshal.GetReference(x);
+                    ref <#=type.TypeName#> dRef = ref MemoryMarshal.GetReference(destination);
+
+                    var vectorSize = Vector<<#=type.TypeName#>>.Count;
+                    var oneVectorFromEnd = x.Length - vectorSize;
+
+                    if (oneVectorFromEnd >= 0)
+                    {
+                        Vector<<#=type.TypeName#>> yVec = new(y);
+
+                        // Loop handling one vector at a time.
+                        do
+                        {
+                            Arithmetic.AsVector(ref dRef, i) = (Arithmetic.AsVector(ref xRef, i) <#= method.Operator #>  yVec);
+
+                            i += vectorSize;
+                        }
+                        while (i <= oneVectorFromEnd);
+                    }
+                }
+<# } #>
+
+                while (i < x.Length)
+                {
+                    destination[i] = (<#=type.TypeName#>)(x[i] <#= method.Operator #> y);
+                    i++;
+                }
+            }
+
+            protected override void <#=method.MethodName#>(<#=type.TypeName#> x, ReadOnlySpan<<#=type.TypeName#>> y, Span<<#=type.TypeName#>> destination)
+            {
+                int i = 0;
+<# if (method.SupportsVectorization && type.SupportsVectorization) { #>
+                if (Vector.IsHardwareAccelerated)
+                {
+                    ref <#=type.TypeName#> yRef = ref MemoryMarshal.GetReference(y);
+                    ref <#=type.TypeName#> dRef = ref MemoryMarshal.GetReference(destination);
+
+                    var vectorSize = Vector<<#=type.TypeName#>>.Count;
+                    var oneVectorFromEnd = y.Length - vectorSize;
+
+                    if (oneVectorFromEnd >= 0)
+                    {
+                        Vector<<#=type.TypeName#>> xVec = new(x);
+
+                        // Loop handling one vector at a time.
+                        do
+                        {
+                            Arithmetic.AsVector(ref dRef, i) = (xVec <#= method.Operator #>  Arithmetic.AsVector(ref yRef, i));
+
+                            i += vectorSize;
+                        }
+                        while (i <= oneVectorFromEnd);
+                    }
+                }
+<# } #>
+
+                while (i < y.Length)
+                {
+                    destination[i] = (<#=type.TypeName#>)(x <#= method.Operator #> y[i]);
+                    i++;
+                }
+            }
+<# } #>
+<# else if (method.MethodType == MethodType.BinaryInt) { #>
+
+            protected override void <#=method.MethodName#>(ReadOnlySpan<<#=type.TypeName#>> x, int y, Span<<#=type.TypeName#>> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                    destination[i] = (<#=type.TypeName#>)(x[i] <#= method.Operator #> y);
+            }
+<# } #>
+<# } #>
+<# } #>
+        }
+<# } #>
+        #endregion
+
+        internal static IArithmetic<T> GetArithmetic<T>()
+            where T : unmanaged
+        {
+<# foreach (TypeConfiguration type in typeConfiguration) { #>
+            <#=GenerateIfStatementHeader(type)#>
+                return (IArithmetic<T>)new <#=type.ClassPrefix#>Arithmetic();
+<# } #>
+            throw new NotSupportedException();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref Vector<T> AsVector<T>(ref T start, int offset)
+            where T : struct => ref Unsafe.As<T, Vector<T>>(ref Unsafe.Add(ref start, offset));
+    }
+}
+#endif

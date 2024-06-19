@@ -7,549 +7,730 @@
 
 using System;
 using System.Numerics;
-using System.Runtime.CompilerServices;
+using System.Numerics.Tensors;
 
 namespace Microsoft.Data.Analysis
 {
-    ////////////////////////////////////////
-    //Factory Class                       //
-    ////////////////////////////////////////
-
-    internal static class Arithmetic
+    internal static partial class Arithmetic
     {
-        #region Nested CompositeAritmetic class
-        private class CompositeArithmetic<T>(INumericOperations<T> numericOps, IBitwiseOperations<T> bitwiseOps = null, IShiftOperations<T> shiftOps = null) : IArithmetic<T>
-        where T : unmanaged
+        #region Nested classes for Operations
+        private interface IBitwiseOperations<T>
+            where T : unmanaged
         {
-            private readonly INumericOperations<T> _numericOps = numericOps;
-            private readonly IBitwiseOperations<T> _bitwiseOps = bitwiseOps;
-            private readonly IShiftOperations<T> _shiftOps = shiftOps;
+            static abstract void And(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination);
+            static abstract void And(ReadOnlySpan<T> x, T y, Span<T> destination);
+            static abstract void And(T x, ReadOnlySpan<T> y, Span<T> destination);
+            static abstract void Or(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination);
+            static abstract void Or(ReadOnlySpan<T> x, T y, Span<T> destination);
+            static abstract void Or(T x, ReadOnlySpan<T> y, Span<T> destination);
+            static abstract void Xor(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination);
+            static abstract void Xor(ReadOnlySpan<T> x, T y, Span<T> destination);
+            static abstract void Xor(T x, ReadOnlySpan<T> y, Span<T> destination);
+        }
 
-            //Binary operations
+        private interface IShiftOperations<T>
+            where T : unmanaged
+        {
+            static abstract void LeftShift(ReadOnlySpan<T> x, int shiftAmount, Span<T> destination);
+            static abstract void RightShift(ReadOnlySpan<T> x, int shiftAmount, Span<T> destination);
+        }
 
-            public void HandleOperation(BinaryOperation operation, ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination)
+        private interface INumericOperations<T>
+            where T : unmanaged
+        {
+            static abstract void Add(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination);
+            static abstract void Add(ReadOnlySpan<T> x, T y, Span<T> destination);
+            static abstract void Add(T x, ReadOnlySpan<T> y, Span<T> destination);
+            static abstract void Subtract(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination);
+            static abstract void Subtract(ReadOnlySpan<T> x, T y, Span<T> destination);
+            static abstract void Subtract(T x, ReadOnlySpan<T> y, Span<T> destination);
+            static abstract void Multiply(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination);
+            static abstract void Multiply(ReadOnlySpan<T> x, T y, Span<T> destination);
+            static abstract void Multiply(T x, ReadOnlySpan<T> y, Span<T> destination);
+            static abstract void Divide(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination);
+            static abstract void Divide(ReadOnlySpan<T> x, T y, Span<T> destination);
+            static abstract void Divide(T x, ReadOnlySpan<T> y, Span<T> destination);
+            static abstract T Divide(T x, T y);
+            static abstract void Modulo(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination);
+            static abstract void Modulo(ReadOnlySpan<T> x, T y, Span<T> destination);
+            static abstract void Modulo(T x, ReadOnlySpan<T> y, Span<T> destination);
+            static abstract T Modulo(T x, T y);
+
+            static abstract void ElementwiseEquals(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination);
+            static abstract void ElementwiseEquals(ReadOnlySpan<T> x, T y, Span<bool> destination);
+            static abstract void ElementwiseNotEquals(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination);
+            static abstract void ElementwiseNotEquals(ReadOnlySpan<T> x, T y, Span<bool> destination);
+            static abstract void ElementwiseGreaterThanOrEqual(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination);
+            static abstract void ElementwiseGreaterThanOrEqual(ReadOnlySpan<T> x, T y, Span<bool> destination);
+            static abstract void ElementwiseLessThanOrEqual(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination);
+            static abstract void ElementwiseLessThanOrEqual(ReadOnlySpan<T> x, T y, Span<bool> destination);
+            static abstract void ElementwiseGreaterThan(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination);
+            static abstract void ElementwiseGreaterThan(ReadOnlySpan<T> x, T y, Span<bool> destination);
+            static abstract void ElementwiseLessThan(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination);
+            static abstract void ElementwiseLessThan(ReadOnlySpan<T> x, T y, Span<bool> destination);
+        }
+
+        private readonly struct BitwiseOperations<T> : IBitwiseOperations<T>
+        where T : unmanaged, IBitwiseOperators<T, T, T>
+        {
+            public static void And(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination) => TensorPrimitives.BitwiseAnd(x, y, destination);
+            public static void And(ReadOnlySpan<T> x, T y, Span<T> destination) => TensorPrimitives.BitwiseAnd(x, y, destination);
+            public static void And(T x, ReadOnlySpan<T> y, Span<T> destination) => TensorPrimitives.BitwiseAnd(y, x, destination);
+            public static void Or(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination) => TensorPrimitives.BitwiseOr(x, y, destination);
+            public static void Or(ReadOnlySpan<T> x, T y, Span<T> destination) => TensorPrimitives.BitwiseOr(x, y, destination);
+            public static void Or(T x, ReadOnlySpan<T> y, Span<T> destination) => TensorPrimitives.BitwiseOr(y, x, destination);
+            public static void Xor(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination) => TensorPrimitives.Xor(x, y, destination);
+            public static void Xor(ReadOnlySpan<T> x, T y, Span<T> destination) => TensorPrimitives.Xor(x, y, destination);
+            public static void Xor(T x, ReadOnlySpan<T> y, Span<T> destination) => TensorPrimitives.Xor(y, x, destination);
+        }
+
+        private readonly struct ShiftOperations<T> : IShiftOperations<T>
+            where T : unmanaged, IShiftOperators<T, int, T>
+        {
+            public static void LeftShift(ReadOnlySpan<T> x, int shiftAmount, Span<T> destination) => TensorPrimitives.ShiftLeft(x, shiftAmount, destination);
+            public static void RightShift(ReadOnlySpan<T> x, int shiftAmount, Span<T> destination) => TensorPrimitives.ShiftRightArithmetic(x, shiftAmount, destination);
+        }
+
+        private readonly struct NumericOperations<T> : INumericOperations<T>
+            where T : unmanaged, INumber<T>
+        {
+            public static void Add(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination) => TensorPrimitives.Add(x, y, destination);
+            public static void Add(ReadOnlySpan<T> x, T y, Span<T> destination) => TensorPrimitives.Add(x, y, destination);
+            public static void Add(T x, ReadOnlySpan<T> y, Span<T> destination) => TensorPrimitives.Add(y, x, destination);
+            public static void Subtract(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination) => TensorPrimitives.Subtract(x, y, destination);
+            public static void Subtract(ReadOnlySpan<T> x, T y, Span<T> destination) => TensorPrimitives.Subtract(x, y, destination);
+            public static void Subtract(T x, ReadOnlySpan<T> y, Span<T> destination) => TensorPrimitives.Subtract(x, y, destination);
+            public static void Multiply(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination) => TensorPrimitives.Multiply(x, y, destination);
+            public static void Multiply(ReadOnlySpan<T> x, T y, Span<T> destination) => TensorPrimitives.Multiply(x, y, destination);
+            public static void Multiply(T x, ReadOnlySpan<T> y, Span<T> destination) => TensorPrimitives.Multiply(y, x, destination);
+            public static void Divide(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination) => TensorPrimitives.Divide(x, y, destination);
+            public static void Divide(ReadOnlySpan<T> x, T y, Span<T> destination) => TensorPrimitives.Divide(x, y, destination);
+            public static void Divide(T x, ReadOnlySpan<T> y, Span<T> destination) => TensorPrimitives.Divide(x, y, destination);
+            public static T Divide(T x, T y) => x / y;
+
+            public static void Modulo(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination)
             {
-                if (_numericOps != null)
+                for (var i = 0; i < x.Length; i++)
                 {
-                    switch (operation)
-                    {
-                        case BinaryOperation.Add:
-                            _numericOps.Add(x, y, destination);
-                            return;
-                        case BinaryOperation.Subtract:
-                            _numericOps.Subtract(x, y, destination);
-                            return;
-                        case BinaryOperation.Multiply:
-                            _numericOps.Multiply(x, y, destination);
-                            return;
-                        case BinaryOperation.Divide:
-                            _numericOps.Divide(x, y, destination);
-                            return;
-                        case BinaryOperation.Modulo:
-                            _numericOps.Modulo(x, y, destination);
-                            return;
-                    }
-                }
-
-                if (_bitwiseOps != null)
-                {
-                    switch (operation)
-                    {
-                        case BinaryOperation.And:
-                            _bitwiseOps.And(x, y, destination);
-                            return;
-                        case BinaryOperation.Or:
-                            _bitwiseOps.Or(x, y, destination);
-                            return;
-                        case BinaryOperation.Xor:
-                            _bitwiseOps.Xor(x, y, destination);
-                            return;
-                    }
-                }
-
-                throw new NotSupportedException();
-            }
-
-            public void HandleOperation(BinaryOperation operation, ReadOnlySpan<T> x, T y, Span<T> destination)
-            {
-                if (_numericOps != null)
-                {
-                    switch (operation)
-                    {
-                        case BinaryOperation.Add:
-                            _numericOps.Add(x, y, destination);
-                            return;
-                        case BinaryOperation.Subtract:
-                            _numericOps.Subtract(x, y, destination);
-                            return;
-                        case BinaryOperation.Multiply:
-                            _numericOps.Multiply(x, y, destination);
-                            return;
-                        case BinaryOperation.Divide:
-                            _numericOps.Divide(x, y, destination);
-                            return;
-                        case BinaryOperation.Modulo:
-                            _numericOps.Modulo(x, y, destination);
-                            return;
-                    }
-                }
-
-                if (_bitwiseOps != null)
-                {
-                    switch (operation)
-                    {
-                        case BinaryOperation.And:
-                            _bitwiseOps.And(x, y, destination);
-                            return;
-                        case BinaryOperation.Or:
-                            _bitwiseOps.Or(x, y, destination);
-                            return;
-                        case BinaryOperation.Xor:
-                            _bitwiseOps.Xor(x, y, destination);
-                            return;
-                    }
-                }
-
-                throw new NotSupportedException();
-            }
-
-            public void HandleOperation(BinaryOperation operation, T x, ReadOnlySpan<T> y, Span<T> destination)
-            {
-                if (_numericOps != null)
-                {
-                    switch (operation)
-                    {
-                        case BinaryOperation.Add:
-                            _numericOps.Add(x, y, destination);
-                            return;
-                        case BinaryOperation.Subtract:
-                            _numericOps.Subtract(x, y, destination);
-                            return;
-                        case BinaryOperation.Multiply:
-                            _numericOps.Multiply(x, y, destination);
-                            return;
-                        case BinaryOperation.Divide:
-                            _numericOps.Divide(x, y, destination);
-                            return;
-                        case BinaryOperation.Modulo:
-                            _numericOps.Modulo(x, y, destination);
-                            return;
-                    }
-                }
-
-                if (_bitwiseOps != null)
-                {
-                    switch (operation)
-                    {
-                        case BinaryOperation.And:
-                            _bitwiseOps.And(x, y, destination);
-                            return;
-                        case BinaryOperation.Or:
-                            _bitwiseOps.Or(x, y, destination);
-                            return;
-                        case BinaryOperation.Xor:
-                            _bitwiseOps.Xor(x, y, destination);
-                            return;
-                    }
-                }
-
-                throw new NotSupportedException();
-            }
-
-            public T HandleOperation(BinaryOperation operation, T x, T y)
-            {
-                if (_numericOps == null)
-                    throw new NotSupportedException();
-
-                if (operation == BinaryOperation.Divide)
-                    return _numericOps.Divide(x, y);
-
-                if (operation == BinaryOperation.Modulo)
-                    return _numericOps.Modulo(x, y);
-
-                throw new NotSupportedException();
-            }
-
-
-            //Binary Int operations
-
-            public void HandleOperation(BinaryIntOperation operation, ReadOnlySpan<T> x, int y, Span<T> destination)
-            {
-                if (_shiftOps == null)
-                    throw new NotSupportedException();
-
-                switch (operation)
-                {
-                    case BinaryIntOperation.LeftShift:
-                        _shiftOps.LeftShift(x, y, destination);
-                        break;
-                    case BinaryIntOperation.RightShift:
-                        _shiftOps.RightShift(x, y, destination);
-                        break;
+                    destination[i] = x[i] % y[i];
                 }
             }
 
-            //Comparison operations
-
-            public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination)
+            public static void Modulo(ReadOnlySpan<T> x, T y, Span<T> destination)
             {
-                if (_numericOps == null)
-                    throw new NotSupportedException();
-
-                switch (operation)
+                for (var i = 0; i < x.Length; i++)
                 {
-                    case ComparisonOperation.ElementwiseEquals:
-                        _numericOps.ElementwiseEquals(x, y, destination);
-                        break;
-                    case ComparisonOperation.ElementwiseNotEquals:
-                        _numericOps.ElementwiseNotEquals(x, y, destination);
-                        break;
-                    case ComparisonOperation.ElementwiseGreaterThanOrEqual:
-                        _numericOps.ElementwiseGreaterThanOrEqual(x, y, destination);
-                        break;
-                    case ComparisonOperation.ElementwiseLessThanOrEqual:
-                        _numericOps.ElementwiseLessThanOrEqual(x, y, destination);
-                        break;
-                    case ComparisonOperation.ElementwiseGreaterThan:
-                        _numericOps.ElementwiseGreaterThan(x, y, destination);
-                        break;
-                    case ComparisonOperation.ElementwiseLessThan:
-                        _numericOps.ElementwiseLessThan(x, y, destination);
-                        break;
+                    destination[i] = x[i] % y;
                 }
             }
 
-            public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, T y, Span<bool> destination)
+            public static void Modulo(T x, ReadOnlySpan<T> y, Span<T> destination)
             {
-                if (_numericOps == null)
-                    throw new NotSupportedException();
-
-                switch (operation)
+                for (var i = 0; i < y.Length; i++)
                 {
-                    case ComparisonOperation.ElementwiseEquals:
-                        _numericOps.ElementwiseEquals(x, y, destination);
-                        break;
-                    case ComparisonOperation.ElementwiseNotEquals:
-                        _numericOps.ElementwiseNotEquals(x, y, destination);
-                        break;
-                    case ComparisonOperation.ElementwiseGreaterThanOrEqual:
-                        _numericOps.ElementwiseGreaterThanOrEqual(x, y, destination);
-                        break;
-                    case ComparisonOperation.ElementwiseLessThanOrEqual:
-                        _numericOps.ElementwiseLessThanOrEqual(x, y, destination);
-                        break;
-                    case ComparisonOperation.ElementwiseGreaterThan:
-                        _numericOps.ElementwiseGreaterThan(x, y, destination);
-                        break;
-                    case ComparisonOperation.ElementwiseLessThan:
-                        _numericOps.ElementwiseLessThan(x, y, destination);
-                        break;
+                    destination[i] = x % y[i];
+                }
+            }
+
+            public static T Modulo(T x, T y) => x % y;
+
+            public static void ElementwiseEquals(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] == y[i]);
+                }
+            }
+
+            public static void ElementwiseEquals(ReadOnlySpan<T> x, T y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] == y);
+                }
+            }
+
+            public static void ElementwiseNotEquals(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] != y[i]);
+                }
+            }
+
+            public static void ElementwiseNotEquals(ReadOnlySpan<T> x, T y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] != y);
+                }
+            }
+
+            public static void ElementwiseGreaterThanOrEqual(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] >= y[i]);
+                }
+            }
+
+            public static void ElementwiseGreaterThanOrEqual(ReadOnlySpan<T> x, T y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] >= y);
+                }
+            }
+
+            public static void ElementwiseLessThanOrEqual(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] <= y[i]);
+                }
+            }
+
+            public static void ElementwiseLessThanOrEqual(ReadOnlySpan<T> x, T y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] <= y);
+                }
+            }
+
+            public static void ElementwiseGreaterThan(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] > y[i]);
+                }
+            }
+
+            public static void ElementwiseGreaterThan(ReadOnlySpan<T> x, T y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] > y);
+                }
+            }
+
+            public static void ElementwiseLessThan(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] < y[i]);
+                }
+            }
+
+            public static void ElementwiseLessThan(ReadOnlySpan<T> x, T y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] < y);
                 }
             }
         }
         #endregion
 
-        public static IArithmetic<T> GetArithmetic<T>()
+        #region Nested classes for Arithmetics
+        private class CompositeArithmetic<T, TNumericOperations> : IArithmetic<T>
+          where T : unmanaged
+          where TNumericOperations : struct, INumericOperations<T>
+        {
+            public virtual void HandleOperation(BinaryOperation operation, ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination)
+            {
+                switch (operation)
+                {
+                    case BinaryOperation.Add:
+                        TNumericOperations.Add(x, y, destination);
+                        break;
+                    case BinaryOperation.Subtract:
+                        TNumericOperations.Subtract(x, y, destination);
+                        break;
+                    case BinaryOperation.Multiply:
+                        TNumericOperations.Multiply(x, y, destination);
+                        break;
+                    case BinaryOperation.Divide:
+                        TNumericOperations.Divide(x, y, destination);
+                        break;
+                    case BinaryOperation.Modulo:
+                        TNumericOperations.Modulo(x, y, destination);
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+
+            public virtual void HandleOperation(BinaryOperation operation, ReadOnlySpan<T> x, T y, Span<T> destination)
+            {
+                switch (operation)
+                {
+                    case BinaryOperation.Add:
+                        TNumericOperations.Add(x, y, destination);
+                        break;
+                    case BinaryOperation.Subtract:
+                        TNumericOperations.Subtract(x, y, destination);
+                        break;
+                    case BinaryOperation.Multiply:
+                        TNumericOperations.Multiply(x, y, destination);
+                        break;
+                    case BinaryOperation.Divide:
+                        TNumericOperations.Divide(x, y, destination);
+                        break;
+                    case BinaryOperation.Modulo:
+                        TNumericOperations.Modulo(x, y, destination);
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+
+            public virtual void HandleOperation(BinaryOperation operation, T x, ReadOnlySpan<T> y, Span<T> destination)
+            {
+                switch (operation)
+                {
+                    case BinaryOperation.Add:
+                        TNumericOperations.Add(x, y, destination);
+                        break;
+                    case BinaryOperation.Subtract:
+                        TNumericOperations.Subtract(x, y, destination);
+                        break;
+                    case BinaryOperation.Multiply:
+                        TNumericOperations.Multiply(x, y, destination);
+                        break;
+                    case BinaryOperation.Divide:
+                        TNumericOperations.Divide(x, y, destination);
+                        break;
+                    case BinaryOperation.Modulo:
+                        TNumericOperations.Modulo(x, y, destination);
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+
+            public T HandleOperation(BinaryOperation operation, T x, T y)
+            {
+                if (operation == BinaryOperation.Divide)
+                    return TNumericOperations.Divide(x, y);
+
+                if (operation == BinaryOperation.Modulo)
+                    return TNumericOperations.Modulo(x, y);
+
+                throw new NotSupportedException();
+            }
+
+            public virtual void HandleOperation(BinaryIntOperation operation, ReadOnlySpan<T> x, int y, Span<T> destination)
+            {
+                throw new NotSupportedException();
+            }
+
+            public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination)
+            {
+                switch (operation)
+                {
+                    case ComparisonOperation.ElementwiseEquals:
+                        TNumericOperations.ElementwiseEquals(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseNotEquals:
+                        TNumericOperations.ElementwiseNotEquals(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseGreaterThanOrEqual:
+                        TNumericOperations.ElementwiseGreaterThanOrEqual(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseLessThanOrEqual:
+                        TNumericOperations.ElementwiseLessThanOrEqual(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseGreaterThan:
+                        TNumericOperations.ElementwiseGreaterThan(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseLessThan:
+                        TNumericOperations.ElementwiseLessThan(x, y, destination);
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+
+            public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, T y, Span<bool> destination)
+            {
+                switch (operation)
+                {
+                    case ComparisonOperation.ElementwiseEquals:
+                        TNumericOperations.ElementwiseEquals(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseNotEquals:
+                        TNumericOperations.ElementwiseNotEquals(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseGreaterThanOrEqual:
+                        TNumericOperations.ElementwiseGreaterThanOrEqual(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseLessThanOrEqual:
+                        TNumericOperations.ElementwiseLessThanOrEqual(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseGreaterThan:
+                        TNumericOperations.ElementwiseGreaterThan(x, y, destination);
+                        break;
+                    case ComparisonOperation.ElementwiseLessThan:
+                        TNumericOperations.ElementwiseLessThan(x, y, destination);
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+        }
+
+        private class CompositeArithmetic<T, TNumericOperations, TBitwiseOperations> : CompositeArithmetic<T, TNumericOperations>, IArithmetic<T>
             where T : unmanaged
+            where TNumericOperations : struct, INumericOperations<T>
+            where TBitwiseOperations : struct, IBitwiseOperations<T>
+        {
+            public override void HandleOperation(BinaryOperation operation, ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination)
+            {
+                switch (operation)
+                {
+                    case BinaryOperation.And:
+                        TBitwiseOperations.And(x, y, destination);
+                        return;
+                    case BinaryOperation.Or:
+                        TBitwiseOperations.Or(x, y, destination);
+                        return;
+                    case BinaryOperation.Xor:
+                        TBitwiseOperations.Xor(x, y, destination);
+                        return;
+                }
+
+                base.HandleOperation(operation, x, y, destination);
+            }
+
+            public override void HandleOperation(BinaryOperation operation, ReadOnlySpan<T> x, T y, Span<T> destination)
+            {
+                switch (operation)
+                {
+                    case BinaryOperation.And:
+                        TBitwiseOperations.And(x, y, destination);
+                        return;
+                    case BinaryOperation.Or:
+                        TBitwiseOperations.Or(x, y, destination);
+                        return;
+                    case BinaryOperation.Xor:
+                        TBitwiseOperations.Xor(x, y, destination);
+                        return;
+                }
+
+                base.HandleOperation(operation, x, y, destination);
+            }
+
+            public override void HandleOperation(BinaryOperation operation, T x, ReadOnlySpan<T> y, Span<T> destination)
+            {
+                switch (operation)
+                {
+                    case BinaryOperation.And:
+                        TBitwiseOperations.And(x, y, destination);
+                        return;
+                    case BinaryOperation.Or:
+                        TBitwiseOperations.Or(x, y, destination);
+                        return;
+                    case BinaryOperation.Xor:
+                        TBitwiseOperations.Xor(x, y, destination);
+                        return;
+                }
+
+                base.HandleOperation(operation, x, y, destination);
+            }
+        }
+
+        private class CompositeArithmetic<T, TNumericOperations, TBitwiseOperations, TShiftOperations> : CompositeArithmetic<T, TNumericOperations, TBitwiseOperations>, IArithmetic<T>
+            where T : unmanaged
+            where TNumericOperations : struct, INumericOperations<T>
+            where TBitwiseOperations : struct, IBitwiseOperations<T>
+            where TShiftOperations : struct, IShiftOperations<T>
         {
 
+            public override void HandleOperation(BinaryIntOperation operation, ReadOnlySpan<T> x, int y, Span<T> destination)
+            {
+                switch (operation)
+                {
+                    case BinaryIntOperation.LeftShift:
+                        TShiftOperations.LeftShift(x, y, destination);
+                        break;
+                    case BinaryIntOperation.RightShift:
+                        TShiftOperations.RightShift(x, y, destination);
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+        }
+
+        //Special case
+        internal class DateTimeArithmetic : Arithmetic<DateTime>
+        {
+            protected override void ElementwiseEquals(ReadOnlySpan<DateTime> x, ReadOnlySpan<DateTime> y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] == y[i]);
+                }
+            }
+
+            protected override void ElementwiseEquals(ReadOnlySpan<DateTime> x, DateTime y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] == y);
+                }
+            }
+
+            protected override void ElementwiseNotEquals(ReadOnlySpan<DateTime> x, ReadOnlySpan<DateTime> y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] != y[i]);
+                }
+            }
+
+            protected override void ElementwiseNotEquals(ReadOnlySpan<DateTime> x, DateTime y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] != y);
+                }
+            }
+
+            protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<DateTime> x, ReadOnlySpan<DateTime> y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] >= y[i]);
+                }
+            }
+
+            protected override void ElementwiseGreaterThanOrEqual(ReadOnlySpan<DateTime> x, DateTime y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] == y);
+                }
+            }
+
+            protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<DateTime> x, ReadOnlySpan<DateTime> y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] <= y[i]);
+                }
+            }
+
+            protected override void ElementwiseLessThanOrEqual(ReadOnlySpan<DateTime> x, DateTime y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] <= y);
+                }
+            }
+
+            protected override void ElementwiseGreaterThan(ReadOnlySpan<DateTime> x, ReadOnlySpan<DateTime> y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] > y[i]);
+                }
+            }
+
+            protected override void ElementwiseGreaterThan(ReadOnlySpan<DateTime> x, DateTime y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] > y);
+                }
+            }
+
+            protected override void ElementwiseLessThan(ReadOnlySpan<DateTime> x, ReadOnlySpan<DateTime> y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] < y[i]);
+                }
+            }
+
+            protected override void ElementwiseLessThan(ReadOnlySpan<DateTime> x, DateTime y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] < y);
+                }
+            }
+        }
+
+        internal class BoolArithmetic : Arithmetic<bool>
+        {
+            protected override void And(ReadOnlySpan<bool> x, ReadOnlySpan<bool> y, Span<bool> destination)
+            {
+                int i = 0;
+
+                while (i < x.Length)
+                {
+                    destination[i] = (bool)(x[i] & y[i]);
+                    i++;
+                }
+            }
+
+            protected override void And(ReadOnlySpan<bool> x, bool y, Span<bool> destination)
+            {
+                int i = 0;
+
+                while (i < x.Length)
+                {
+                    destination[i] = (bool)(x[i] & y);
+                    i++;
+                }
+            }
+
+            protected override void And(bool x, ReadOnlySpan<bool> y, Span<bool> destination)
+            {
+                int i = 0;
+
+                while (i < y.Length)
+                {
+                    destination[i] = (bool)(x & y[i]);
+                    i++;
+                }
+            }
+
+            protected override void Or(ReadOnlySpan<bool> x, ReadOnlySpan<bool> y, Span<bool> destination)
+            {
+                int i = 0;
+
+                while (i < x.Length)
+                {
+                    destination[i] = (bool)(x[i] | y[i]);
+                    i++;
+                }
+            }
+
+            protected override void Or(ReadOnlySpan<bool> x, bool y, Span<bool> destination)
+            {
+                int i = 0;
+
+                while (i < x.Length)
+                {
+                    destination[i] = (bool)(x[i] | y);
+                    i++;
+                }
+            }
+
+            protected override void Or(bool x, ReadOnlySpan<bool> y, Span<bool> destination)
+            {
+                int i = 0;
+
+                while (i < y.Length)
+                {
+                    destination[i] = (bool)(x | y[i]);
+                    i++;
+                }
+            }
+
+            protected override void Xor(ReadOnlySpan<bool> x, ReadOnlySpan<bool> y, Span<bool> destination)
+            {
+                int i = 0;
+
+                while (i < x.Length)
+                {
+                    destination[i] = (bool)(x[i] ^ y[i]);
+                    i++;
+                }
+            }
+
+            protected override void Xor(ReadOnlySpan<bool> x, bool y, Span<bool> destination)
+            {
+                int i = 0;
+
+                while (i < x.Length)
+                {
+                    destination[i] = (bool)(x[i] ^ y);
+                    i++;
+                }
+            }
+
+            protected override void Xor(bool x, ReadOnlySpan<bool> y, Span<bool> destination)
+            {
+                int i = 0;
+
+                while (i < y.Length)
+                {
+                    destination[i] = (bool)(x ^ y[i]);
+                    i++;
+                }
+            }
+
+            protected override void ElementwiseEquals(ReadOnlySpan<bool> x, ReadOnlySpan<bool> y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] == y[i]);
+                }
+            }
+
+            protected override void ElementwiseEquals(ReadOnlySpan<bool> x, bool y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] == y);
+                }
+            }
+
+            protected override void ElementwiseNotEquals(ReadOnlySpan<bool> x, ReadOnlySpan<bool> y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] != y[i]);
+                }
+            }
+
+            protected override void ElementwiseNotEquals(ReadOnlySpan<bool> x, bool y, Span<bool> destination)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    destination[i] = (x[i] != y);
+                }
+            }
+        }
+        #endregion
+
+        internal static IArithmetic<T> GetArithmetic<T>()
+            where T : unmanaged
+        {
             if (typeof(T) == typeof(double))
-                return (IArithmetic<T>)new CompositeArithmetic<double>(new NumericOperations<double>(), new BitwiseOperations<double>());
+                return (IArithmetic<T>)new CompositeArithmetic<double, NumericOperations<double>, BitwiseOperations<double>>();
             if (typeof(T) == typeof(float))
-                return (IArithmetic<T>)new CompositeArithmetic<float>(new NumericOperations<float>(), new BitwiseOperations<float>());
+                return (IArithmetic<T>)new CompositeArithmetic<float, NumericOperations<float>, BitwiseOperations<float>>();
             if (typeof(T) == typeof(int))
-                return (IArithmetic<T>)new CompositeArithmetic<int>(new NumericOperations<int>(), new BitwiseOperations<int>(), new ShiftOperations<int>());
+                return (IArithmetic<T>)new CompositeArithmetic<int, NumericOperations<int>, BitwiseOperations<int>, ShiftOperations<int>>();
             if (typeof(T) == typeof(long))
-                return (IArithmetic<T>)new CompositeArithmetic<long>(new NumericOperations<long>(), new BitwiseOperations<long>(), new ShiftOperations<long>());
+                return (IArithmetic<T>)new CompositeArithmetic<long, NumericOperations<long>, BitwiseOperations<long>, ShiftOperations<long>>();
             if (typeof(T) == typeof(sbyte))
-                return (IArithmetic<T>)new CompositeArithmetic<sbyte>(new NumericOperations<sbyte>(), new BitwiseOperations<sbyte>(), new ShiftOperations<sbyte>());
+                return (IArithmetic<T>)new CompositeArithmetic<sbyte, NumericOperations<sbyte>, BitwiseOperations<sbyte>, ShiftOperations<sbyte>>();
             if (typeof(T) == typeof(short))
-                return (IArithmetic<T>)new CompositeArithmetic<short>(new NumericOperations<short>(), new BitwiseOperations<short>(), new ShiftOperations<short>());
+                return (IArithmetic<T>)new CompositeArithmetic<short, NumericOperations<short>, BitwiseOperations<short>, ShiftOperations<short>>();
             if (typeof(T) == typeof(uint))
-                return (IArithmetic<T>)new CompositeArithmetic<uint>(new NumericOperations<uint>(), new BitwiseOperations<uint>(), new ShiftOperations<uint>());
+                return (IArithmetic<T>)new CompositeArithmetic<uint, NumericOperations<uint>, BitwiseOperations<uint>, ShiftOperations<uint>>();
             if (typeof(T) == typeof(ulong))
-                return (IArithmetic<T>)new CompositeArithmetic<ulong>(new NumericOperations<ulong>(), new BitwiseOperations<ulong>(), new ShiftOperations<ulong>());
+                return (IArithmetic<T>)new CompositeArithmetic<ulong, NumericOperations<ulong>, BitwiseOperations<ulong>, ShiftOperations<ulong>>();
             if (typeof(T) == typeof(ushort))
-                return (IArithmetic<T>)new CompositeArithmetic<ushort>(new NumericOperations<ushort>(), new BitwiseOperations<ushort>(), new ShiftOperations<ushort>());
+                return (IArithmetic<T>)new CompositeArithmetic<ushort, NumericOperations<ushort>, BitwiseOperations<ushort>, ShiftOperations<ushort>>();
             if (typeof(T) == typeof(byte))
-                return (IArithmetic<T>)new CompositeArithmetic<byte>(new NumericOperations<byte>(), new BitwiseOperations<byte>(), new ShiftOperations<byte>());
+                return (IArithmetic<T>)new CompositeArithmetic<byte, NumericOperations<byte>, BitwiseOperations<byte>, ShiftOperations<byte>>();
             if (typeof(T) == typeof(char))
-                return (IArithmetic<T>)new CompositeArithmetic<char>(new NumericOperations<char>(), new BitwiseOperations<char>(), new ShiftOperations<char>());
+                return (IArithmetic<T>)new CompositeArithmetic<char, NumericOperations<char>, BitwiseOperations<char>, ShiftOperations<char>>();
             if (typeof(T) == typeof(decimal))
-                return (IArithmetic<T>)new CompositeArithmetic<decimal>(new NumericOperations<decimal>());
+                return (IArithmetic<T>)new CompositeArithmetic<decimal, NumericOperations<decimal>>();
             if (typeof(T) == typeof(DateTime))
                 return (IArithmetic<T>)new DateTimeArithmetic();
             if (typeof(T) == typeof(bool))
                 return (IArithmetic<T>)new BoolArithmetic();
             throw new NotSupportedException();
         }
-    }
-
-    ////////////////////////////////////////
-    //Base Class for Arithmetic           //
-    ////////////////////////////////////////
-    internal class Arithmetic<T> : IArithmetic<T>
-        where T : unmanaged
-    {
-        public static IArithmetic<T> Instance { get; } = Arithmetic.GetArithmetic<T>();
-
-        //Binary operations
-
-        public void HandleOperation(BinaryOperation operation, ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination)
-        {
-            switch (operation)
-            {
-                case BinaryOperation.Add:
-                    Add(x, y, destination);
-                    break;
-                case BinaryOperation.Subtract:
-                    Subtract(x, y, destination);
-                    break;
-                case BinaryOperation.Multiply:
-                    Multiply(x, y, destination);
-                    break;
-                case BinaryOperation.Divide:
-                    Divide(x, y, destination);
-                    break;
-                case BinaryOperation.Modulo:
-                    Modulo(x, y, destination);
-                    break;
-                case BinaryOperation.And:
-                    And(x, y, destination);
-                    break;
-                case BinaryOperation.Or:
-                    Or(x, y, destination);
-                    break;
-                case BinaryOperation.Xor:
-                    Xor(x, y, destination);
-                    break;
-            }
-        }
-
-        public void HandleOperation(BinaryOperation operation, ReadOnlySpan<T> x, T y, Span<T> destination)
-        {
-            switch (operation)
-            {
-                case BinaryOperation.Add:
-                    Add(x, y, destination);
-                    break;
-                case BinaryOperation.Subtract:
-                    Subtract(x, y, destination);
-                    break;
-                case BinaryOperation.Multiply:
-                    Multiply(x, y, destination);
-                    break;
-                case BinaryOperation.Divide:
-                    Divide(x, y, destination);
-                    break;
-                case BinaryOperation.Modulo:
-                    Modulo(x, y, destination);
-                    break;
-                case BinaryOperation.And:
-                    And(x, y, destination);
-                    break;
-                case BinaryOperation.Or:
-                    Or(x, y, destination);
-                    break;
-                case BinaryOperation.Xor:
-                    Xor(x, y, destination);
-                    break;
-            }
-        }
-
-        public void HandleOperation(BinaryOperation operation, T x, ReadOnlySpan<T> y, Span<T> destination)
-        {
-            switch (operation)
-            {
-                case BinaryOperation.Add:
-                    Add(x, y, destination);
-                    break;
-                case BinaryOperation.Subtract:
-                    Subtract(x, y, destination);
-                    break;
-                case BinaryOperation.Multiply:
-                    Multiply(x, y, destination);
-                    break;
-                case BinaryOperation.Divide:
-                    Divide(x, y, destination);
-                    break;
-                case BinaryOperation.Modulo:
-                    Modulo(x, y, destination);
-                    break;
-                case BinaryOperation.And:
-                    And(x, y, destination);
-                    break;
-                case BinaryOperation.Or:
-                    Or(x, y, destination);
-                    break;
-                case BinaryOperation.Xor:
-                    Xor(x, y, destination);
-                    break;
-            }
-        }
-
-        public T HandleOperation(BinaryOperation operation, T x, T y)
-        {
-            if (operation == BinaryOperation.Divide)
-                return Divide(x, y);
-
-            if (operation == BinaryOperation.Modulo)
-                return Modulo(x, y);
-
-            throw new NotSupportedException();
-        }
-
-
-        //Binary Int operations
-
-        public void HandleOperation(BinaryIntOperation operation, ReadOnlySpan<T> x, int y, Span<T> destination)
-        {
-            switch (operation)
-            {
-                case BinaryIntOperation.LeftShift:
-                    LeftShift(x, y, destination);
-                    break;
-                case BinaryIntOperation.RightShift:
-                    RightShift(x, y, destination);
-                    break;
-            }
-        }
-
-
-        //Comparison operations
-
-        public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination)
-        {
-            switch (operation)
-            {
-                case ComparisonOperation.ElementwiseEquals:
-                    ElementwiseEquals(x, y, destination);
-                    break;
-                case ComparisonOperation.ElementwiseNotEquals:
-                    ElementwiseNotEquals(x, y, destination);
-                    break;
-                case ComparisonOperation.ElementwiseGreaterThanOrEqual:
-                    ElementwiseGreaterThanOrEqual(x, y, destination);
-                    break;
-                case ComparisonOperation.ElementwiseLessThanOrEqual:
-                    ElementwiseLessThanOrEqual(x, y, destination);
-                    break;
-                case ComparisonOperation.ElementwiseGreaterThan:
-                    ElementwiseGreaterThan(x, y, destination);
-                    break;
-                case ComparisonOperation.ElementwiseLessThan:
-                    ElementwiseLessThan(x, y, destination);
-                    break;
-            }
-        }
-
-        public void HandleOperation(ComparisonOperation operation, ReadOnlySpan<T> x, T y, Span<bool> destination)
-        {
-            switch (operation)
-            {
-                case ComparisonOperation.ElementwiseEquals:
-                    ElementwiseEquals(x, y, destination);
-                    break;
-                case ComparisonOperation.ElementwiseNotEquals:
-                    ElementwiseNotEquals(x, y, destination);
-                    break;
-                case ComparisonOperation.ElementwiseGreaterThanOrEqual:
-                    ElementwiseGreaterThanOrEqual(x, y, destination);
-                    break;
-                case ComparisonOperation.ElementwiseLessThanOrEqual:
-                    ElementwiseLessThanOrEqual(x, y, destination);
-                    break;
-                case ComparisonOperation.ElementwiseGreaterThan:
-                    ElementwiseGreaterThan(x, y, destination);
-                    break;
-                case ComparisonOperation.ElementwiseLessThan:
-                    ElementwiseLessThan(x, y, destination);
-                    break;
-            }
-        }
-
-
-        //Protected methods
-
-        protected virtual void Add(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Add(ReadOnlySpan<T> x, T y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Add(T x, ReadOnlySpan<T> y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Subtract(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Subtract(ReadOnlySpan<T> x, T y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Subtract(T x, ReadOnlySpan<T> y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Multiply(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Multiply(ReadOnlySpan<T> x, T y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Multiply(T x, ReadOnlySpan<T> y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Divide(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Divide(ReadOnlySpan<T> x, T y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Divide(T x, ReadOnlySpan<T> y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Modulo(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Modulo(ReadOnlySpan<T> x, T y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Modulo(T x, ReadOnlySpan<T> y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void And(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void And(ReadOnlySpan<T> x, T y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void And(T x, ReadOnlySpan<T> y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Or(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Or(ReadOnlySpan<T> x, T y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Or(T x, ReadOnlySpan<T> y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Xor(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Xor(ReadOnlySpan<T> x, T y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void Xor(T x, ReadOnlySpan<T> y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void LeftShift(ReadOnlySpan<T> x, int y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void RightShift(ReadOnlySpan<T> x, int y, Span<T> destination) => throw new NotSupportedException();
-
-        protected virtual void ElementwiseEquals(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination) => throw new NotSupportedException();
-
-        protected virtual void ElementwiseEquals(ReadOnlySpan<T> x, T y, Span<bool> destination) => throw new NotSupportedException();
-
-        protected virtual void ElementwiseNotEquals(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination) => throw new NotSupportedException();
-
-        protected virtual void ElementwiseNotEquals(ReadOnlySpan<T> x, T y, Span<bool> destination) => throw new NotSupportedException();
-
-        protected virtual void ElementwiseGreaterThanOrEqual(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination) => throw new NotSupportedException();
-
-        protected virtual void ElementwiseGreaterThanOrEqual(ReadOnlySpan<T> x, T y, Span<bool> destination) => throw new NotSupportedException();
-
-        protected virtual void ElementwiseLessThanOrEqual(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination) => throw new NotSupportedException();
-
-        protected virtual void ElementwiseLessThanOrEqual(ReadOnlySpan<T> x, T y, Span<bool> destination) => throw new NotSupportedException();
-
-        protected virtual void ElementwiseGreaterThan(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination) => throw new NotSupportedException();
-
-        protected virtual void ElementwiseGreaterThan(ReadOnlySpan<T> x, T y, Span<bool> destination) => throw new NotSupportedException();
-
-        protected virtual void ElementwiseLessThan(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<bool> destination) => throw new NotSupportedException();
-
-        protected virtual void ElementwiseLessThan(ReadOnlySpan<T> x, T y, Span<bool> destination) => throw new NotSupportedException();
-
-        protected virtual T Divide(T x, T y) => throw new NotSupportedException();
-
-        protected virtual T Modulo(T x, T y) => throw new NotSupportedException();
     }
 }
 #endif
