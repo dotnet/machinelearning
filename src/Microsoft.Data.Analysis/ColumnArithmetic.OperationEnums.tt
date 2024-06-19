@@ -10,7 +10,6 @@
 // See the LICENSE file in the project root for more information.
 
 // Generated from ColumnArithmetic.OperationEnums.tt. Do not modify directly
-
 namespace Microsoft.Data.Analysis
 {
     internal enum BinaryOperation
