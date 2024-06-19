@@ -63,7 +63,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Optimizers
         public double GetGradNorm()
         {
             return Math.Sqrt(Parameters
-                .Select(p => p.grad())
+                .Select(p => p.grad)
                 .Where(grad => grad.IsNotNull())      // parameters unused have no gradient
                 .Select(grad => grad.square().sum().ToDouble())
                 .Sum());
@@ -82,7 +82,7 @@ namespace Microsoft.ML.TorchSharp.NasBert.Optimizers
         {
             foreach (var p in Parameters)
             {
-                using var grad = p.grad();
+                using var grad = p.grad;
                 if (grad.IsNotNull())
                 {
                     grad.mul_(c);
