@@ -24,7 +24,7 @@
     <SystemConfigurationConfigurationManagerVersion>6.0.1</SystemConfigurationConfigurationManagerVersion>
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
     <SystemMemoryVersion>4.5.5</SystemMemoryVersion>
-    <SystemNumericsTensorsVersion>9.0.0-preview.5.24306.7</SystemNumericsTensorsVersion>
+    <SystemNumericsTensorsVersion>8.0.0</SystemNumericsTensorsVersion>
     <SystemReflectionEmitLightweightVersion>4.3.0</SystemReflectionEmitLightweightVersion>
     <SystemReflectionEmitVersion>4.3.0</SystemReflectionEmitVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>6.0.0</SystemRuntimeCompilerServicesUnsafeVersion>
