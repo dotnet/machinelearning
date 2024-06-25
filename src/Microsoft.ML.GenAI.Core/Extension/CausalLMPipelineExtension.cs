@@ -12,9 +12,8 @@ using TorchSharp;
 
 namespace Microsoft.ML.GenAI.Core.Extension;
 
-public static class CausalMLPipelineExtension
+public static class CausalLMPipelineExtension
 {
-
     public static string? Generate(
         this CausalLMPipeline pipeline,
         string prompt,

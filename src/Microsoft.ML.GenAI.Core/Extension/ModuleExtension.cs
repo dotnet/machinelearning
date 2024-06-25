@@ -89,7 +89,6 @@ internal static class ModuleExtension
             return model;
         }
 
-        //var dynamicModules = model.named_modules().Where(x => x.module is IDynamicLoadModule).Select(x => x.name).ToList();
         // for each module in the model, update device if it is IDynamicLoadModule
         foreach (var (key, value) in model.named_children())
         {
