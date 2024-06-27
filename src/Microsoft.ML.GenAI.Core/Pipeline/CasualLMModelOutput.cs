@@ -10,7 +10,7 @@ public class CasualLMModelOutput
 {
     public CasualLMModelOutput(
         Tensor lastHiddenState,
-        Tensor logits,
+        Tensor? logits = null,
         Tensor[]? allHiddenStates = null,
         Tensor[]? attentions = null,
         IKVCache? cache = null)
@@ -22,7 +22,7 @@ public class CasualLMModelOutput
         this.Cache = cache;
     }
 
-    public Tensor Logits { get; set; }
+    public Tensor? Logits { get; set; }
 
     public Tensor LastHiddenState { get; set; }
 

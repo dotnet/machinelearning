@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
@@ -17,6 +17,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.ML.GenAI.Phi" />
+    <InternalsVisibleTo Include="Microsoft.ML.GenAI.Phi.Tests" />
   </ItemGroup>
 
 </Project>

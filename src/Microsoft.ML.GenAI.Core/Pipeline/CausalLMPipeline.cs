@@ -84,7 +84,7 @@ public class CausalLMPipeline
                     OverrideCache = cache,
                 };
                 var output = this.Model.forward(input);
-                logits = output.Logits;
+                logits = output.Logits ?? throw new InvalidOperationException("Logits is null");
                 torch.Tensor nextToken;
                 if (temperature > 0)
                 {

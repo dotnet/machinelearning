@@ -527,6 +527,24 @@ namespace Microsoft.ML.Tokenizers
             bool addEndOfSentence = false)
             => CreateCodeGen(vocabStream, mergesStream, addPrefixSpace, addBeginOfSentence, addEndOfSentence);
 
+        public static CodeGen CreatePhi2(
+            string folder,
+            string vocabFile = "vocab.json",
+            string mergesFile = "merges.txt",
+            string specialTokensFile = "special_tokens_map.json",
+            bool addPrefixSpace = false,
+            bool addBeginOfSentence = false,
+            bool addEndOfSentence = false)
+        {
+            var vocabPath = Path.Combine(folder, vocabFile);
+            var mergesPath = Path.Combine(folder, mergesFile);
+            var specialTokenMapPath = Path.Combine(folder, specialTokensFile);
+            using var vocabStream = File.OpenRead(vocabPath);
+            using var mergesStream = File.OpenRead(mergesPath);
+
+            return (CodeGen)CreateCodeGen(vocabStream, mergesStream, addPrefixSpace, addBeginOfSentence, addEndOfSentence);
+        }
+
         internal static IEnumerable<(int Offset, int Length)>? InitializeForEncoding(
                                                 string? text,
                                                 ReadOnlySpan<char> textSpan,
