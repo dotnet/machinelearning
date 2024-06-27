@@ -13,7 +13,7 @@ using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Core;
 
-public class CausalLMPipeline<TTokenizer, TModel> : CausalLMPipeline
+public class CausalLMPipeline<TTokenizer, TModel> : CausalLMPipeline, ICausalLMPipeline<TTokenizer, TModel>
     where TTokenizer : Tokenizer
     where TModel : nn.Module<CasualLMModelInput, CasualLMModelOutput>
 {
@@ -24,6 +24,25 @@ public class CausalLMPipeline<TTokenizer, TModel> : CausalLMPipeline
         : base(tokenizer, model, device)
     {
     }
+
+    internal CausalLMPipeline()
+        : base()
+    {
+    }
+}
+
+public interface ICausalLMPipeline<TTokenizer, TModel>
+    where TTokenizer : Tokenizer
+    where TModel : nn.Module<CasualLMModelInput, CasualLMModelOutput>
+{
+    string? Generate(
+        string prompt,
+        int maxLen = 128,
+        float temperature = 0.7F,
+        float topP = 0.9F,
+        string[]? stopSequences = null,
+        bool echo = false);
+    (Tensor, Tensor) Generate(Tensor inputIds, Tensor attentionMask, int[][] stopTokenSequence, float temperature = 0.7F, float topP = 0.9F, int maxLen = 128, bool echo = false);
 }
 
 public class CausalLMPipeline
@@ -36,6 +55,16 @@ public class CausalLMPipeline
         this.Tokenizer = tokenizer;
         this.Model = model;
         this.Device = device;
+    }
+
+    /// <summary>
+    /// For moq purpose
+    /// </summary>
+    protected private CausalLMPipeline()
+    {
+        this.Tokenizer = default!;
+        this.Model = default!;
+        this.Device = default!;
     }
 
     public Tokenizer Tokenizer { get; }
@@ -129,6 +158,35 @@ public class CausalLMPipeline
                 return (inputIds[.., promptLength..].MoveToOuterDisposeScope(), logits![.., promptLength..].MoveToOuterDisposeScope());
             }
         }
+    }
+
+    public virtual string? Generate(
+        string prompt,
+        int maxLen = 128,
+        float temperature = 0.7f,
+        float topP = 0.9f,
+        string[]? stopSequences = null,
+        bool echo = false)
+    {
+        using var newScope = NewDisposeScope();
+        var inputIds = this.Tokenizer.EncodeToIds(prompt);
+        var inputTensor = torch.tensor(inputIds.ToArray(), dtype: ScalarType.Int64, device: this.Device).unsqueeze(0);
+        var attentionMask = torch.ones_like(inputTensor);
+
+        // set up stop token ids
+        // stop token ids: [[eosId], [stopSequence1], [stopSequence2], ...]
+        // when causal language model generates tokens, it will stop when it generates any token in stopSequences
+        List<int[]> stopTokenIds = [[]];
+        if (stopSequences != null)
+        {
+            stopTokenIds.AddRange(stopSequences.Select(x => this.Tokenizer.EncodeToIds(x).ToArray()));
+        }
+
+        (var token, var _) = this.Generate(inputTensor, attentionMask, temperature: temperature, maxLen: maxLen, topP: topP, stopTokenSequence: stopTokenIds.ToArray(), echo: echo);
+
+        var tokenIds = token[0].to_type(ScalarType.Int32).data<int>().ToArray();
+
+        return this.Tokenizer.Decode(tokenIds);
     }
 
     protected torch.Tensor SampleTopP(torch.Tensor logits, float topP)
