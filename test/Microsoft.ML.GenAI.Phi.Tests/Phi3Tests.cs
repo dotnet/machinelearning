@@ -118,6 +118,8 @@ public class Phi3Tests : BaseTestClass
         foreach (var message in messages)
         {
             var tokenized = tokenizer.EncodeToIds(message, considerPreTokenization: true);
+            var decodedString = tokenizer.Decode(tokenized);
+            decodedString.Should().Be(message);
             var tokenizedStr = string.Join(", ", tokenized.Select(x => x.ToString()));
 
             sb.AppendLine(tokenizedStr);

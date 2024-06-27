@@ -51,17 +51,6 @@ public class Phi3Tokenizer : Tokenizer
 
     public int EosId { get => this._tokenizer.EndOfSentenceId; }
 
-    public string Decode(int[] input)
-    {
-        var str = this._tokenizer.Decode(input) ?? throw new Exception("Failed to decode");
-        if (this._addPrecedingSpace)
-        {
-            str = str.TrimStart();
-        }
-
-        return str;
-    }
-
     public override IReadOnlyList<Token> Encode(ReadOnlySpan<char> text, out string? normalizedString, bool considerPreTokenization = true, bool considerNormalization = true)
     {
         var tokens = new List<Token>();
@@ -97,6 +86,10 @@ public class Phi3Tokenizer : Tokenizer
     public override IReadOnlyList<int> EncodeToIds(ReadOnlySpan<char> text, bool considerPreTokenization = true, bool considerNormalization = true)
     {
         var input = text.ToString();
+        if (this._addPrecedingSpace)
+        {
+            //input = " " + input;
+        }
         // step 1:
         // replace all special tokens to <unk>
         var re = new Regex($"{SystemSymbol.Replace("|", "\\|")}|{UserSymbol.Replace("|", "\\|")}|{AssistantSymbol.Replace("|", "\\|")}|{EndSymbol.Replace("|", "\\|")}");
@@ -105,17 +98,17 @@ public class Phi3Tokenizer : Tokenizer
         var tokens = new List<int>();
         foreach (Match match in matches)
         {
-            // replace the first special tokens with <unk>
             var specialToken = match.Value;
             var index = input.IndexOf(specialToken);
             var subString = input.Substring(0, index);
-            var subTokens = this._tokenizer.EncodeToIds(subString, addBeginningOfSentence: false, addEndOfSentence: false, considerPreTokenization: considerPreTokenization, considerNormalization: considerNormalization).ToArray();
-            tokens.AddRange(subTokens);
+            var subTokens = this._tokenizer.EncodeToIds(subString, addBeginningOfSentence: false, addEndOfSentence: false, considerPreTokenization: false, considerNormalization: true).ToArray();
+            // remove the first sub Token as it will always be '_'
+            tokens.AddRange(subTokens.Skip(1));
             tokens.Add(this._specialTokenMap[specialToken]);
             input = input.Remove(0, index + specialToken.Length);
         }
 
-        tokens.AddRange(this._tokenizer.EncodeToIds(input, addBeginningOfSentence: false, addEndOfSentence: false, considerPreTokenization: considerPreTokenization, considerNormalization: considerNormalization).ToArray());
+        tokens.AddRange(this._tokenizer.EncodeToIds(input, addBeginningOfSentence: false, addEndOfSentence: false, considerPreTokenization: false, considerNormalization: true).ToArray());
 
         return this._addBeginningOfSentence ? new int[] { this.BosId }.Concat(tokens).ToArray() : tokens.ToArray();
     }
@@ -146,6 +139,60 @@ public class Phi3Tokenizer : Tokenizer
     public override int LastIndexOfTokenCount(ReadOnlySpan<char> text, int maxTokenCount, out string? processedText, out int tokenCount, bool considerPreTokenization = true, bool considerNormalization = true)
     {
         return _tokenizer.LastIndexOfTokenCount(text, maxTokenCount, out processedText, out tokenCount, considerPreTokenization, considerNormalization);
+    }
+
+    public override string? Decode(IEnumerable<int> ids)
+    {
+        // step 1
+        // replace all special token ids to ukn ids
+        var replacedIds = ids.SelectMany(id =>
+        {
+            if (this._specialTokenMap.ContainsValue(id))
+            {
+                var key = this._specialTokenMap.First(x => x.Value == id).Key;
+                var ids = this._tokenizer.EncodeToIds(key, false, false, false, false);
+                var recoverKey = this._tokenizer.Decode(ids) ?? throw new Exception("Failed to decode ids");
+                return ids;
+            }
+            else
+            {
+                return new List<int> { id };
+            }
+        });
+
+        var str = this._tokenizer.Decode(replacedIds) ?? throw new Exception("Failed to decode ids");
+
+        return str;
+
+        //var tokens = new List<string>();
+        //foreach (var id in ids)
+        //{
+        //    if (_specialTokenMap.ContainsValue(id))
+        //    {
+        //        tokens.Add(_specialTokenMap.First(x => x.Value == id).Key);
+        //    }
+        //    else
+        //    {
+        //        tokens.Add(this._tokenizer.MapIdToToken(id) ?? throw new Exception("Failed to map id to token"));
+        //    }
+        //}
+
+        //if (this._addBeginningOfSentence)
+        //{
+        //    tokens = tokens[1..].ToList();
+        //}
+
+        //var str = string.Join("", tokens);
+
+        //// replace Dummy with whitespace
+        //str = str.Replace(SentencePieceNormalizer.DummyPrefix, ' ');
+
+        //if (this._addPrecedingSpace)
+        //{
+        //    str = str.TrimStart(' ');
+        //}
+
+        //return str;
     }
 
     public override int? MapTokenToId(ReadOnlySpan<char> token)
