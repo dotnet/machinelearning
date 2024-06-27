@@ -103,7 +103,7 @@ public class Phi3Tests : BaseTestClass
     public void TokenizerTest()
     {
         var modelWeightFolder = "C:\\Users\\xiaoyuz\\source\\repos\\Phi-3-mini-4k-instruct";
-        var tokenizer = LLama2Tokenizer.FromPretrained(modelWeightFolder);
+        var tokenizer = Phi3Tokenizer.FromPretrained(modelWeightFolder);
         tokenizer.BosId.Should().Be(1);
         tokenizer.EosId.Should().Be(2);
         var messages = new string[]
@@ -117,7 +117,7 @@ public class Phi3Tests : BaseTestClass
         var sb = new StringBuilder();
         foreach (var message in messages)
         {
-            var tokenized = tokenizer.Encode(message, true, false);
+            var tokenized = tokenizer.EncodeToIds(message, considerPreTokenization: true);
             var tokenizedStr = string.Join(", ", tokenized.Select(x => x.ToString()));
 
             sb.AppendLine(tokenizedStr);
