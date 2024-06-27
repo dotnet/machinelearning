@@ -20,51 +20,51 @@ namespace Microsoft.Data.Analysis
     {
         private const int DefaultStreamReaderBufferSize = 1024;
 
-        private static Type GuessKind(int col, List<string[]> read)
+        private static Type DefaultGuessTypeFunction(IEnumerable<string> columnValues)
         {
-            Type res = typeof(string);
+            Type result = typeof(string);
             int nbline = 0;
-            foreach (var line in read)
+
+            foreach (var columnValue in columnValues)
             {
-                if (col >= line.Length)
-                    throw new FormatException(string.Format(Strings.LessColumnsThatExpected, nbline + 1));
-
-                string val = line[col];
-
-                if (string.Equals(val, "null", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(columnValue, "null", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
-                if (!string.IsNullOrEmpty(val))
+                if (!string.IsNullOrEmpty(columnValue))
                 {
-                    bool boolParse = bool.TryParse(val, out bool boolResult);
-                    if (boolParse)
+                    if (bool.TryParse(columnValue, out bool boolResult))
                     {
-                        res = DetermineType(nbline == 0, typeof(bool), res);
-                        ++nbline;
-                        continue;
+                        result = DetermineType(nbline == 0, typeof(bool), result);
                     }
-                    bool floatParse = float.TryParse(val, out float floatResult);
-                    if (floatParse)
+                    else if (float.TryParse(columnValue, out float floatResult))
                     {
-                        res = DetermineType(nbline == 0, typeof(float), res);
-                        ++nbline;
-                        continue;
+                        result = DetermineType(nbline == 0, typeof(float), result);
                     }
-                    bool dateParse = DateTime.TryParse(val, out DateTime dateResult);
-                    if (dateParse)
+                    else if (DateTime.TryParse(columnValue, out DateTime dateResult))
                     {
-                        res = DetermineType(nbline == 0, typeof(DateTime), res);
-                        ++nbline;
-                        continue;
+                        result = DetermineType(nbline == 0, typeof(DateTime), result);
+                    }
+                    else
+                    {
+                        result = DetermineType(nbline == 0, typeof(string), result);
                     }
 
-                    res = DetermineType(nbline == 0, typeof(string), res);
-                    ++nbline;
+                    nbline++;
                 }
             }
-            return res;
+
+            return result;
+        }
+
+        private static Type GuessKind(int col, List<(long LineNumber, string[] Line)> read, Func<IEnumerable<string>, Type> guessTypeFunction)
+        {
+            IEnumerable<string> lines = read.Select(line => col < line.Line.Length ? line.Line[col] : throw new FormatException(string.Format(Strings.LessColumnsThatExpected, line.LineNumber + 1)));
+
+            return guessTypeFunction != null
+                ? guessTypeFunction.Invoke(lines)
+                : DefaultGuessTypeFunction(lines);
         }
 
         private static Type DetermineType(bool first, Type suggested, Type previous)
@@ -357,7 +357,7 @@ namespace Microsoft.Data.Analysis
                                 string[] columnNames = null, Type[] dataTypes = null,
                                 long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false,
                                 bool renameDuplicatedColumns = false,
-                                CultureInfo cultureInfo = null)
+                                CultureInfo cultureInfo = null, Func<IEnumerable<string>, Type> guessTypeFunction = null)
         {
             if (cultureInfo == null)
             {
@@ -376,7 +376,7 @@ namespace Microsoft.Data.Analysis
                 TextFieldParser parser = new TextFieldParser(textReader);
                 parser.SetDelimiters(separator.ToString());
 
-                var linesForGuessType = new List<string[]>();
+                var linesForGuessType = new List<(long LineNumber, string[] Line)>();
                 long rowline = 0;
                 int numberOfColumns = dataTypes?.Length ?? 0;
 
@@ -420,7 +420,7 @@ namespace Microsoft.Data.Analysis
                             }
                             else
                             {
-                                linesForGuessType.Add(fields);
+                                linesForGuessType.Add((rowline, fields));
                                 numberOfColumns = Math.Max(numberOfColumns, fields.Length);
                             }
                         }
@@ -441,7 +441,7 @@ namespace Microsoft.Data.Analysis
                 // Guesses types or looks up dataTypes and adds columns.
                 for (int i = 0; i < numberOfColumns; ++i)
                 {
-                    Type kind = dataTypes == null ? GuessKind(i, linesForGuessType) : dataTypes[i];
+                    Type kind = dataTypes == null ? GuessKind(i, linesForGuessType, guessTypeFunction) : dataTypes[i];
                     columns.Add(CreateColumn(kind, columnNames, i));
                 }
             }
@@ -534,16 +534,17 @@ namespace Microsoft.Data.Analysis
         /// <param name="addIndexColumn">add one column with the row index</param>
         /// <param name="renameDuplicatedColumns">If set to true, columns with repeated names are auto-renamed.</param>
         /// <param name="cultureInfo">culture info for formatting values</param>
+        /// <param name="guessTypeFunction">function used to guess the type of a column based on its values</param>
         /// <returns><see cref="DataFrame"/></returns>
         public static DataFrame LoadCsvFromString(string csvString,
                                 char separator = ',', bool header = true,
                                 string[] columnNames = null, Type[] dataTypes = null,
                                 long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false,
                                 bool renameDuplicatedColumns = false,
-                                CultureInfo cultureInfo = null)
+                                CultureInfo cultureInfo = null, Func<IEnumerable<string>, Type> guessTypeFunction = null)
         {
             WrappedStreamReaderOrStringReader wrappedStreamReaderOrStringReader = new WrappedStreamReaderOrStringReader(csvString);
-            return ReadCsvLinesIntoDataFrame(wrappedStreamReaderOrStringReader, separator, header, columnNames, dataTypes, numberOfRowsToRead, guessRows, addIndexColumn, renameDuplicatedColumns, cultureInfo);
+            return ReadCsvLinesIntoDataFrame(wrappedStreamReaderOrStringReader, separator, header, columnNames, dataTypes, numberOfRowsToRead, guessRows, addIndexColumn, renameDuplicatedColumns, cultureInfo, guessTypeFunction);
         }
 
         /// <summary>
@@ -560,12 +561,14 @@ namespace Microsoft.Data.Analysis
         /// <param name="encoding">The character encoding. Defaults to UTF8 if not specified</param>
         /// <param name="renameDuplicatedColumns">If set to true, columns with repeated names are auto-renamed.</param>
         /// <param name="cultureInfo">culture info for formatting values</param>
+        /// <param name="guessTypeFunction">function used to guess the type of a column based on its values</param>
         /// <returns><see cref="DataFrame"/></returns>
         public static DataFrame LoadCsv(Stream csvStream,
                                 char separator = ',', bool header = true,
                                 string[] columnNames = null, Type[] dataTypes = null,
                                 long numberOfRowsToRead = -1, int guessRows = 10, bool addIndexColumn = false,
-                                Encoding encoding = null, bool renameDuplicatedColumns = false, CultureInfo cultureInfo = null)
+                                Encoding encoding = null, bool renameDuplicatedColumns = false, CultureInfo cultureInfo = null,
+                                Func<IEnumerable<string>, Type> guessTypeFunction = null)
         {
             if (!csvStream.CanSeek)
             {
@@ -578,7 +581,7 @@ namespace Microsoft.Data.Analysis
             }
 
             WrappedStreamReaderOrStringReader wrappedStreamReaderOrStringReader = new WrappedStreamReaderOrStringReader(csvStream, encoding ?? Encoding.UTF8);
-            return ReadCsvLinesIntoDataFrame(wrappedStreamReaderOrStringReader, separator, header, columnNames, dataTypes, numberOfRowsToRead, guessRows, addIndexColumn, renameDuplicatedColumns, cultureInfo);
+            return ReadCsvLinesIntoDataFrame(wrappedStreamReaderOrStringReader, separator, header, columnNames, dataTypes, numberOfRowsToRead, guessRows, addIndexColumn, renameDuplicatedColumns, cultureInfo, guessTypeFunction);
         }
 
         /// <summary>

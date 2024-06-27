@@ -1512,5 +1512,161 @@ CMT,";
             DataFrame df2 = DataFrame.LoadCsv(csvStream, dataTypes: dataTypes, separator: separator);
             helper.VerifyLoadCsv(df2);
         }
+
+        [Fact]
+        public void TestLoadCsvWithGuessTypes()
+        {
+            string csvString = """
+                Name,Age,Description,UpdatedOn,Weight,LargeNumber,NullColumn
+                Paul,34,"Paul lives in Vermont, VA.",2024-01-23T05:06:15.028,195.48,123,null
+                Victor,29,"Victor: Funny guy",2023-11-04T17:27:59.167,175.3,2147483648,null
+                Clara,,,,,,null
+                Ellie,null,null,null,null,null,null
+                Maria,31,,2024-03-31T07:20:47.250,126,456,null
+                """;
+
+            var defaultResultVerifyingHelper = new LoadCsvVerifyingHelper(
+                    7,
+                    5,
+                    new string[] { "Name", "Age", "Description", "UpdatedOn", "Weight", "LargeNumber", "NullColumn" },
+                    new Type[] { typeof(string), typeof(float), typeof(string), typeof(DateTime), typeof(float), typeof(float), typeof(string) },
+                    new object[][]
+                    {
+                        new object[] { "Paul", 34f, "Paul lives in Vermont, VA.",  DateTime.Parse("2024-01-23T05:06:15.028"), 195.48f, 123f, null },
+                        new object[] { "Victor", 29f, "Victor: Funny guy", DateTime.Parse("2023-11-04T17:27:59.167"), 175.3f, 2147483648f, null },
+                        new object[] { "Clara", null, "", null, null, null, null },
+                        new object[] { "Ellie", null, null, null, null, null, null },
+                        new object[] { "Maria", 31f, "", DateTime.Parse("2024-03-31T07:20:47.250"), 126f, 456f, null }
+                    }
+                );
+
+            var customResultVerifyingHelper = new LoadCsvVerifyingHelper(
+                    7,
+                    5,
+                    new string[] { "Name", "Age", "Description", "UpdatedOn", "Weight", "LargeNumber", "NullColumn" },
+                    new Type[] { typeof(string), typeof(int), typeof(string), typeof(DateTime), typeof(double), typeof(long), typeof(string) },
+                    new object[][]
+                    {
+                        new object[] { "Paul", 34, "Paul lives in Vermont, VA.",  DateTime.Parse("2024-01-23T05:06:15.028"), 195.48, 123L, null },
+                        new object[] { "Victor", 29, "Victor: Funny guy", DateTime.Parse("2023-11-04T17:27:59.167"), 175.3, 2147483648L, null },
+                        new object[] { "Clara", null, "", null, null, null, null },
+                        new object[] { "Ellie", null, null, null, null, null, null },
+                        new object[] { "Maria", 31, "", DateTime.Parse("2024-03-31T07:20:47.250"), 126.0, 456L, null }
+                    }
+                );
+
+            Type CustomGuessTypeFunction(IEnumerable<string> columnValues)
+            {
+                List<Type> types = [
+                    typeof(bool),
+                    typeof(int),
+                    typeof(long),
+                    typeof(double),
+                    typeof(DateTime)
+                    ];
+
+                bool allNullData = true;
+
+                HashSet<Type> possibleTypes = new HashSet<Type>(types);
+
+                foreach (var item in columnValues)
+                {
+                    if (string.IsNullOrEmpty(item) || string.Equals(item, "null", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        allNullData = false;
+                    }
+
+                    List<Type> typesToRemove = new List<Type>(possibleTypes.Count);
+
+                    foreach (var type in possibleTypes)
+                    {
+                        if (type == typeof(bool))
+                        {
+                            if (!bool.TryParse(item, out bool result))
+                            {
+                                typesToRemove.Add(type);
+                            }
+                        }
+                        else if (type == typeof(int))
+                        {
+                            if (!int.TryParse(item, out int result))
+                            {
+                                typesToRemove.Add(type);
+                            }
+                        }
+                        else if (type == typeof(long))
+                        {
+                            if (!long.TryParse(item, out long result))
+                            {
+                                typesToRemove.Add(type);
+                            }
+                        }
+                        else if (type == typeof(double))
+                        {
+                            if (!double.TryParse(item, out double result))
+                            {
+                                typesToRemove.Add(type);
+                            }
+                        }
+                        else if (type == typeof(DateTime))
+                        {
+                            if (!DateTime.TryParse(item, out DateTime result))
+                            {
+                                typesToRemove.Add(type);
+                            }
+                        }
+                    }
+
+                    foreach (var type in typesToRemove)
+                    {
+                        possibleTypes.Remove(type);
+                    }
+                }
+
+                if (allNullData)
+                {
+                    // Could not determine type since all data was null
+                    return typeof(string);
+                }
+
+                foreach (var type in types)
+                {
+                    if (possibleTypes.Contains(type))
+                    {
+                        return type;
+                    }
+                }
+
+                return typeof(string);
+            }
+
+            DataFrame defaultDf = DataFrame.LoadCsvFromString(csvString);
+
+            defaultResultVerifyingHelper.VerifyLoadCsv(defaultDf);
+
+            DataFrame customDf = DataFrame.LoadCsvFromString(csvString, guessTypeFunction: CustomGuessTypeFunction);
+
+            customResultVerifyingHelper.VerifyLoadCsv(customDf);
+        }
+
+        [Fact]
+        public void TestLoadCsvWithMismatchedNumberOfColumnsInDataRows()
+        {
+            // Victor line is missing the "LargeNumber" row
+            string csvString = """
+                Name,Age,Description,UpdatedOn,Weight,LargeNumber
+                Paul,34,"Paul lives in Vermont, VA.",2024-01-23T05:06:15.028,195.48,123
+                Victor,29,"Victor: Funny guy",2023-11-04T17:27:59.167,175.3
+                Clara,,,,,
+                Ellie,null,null,null,null,null
+                Maria,31,,2024-03-31T07:20:47.250,126,456
+                """;
+
+            Assert.Throws<FormatException>(() => DataFrame.LoadCsvFromString(csvString));
+        }
     }
 }
