@@ -1,21 +1,25 @@
-﻿using ApprovalTests.Namers;
-using ApprovalTests.Reporters;
-using ApprovalTests;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using static TorchSharp.torch;
-using Xunit;
-using TorchSharp;
-using FluentAssertions;
-using Microsoft.ML.TestFramework;
-using Xunit.Abstractions;
-using Microsoft.ML.Tokenizers;
-using Microsoft.ML.GenAI.Core.Extension;
 using System.Text.Json;
+using System.Threading.Tasks;
+using ApprovalTests;
+using ApprovalTests.Namers;
+using ApprovalTests.Reporters;
+using FluentAssertions;
+using Microsoft.ML.GenAI.Core.Extension;
 using Microsoft.ML.GenAI.Phi.Module;
+using Microsoft.ML.TestFramework;
+using Microsoft.ML.Tokenizers;
+using TorchSharp;
+using Xunit;
+using Xunit.Abstractions;
+using static TorchSharp.torch;
 namespace Microsoft.ML.GenAI.Phi.Tests;
 
 public class Phi2Test : BaseTestClass

@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static TorchSharp.torch;
 using TorchSharp;
+using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Core.Extension;
 
