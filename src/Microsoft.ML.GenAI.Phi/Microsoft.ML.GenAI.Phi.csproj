@@ -19,4 +19,8 @@
     <InternalsVisibleTo Include="Microsoft.ML.GenAI.Phi.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Resource\Config\*.json" />
+  </ItemGroup>
+    
 </Project>

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using static TorchSharp.torch;
@@ -38,6 +39,39 @@ public class Phi3Config
         this.DType = ScalarType.BFloat16;
         this.AttnImplementation = "eager";
     }
+
+    static Phi3Config()
+    {
+        var phi3Mini4kInstructContent = Utils.GetEmbeddedResource("Microsoft.ML.GenAI.Phi.Resource.Config.phi-3-mini-4k-instruct-config.json");
+        var phi3Mini128kInstructContent = Utils.GetEmbeddedResource("Microsoft.ML.GenAI.Phi.Resource.Config.phi-3-mini-128k-instruct-config.json");
+        var phi3Medium4kInstructContent = Utils.GetEmbeddedResource("Microsoft.ML.GenAI.Phi.Resource.Config.phi-3-medium-4k-instruct-config.json");
+        var phi3Medium128kInstructContent = Utils.GetEmbeddedResource("Microsoft.ML.GenAI.Phi.Resource.Config.phi-3-medium-128k-instruct-config.json");
+
+        Phi3Mini4kInstruct = JsonSerializer.Deserialize<Phi3Config>(phi3Mini4kInstructContent) ?? throw new ArgumentNullException(nameof(phi3Mini4kInstructContent));
+        Phi3Mini128kInstruct = JsonSerializer.Deserialize<Phi3Config>(phi3Mini128kInstructContent) ?? throw new ArgumentNullException(nameof(phi3Mini128kInstructContent));
+        Phi3Medium4kInstruct = JsonSerializer.Deserialize<Phi3Config>(phi3Medium4kInstructContent) ?? throw new ArgumentNullException(nameof(phi3Medium4kInstructContent));
+        Phi3Medium128kInstruct = JsonSerializer.Deserialize<Phi3Config>(phi3Medium128kInstructContent) ?? throw new ArgumentNullException(nameof(phi3Medium128kInstructContent));
+    }
+
+    /// <summary>
+    /// The phi-3-mini-4k-instruct configuration created from https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/blob/main/config.json.
+    /// </summary>
+    public static Phi3Config Phi3Mini4kInstruct { get; }
+
+    /// <summary>
+    /// The phi-3-medium-4k-instruct configuration created from https://huggingface.co/microsoft/Phi-3-medium-4k-instruct/blob/main/config.json.
+    /// </summary>
+    public static Phi3Config Phi3Medium4kInstruct { get; }
+
+    /// <summary>
+    /// The phi-3-medium-128k-instruct configuration created from https://huggingface.co/microsoft/Phi-3-medium-128k-instruct/blob/main/config.json.
+    /// </summary>
+    public static Phi3Config Phi3Medium128kInstruct { get; }
+
+    /// <summary>
+    /// The phi-3-mini-128k-instruct configuration created from https://huggingface.co/microsoft/Phi-3-mini-128k-instruct/blob/main/config.json.
+    /// </summary>
+    public static Phi3Config Phi3Mini128kInstruct { get; }
 
     [JsonPropertyName("vocab_size")]
     public int VocabSize { get; set; }

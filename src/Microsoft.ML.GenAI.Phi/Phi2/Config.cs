@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using static TorchSharp.torch;
@@ -37,6 +38,18 @@ public class Phi2Config
         this.EosTokenId = 2;
         this.Dtype = ScalarType.Float32;
     }
+
+    static Phi2Config()
+    {
+        var phi2ConfigContent = Utils.GetEmbeddedResource("Microsoft.ML.GenAI.Phi.Resource.Config.phi-2-config.json");
+        var phi2Config = JsonSerializer.Deserialize<Phi2Config>(phi2ConfigContent) ?? throw new ArgumentNullException(nameof(phi2ConfigContent));
+        Phi2 = phi2Config;
+    }
+
+    /// <summary>
+    /// The default phi-2 configuration created from https://huggingface.co/microsoft/phi-2/blob/main/config.json.
+    /// </summary>
+    public static Phi2Config Phi2 { get; }
 
     [JsonPropertyName("vocab_size")]
     public int VocabSize { get; set; }

@@ -29,10 +29,7 @@ public class Phi3Tests : BaseTestClass
     [UseApprovalSubdirectory("Approvals")]
     public void Phi3Mini4KShapeTest()
     {
-        var modelWeightFolder = "C:\\Users\\xiaoyuz\\source\\repos\\Phi-3-mini-4k-instruct";
-        var config = Path.Join(modelWeightFolder, "config.json");
-        var modelConfig = JsonSerializer.Deserialize<Phi3Config>(File.ReadAllText(config)) ?? throw new ArgumentNullException(nameof(config));
-        var model = new Phi3ForCasualLM(modelConfig);
+        var model = new Phi3ForCasualLM(Phi3Config.Phi3Mini4kInstruct);
         var stateDictStr = model.PeekShape();
         Approvals.Verify(stateDictStr);
     }
@@ -42,10 +39,7 @@ public class Phi3Tests : BaseTestClass
     [UseApprovalSubdirectory("Approvals")]
     public void Phi3Medium4KShapeTest()
     {
-        var modelWeightFolder = "C:\\Users\\xiaoyuz\\source\\repos\\Phi-3-medium-4k-instruct";
-        var config = Path.Join(modelWeightFolder, "config.json");
-        var modelConfig = JsonSerializer.Deserialize<Phi3Config>(File.ReadAllText(config)) ?? throw new ArgumentNullException(nameof(config));
-        var model = new Phi3ForCasualLM(modelConfig);
+        var model = new Phi3ForCasualLM(Phi3Config.Phi3Medium4kInstruct);
         var stateDictStr = model.PeekShape();
         Approvals.Verify(stateDictStr);
     }
@@ -56,10 +50,7 @@ public class Phi3Tests : BaseTestClass
     [UseApprovalSubdirectory("Approvals")]
     public void Phi3Medium128KShapeTest()
     {
-        var modelWeightFolder = "C:\\Users\\xiaoyuz\\source\\repos\\Phi-3-medium-128k-instruct";
-        var config = Path.Join(modelWeightFolder, "config.json");
-        var modelConfig = JsonSerializer.Deserialize<Phi3Config>(File.ReadAllText(config)) ?? throw new ArgumentNullException(nameof(config));
-        var model = new Phi3ForCasualLM(modelConfig);
+        var model = new Phi3ForCasualLM(Phi3Config.Phi3Medium128kInstruct);
         var stateDictStr = model.PeekShape();
         Approvals.Verify(stateDictStr);
     }
@@ -69,10 +60,7 @@ public class Phi3Tests : BaseTestClass
     [UseApprovalSubdirectory("Approvals")]
     public void Phi3Mini128KShapeTest()
     {
-        var modelWeightFolder = "C:\\Users\\xiaoyuz\\source\\repos\\Phi-3-mini-128k-instruct";
-        var config = Path.Join(modelWeightFolder, "config.json");
-        var modelConfig = JsonSerializer.Deserialize<Phi3Config>(File.ReadAllText(config)) ?? throw new ArgumentNullException(nameof(config));
-        var model = new Phi3ForCasualLM(modelConfig);
+        var model = new Phi3ForCasualLM(Phi3Config.Phi3Mini128kInstruct);
         var stateDictStr = model.PeekShape();
         Approvals.Verify(stateDictStr);
     }
@@ -82,16 +70,10 @@ public class Phi3Tests : BaseTestClass
     [UseApprovalSubdirectory("Approvals")]
     public void Phi3Mini128KLayerSizeTest()
     {
-        var dtype = ScalarType.BFloat16;
-        var modelWeightFolder = "C:\\Users\\xiaoyuz\\source\\repos\\Phi-3-mini-128k-instruct";
-        var config = Path.Join(modelWeightFolder, "config.json");
-        var modelConfig = JsonSerializer.Deserialize<Phi3Config>(File.ReadAllText(config)) ?? throw new ArgumentNullException(nameof(config));
-        modelConfig.DType = dtype;
-        var model = new Phi3ForCasualLM(modelConfig);
-
+        var model = new Phi3ForCasualLM(Phi3Config.Phi3Mini128kInstruct);
         var size = model.GetSizeForEachDynamicLayerInBytes();
         // convert size to MB
-        var sizeInMB = size.ToDictionary(x => x.Key, x => x.Value * 1.0f / 1024 / 1024);
+        var sizeInMB = size.ToDictionary(x => x.Key, x => x.Value / 1024 / 1024);
 
         var json = JsonSerializer.Serialize(sizeInMB, new JsonSerializerOptions { WriteIndented = true });
         Approvals.Verify(json);

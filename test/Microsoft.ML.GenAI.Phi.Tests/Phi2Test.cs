@@ -26,6 +26,7 @@ public class Phi2Test : BaseTestClass
 {
     public Phi2Test(ITestOutputHelper output) : base(output)
     {
+        torch.set_default_device("meta");
     }
 
     [Fact]
@@ -33,41 +34,10 @@ public class Phi2Test : BaseTestClass
     [UseApprovalSubdirectory("Approvals")]
     public void LoadSafeTensorShapeTest()
     {
-        torch.set_default_device("meta");
-        var modelWeightFolder = "C:\\Users\\xiaoyuz\\source\\repos\\phi-2";
-        var configName = "config.json";
-        var config = Path.Join(modelWeightFolder, configName);
-        var modelConfig = JsonSerializer.Deserialize<Phi2Config>(File.ReadAllText(config)) ?? throw new ArgumentNullException(nameof(config));
-        var model = new Phi2ForCasualLM(modelConfig);
+        var model = new Phi2ForCasualLM(Phi2Config.Phi2);
         var stateDictStr = model.PeekShape();
         Approvals.Verify(stateDictStr);
     }
-
-    //[Fact]
-    //[UseReporter(typeof(DiffReporter))]
-    //[UseApprovalSubdirectory("Approvals")]
-    //public async Task ForwardTest()
-    //{
-    //    // create dummy input id with 128 length and attention mask
-    //    var device = "cuda";
-    //    var inputIds = torch.arange(128, dtype: ScalarType.Int64, device: device).unsqueeze(0);
-    //    var attentionMask = torch.ones(1, 128, device: device);
-    //    var modelWeightFolder = "C:\\Users\\xiaoyuz\\source\\repos\\phi-2";
-    //    var model = Phi2ForCasualLM.FromPretrained(modelWeightFolder, torchDtype: ScalarType.BFloat16, checkPointName: "model.safetensors.index.json", device: "cuda");
-    //    var input = new CasualLMModelInput(inputIds, attentionMask, past_key_values_length: 0);
-    //    var output = model.forward(input);
-    //    var outputTokenIds = output.last_hidden_state;
-    //    var outputLogits = output.logits;
-
-    //    var outputTokenIdsStr = outputTokenIds.Peek("output");
-    //    var outputLogitsStr = outputLogits.Peek("logits");
-
-    //    var sb = new StringBuilder();
-    //    sb.AppendLine(outputTokenIdsStr);
-    //    sb.AppendLine(outputLogitsStr);
-
-    //    Approvals.Verify(sb.ToString());
-    //}
 
     [Fact]
     [UseReporter(typeof(DiffReporter))]

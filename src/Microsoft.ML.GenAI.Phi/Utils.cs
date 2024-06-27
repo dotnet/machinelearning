@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using TorchSharp;
@@ -13,8 +14,23 @@ using static TorchSharp.torch;
 using static TorchSharp.torch.nn;
 namespace Microsoft.ML.GenAI.Phi;
 
-public static class Utils
+internal static class Utils
 {
+    public static string GetEmbeddedResource(string resourceName)
+    {
+        // read file content from embedded resource
+        var assembly = Assembly.GetExecutingAssembly();
+        var resourceStream = assembly.GetManifestResourceStream(resourceName);
+
+        if (resourceStream == null)
+        {
+            throw new ArgumentException("Resource not found", nameof(resourceName));
+        }
+
+        using var reader = new System.IO.StreamReader(resourceStream);
+        return reader.ReadToEnd();
+    }
+
     public static Tensor ApplyRotaryEmbeddings(Tensor input, Tensor freqsComplex)
     {
         // Separate the last dimension pairs of two values, representing the real and imaginary parts of the complex number
