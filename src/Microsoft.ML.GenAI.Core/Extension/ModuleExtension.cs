@@ -4,17 +4,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.ML.GenAI.Core;
-using Microsoft.ML.GenAI.Core.Extension;
 using TorchSharp;
 using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Core.Extension;
 
-internal static class ModuleExtension
+public static class ModuleExtension
 {
     public static long GetSizeInBytes(this nn.Module model)
     {
@@ -159,7 +156,7 @@ internal static class ModuleExtension
         return deviceMap;
     }
 
-    public static string Peek(this nn.Module model)
+    internal static string Peek(this nn.Module model)
     {
         var sb = new StringBuilder();
         var stateDict = model.state_dict();
@@ -177,7 +174,7 @@ internal static class ModuleExtension
         return res;
     }
 
-    public static string PeekShape(this nn.Module model)
+    internal static string PeekShape(this nn.Module model)
     {
         var sb = new StringBuilder();
         var stateDict = model.state_dict();
@@ -194,48 +191,5 @@ internal static class ModuleExtension
         var res = sb.ToString();
 
         return res;
-    }
-
-    public static void LoadStateDict(this Dictionary<string, Tensor> dict, string location)
-    {
-        using FileStream stream = File.OpenRead(location);
-        using BinaryReader reader = new BinaryReader(stream);
-        var num = reader.Decode();
-        for (int i = 0; i < num; i++)
-        {
-            var key = reader.ReadString();
-            Tensor tensor = dict[key];
-
-            var originalDevice = tensor.device;
-            var originalType = tensor.dtype;
-            if (tensor.dtype == ScalarType.BFloat16)
-            {
-                tensor = tensor.to_type(ScalarType.Float32);
-            }
-
-            TensorExtensionMethods.Load(ref tensor!, reader, skip: false);
-
-            tensor = tensor!.to_type(originalType);
-            dict[key] = tensor;
-        }
-    }
-
-    public static long Decode(this BinaryReader reader)
-    {
-        long num = 0L;
-        int num2 = 0;
-        while (true)
-        {
-            long num3 = reader.ReadByte();
-            num += (num3 & 0x7F) << num2 * 7;
-            if ((num3 & 0x80) == 0L)
-            {
-                break;
-            }
-
-            num2++;
-        }
-
-        return num;
     }
 }

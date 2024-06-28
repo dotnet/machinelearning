@@ -30,22 +30,23 @@ public class Phi3CausalLMTextGenerationService : ITextGenerationService
     public Task<IReadOnlyList<TextContent>> GetTextContentsAsync(string prompt, PromptExecutionSettings? executionSettings = null, Kernel? kernel = null, CancellationToken cancellationToken = default)
     {
         var temperature = executionSettings?.ExtensionData?["temperature"] as float? ?? 0.7f;
-        var maxToken = executionSettings?.ExtensionData?["max_token"] as int? ?? 100;
-        var stopTokenSequence = executionSettings?.ExtensionData?["stop_token_sequence"] as string[] ?? Array.Empty<string>();
+        var maxToken = executionSettings?.ExtensionData?["max_token"] as int? ?? 512;
+        var stopTokenSequence = executionSettings?.ExtensionData?["stop_token_sequence"] as List<string> ?? new List<string>();
         var topP = executionSettings?.ExtensionData?["top_p"] as float? ?? 0.9f;
-        stopTokenSequence.Append("<|end|>");
-
+        stopTokenSequence.Add("<|end|>");
         var response = _pipeline.Generate(
             prompt,
             maxToken,
             temperature,
-            stopSequences: stopTokenSequence,
+            stopSequences: stopTokenSequence.ToArray(),
             topP: topP);
 
         return Task.FromResult<IReadOnlyList<TextContent>>([new TextContent(response)]);
     }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public async IAsyncEnumerable<StreamingTextContent> GetStreamingTextContentsAsync(
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         string prompt,
         PromptExecutionSettings?
         executionSettings = null,
@@ -53,14 +54,20 @@ public class Phi3CausalLMTextGenerationService : ITextGenerationService
         [EnumeratorCancellation]
         CancellationToken cancellationToken = default)
     {
-        // CausalLMPipeline doesn't support streaming output yet
-        // here we simply implement this api using the synchronous version
+        var temperature = executionSettings?.ExtensionData?["temperature"] as float? ?? 0.7f;
+        var maxToken = executionSettings?.ExtensionData?["max_token"] as int? ?? 100;
+        var stopTokenSequence = executionSettings?.ExtensionData?["stop_token_sequence"] as string[] ?? Array.Empty<string>();
+        var topP = executionSettings?.ExtensionData?["top_p"] as float? ?? 0.9f;
+        stopTokenSequence.Append("<|end|>");
 
-        var response = await GetTextContentsAsync(prompt, executionSettings, kernel, cancellationToken);
-
-        foreach (var item in response)
+        foreach (var item in _pipeline.GenerateStreaming(
+            prompt,
+            maxToken,
+            temperature,
+            topP,
+            stopTokenSequence))
         {
-            yield return new StreamingTextContent(item.Text);
+            yield return new StreamingTextContent(item);
         }
     }
 }

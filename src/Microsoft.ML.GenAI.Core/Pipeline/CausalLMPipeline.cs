@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -14,6 +14,48 @@ using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Core;
 
+public interface ICausalLMPipeline<out TTokenizer, out TModel> : ICausalLMPipeline
+    where TTokenizer : Tokenizer
+    where TModel : nn.Module<CasualLMModelInput, CasualLMModelOutput>
+{
+    TTokenizer Tokenizer { get; }
+
+    TModel Model { get; }
+}
+
+public interface ICausalLMPipeline
+{
+    string Generate(
+        string prompt,
+        int maxLen = 128,
+        float temperature = 0.7F,
+        float topP = 0.9F,
+        string[]? stopSequences = null);
+
+    IEnumerable<string> GenerateStreaming(
+        string prompt,
+        int maxLen = 128,
+        float temperature = 0.7F,
+        float topP = 0.9F,
+        string[]? stopSequences = null);
+
+    (Tensor, Tensor) Generate(
+        Tensor inputIds,
+        Tensor attentionMask,
+        int[][] stopTokenSequence,
+        float temperature = 0.7F,
+        float topP = 0.9F,
+        int maxLen = 128);
+
+    IEnumerable<(Tensor, Tensor)> GenerateStreaming(
+        Tensor inputIds,
+        Tensor attentionMask,
+        int[][] stopTokenSequence,
+        float temperature = 0.7F,
+        float topP = 0.9F,
+        int maxLen = 128);
+}
+
 public class CausalLMPipeline<TTokenizer, TModel> : CausalLMPipeline, ICausalLMPipeline<TTokenizer, TModel>
     where TTokenizer : Tokenizer
     where TModel : nn.Module<CasualLMModelInput, CasualLMModelOutput>
@@ -26,27 +68,12 @@ public class CausalLMPipeline<TTokenizer, TModel> : CausalLMPipeline, ICausalLMP
     {
     }
 
-    internal CausalLMPipeline()
-        : base()
-    {
-    }
+    public new TTokenizer Tokenizer { get => (TTokenizer)base.Tokenizer; }
+
+    public new TModel Model { get => (TModel)base.Model; }
 }
 
-public interface ICausalLMPipeline<out TTokenizer, out TModel>
-    where TTokenizer : Tokenizer
-    where TModel : nn.Module<CasualLMModelInput, CasualLMModelOutput>
-{
-    string? Generate(
-        string prompt,
-        int maxLen = 128,
-        float temperature = 0.7F,
-        float topP = 0.9F,
-        string[]? stopSequences = null,
-        bool echo = false);
-    (Tensor, Tensor) Generate(Tensor inputIds, Tensor attentionMask, int[][] stopTokenSequence, float temperature = 0.7F, float topP = 0.9F, int maxLen = 128, bool echo = false);
-}
-
-public class CausalLMPipeline
+public class CausalLMPipeline : ICausalLMPipeline
 {
     public CausalLMPipeline(
         Tokenizer tokenizer,
@@ -74,6 +101,76 @@ public class CausalLMPipeline
 
     public Device Device { get; }
 
+    public IEnumerable<(
+        Tensor, // output token ids [batch_size, 1]
+        Tensor  // output logits [batch_size, 1, vocab_size]
+    )> GenerateStreaming(
+        Tensor inputIds,
+        Tensor attentionMask,
+        int[][] stopTokenSequence,
+        float temperature = 0.7F,
+        float topP = 0.9F,
+        int maxLen = 128)
+    {
+        using var scope = NewDisposeScope();
+        using var noGrad = torch.no_grad();
+        var batch = inputIds.shape[0];
+        var device = inputIds.device;
+        var promptLength = (int)inputIds.shape[1];
+        var totalLen = promptLength + maxLen;
+
+        var prevPos = 0;
+        var eosReached = torch.tensor(new bool[batch], device: device);
+        torch.Tensor? logits = default;
+        var cache = new DynamicKVCache();
+        if (promptLength == totalLen)
+        {
+            var input = new CasualLMModelInput(inputIds, attentionMask, pastKeyValuesLength: 0)
+            {
+                OverrideCache = cache,
+            };
+            var output = this.Model.forward(input);
+            logits = output.Logits;
+        }
+        for (var curPos = promptLength; curPos != totalLen; curPos++)
+        {
+            var input = new CasualLMModelInput(inputIds[.., prevPos..curPos], attentionMask[.., prevPos..curPos], pastKeyValuesLength: prevPos)
+            {
+                OverrideCache = cache,
+            };
+            var output = this.Model.forward(input);
+            logits = output.Logits?.MoveToOtherDisposeScope(inputIds) ?? throw new InvalidOperationException("Logits is null");
+            torch.Tensor nextToken;
+            if (temperature > 0)
+            {
+                var probs = torch.softmax(logits[.., -1] / temperature, dim: -1);
+                nextToken = this.SampleTopP(probs, topP);
+            }
+            else
+            {
+                nextToken = torch.argmax(logits[.., -1], dim: -1);
+            }
+
+            nextToken = nextToken.reshape(-1);
+            inputIds = torch.cat([inputIds, nextToken.unsqueeze(1)], dim: -1).MoveToOtherDisposeScope(inputIds);
+            attentionMask = torch.cat([attentionMask, attentionMask.new_ones(attentionMask.shape[0], 1)], dim: -1);
+            foreach (var stopSequence in stopTokenSequence)
+            {
+                // determine if the last n tokens are the stop sequence
+                var lastN = inputIds[.., ^stopSequence.Length..];
+                var lastNMatch = lastN == torch.tensor(stopSequence, device: device);
+                eosReached |= lastNMatch.all(dim: -1);
+            }
+            if (eosReached.all().item<bool>())
+            {
+                break;
+            }
+
+            yield return (nextToken.MoveToOuterDisposeScope(), logits[.., ^1].MoveToOuterDisposeScope());
+            prevPos = curPos;
+        }
+    }
+
     public virtual (
         Tensor, // output token ids [batch_size, sequence_length]
         Tensor // output logits [batch_size, sequence_length, vocab_size]
@@ -83,97 +180,55 @@ public class CausalLMPipeline
         int[][] stopTokenSequence,
         float temperature = 0.7f,
         float topP = 0.9f,
-        int maxLen = 128,
-        bool echo = false)
+        int maxLen = 128)
     {
-        using var newScope = NewDisposeScope();
-        var batch = inputIds.shape[0];
-        var device = inputIds.device;
-        var promptLength = (int)inputIds.shape[1];
-        var totalLen = promptLength + maxLen;
-
-        using (var noGrad = torch.no_grad())
+        using var scope = NewDisposeScope();
+        Tensor? logits = null;
+        foreach (var (token, _logits) in this.GenerateStreaming(inputIds, attentionMask, stopTokenSequence, temperature, topP, maxLen))
         {
-            var prevPos = 0;
-            var eosReached = torch.tensor(new bool[batch], device: device);
-            torch.Tensor? logits = default;
-            var cache = new DynamicKVCache();
-            if (promptLength == totalLen)
+            inputIds = torch.cat([inputIds, token.unsqueeze(1)], dim: -1).MoveToOtherDisposeScope(inputIds);
+            if (logits is null)
             {
-                var input = new CasualLMModelInput(inputIds, attentionMask, pastKeyValuesLength: 0)
-                {
-                    OverrideCache = cache,
-                };
-                var output = this.Model.forward(input);
-                logits = output.Logits;
-            }
-            for (var curPos = promptLength; curPos != totalLen; curPos++)
-            {
-                var input = new CasualLMModelInput(inputIds[.., prevPos..curPos], attentionMask[.., prevPos..curPos], pastKeyValuesLength: prevPos)
-                {
-                    OverrideCache = cache,
-                };
-                var output = this.Model.forward(input);
-                logits = output.Logits ?? throw new InvalidOperationException("Logits is null");
-                torch.Tensor nextToken;
-                if (temperature > 0)
-                {
-                    var probs = torch.softmax(logits[.., -1] / temperature, dim: -1);
-                    nextToken = this.SampleTopP(probs, topP);
-                }
-                else
-                {
-                    nextToken = torch.argmax(logits[.., -1], dim: -1);
-                }
-
-                nextToken = nextToken.reshape(-1);
-                inputIds = torch.cat([inputIds, nextToken.unsqueeze(1)], dim: -1);
-                attentionMask = torch.cat([attentionMask, attentionMask.new_ones(attentionMask.shape[0], 1)], dim: -1);
-                foreach (var stopSequence in stopTokenSequence)
-                {
-                    // determine if the last n tokens are the stop sequence
-                    var lastN = inputIds[.., ^stopSequence.Length..];
-                    var lastNMatch = lastN == torch.tensor(stopSequence, device: device);
-                    eosReached |= lastNMatch.all(dim: -1);
-                }
-                if (eosReached.all().item<bool>())
-                {
-                    break;
-                }
-
-                // pBar.Tick(curPos, message);
-                var nextTokenIds = nextToken.to_type(ScalarType.Int32).data<int>().ToArray();
-                var nextTokenStr = this.Tokenizer.Decode(nextTokenIds);
-
-                prevPos = curPos;
-            }
-
-            if (echo)
-            {
-                // return entire inputIds and logits
-                return (inputIds.MoveToOuterDisposeScope(), logits!.MoveToOuterDisposeScope());
+                logits = _logits;
             }
             else
             {
-                // return [batch_size, promptLength..] and [batch_size, promptLength.., vocab_size]
-                return (inputIds[.., promptLength..].MoveToOuterDisposeScope(), logits![.., promptLength..].MoveToOuterDisposeScope());
+                logits = torch.cat([logits, _logits], dim: -1).MoveToOtherDisposeScope(inputIds);
             }
         }
+
+        return (inputIds, logits ?? throw new InvalidOperationException("Logits is null"));
     }
 
-    public virtual string? Generate(
+    public virtual string Generate(
         string prompt,
         int maxLen = 128,
         float temperature = 0.7f,
         float topP = 0.9f,
-        string[]? stopSequences = null,
-        bool echo = false)
+        string[]? stopSequences = null)
+    {
+        var chunks = new List<string>();
+
+        foreach (var chunk in this.GenerateStreaming(prompt, maxLen, temperature, topP, stopSequences))
+        {
+            chunks.Add(chunk);
+        }
+
+        return string.Join(string.Empty, chunks);
+    }
+
+
+    public virtual IEnumerable<string> GenerateStreaming(
+        string prompt,
+        int maxLen = 128,
+        float temperature = 0.7F,
+        float topP = 0.9F,
+        string[]? stopSequences = null)
     {
         using var newScope = NewDisposeScope();
         var inputIds = this.Tokenizer.EncodeToIds(prompt);
         var inputTensor = torch.tensor(inputIds.ToArray(), dtype: ScalarType.Int64, device: this.Device).unsqueeze(0);
         var attentionMask = torch.ones_like(inputTensor);
-
         // set up stop token ids
         // stop token ids: [[eosId], [stopSequence1], [stopSequence2], ...]
         // when causal language model generates tokens, it will stop when it generates any token in stopSequences
@@ -185,11 +240,16 @@ public class CausalLMPipeline
 
         stopTokenIds = stopTokenIds.Where(ids => ids.Count() > 0).ToList();
 
-        (var token, var _) = this.Generate(inputTensor, attentionMask, temperature: temperature, maxLen: maxLen, topP: topP, stopTokenSequence: stopTokenIds.ToArray(), echo: echo);
+        foreach (var (token, _) in this.GenerateStreaming(inputTensor, attentionMask, stopTokenIds.ToArray(), temperature: temperature, maxLen: maxLen))
+        {
+            var tokenIds = token[0].to_type(ScalarType.Int32).data<int>().ToArray();
+            var duplicateTokenString = this.Tokenizer.Decode(tokenIds.Concat(tokenIds)) ?? throw new InvalidOperationException("Failed to decode token ids");
+            var tokenString = this.Tokenizer.Decode(tokenIds) ?? throw new InvalidOperationException("Failed to decode token ids");
+            // replace the first occurrence of the token with the duplicate token
+            tokenString = duplicateTokenString.Substring(tokenString.Length);
 
-        var tokenIds = token[0].to_type(ScalarType.Int32).data<int>().ToArray();
-
-        return this.Tokenizer.Decode(tokenIds);
+            yield return tokenString;
+        }
     }
 
     protected torch.Tensor SampleTopP(torch.Tensor logits, float topP)

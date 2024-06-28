@@ -10,8 +10,6 @@ public class Phi3Tokenizer : Tokenizer
 {
     private readonly SentencePieceBpe _tokenizer;
     private readonly bool _addPrecedingSpace;
-    private readonly bool _addBeginningOfSentence;
-    private readonly bool _addEndOfSentence;
     private const string SystemSymbol = "<|system|>";
     private const string UserSymbol = "<|user|>";
     private const string AssistantSymbol = "<|assistant|>";
@@ -29,14 +27,10 @@ public class Phi3Tokenizer : Tokenizer
     };
 
     public Phi3Tokenizer(string modelPath,
-        bool addPrecedingSpace = true,
-        bool addBeginningOfSentence = true,
-        bool addEndOfSentence = true)
+        bool addPrecedingSpace = true)
     {
         var modelStream = File.OpenRead(modelPath);
         this._addPrecedingSpace = addPrecedingSpace;
-        this._addBeginningOfSentence = addBeginningOfSentence;
-        this._addEndOfSentence = addEndOfSentence;
         this._tokenizer = (SentencePieceBpe)Tokenizer.CreateLlama(modelStream, false, false);
     }
 
@@ -83,6 +77,28 @@ public class Phi3Tokenizer : Tokenizer
         return tokens.ToArray();
     }
 
+    public IReadOnlyList<int> EncodeToIds(
+        string text,
+        bool addBeginningOfSentence,
+        bool addEndOfSentence,
+        bool considerPreTokenization = true,
+        bool considerNormalization = true)
+    {
+        var ids = this.EncodeToIds(text, considerPreTokenization: considerPreTokenization, considerNormalization: considerNormalization);
+
+        if (addBeginningOfSentence)
+        {
+            ids = new int[] { this.BosId }.Concat(ids).ToArray();
+        }
+
+        if (addEndOfSentence)
+        {
+            ids = ids.Concat(new int[] { this.EosId }).ToArray();
+        }
+
+        return ids;
+    }
+
     public override IReadOnlyList<int> EncodeToIds(ReadOnlySpan<char> text, bool considerPreTokenization = true, bool considerNormalization = true)
     {
         var input = text.ToString();
@@ -99,14 +115,14 @@ public class Phi3Tokenizer : Tokenizer
             var subString = input.Substring(0, index);
             var subTokens = this._tokenizer.EncodeToIds(subString, addBeginningOfSentence: false, addEndOfSentence: false, considerPreTokenization: false, considerNormalization: true).ToArray();
             // remove the first sub Token as it will always be '_'
-            tokens.AddRange(subTokens.Skip(1));
+            tokens.AddRange(subTokens);
             tokens.Add(this._specialTokenMap[specialToken]);
             input = input.Remove(0, index + specialToken.Length);
         }
 
         tokens.AddRange(this._tokenizer.EncodeToIds(input, addBeginningOfSentence: false, addEndOfSentence: false, considerPreTokenization: false, considerNormalization: true).ToArray());
 
-        return this._addBeginningOfSentence ? new int[] { this.BosId }.Concat(tokens).ToArray() : tokens.ToArray();
+        return tokens.ToArray();
     }
 
     public override IReadOnlyList<int> EncodeToIds(ReadOnlySpan<char> text, int maxTokenCount, out string? normalizedText, out int textLength, bool considerPreTokenization = true, bool considerNormalization = true)
@@ -159,36 +175,6 @@ public class Phi3Tokenizer : Tokenizer
         var str = this._tokenizer.Decode(replacedIds) ?? throw new Exception("Failed to decode ids");
 
         return str;
-
-        //var tokens = new List<string>();
-        //foreach (var id in ids)
-        //{
-        //    if (_specialTokenMap.ContainsValue(id))
-        //    {
-        //        tokens.Add(_specialTokenMap.First(x => x.Value == id).Key);
-        //    }
-        //    else
-        //    {
-        //        tokens.Add(this._tokenizer.MapIdToToken(id) ?? throw new Exception("Failed to map id to token"));
-        //    }
-        //}
-
-        //if (this._addBeginningOfSentence)
-        //{
-        //    tokens = tokens[1..].ToList();
-        //}
-
-        //var str = string.Join("", tokens);
-
-        //// replace Dummy with whitespace
-        //str = str.Replace(SentencePieceNormalizer.DummyPrefix, ' ');
-
-        //if (this._addPrecedingSpace)
-        //{
-        //    str = str.TrimStart(' ');
-        //}
-
-        //return str;
     }
 
     public override int? MapTokenToId(ReadOnlySpan<char> token)

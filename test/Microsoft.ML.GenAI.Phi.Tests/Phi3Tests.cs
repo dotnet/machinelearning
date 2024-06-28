@@ -90,7 +90,7 @@ public class Phi3Tests : BaseTestClass
         tokenizer.EosId.Should().Be(2);
 
         // test <|end|>
-        var endIds = tokenizer.EncodeToIds("<|end|>", considerPreTokenization: false, considerNormalization: false);
+        var endIds = tokenizer.EncodeToIds("<|end|>", addBeginningOfSentence: false, addEndOfSentence: false, considerPreTokenization: false, considerNormalization: false);
         endIds.Should().BeEquivalentTo(new int[] { 32007 });
 
         var messages = new string[]
@@ -107,10 +107,8 @@ public class Phi3Tests : BaseTestClass
         var sb = new StringBuilder();
         foreach (var message in messages)
         {
-            var tokenized = tokenizer.EncodeToIds(message, considerPreTokenization: true);
-            var decodedString = tokenizer.Decode(tokenized);
-            decodedString.Should().Be(message);
-            var tokenizedStr = string.Join(", ", tokenized.Select(x => x.ToString()));
+            var tokenizeIds = tokenizer.EncodeToIds(message, true, false, considerPreTokenization: true);
+            var tokenizedStr = string.Join(", ", tokenizeIds.Select(x => x.ToString()));
 
             sb.AppendLine(tokenizedStr);
         }

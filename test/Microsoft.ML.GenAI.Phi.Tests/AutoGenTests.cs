@@ -30,14 +30,13 @@ public class AutoGenTests : BaseTestClass
             It.IsAny<int>(),    // max length
             It.IsAny<float>(),  // temperature 
             It.IsAny<float>(),  // top_p
-            It.IsAny<string[]>(),   // stop sequence
-            It.IsAny<bool>()))  // echo
-            .Callback((string prompt, int maxLen, float temperature, float topP, string[] stopSequences, bool echo) =>
+            It.IsAny<string[]>()))   // stop sequence
+            .Callback((string prompt, int maxLen, float temperature, float topP, string[] stopSequences) =>
             {
                 // check prompt
                 prompt.Should().Be("<|system|>\nyou are a helpful assistant<|end|>\n<|user|>\nhey<|end|>\n<|assistant|>");
             })
-            .Returns((string prompt, int maxLen, float temperature, float topP, string[] stopSequences, bool echo) => "hello");
+            .Returns((string prompt, int maxLen, float temperature, float topP, string[] stopSequences) => "hello");
 
         var agent = new Phi3Agent(pipeline, "assistant");
         var reply = await agent.SendAsync("hey");

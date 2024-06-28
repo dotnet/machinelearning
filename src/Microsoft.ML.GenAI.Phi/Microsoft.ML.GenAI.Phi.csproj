@@ -15,6 +15,7 @@
     <ProjectReference Include="..\Microsoft.ML.GenAI.Core\Microsoft.ML.GenAI.Core.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.15.0" />
+    <ProjectReference Include="..\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj" />
   </ItemGroup>
 
   <ItemGroup>

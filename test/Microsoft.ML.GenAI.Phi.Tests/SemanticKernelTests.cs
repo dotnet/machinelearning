@@ -26,21 +26,20 @@ public class SemanticKernelTests : BaseTestClass
     [Fact]
     public async Task ItAddPhi3CausalLMChatCompletionServiceTestAsync()
     {
-        var pipeline = Mock.Of<ICausalLMPipeline<Tokenizer, Phi3ForCasualLM>>(MockBehavior.Loose);
+        var pipeline = Mock.Of<ICausalLMPipeline<Tokenizer, Phi3ForCasualLM>>();
         // mock generate api
         Mock.Get(pipeline).Setup(p => p.Generate(
             It.IsAny<string>(), // prompt
             It.IsAny<int>(),    // max length
             It.IsAny<float>(),  // temperature 
             It.IsAny<float>(),  // top_p
-            It.IsAny<string[]>(),   // stop sequence
-            It.IsAny<bool>()))  // echo
-            .Callback((string prompt, int maxLen, float temperature, float topP, string[] stopSequences, bool echo) =>
+            It.IsAny<string[]>()))   // stop sequence
+            .Callback((string prompt, int maxLen, float temperature, float topP, string[] stopSequences) =>
             {
                 // check prompt
                 prompt.Should().Be("<|system|>\nyou are a helpful assistant<|end|>\n<|user|>\nhey<|end|>\n<|assistant|>");
             })
-            .Returns((string prompt, int maxLen, float temperature, float topP, string[] stopSequences, bool echo) => "hello");
+            .Returns((string prompt, int maxLen, float temperature, float topP, string[] stopSequences) => "hello");
 
         var kernel = Kernel.CreateBuilder()
             .AddPhi3AsChatCompletion(pipeline)
@@ -63,21 +62,20 @@ public class SemanticKernelTests : BaseTestClass
     [Fact]
     public async Task ItAddPhi3CausalLMTextGenerationServiceTestAsync()
     {
-        var pipeline = Mock.Of<ICausalLMPipeline<Tokenizer, Phi3ForCasualLM>>(MockBehavior.Loose);
+        var pipeline = Mock.Of<ICausalLMPipeline<Tokenizer, Phi3ForCasualLM>>();
         // mock generate api
         Mock.Get(pipeline).Setup(p => p.Generate(
             It.IsAny<string>(), // prompt
             It.IsAny<int>(),    // max length
             It.IsAny<float>(),  // temperature 
             It.IsAny<float>(),  // top_p
-            It.IsAny<string[]>(),   // stop sequence
-            It.IsAny<bool>()))  // echo
-            .Callback((string prompt, int maxLen, float temperature, float topP, string[] stopSequences, bool echo) =>
+            It.IsAny<string[]>()))   // stop sequence
+            .Callback((string prompt, int maxLen, float temperature, float topP, string[] stopSequences) =>
             {
                 // check prompt
                 prompt.Should().Be("test");
             })
-            .Returns((string prompt, int maxLen, float temperature, float topP, string[] stopSequences, bool echo) => "hello");
+            .Returns((string prompt, int maxLen, float temperature, float topP, string[] stopSequences) => "hello");
 
         var kernel = Kernel.CreateBuilder()
             .AddPhi3AsTextGeneration(pipeline)

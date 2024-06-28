@@ -32,6 +32,28 @@ public class Phi3CausalLMChatCompletionService : IChatCompletionService
         Kernel? kernel = null,
         CancellationToken cancellationToken = default)
     {
+        var prompt = BuildPrompt(chatHistory);
+        var reply = await _textGenerationService.GetTextContentAsync(prompt, executionSettings, kernel, cancellationToken);
+        return [new ChatMessageContent(AuthorRole.Assistant, reply.Text)];
+    }
+
+    public async IAsyncEnumerable<StreamingChatMessageContent> GetStreamingChatMessageContentsAsync(
+        ChatHistory chatHistory,
+        PromptExecutionSettings? executionSettings = null,
+        Kernel? kernel = null,
+        [EnumeratorCancellation]
+        CancellationToken cancellationToken = default)
+    {
+        var prompt = BuildPrompt(chatHistory);
+
+        await foreach (var reply in _textGenerationService.GetStreamingTextContentsAsync(prompt, executionSettings, kernel, cancellationToken))
+        {
+            yield return new StreamingChatMessageContent(AuthorRole.Assistant, reply.Text);
+        }
+    }
+
+    private string BuildPrompt(ChatHistory chatHistory)
+    {
         // build prompt from chat history
         var sb = new StringBuilder();
 
@@ -57,25 +79,7 @@ public class Phi3CausalLMChatCompletionService : IChatCompletionService
         }
 
         sb.Append("<|assistant|>");
-        var reply = await _textGenerationService.GetTextContentAsync(sb.ToString(), executionSettings, kernel, cancellationToken);
-        return [new ChatMessageContent(AuthorRole.Assistant, reply.Text)];
-    }
 
-    public async IAsyncEnumerable<StreamingChatMessageContent> GetStreamingChatMessageContentsAsync(
-        ChatHistory chatHistory,
-        PromptExecutionSettings? executionSettings = null,
-        Kernel? kernel = null,
-        [EnumeratorCancellation]
-        CancellationToken cancellationToken = default)
-    {
-        // CausalLMPipeline doesn't support streaming output yet
-        // here we simply implement this api using the synchronous version
-
-        var response = await GetChatMessageContentsAsync(chatHistory, executionSettings, kernel, cancellationToken);
-
-        foreach (var item in response)
-        {
-            yield return new StreamingChatMessageContent(item.Role, item.Content);
-        }
+        return sb.ToString();
     }
 }

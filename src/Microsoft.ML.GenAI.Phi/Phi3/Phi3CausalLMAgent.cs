@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using AutoGen.Core;
@@ -13,7 +14,7 @@ using Microsoft.ML.Tokenizers;
 
 namespace Microsoft.ML.GenAI.Phi;
 
-public class Phi3Agent : IAgent
+public class Phi3Agent : IStreamingAgent
 {
     private const char Newline = '\n';
     private readonly ICausalLMPipeline<Tokenizer, Phi3ForCasualLM> _pipeline;
@@ -32,6 +33,46 @@ public class Phi3Agent : IAgent
     public string Name { get; }
 
     public Task<IMessage> GenerateReplyAsync(IEnumerable<IMessage> messages, GenerateReplyOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        var input = BuildPrompt(messages);
+        var maxLen = options?.MaxToken ?? 1024;
+        var temperature = options?.Temperature ?? 0.7f;
+        var stopTokenSequence = options?.StopSequence ?? [];
+        stopTokenSequence = stopTokenSequence.Append("<|end|>").ToArray();
+
+        var output = _pipeline.Generate(
+            input,
+            maxLen: maxLen,
+            temperature: temperature,
+            stopSequences: stopTokenSequence) ?? throw new InvalidOperationException("Failed to generate a reply.");
+
+        return Task.FromResult<IMessage>(new TextMessage(Role.Assistant, output, from: this.Name));
+    }
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    public async IAsyncEnumerable<IStreamingMessage> GenerateStreamingReplyAsync(
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        IEnumerable<IMessage> messages,
+        GenerateReplyOptions? options = null,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var input = BuildPrompt(messages);
+        var maxLen = options?.MaxToken ?? 1024;
+        var temperature = options?.Temperature ?? 0.7f;
+        var stopTokenSequence = options?.StopSequence ?? [];
+        stopTokenSequence = stopTokenSequence.Append("<|end|>").ToArray();
+
+        foreach (var output in _pipeline.GenerateStreaming(
+            input,
+            maxLen: maxLen,
+            temperature: temperature,
+            stopSequences: stopTokenSequence))
+        {
+            yield return new TextMessageUpdate(Role.Assistant, output, from: this.Name);
+        }
+    }
+
+    private string BuildPrompt(IEnumerable<IMessage> messages)
     {
         var availableRoles = new[] { Role.System, Role.User, Role.Assistant };
         if (messages.Any(m => m.GetContent() is null))
@@ -68,17 +109,6 @@ public class Phi3Agent : IAgent
         sb.Append("<|assistant|>");
         var input = sb.ToString();
 
-        var maxLen = options?.MaxToken ?? 1024;
-        var temperature = options?.Temperature ?? 0.7f;
-        var stopTokenSequence = options?.StopSequence ?? [];
-        stopTokenSequence = stopTokenSequence.Append("<|end|>").ToArray();
-
-        var output = _pipeline.Generate(
-            input,
-            maxLen: maxLen,
-            temperature: temperature,
-            stopSequences: stopTokenSequence) ?? throw new InvalidOperationException("Failed to generate a reply.");
-
-        return Task.FromResult<IMessage>(new TextMessage(Role.Assistant, output, from: this.Name));
+        return input;
     }
 }
