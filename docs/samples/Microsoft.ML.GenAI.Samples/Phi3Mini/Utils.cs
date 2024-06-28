@@ -19,13 +19,25 @@ internal static class Utils
         string device = "cuda",
         int modelSizeOnCudaInGB = 16,
         int modelSizeOnMemoryInGB = 64,
-        int modelSizeOnDiskInGB = 200)
+        int modelSizeOnDiskInGB = 200,
+        bool quantizeToInt8 = false,
+        bool quantizeToInt4 = false)
     {
         var defaultType = ScalarType.Float16;
         Console.WriteLine("Loading Phi3 from huggingface model weight folder");
         var timer = System.Diagnostics.Stopwatch.StartNew();
         var model = Phi3ForCasualLM.FromPretrained(weightFolder, device: device, torchDtype: defaultType, checkPointName: "model.safetensors.index.json");
         var tokenizer = Phi3Tokenizer.FromPretrained(weightFolder);
+
+        if (quantizeToInt8)
+        {
+            model.ToInt8QuantizeModule();
+        }
+        else if (quantizeToInt4)
+        {
+            model.ToInt4QuantizeModule();
+        }
+
         var deviceSizeMap = new Dictionary<string, long>
         {
             ["cuda:0"] = modelSizeOnCudaInGB * 1024 * 1024 * 1024,

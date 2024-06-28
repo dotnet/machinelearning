@@ -17,8 +17,8 @@ internal class Phi3MLP : torch.nn.Module<Tensor, Tensor>
 #pragma warning restore MSML_GeneralName // This name should be PascalCased
 {
 #pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format
-    private readonly GenAILinear gate_up_proj;
-    private readonly GenAILinear down_proj;
+    private readonly QuantizedLinear gate_up_proj;
+    private readonly QuantizedLinear down_proj;
     private readonly torch.nn.Module<Tensor, Tensor> activation_fn;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
 
@@ -30,8 +30,8 @@ internal class Phi3MLP : torch.nn.Module<Tensor, Tensor>
     public Phi3MLP(int hiddenSize, int intermediateSize, string hiddenAct, ScalarType dtype)
         : base(nameof(Phi3MLP))
     {
-        this.gate_up_proj = new GenAILinear(hiddenSize, 2 * intermediateSize, hasBias: false, dtype: dtype);
-        this.down_proj = new GenAILinear(intermediateSize, hiddenSize, hasBias: false, dtype: dtype);
+        this.gate_up_proj = new QuantizedLinear(hiddenSize, 2 * intermediateSize, hasBias: false, dtype: dtype);
+        this.down_proj = new QuantizedLinear(intermediateSize, hiddenSize, hasBias: false, dtype: dtype);
         this.RegisterComponents();
         this.activation_fn = Utils.GetActivation(hiddenAct);
     }

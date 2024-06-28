@@ -19,6 +19,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.ML.GenAI.Phi" />
     <InternalsVisibleTo Include="Microsoft.ML.GenAI.Phi.Tests" />
+    <InternalsVisibleTo Include="Microsoft.ML.GenAI.Core.Tests" />
   </ItemGroup>
 
 </Project>

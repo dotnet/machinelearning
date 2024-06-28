@@ -27,33 +27,33 @@ public interface ICausalLMPipeline
 {
     string Generate(
         string prompt,
-        int maxLen,
-        float temperature,
-        float topP,
-        string[]? stopSequences);
+        int maxLen = CausalLMPipeline.Defaults.MaxLen,
+        float temperature = CausalLMPipeline.Defaults.Temperature,
+        float topP = CausalLMPipeline.Defaults.TopP,
+        string[]? stopSequences = CausalLMPipeline.Defaults.StopSequence);
 
     IEnumerable<string> GenerateStreaming(
         string prompt,
-        int maxLen,
-        float temperature,
-        float topP,
-        string[]? stopSequences);
+        int maxLen = CausalLMPipeline.Defaults.MaxLen,
+        float temperature = CausalLMPipeline.Defaults.Temperature,
+        float topP = CausalLMPipeline.Defaults.TopP,
+        string[]? stopSequences = CausalLMPipeline.Defaults.StopSequence);
 
     (Tensor, Tensor) Generate(
         Tensor inputIds,
         Tensor attentionMask,
         int[][] stopTokenSequence,
-        float temperature,
-        float topP,
-        int maxLen);
+        float temperature = CausalLMPipeline.Defaults.Temperature,
+        float topP = CausalLMPipeline.Defaults.TopP,
+        int maxLen = CausalLMPipeline.Defaults.MaxLen);
 
     IEnumerable<(Tensor, Tensor)> GenerateStreaming(
         Tensor inputIds,
         Tensor attentionMask,
         int[][] stopTokenSequence,
-        float temperature,
-        float topP,
-        int maxLen);
+        float temperature = CausalLMPipeline.Defaults.Temperature,
+        float topP = CausalLMPipeline.Defaults.TopP,
+        int maxLen = CausalLMPipeline.Defaults.MaxLen);
 }
 
 public class CausalLMPipeline<TTokenizer, TModel> : CausalLMPipeline, ICausalLMPipeline<TTokenizer, TModel>

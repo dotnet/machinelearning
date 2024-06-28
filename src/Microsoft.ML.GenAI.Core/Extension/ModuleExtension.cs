@@ -56,19 +56,60 @@ public static class ModuleExtension
         }
     }
 
-    public static void ToQuantizedModule<T>(
+    /// <summary>
+    /// Quantize the module using zero-point int8 quantization.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="model"></param>
+    public static void ToInt8QuantizeModule<T>(
         this T model)
         where T : nn.Module
     {
+        if (model is IQuantizeModule quantized)
+        {
+            quantized.Int8();
+
+            return;
+        }
+
         foreach (var (_, value) in model.named_children())
         {
             if (value is IQuantizeModule quantizeModule)
             {
-                quantizeModule.Quantize();
+                quantizeModule.Int8();
             }
             else
             {
-                value.ToQuantizedModule();
+                value.ToInt8QuantizeModule();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Quantize the module using zero-point int4 quantization.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="model"></param>
+    public static void ToInt4QuantizeModule<T>(
+        this T model)
+        where T : nn.Module
+    {
+        if (model is IQuantizeModule quantized)
+        {
+            quantized.Int4();
+
+            return;
+        }
+
+        foreach (var (_, value) in model.named_children())
+        {
+            if (value is IQuantizeModule quantizeModule)
+            {
+                quantizeModule.Int4();
+            }
+            else
+            {
+                value.ToInt4QuantizeModule();
             }
         }
     }

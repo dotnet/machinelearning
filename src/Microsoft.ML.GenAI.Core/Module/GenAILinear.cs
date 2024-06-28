@@ -8,12 +8,12 @@ using static TorchSharp.torch;
 namespace Microsoft.ML.GenAI;
 internal class GenAILinear : nn.Module<Tensor, Tensor>
 {
-#pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format
-    private readonly Tensor weight;
-    private readonly Tensor? bias;
-#pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
-    private readonly int _inFeatures;
-    private readonly int _outFeatures;
+#pragma warning disable MSML_GeneralName // This name should be PascalCased
+    protected Tensor? weight;
+    protected Tensor? bias;
+    protected readonly int _inFeatures;
+    protected readonly int _outFeatures;
+#pragma warning restore MSML_GeneralName // This name should be PascalCased
 
     public GenAILinear(int inFeatures, int outFeatures, bool hasBias = true, ScalarType dtype = ScalarType.Float32, string? device = null)
         : base(nameof(GenAILinear))
@@ -39,7 +39,7 @@ internal class GenAILinear : nn.Module<Tensor, Tensor>
 
         // use float32
         var input2 = input.to_type(ScalarType.Float32);
-        var weight2 = this.weight.to_type(ScalarType.Float32);
+        var weight2 = this.weight!.to_type(ScalarType.Float32);
         var result = torch.matmul(input2, weight2.t());
 
         if (this.bias is not null)

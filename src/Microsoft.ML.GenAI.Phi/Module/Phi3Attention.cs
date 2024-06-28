@@ -75,8 +75,8 @@ internal class Phi3Attention : nn.Module<Phi3AttentionInput, Phi3AttentionOutput
     private readonly double _ropeTheta;
     private readonly Dictionary<string, object>? _ropeScaling;
 #pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format
-    private readonly GenAILinear o_proj;
-    private readonly GenAILinear qkv_proj;
+    private readonly QuantizedLinear o_proj;
+    private readonly QuantizedLinear qkv_proj;
     private nn.Module<Phi3RotaryEmbeddingInput, Phi3RotaryEmbeddingOutput> rotary_emb = null!;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
 
@@ -99,8 +99,8 @@ internal class Phi3Attention : nn.Module<Phi3AttentionInput, Phi3AttentionOutput
         Contract.Assert(this._hiddenSize % (this._headDim * this._numHeads) == 0, "hidden_size must be divisible by num_heads");
 
         var opSize = this._numHeads * this._headDim + 2 * (this._numKeyValueHeads * this._headDim);
-        this.o_proj = new GenAILinear(this._numHeads * this._headDim, this._hiddenSize, hasBias: false, dtype: config.DType);
-        this.qkv_proj = new GenAILinear(this._hiddenSize, opSize, hasBias: false, dtype: config.DType);
+        this.o_proj = new QuantizedLinear(this._numHeads * this._headDim, this._hiddenSize, hasBias: false, dtype: config.DType);
+        this.qkv_proj = new QuantizedLinear(this._hiddenSize, opSize, hasBias: false, dtype: config.DType);
         this.InitRope();
     }
 
