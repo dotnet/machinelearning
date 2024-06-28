@@ -59,8 +59,20 @@ internal static class Utils
 
         // load weight
         torch.set_default_device("cpu");
+
+        Console.WriteLine("Start loading");
+        timer = System.Diagnostics.Stopwatch.StartNew();
         model = new Phi3ForCasualLM(config);
+        timer.Stop();
+        Console.WriteLine($"Phi3 model created in {timer.ElapsedMilliseconds / 1000} s");
+
+        timer = System.Diagnostics.Stopwatch.StartNew();
         model.LoadSafeTensors(weightFolder);
+        timer.Stop();
+        Console.WriteLine($"Phi3 weight loaded in {timer.ElapsedMilliseconds / 1000} s");
+
+        timer = System.Diagnostics.Stopwatch.StartNew();
+        Console.WriteLine("Start quantizing if needed");
         if (quantizeToInt8)
         {
             model.ToInt8QuantizeModule();
@@ -69,6 +81,8 @@ internal static class Utils
         {
             model.ToInt4QuantizeModule();
         }
+        Console.WriteLine("Quantizing done");
+
         model = model.ToDynamicLoadingModel(deviceMap, "cuda");
         var pipeline = new CausalLMPipeline<Phi3Tokenizer, Phi3ForCasualLM>(tokenizer, model, device);
         timer.Stop();

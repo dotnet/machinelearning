@@ -21,14 +21,12 @@ internal class GenAILinear : nn.Module<Tensor, Tensor>
         this._inFeatures = inFeatures;
         this._outFeatures = outFeatures;
         device ??= torch.get_default_device().ToString();
-        this.weight = torch.randn(outFeatures, inFeatures, dtype: dtype, device: device);
+        this.weight = torch.zeros(outFeatures, inFeatures, dtype: dtype, device: device);
 
         if (hasBias)
         {
-            this.bias = torch.randn(outFeatures, dtype: dtype, device: device);
+            this.bias = torch.zeros(outFeatures, dtype: dtype, device: device);
         }
-
-        this.RegisterComponents();
     }
 
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
