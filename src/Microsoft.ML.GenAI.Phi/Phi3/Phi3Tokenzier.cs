@@ -86,10 +86,6 @@ public class Phi3Tokenizer : Tokenizer
     public override IReadOnlyList<int> EncodeToIds(ReadOnlySpan<char> text, bool considerPreTokenization = true, bool considerNormalization = true)
     {
         var input = text.ToString();
-        if (this._addPrecedingSpace)
-        {
-            //input = " " + input;
-        }
         // step 1:
         // replace all special tokens to <unk>
         var re = new Regex($"{SystemSymbol.Replace("|", "\\|")}|{UserSymbol.Replace("|", "\\|")}|{AssistantSymbol.Replace("|", "\\|")}|{EndSymbol.Replace("|", "\\|")}");

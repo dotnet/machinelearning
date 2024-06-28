@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.ML.GenAI.Core.Extension;
 using Microsoft.ML.Tokenizers;
 using TorchSharp;
 using static TorchSharp.torch;
@@ -31,7 +32,7 @@ public class CausalLMPipeline<TTokenizer, TModel> : CausalLMPipeline, ICausalLMP
     }
 }
 
-public interface ICausalLMPipeline<TTokenizer, TModel>
+public interface ICausalLMPipeline<out TTokenizer, out TModel>
     where TTokenizer : Tokenizer
     where TModel : nn.Module<CasualLMModelInput, CasualLMModelOutput>
 {
@@ -179,8 +180,10 @@ public class CausalLMPipeline
         List<int[]> stopTokenIds = [[]];
         if (stopSequences != null)
         {
-            stopTokenIds.AddRange(stopSequences.Select(x => this.Tokenizer.EncodeToIds(x).ToArray()));
+            stopTokenIds.AddRange(stopSequences.Select(x => this.Tokenizer.EncodeToIds(x, false, false).ToArray()));
         }
+
+        stopTokenIds = stopTokenIds.Where(ids => ids.Count() > 0).ToList();
 
         (var token, var _) = this.Generate(inputTensor, attentionMask, temperature: temperature, maxLen: maxLen, topP: topP, stopTokenSequence: stopTokenIds.ToArray(), echo: echo);
 
