@@ -531,14 +531,12 @@ namespace Microsoft.ML.Tokenizers
             string folder,
             string vocabFile = "vocab.json",
             string mergesFile = "merges.txt",
-            string specialTokensFile = "special_tokens_map.json",
             bool addPrefixSpace = false,
             bool addBeginOfSentence = false,
             bool addEndOfSentence = false)
         {
             var vocabPath = Path.Combine(folder, vocabFile);
             var mergesPath = Path.Combine(folder, mergesFile);
-            var specialTokenMapPath = Path.Combine(folder, specialTokensFile);
             using var vocabStream = File.OpenRead(vocabPath);
             using var mergesStream = File.OpenRead(mergesPath);
 
