@@ -27,33 +27,33 @@ public interface ICausalLMPipeline
 {
     string Generate(
         string prompt,
-        int maxLen = 128,
-        float temperature = 0.7F,
-        float topP = 0.9F,
-        string[]? stopSequences = null);
+        int maxLen,
+        float temperature,
+        float topP,
+        string[]? stopSequences);
 
     IEnumerable<string> GenerateStreaming(
         string prompt,
-        int maxLen = 128,
-        float temperature = 0.7F,
-        float topP = 0.9F,
-        string[]? stopSequences = null);
+        int maxLen,
+        float temperature,
+        float topP,
+        string[]? stopSequences);
 
     (Tensor, Tensor) Generate(
         Tensor inputIds,
         Tensor attentionMask,
         int[][] stopTokenSequence,
-        float temperature = 0.7F,
-        float topP = 0.9F,
-        int maxLen = 128);
+        float temperature,
+        float topP,
+        int maxLen);
 
     IEnumerable<(Tensor, Tensor)> GenerateStreaming(
         Tensor inputIds,
         Tensor attentionMask,
         int[][] stopTokenSequence,
-        float temperature = 0.7F,
-        float topP = 0.9F,
-        int maxLen = 128);
+        float temperature,
+        float topP,
+        int maxLen);
 }
 
 public class CausalLMPipeline<TTokenizer, TModel> : CausalLMPipeline, ICausalLMPipeline<TTokenizer, TModel>
@@ -63,7 +63,7 @@ public class CausalLMPipeline<TTokenizer, TModel> : CausalLMPipeline, ICausalLMP
     public CausalLMPipeline(
         TTokenizer tokenizer,
         TModel model,
-        string device = "cpu")
+        string device = Defaults.Device)
         : base(tokenizer, model, device)
     {
     }
@@ -75,10 +75,19 @@ public class CausalLMPipeline<TTokenizer, TModel> : CausalLMPipeline, ICausalLMP
 
 public class CausalLMPipeline : ICausalLMPipeline
 {
+    internal static class Defaults
+    {
+        internal const string Device = "cpu";
+        internal const float Temperature = 0.7F;
+        internal const float TopP = 0.9F;
+        internal const int MaxLen = 128;
+        internal const string[]? StopSequence = null;
+    }
+
     public CausalLMPipeline(
         Tokenizer tokenizer,
         nn.Module<CasualLMModelInput, CasualLMModelOutput> model,
-        string device = "cpu")
+        string device = Defaults.Device)
     {
         this.Tokenizer = tokenizer;
         this.Model = model;
@@ -108,9 +117,9 @@ public class CausalLMPipeline : ICausalLMPipeline
         Tensor inputIds,
         Tensor attentionMask,
         int[][] stopTokenSequence,
-        float temperature = 0.7F,
-        float topP = 0.9F,
-        int maxLen = 128)
+        float temperature = Defaults.Temperature,
+        float topP = Defaults.TopP,
+        int maxLen = Defaults.MaxLen)
     {
         using var scope = NewDisposeScope();
         using var noGrad = torch.no_grad();
@@ -223,7 +232,7 @@ public class CausalLMPipeline : ICausalLMPipeline
         int maxLen = 128,
         float temperature = 0.7F,
         float topP = 0.9F,
-        string[]? stopSequences = null)
+        string[]? stopSequences = Defaults.StopSequence)
     {
         using var newScope = NewDisposeScope();
         var inputIds = this.Tokenizer.EncodeToIds(prompt);
