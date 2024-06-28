@@ -44,7 +44,7 @@ public class Phi2Test : BaseTestClass
     [UseApprovalSubdirectory("Approvals")]
     public void TokenizerTest()
     {
-        var modelWeightFolder = "C:\\Users\\xiaoyuz\\source\\repos\\phi-2";
+        var modelWeightFolder = Path.Join("Phi-2");
         var tokenizer = Tokenizer.CreatePhi2(modelWeightFolder, addBeginOfSentence: true);
         tokenizer.EndOfSentenceId.Should().Be(50256);
         tokenizer.BeginningOfSentenceId.Should().Be(50256);

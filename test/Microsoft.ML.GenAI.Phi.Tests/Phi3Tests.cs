@@ -84,7 +84,7 @@ public class Phi3Tests : BaseTestClass
     [UseApprovalSubdirectory("Approvals")]
     public void TokenizerTest()
     {
-        var modelWeightFolder = "C:\\Users\\xiaoyuz\\source\\repos\\Phi-3-mini-4k-instruct";
+        var modelWeightFolder = Path.Join("Llama");
         var tokenizer = Phi3Tokenizer.FromPretrained(modelWeightFolder);
         tokenizer.BosId.Should().Be(1);
         tokenizer.EosId.Should().Be(2);
