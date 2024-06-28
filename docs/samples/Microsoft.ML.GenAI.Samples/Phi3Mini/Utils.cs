@@ -9,6 +9,7 @@ using Tensorboard;
 using static TorchSharp.torch;
 using TorchSharp;
 using Microsoft.ML.GenAI.Core.Extension;
+using System.Text.Json;
 
 namespace Microsoft.ML.GenAI.Samples.Phi3Mini;
 
@@ -49,8 +50,11 @@ internal static class Utils
             devices: ["cuda:0", "cpu", "disk"],
             deviceSizeMapInByte: deviceSizeMap);
 
-        model = model.ToDynamicLoadingModel(deviceMap, "cuda:0");
+        var deviceMapJson = JsonSerializer.Serialize(deviceMap, new JsonSerializerOptions { WriteIndented = true });
+        Console.WriteLine($"Device map:");
+        Console.WriteLine(deviceMapJson);
 
+        model = model.ToDynamicLoadingModel(deviceMap, "cuda:0");
         var pipeline = new CausalLMPipeline<Phi3Tokenizer, Phi3ForCasualLM>(tokenizer, model, device);
         timer.Stop();
         Console.WriteLine($"Phi3 loaded in {timer.ElapsedMilliseconds / 1000} s");

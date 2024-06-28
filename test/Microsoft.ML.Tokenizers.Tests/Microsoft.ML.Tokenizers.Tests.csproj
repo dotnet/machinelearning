@@ -48,6 +48,4 @@
     <PackageReference Include="Microsoft.ML.TestTokenizers" Version="$(MicrosoftMLTestTokenizersVersion)" />
   </ItemGroup>
 
- 
-
 </Project>

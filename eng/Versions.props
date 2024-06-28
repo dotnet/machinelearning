@@ -65,6 +65,9 @@
     <TensorFlowVersion>2.3.1</TensorFlowVersion>
     <TorchSharpVersion>0.101.5</TorchSharpVersion>
     <LibTorchVersion>2.1.0.1</LibTorchVersion>
+    <TorchSharpPyBridgeVersion>1.4.1</TorchSharpPyBridgeVersion>
+    <AutoGenVersion>0.0.15</AutoGenVersion>
+    <SemanticKernelVersion>1.15.0</SemanticKernelVersion>
     <!-- Build/infrastructure Dependencies -->
     <CodecovVersion>1.12.4</CodecovVersion>
     <CoverletCollectorVersion>3.1.2</CoverletCollectorVersion>

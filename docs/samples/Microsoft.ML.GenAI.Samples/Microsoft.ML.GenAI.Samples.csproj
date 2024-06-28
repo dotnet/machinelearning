@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="TorchSharp-cuda-windows" Version="0.102.5" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.15.0" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="$(SemanticKernelVersion)" />
   </ItemGroup>
 
 </Project>
