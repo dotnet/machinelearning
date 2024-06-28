@@ -237,7 +237,7 @@ public class CausalLMPipeline : ICausalLMPipeline
         using var newScope = NewDisposeScope();
         var inputIds = this.Tokenizer.EncodeToIds(prompt);
         var inputTensor = torch.tensor(inputIds.ToArray(), dtype: ScalarType.Int64, device: this.Device).unsqueeze(0);
-        var attentionMask = torch.ones_like(inputTensor);
+        var attentionMask = torch.ones_like(inputTensor, device: this.Device);
         // set up stop token ids
         // stop token ids: [[eosId], [stopSequence1], [stopSequence2], ...]
         // when causal language model generates tokens, it will stop when it generates any token in stopSequences

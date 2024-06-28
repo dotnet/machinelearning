@@ -17,6 +17,7 @@ internal static class Utils
 {
     public static CausalLMPipeline<Phi3Tokenizer, Phi3ForCasualLM> LoadPhi3Mini4KFromFolder(
         string weightFolder,
+        string configName = "config.json",
         string device = "cuda",
         int modelSizeOnCudaInGB = 16,
         int modelSizeOnMemoryInGB = 64,
@@ -24,10 +25,12 @@ internal static class Utils
         bool quantizeToInt8 = false,
         bool quantizeToInt4 = false)
     {
-        var defaultType = ScalarType.Float16;
         Console.WriteLine("Loading Phi3 from huggingface model weight folder");
+        torch.set_default_device("meta");
+        var configPath = System.IO.Path.Combine(weightFolder, configName);
+        var config = JsonSerializer.Deserialize<Phi3Config>(System.IO.File.ReadAllText(configPath)) ?? throw new ArgumentNullException(nameof(configPath));
         var timer = System.Diagnostics.Stopwatch.StartNew();
-        var model = Phi3ForCasualLM.FromPretrained(weightFolder, device: device, torchDtype: defaultType, checkPointName: "model.safetensors.index.json");
+        var model = new Phi3ForCasualLM(config);
         var tokenizer = Phi3Tokenizer.FromPretrained(weightFolder);
 
         if (quantizeToInt8)
@@ -41,23 +44,36 @@ internal static class Utils
 
         var deviceSizeMap = new Dictionary<string, long>
         {
-            ["cuda:0"] = modelSizeOnCudaInGB * 1024 * 1024 * 1024,
-            ["cpu"] = modelSizeOnMemoryInGB * 1024 * 1024 * 1024,
-            ["disk"] = modelSizeOnDiskInGB * 1024 * 1024 * 1024,
+            ["cuda"] = modelSizeOnCudaInGB * 1L * 1024 * 1024 * 1024,
+            ["cpu"] = modelSizeOnMemoryInGB * 1L * 1024 * 1024 * 1024,
+            ["disk"] = modelSizeOnDiskInGB * 1L * 1024 * 1024 * 1024,
         };
 
         var deviceMap = model.InferDeviceMapForEachLayer(
-            devices: ["cuda:0", "cpu", "disk"],
+            devices: ["cuda", "cpu", "disk"],
             deviceSizeMapInByte: deviceSizeMap);
 
         var deviceMapJson = JsonSerializer.Serialize(deviceMap, new JsonSerializerOptions { WriteIndented = true });
         Console.WriteLine($"Device map:");
         Console.WriteLine(deviceMapJson);
 
-        model = model.ToDynamicLoadingModel(deviceMap, "cuda:0");
+        // load weight
+        torch.set_default_device("cpu");
+        model = new Phi3ForCasualLM(config);
+        model.LoadSafeTensors(weightFolder);
+        if (quantizeToInt8)
+        {
+            model.ToInt8QuantizeModule();
+        }
+        else if (quantizeToInt4)
+        {
+            model.ToInt4QuantizeModule();
+        }
+        model = model.ToDynamicLoadingModel(deviceMap, "cuda");
         var pipeline = new CausalLMPipeline<Phi3Tokenizer, Phi3ForCasualLM>(tokenizer, model, device);
         timer.Stop();
         Console.WriteLine($"Phi3 loaded in {timer.ElapsedMilliseconds / 1000} s");
+        torch.set_default_device(device);
 
         return pipeline;
     }

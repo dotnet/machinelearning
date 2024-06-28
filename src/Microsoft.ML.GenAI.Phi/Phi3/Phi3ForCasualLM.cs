@@ -59,11 +59,15 @@ public class Phi3ForCasualLM : nn.Module<CasualLMModelInput, CasualLMModelOutput
         var modelConfig = JsonSerializer.Deserialize<Phi3Config>(File.ReadAllText(config)) ?? throw new ArgumentNullException(nameof(config));
         modelConfig.DType = torchDtype;
         var phi = new Phi3ForCasualLM(modelConfig);
-        var loadedParameters = new Dictionary<string, bool>();
-        phi.load_checkpoint(path: modelFolder, checkpointName: checkPointName, strict: false, loadedParameters: loadedParameters);
+        phi.LoadSafeTensors(modelFolder, checkPointName);
         phi = phi.to(device);
         phi.eval();
 
         return phi;
+    }
+
+    public void LoadSafeTensors(string modelFolder, string checkPointName = "model.safetensors.index.json")
+    {
+        this.load_checkpoint(path: modelFolder, checkpointName: checkPointName, strict: false, useTqdm: false);
     }
 }
