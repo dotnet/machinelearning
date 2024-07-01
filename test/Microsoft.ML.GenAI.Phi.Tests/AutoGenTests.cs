@@ -5,21 +5,14 @@
 using AutoGen.Core;
 using FluentAssertions;
 using Microsoft.ML.GenAI.Core;
-using Microsoft.ML.TestFramework;
 using Microsoft.ML.Tokenizers;
 using Moq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.GenAI.Phi.Tests;
 
-public class AutoGenTests : BaseTestClass
+public class AutoGenTests
 {
-    public AutoGenTests(ITestOutputHelper helper)
-        : base(helper)
-    {
-    }
-
     [Fact]
     public async Task ItGenerateTextReply()
     {

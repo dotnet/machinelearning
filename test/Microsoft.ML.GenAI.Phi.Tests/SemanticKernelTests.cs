@@ -6,23 +6,16 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.GenAI.Core;
 using Microsoft.ML.GenAI.Phi.Extension;
-using Microsoft.ML.TestFramework;
 using Microsoft.ML.Tokenizers;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Moq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.GenAI.Phi.Tests;
 
-public class SemanticKernelTests : BaseTestClass
+public class SemanticKernelTests
 {
-    public SemanticKernelTests(ITestOutputHelper helper)
-        : base(helper)
-    {
-    }
-
     [Fact]
     public async Task ItAddPhi3CausalLMChatCompletionServiceTestAsync()
     {

@@ -9,21 +9,12 @@ using ApprovalTests.Namers;
 using ApprovalTests.Reporters;
 using FluentAssertions;
 using Microsoft.ML.GenAI.Core.Extension;
-using Microsoft.ML.TestFramework;
-using TorchSharp;
 using Xunit;
-using Xunit.Abstractions;
-using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Phi.Tests;
 
-public class Phi3Tests : BaseTestClass
+public class Phi3Tests
 {
-    public Phi3Tests(ITestOutputHelper output) : base(output)
-    {
-        torch.set_default_device("meta");
-    }
-
     [Fact]
     [UseReporter(typeof(DiffReporter))]
     [UseApprovalSubdirectory("Approvals")]

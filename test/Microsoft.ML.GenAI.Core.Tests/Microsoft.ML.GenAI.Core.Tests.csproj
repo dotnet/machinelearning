@@ -3,24 +3,18 @@
   <PropertyGroup>
     <TargetFrameworks>net6.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
+    <NoWarn>$(NoWarn);MSML_ExtendBaseTestClass</NoWarn>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.GenAI.Core\Microsoft.ML.GenAI.Core.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ApprovalTests" Version="$(ApprovalTestsVersion)" />
     <PackageReference Include="FluentAssertions" Version="$(FluentAssertionVersion)" />
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <NativeAssemblyReference Include="MklProxyNative" />
-    <NativeAssemblyReference Include="MklImports" />
-    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">

@@ -3,13 +3,13 @@
   <PropertyGroup>
     <TargetFrameworks>net6.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
+    <NoWarn>$(NoWarn);MSML_ExtendBaseTestClass</NoWarn>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.GenAI.Core\Microsoft.ML.GenAI.Core.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.GenAI.Phi\Microsoft.ML.GenAI.Phi.csproj" />
   </ItemGroup>
 
@@ -19,12 +19,6 @@
     <PackageReference Include="Microsoft.SemanticKernel" Version="$(SemanticKernelVersion)" />
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
     <PackageReference Include="Microsoft.ML.TestTokenizers" Version="$(MicrosoftMLTestTokenizersVersion)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <NativeAssemblyReference Include="MklProxyNative" />
-    <NativeAssemblyReference Include="MklImports" />
-    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
