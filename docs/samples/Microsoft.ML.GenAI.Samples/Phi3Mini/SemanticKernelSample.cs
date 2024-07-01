@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.ML.GenAI.Phi;
-using static TorchSharp.torch;
-using TorchSharp;
+﻿using Microsoft.ML.GenAI.Phi.Extension;
 using Microsoft.SemanticKernel;
-using Microsoft.ML.GenAI.Phi.Extension;
 using Microsoft.SemanticKernel.ChatCompletion;
+using TorchSharp;
+using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Samples.Phi3Mini;
 
@@ -26,7 +20,7 @@ public class SemanticKernelSample
         torch.manual_seed(1);
         torch.set_default_dtype(defaultType);
         var weightFolder = @"C:\Users\xiaoyuz\source\repos\Phi-3-mini-4k-instruct";
-        var pipeline = Utils.LoadPhi3Mini4KFromFolder(weightFolder, device);
+        var pipeline = Utils.LoadPhi3Mini4KFromFolder(weightFolder, device: device);
 
 
         var kernel = Kernel.CreateBuilder()
@@ -37,8 +31,10 @@ public class SemanticKernelSample
         chatHistory.AddSystemMessage("you are a helpful assistant");
         chatHistory.AddUserMessage("write a C# program to calculate the factorial of a number");
 
-        var response = await chatService.GetChatMessageContentAsync(chatHistory);
-        Console.WriteLine(response);
+        await foreach (var response in chatService.GetStreamingChatMessageContentsAsync(chatHistory))
+        {
+            Console.WriteLine(response);
+        }
     }
 
     public static async Task RunTextGenerationSample()
