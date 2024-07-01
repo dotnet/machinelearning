@@ -71,22 +71,29 @@ internal static class Utils
         timer.Stop();
         Console.WriteLine($"Phi3 weight loaded in {timer.ElapsedMilliseconds / 1000} s");
 
-        timer = System.Diagnostics.Stopwatch.StartNew();
-        Console.WriteLine("Start quantizing if needed");
-        if (quantizeToInt8)
+        if (quantizeToInt8 || quantizeToInt4)
         {
-            model.ToInt8QuantizeModule();
+            timer = System.Diagnostics.Stopwatch.StartNew();
+            Console.WriteLine("Start quantizing if needed");
+            if (quantizeToInt8)
+            {
+                model.ToInt8QuantizeModule();
+            }
+            else if (quantizeToInt4)
+            {
+                model.ToInt4QuantizeModule();
+            }
+            Console.WriteLine("Quantizing done");
+            timer.Stop();
+            Console.WriteLine($"Quantizing done in {timer.ElapsedMilliseconds / 1000} s");
         }
-        else if (quantizeToInt4)
-        {
-            model.ToInt4QuantizeModule();
-        }
-        Console.WriteLine("Quantizing done");
 
+        timer = System.Diagnostics.Stopwatch.StartNew();
+        Console.WriteLine($"Start loading to device: {device}");
         model = model.ToDynamicLoadingModel(deviceMap, "cuda");
-        var pipeline = new CausalLMPipeline<Phi3Tokenizer, Phi3ForCasualLM>(tokenizer, model, device);
         timer.Stop();
-        Console.WriteLine($"Phi3 loaded in {timer.ElapsedMilliseconds / 1000} s");
+        Console.WriteLine($"Phi3 loaded to device: {device} in {timer.ElapsedMilliseconds / 1000} s");
+        var pipeline = new CausalLMPipeline<Phi3Tokenizer, Phi3ForCasualLM>(tokenizer, model, device);
         torch.set_default_device(device);
 
         return pipeline;
