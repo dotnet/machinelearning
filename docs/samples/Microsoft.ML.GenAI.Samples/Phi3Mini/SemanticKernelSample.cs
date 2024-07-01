@@ -33,7 +33,7 @@ public class SemanticKernelSample
 
         await foreach (var response in chatService.GetStreamingChatMessageContentsAsync(chatHistory))
         {
-            Console.WriteLine(response);
+            Console.Write(response);
         }
     }
 

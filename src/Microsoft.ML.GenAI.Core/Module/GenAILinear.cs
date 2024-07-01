@@ -27,6 +27,8 @@ internal class GenAILinear : nn.Module<Tensor, Tensor>
         {
             this.bias = torch.zeros(outFeatures, dtype: dtype, device: device);
         }
+
+        base.RegisterComponents();
     }
 
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
