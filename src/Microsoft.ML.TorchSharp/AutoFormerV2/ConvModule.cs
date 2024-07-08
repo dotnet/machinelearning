@@ -35,7 +35,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
         public ConvModule(int inChannel, int outChannel, int kernelSize, int stride = 1, int padding = 0, int dilation = 1, bool bias = true, bool useRelu = true)
             : base(nameof(ConvModule))
         {
-            this.conv = nn.Conv2d(inputChannel: inChannel, outputChannel: outChannel, kernelSize: kernelSize, stride: stride, padding: padding, dilation: dilation, bias: bias);
+            this.conv = nn.Conv2d(in_channels: inChannel, out_channels: outChannel, kernelSize: kernelSize, stride: stride, padding: padding, dilation: dilation, bias: bias);
             this.useRelu = useRelu;
             if (this.useRelu)
             {
