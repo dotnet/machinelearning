@@ -304,11 +304,6 @@ extends:
           parameters:
             sourceIndexBuildCommand: ./build.cmd -ci -configuration Release /p:TargetArchitecture=x64 /bl
             binlogPath: msbuild.binlog
-            presteps:
-            - task: NodeTool@0
-              displayName: Install Node 20.x
-              inputs:
-                versionSpec: 20.x
             pool:
               name: $(DncEngInternalBuildPool)
               demands: ImageOverride -equals 1es-windows-2022
