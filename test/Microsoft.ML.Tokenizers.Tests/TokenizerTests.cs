@@ -26,11 +26,11 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             for (int i = 1; i <= fullIdsList.Count; i++)
             {
-                int index1 = tokenizer.IndexOfTokenCount(input, maxTokenCount: i, out string? processedText1, out int tokenCount1);
-                int index2 = tokenizer.LastIndexOfTokenCount(input, maxTokenCount: i, out string? processedText2, out int tokenCount2);
-                IReadOnlyList<int> partialIdsList = tokenizer.EncodeToIds(input, maxTokenCount: i, out string? processedText, out int textLength);
+                int index1 = tokenizer.GetIndexByTokenCount(input, maxTokenCount: i, out string? processedText1, out int tokenCount1);
+                int index2 = tokenizer.GetIndexByTokenCountFromEnd(input, maxTokenCount: i, out string? processedText2, out int tokenCount2);
+                IReadOnlyList<int> partialIdsList = tokenizer.EncodeToIds(input, maxTokenCount: i, out string? processedText, out int charsConsumed);
 
-                Assert.True(processedText is null || textLength <= processedText.Length);
+                Assert.True(processedText is null || charsConsumed <= processedText.Length);
                 Assert.True(tokenizer.Normalizer is not null || processedText is null);
 
                 Assert.Equal(fullIdsList.Take(partialIdsList.Count), partialIdsList);
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 {
                     string prefixString = (processedText1 ?? input).Substring(0, index1);
 
-                    if (tokenizer is SentencePieceBpe)
+                    if (tokenizer is SentencePieceBpeTokenizer)
                     {
                         // SentencePieceBpe model normalize the text and insert more characters.
                         // We call the model directly to bypass the normalization step
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 {
                     string suffixString = (processedText2 ?? input).Substring(index2);
 
-                    if (tokenizer is SentencePieceBpe)
+                    if (tokenizer is SentencePieceBpeTokenizer)
                     {
                         // SentencePieceBpe model normalize the text and insert more characters.
                         // We call the model directly to bypass the normalization step
@@ -105,15 +105,15 @@ namespace Microsoft.ML.Tokenizers.Tests
                 }
             }
 
-            Assert.Equal(0, tokenizer.IndexOfTokenCount((string)null!, maxTokenCount: 10, out _, out _));
-            Assert.Equal(0, tokenizer.LastIndexOfTokenCount((string)null!, maxTokenCount: 10, out _, out _));
-            Assert.Equal(0, tokenizer.IndexOfTokenCount(Span<char>.Empty, maxTokenCount: 10, out _, out _));
-            Assert.Equal(0, tokenizer.LastIndexOfTokenCount(Span<char>.Empty, maxTokenCount: 10, out _, out _));
+            Assert.Equal(0, tokenizer.GetIndexByTokenCount((string)null!, maxTokenCount: 10, out _, out _));
+            Assert.Equal(0, tokenizer.GetIndexByTokenCountFromEnd((string)null!, maxTokenCount: 10, out _, out _));
+            Assert.Equal(0, tokenizer.GetIndexByTokenCount(Span<char>.Empty, maxTokenCount: 10, out _, out _));
+            Assert.Equal(0, tokenizer.GetIndexByTokenCountFromEnd(Span<char>.Empty, maxTokenCount: 10, out _, out _));
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.IndexOfTokenCount(input, maxTokenCount: 0, out _, out _));
-            Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.IndexOfTokenCount(input, maxTokenCount: -1, out _, out _));
-            Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.LastIndexOfTokenCount(input, maxTokenCount: 0, out _, out _));
-            Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.LastIndexOfTokenCount(input, maxTokenCount: -1, out _, out _));
+            Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.GetIndexByTokenCount(input, maxTokenCount: 0, out _, out _));
+            Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.GetIndexByTokenCount(input, maxTokenCount: -1, out _, out _));
+            Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.GetIndexByTokenCountFromEnd(input, maxTokenCount: 0, out _, out _));
+            Assert.Throws<ArgumentOutOfRangeException>(() => tokenizer.GetIndexByTokenCountFromEnd(input, maxTokenCount: -1, out _, out _));
         }
     }
 }

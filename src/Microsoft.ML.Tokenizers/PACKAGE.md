@@ -9,6 +9,7 @@ Microsoft.ML.Tokenizers supports various the implementation of the tokenization 
 * English Roberta model
 * Tiktoken model
 * Llama model
+* Phi2 model
 
 ## How to Use
 
@@ -22,18 +23,18 @@ using System.IO;
 //
 
 // initialize the tokenizer for `gpt-4` model
-Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel("gpt-4");
+Tokenizer tokenizer = TiktokenTokenizer.CreateForModel("gpt-4");
 
 string source = "Text tokenization is the process of splitting a string into a list of tokens.";
 
 Console.WriteLine($"Tokens: {tokenizer.CountTokens(source)}");
 // print: Tokens: 16
 
-var trimIndex = tokenizer.LastIndexOfTokenCount(source, 5, out string processedText, out _);
+var trimIndex = tokenizer.GetIndexByTokenCountFromEnd(source, 5, out string processedText, out _);
 Console.WriteLine($"5 tokens from end: {processedText.Substring(trimIndex)}");
 // 5 tokens from end:  a list of tokens.
 
-trimIndex = tokenizer.IndexOfTokenCount(source, 5, out processedText, out _);
+trimIndex = tokenizer.GetIndexByTokenCount(source, 5, out processedText, out _);
 Console.WriteLine($"5 tokens from start: {processedText.Substring(0, trimIndex)}");
 // 5 tokens from start: Text tokenization is the
 
@@ -51,7 +52,7 @@ const string modelUrl = @"https://huggingface.co/hf-internal-testing/llama-token
 using Stream remoteStream = await httpClient.GetStreamAsync(modelUrl);
 
 // Create the Llama tokenizer using the remote stream
-Tokenizer llamaTokenizer = Tokenizer.CreateLlama(remoteStream);
+Tokenizer llamaTokenizer = LlamaTokenizer.Create(remoteStream);
 string input = "Hello, world!";
 ids = llamaTokenizer.EncodeToIds(input);
 Console.WriteLine(string.Join(", ", ids));
@@ -66,9 +67,9 @@ Console.WriteLine($"Tokens: {llamaTokenizer.CountTokens(input)}");
 The main types provided by this library are:
 
 * `Microsoft.ML.Tokenizers.Tokenizer`
-* `Microsoft.ML.Tokenizers.Bpe`
-* `Microsoft.ML.Tokenizers.EnglishRoberta`
-* `Microsoft.ML.Tokenizers.Tiktoken`
+* `Microsoft.ML.Tokenizers.BpeTokenizer`
+* `Microsoft.ML.Tokenizers.EnglishRobertaTokenizer`
+* `Microsoft.ML.Tokenizers.TiktokenTokenizer`
 * `Microsoft.ML.Tokenizers.Normalizer`
 * `Microsoft.ML.Tokenizers.PreTokenizer`
 

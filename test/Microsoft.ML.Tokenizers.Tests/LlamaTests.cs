@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -6,11 +6,12 @@ using Microsoft.ML.Tokenizers;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text.Json;
 using System.Linq;
 using System.IO;
-using System.Threading.Tasks;
 using Xunit;
+using System.Buffers;
+using Microsoft.VisualBasic;
+using System.Text;
 
 namespace Microsoft.ML.Tokenizers.Tests
 {
@@ -19,20 +20,44 @@ namespace Microsoft.ML.Tokenizers.Tests
         private static readonly HttpClient _httpClient = new HttpClient() { Timeout = TimeSpan.FromMinutes(5) };
         private static Tokenizer _llamaTokenizer = CreateLlamaTokenizer();
         private static Tokenizer _llamaMistralTokenizer = CreateLMistralTokenizer();
+        private static Tokenizer _llamaPhi3Tokenizer = CreateLPhi3Tokenizer();
+        internal const string DummyPrefix = "\u2581"; // '▁' (LOWER ONE EIGHT BLOCK)
 
         private static Tokenizer CreateLlamaTokenizer()
         {
             // @"https://huggingface.co/meta-llama/Llama-2-7b-chat-hf/resolve/main/tokenizer.model?download=true";
             // @"https://huggingface.co/hf-internal-testing/llama-tokenizer/resolve/main/tokenizer.model";
             using Stream remoteStream = File.OpenRead(Path.Combine(@"Llama", "tokenizer.model"));
-            return Tokenizer.CreateLlama(remoteStream);
+            return LlamaTokenizer.Create(remoteStream);
         }
 
         private static Tokenizer CreateLMistralTokenizer()
         {
             // @"https://huggingface.co/mistralai/Mistral-7B-v0.1/resolve/main/tokenizer.model?download=true";
             using Stream remoteStream = File.OpenRead(Path.Combine(@"Mistral", "tokenizer.model"));
-            return Tokenizer.CreateLlama(remoteStream);
+            return LlamaTokenizer.Create(remoteStream);
+        }
+
+        private static Tokenizer CreateLPhi3Tokenizer()
+        {
+            // Phi3 is using the same tokenizer.model used by Llama. https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/tree/main
+            using Stream remoteStream = File.OpenRead(Path.Combine(@"Llama", "tokenizer.model"));
+            return LlamaTokenizer.Create(remoteStream, addBeginOfSentence: true, addEndOfSentence: false,
+                                            addedTokens: new Dictionary<string, int>
+                                            {
+                                                // added tokens are picked up from https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/blob/main/tokenizer_config.json
+                                                { "<|endoftext|>" ,    32000},
+                                                { "<|assistant|>",     32001 },
+                                                { "<|placeholder1|>",  32002 },
+                                                { "<|placeholder2|>",  32003 },
+                                                { "<|placeholder3|>",  32004 },
+                                                { "<|placeholder4|>",  32005 },
+                                                { "<|system|>",        32006 },
+                                                { "<|end|>",           32007 },
+                                                { "<|placeholder5|>",  32008 },
+                                                { "<|placeholder6|>",  32009 },
+                                                { "<|user|>",          32010 },
+                                            });
         }
 
         public static IEnumerable<object[]> LlamaTestData()
@@ -184,68 +209,112 @@ namespace Microsoft.ML.Tokenizers.Tests
 
         [Theory]
         [MemberData(nameof(LlamaTestData))]
-        public void TestLlamaTokenizer(Tokenizer llamaTokenizer, string input, int[] ids, string[] tokens, (int Index, int Length)[] offsets)
+        public void TestLlamaTokenizer(Tokenizer tokenizer, string input, int[] ids, string[] tokens, (int Index, int Length)[] offsets)
         {
-            SentencePieceBpe? bpe = llamaTokenizer as SentencePieceBpe;
-            Assert.NotNull(bpe);
+            // Phi-3 and Llama are using the same tokenizer.model, so we can test both with the same data as long as we are not using added tokens which behave differently for Phi-3.
+            Tokenizer[] tokenizers = tokenizer == _llamaTokenizer ? new[] { tokenizer, _llamaPhi3Tokenizer } : new[] { tokenizer };
 
-            IReadOnlyList<Token> result = llamaTokenizer.Encode(input, out _);
-            Assert.Equal(ids, result.Select(t => t.Id).ToArray());
-            Assert.Equal(tokens, result.Select(t => t.Value).ToArray());
-            Assert.Equal(offsets, result.Select(t => t.Offset).ToArray());
-            Assert.Equal(input, llamaTokenizer.Decode(ids));
-            Assert.Equal(ids, llamaTokenizer.EncodeToIds(input));
-            Assert.Equal(ids.Length, llamaTokenizer.CountTokens(input));
-
-            for (int i = 0; i < tokens.Length; i++)
+            foreach (Tokenizer llamaTokenizer in tokenizers)
             {
-                Assert.Equal(tokens[i], bpe!.MapIdToToken(ids[i]));
-                Assert.Equal(ids[i], bpe!.MapTokenToId(tokens[i].AsSpan()));
-                Assert.Equal(ids[i], bpe!.Vocab[tokens[i]]);
+                LlamaTokenizer bpe = (llamaTokenizer as LlamaTokenizer)!;
+                Assert.NotNull(bpe);
+
+                IReadOnlyList<EncodedToken> result = llamaTokenizer.EncodeToTokens(input, out _);
+                Assert.Equal(ids, result.Select(t => t.Id).ToArray());
+                Assert.Equal(tokens, result.Select(t => t.Value).ToArray());
+                Assert.Equal(offsets, result.Select(t => t.Offset).ToArray());
+                Assert.Equal(input, llamaTokenizer.Decode(ids));
+                TestDecodingWithSpan(bpe, ids, input);
+                Assert.Equal(ids, llamaTokenizer.EncodeToIds(input));
+                Assert.Equal(ids.Length, llamaTokenizer.CountTokens(input));
+
+                var reverseVocabulary = bpe.Vocabulary.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+
+                for (int i = 0; i < tokens.Length; i++)
+                {
+                    Assert.Equal(tokens[i], reverseVocabulary[ids[i]]);
+                    Assert.Equal(ids[i], bpe.Vocabulary[tokens[i]]);
+                }
+
+                Assert.NotNull(llamaTokenizer.Normalizer);
+                string normalizedInput = llamaTokenizer.Normalizer!.Normalize(input);
+
+                bool isEmptyInput = string.IsNullOrEmpty(input);
+
+                IReadOnlyList<EncodedToken> bpeTokens = bpe.EncodeToTokens(normalizedInput.AsSpan(), out _, addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false);
+                Assert.Equal(ids.Skip(1), bpeTokens.Select(token => token.Id));
+                Assert.Equal(tokens.Skip(1), bpeTokens.Select(token => token.Value));
+                int[] extractedIds = bpeTokens.Select(token => token.Id).ToArray();
+                Assert.Equal(input, llamaTokenizer.Decode(extractedIds));
+                TestDecodingWithSpan(bpe, extractedIds, input);
+                IReadOnlyList<int> encodedIds = bpe.EncodeToIds(normalizedInput.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false);
+                Assert.Equal(ids.Skip(1), encodedIds);
+                Assert.Equal(isEmptyInput ? 0 : ids.Length - 1, bpe.CountTokens(normalizedInput.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false));
+
+                bpeTokens = bpe.EncodeToTokens(normalizedInput.AsSpan(), out _, addBeginningOfSentence: false, addEndOfSentence: true, considerNormalization: false);
+                Assert.Equal(isEmptyInput ? Array.Empty<int>() : ids.Skip(1).Concat(new[] { bpe.EndOfSentenceId }), bpeTokens.Select(token => token.Id));
+                Assert.Equal(isEmptyInput ? Array.Empty<string>() : tokens.Skip(1).Concat(new[] { bpe.EndOfSentenceToken }), bpeTokens.Select(token => token.Value));
+                extractedIds = bpeTokens.Select(token => token.Id).ToArray();
+                Assert.Equal(input, llamaTokenizer.Decode(extractedIds));
+                TestDecodingWithSpan(bpe, extractedIds, input);
+                encodedIds = bpe.EncodeToIds(normalizedInput.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: true, considerNormalization: false);
+                Assert.Equal(isEmptyInput ? Array.Empty<int>() : ids.Skip(1).Concat(new[] { bpe.EndOfSentenceId }), encodedIds);
+                Assert.Equal(isEmptyInput ? 0 : ids.Length, bpe.CountTokens(normalizedInput.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: true, considerNormalization: false));
+
+                bpeTokens = bpe.EncodeToTokens(normalizedInput.AsSpan(), out _, addBeginningOfSentence: true, addEndOfSentence: true, considerNormalization: false);
+                Assert.Equal(isEmptyInput ? Array.Empty<int>() : ids.Concat(new[] { bpe.EndOfSentenceId }), bpeTokens.Select(token => token.Id));
+                Assert.Equal(isEmptyInput ? Array.Empty<string>() : tokens.Concat(new[] { bpe.EndOfSentenceToken }), bpeTokens.Select(token => token.Value));
+                extractedIds = bpeTokens.Select(token => token.Id).ToArray();
+                Assert.Equal(input, llamaTokenizer.Decode(extractedIds));
+                TestDecodingWithSpan(bpe, extractedIds, input);
+                encodedIds = bpe.EncodeToIds(normalizedInput.AsSpan(), addBeginningOfSentence: true, addEndOfSentence: true, considerNormalization: false);
+                Assert.Equal(isEmptyInput ? Array.Empty<int>() : ids.Concat(new[] { bpe.EndOfSentenceId }), encodedIds);
+                Assert.Equal(isEmptyInput ? 0 : ids.Length + 1, bpe.CountTokens(normalizedInput.AsSpan(), addBeginningOfSentence: true, addEndOfSentence: true, considerNormalization: false));
+            }
+        }
+
+        private void TestDecodingWithSpan(LlamaTokenizer tokenizer, int[] ids, string expectedDecoded)
+        {
+            char[] destinationBuffer = new char[expectedDecoded.Length];
+
+            OperationStatus status;
+            int lastIdsConsumed = 0;
+            int lastCharactersWritten = 0;
+            int idsConsumed;
+            int charactersWritten;
+
+            for (int i = 1; i < destinationBuffer.Length - 1; i += Math.Max(1, destinationBuffer.Length - 3)) // enough to test length 1, and destinationBuffer.Length - 2 only.
+            {
+                status = tokenizer.Decode(ids, destinationBuffer.AsSpan().Slice(0, i), out idsConsumed, out charactersWritten);
+                Assert.Equal(OperationStatus.DestinationTooSmall, status);
+                Assert.True(idsConsumed < ids.Length);
+                Assert.True(idsConsumed >= lastIdsConsumed);
+                Assert.True(charactersWritten < expectedDecoded.Length);
+                Assert.True(charactersWritten >= lastCharactersWritten);
+                lastIdsConsumed = idsConsumed;
+                lastCharactersWritten = charactersWritten;
             }
 
-            Assert.NotNull(llamaTokenizer.Normalizer);
-            string normalizedInput = llamaTokenizer.Normalizer!.Normalize(input);
-
-            bool isEmptyInput = string.IsNullOrEmpty(input);
-
-            IReadOnlyList<Token> bpeTokens = bpe.Encode(normalizedInput.AsSpan(), out _, addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false);
-            Assert.Equal(ids.Skip(1), bpeTokens.Select(token => token.Id));
-            Assert.Equal(tokens.Skip(1), bpeTokens.Select(token => token.Value));
-            Assert.Equal(input, llamaTokenizer.Decode(bpeTokens.Select(token => token.Id)));
-            IReadOnlyList<int> encodedIds = bpe.EncodeToIds(normalizedInput.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false);
-            Assert.Equal(ids.Skip(1), encodedIds);
-            Assert.Equal(isEmptyInput ? 0 : ids.Length - 1, bpe.CountTokens(normalizedInput.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false));
-
-            bpeTokens = bpe.Encode(normalizedInput.AsSpan(), out _, addBeginningOfSentence: false, addEndOfSentence: true, considerNormalization: false);
-            Assert.Equal(isEmptyInput ? Array.Empty<int>() : ids.Skip(1).Concat(new[] { bpe.EndOfSentenceId }), bpeTokens.Select(token => token.Id));
-            Assert.Equal(isEmptyInput ? Array.Empty<string>() : tokens.Skip(1).Concat(new[] { bpe.EndOfSentenceToken }), bpeTokens.Select(token => token.Value));
-            Assert.Equal(input, llamaTokenizer.Decode(bpeTokens.Select(token => token.Id)));
-            encodedIds = bpe.EncodeToIds(normalizedInput.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: true, considerNormalization: false);
-            Assert.Equal(isEmptyInput ? Array.Empty<int>() : ids.Skip(1).Concat(new[] { bpe.EndOfSentenceId }), encodedIds);
-            Assert.Equal(isEmptyInput ? 0 : ids.Length, bpe.CountTokens(normalizedInput.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: true, considerNormalization: false));
-
-            bpeTokens = bpe.Encode(normalizedInput.AsSpan(), out _, addBeginningOfSentence: true, addEndOfSentence: true, considerNormalization: false);
-            Assert.Equal(isEmptyInput ? Array.Empty<int>() : ids.Concat(new[] { bpe.EndOfSentenceId }), bpeTokens.Select(token => token.Id));
-            Assert.Equal(isEmptyInput ? Array.Empty<string>() : tokens.Concat(new[] { bpe.EndOfSentenceToken }), bpeTokens.Select(token => token.Value));
-            Assert.Equal(input, llamaTokenizer.Decode(bpeTokens.Select(token => token.Id)));
-            encodedIds = bpe.EncodeToIds(normalizedInput.AsSpan(), addBeginningOfSentence: true, addEndOfSentence: true, considerNormalization: false);
-            Assert.Equal(isEmptyInput ? Array.Empty<int>() : ids.Concat(new[] { bpe.EndOfSentenceId }), encodedIds);
-            Assert.Equal(isEmptyInput ? 0 : ids.Length + 1, bpe.CountTokens(normalizedInput.AsSpan(), addBeginningOfSentence: true, addEndOfSentence: true, considerNormalization: false));
+            status = tokenizer.Decode(ids, destinationBuffer.AsSpan(), out idsConsumed, out charactersWritten);
+            Assert.Equal(OperationStatus.Done, status);
+            Assert.Equal(ids.Length, idsConsumed);
+            Assert.Equal(expectedDecoded.Length, charactersWritten);
+            Assert.Equal(expectedDecoded, destinationBuffer.AsSpan().ToString());
         }
 
         public static IEnumerable<object[]> LlamaTokenizersListData()
         {
             yield return new object[] { _llamaTokenizer };
             yield return new object[] { _llamaMistralTokenizer };
+            yield return new object[] { _llamaPhi3Tokenizer };
         }
 
         [Theory]
         [MemberData(nameof(LlamaTokenizersListData))]
         public void TestLlamaTokenizerWithEmptyInput(Tokenizer llamaTokenizer)
         {
-            Assert.Equal([], llamaTokenizer.Encode((string)null!, out _));
-            Assert.Equal([], llamaTokenizer.Encode(Span<char>.Empty, out _));
+            Assert.Equal([], llamaTokenizer.EncodeToTokens((string)null!, out _));
+            Assert.Equal([], llamaTokenizer.EncodeToTokens(Span<char>.Empty, out _));
 
             Assert.Equal([], llamaTokenizer.EncodeToIds((string)null!));
             Assert.Equal([], llamaTokenizer.EncodeToIds(Span<char>.Empty));
@@ -260,14 +329,14 @@ namespace Microsoft.ML.Tokenizers.Tests
         [MemberData(nameof(LlamaTokenizersListData))]
         public void TestLlamaTokenizerProperties(Tokenizer llamaTokenizer)
         {
-            SentencePieceBpe? bpe = llamaTokenizer as SentencePieceBpe;
+            LlamaTokenizer? bpe = llamaTokenizer as LlamaTokenizer;
             Assert.NotNull(bpe);
             Assert.NotNull(llamaTokenizer.Normalizer);
 
             Assert.Equal("▁Hello,▁World!", llamaTokenizer.Normalizer.Normalize("Hello, World!"));
 
-            Assert.True(bpe.Vocab.Count > 0);
-            Assert.True(bpe.Vocab.TryGetValue("▁", out _));
+            Assert.True(bpe.Vocabulary.Count > 0);
+            Assert.True(bpe.Vocabulary.TryGetValue("▁", out _));
 
             Assert.Equal(0, bpe.UnknownId);
             Assert.Equal("<unk>", bpe.UnknownToken);
@@ -276,8 +345,6 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(2, bpe.EndOfSentenceId);
             Assert.Equal("</s>", bpe.EndOfSentenceToken);
 
-            Assert.Equal(bpe.Vocab["▁"], bpe.MapTokenToId("▁".AsSpan()));
-            Assert.Equal("▁", bpe.MapIdToToken(bpe.Vocab["▁"]));
 
             Assert.True(bpe.ByteFallback);
             Assert.True(bpe.AddDummyPrefix);
@@ -376,8 +443,8 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.NotNull(tokenizer.Normalizer);
             Assert.Null(tokenizer.PreTokenizer);
 
-            IReadOnlyList<Token> encoding = tokenizer.Encode(text, out _);
-            IReadOnlyList<Token> encoding1 = tokenizer.Encode(text.AsSpan(), out _);
+            IReadOnlyList<EncodedToken> encoding = tokenizer.EncodeToTokens(text, out _);
+            IReadOnlyList<EncodedToken> encoding1 = tokenizer.EncodeToTokens(text.AsSpan(), out _);
 
             Assert.Equal(expectedTokens, encoding.Select(t => t.Value).ToArray());
             Assert.Equal(expectedOffsets, encoding.Select(t => t.Offset).ToArray());
@@ -387,12 +454,12 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(expectedOffsets, encoding1.Select(t => t.Offset).ToArray());
             Assert.Equal(expectedIds, encoding1.Select(t => t.Id).ToArray());
 
-            SentencePieceBpe sentencePieceBpe = (tokenizer as SentencePieceBpe)!;
+            SentencePieceBpeTokenizer sentencePieceBpe = (tokenizer as SentencePieceBpeTokenizer)!;
             foreach (bool considerNormalization in new[] { true, false })
                 foreach (bool addBeginningOfSentence in new[] { true, false })
                     foreach (bool addEndOfSentence in new[] { true, false })
                     {
-                        encoding = sentencePieceBpe.Encode(
+                        encoding = sentencePieceBpe.EncodeToTokens(
                                         considerNormalization ? text : normalizedText,
                                         out _,
                                         addBeginningOfSentence: addBeginningOfSentence,
@@ -400,7 +467,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                                         considerPreTokenization: false,
                                         considerNormalization: considerNormalization);
 
-                        encoding1 = sentencePieceBpe.Encode(
+                        encoding1 = sentencePieceBpe.EncodeToTokens(
                                         considerNormalization ? text.AsSpan() : normalizedText.AsSpan(),
                                         out _,
                                         addBeginningOfSentence: addBeginningOfSentence,
@@ -441,12 +508,12 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(normalizedText, normalizedString);
             Assert.Equal(normalizedText.Length, length);
 
-            SentencePieceBpe sentencePieceBpe = (tokenizer as SentencePieceBpe)!;
+            SentencePieceBpeTokenizer sentencePieceBpe = (tokenizer as SentencePieceBpeTokenizer)!;
             foreach (bool considerNormalization in new[] { true, false })
                 foreach (bool addBeginningOfSentence in new[] { true, false })
                     foreach (bool addEndOfSentence in new[] { true, false })
                     {
-                        // (string text, bool addBeginningOfSentence, bool addEndOfSentence, int maxTokenCount, out string? normalizedString, out int textLength, bool considerPreTokenization = true, bool considerNormalization = true)
+                        // (string text, bool addBeginningOfSentence, bool addEndOfSentence, int maxTokenCount, out string? normalizedString, out int charsConsumed, bool considerPreTokenization = true, bool considerNormalization = true)
 
                         int[] expectedIds1 = addBeginningOfSentence ? expectedIds : expectedIds.Skip(1).ToArray();
                         expectedIds1 = addEndOfSentence ? expectedIds1.Concat(new[] { sentencePieceBpe.EndOfSentenceId }).ToArray() : expectedIds1;
@@ -511,19 +578,74 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(expectedIds.Length, tokenizer.CountTokens(text));
             Assert.Equal(expectedIds.Length, tokenizer.CountTokens(text.AsSpan()));
 
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 7].Index + expectedOffsets[expectedOffsets.Length - 7].Length, tokenizer.IndexOfTokenCount(text, expectedIds.Length - 6, out string? normalizedString, out int tokenCount));
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 7].Index + expectedOffsets[expectedOffsets.Length - 7].Length, tokenizer.GetIndexByTokenCount(text, expectedIds.Length - 6, out string? normalizedString, out int tokenCount));
             Assert.Equal(normalizedText, normalizedString);
             Assert.Equal(expectedIds.Length - 6, tokenCount);
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 7].Index + expectedOffsets[expectedOffsets.Length - 7].Length, tokenizer.IndexOfTokenCount(text.AsSpan(), expectedIds.Length - 6, out normalizedString, out tokenCount));
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 7].Index + expectedOffsets[expectedOffsets.Length - 7].Length, tokenizer.GetIndexByTokenCount(text.AsSpan(), expectedIds.Length - 6, out normalizedString, out tokenCount));
             Assert.Equal(normalizedText, normalizedString);
             Assert.Equal(expectedIds.Length - 6, tokenCount);
 
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 7].Index, tokenizer.LastIndexOfTokenCount(text, 7, out normalizedString, out tokenCount));
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 7].Index, tokenizer.GetIndexByTokenCountFromEnd(text, 7, out normalizedString, out tokenCount));
             Assert.Equal(normalizedText, normalizedString);
             Assert.Equal(7, tokenCount);
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 7].Index, tokenizer.LastIndexOfTokenCount(text.AsSpan(), 7, out normalizedString, out tokenCount));
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 7].Index, tokenizer.GetIndexByTokenCountFromEnd(text.AsSpan(), 7, out normalizedString, out tokenCount));
             Assert.Equal(normalizedText, normalizedString);
             Assert.Equal(7, tokenCount);
+        }
+
+        [Fact]
+        public void TestPhi3Tokenizer()
+        {
+            LlamaTokenizer tokenizer = (_llamaPhi3Tokenizer as LlamaTokenizer)!;
+            Assert.True(tokenizer.AddedTokens is not null);
+
+            StringBuilder sb = new(); // Create bigger string containing all Added Tokens
+            IReadOnlyList<EncodedToken> encodedTokens;
+            IReadOnlyList<int> encodedIds;
+            int tokenCount;
+            string? normalizedString;
+
+            foreach (var kvp in tokenizer.AddedTokens)
+            {
+                encodedTokens = tokenizer.EncodeToTokens(kvp.Key, out normalizedString);
+                Assert.Equal(new[] { tokenizer.BeginningOfSentenceToken, DummyPrefix, kvp.Key }, encodedTokens.Select(et => et.Value).ToArray());
+                Assert.Equal(new[] { tokenizer.BeginningOfSentenceId, tokenizer.Vocabulary[DummyPrefix], kvp.Value }, encodedTokens.Select(et => et.Id).ToArray());
+                Assert.Equal($"{DummyPrefix}{kvp.Key}", normalizedString);
+
+                encodedIds = tokenizer.EncodeToIds(kvp.Key);
+                Assert.Equal(encodedIds, encodedTokens.Select(et => et.Id).ToArray());
+
+                tokenCount = tokenizer.CountTokens(kvp.Key);
+                Assert.Equal(tokenCount, encodedTokens.Count);
+
+                sb.Append($" Hello{kvp.Key}");
+            }
+
+            string s = sb.ToString();
+            string expectedNormalizedString = $"{DummyPrefix}{s.Replace(' ', DummyPrefix[0])}";
+
+            encodedTokens = tokenizer.EncodeToTokens(s, out normalizedString, addBeginningOfSentence: false, addEndOfSentence: false);
+            Assert.Equal(expectedNormalizedString, normalizedString);
+
+            string[] addedTokens = tokenizer.AddedTokens.Keys.ToArray();
+
+            string accumulatedString = DummyPrefix;
+            string accumulatedStringFromEnd = "";
+
+            for (int i = 1; i <= encodedTokens.Count; i++)
+            {
+                int index = tokenizer.GetIndexByTokenCount(s, addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: i, out normalizedString, out tokenCount);
+                Assert.Equal(index, accumulatedString.Length);
+                Assert.Equal(i, tokenCount);
+
+                accumulatedString += i % 2 != 0 ? $"Hello{DummyPrefix}" : addedTokens[i / 2 - 1];
+
+                accumulatedStringFromEnd = (encodedTokens.Count == i ? DummyPrefix : (i % 2 == 0 ? $"{DummyPrefix}Hello" : addedTokens[addedTokens.Length - 1 - (i / 2)])) + accumulatedStringFromEnd;
+
+                index = tokenizer.GetIndexByTokenCountFromEnd(s, addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: i, considerNormalization: true, out normalizedString, out tokenCount);
+                Assert.Equal(i, tokenCount);
+                Assert.Equal(index, normalizedString!.Length - accumulatedStringFromEnd.Length);
+            }
         }
     }
 }
