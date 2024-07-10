@@ -31,7 +31,7 @@ variables:
   value: 1es-windows-2019
 - name: MacImage
   value: macOS-12
-- ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/publish-source-index-directly-from-repo')) }}:
+- ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
   - name: enableSourceIndex
     value: true
 - template: /eng/common/templates-official/variables/pool-providers.yml@self
