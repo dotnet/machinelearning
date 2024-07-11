@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+    <PackageReference Include="TorchSharp" Version="0.102.5" />
+    <PackageReference Include="libtorch-cpu-win-x64" Version="2.2.1.1" Condition="$([MSBuild]::IsOSPlatform('Windows'))" PrivateAssets="all" />
+    <PackageReference Include="libtorch-cpu-linux-x64" Version="2.2.1.1" Condition="$([MSBuild]::IsOSPlatform('Linux'))" PrivateAssets="all" />
+    <PackageReference Include="libtorch-cpu-osx-x64" Version="2.2.1.1" Condition="$([MSBuild]::IsOSPlatform('OSX'))" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj" />
+  </ItemGroup>
+
+</Project>
