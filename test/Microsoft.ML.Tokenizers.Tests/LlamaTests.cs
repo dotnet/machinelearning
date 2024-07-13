@@ -4,14 +4,15 @@
 
 using Microsoft.ML.Tokenizers;
 using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Linq;
-using System.IO;
-using Xunit;
 using System.Buffers;
-using Microsoft.VisualBasic;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
+using Xunit;
 
 namespace Microsoft.ML.Tokenizers.Tests
 {
@@ -21,6 +22,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         private static Tokenizer _llamaTokenizer = CreateLlamaTokenizer();
         private static Tokenizer _llamaMistralTokenizer = CreateLMistralTokenizer();
         private static Tokenizer _llamaPhi3Tokenizer = CreateLPhi3Tokenizer();
+        private static Tokenizer _llamaPhi3TokenizerWithTreatSpaceSuffix = CreateLPhi3Tokenizer(treatWhitespaceAsSuffix: true);
         internal const string DummyPrefix = "\u2581"; // '▁' (LOWER ONE EIGHT BLOCK)
 
         private static Tokenizer CreateLlamaTokenizer()
@@ -38,15 +40,18 @@ namespace Microsoft.ML.Tokenizers.Tests
             return LlamaTokenizer.Create(remoteStream);
         }
 
-        private static Tokenizer CreateLPhi3Tokenizer()
+        private static Tokenizer CreateLPhi3Tokenizer(bool treatWhitespaceAsSuffix = false)
         {
             // Phi3 is using the same tokenizer.model used by Llama. https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/tree/main
             using Stream remoteStream = File.OpenRead(Path.Combine(@"Llama", "tokenizer.model"));
-            return LlamaTokenizer.Create(remoteStream, addBeginOfSentence: true, addEndOfSentence: false,
-                                            addedTokens: new Dictionary<string, int>
+            LlamaTokenizer tokenizer = LlamaTokenizer.Create(remoteStream, addBeginOfSentence: true, addEndOfSentence: false,
+                                            specialTokens: new Dictionary<string, int>
                                             {
                                                 // added tokens are picked up from https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/blob/main/tokenizer_config.json
-                                                { "<|endoftext|>" ,    32000},
+                                                { "<unk>",                 0 },
+                                                { "<s>",                   1 },
+                                                { "</s>",                  2 },
+                                                { "<|endoftext|>" ,    32000 },
                                                 { "<|assistant|>",     32001 },
                                                 { "<|placeholder1|>",  32002 },
                                                 { "<|placeholder2|>",  32003 },
@@ -58,6 +63,23 @@ namespace Microsoft.ML.Tokenizers.Tests
                                                 { "<|placeholder6|>",  32009 },
                                                 { "<|user|>",          32010 },
                                             });
+
+            if (treatWhitespaceAsSuffix)
+            {
+                PropertyInfo? propertyInfo = typeof(SentencePieceBpeTokenizer).GetProperty("TreatWhitespaceAsSuffix", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                if (propertyInfo != null)
+                {
+                    propertyInfo.SetValue(tokenizer, true);
+                }
+
+                propertyInfo = typeof(SentencePieceNormalizer).GetProperty("TreatWhitespaceAsSuffix", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                if (propertyInfo != null)
+                {
+                    propertyInfo.SetValue(tokenizer.Normalizer, true);
+                }
+            }
+
+            return tokenizer;
         }
 
         public static IEnumerable<object[]> LlamaTestData()
@@ -357,41 +379,58 @@ namespace Microsoft.ML.Tokenizers.Tests
         [Fact]
         public void TestSentencePieceNormalizer()
         {
-            SentencePieceNormalizer normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: false, addDummyPrefix: false, escapeWhiteSpaces: false, treatWhitespaceAsSuffix: false);
+            SentencePieceNormalizer normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: false, addDummyPrefix: false, escapeWhiteSpaces: false, treatWhitespaceAsSuffix: false, specialTokens: null);
             Assert.Equal("Hello,      World!", normalizer.Normalize("Hello,      World!"));
             Assert.Equal("Hello,      World!", normalizer.Normalize("Hello,      World!".AsSpan()));
 
-            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: true, addDummyPrefix: false, escapeWhiteSpaces: false, treatWhitespaceAsSuffix: false);
+            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: true, addDummyPrefix: false, escapeWhiteSpaces: false, treatWhitespaceAsSuffix: false, specialTokens: null);
             Assert.Equal("Hello, World!", normalizer.Normalize("Hello,      World!"));
             Assert.Equal("Hello, World!", normalizer.Normalize("Hello,      World!".AsSpan()));
 
-            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: true, addDummyPrefix: true, escapeWhiteSpaces: false, treatWhitespaceAsSuffix: false);
+            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: true, addDummyPrefix: true, escapeWhiteSpaces: false, treatWhitespaceAsSuffix: false, specialTokens: null);
             Assert.Equal(" Hello, World!", normalizer.Normalize("Hello,      World!"));
             Assert.Equal(" Hello, World!", normalizer.Normalize("Hello,      World!".AsSpan()));
 
-            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: true, addDummyPrefix: true, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: false);
+            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: true, addDummyPrefix: true, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: false, specialTokens: null);
             Assert.Equal("▁Hello,▁World!", normalizer.Normalize("Hello,      World!"));
             Assert.Equal("▁Hello,▁World!", normalizer.Normalize("Hello,      World!".AsSpan()));
 
-            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: false, addDummyPrefix: true, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: false);
+            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: false, addDummyPrefix: true, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: false, specialTokens: null);
             Assert.Equal("▁Hello,▁▁▁▁▁▁World!", normalizer.Normalize("Hello,      World!"));
             Assert.Equal("▁Hello,▁▁▁▁▁▁World!", normalizer.Normalize("Hello,      World!".AsSpan()));
 
-            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: true, addDummyPrefix: true, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: true);
+            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: true, addDummyPrefix: true, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: true, specialTokens: null);
             Assert.Equal("Hello,▁World!▁", normalizer.Normalize("Hello,      World!"));
             Assert.Equal("Hello,▁World!▁", normalizer.Normalize("Hello,      World!".AsSpan()));
 
-            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: true, addDummyPrefix: false, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: true);
+            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: true, addDummyPrefix: false, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: true, specialTokens: null);
             Assert.Equal("Hello,▁World!", normalizer.Normalize("Hello,      World!"));
             Assert.Equal("Hello,▁World!", normalizer.Normalize("Hello,      World!".AsSpan()));
 
-            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: false, addDummyPrefix: true, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: true);
+            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: false, addDummyPrefix: true, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: true, specialTokens: null);
             Assert.Equal("Hello,▁▁▁▁▁▁World!▁", normalizer.Normalize("Hello,      World!"));
             Assert.Equal("Hello,▁▁▁▁▁▁World!▁", normalizer.Normalize("Hello,      World!".AsSpan()));
 
-            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: false, addDummyPrefix: true, escapeWhiteSpaces: false, treatWhitespaceAsSuffix: true);
+            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: false, addDummyPrefix: true, escapeWhiteSpaces: false, treatWhitespaceAsSuffix: true, specialTokens: null);
             Assert.Equal("Hello,      World! ", normalizer.Normalize("Hello,      World!"));
             Assert.Equal("Hello,      World! ", normalizer.Normalize("Hello,      World!".AsSpan()));
+
+            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: false, addDummyPrefix: true, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: false, specialTokens: (_llamaPhi3Tokenizer as LlamaTokenizer)!.SpecialTokens);
+            Assert.Equal("<|user|>", normalizer.Normalize("<|user|>"));
+            Assert.Equal("<|user|><|system|><|assistant|><|endoftext|>", normalizer.Normalize("<|user|><|system|><|assistant|><|endoftext|>"));
+            Assert.Equal("▁Hello<|user|>", normalizer.Normalize("Hello<|user|>"));
+            Assert.Equal("▁Hello,▁<|user|>World", normalizer.Normalize("Hello, <|user|>World"));
+            Assert.Equal("<|endoftext|>▁Hello<|user|>", normalizer.Normalize("<|endoftext|>Hello<|user|>"));
+            Assert.Equal("", normalizer.Normalize(""));
+
+            normalizer = new SentencePieceNormalizer(removeExtraWhiteSpaces: false, addDummyPrefix: true, escapeWhiteSpaces: true, treatWhitespaceAsSuffix: true, specialTokens: (_llamaPhi3Tokenizer as LlamaTokenizer)!.SpecialTokens);
+            Assert.Equal("<|user|>", normalizer.Normalize("<|user|>"));
+            Assert.Equal("<|user|><|system|><|assistant|><|endoftext|>", normalizer.Normalize("<|user|><|system|><|assistant|><|endoftext|>"));
+            Assert.Equal("Hello▁<|user|>", normalizer.Normalize("Hello<|user|>"));
+            Assert.Equal("Hello,▁<|user|>World▁", normalizer.Normalize("Hello, <|user|>World"));
+            Assert.Equal("<|endoftext|>Hello▁<|user|>", normalizer.Normalize("<|endoftext|>Hello<|user|>"));
+            Assert.Equal("", normalizer.Normalize(""));
+
         }
 
         public static IEnumerable<object?[]> TokenizerTestData
@@ -597,7 +636,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         public void TestPhi3Tokenizer()
         {
             LlamaTokenizer tokenizer = (_llamaPhi3Tokenizer as LlamaTokenizer)!;
-            Assert.True(tokenizer.AddedTokens is not null);
+            Assert.True(tokenizer.SpecialTokens is not null);
 
             StringBuilder sb = new(); // Create bigger string containing all Added Tokens
             IReadOnlyList<EncodedToken> encodedTokens;
@@ -605,12 +644,12 @@ namespace Microsoft.ML.Tokenizers.Tests
             int tokenCount;
             string? normalizedString;
 
-            foreach (var kvp in tokenizer.AddedTokens)
+            foreach (var kvp in tokenizer.SpecialTokens)
             {
                 encodedTokens = tokenizer.EncodeToTokens(kvp.Key, out normalizedString);
-                Assert.Equal(new[] { tokenizer.BeginningOfSentenceToken, DummyPrefix, kvp.Key }, encodedTokens.Select(et => et.Value).ToArray());
-                Assert.Equal(new[] { tokenizer.BeginningOfSentenceId, tokenizer.Vocabulary[DummyPrefix], kvp.Value }, encodedTokens.Select(et => et.Id).ToArray());
-                Assert.Equal($"{DummyPrefix}{kvp.Key}", normalizedString);
+                Assert.Equal(new[] { tokenizer.BeginningOfSentenceToken, kvp.Key }, encodedTokens.Select(et => et.Value).ToArray());
+                Assert.Equal(new[] { tokenizer.BeginningOfSentenceId, kvp.Value }, encodedTokens.Select(et => et.Id).ToArray());
+                Assert.Equal($"{kvp.Key}", normalizedString);
 
                 encodedIds = tokenizer.EncodeToIds(kvp.Key);
                 Assert.Equal(encodedIds, encodedTokens.Select(et => et.Id).ToArray());
@@ -627,7 +666,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             encodedTokens = tokenizer.EncodeToTokens(s, out normalizedString, addBeginningOfSentence: false, addEndOfSentence: false);
             Assert.Equal(expectedNormalizedString, normalizedString);
 
-            string[] addedTokens = tokenizer.AddedTokens.Keys.ToArray();
+            string[] specialTokens = tokenizer.SpecialTokens.Keys.ToArray();
 
             string accumulatedString = DummyPrefix;
             string accumulatedStringFromEnd = "";
@@ -638,14 +677,226 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(index, accumulatedString.Length);
                 Assert.Equal(i, tokenCount);
 
-                accumulatedString += i % 2 != 0 ? $"Hello{DummyPrefix}" : addedTokens[i / 2 - 1];
+                accumulatedString += i % 2 != 0 ? $"Hello{DummyPrefix}" : specialTokens[i / 2 - 1];
 
-                accumulatedStringFromEnd = (encodedTokens.Count == i ? DummyPrefix : (i % 2 == 0 ? $"{DummyPrefix}Hello" : addedTokens[addedTokens.Length - 1 - (i / 2)])) + accumulatedStringFromEnd;
+                accumulatedStringFromEnd = (encodedTokens.Count == i ? DummyPrefix : (i % 2 == 0 ? $"{DummyPrefix}Hello" : specialTokens[specialTokens.Length - 1 - (i / 2)])) + accumulatedStringFromEnd;
 
                 index = tokenizer.GetIndexByTokenCountFromEnd(s, addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: i, considerNormalization: true, out normalizedString, out tokenCount);
                 Assert.Equal(i, tokenCount);
                 Assert.Equal(index, normalizedString!.Length - accumulatedStringFromEnd.Length);
             }
+        }
+
+        public static IEnumerable<object[]> Phi3TestData()
+        {
+            // text to tokenize,
+            // Decode text without special tokens,
+            // expected ids
+            // expected ids when using space suffix
+            yield return new object[]
+            {
+                "Can you provide ways to eat combinations of bananas and dragonfruits?",
+                "Can you provide ways to eat combinations of bananas and dragonfruits?",
+                new int[]
+                {
+                    1, 1815, 366, 3867, 5837, 304, 17545, 18240, 310, 9892, 16397, 322, 8338, 265, 29888, 21211, 29973
+                },
+                new int[]
+                {
+                    1, 6028, 366, 3867, 5837, 304, 17545, 18240, 310, 9892, 16397, 322, 8338, 265, 29888, 21211, 29973, 29871
+                }
+            };
+
+            yield return new object[]
+            {
+                "Sure! Here are some ways to eat bananas and dragonfruits together: 1. Banana and dragonfruit smoothie: Blend bananas and dragonfruits together with some milk and honey. 2." +
+                " Banana and dragonfruit salad: Mix sliced bananas and dragonfruits together with some lemon juice and honey.",
+                "Sure! Here are some ways to eat bananas and dragonfruits together: 1. Banana and dragonfruit smoothie: Blend bananas and dragonfruits together with some milk and honey. 2." +
+                " Banana and dragonfruit salad: Mix sliced bananas and dragonfruits together with some lemon juice and honey.",
+                new int[]
+                {
+                    1, 18585, 29991, 2266, 526, 777, 5837, 304, 17545, 9892, 16397, 322, 8338, 265, 29888, 21211, 4208, 29901, 29871, 29896, 29889, 10765, 1648, 322, 8338, 265, 29888,
+                    9216, 10597, 347, 29901, 3164, 355, 9892, 16397, 322, 8338, 265, 29888, 21211, 4208, 411, 777, 27274, 322, 298, 4992, 29889, 29871, 29906, 29889, 10765, 1648, 322,
+                    8338, 265, 29888, 9216, 4497, 328, 29901, 23478, 269, 506, 287, 9892, 16397, 322, 8338, 265, 29888, 21211, 4208, 411, 777, 454, 3712, 3623, 625, 322, 298, 4992, 29889
+                },
+                new int[]
+                {
+                    1, 29903, 545, 29991, 2266, 526, 777, 5837, 304, 17545, 9892, 16397, 322, 8338, 265, 29888, 21211, 4208, 29901, 29871, 29896, 29889, 10765, 1648, 322, 8338, 265, 29888,
+                    9216, 10597, 347, 29901, 3164, 355, 9892, 16397, 322, 8338, 265, 29888, 21211, 4208, 411, 777, 27274, 322, 298, 4992, 29889, 29871, 29906, 29889, 10765, 1648, 322, 8338,
+                    265, 29888, 9216, 4497, 328, 29901, 23478, 269, 506, 287, 9892, 16397, 322, 8338, 265, 29888, 21211, 4208, 411, 777, 454, 3712, 3623, 625, 322, 298, 4992, 29889, 29871
+                }
+            };
+
+            yield return new object[]
+            {
+                "What about solving an 2x + 3 = 7 equation?",
+                "What about solving an 2x + 3 = 7 equation?",
+                new int[]
+                {
+                    1, 1724, 1048, 17069, 385, 29871, 29906, 29916, 718, 29871, 29941, 353, 29871, 29955, 6306, 29973
+                },
+                new int[]
+                {
+                    1, 5618, 1048, 17069, 385, 29871, 29906, 29916, 718, 29871, 29941, 353, 29871, 29955, 6306, 29973, 29871
+                }
+            };
+
+            yield return new object[]
+            {
+                "\nCount to 3\n",
+                "\nCount to 3\n",
+                new int[]
+                {
+                    1, 29871, 13, 3981, 304, 29871, 29941, 13
+                },
+                new int[]
+                {
+                    1, 13, 3981, 304, 29871, 29941, 13, 29871
+                }
+            };
+
+            yield return new object[]
+            {
+                "<|user|>",
+                "",
+                new int[]
+                {
+                    1, 32010
+                },
+                new int[]
+                {
+                    1, 32010
+                }
+            };
+
+            yield return new object[]
+            {
+                "<|end|>",
+                "",
+                new int[]
+                {
+                    1, 32007
+                },
+                new int[]
+                {
+                    1, 32007
+                }
+            };
+
+            yield return new object[]
+            {
+                "<|assistant|>",
+                "",
+                new int[]
+                {
+                    1, 32001
+                },
+                new int[]
+                {
+                    1, 32001
+                }
+            };
+
+            yield return new object[]
+            {
+                "<|user|>\nCount to 3<|end|>\n<|assistant|>",
+                "\nCount to 3\n",
+                new int[]
+                {
+                    1, 32010, 29871, 13, 3981, 304, 29871, 29941, 32007, 13, 32001
+                },
+                new int[]
+                {
+                    1, 32010, 13, 3981, 304, 29871, 29941, 32007, 13, 29871, 32001
+                }
+            };
+        }
+
+        [Theory]
+        [MemberData(nameof(Phi3TestData))]
+        public void TestPhi3TokenizerIdEncoding(string text, string decodedWithNoSpecialTokens, int[] expectedIds, int[] expectedIdsWithSuffix)
+        {
+            LlamaTokenizer tokenizer = (_llamaPhi3Tokenizer as LlamaTokenizer)!;
+            var ids = tokenizer.EncodeToIds(text);
+            Assert.Equal(expectedIds, ids);
+            Assert.Equal(decodedWithNoSpecialTokens, tokenizer.Decode(expectedIds));
+            string textWithSpecialTokens = $"{tokenizer.BeginningOfSentenceToken}{text}";
+            Assert.Equal(textWithSpecialTokens, tokenizer.Decode(expectedIds, considerSpecialTokens: true));
+
+            char[] destinationBuffer = new char[decodedWithNoSpecialTokens.Length];
+
+            int idsConsumed;
+            int charactersWritten;
+
+            for (int i = 1; i < destinationBuffer.Length - 1; i += Math.Max(1, destinationBuffer.Length - 3)) // enough to test length 1, and destinationBuffer.Length - 2 only.
+            {
+                Assert.Equal(OperationStatus.DestinationTooSmall, tokenizer.Decode(ids, destinationBuffer.AsSpan().Slice(0, i), out idsConsumed, out charactersWritten));
+                Assert.True(idsConsumed < ids.Count);
+                Assert.True(decodedWithNoSpecialTokens.AsSpan().StartsWith(destinationBuffer.AsSpan().Slice(0, charactersWritten)));
+            }
+
+            Assert.Equal(OperationStatus.Done, tokenizer.Decode(ids, destinationBuffer.AsSpan(), out idsConsumed, out charactersWritten));
+            Assert.Equal(ids.Count, idsConsumed);
+            Assert.Equal(decodedWithNoSpecialTokens.Length, charactersWritten);
+            Assert.Equal(decodedWithNoSpecialTokens, destinationBuffer.AsSpan().ToString());
+
+            destinationBuffer = new char[textWithSpecialTokens.Length];
+
+            for (int i = 1; i < destinationBuffer.Length - 1; i += Math.Max(1, destinationBuffer.Length - 3)) // enough to test length 1, and destinationBuffer.Length - 2 only.
+            {
+                Assert.Equal(OperationStatus.DestinationTooSmall, tokenizer.Decode(ids, destinationBuffer.AsSpan().Slice(0, i), considerSpecialTokens: true, out idsConsumed, out charactersWritten));
+                Assert.True(idsConsumed < ids.Count);
+                Assert.True(textWithSpecialTokens.AsSpan().StartsWith(destinationBuffer.AsSpan().Slice(0, charactersWritten)));
+            }
+
+            Assert.Equal(OperationStatus.Done, tokenizer.Decode(ids, destinationBuffer.AsSpan(), considerSpecialTokens: true, out idsConsumed, out charactersWritten));
+            Assert.Equal(ids.Count, idsConsumed);
+            Assert.Equal(textWithSpecialTokens.Length, charactersWritten);
+            Assert.Equal(textWithSpecialTokens, destinationBuffer.AsSpan().ToString());
+
+            LlamaTokenizer tokenizerWithSuffix = (_llamaPhi3TokenizerWithTreatSpaceSuffix as LlamaTokenizer)!;
+            Assert.True(tokenizerWithSuffix.TreatWhitespaceAsSuffix);
+            ids = tokenizerWithSuffix.EncodeToIds(text);
+            Assert.Equal(expectedIdsWithSuffix, ids);
+            Assert.Equal(decodedWithNoSpecialTokens, tokenizerWithSuffix.Decode(expectedIdsWithSuffix));
+            Assert.Equal(textWithSpecialTokens, tokenizerWithSuffix.Decode(expectedIdsWithSuffix, considerSpecialTokens: true));
+
+            //
+            // Test with suffix instead of prefix
+            //
+
+            destinationBuffer = new char[decodedWithNoSpecialTokens.Length + 1]; // one extra for suffix
+
+            for (int i = 1; i < destinationBuffer.Length - 1; i += Math.Max(1, destinationBuffer.Length - 3)) // enough to test length 1, and destinationBuffer.Length - 2 only.
+            {
+                Assert.Equal(OperationStatus.DestinationTooSmall, tokenizerWithSuffix.Decode(ids, destinationBuffer.AsSpan().Slice(0, i), out idsConsumed, out charactersWritten));
+                Assert.True(idsConsumed < ids.Count);
+                Assert.True(decodedWithNoSpecialTokens.AsSpan().StartsWith(destinationBuffer.AsSpan().Slice(0, charactersWritten)));
+            }
+
+            Assert.Equal(OperationStatus.Done, tokenizerWithSuffix.Decode(ids, destinationBuffer.AsSpan(), out idsConsumed, out charactersWritten));
+            Assert.Equal(ids.Count, idsConsumed);
+            Assert.Equal(decodedWithNoSpecialTokens.Length, charactersWritten);
+            Assert.Equal(decodedWithNoSpecialTokens, destinationBuffer.AsSpan().Slice(0, charactersWritten).ToString());
+
+            destinationBuffer = new char[textWithSpecialTokens.Length + 1];
+
+            for (int i = 1; i < destinationBuffer.Length - 1; i += Math.Max(1, destinationBuffer.Length - 3)) // enough to test length 1, and destinationBuffer.Length - 2 only.
+            {
+                Assert.Equal(OperationStatus.DestinationTooSmall, tokenizerWithSuffix.Decode(ids, destinationBuffer.AsSpan().Slice(0, i), considerSpecialTokens: true, out idsConsumed, out charactersWritten));
+                Assert.True(idsConsumed < ids.Count);
+                var sp = destinationBuffer.AsSpan().Slice(0, charactersWritten);
+                if (sp.Length > 0 && sp[sp.Length - 1] == ' ')
+                {
+                    sp = sp.Slice(0, sp.Length - 1);
+                }
+                Assert.True(textWithSpecialTokens.AsSpan().StartsWith(sp));
+            }
+
+            Assert.Equal(OperationStatus.Done, tokenizerWithSuffix.Decode(ids, destinationBuffer.AsSpan(), considerSpecialTokens: true, out idsConsumed, out charactersWritten));
+            Assert.Equal(ids.Count, idsConsumed);
+            Assert.Equal(textWithSpecialTokens.Length, charactersWritten);
+            Assert.Equal(textWithSpecialTokens, destinationBuffer.AsSpan(0, charactersWritten).ToString());
         }
     }
 }

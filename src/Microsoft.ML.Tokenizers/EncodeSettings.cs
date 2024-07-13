@@ -21,11 +21,6 @@ namespace Microsoft.ML.Tokenizers
         public bool ConsiderPreTokenization { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether to produce the normalized string during encoding.
-        /// </summary>
-        public bool ProduceNormalizedString { get; set; }
-
-        /// <summary>
         /// Gets or sets the maximum number of tokens to generate.
         /// </summary>
         public int MaxTokenCount { get; set; }

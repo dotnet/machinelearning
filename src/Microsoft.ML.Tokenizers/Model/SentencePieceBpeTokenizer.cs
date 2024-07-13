@@ -32,18 +32,18 @@ namespace Microsoft.ML.Tokenizers
         private readonly int _byteCodeToIdOffset; // offset of mapping byte code to the to the Ids.
         private readonly int _oneByteUtf8EncodingMaxId; // the maximum value of the one byte UTF-8 character.
         private readonly Normalizer? _normalizer;
-        private readonly Regex? _addedTokensRegex;
-        private readonly Dictionary<StringSpanOrdinalKey, int>? _addedTokens;
-        private readonly Dictionary<int, string>? _addedTokensReverse;
+        private readonly Regex? _specialTokensRegex;
+        private readonly Dictionary<StringSpanOrdinalKey, int>? _specialTokens;
+        private readonly Dictionary<int, string>? _specialTokensReverse;
 
-        internal SentencePieceBpeTokenizer(ModelProto modelProto, bool addBos, bool addEos, IReadOnlyDictionary<string, int>? addedTokens = null) :
-            this(modelProto is null ? throw new ArgumentNullException(nameof(modelProto)) : modelProto, addedTokens)
+        internal SentencePieceBpeTokenizer(ModelProto modelProto, bool addBos, bool addEos, IReadOnlyDictionary<string, int>? specialTokens = null) :
+            this(modelProto is null ? throw new ArgumentNullException(nameof(modelProto)) : modelProto, specialTokens)
         {
             AddBeginningOfSentence = addBos;
             AddEndOfSentence = addEos;
         }
 
-        private SentencePieceBpeTokenizer(ModelProto modelProto, IReadOnlyDictionary<string, int>? addedTokens)
+        private SentencePieceBpeTokenizer(ModelProto modelProto, IReadOnlyDictionary<string, int>? specialTokens)
         {
             for (int i = 0; i < modelProto.Pieces.Count; i++)
             {
@@ -72,25 +72,25 @@ namespace Microsoft.ML.Tokenizers
             TreatWhitespaceAsSuffix = modelProto.TrainerSpec.TreatWhitespaceAsSuffix;
             ByteFallback = modelProto.TrainerSpec.ByteFallback;
 
-            _normalizer = new SentencePieceNormalizer(modelProto.NormalizerSpec.RemoveExtraWhitespaces, AddDummyPrefix, EscapeWhiteSpaces, modelProto.TrainerSpec.TreatWhitespaceAsSuffix);
-            AddedTokens = addedTokens;
+            SpecialTokens = specialTokens;
+            _normalizer = new SentencePieceNormalizer(modelProto.NormalizerSpec.RemoveExtraWhitespaces, AddDummyPrefix, EscapeWhiteSpaces, modelProto.TrainerSpec.TreatWhitespaceAsSuffix, specialTokens);
 
-            if (addedTokens is not null && addedTokens.Count > 0)
+            if (specialTokens is not null && specialTokens.Count > 0)
             {
-                _addedTokens = new Dictionary<StringSpanOrdinalKey, int>();
-                _addedTokensReverse = new Dictionary<int, string>();
+                _specialTokens = new Dictionary<StringSpanOrdinalKey, int>();
+                _specialTokensReverse = new Dictionary<int, string>();
 
-                foreach (var item in addedTokens)
+                foreach (var item in specialTokens)
                 {
-                    _addedTokens.Add(new StringSpanOrdinalKey(item.Key), item.Value);
-                    _addedTokensReverse.Add(item.Value, item.Key);
+                    _specialTokens.Add(new StringSpanOrdinalKey(item.Key), item.Value);
+                    _specialTokensReverse.Add(item.Value, item.Key);
                 }
 
-                _addedTokensRegex = new Regex(string.Join("|", addedTokens.Keys.Select(s => Regex.Escape(s))), RegexOptions.Compiled);
+                _specialTokensRegex = new Regex(string.Join("|", specialTokens.Keys.Select(s => Regex.Escape(s))), RegexOptions.Compiled);
             }
         }
 
-        public IReadOnlyDictionary<string, int>? AddedTokens { get; }
+        public IReadOnlyDictionary<string, int>? SpecialTokens { get; }
 
         /// <summary>
         /// Specifies whether the model will do a byte fallback when it encounters unknown tokens during the encoding process.
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Indicate emitting the character U+2581 at the end of the last sentence token instead beginning of sentence token during the normalization and encoding.
         /// </summary>
-        public bool TreatWhitespaceAsSuffix { get; }
+        public bool TreatWhitespaceAsSuffix { get; private set; }
 
         /// <summary>
         /// Indicate emitting the beginning of sentence token during the encoding.
@@ -254,9 +254,9 @@ namespace Microsoft.ML.Tokenizers
 
             List<EncodedToken>? tokens = new();
 
-            if (_addedTokensRegex is not null)
+            if (_specialTokensRegex is not null)
             {
-                EncodeWithAddedTokens(textToEncode, addBeginningOfSentence, addEndOfSentence, tokens);
+                EncodeWithSpecialTokens(textToEncode, addBeginningOfSentence, addEndOfSentence, tokens);
             }
             else
             {
@@ -266,9 +266,9 @@ namespace Microsoft.ML.Tokenizers
             return tokens;
         }
 
-        private void EncodeWithAddedTokens(ReadOnlySpan<char> text, bool addBeginOfSentence, bool addEndOfSentence, List<EncodedToken> tokens)
+        private void EncodeWithSpecialTokens(ReadOnlySpan<char> text, bool addBeginOfSentence, bool addEndOfSentence, List<EncodedToken> tokens)
         {
-            Debug.Assert(_addedTokensRegex is not null);
+            Debug.Assert(_specialTokensRegex is not null);
 
             if (addBeginOfSentence)
             {
@@ -277,16 +277,16 @@ namespace Microsoft.ML.Tokenizers
 
             int currentOffset = 0;
 
-            foreach ((int Offset, int Length) in PreTokenizer.SplitText(text, _addedTokensRegex!))
+            foreach ((int Offset, int Length) in PreTokenizer.SplitText(text, _specialTokensRegex!))
             {
                 if (Offset > currentOffset)
                 {
                     EncodeInternal(text.Slice(currentOffset, Offset - currentOffset), addBeginOfSentence: false, addEndOfSentence: false, tokens);
                 }
 
-                if (_addedTokens!.TryGetValue(text.Slice(Offset, Length), out int id))
+                if (_specialTokens!.TryGetValue(text.Slice(Offset, Length), out int id))
                 {
-                    tokens.Add(new EncodedToken(id, _addedTokensReverse![id], (Offset, Length)));
+                    tokens.Add(new EncodedToken(id, _specialTokensReverse![id], (Offset, Length)));
                 }
 
                 currentOffset = Offset + Length;
@@ -577,7 +577,7 @@ namespace Microsoft.ML.Tokenizers
 
             List<int> ids = new();
 
-            if (_addedTokensRegex is not null)
+            if (_specialTokensRegex is not null)
             {
                 EncodeToIdsWithAddedToken(textToEncode, addBeginningOfSentence, addEndOfSentence, ids, out charsConsumed, maxTokenCount);
             }
@@ -591,7 +591,7 @@ namespace Microsoft.ML.Tokenizers
 
         private int EncodeToIdsWithAddedToken(ReadOnlySpan<char> text, bool addBeginOfSentence, bool addEndOfSentence, IList<int> accumulatedIds, out int charsConsumed, int maxTokens = int.MaxValue)
         {
-            Debug.Assert(_addedTokensRegex is not null);
+            Debug.Assert(_specialTokensRegex is not null);
             Debug.Assert(maxTokens > 0);
 
             charsConsumed = 0;
@@ -607,7 +607,7 @@ namespace Microsoft.ML.Tokenizers
 
             int charsWritten;
 
-            foreach ((int Offset, int Length) in PreTokenizer.SplitText(text, _addedTokensRegex!))
+            foreach ((int Offset, int Length) in PreTokenizer.SplitText(text, _specialTokensRegex!))
             {
                 if (Offset > currentOffset)
                 {
@@ -615,7 +615,7 @@ namespace Microsoft.ML.Tokenizers
                     charsConsumed += charsWritten;
                 }
 
-                if (idsCount < maxTokens && _addedTokens!.TryGetValue(text.Slice(Offset, Length), out int id))
+                if (idsCount < maxTokens && _specialTokens!.TryGetValue(text.Slice(Offset, Length), out int id))
                 {
                     accumulatedIds.Add(id);
                     idsCount++;
@@ -918,14 +918,14 @@ namespace Microsoft.ML.Tokenizers
                 textToEncode = text;
             }
 
-            return _addedTokensRegex is not null ?
-                CountTokensWithAddedTokens(textToEncode, addBeginningOfSentence, addEndOfSentence, out charsConsumed, maxTokenCount) :
+            return _specialTokensRegex is not null ?
+                CountTokensWithSpecialTokens(textToEncode, addBeginningOfSentence, addEndOfSentence, out charsConsumed, maxTokenCount) :
                 CountTokens(textToEncode, addBeginningOfSentence, addEndOfSentence, out charsConsumed, maxTokenCount);
         }
 
-        private int CountTokensWithAddedTokens(ReadOnlySpan<char> text, bool addBeginOfSentence, bool addEndOfSentence, out int charsConsumed, int maxTokens = int.MaxValue)
+        private int CountTokensWithSpecialTokens(ReadOnlySpan<char> text, bool addBeginOfSentence, bool addEndOfSentence, out int charsConsumed, int maxTokens = int.MaxValue)
         {
-            Debug.Assert(_addedTokensRegex is not null);
+            Debug.Assert(_specialTokensRegex is not null);
             Debug.Assert(maxTokens > 0);
 
             charsConsumed = 0;
@@ -940,7 +940,7 @@ namespace Microsoft.ML.Tokenizers
 
             int charsWritten;
 
-            foreach ((int Offset, int Length) in PreTokenizer.SplitText(text, _addedTokensRegex!))
+            foreach ((int Offset, int Length) in PreTokenizer.SplitText(text, _specialTokensRegex!))
             {
                 if (Offset > currentOffset)
                 {
@@ -948,7 +948,7 @@ namespace Microsoft.ML.Tokenizers
                     charsConsumed += charsWritten;
                 }
 
-                if (idsCount < maxTokens && _addedTokens!.TryGetValue(text.Slice(Offset, Length), out int id))
+                if (idsCount < maxTokens && _specialTokens!.TryGetValue(text.Slice(Offset, Length), out int id))
                 {
                     idsCount++;
                     charsConsumed += Length;
@@ -1272,9 +1272,9 @@ namespace Microsoft.ML.Tokenizers
             }
 
             int textIndex;
-            if (_addedTokensRegex is not null)
+            if (_specialTokensRegex is not null)
             {
-                tokenCount = CountTokensFromEndWithAddedTokens(textToEncode, addBeginningOfSentence, addEndOfSentence, out textIndex, maxTokenCount);
+                tokenCount = CountTokensFromEndWithSpecialTokens(textToEncode, addBeginningOfSentence, addEndOfSentence, out textIndex, maxTokenCount);
             }
             else
             {
@@ -1284,9 +1284,9 @@ namespace Microsoft.ML.Tokenizers
             return textIndex;
         }
 
-        private int CountTokensFromEndWithAddedTokens(ReadOnlySpan<char> text, bool addBeginOfSentence, bool addEndOfSentence, out int textIndex, int maxTokens)
+        private int CountTokensFromEndWithSpecialTokens(ReadOnlySpan<char> text, bool addBeginOfSentence, bool addEndOfSentence, out int textIndex, int maxTokens)
         {
-            Debug.Assert(_addedTokensRegex is not null);
+            Debug.Assert(_specialTokensRegex is not null);
             Debug.Assert(maxTokens > 0);
             Debug.Assert(text.Length > 0);
 
@@ -1298,7 +1298,7 @@ namespace Microsoft.ML.Tokenizers
                 idsCount++;
             }
 
-            (int Offset, int Length)[] splits = PreTokenizer.SplitText(text, _addedTokensRegex!).ToArray();
+            (int Offset, int Length)[] splits = PreTokenizer.SplitText(text, _specialTokensRegex!).ToArray();
 
             if (splits.Length == 0)
             {
@@ -1321,7 +1321,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 current = splits[i];
 
-                if (_addedTokens!.TryGetValue(text.Slice(current.Offset, current.Length), out int id))
+                if (_specialTokens!.TryGetValue(text.Slice(current.Offset, current.Length), out int id))
                 {
                     idsCount++;
                 }
@@ -1527,6 +1527,15 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="ids">The list of ids that we want to decode.</param>
         /// <returns>The decoded string.</returns>
         public override string? Decode(IEnumerable<int> ids)
+            => Decode(ids, considerSpecialTokens: false);
+
+        /// <summary>
+        /// Decode the given ids, back to a String.
+        /// </summary>
+        /// <param name="ids">The list of ids that we want to decode.</param>
+        /// <param name="considerSpecialTokens">Indicate whether to consider special tokens during decoding.</param>
+        /// <returns>The decoded string.</returns>
+        public string? Decode(IEnumerable<int> ids, bool considerSpecialTokens)
         {
             if (ids is null)
             {
@@ -1539,18 +1548,26 @@ namespace Microsoft.ML.Tokenizers
                 return string.Empty;
             }
 
+            ValueStringBuilder sb = new(stackalloc char[256]);
             if (enumerator.Current == BeginningOfSentenceId)
             {
+                if (considerSpecialTokens)
+                {
+                    sb.Append(BeginningOfSentenceToken);
+                }
+
                 // escape prefix control tokens.
                 if (!enumerator.MoveNext())
                 {
-                    return string.Empty;
+                    return sb.Length == 0 ? string.Empty : sb.ToString();
                 }
             }
 
             int bytesCount = -1;
             byte[]? bytesPoolArray = null;
-            ValueStringBuilder sb = new(stackalloc char[256]);
+            bool prefixRemoved = false;
+            int suffixIndex = -1;
+            char prefixSuffixChar = EscapeWhiteSpaces ? SentencePieceNormalizer.DummyPrefix : ' ';
 
             if (enumerator.Current <= _maxByteId)
             {
@@ -1576,10 +1593,11 @@ namespace Microsoft.ML.Tokenizers
             }
             else if (_vocabReverse.TryGetValue(enumerator.Current, out string? token))
             {
-                // escape the dummy prefix if needed.
-                sb.Append(AddDummyPrefix && !TreatWhitespaceAsSuffix && token.Length > 0 && token[0] == SentencePieceNormalizer.DummyPrefix ?
-                                    token.AsSpan(1) :
-                                    token.AsSpan());
+                AppendTokenWithCheckingPrefix(AddDummyPrefix, TreatWhitespaceAsSuffix, token, prefixSuffixChar, ref sb, ref prefixRemoved, ref suffixIndex);
+            }
+            else if (considerSpecialTokens && _specialTokensReverse is not null && _specialTokensReverse.TryGetValue(enumerator.Current, out string? specialToken))
+            {
+                sb.Append(specialToken);
             }
 
             char[]? charPoolArray = null;
@@ -1622,7 +1640,11 @@ namespace Microsoft.ML.Tokenizers
 
                     if (_vocabReverse.TryGetValue(enumerator.Current, out string? token))
                     {
-                        sb.Append(token);
+                        AppendTokenWithCheckingPrefix(AddDummyPrefix, TreatWhitespaceAsSuffix, token, prefixSuffixChar, ref sb, ref prefixRemoved, ref suffixIndex);
+                    }
+                    else if (considerSpecialTokens && _specialTokensReverse is not null && _specialTokensReverse.TryGetValue(enumerator.Current, out string? specialToken))
+                    {
+                        sb.Append(specialToken);
                     }
                 }
             }
@@ -1632,9 +1654,12 @@ namespace Microsoft.ML.Tokenizers
                 FlushBytes(ref bytesCount, ref bytesPoolArray, ref charPoolArray, ref sb);
             }
 
-            if (AddDummyPrefix && TreatWhitespaceAsSuffix && sb.Length > 0 && sb[sb.Length - 1] == SentencePieceNormalizer.DummyPrefix)
+            if (AddDummyPrefix && TreatWhitespaceAsSuffix && suffixIndex >= 0 && sb.Length > 0)
             {
-                sb.RemoveLastChar();
+                Debug.Assert(sb[suffixIndex] == SentencePieceNormalizer.DummyPrefix);
+                Debug.Assert(sb.Length > suffixIndex);
+
+                sb.Remove(suffixIndex, 1);
             }
 
             if (bytesPoolArray is not null)
@@ -1647,7 +1672,7 @@ namespace Microsoft.ML.Tokenizers
                 ArrayPool<char>.Shared.Return(charPoolArray);
             }
 
-            return sb.ToString(SentencePieceNormalizer.DummyPrefix, ' ');
+            return EscapeWhiteSpaces ? sb.ToString(SentencePieceNormalizer.DummyPrefix, ' ') : sb.ToString();
 
             static void FlushBytes(ref int bytesCount, ref byte[]? bytesPoolArray, ref char[]? charPoolArray, ref ValueStringBuilder sb)
             {
@@ -1682,6 +1707,35 @@ namespace Microsoft.ML.Tokenizers
                     bytesPoolArray[0] = (byte)(id - byteCodeToIdOffset);
                 }
             }
+
+            static void AppendTokenWithCheckingPrefix(bool addDummyPrefix, bool treatWhitespaceAsSuffix, string token, char prefixSuffixChar, ref ValueStringBuilder sb, ref bool prefixRemoved, ref int suffixIndex)
+            {
+                if (token.Length == 0)
+                {
+                    return;
+                }
+
+                if (!addDummyPrefix)
+                {
+                    sb.Append(token);
+                    return;
+                }
+
+                if (treatWhitespaceAsSuffix)
+                {
+                    sb.Append(token);
+                    if (token[token.Length - 1] == prefixSuffixChar)
+                    {
+                        suffixIndex = sb.Length - 1;
+                    }
+                }
+                else
+                {
+                    sb.Append(!prefixRemoved && token[0] == prefixSuffixChar ? token.AsSpan(1) : token.AsSpan());
+                }
+
+                prefixRemoved = true;
+            }
         }
 
         /// <summary>
@@ -1693,6 +1747,18 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="charsWritten">The number of characters written to the destination span.</param>
         /// <returns>The operation status indicates whether all IDs were successfully decoded or if the <paramref name="destination"/> is too small to contain the entire decoded result.</returns>
         public override OperationStatus Decode(IEnumerable<int> ids, Span<char> destination, out int idsConsumed, out int charsWritten)
+            => Decode(ids, destination, considerSpecialTokens: false, out idsConsumed, out charsWritten);
+
+        /// <summary>
+        /// Decode the given ids back to text and store the result in the <paramref name="destination"/> span.
+        /// </summary>
+        /// <param name="ids">The list of ids that we want to decode.</param>
+        /// <param name="destination">The span to store the decoded text.</param>
+        /// /// <param name="considerSpecialTokens">Indicate whether to consider special tokens during decoding.</param>
+        /// <param name="idsConsumed">The number of ids consumed during the decoding.</param>
+        /// <param name="charsWritten">The number of characters written to the destination span.</param>
+        /// <returns>The operation status indicates whether all IDs were successfully decoded or if the <paramref name="destination"/> is too small to contain the entire decoded result.</returns>
+        public OperationStatus Decode(IEnumerable<int> ids, Span<char> destination, bool considerSpecialTokens, out int idsConsumed, out int charsWritten)
         {
             idsConsumed = 0;
             charsWritten = 0;
@@ -1708,9 +1774,24 @@ namespace Microsoft.ML.Tokenizers
                 return OperationStatus.Done;
             }
 
+            Span<char> buffer = destination;
+
             if (enumerator.Current == BeginningOfSentenceId)
             {
+                if (considerSpecialTokens)
+                {
+                    if (buffer.Length < BeginningOfSentenceToken.Length)
+                    {
+                        return OperationStatus.DestinationTooSmall;
+                    }
+
+                    BeginningOfSentenceToken.AsSpan().CopyTo(buffer);
+                    buffer = buffer.Slice(BeginningOfSentenceToken.Length);
+                    charsWritten += BeginningOfSentenceToken.Length;
+                }
+
                 idsConsumed++;
+
                 // escape prefix control tokens.
                 if (!enumerator.MoveNext())
                 {
@@ -1720,7 +1801,9 @@ namespace Microsoft.ML.Tokenizers
 
             int bytesCount = -1;
             byte[]? bytesPoolArray = null;
-            Span<char> buffer = destination;
+            bool prefixRemoved = false;
+            int suffixIndex = -1;
+            char prefixSuffixChar = EscapeWhiteSpaces ? SentencePieceNormalizer.DummyPrefix : ' ';
 
             if (enumerator.Current <= _maxByteId)
             {
@@ -1738,41 +1821,38 @@ namespace Microsoft.ML.Tokenizers
 
                 if (enumerator.Current <= _maxByteId)
                 {
-                    if (!EncodeByte(enumerator.Current, _oneByteUtf8EncodingMaxId, _byteCodeToIdOffset, ref bytesCount, ref buffer, ref charsWritten, ref idsConsumed, ref bytesPoolArray))
+                    if (!EncodeByte(enumerator.Current, _oneByteUtf8EncodingMaxId, _byteCodeToIdOffset, ref bytesCount, buffer, ref charsWritten, ref idsConsumed, ref bytesPoolArray))
                     {
                         return OperationStatus.DestinationTooSmall;
                     }
                 }
                 else if (_vocabReverse.TryGetValue(enumerator.Current, out string? token))
                 {
-                    if (buffer.Length < token.Length)
+                    if (!AppendTokenWithCheckingPrefix(AddDummyPrefix, TreatWhitespaceAsSuffix, token, prefixSuffixChar, destination, ref prefixRemoved, ref suffixIndex, ref idsConsumed, ref charsWritten))
                     {
                         return OperationStatus.DestinationTooSmall;
                     }
-
-                    token.AsSpan().CopyTo(buffer);
-                    buffer = buffer.Slice(token.Length);
-                    charsWritten += token.Length;
-                    idsConsumed++;
                 }
             }
             else if (_vocabReverse.TryGetValue(enumerator.Current, out string? token))
             {
-                // escape the dummy prefix if needed.
-                ReadOnlySpan<char> tokenSpan = AddDummyPrefix && !TreatWhitespaceAsSuffix && token.Length > 0 && token[0] == SentencePieceNormalizer.DummyPrefix ? token.AsSpan(1) : token.AsSpan();
-                if (buffer.Length < tokenSpan.Length)
+                if (!AppendTokenWithCheckingPrefix(AddDummyPrefix, TreatWhitespaceAsSuffix, token, prefixSuffixChar, destination, ref prefixRemoved, ref suffixIndex, ref idsConsumed, ref charsWritten))
                 {
                     return OperationStatus.DestinationTooSmall;
                 }
-
-                for (int i = 0; i < tokenSpan.Length; i++)
+            }
+            else if (_specialTokensReverse is not null && _specialTokensReverse.TryGetValue(enumerator.Current, out string? specialToken))
+            {
+                if (considerSpecialTokens)
                 {
-                    char c = tokenSpan[i];
-                    buffer[i] = c == SentencePieceNormalizer.DummyPrefix ? ' ' : c;
-                }
+                    if (buffer.Length < specialToken.Length)
+                    {
+                        return OperationStatus.DestinationTooSmall;
+                    }
 
-                buffer = buffer.Slice(tokenSpan.Length);
-                charsWritten += tokenSpan.Length;
+                    specialToken.AsSpan().CopyTo(buffer);
+                    charsWritten += specialToken.Length;
+                }
                 idsConsumed++;
             }
             else
@@ -1784,11 +1864,13 @@ namespace Microsoft.ML.Tokenizers
 
             while (enumerator.MoveNext())
             {
+                buffer = destination.Slice(charsWritten);
+
                 if (enumerator.Current < _byteCodeToIdOffset)
                 {
                     if (bytesCount >= 1)
                     {
-                        if (!FlushBytes(ref bytesCount, ref bytesPoolArray, ref charPoolArray, ref buffer, ref charsWritten, ref idsConsumed))
+                        if (!FlushBytes(ref bytesCount, ref bytesPoolArray, ref charPoolArray, buffer, ref charsWritten, ref idsConsumed))
                         {
                             return OperationStatus.DestinationTooSmall;
                         }
@@ -1813,7 +1895,7 @@ namespace Microsoft.ML.Tokenizers
                     }
                     else
                     {
-                        if (!EncodeByte(enumerator.Current, _oneByteUtf8EncodingMaxId, _byteCodeToIdOffset, ref bytesCount, ref buffer, ref charsWritten, ref idsConsumed, ref bytesPoolArray))
+                        if (!EncodeByte(enumerator.Current, _oneByteUtf8EncodingMaxId, _byteCodeToIdOffset, ref bytesCount, buffer, ref charsWritten, ref idsConsumed, ref bytesPoolArray))
                         {
                             return OperationStatus.DestinationTooSmall;
                         }
@@ -1823,7 +1905,7 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (bytesCount >= 1)
                     {
-                        if (!FlushBytes(ref bytesCount, ref bytesPoolArray, ref charPoolArray, ref buffer, ref charsWritten, ref idsConsumed))
+                        if (!FlushBytes(ref bytesCount, ref bytesPoolArray, ref charPoolArray, buffer, ref charsWritten, ref idsConsumed))
                         {
                             return OperationStatus.DestinationTooSmall;
                         }
@@ -1831,38 +1913,51 @@ namespace Microsoft.ML.Tokenizers
 
                     if (_vocabReverse.TryGetValue(enumerator.Current, out string? token))
                     {
-                        if (buffer.Length < token.Length)
+                        if (!AppendTokenWithCheckingPrefix(AddDummyPrefix, TreatWhitespaceAsSuffix, token, prefixSuffixChar, destination, ref prefixRemoved, ref suffixIndex, ref idsConsumed, ref charsWritten))
                         {
                             return OperationStatus.DestinationTooSmall;
                         }
-
-                        for (int i = 0; i < token.Length; i++)
+                    }
+                    else if (_specialTokensReverse is not null && _specialTokensReverse.TryGetValue(enumerator.Current, out string? specialToken))
+                    {
+                        if (considerSpecialTokens)
                         {
-                            char c = token[i];
-                            buffer[i] = c == SentencePieceNormalizer.DummyPrefix ? ' ' : c;
-                        }
+                            if (buffer.Length < specialToken.Length)
+                            {
+                                return OperationStatus.DestinationTooSmall;
+                            }
 
-                        buffer = buffer.Slice(token.Length);
-                        charsWritten += token.Length;
+                            specialToken.AsSpan().CopyTo(buffer);
+                            charsWritten += specialToken.Length;
+                        }
                         idsConsumed++;
                     }
-                    else if (_addedTokensReverse is null || !_addedTokensReverse.TryGetValue(enumerator.Current, out token))
+                    else
                     {
                         return OperationStatus.InvalidData;
                     }
                 }
             }
 
+            buffer = destination.Slice(charsWritten);
+
             if (bytesCount >= 1)
             {
-                if (!FlushBytes(ref bytesCount, ref bytesPoolArray, ref charPoolArray, ref buffer, ref charsWritten, ref idsConsumed))
+                if (!FlushBytes(ref bytesCount, ref bytesPoolArray, ref charPoolArray, buffer, ref charsWritten, ref idsConsumed))
                 {
                     return OperationStatus.DestinationTooSmall;
                 }
             }
 
-            if (AddDummyPrefix && TreatWhitespaceAsSuffix && charsWritten > 0 && destination[charsWritten - 1] == SentencePieceNormalizer.DummyPrefix)
+            if (suffixIndex >= 0)
             {
+                Debug.Assert(destination[suffixIndex] == ' ');
+
+                if (suffixIndex < charsWritten - 1)
+                {
+                    destination.Slice(suffixIndex + 1, charsWritten - suffixIndex - 1).CopyTo(destination.Slice(suffixIndex));
+                }
+
                 charsWritten--;
             }
 
@@ -1878,7 +1973,7 @@ namespace Microsoft.ML.Tokenizers
 
             return OperationStatus.Done;
 
-            static bool FlushBytes(ref int bytesCount, ref byte[]? bytesPoolArray, ref char[]? charPoolArray, ref Span<char> buffer, ref int charsWritten, ref int idsConsumed)
+            static bool FlushBytes(ref int bytesCount, ref byte[]? bytesPoolArray, ref char[]? charPoolArray, Span<char> buffer, ref int charsWritten, ref int idsConsumed)
             {
                 Debug.Assert(bytesCount >= 1);
                 Debug.Assert(bytesPoolArray is not null);
@@ -1900,7 +1995,6 @@ namespace Microsoft.ML.Tokenizers
                 }
 
                 charPoolArray.AsSpan(0, charCount).CopyTo(buffer);
-                buffer = buffer.Slice(charCount);
                 charsWritten += charCount;
                 idsConsumed += bytesCount;
                 bytesCount = -1;
@@ -1908,7 +2002,7 @@ namespace Microsoft.ML.Tokenizers
                 return true;
             }
 
-            static bool EncodeByte(int id, int oneByteUtf8EncodingMaxId, int byteCodeToIdOffset, ref int bytesCount, ref Span<char> buffer, ref int charsWritten, ref int idsConsumed, ref byte[]? bytesPoolArray)
+            static bool EncodeByte(int id, int oneByteUtf8EncodingMaxId, int byteCodeToIdOffset, ref int bytesCount, Span<char> buffer, ref int charsWritten, ref int idsConsumed, ref byte[]? bytesPoolArray)
             {
                 if (id <= oneByteUtf8EncodingMaxId)
                 {
@@ -1918,7 +2012,6 @@ namespace Microsoft.ML.Tokenizers
                     }
 
                     buffer[0] = (char)(id - byteCodeToIdOffset);
-                    buffer = buffer.Slice(1);
                     charsWritten++;
                     idsConsumed++;
                 }
@@ -1927,6 +2020,103 @@ namespace Microsoft.ML.Tokenizers
                     bytesCount = 1;
                     bytesPoolArray ??= ArrayPool<byte>.Shared.Rent(50);
                     bytesPoolArray[0] = (byte)(id - byteCodeToIdOffset);
+                }
+
+                return true;
+            }
+
+            static bool AppendTokenWithCheckingPrefix(bool addDummyPrefix, bool treatWhitespaceAsSuffix, string token, char prefixSuffixChar, Span<char> destination, ref bool prefixRemoved, ref int suffixIndex, ref int idsConsumed, ref int charsConsumed)
+            {
+                if (token.Length == 0)
+                {
+                    return true;
+                }
+
+                Span<char> buffer = destination.Slice(charsConsumed);
+
+                ReadOnlySpan<char> tokenSpan = token.AsSpan();
+
+                if (!addDummyPrefix)
+                {
+                    if (tokenSpan.Length > buffer.Length)
+                    {
+                        return false;
+                    }
+
+                    if (prefixSuffixChar != ' ')
+                    {
+                        for (int i = 0; i < tokenSpan.Length; i++)
+                        {
+                            buffer[i] = tokenSpan[i] == prefixSuffixChar ? ' ' : tokenSpan[i];
+                        }
+                    }
+                    else
+                    {
+                        tokenSpan.CopyTo(buffer);
+                    }
+
+                    buffer = buffer.Slice(tokenSpan.Length);
+                    charsConsumed += tokenSpan.Length;
+                    idsConsumed++;
+                    return true;
+                }
+
+                if (treatWhitespaceAsSuffix)
+                {
+                    if (tokenSpan[tokenSpan.Length - 1] == prefixSuffixChar)
+                    {
+                        suffixIndex = charsConsumed + tokenSpan.Length - 1;
+                    }
+
+                    if (tokenSpan.Length > buffer.Length)
+                    {
+                        return false;
+                    }
+
+                    if (prefixSuffixChar != ' ')
+                    {
+                        for (int i = 0; i < tokenSpan.Length; i++)
+                        {
+                            buffer[i] = tokenSpan[i] == prefixSuffixChar ? ' ' : tokenSpan[i];
+                        }
+                    }
+                    else
+                    {
+                        tokenSpan.CopyTo(buffer);
+                    }
+
+                    charsConsumed += tokenSpan.Length;
+
+                    idsConsumed++;
+                }
+                else
+                {
+                    int delta = !prefixRemoved && token[0] == prefixSuffixChar ? 1 : 0;
+                    if (buffer.Length < token.Length - delta)
+                    {
+                        return false;
+                    }
+
+                    tokenSpan = tokenSpan.Slice(delta);
+                    if (prefixSuffixChar != ' ')
+                    {
+                        for (int i = 0; i < tokenSpan.Length; i++)
+                        {
+                            buffer[i] = tokenSpan[i] == prefixSuffixChar ? ' ' : tokenSpan[i];
+                        }
+                    }
+                    else
+                    {
+                        tokenSpan.CopyTo(buffer);
+                    }
+
+                    charsConsumed += tokenSpan.Length;
+                    idsConsumed++;
+
+                    if (!prefixRemoved && delta == 1)
+                    {
+                        prefixRemoved = true;
+                    }
                 }
 
                 return true;

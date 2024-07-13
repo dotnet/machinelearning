@@ -74,8 +74,7 @@ namespace Microsoft.ML.Tokenizers
                                                     {
                                                         ConsiderPreTokenization = considerPreTokenization,
                                                         ConsiderNormalization = considerNormalization,
-                                                        MaxTokenCount = maxTokenCount,
-                                                        ProduceNormalizedString = true
+                                                        MaxTokenCount = maxTokenCount
                                                     });
 
             normalizedText = result.NormalizedText;
@@ -101,8 +100,7 @@ namespace Microsoft.ML.Tokenizers
                                                     {
                                                         ConsiderPreTokenization = considerPreTokenization,
                                                         ConsiderNormalization = considerNormalization,
-                                                        MaxTokenCount = maxTokenCount,
-                                                        ProduceNormalizedString = true
+                                                        MaxTokenCount = maxTokenCount
                                                     });
 
             normalizedText = result.NormalizedText;

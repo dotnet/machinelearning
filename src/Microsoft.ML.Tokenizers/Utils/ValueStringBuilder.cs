@@ -204,6 +204,16 @@ namespace System.Text
             return false;
         }
 
+        public void Remove(int start, int length)
+        {
+            if (length > 0 && start + length <= _pos)
+            {
+                int remaining = _pos - start - length;
+                _chars.Slice(start + length, remaining).CopyTo(_chars.Slice(start));
+                _pos -= length;
+            }
+        }
+
         public bool EndsWith(string value)
         {
             int valueLength = value.Length;

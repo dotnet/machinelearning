@@ -27,12 +27,12 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="modelStream">The stream containing the SentencePiece Bpe model.</param>
         /// <param name="addBeginOfSentence">Indicate emitting the beginning of sentence token during the encoding.</param>
         /// <param name="addEndOfSentence">Indicate emitting the end of sentence token during the encoding.</param>
-        /// <param name="addedTokens">The additional tokens to add to the vocabulary.</param>
+        /// <param name="specialTokens">The additional tokens to add to the vocabulary.</param>
         public static LlamaTokenizer Create(
             Stream modelStream,
             bool addBeginOfSentence = true,
             bool addEndOfSentence = false,
-            IReadOnlyDictionary<string, int>? addedTokens = null)
+            IReadOnlyDictionary<string, int>? specialTokens = null)
         {
             ModelProto modelProto = ModelProto.Parser.ParseFrom(modelStream);
 
@@ -55,9 +55,10 @@ namespace Microsoft.ML.Tokenizers
                                     modelProto.NormalizerSpec.RemoveExtraWhitespaces,
                                     modelProto.NormalizerSpec.AddDummyPrefix,
                                     modelProto.NormalizerSpec.EscapeWhitespaces,
-                                    modelProto.TrainerSpec.TreatWhitespaceAsSuffix);
+                                    modelProto.TrainerSpec.TreatWhitespaceAsSuffix,
+                                    specialTokens);
 
-            return new LlamaTokenizer(modelProto, addBeginOfSentence, addEndOfSentence, addedTokens);
+            return new LlamaTokenizer(modelProto, addBeginOfSentence, addEndOfSentence, specialTokens);
         }
     }
 }
