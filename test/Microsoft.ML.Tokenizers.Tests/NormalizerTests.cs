@@ -19,14 +19,14 @@ namespace Microsoft.ML.Tokenizers.Tests
             {
                 yield return new object?[]
                 {
-                    new LowerCaseNormalizer(),
+                    LowerCaseNormalizer.Instance,
                     "How Are You Doing?",
                     "how are you doing?",
                 };
 
                 yield return new object?[]
                 {
-                    new UpperCaseNormalizer(),
+                    UpperCaseNormalizer.Instance,
                     "How Are You Doing?",
                     "HOW ARE YOU DOING?",
                 };
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(normalized, normalizedText);
 
             Tokenizer tokenizer = BpeTests.CreateEmptyBpe(preTokenizer: null, normalizer);
-            IReadOnlyList<Token> tokens = tokenizer.Encode(text, out string? normalizedString);
+            IReadOnlyList<EncodedToken> tokens = tokenizer.EncodeToTokens(text, out string? normalizedString);
             Assert.Equal(normalized, normalizedString);
         }
 

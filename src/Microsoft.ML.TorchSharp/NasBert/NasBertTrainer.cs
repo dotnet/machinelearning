@@ -201,7 +201,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             private protected override Module CreateModule(IChannel ch, IDataView input)
             {
                 Tokenizer = TokenizerExtensions.GetInstance(ch);
-                EnglishRoberta tokenizerModel = Tokenizer.RobertaModel();
+                EnglishRobertaTokenizer tokenizerModel = Tokenizer.RobertaModel();
 
                 NasBertModel model;
                 if (Parent.BertOptions.TaskType == BertTaskType.NamedEntityRecognition)
