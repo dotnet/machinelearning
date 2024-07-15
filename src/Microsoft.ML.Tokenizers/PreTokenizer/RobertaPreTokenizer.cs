@@ -4,29 +4,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 namespace Microsoft.ML.Tokenizers
 {
     /// <summary>
-    /// The pre-tokenizer which split the text at the word boundary.
-    /// The word is a set of alphabet, numeric, and underscore characters.
+    /// The pre-tokenizer for Roberta English tokenizer.
     /// </summary>
-    public sealed partial class WhiteSpace : PreTokenizer
+    public sealed partial class RobertaPreTokenizer : PreTokenizer
     {
         /// <summary>
-        /// Gets a singleton instance of the WhiteSpace pre-tokenizer..
+        /// Gets a singleton instance of the Roberta pre-tokenizer..
         /// </summary>
-        public static WhiteSpace Instance { get; } = new WhiteSpace();
-
-        private const string PretokenizePattern = /*lang=regex*/ @"\w+|[^\w\s]+";
-#if NET7_0_OR_GREATER
-        [GeneratedRegex(PretokenizePattern)]
-        private static partial Regex PretokenizeRegex();
-#else
-        private static readonly Regex _regex = new Regex(PretokenizePattern, RegexOptions.Compiled);
-        private static Regex PretokenizeRegex() => _regex;
-#endif
+        public static RobertaPreTokenizer Instance { get; } = new RobertaPreTokenizer();
 
         /// <summary>
         /// Get the offsets and lengths of the tokens relative to the <paramref name="text"/>.
@@ -40,7 +29,7 @@ namespace Microsoft.ML.Tokenizers
                 return [];
             }
 
-            return SplitText(text, PretokenizeRegex());
+            return SplitText(text, TiktokenTokenizer.P50kBaseRegex());
         }
 
         /// <summary>
@@ -55,7 +44,7 @@ namespace Microsoft.ML.Tokenizers
                 return [];
             }
 
-            return SplitText(text, PretokenizeRegex());
+            return SplitText(text, TiktokenTokenizer.P50kBaseRegex());
         }
     }
 }

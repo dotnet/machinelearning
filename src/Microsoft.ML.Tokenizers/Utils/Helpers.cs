@@ -127,5 +127,88 @@ namespace Microsoft.ML.Tokenizers
 
             return targetIndex;
         }
+
+        public static bool ConvertUtf8ToUtf16(ReadOnlySpan<byte> utf8Bytes, Span<char> utf16Chars, out int bytesConsumed, out int charsWritten)
+        {
+            Debug.Assert(utf16Chars.Length >= Encoding.UTF8.GetMaxCharCount(utf8Bytes.Length));
+
+            int byteIndex = 0;
+            int charIndex = 0;
+            bytesConsumed = 0;
+            charsWritten = 0;
+
+            while (byteIndex < utf8Bytes.Length)
+            {
+                uint codePoint;
+                int additionalBytes;
+
+                byte firstByte = utf8Bytes[byteIndex];
+
+                if ((firstByte & 0x80) == 0)
+                {
+                    // 1-byte sequence (ASCII)
+                    codePoint = firstByte;
+                    utf16Chars[charIndex++] = (char)firstByte;
+                    charsWritten++;
+                    bytesConsumed = ++byteIndex;
+                    continue;
+                }
+                else if ((firstByte & 0xE0) == 0xC0)
+                {
+                    // 2-byte sequence
+                    codePoint = (uint)(firstByte & 0x1F);
+                    additionalBytes = 1;
+                }
+                else if ((firstByte & 0xF0) == 0xE0)
+                {
+                    // 3-byte sequence
+                    codePoint = (uint)(firstByte & 0x0F);
+                    additionalBytes = 2;
+                }
+                else if ((firstByte & 0xF8) == 0xF0)
+                {
+                    // 4-byte sequence
+                    codePoint = (uint)(firstByte & 0x07);
+                    additionalBytes = 3;
+                }
+                else
+                {
+                    return false;
+                }
+
+                if (byteIndex + additionalBytes >= utf8Bytes.Length)
+                {
+                    return true; // incomplete utf-8 sequence
+                }
+
+                for (int i = 1; i <= additionalBytes; i++)
+                {
+                    byte nextByte = utf8Bytes[byteIndex + i];
+                    if ((nextByte & 0xC0) != 0x80)
+                    {
+                        return false;
+                    }
+                    codePoint = (codePoint << 6) | (uint)(nextByte & 0x3F);
+                }
+
+                byteIndex += additionalBytes + 1;
+                bytesConsumed = byteIndex;
+
+                if (codePoint <= 0xFFFF)
+                {
+                    utf16Chars[charIndex++] = (char)codePoint;
+                }
+                else
+                {
+                    codePoint -= 0x10000;
+                    utf16Chars[charIndex++] = (char)((codePoint >> 10) + 0xD800);
+                    utf16Chars[charIndex++] = (char)((codePoint & 0x3FF) + 0xDC00);
+                }
+
+                charsWritten = charIndex;
+            }
+
+            return true;
+        }
     }
 }

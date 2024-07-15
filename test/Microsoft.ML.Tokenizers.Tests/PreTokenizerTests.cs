@@ -18,14 +18,14 @@ namespace Microsoft.ML.Tokenizers.Tests
             {
                 yield return new object[]
                 {
-                    WhiteSpace.Instance,
+                    WhiteSpacePreTokenizer.Instance,
                     "How are you doing?",
                     new (int Offset, int Length)[] { (0, 3), (4, 3), (8, 3), (12, 5), (17, 1), }
                 };
 
                 yield return new object[]
                 {
-                    WhiteSpace.Instance,
+                    WhiteSpacePreTokenizer.Instance,
                     "I_am_Just_Fine!",
                     new (int Offset, int Length)[] { (0, 14), (14, 1) }
                 };
@@ -56,14 +56,14 @@ namespace Microsoft.ML.Tokenizers.Tests
             // Empty tokenizer which tokenize all parts as unknown tokens.
             Tokenizer tokenizer = BpeTests.CreateEmptyBpe(normalizer: null, preTokenizer: preTokenizer);
 
-            IReadOnlyList<Token> encoding = tokenizer.Encode(text, out _);
+            IReadOnlyList<EncodedToken> encoding = tokenizer.EncodeToTokens(text, out _);
             Assert.True(encoding.Count >= splitParts.Length, $"Expected to have {encoding.Count} >= {splitParts.Length}");
         }
 
         [Fact]
         public void TestWhiteSpacePreTokenizer()
         {
-            Assert.Empty(WhiteSpace.Instance.PreTokenize((string)null!));
+            Assert.Empty(WhiteSpacePreTokenizer.Instance.PreTokenize((string)null!));
         }
 
         public class SpacePreTokenizer : PreTokenizer
