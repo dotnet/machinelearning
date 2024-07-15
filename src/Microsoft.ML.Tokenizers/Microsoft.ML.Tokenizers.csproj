@@ -97,10 +97,6 @@
     <FilesToCompress Include="Data\o200k_base.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate" />
   </ItemGroup>
 
-  <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.ML.GenAI.Phi" />
-  </ItemGroup>
-
   <Target Name="TestCompress"
           BeforeTargets="AssignTargetPaths"
           Inputs="@(FilesToCompress)"

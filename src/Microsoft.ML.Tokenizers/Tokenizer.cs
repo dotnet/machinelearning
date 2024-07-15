@@ -305,7 +305,6 @@ namespace Microsoft.ML.Tokenizers
         /// <returns>The operation status indicates whether all IDs were successfully decoded or if the <paramref name="destination"/> is too small to contain the entire decoded result.</returns>
         public abstract OperationStatus Decode(IEnumerable<int> ids, Span<char> destination, out int idsConsumed, out int charsWritten);
 
-
         internal static IEnumerable<(int Offset, int Length)>? InitializeForEncoding(
                                                 string? text,
                                                 ReadOnlySpan<char> textSpan,
