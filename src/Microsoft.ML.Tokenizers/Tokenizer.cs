@@ -305,21 +305,6 @@ namespace Microsoft.ML.Tokenizers
         /// <returns>The operation status indicates whether all IDs were successfully decoded or if the <paramref name="destination"/> is too small to contain the entire decoded result.</returns>
         public abstract OperationStatus Decode(IEnumerable<int> ids, Span<char> destination, out int idsConsumed, out int charsWritten);
 
-        public static CodeGen CreatePhi2(
-            string folder,
-            string vocabFile = "vocab.json",
-            string mergesFile = "merges.txt",
-            bool addPrefixSpace = false,
-            bool addBeginOfSentence = false,
-            bool addEndOfSentence = false)
-        {
-            var vocabPath = Path.Combine(folder, vocabFile);
-            var mergesPath = Path.Combine(folder, mergesFile);
-            using var vocabStream = File.OpenRead(vocabPath);
-            using var mergesStream = File.OpenRead(mergesPath);
-
-            return (CodeGen)CreateCodeGen(vocabStream, mergesStream, addPrefixSpace, addBeginOfSentence, addEndOfSentence);
-        }
 
         internal static IEnumerable<(int Offset, int Length)>? InitializeForEncoding(
                                                 string? text,

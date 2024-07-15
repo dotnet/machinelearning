@@ -10,12 +10,13 @@ using static TorchSharp.torch;
 using TorchSharp;
 using Microsoft.ML.GenAI.Core.Extension;
 using System.Text.Json;
+using Microsoft.ML.Tokenizers;
 
 namespace Microsoft.ML.GenAI.Samples.Phi3Mini;
 
 internal static class Utils
 {
-    public static CausalLMPipeline<Phi3Tokenizer, Phi3ForCasualLM> LoadPhi3Mini4KFromFolder(
+    public static ICausalLMPipeline<Tokenizer, Phi3ForCasualLM> LoadPhi3Mini4KFromFolder(
         string weightFolder,
         string configName = "config.json",
         string device = "cuda",
@@ -31,7 +32,8 @@ internal static class Utils
         var config = JsonSerializer.Deserialize<Phi3Config>(System.IO.File.ReadAllText(configPath)) ?? throw new ArgumentNullException(nameof(configPath));
         var timer = System.Diagnostics.Stopwatch.StartNew();
         var model = new Phi3ForCasualLM(config);
-        var tokenizer = Phi3Tokenizer.FromPretrained(weightFolder);
+        var tokenzierPath = System.IO.Path.Combine(weightFolder, "tokenizer.model");
+        var tokenizer = Phi3TokenizerHelper.FromPretrained(tokenzierPath);
 
         if (quantizeToInt8)
         {
@@ -93,7 +95,7 @@ internal static class Utils
         model = model.ToDynamicLoadingModel(deviceMap, "cuda");
         timer.Stop();
         Console.WriteLine($"Phi3 loaded to device: {device} in {timer.ElapsedMilliseconds / 1000} s");
-        var pipeline = new CausalLMPipeline<Phi3Tokenizer, Phi3ForCasualLM>(tokenizer, model, device);
+        var pipeline = new CausalLMPipeline<Tokenizer, Phi3ForCasualLM>(tokenizer, model, device);
         torch.set_default_device(device);
 
         return pipeline;

@@ -56,7 +56,7 @@ public class SemanticKernelSample
             .AddPhi3AsTextGeneration(pipeline)
             .Build();
 
-        var response = await kernel.InvokePromptAsync("write a C# program to calculate the factorial of a number");
+        var response = await kernel.InvokePromptAsync("Tell a joke");
         Console.WriteLine(response);
     }
 }

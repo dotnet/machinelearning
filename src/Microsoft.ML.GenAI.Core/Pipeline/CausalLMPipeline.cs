@@ -244,7 +244,15 @@ public class CausalLMPipeline : ICausalLMPipeline
         List<int[]> stopTokenIds = [[]];
         if (stopSequences != null)
         {
-            stopTokenIds.AddRange(stopSequences.Select(x => this.Tokenizer.EncodeToIds(x, false, false).ToArray()));
+            stopTokenIds.AddRange(stopSequences.Select(x =>
+            {
+                var tokens = this.Tokenizer.EncodeToTokens(x, out var _, false, false);
+
+                return tokens
+                .Where(t => t.Offset != (0, 0))
+                .Select(t => t.Id)
+                .ToArray();
+            }));
         }
 
         stopTokenIds = stopTokenIds.Where(ids => ids.Count() > 0).ToList();

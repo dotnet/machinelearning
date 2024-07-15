@@ -30,7 +30,7 @@ public class Phi2Test
     public void TokenizerTest()
     {
         var modelWeightFolder = Path.Join("Phi-2");
-        var tokenizer = Tokenizer.CreatePhi2(modelWeightFolder, addBeginOfSentence: true);
+        var tokenizer = Phi2TokenizerHelper.Create(modelWeightFolder, addBeginOfSentence: true);
         tokenizer.EndOfSentenceId.Should().Be(50256);
         tokenizer.BeginningOfSentenceId.Should().Be(50256);
         var messages = new string[]

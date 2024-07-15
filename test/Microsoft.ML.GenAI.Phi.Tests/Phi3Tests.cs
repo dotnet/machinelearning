@@ -104,9 +104,10 @@ public class Phi3Tests
     public void TokenizerTest()
     {
         var modelWeightFolder = Path.Join("Llama");
-        var tokenizer = Phi3Tokenizer.FromPretrained(modelWeightFolder);
-        tokenizer.BosId.Should().Be(1);
-        tokenizer.EosId.Should().Be(2);
+        var modelPath = Path.Join(modelWeightFolder, "tokenizer.model");
+        var tokenizer = Phi3TokenizerHelper.FromPretrained(modelPath);
+        tokenizer.BeginningOfSentenceId.Should().Be(1);
+        tokenizer.EndOfSentenceId.Should().Be(2);
 
         // test <|end|>
         var endIds = tokenizer.EncodeToIds("<|end|>", addBeginningOfSentence: false, addEndOfSentence: false, considerPreTokenization: false, considerNormalization: false);
@@ -127,6 +128,8 @@ public class Phi3Tests
         foreach (var message in messages)
         {
             var tokenizeIds = tokenizer.EncodeToIds(message, true, false, considerPreTokenization: true);
+            var decodeToString = tokenizer.Decode(tokenizeIds, considerSpecialTokens: true);
+            sb.AppendLine(decodeToString);
             var tokenizedStr = string.Join(", ", tokenizeIds.Select(x => x.ToString()));
 
             sb.AppendLine(tokenizedStr);
