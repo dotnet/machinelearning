@@ -12,6 +12,7 @@ using Microsoft.ML.Tokenizers;
 using Xunit;
 namespace Microsoft.ML.GenAI.Phi.Tests;
 
+[Collection("NoParallelization")]
 public class Phi2Tests
 {
     [Fact]

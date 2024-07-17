@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.ML.GenAI.Phi.Tests;
 
+[Collection("NoParallelization")]
 public class Phi3Tests
 {
     [Fact]
