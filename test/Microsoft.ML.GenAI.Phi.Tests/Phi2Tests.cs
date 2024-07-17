@@ -9,12 +9,18 @@ using ApprovalTests.Reporters;
 using FluentAssertions;
 using Microsoft.ML.GenAI.Core.Extension;
 using Microsoft.ML.Tokenizers;
+using TorchSharp;
 using Xunit;
 namespace Microsoft.ML.GenAI.Phi.Tests;
 
 [Collection("NoParallelization")]
 public class Phi2Tests
 {
+    public Phi2Tests()
+    {
+        torch.set_default_device("meta");
+    }
+
     [Fact]
     [UseReporter(typeof(DiffReporter))]
     [UseApprovalSubdirectory("Approvals")]
