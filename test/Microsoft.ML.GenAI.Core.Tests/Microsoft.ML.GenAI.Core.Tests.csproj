@@ -17,6 +17,10 @@
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetArchitecture)' != 'x64'">
+    <Compile Remove="QuantizedLinearTests.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
     <PackageReference Include="libtorch-cpu-win-x64" Version="2.2.1.1" Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$(TargetArchitecture)' == 'x64'" />
     <PackageReference Include="libtorch-cpu-linux-x64" Version="2.2.1.1" Condition="$([MSBuild]::IsOSPlatform('Linux')) AND '$(TargetArchitecture)' == 'x64'" />
