@@ -12,7 +12,7 @@ using Microsoft.ML.Tokenizers;
 using Xunit;
 namespace Microsoft.ML.GenAI.Phi.Tests;
 
-public class Phi2Test
+public class Phi2Tests
 {
     [Fact]
     [UseReporter(typeof(DiffReporter))]
