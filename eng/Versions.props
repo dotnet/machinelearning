@@ -63,7 +63,7 @@
     <TensorflowDotNETVersion>0.20.1</TensorflowDotNETVersion>
     <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
     <TensorFlowVersion>2.3.1</TensorFlowVersion>
-    <TorchSharpVersion>0.102.5</TorchSharpVersion>
+    <TorchSharpVersion>0.102.7</TorchSharpVersion>
     <LibTorchVersion>2.2.1.1</LibTorchVersion>
     <!-- Build/infrastructure Dependencies -->
     <CodecovVersion>1.12.4</CodecovVersion>
