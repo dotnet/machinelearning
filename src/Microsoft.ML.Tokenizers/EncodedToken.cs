@@ -12,7 +12,7 @@ namespace Microsoft.ML.Tokenizers
     /// Represent the token produced from the tokenization process containing the token substring,
     /// the id associated to the token substring, and the offset mapping to the original string.
     /// </summary>
-    public readonly struct Token
+    public readonly struct EncodedToken
     {
         /// <summary>
         /// Gets the Id value associated to the token.
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="id">The Id value associated to the token.</param>
         /// <param name="value">The token string value.</param>
         /// <param name="offset">The offset mapping to the original string.</param>
-        public Token(int id, string value, (int, int) offset)
+        public EncodedToken(int id, string value, (int, int) offset)
         {
             Id = id;
             Offset = offset;

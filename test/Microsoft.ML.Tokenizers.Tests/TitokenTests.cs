@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.DotNet.RemoteExecutor;
-using Microsoft.ML.Tokenizers;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -27,20 +28,20 @@ namespace Microsoft.ML.Tokenizers.Tests
                                                     { IMEnd, 100265},
                                                 };
 
-        public static Tokenizer GPT4 { get; } = Tokenizer.CreateTiktokenForModel("gpt-4", _specialTokens);
-        public static Tokenizer GPT2 { get; } = Tokenizer.CreateTiktokenForModel("gpt2");
-        public static Tokenizer P50kBase { get; } = Tokenizer.CreateTiktokenForModel("text-davinci-003");
-        public static Tokenizer R50kBase { get; } = Tokenizer.CreateTiktokenForModel("ada");
-        public static Tokenizer P50kEdit { get; } = Tokenizer.CreateTiktokenForModel("text-davinci-edit-001");
-        public static Tokenizer GPT4o { get; } = Tokenizer.CreateTiktokenForModel("gpt-4o");
+        public static Tokenizer GPT4 { get; } = TiktokenTokenizer.CreateForModel("gpt-4", _specialTokens);
+        public static Tokenizer GPT2 { get; } = TiktokenTokenizer.CreateForModel("gpt2");
+        public static Tokenizer P50kBase { get; } = TiktokenTokenizer.CreateForModel("text-davinci-003");
+        public static Tokenizer R50kBase { get; } = TiktokenTokenizer.CreateForModel("ada");
+        public static Tokenizer P50kEdit { get; } = TiktokenTokenizer.CreateForModel("text-davinci-edit-001");
+        public static Tokenizer GPT4o { get; } = TiktokenTokenizer.CreateForModel("gpt-4o");
 
         [Fact]
         public async void TestTokenizerCreation()
         {
             TestGPT4TokenizationEncoding(GPT4);
 
-            Assert.True(GPT4 is Tiktoken);
-            IReadOnlyDictionary<string, int>? specialTokensEncoder = (GPT4 as Tiktoken)!.SpecialTokens;
+            Assert.True(GPT4 is TiktokenTokenizer);
+            IReadOnlyDictionary<string, int>? specialTokensEncoder = (GPT4 as TiktokenTokenizer)!.SpecialTokens;
 
             string tokenizerDataFileName = Utils.CreateTemporaryFile("tiktoken");
 
@@ -54,37 +55,37 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             try
             {
-                Tokenizer tokenizer = new Tiktoken(tokenizerDataFileName, GPT4.PreTokenizer, specialTokensEncoder);
+                Tokenizer tokenizer = TiktokenTokenizer.Create(tokenizerDataFileName, GPT4.PreTokenizer, null, specialTokensEncoder);
                 TestGPT4TokenizationEncoding(tokenizer);
 
                 using (Stream stream = File.OpenRead(tokenizerDataFileName))
                 {
-                    tokenizer = new Tiktoken(stream, GPT4.PreTokenizer, specialTokensEncoder);
+                    tokenizer = TiktokenTokenizer.Create(stream, GPT4.PreTokenizer, null, specialTokensEncoder);
                 }
                 TestGPT4TokenizationEncoding(tokenizer);
 
-                tokenizer = await Tokenizer.CreateTiktokenAsync(tokenizerDataFileName, GPT4.PreTokenizer, normalizer: null, specialTokensEncoder);
+                tokenizer = await TiktokenTokenizer.CreateAsync(tokenizerDataFileName, GPT4.PreTokenizer, normalizer: null, specialTokensEncoder);
                 TestGPT4TokenizationEncoding(tokenizer);
 
                 using (Stream stream = File.OpenRead(tokenizerDataFileName))
                 {
-                    tokenizer = await Tokenizer.CreateTiktokenAsync(stream, GPT4.PreTokenizer, normalizer: null, specialTokensEncoder);
-                }
-                TestGPT4TokenizationEncoding(tokenizer);
-
-                using (Stream stream = File.OpenRead(tokenizerDataFileName))
-                {
-                    tokenizer = Tokenizer.CreateTiktokenForModel("gpt-4", stream);
+                    tokenizer = await TiktokenTokenizer.CreateAsync(stream, GPT4.PreTokenizer, normalizer: null, specialTokensEncoder);
                 }
                 TestGPT4TokenizationEncoding(tokenizer);
 
                 using (Stream stream = File.OpenRead(tokenizerDataFileName))
                 {
-                    tokenizer = await Tokenizer.CreateTiktokenForModelAsync("gpt-3.5-turbo", stream);
+                    tokenizer = TiktokenTokenizer.CreateForModel("gpt-4", stream);
                 }
                 TestGPT4TokenizationEncoding(tokenizer);
 
-                tokenizer = Tokenizer.CreateTiktokenForModel("gpt-4");
+                using (Stream stream = File.OpenRead(tokenizerDataFileName))
+                {
+                    tokenizer = await TiktokenTokenizer.CreateForModelAsync("gpt-3.5-turbo", stream);
+                }
+                TestGPT4TokenizationEncoding(tokenizer);
+
+                tokenizer = TiktokenTokenizer.CreateForModel("gpt-4");
                 TestGPT4TokenizationEncoding(tokenizer);
             }
             finally
@@ -111,11 +112,11 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             try
             {
-                Tiktoken tiktoken = (tokenizer as Tiktoken)!;
-                Tokenizer externalTokenizer = new Tiktoken(tokenizerDataFileName, tokenizer.PreTokenizer, tiktoken.SpecialTokens);
+                TiktokenTokenizer tiktoken = (tokenizer as TiktokenTokenizer)!;
+                TiktokenTokenizer externalTokenizer = TiktokenTokenizer.Create(tokenizerDataFileName, tokenizer.PreTokenizer, null, tiktoken.SpecialTokens);
 
-                IReadOnlyDictionary<ReadOnlyMemory<byte>, int> encoder = tiktoken.Encoder;
-                IReadOnlyDictionary<ReadOnlyMemory<byte>, int> externalEncoder = (externalTokenizer as Tiktoken)!.Encoder;
+                IReadOnlyDictionary<ReadOnlyMemory<byte>, int> encoder = GetEncoder(tiktoken)!;
+                IReadOnlyDictionary<ReadOnlyMemory<byte>, int> externalEncoder = GetEncoder(externalTokenizer)!;
 
                 Assert.Equal(externalEncoder.Count, encoder.Count);
                 foreach (KeyValuePair<ReadOnlyMemory<byte>, int> kvp in encoder)
@@ -136,8 +137,9 @@ namespace Microsoft.ML.Tokenizers.Tests
             IReadOnlyList<int> encoded = tokenizer.EncodeToIds(text);
             Assert.Equal(new List<int>() { 9906, 4435 }, encoded);
             Assert.Equal(text, tokenizer.Decode(encoded)!);
+            TestDecodingWithSpan((tokenizer as TiktokenTokenizer)!, encoded.ToArray(), text);
 
-            IReadOnlyList<Token> result = tokenizer.Encode(text, out string? normalizedString);
+            IReadOnlyList<EncodedToken> result = tokenizer.EncodeToTokens(text, out string? normalizedString);
             int idsCount = tokenizer.CountTokens(text);
 
             int[] ids = result.Select(token => token.Id).ToArray();
@@ -152,6 +154,35 @@ namespace Microsoft.ML.Tokenizers.Tests
             TestGPT4Tokenizer(tokenizer);
         }
 
+        private void TestDecodingWithSpan(TiktokenTokenizer tokenizer, int[] ids, string expectedDecoded)
+        {
+            char[] destinationBuffer = new char[expectedDecoded.Length];
+
+            OperationStatus status;
+            int lastIdsConsumed = 0;
+            int lastCharactersWritten = 0;
+            int idsConsumed;
+            int charactersWritten;
+
+            for (int i = 1; i < destinationBuffer.Length - 1; i += Math.Max(1, destinationBuffer.Length - 3)) // enough to test length 1, and destinationBuffer.Length - 2 only.
+            {
+                status = tokenizer.Decode(ids, destinationBuffer.AsSpan().Slice(0, i), out idsConsumed, out charactersWritten);
+                Assert.Equal(OperationStatus.DestinationTooSmall, status);
+                Assert.True(idsConsumed < ids.Length);
+                Assert.True(idsConsumed >= lastIdsConsumed);
+                Assert.True(charactersWritten < expectedDecoded.Length);
+                Assert.True(charactersWritten >= lastCharactersWritten);
+                lastIdsConsumed = idsConsumed;
+                lastCharactersWritten = charactersWritten;
+            }
+
+            status = tokenizer.Decode(ids, destinationBuffer.AsSpan(), out idsConsumed, out charactersWritten);
+            Assert.Equal(OperationStatus.Done, status);
+            Assert.Equal(ids.Length, idsConsumed);
+            Assert.Equal(expectedDecoded.Length, charactersWritten);
+            Assert.Equal(expectedDecoded, destinationBuffer.AsSpan().ToString());
+        }
+
         [Fact]
         public void TestEncode1()
         {
@@ -159,8 +190,9 @@ namespace Microsoft.ML.Tokenizers.Tests
             IReadOnlyList<int> encoded = GPT4.EncodeToIds(text);
             Assert.Equal(new List<int>() { 100264, 9906, 4435, 100265 }, encoded);
             Assert.Equal(text, GPT4.Decode(encoded));
+            TestDecodingWithSpan((GPT4 as TiktokenTokenizer)!, encoded.ToArray(), text);
 
-            IReadOnlyList<Token> result = GPT4.Encode(text, out string? normalizedString);
+            IReadOnlyList<EncodedToken> result = GPT4.EncodeToTokens(text, out string? normalizedString);
             int idsCount = GPT4.CountTokens(text);
 
             int[] ids = result.Select(token => token.Id).ToArray();
@@ -188,8 +220,8 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(expected!, encoded);
             }
 
-            string? decoded = gpt4Tokenizer.Decode(encoded);
-            Assert.Equal(text, decoded!);
+            Assert.Equal(text, gpt4Tokenizer.Decode(encoded));
+            TestDecodingWithSpan((gpt4Tokenizer as TiktokenTokenizer)!, encoded.ToArray(), text);
 
             TokenizerTests.TestTokenLimits(gpt4Tokenizer);
         }
@@ -200,10 +232,10 @@ namespace Microsoft.ML.Tokenizers.Tests
             string text = "<|im_start|>Hello<|im_end|> World";
             IReadOnlyList<int> encoded = GPT4.EncodeToIds(text);
             Assert.Equal(new List<int>() { 100264, 9906, 100265, 4435 }, encoded);
-            string? decoded = GPT4.Decode(encoded);
-            Assert.Equal(text, decoded);
+            Assert.Equal(text, GPT4.Decode(encoded));
+            TestDecodingWithSpan((GPT4 as TiktokenTokenizer)!, encoded.ToArray(), text);
 
-            IReadOnlyList<Token> result = GPT4.Encode(text, out string? normalizedString);
+            IReadOnlyList<EncodedToken> result = GPT4.EncodeToTokens(text, out string? normalizedString);
             int[] ids = result.Select(token => token.Id).ToArray();
             string[] tokens = result.Select(token => token.Value).ToArray();
             (int, int)[] offsets = result.Select(token => token.Offset).ToArray();
@@ -222,7 +254,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             IReadOnlyList<int> encoded = GPT4.EncodeToIds(text);
             Assert.Empty(encoded);
 
-            IReadOnlyList<Token> result = GPT4.Encode(text, out string? normalizedString);
+            IReadOnlyList<EncodedToken> result = GPT4.EncodeToTokens(text, out string? normalizedString);
             int idsCount = GPT4.CountTokens(text);
             Assert.Empty(result);
             Assert.Equal(0, idsCount);
@@ -236,8 +268,9 @@ namespace Microsoft.ML.Tokenizers.Tests
             int idsCount = GPT4.CountTokens(text);
             Assert.Equal(new List<int>() { 100264, 9906, 2928, 99834, 4435, 100265 }, encoded);
             Assert.Equal(text, GPT4.Decode(encoded));
+            TestDecodingWithSpan((GPT4 as TiktokenTokenizer)!, encoded.ToArray(), text);
 
-            IReadOnlyList<Token> result = GPT4.Encode(text, out string? normalizedString);
+            IReadOnlyList<EncodedToken> result = GPT4.EncodeToTokens(text, out string? normalizedString);
             Assert.Equal(encoded, result.Select(token => token.Id).ToArray());
             Assert.Equal(encoded.Count, idsCount);
             Assert.Equal(new string[] { "<|im_start|>", "Hello", " ⭐", "⭐", " World", "<|im_end|>" }, result.Select(token => token.Value).ToArray());
@@ -260,8 +293,8 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(expected!, encoded);
             }
 
-            string? decoded = GPT4o.Decode(encoded);
-            Assert.Equal(text, decoded);
+            Assert.Equal(text, GPT4o.Decode(encoded));
+            TestDecodingWithSpan((GPT4o as TiktokenTokenizer)!, encoded.ToArray(), text);
 
             text = "<|endoftext|>Hello ⭐ World<|endofprompt|>";
 
@@ -269,8 +302,9 @@ namespace Microsoft.ML.Tokenizers.Tests
             idsCount = GPT4o.CountTokens(text);
             Assert.Equal(new List<int>() { 199999, 13225, 161181, 5922, 200018 }, encoded);
             Assert.Equal(text, GPT4o.Decode(encoded));
+            TestDecodingWithSpan((GPT4o as TiktokenTokenizer)!, encoded.ToArray(), text);
 
-            IReadOnlyList<Token> result = GPT4o.Encode(text, out string? normalizedString);
+            IReadOnlyList<EncodedToken> result = GPT4o.EncodeToTokens(text, out string? normalizedString);
 
             Assert.Equal(encoded, result.Select(token => token.Id).ToArray());
             Assert.Equal(encoded.Count, idsCount);
@@ -295,8 +329,8 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(expected!, encoded);
             }
 
-            string? decoded = GPT2.Decode(encoded);
-            Assert.Equal(text, decoded);
+            Assert.Equal(text, GPT2.Decode(encoded));
+            TestDecodingWithSpan((GPT2 as TiktokenTokenizer)!, encoded.ToArray(), text);
         }
 
         [Fact]
@@ -314,8 +348,8 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(expected!, encoded);
             }
 
-            string? decoded = P50kBase.Decode(encoded);
-            Assert.Equal(text, decoded);
+            Assert.Equal(text, P50kBase.Decode(encoded));
+            TestDecodingWithSpan((P50kBase as TiktokenTokenizer)!, encoded.ToArray(), text);
         }
 
         [Fact]
@@ -333,8 +367,8 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(expected!, encoded);
             }
 
-            string? decoded = P50kEdit.Decode(encoded);
-            Assert.Equal(text, decoded);
+            Assert.Equal(text, P50kEdit.Decode(encoded));
+            TestDecodingWithSpan((P50kEdit as TiktokenTokenizer)!, encoded.ToArray(), text);
         }
 
         [Fact]
@@ -352,8 +386,8 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(expected!, encoded);
             }
 
-            string? decoded = R50kBase.Decode(encoded);
-            Assert.Equal(text, decoded);
+            Assert.Equal(text, R50kBase.Decode(encoded));
+            TestDecodingWithSpan((R50kBase as TiktokenTokenizer)!, encoded.ToArray(), text);
         }
 
         [Theory]
@@ -404,8 +438,8 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("gpt2")]
         public void TestAllSupportedModelNames(string modelName)
         {
-            Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel(modelName);
-            Assert.True(tokenizer is Tiktoken);
+            Tokenizer tokenizer = TiktokenTokenizer.CreateForModel(modelName);
+            Assert.True(tokenizer is TiktokenTokenizer);
             Assert.NotNull(tokenizer.PreTokenizer);
         }
 
@@ -417,8 +451,8 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("o200k_base")]
         public void TestAllSupportedEncodingNames(string encodingName)
         {
-            Tokenizer tokenizer = Tokenizer.CreateTiktokenForEncoding(encodingName);
-            Assert.True(tokenizer is Tiktoken);
+            Tokenizer tokenizer = TiktokenTokenizer.CreateForEncoding(encodingName);
+            Assert.True(tokenizer is TiktokenTokenizer);
             Assert.NotNull(tokenizer.PreTokenizer);
 
             string modelName = encodingName.ToLowerInvariant() switch
@@ -431,29 +465,29 @@ namespace Microsoft.ML.Tokenizers.Tests
                 _ => throw new ArgumentException("Invalid encoding name"),
             };
 
-            Tokenizer tokenizer1 = Tokenizer.CreateTiktokenForModel(modelName);
+            Tokenizer tokenizer1 = TiktokenTokenizer.CreateForModel(modelName);
 
-            Assert.True(tokenizer is Tiktoken);
-            Assert.True(tokenizer1 is Tiktoken);
+            Assert.True(tokenizer is TiktokenTokenizer);
+            Assert.True(tokenizer1 is TiktokenTokenizer);
 
-            Tiktoken tiktoken = (tokenizer as Tiktoken)!;
-            Tiktoken tiktoken1 = (tokenizer1 as Tiktoken)!;
+            TiktokenTokenizer tiktoken = (tokenizer as TiktokenTokenizer)!;
+            TiktokenTokenizer tiktoken1 = (tokenizer1 as TiktokenTokenizer)!;
 
-            Assert.Equal(tiktoken1.Encoder, tiktoken.Encoder);
-            Assert.Equal(tiktoken1.Decoder, tiktoken.Decoder);
+            Assert.Equal(GetEncoder(tiktoken1), GetEncoder(tiktoken));
+            Assert.Equal(GetDecoder(tiktoken1), GetDecoder(tiktoken));
             Assert.Equal(tiktoken1.SpecialTokens, tiktoken.SpecialTokens);
-            Assert.Equal(tiktoken1.Vocab, tiktoken.Vocab);
+            Assert.Equal(GetVocabulary(tiktoken1), GetVocabulary(tiktoken));
         }
 
         [Fact]
         public void TestEncodingNamesNegativeCases()
         {
-            Assert.Throws<ArgumentNullException>(() => Tokenizer.CreateTiktokenForEncoding(null!));
-            Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("r50k_base_"));
-            Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("p50k_base_"));
-            Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("p50k_edit_"));
-            Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("cl100k_base_"));
-            Assert.Throws<ArgumentException>(() => Tokenizer.CreateTiktokenForEncoding("o200k_base_"));
+            Assert.Throws<ArgumentNullException>(() => TiktokenTokenizer.CreateForEncoding(null!));
+            Assert.Throws<ArgumentException>(() => TiktokenTokenizer.CreateForEncoding("r50k_base_"));
+            Assert.Throws<ArgumentException>(() => TiktokenTokenizer.CreateForEncoding("p50k_base_"));
+            Assert.Throws<ArgumentException>(() => TiktokenTokenizer.CreateForEncoding("p50k_edit_"));
+            Assert.Throws<ArgumentException>(() => TiktokenTokenizer.CreateForEncoding("cl100k_base_"));
+            Assert.Throws<ArgumentException>(() => TiktokenTokenizer.CreateForEncoding("o200k_base_"));
         }
 
         [InlineData("gpt-4")]
@@ -466,8 +500,8 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             RemoteExecutor.Invoke(static (name) =>
             {
-                Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel(name);
-                Assert.True(tokenizer is Tiktoken);
+                Tokenizer tokenizer = TiktokenTokenizer.CreateForModel(name);
+                Assert.True(tokenizer is TiktokenTokenizer);
                 Assert.NotNull(tokenizer.PreTokenizer);
             }, modelName).Dispose();
         }
@@ -514,8 +548,8 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             Tokenizer tokenizer = GPT4;
 
-            IReadOnlyList<Token> encoding = tokenizer.Encode(text, out _);
-            IReadOnlyList<Token> encoding1 = tokenizer.Encode(text.AsSpan(), out _);
+            IReadOnlyList<EncodedToken> encoding = tokenizer.EncodeToTokens(text, out _);
+            IReadOnlyList<EncodedToken> encoding1 = tokenizer.EncodeToTokens(text.AsSpan(), out _);
 
             Assert.Equal(expectedTokens, encoding.Select(t => t.Value).ToArray());
             Assert.Equal(expectedOffsets, encoding.Select(t => t.Offset).ToArray());
@@ -545,17 +579,17 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(expectedIds.Length, tokenizer.CountTokens(text));
             Assert.Equal(expectedIds.Length, tokenizer.CountTokens(text.AsSpan()));
 
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 4].Index + expectedOffsets[expectedOffsets.Length - 4].Length, tokenizer.IndexOfTokenCount(text, expectedIds.Length - 3, out normalizedString, out int tokenCount));
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 4].Index + expectedOffsets[expectedOffsets.Length - 4].Length, tokenizer.GetIndexByTokenCount(text, expectedIds.Length - 3, out normalizedString, out int tokenCount));
             Assert.Null(normalizedString);
             Assert.Equal(expectedIds.Length - 3, tokenCount);
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 4].Index + expectedOffsets[expectedOffsets.Length - 4].Length, tokenizer.IndexOfTokenCount(text.AsSpan(), expectedIds.Length - 3, out normalizedString, out tokenCount));
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 4].Index + expectedOffsets[expectedOffsets.Length - 4].Length, tokenizer.GetIndexByTokenCount(text.AsSpan(), expectedIds.Length - 3, out normalizedString, out tokenCount));
             Assert.Null(normalizedString);
             Assert.Equal(expectedIds.Length - 3, tokenCount);
 
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 3].Index, tokenizer.LastIndexOfTokenCount(text, 3, out normalizedString, out tokenCount));
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 3].Index, tokenizer.GetIndexByTokenCountFromEnd(text, 3, out normalizedString, out tokenCount));
             Assert.Null(normalizedString);
             Assert.Equal(3, tokenCount);
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 3].Index, tokenizer.LastIndexOfTokenCount(text.AsSpan(), 3, out normalizedString, out tokenCount));
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 3].Index, tokenizer.GetIndexByTokenCountFromEnd(text.AsSpan(), 3, out normalizedString, out tokenCount));
             Assert.Null(normalizedString);
             Assert.Equal(3, tokenCount);
         }
@@ -629,7 +663,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [MemberData(nameof(TokenizerLimitsTestData))]
         public void TestPreciseTokenLimits(string text, string[] expectedTokens, (int Index, int Length)[] expectedOffsets, int[] expectedIds)
         {
-            IReadOnlyList<Token> result = GPT4.Encode(text, out _);
+            IReadOnlyList<EncodedToken> result = GPT4.EncodeToTokens(text, out _);
             int[] ids = result.Select(r => r.Id).ToArray();
             (int Index, int Length)[] offsets = result.Select(r => r.Offset).ToArray();
             Assert.Equal(expectedTokens, result.Select(r => r.Value));
@@ -640,7 +674,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             for (int tokenCount = 1; tokenCount <= ids.Length; tokenCount++)
             {
-                int length = GPT4.IndexOfTokenCount(text, tokenCount, out _, out int count);
+                int length = GPT4.GetIndexByTokenCount(text, tokenCount, out _, out int count);
                 Assert.True(count <= ids.Length);
 
                 if (count < tokenCount)
@@ -658,7 +692,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     Assert.Equal(0, length);
                 }
 
-                int index = GPT4.LastIndexOfTokenCount(text, tokenCount, out _, out count);
+                int index = GPT4.GetIndexByTokenCountFromEnd(text, tokenCount, out _, out count);
                 Assert.True(count <= ids.Length);
 
                 if (count < tokenCount)
@@ -677,6 +711,16 @@ namespace Microsoft.ML.Tokenizers.Tests
                 }
             }
         }
+
+        // We are not exposing the Encoder, Decoder, or Vocabulary so far. For now, use reflection to test it.
+        private static IReadOnlyDictionary<ReadOnlyMemory<byte>, int>? GetEncoder(TiktokenTokenizer tiktoken)
+            => typeof(TiktokenTokenizer).GetProperty("Encoder", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(tiktoken) as IReadOnlyDictionary<ReadOnlyMemory<byte>, int>;
+
+        private static IReadOnlyDictionary<int, ReadOnlyMemory<byte>>? GetDecoder(TiktokenTokenizer tiktoken)
+            => typeof(TiktokenTokenizer).GetProperty("Decoder", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(tiktoken) as IReadOnlyDictionary<int, ReadOnlyMemory<byte>>;
+
+        private static IReadOnlyDictionary<string, int>? GetVocabulary(TiktokenTokenizer tiktoken)
+            => typeof(TiktokenTokenizer).GetProperty("Vocabulary", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(tiktoken) as IReadOnlyDictionary<string, int>;
     }
 }
 

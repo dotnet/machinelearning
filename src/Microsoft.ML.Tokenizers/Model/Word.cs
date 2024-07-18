@@ -202,16 +202,16 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
-        public int PopulateIdsUpToMax(IList<int> accumulatedIds, int maxTokens, out int textLength)
+        public int PopulateIdsUpToMax(IList<int> accumulatedIds, int maxTokens, out int charsConsumed)
         {
-            textLength = 0;
+            charsConsumed = 0;
 
             int count = Math.Min(SymbolsCount, maxTokens);
 
             for (int i = 0; i < count; i++)
             {
                 accumulatedIds.Add(_symbols[i].C);
-                textLength += _symbols[i].Len;
+                charsConsumed += _symbols[i].Len;
             }
 
             return count;
@@ -232,15 +232,15 @@ namespace Microsoft.ML.Tokenizers
             return count;
         }
 
-        public int CountIdsUpToMax(int maxTokens, out int textLength)
+        public int CountIdsUpToMax(int maxTokens, out int charsConsumed)
         {
-            textLength = 0;
+            charsConsumed = 0;
 
             int count = Math.Min(SymbolsCount, maxTokens);
 
             for (int i = 0; i < count; i++)
             {
-                textLength += _symbols[i].Len;
+                charsConsumed += _symbols[i].Len;
             }
 
             return count;
@@ -289,14 +289,14 @@ namespace Microsoft.ML.Tokenizers
             return sb.ToString();
         }
 
-        public void ToTokens(SortedDictionary<int, string> vocabReverse, List<Token> tokens, int offset)
+        public void ToTokens(SortedDictionary<int, string> vocabReverse, List<EncodedToken> tokens, int offset)
         {
             int index = 0;
 
             for (int i = 0; i < SymbolsCount; i++)
             {
                 int endIndex = index + _symbols[i].Len;
-                tokens.Add(new Token(_symbols[i].C, vocabReverse[_symbols[i].C], (index + offset, _symbols[i].Len)));
+                tokens.Add(new EncodedToken(_symbols[i].C, vocabReverse[_symbols[i].C], (index + offset, _symbols[i].Len)));
                 index += _symbols[i].Len;
             }
         }

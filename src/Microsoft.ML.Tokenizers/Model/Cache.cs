@@ -13,7 +13,7 @@ namespace Microsoft.ML.Tokenizers
         private readonly Dictionary<TKey, TValue> _map;
         private object SyncObj => _map;
 
-        internal Cache() : this(Bpe.DefaultCacheCapacity) { }
+        internal Cache() : this(BpeTokenizer.DefaultCacheCapacity) { }
 
         internal Cache(int capacity)
         {
