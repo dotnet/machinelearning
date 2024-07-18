@@ -19,6 +19,11 @@ namespace Microsoft.ML.Tokenizers
         public UpperCaseNormalizer() { }
 
         /// <summary>
+        /// Gets a singleton instance of the <see cref="UpperCaseNormalizer"/>.
+        /// </summary>
+        public static UpperCaseNormalizer Instance { get; } = new UpperCaseNormalizer();
+
+        /// <summary>
         /// Uppercase the original string.
         /// </summary>
         /// <param name="original">The original string to normalize to uppercase form.</param>

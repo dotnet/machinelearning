@@ -401,7 +401,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
                     answerIndexGetter(ref answerIndex);
 
                     var contextString = context.ToString();
-                    var contextTokens = Tokenizer.Encode(contextString, out string normalized);
+                    var contextTokens = Tokenizer.EncodeToTokens(contextString, out string normalized);
                     var contextToken = contextTokens.Select(t => t.Value).ToArray();
                     var contextTokenId = Tokenizer.RobertaModel().ConvertIdsToOccurrenceRanks(contextTokens.Select(t => t.Id).ToArray());
 
@@ -437,7 +437,7 @@ namespace Microsoft.ML.TorchSharp.Roberta
 
             private Dictionary<int, int> AlignAnswerPosition(IReadOnlyList<string> tokens, string text)
             {
-                EnglishRoberta robertaModel = Tokenizer as EnglishRoberta;
+                EnglishRobertaTokenizer robertaModel = Tokenizer as EnglishRobertaTokenizer;
                 Debug.Assert(robertaModel is not null);
 
                 var mapping = new Dictionary<int, int>();

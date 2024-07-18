@@ -31,6 +31,9 @@ variables:
   value: 1es-windows-2019
 - name: MacImage
   value: macOS-12
+- ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
+  - name: enableSourceIndex
+    value: true
 - template: /eng/common/templates-official/variables/pool-providers.yml@self
 
 resources:
@@ -295,6 +298,15 @@ extends:
           # Terminate all dotnet build processes.
           - script: $(Build.SourcesDirectory)/.dotnet/dotnet.exe build-server shutdown
             displayName: Dotnet Server Shutdown
+
+      - ${{ if eq(variables.enableSourceIndex, 'true') }}:
+        - template: /eng/common/templates-official/job/source-index-stage1.yml@self
+          parameters:
+            sourceIndexBuildCommand: ./build.cmd -ci -configuration Release /p:TargetArchitecture=x64 /bl
+            binlogPath: msbuild.binlog
+            pool:
+              name: $(DncEngInternalBuildPool)
+              demands: ImageOverride -equals 1es-windows-2022
 
       - template: /eng/common/templates-official/job/publish-build-assets.yml@self
         parameters:

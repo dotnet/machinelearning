@@ -19,6 +19,11 @@ namespace Microsoft.ML.Tokenizers
         public LowerCaseNormalizer() { }
 
         /// <summary>
+        /// Gets a singleton instance of the <see cref="LowerCaseNormalizer"/>.
+        /// </summary>
+        public static LowerCaseNormalizer Instance { get; } = new LowerCaseNormalizer();
+
+        /// <summary>
         /// Lowercase the original string.
         /// </summary>
         /// <param name="original">The original string to normalize to lowercase form.</param>

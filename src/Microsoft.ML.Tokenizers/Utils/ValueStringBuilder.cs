@@ -161,7 +161,7 @@ namespace System.Text
 
             while (index <= _pos - oldLength)
             {
-                ReadOnlySpan<char> buffer = _chars.Slice(index);
+                ReadOnlySpan<char> buffer = _chars.Slice(index, _pos - index);
                 int subIndex = buffer.IndexOf(oldValue.AsSpan(), StringComparison.Ordinal);
                 if (subIndex < 0)
                 {
@@ -175,7 +175,8 @@ namespace System.Text
                     newValue.AsSpan().CopyTo(_chars.Slice(index));
                     if (oldLength > newLength)
                     {
-                        _chars.Slice(index + oldLength).CopyTo(_chars.Slice(index + newLength));
+                        int newIndex = index + oldLength;
+                        _chars.Slice(newIndex, _pos - newIndex).CopyTo(_chars.Slice(index + newLength));
                         _pos -= oldLength - newLength;
                     }
                 }
@@ -183,7 +184,8 @@ namespace System.Text
                 {
                     Insert(index, newValue);
 
-                    _chars.Slice(index + newLength + oldLength).CopyTo(_chars.Slice(index + newLength));
+                    int newIndex = index + newLength + oldLength;
+                    _chars.Slice(newIndex, _pos - newIndex).CopyTo(_chars.Slice(index + newLength));
                     _pos -= oldLength;
                 }
 
@@ -200,6 +202,16 @@ namespace System.Text
             }
 
             return false;
+        }
+
+        public void Remove(int start, int length)
+        {
+            if (length > 0 && start + length <= _pos)
+            {
+                int remaining = _pos - start - length;
+                _chars.Slice(start + length, remaining).CopyTo(_chars.Slice(start));
+                _pos -= length;
+            }
         }
 
         public bool EndsWith(string value)

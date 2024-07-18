@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Xunit;
+using System.Buffers;
 
 namespace Microsoft.ML.Tokenizers.Tests
 {
@@ -86,7 +87,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 // "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/vocab.bpe";
                 // "https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/dict.txt";
 
-                _robertaTokenizer = new EnglishRoberta(
+                _robertaTokenizer = EnglishRobertaTokenizer.Create(
                                             Path.Combine(@"Gpt-2", "vocab.json"),
                                             Path.Combine(@"Gpt-2", "merges.txt"),
                                             Path.Combine(@"Gpt-2", "dict.txt"),
@@ -109,28 +110,28 @@ namespace Microsoft.ML.Tokenizers.Tests
             string mergeFile = Path.Combine(@"Gpt-2", "merges.txt");
             string translationFile = Path.Combine(@"Gpt-2", "dict.txt");
 
-            Tokenizer tokenizer = new EnglishRoberta(vocabFile, mergeFile, translationFile, RobertaPreTokenizer.Instance);
+            Tokenizer tokenizer = EnglishRobertaTokenizer.Create(vocabFile, mergeFile, translationFile, RobertaPreTokenizer.Instance);
 
             TestTokenizer(tokenizer);
             TokenizerTests.TestTokenLimits(tokenizer);
 
-            tokenizer = new EnglishRoberta(vocabFile, mergeFile, translationFile, RobertaPreTokenizer.Instance, filterUnsupportedChars: false);
+            tokenizer = EnglishRobertaTokenizer.Create(vocabFile, mergeFile, translationFile, RobertaPreTokenizer.Instance, filterUnsupportedChars: false);
 
             TestTokenizer(tokenizer);
 
             using Stream vocabStream = File.OpenRead(vocabFile);
             using Stream mergeStream = File.OpenRead(mergeFile);
             using Stream translationStream = File.OpenRead(translationFile);
-            tokenizer = new EnglishRoberta(vocabStream, mergeStream, translationStream, RobertaPreTokenizer.Instance);
+            tokenizer = EnglishRobertaTokenizer.Create(vocabStream, mergeStream, translationStream, RobertaPreTokenizer.Instance);
             TestTokenizer(tokenizer);
 
             // Ensure caching works regardless of which method is called first.
             for (CallingOrder order = CallingOrder.Encode; order <= CallingOrder.CountTokens; order++)
             {
-                tokenizer = new EnglishRoberta(vocabFile, mergeFile, translationFile, RobertaPreTokenizer.Instance);
+                tokenizer = EnglishRobertaTokenizer.Create(vocabFile, mergeFile, translationFile, RobertaPreTokenizer.Instance);
                 TestTokenizer(tokenizer, order);
 
-                tokenizer = new EnglishRoberta(vocabFile, mergeFile, translationFile, RobertaPreTokenizer.Instance, filterUnsupportedChars: false);
+                tokenizer = EnglishRobertaTokenizer.Create(vocabFile, mergeFile, translationFile, RobertaPreTokenizer.Instance, filterUnsupportedChars: false);
                 TestTokenizer(tokenizer, order);
             }
         }
@@ -177,8 +178,8 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             Tokenizer tokenizer = GetRobertaTokenizer();
 
-            IReadOnlyList<Token> encoding = tokenizer.Encode(text, out _);
-            IReadOnlyList<Token> encoding1 = tokenizer.Encode(text.AsSpan(), out _);
+            IReadOnlyList<EncodedToken> encoding = tokenizer.EncodeToTokens(text, out _);
+            IReadOnlyList<EncodedToken> encoding1 = tokenizer.EncodeToTokens(text.AsSpan(), out _);
 
             Assert.Equal(expectedTokens, encoding.Select(t => t.Value).ToArray());
             Assert.Equal(expectedOffsets, encoding.Select(t => t.Offset).ToArray());
@@ -208,17 +209,17 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(expectedIds.Length, tokenizer.CountTokens(text));
             Assert.Equal(expectedIds.Length, tokenizer.CountTokens(text.AsSpan()));
 
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 4].Index + expectedOffsets[expectedOffsets.Length - 4].Length, tokenizer.IndexOfTokenCount(text, expectedIds.Length - 3, out normalizedString, out int tokenCount));
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 4].Index + expectedOffsets[expectedOffsets.Length - 4].Length, tokenizer.GetIndexByTokenCount(text, expectedIds.Length - 3, out normalizedString, out int tokenCount));
             Assert.Null(normalizedString);
             Assert.Equal(expectedIds.Length - 3, tokenCount);
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 4].Index + expectedOffsets[expectedOffsets.Length - 4].Length, tokenizer.IndexOfTokenCount(text.AsSpan(), expectedIds.Length - 3, out normalizedString, out tokenCount));
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 4].Index + expectedOffsets[expectedOffsets.Length - 4].Length, tokenizer.GetIndexByTokenCount(text.AsSpan(), expectedIds.Length - 3, out normalizedString, out tokenCount));
             Assert.Null(normalizedString);
             Assert.Equal(expectedIds.Length - 3, tokenCount);
 
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 3].Index, tokenizer.LastIndexOfTokenCount(text, 3, out normalizedString, out tokenCount));
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 3].Index, tokenizer.GetIndexByTokenCountFromEnd(text, 3, out normalizedString, out tokenCount));
             Assert.Null(normalizedString);
             Assert.Equal(3, tokenCount);
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 3].Index, tokenizer.LastIndexOfTokenCount(text.AsSpan(), 3, out normalizedString, out tokenCount));
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 3].Index, tokenizer.GetIndexByTokenCountFromEnd(text.AsSpan(), 3, out normalizedString, out tokenCount));
             Assert.Null(normalizedString);
             Assert.Equal(3, tokenCount);
         }
@@ -234,32 +235,32 @@ namespace Microsoft.ML.Tokenizers.Tests
         // Calling with callIdsFirst = true will test the other way around.
         private void TestTokenizer(Tokenizer tokenizer, CallingOrder callingOrder = CallingOrder.Encode)
         {
-            Assert.True(tokenizer is EnglishRoberta);
+            Assert.True(tokenizer is EnglishRobertaTokenizer);
             Assert.True(tokenizer.PreTokenizer is RobertaPreTokenizer);
 
             foreach (object[] p in BertaData)
             {
                 IReadOnlyList<int> ids;
-                IReadOnlyList<Token> encoding;
+                IReadOnlyList<EncodedToken> encoding;
                 int idsCount;
 
                 if (callingOrder == CallingOrder.Encode)
                 {
-                    encoding = tokenizer.Encode((string)p[0], out _);
+                    encoding = tokenizer.EncodeToTokens((string)p[0], out _);
                     ids = tokenizer.EncodeToIds((string)p[0]);
                     idsCount = tokenizer.CountTokens((string)p[0]);
                 }
                 else if (callingOrder == CallingOrder.EncodeToIds)
                 {
                     ids = tokenizer.EncodeToIds((string)p[0]);
-                    encoding = tokenizer.Encode((string)p[0], out _);
+                    encoding = tokenizer.EncodeToTokens((string)p[0], out _);
                     idsCount = tokenizer.CountTokens((string)p[0]);
                 }
                 else // CountTokens
                 {
                     idsCount = tokenizer.CountTokens((string)p[0]);
                     ids = tokenizer.EncodeToIds((string)p[0]);
-                    encoding = tokenizer.Encode((string)p[0], out _);
+                    encoding = tokenizer.EncodeToTokens((string)p[0], out _);
                 }
 
                 int[] encodingIds = encoding.Select(t => t.Id).ToArray();
@@ -271,32 +272,63 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(((int[])p[1]).Length, idsCount);
                 Assert.Equal(p[3], offsets);
 
-                EnglishRoberta? robertaModel = tokenizer as EnglishRoberta;
+                EnglishRobertaTokenizer? robertaModel = tokenizer as EnglishRobertaTokenizer;
                 Assert.Equal(p[2], tokens);
 
-                Assert.Equal(string.Concat((string[])(p[robertaModel!.FilterUnsupportedChars ? 5 : 2])), tokenizer.Decode(encodingIds));
+                string expectedDecodedString = string.Concat((string[])(p[robertaModel!.FilterUnsupportedChars ? 5 : 2]));
+
+                Assert.Equal(expectedDecodedString, tokenizer.Decode(encodingIds));
+                TestDecodingWithSpan(robertaModel, encodingIds, expectedDecodedString);
 
                 Assert.NotNull(robertaModel);
                 Assert.Equal(encodingIds, robertaModel!.ConvertOccurrenceRanksToIds(robertaModel!.ConvertIdsToOccurrenceRanks(encodingIds)));
                 Assert.Equal(p[4], robertaModel.ConvertIdsToOccurrenceValues(encodingIds));
+
+                var reverseVocab = robertaModel.Vocabulary.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
 
                 for (int i = 0; i < tokens.Length; i++)
                 {
                     if (robertaModel.FilterUnsupportedChars)
                     {
                         string[]? filteredToken = p[5] as string[];
-                        Assert.Equal(filteredToken![i], tokenizer.MapIdToToken(encodingIds[i]));
+                        Assert.Equal(filteredToken![i], reverseVocab[encodingIds[i]].Replace("\u0120", " "));
                     }
                     else
                     {
-                        Assert.Equal(tokens[i], tokenizer.MapIdToToken(encodingIds[i]));
+                        Assert.Equal(tokens[i], reverseVocab[encodingIds[i]]);
                         string[]? unfilteredToken = p[2] as string[];
-                        Assert.Equal(unfilteredToken![i], tokenizer.MapIdToToken(encodingIds[i]));
+                        Assert.Equal(unfilteredToken![i], reverseVocab[encodingIds[i]]);
                     }
 
-                    Assert.Equal(encodingIds[i], tokenizer.MapTokenToId(tokens[i].AsSpan()));
+                    Assert.Equal(encodingIds[i], robertaModel.Vocabulary[tokens[i]]);
                 }
             }
+        }
+
+        private void TestDecodingWithSpan(EnglishRobertaTokenizer tokenizer, int[] ids, string expectedDecoded)
+        {
+            char[] destinationBuffer = new char[expectedDecoded.Length];
+            OperationStatus status;
+            int lastIdsConsumed = 0;
+            int lastCharactersWritten = 0;
+            int idsConsumed;
+            int charactersWritten;
+
+            for (int i = 1; i < destinationBuffer.Length - 1; i += Math.Max(1, destinationBuffer.Length - 3)) // enough to test length 1, and destinationBuffer.Length - 2 only.
+            {
+                status = tokenizer.Decode(ids, destinationBuffer.AsSpan().Slice(0, i), out idsConsumed, out charactersWritten);
+                Assert.Equal(OperationStatus.DestinationTooSmall, status);
+                Assert.True(idsConsumed < ids.Length);
+                Assert.True(idsConsumed >= lastIdsConsumed);
+                Assert.True(charactersWritten < expectedDecoded.Length);
+                Assert.True(charactersWritten >= lastCharactersWritten);
+            }
+
+            status = tokenizer.Decode(ids, destinationBuffer.AsSpan(), out idsConsumed, out charactersWritten);
+            Assert.Equal(OperationStatus.Done, status);
+            Assert.Equal(ids.Length, idsConsumed);
+            Assert.Equal(expectedDecoded.Length, charactersWritten);
+            Assert.Equal(expectedDecoded, destinationBuffer.AsSpan().ToString());
         }
     }
 }

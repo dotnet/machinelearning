@@ -77,7 +77,7 @@ namespace Microsoft.ML.Tokenizers
 
         private object SyncObj => _map;
 
-        internal StringSpanOrdinalKeyCache() : this(Bpe.DefaultCacheCapacity) { }
+        internal StringSpanOrdinalKeyCache() : this(BpeTokenizer.DefaultCacheCapacity) { }
 
         internal StringSpanOrdinalKeyCache(int capacity)
         {

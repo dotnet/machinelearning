@@ -263,7 +263,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
 
             var ch = env.Start("Load Model");
             var tokenizer = TokenizerExtensions.GetInstance(ch);
-            EnglishRoberta tokenizerModel = tokenizer.RobertaModel();
+            EnglishRobertaTokenizer tokenizerModel = tokenizer.RobertaModel();
 
             var model = new ModelForPrediction(options, tokenizerModel.PadIndex, tokenizerModel.SymbolsCount, options.NumberOfClasses);
             if (!ctx.TryLoadBinaryStream("TSModel", r => model.load(r)))
