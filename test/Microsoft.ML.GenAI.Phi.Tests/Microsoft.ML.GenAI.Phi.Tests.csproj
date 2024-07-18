@@ -21,6 +21,12 @@
     <PackageReference Include="Microsoft.ML.TestTokenizers" Version="$(MicrosoftMLTestTokenizersVersion)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Approvals\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetArchitecture)' != 'x64'">
     <Compile Remove="Phi2Tests.cs" />
     <Compile Remove="Phi3Tests.cs" />
