@@ -19,6 +19,11 @@ public class Phi3Tests
 {
     public Phi3Tests()
     {
+        if (Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null)
+        {
+            Approvals.UseAssemblyLocationForApprovedFiles();
+        }
+
         torch.set_default_device("meta");
     }
 
