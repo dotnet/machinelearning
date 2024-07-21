@@ -368,7 +368,7 @@ namespace Microsoft.ML.Recommender.Internal
                 validProb.R = validNodesPtrs;
                 validProb.M = rowCount;
                 validProb.N = colCount;
-                validProb.Nnz = nodes.Length;
+                validProb.Nnz = validNodes.Length;
 
                 ch.Info("Training {0} by {1} problem on {2} examples with a {3} by {4} validation set including {5} examples",
                     prob.M, prob.N, prob.Nnz, validProb.M, validProb.N, validProb.Nnz);
