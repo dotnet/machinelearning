@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Tokenizers
         ///     https://huggingface.co/microsoft/phi-2/resolve/main/vocab.json?download=true
         ///     https://huggingface.co/microsoft/phi-2/resolve/main/merges.txt?download=true
         /// </remarks>
-        public new static Phi2Tokenizer Create(
+        public static new Phi2Tokenizer Create(
             Stream vocabStream,
             Stream mergesStream,
             bool addPrefixSpace = false,

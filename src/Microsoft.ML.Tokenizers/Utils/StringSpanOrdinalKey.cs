@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -15,7 +15,7 @@ namespace Microsoft.ML.Tokenizers
     /// This should only be used with a Ptr/Length for querying. For storing in a dictionary, this should
     /// always be used with a string.
     /// </remarks>
-    internal unsafe readonly struct StringSpanOrdinalKey : IEquatable<StringSpanOrdinalKey>
+    internal readonly unsafe struct StringSpanOrdinalKey : IEquatable<StringSpanOrdinalKey>
     {
         public readonly char* Ptr;
         public readonly int Length;
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Tokenizers
         public override int GetHashCode() => Helpers.GetHashCode(Span);
     }
 
-    internal unsafe readonly struct StringSpanOrdinalKeyPair : IEquatable<StringSpanOrdinalKeyPair>
+    internal readonly unsafe struct StringSpanOrdinalKeyPair : IEquatable<StringSpanOrdinalKeyPair>
     {
         private readonly StringSpanOrdinalKey _left;
         private readonly StringSpanOrdinalKey _right;
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     internal static class StringSpanOrdinalKeyExtensions
     {
-        public unsafe static bool TryGetValue<TValue>(this Dictionary<StringSpanOrdinalKey, TValue> map, ReadOnlySpan<char> key, out TValue value)
+        public static unsafe bool TryGetValue<TValue>(this Dictionary<StringSpanOrdinalKey, TValue> map, ReadOnlySpan<char> key, out TValue value)
         {
             fixed (char* ptr = key)
             {
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Tokenizers
         public static bool TryGetValue<TValue>(this Dictionary<StringSpanOrdinalKey, TValue> map, string key, out TValue value) =>
             map.TryGetValue(new StringSpanOrdinalKey(key), out value!);
 
-        public unsafe static bool TryGetValue<TValue>(this Dictionary<StringSpanOrdinalKeyPair, TValue> map, ReadOnlySpan<char> key1, ReadOnlySpan<char> key2, out TValue value)
+        public static unsafe bool TryGetValue<TValue>(this Dictionary<StringSpanOrdinalKeyPair, TValue> map, ReadOnlySpan<char> key1, ReadOnlySpan<char> key2, out TValue value)
         {
             fixed (char* ptr1 = key1)
             fixed (char* ptr2 = key2)
