@@ -19,13 +19,6 @@ public class Phi3TokenizerHelper
     private const int UserSymbolId = 32010;
     private const int AssistantSymbolId = 32001;
     private const int EndSymbolId = 32007;
-    private readonly Dictionary<string, int> _specialTokenMap = new Dictionary<string, int>
-    {
-        { SystemSymbol, SystemSymbolId },
-        { UserSymbol, UserSymbolId },
-        { AssistantSymbol, AssistantSymbolId },
-        { EndSymbol, EndSymbolId }
-    };
 
     public static LlamaTokenizer FromPretrained(
         string modelPath,
