@@ -35,7 +35,7 @@ public class SemanticKernelTests
             .Returns((string prompt, int maxLen, float temperature, float topP, string[] stopSequences) => "hello");
 
         var kernel = Kernel.CreateBuilder()
-            .AddPhi3AsChatCompletion(pipeline)
+            .AddGenAIChatCompletion(pipeline)
             .Build();
 
         var chatService = kernel.Services.GetRequiredService<IChatCompletionService>();
@@ -71,7 +71,7 @@ public class SemanticKernelTests
             .Returns((string prompt, int maxLen, float temperature, float topP, string[] stopSequences) => "hello");
 
         var kernel = Kernel.CreateBuilder()
-            .AddPhi3AsTextGeneration(pipeline)
+            .AddGenAITextGeneration(pipeline)
             .Build();
 
         var response = await kernel.InvokePromptAsync("test");

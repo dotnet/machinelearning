@@ -24,7 +24,7 @@ public class SemanticKernelSample
 
 
         var kernel = Kernel.CreateBuilder()
-            .AddPhi3AsChatCompletion(pipeline)
+            .AddGenAIChatCompletion(pipeline)
             .Build();
         var chatService = kernel.GetRequiredService<IChatCompletionService>();
         var chatHistory = new ChatHistory();
@@ -53,7 +53,7 @@ public class SemanticKernelSample
 
 
         var kernel = Kernel.CreateBuilder()
-            .AddPhi3AsTextGeneration(pipeline)
+            .AddGenAITextGeneration(pipeline)
             .Build();
 
         var response = await kernel.InvokePromptAsync("Tell a joke");

@@ -13,7 +13,7 @@ namespace Microsoft.ML.GenAI.Phi.Extension;
 
 public static class SemanticKernelExtension
 {
-    public static IKernelBuilder AddPhi3AsChatCompletion(
+    public static IKernelBuilder AddGenAIChatCompletion(
         this IKernelBuilder builder,
         ICausalLMPipeline<Tokenizer, Phi3ForCasualLM> pipeline)
     {
@@ -22,7 +22,7 @@ public static class SemanticKernelExtension
         return builder;
     }
 
-    public static IKernelBuilder AddPhi3AsTextGeneration(
+    public static IKernelBuilder AddGenAITextGeneration(
         this IKernelBuilder builder,
         ICausalLMPipeline<Tokenizer, Phi3ForCasualLM> pipeline)
     {
