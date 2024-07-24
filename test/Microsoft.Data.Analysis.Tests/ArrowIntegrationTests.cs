@@ -128,7 +128,7 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public async void TestEmptyDataFrameRecordBatch()
+        public async Task TestEmptyDataFrameRecordBatch()
         {
             PrimitiveDataFrameColumn<int> ageColumn = new PrimitiveDataFrameColumn<int>("Age");
             PrimitiveDataFrameColumn<int> lengthColumn = new PrimitiveDataFrameColumn<int>("CharCount");
