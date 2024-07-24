@@ -70,7 +70,7 @@ namespace Microsoft.ML.Trainers.FastTree
             int len = reader.ReadInt32();
             byte[] array = new byte[len];
             using (var ds = new DeflateStream(stream, CompressionMode.Decompress))
-                ds.Read(array, 0, len);
+                _ = ds.Read(array, 0, len);
             return array;
         }
 

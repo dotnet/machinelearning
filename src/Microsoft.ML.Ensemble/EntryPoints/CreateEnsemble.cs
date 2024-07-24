@@ -339,10 +339,11 @@ namespace Microsoft.ML.Trainers.Ensemble
                     dataZipEntryNames[i] = entries[i].FullName;
                     dataSerialized[i] = new byte[entries[i].Length];
                     using (var s = entries[i].Open())
-                        s.Read(dataSerialized[i], 0, (int)entries[i].Length);
+                        _ = s.Read(dataSerialized[i], 0, (int)entries[i].Length);
                 }
             }
         }
+
 
         /// <summary>
         /// This method compares two pipelines to make sure they are identical. The first pipeline is passed
