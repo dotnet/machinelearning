@@ -24,30 +24,39 @@ namespace Microsoft.Data.Analysis.Tests
             var ret = df.Add(5);
             Assert.Equal(0, df[0, 0]);
             Assert.Equal(5, ret[0, 0]);
+
             ret = df.Add(listOfInts);
             Assert.Equal(0, df[0, 0]);
             Assert.Equal(5, ret[0, 0]);
+
             ret = df.Subtract(5);
             Assert.Equal(0, df[0, 0]);
             Assert.Equal(-5, ret[0, 0]);
+
             ret = df.Subtract(listOfInts);
             Assert.Equal(0, df[0, 0]);
             Assert.Equal(-5, ret[0, 0]);
+
             ret = df.Multiply(5);
             Assert.Equal(1, df[1, 0]);
             Assert.Equal(5, ret[1, 0]);
+
             ret = df.Multiply(listOfInts);
             Assert.Equal(1, df[1, 0]);
             Assert.Equal(5, ret[1, 0]);
+
             ret = df.Divide(5);
             Assert.Equal(5, df[5, 0]);
             Assert.Equal(1, ret[5, 0]);
+
             ret = df.Divide(listOfInts);
             Assert.Equal(5, df[5, 0]);
             Assert.Equal(1, ret[5, 0]);
+
             ret = df.Modulo(5);
             Assert.Equal(5, df[5, 0]);
             Assert.Equal(0, ret[5, 0]);
+
             ret = df.Modulo(listOfInts);
             Assert.Equal(5, df[5, 0]);
             Assert.Equal(0, ret[5, 0]);
