@@ -4,6 +4,7 @@
 
 using System.IO;
 using System.IO.Compression;
+using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
@@ -70,7 +71,7 @@ namespace Microsoft.ML.Trainers.FastTree
             int len = reader.ReadInt32();
             byte[] array = new byte[len];
             using (var ds = new DeflateStream(stream, CompressionMode.Decompress))
-                _ = ds.Read(array, 0, len);
+                ds.ReadExactly(array, 0, len);
             return array;
         }
 

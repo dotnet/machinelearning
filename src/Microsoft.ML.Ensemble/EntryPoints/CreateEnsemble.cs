@@ -339,7 +339,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     dataZipEntryNames[i] = entries[i].FullName;
                     dataSerialized[i] = new byte[entries[i].Length];
                     using (var s = entries[i].Open())
-                        _ = s.Read(dataSerialized[i], 0, (int)entries[i].Length);
+                        s.ReadExactly(dataSerialized[i], 0, (int)entries[i].Length);
                 }
             }
         }
