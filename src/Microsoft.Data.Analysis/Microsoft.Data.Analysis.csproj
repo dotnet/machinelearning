@@ -44,6 +44,10 @@
       <DependentUpon>PrimitiveDataFrameColumn.BinaryOperators.tt</DependentUpon>
     </None>
   </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="System.Numerics.Tensors" Version="9.0.0-preview.6.24327.7" />
+  </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'">
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
@@ -64,9 +68,9 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ColumnArithmetic.OperationEnums.cs</LastGenOutput>
     </None>
-    <None Update="Computations\Arithmetic.tt">
+    <None Update="Computations\Arithmetic.netstandard.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Arithmetic.cs</LastGenOutput>
+      <LastGenOutput>Arithmetic.netstandard.cs</LastGenOutput>
     </None>
     <None Update="Converters.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -125,17 +129,9 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PrimitiveDataFrameColumn.Computations.cs</LastGenOutput>
     </None>
-    <None Update="Computations\Arithmetics.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PrimitiveColumnArithmetic.cs</LastGenOutput>
-    </None>
     <None Update="PrimitiveDataFrameColumnComputations.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PrimitiveDataFrameColumnComputations.cs</LastGenOutput>
-    </None>
-    <None Update="Computations\Arithmetics.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Arithmetics.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -144,10 +140,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Computations\Arithmetic.cs">
+    <Compile Update="Computations\Arithmetic.netstandard.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>Arithmetic.tt</DependentUpon>
+      <DependentUpon>Arithmetic.netstandard.tt</DependentUpon>
     </Compile>
     <Compile Update="Converters.cs">
       <DesignTime>True</DesignTime>
@@ -214,20 +210,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>PrimitiveDataFrameColumn.Computations.tt</DependentUpon>
     </Compile>
-    <Compile Update="Computations\Arithmetics.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveColumnArithmetic.tt</DependentUpon>
-    </Compile>
     <Compile Update="PrimitiveDataFrameColumnComputations.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>PrimitiveDataFrameColumnComputations.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Computations\Arithmetics.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Arithmetics.tt</DependentUpon>
     </Compile>
     <Compile Update="Strings.Designer.cs">
       <DesignTime>True</DesignTime>
