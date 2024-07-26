@@ -16,6 +16,16 @@ This package adds the ability to use decision tree trainers and featurizers in M
 
 See [Machine Learning Samples](https://github.com/dotnet/machinelearning-samples) for an assortment of samples that show how to get started using ML.NET.
 
+## Main Types
+
+Some of the types provided by this library are:
+
+* `Microsoft.ML.Trainers.FastForestBinaryTrainer`
+* `Microsoft.ML.Trainers.FastForestRegressionTrainer`
+* `Microsoft.ML.Trainers.FastTreeBinaryTrainer`
+* `Microsoft.ML.Trainers.FastTreeRankingTrainer`
+* `Microsoft.ML.Trainers.FastTreeRegressionTrainer`
+
 ## Additional Documentation
 
 * [Conceptual documentation](https://learn.microsoft.com/en-us/dotnet/machine-learning/)
