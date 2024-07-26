@@ -35,7 +35,7 @@ Some of the types provided by this library are:
 * LightGBM Model Support: [Microsoft.ML.LightGbm](https://www.nuget.org/packages/Microsoft.ML.LightGbm)
 * Fast Tree: [Microsoft.ML.FastTree](https://www.nuget.org/packages/Microsoft.ML.FastTree)
 * Image analytics: [Microsoft.ML.ImageAnalytics](https://www.nuget.org/packages/Microsoft.ML.ImageAnalytics)
-* Reccomender: [Microsoft.ML.Recommender](https://www.nuget.org/packages/Microsoft.ML.Recommender)
+* Recommender: [Microsoft.ML.Recommender](https://www.nuget.org/packages/Microsoft.ML.Recommender)
 * Time series: [Microsoft.ML.TimeSeries](https://www.nuget.org/packages/Microsoft.ML.TimeSeries)
 * Automatic model selection / tuning:  [Microsoft.ML.AutoML](https://www.nuget.org/packages/Microsoft.ML.AutoML)
 * Exporting Onnx Models: [Microsoft.ML.OnnxConverter](https://www.nuget.org/packages/Microsoft.ML.OnnxConverter)
