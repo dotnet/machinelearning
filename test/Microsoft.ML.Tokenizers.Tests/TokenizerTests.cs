@@ -112,8 +112,8 @@ namespace Microsoft.ML.Tokenizers.Tests
                     if (count >= settings.MaxTokenCount)
                         break;
 
-                    count++;
                     tokens.Add(new EncodedToken(c - 'a', c.ToString(), (count, 1)));
+                    count++;
                 }
 
                 return new EncodeResults<EncodedToken> { Tokens = tokens, CharsConsumed = count };

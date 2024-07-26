@@ -9,6 +9,9 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     public struct EncodeSettings
     {
+        /// <summary>
+        /// Initializes the <see cref="EncodeSettings"/> instance.
+        /// </summary>
         public EncodeSettings() { MaxTokenCount = int.MaxValue; }
 
         /// <summary>

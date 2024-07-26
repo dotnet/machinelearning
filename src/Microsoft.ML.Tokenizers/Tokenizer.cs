@@ -35,6 +35,10 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="textSpan">The span of the text to encode which will be used if the <paramref name="text"/> is <see langword="null"/>.</param>
         /// <param name="settings">The settings used to encode the text.</param>
         /// <returns>The encoded results containing the list of encoded Ids.</returns>
+        /// <remarks>
+        /// Types derived from <see cref="Tokenizer"/> may override this implementation to provide a more efficient implementation.
+        /// By default, it uses <see cref="EncodeToTokens(string?, ReadOnlySpan{char}, EncodeSettings)"/>.
+        /// </remarks>
         protected virtual EncodeResults<int> EncodeToIds(string? text, ReadOnlySpan<char> textSpan, EncodeSettings settings)
         {
             EncodeResults<EncodedToken> results = EncodeToTokens(text, textSpan, settings);
@@ -172,6 +176,10 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="textSpan">The span of the text to encode which will be used if the <paramref name="text"/> is <see langword="null"/>.</param>
         /// <param name="settings">The settings used to encode the text.</param>
         /// <returns>The number of token Ids that the input text will be encoded to.</returns>
+        /// <remarks>
+        /// Types derived from <see cref="Tokenizer"/> may override this implementation to provide a more efficient implementation.
+        /// By default, it uses <see cref="EncodeToTokens(string?, ReadOnlySpan{char}, EncodeSettings)"/>.
+        /// </remarks>
         protected virtual int CountTokens(string? text, ReadOnlySpan<char> textSpan, EncodeSettings settings)
             => EncodeToTokens(text, textSpan, settings).Tokens.Count;
 
@@ -211,44 +219,42 @@ namespace Microsoft.ML.Tokenizers
         /// If <paramRef name="fromEnd" /> is <see langword="true"/>, it represents the index of the first character to be included. In cases where no tokens fit, the result will be the text length; conversely,
         /// if all tokens fit, the result will be zero.
         /// </returns>
+        /// <remarks>
+        /// Types derived from <see cref="Tokenizer"/> may override this implementation to provide a more efficient implementation.
+        /// By default, it uses <see cref="EncodeToTokens(string?, ReadOnlySpan{char}, EncodeSettings)"/>.
+        /// </remarks>
         protected virtual int GetIndexByTokenCount(string? text, ReadOnlySpan<char> textSpan, EncodeSettings settings, bool fromEnd, out string? normalizedString, out int tokenCount)
         {
             int maxTokenCount = settings.MaxTokenCount;
+            if (fromEnd)
+            {
+                // If we're looking from the end, we need to process the whole input.
+                settings.MaxTokenCount = int.MaxValue;
+            }
 
-            settings.MaxTokenCount = int.MaxValue;
             EncodeResults<EncodedToken> tokens = EncodeToTokens(text, textSpan, settings);
-
             normalizedString = tokens.NormalizedText;
+            tokenCount = Math.Min(maxTokenCount, tokens.Tokens.Count);
 
             if (!fromEnd)
             {
-                if (maxTokenCount >= tokens.Tokens.Count)
+                if (tokenCount > 0)
                 {
-                    tokenCount = tokens.Tokens.Count;
-                    return tokens.NormalizedText?.Length ?? textSpan.Length;
+                    var token = tokens.Tokens[tokenCount - 1];
+                    return token.Offset.Index + token.Offset.Length;
                 }
-                else
-                {
-                    tokenCount = maxTokenCount;
-                    return maxTokenCount > 0 ?
-                        tokens.Tokens[maxTokenCount - 1].Offset.Index :
-                        0;
-                }
+
+                return 0;
             }
             else
             {
-                if (maxTokenCount >= tokens.Tokens.Count)
+                if (tokenCount > 0)
                 {
-                    tokenCount = tokens.Tokens.Count;
-                    return 0;
+                    var token = tokens.Tokens[tokens.Tokens.Count - tokenCount];
+                    return token.Offset.Index;
                 }
-                else
-                {
-                    tokenCount = maxTokenCount;
-                    return maxTokenCount > 0 ?
-                        tokens.Tokens[tokens.Tokens.Count - maxTokenCount - 1].Offset.Index :
-                        tokens.NormalizedText?.Length ?? textSpan.Length;
-                }
+
+                return tokens.NormalizedText?.Length ?? textSpan.Length;
             }
         }
 
@@ -351,6 +357,10 @@ namespace Microsoft.ML.Tokenizers
         /// <returns>The decoded string.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="ids"/> is null.</exception>
         /// <exception cref="InvalidOperationException"><paramref name="ids"/> contains invalid data.</exception>
+        /// <remarks>
+        /// Types derived from <see cref="Tokenizer"/> may override this implementation to provide a more efficient implementation.
+        /// By default, it uses <see cref="Decode(IEnumerable{int}, Span{char}, out int, out int)"/>.
+        /// </remarks>
         public virtual string? Decode(IEnumerable<int> ids)
         {
             if (ids is null)
@@ -376,8 +386,7 @@ namespace Microsoft.ML.Tokenizers
 #endif
             while (true)
             {
-                OperationStatus status = Decode(ids, destination, out int idsConsumed, out int charsWritten);
-                switch (status)
+                switch (Decode(ids, destination, out int idsConsumed, out int charsWritten))
                 {
                     case OperationStatus.Done:
                         string result = destination.AsSpan(0, charsWritten).ToString();
