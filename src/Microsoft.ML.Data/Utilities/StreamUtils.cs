@@ -262,11 +262,8 @@ namespace Microsoft.ML.Internal.Utilities
         /// </remarks>
         public static void ReadExactly(this Stream stream, byte[] buffer, int offset, int count)
         {
-#if !CORECLR
+            ValidateBufferArguments(buffer, offset, count);
             _ = ReadAtLeastCore(stream, buffer, offset, count, throwOnEndOfStream: true);
-#else
-            stream.ReadExactly(buffer, offset, count);
-#endif
         }
     }
 }
