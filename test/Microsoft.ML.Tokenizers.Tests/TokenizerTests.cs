@@ -1,9 +1,9 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Tokenizers;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -12,6 +12,114 @@ namespace Microsoft.ML.Tokenizers.Tests
 {
     public class TokenizerTests
     {
+        [Fact]
+        public void Decode_DefaultImplementation()
+        {
+            var tokenizer = new EnglishAlphabetTokenizer();
+
+            Assert.Equal("", tokenizer.Decode([]));
+
+            Assert.Equal("hello", tokenizer.Decode([7, 4, 11, 11, 14]));
+
+            Assert.Equal(
+                string.Concat(Enumerable.Repeat("abcdefghijklmnopqrstuvwxyz", 100)),
+                tokenizer.Decode(Enumerable.Repeat("abcdefghijklmnopqrstuvwxyz", 100).SelectMany(s => s.Select(c => c - 'a'))));
+
+            Assert.Throws<InvalidOperationException>(() => tokenizer.Decode([26, 27, 28, 29]));
+        }
+
+        [Fact]
+        public void EncodeToIds_DefaultImplementation()
+        {
+            var tokenizer = new EnglishAlphabetTokenizer();
+
+            IReadOnlyList<int> ids = tokenizer.EncodeToIds("hello, world", 5, out string? normalizedText, out int charsConsumed);
+
+            Assert.Equal([7, 4, 11, 11, 14], ids);
+            Assert.Null(normalizedText);
+            Assert.Equal(5, charsConsumed);
+        }
+
+        [Fact]
+        public void CountTokens_DefaultImplementation()
+        {
+            var tokenizer = new EnglishAlphabetTokenizer();
+
+            Assert.Equal(5, tokenizer.CountTokens("hello"));
+        }
+
+        [Fact]
+        public void GetIndexByTokenCount_DefaultImplementation()
+        {
+            var tokenizer = new EnglishAlphabetTokenizer();
+
+            Assert.Equal(2, tokenizer.GetIndexByTokenCount("hello", 2, out string? normalizedString, out int tokenCount));
+            Assert.Null(normalizedString);
+            Assert.Equal(2, tokenCount);
+
+            Assert.Equal(5, tokenizer.GetIndexByTokenCount("hello", 8, out normalizedString, out tokenCount));
+            Assert.Null(normalizedString);
+            Assert.Equal(5, tokenCount);
+        }
+
+        [Fact]
+        public void GetIndexByTokenCountFromEnd_DefaultImplementation()
+        {
+            var tokenizer = new EnglishAlphabetTokenizer();
+
+            Assert.Equal(3, tokenizer.GetIndexByTokenCountFromEnd("hello", 2, out string? normalizedString, out int tokenCount));
+            Assert.Null(normalizedString);
+            Assert.Equal(2, tokenCount);
+
+            Assert.Equal(0, tokenizer.GetIndexByTokenCountFromEnd("hello", 8, out normalizedString, out tokenCount));
+            Assert.Null(normalizedString);
+            Assert.Equal(5, tokenCount);
+        }
+
+        private sealed class EnglishAlphabetTokenizer : Tokenizer
+        {
+            public override OperationStatus Decode(IEnumerable<int> ids, Span<char> destination, out int idsConsumed, out int charsWritten)
+            {
+                int pos = 0;
+                foreach (int i in ids)
+                {
+                    if (pos >= destination.Length)
+                    {
+                        charsWritten = idsConsumed = pos;
+                        return OperationStatus.DestinationTooSmall;
+                    }
+
+                    if (i is < 0 or >= 26)
+                    {
+                        charsWritten = idsConsumed = pos;
+                        return OperationStatus.InvalidData;
+                    }
+
+                    destination[pos++] = (char)('a' + i);
+                }
+
+                charsWritten = idsConsumed = pos;
+                return OperationStatus.Done;
+            }
+
+            protected override EncodeResults<EncodedToken> EncodeToTokens(string? text, ReadOnlySpan<char> textSpan, EncodeSettings settings)
+            {
+                var tokens = new List<EncodedToken>();
+
+                int count = 0;
+                foreach (char c in textSpan)
+                {
+                    if (count >= settings.MaxTokenCount)
+                        break;
+
+                    tokens.Add(new EncodedToken(c - 'a', c.ToString(), (count, 1)));
+                    count++;
+                }
+
+                return new EncodeResults<EncodedToken> { Tokens = tokens, CharsConsumed = count };
+            }
+        }
+
         internal static void TestTokenLimits(Tokenizer tokenizer)
         {
             string input = @"
