@@ -176,6 +176,7 @@ namespace Microsoft.ML.AutoML.Test
             var res = await experiment.RunAsync(cts.Token);
             res.Metric.Should().BeGreaterThan(0);
             cts.IsCancellationRequested.Should().BeFalse();
+            cts.Dispose();
         }
 
         [Fact]
