@@ -127,7 +127,7 @@ namespace Microsoft.ML.Sweeper.RunTests
         }
 
         [Fact]
-        public async void TestSimpleSweeperAsync()
+        public async Task TestSimpleSweeperAsync()
         {
             var random = new Random(42);
             var env = new MLContext(42);

@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.ML.Tokenizers.Tests
@@ -36,7 +37,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         public static Tokenizer GPT4o { get; } = TiktokenTokenizer.CreateForModel("gpt-4o");
 
         [Fact]
-        public async void TestTokenizerCreation()
+        public async Task TestTokenizerCreation()
         {
             TestGPT4TokenizationEncoding(GPT4);
 
@@ -105,7 +106,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
         [Theory]
         [MemberData(nameof(ModelUrlData))]
-        public async void TestTokenizerUsingExternalVocab(Tokenizer tokenizer, string url)
+        public async Task TestTokenizerUsingExternalVocab(Tokenizer tokenizer, string url)
         {
             string tokenizerDataFileName = Utils.CreateTemporaryFile("tiktoken");
             await Utils.DownloadFile(url, tokenizerDataFileName);

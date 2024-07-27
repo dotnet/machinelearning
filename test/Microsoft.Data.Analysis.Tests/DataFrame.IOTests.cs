@@ -16,6 +16,7 @@ using Xunit;
 using Microsoft.ML.TestFramework.Attributes;
 using System.Threading;
 using Microsoft.ML.Data;
+using System.Threading.Tasks;
 
 namespace Microsoft.Data.Analysis.Tests
 {
@@ -1170,7 +1171,7 @@ CMT,";
         }
 
         [X86X64Fact("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
-        public async void TestSQLite()
+        public async Task TestSQLite()
         {
             var (columns, vals) = GetTestData();
             var dataFrame = DataFrame.LoadFrom(vals, columns);
