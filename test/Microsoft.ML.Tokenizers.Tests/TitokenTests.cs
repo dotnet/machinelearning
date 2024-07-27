@@ -12,7 +12,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -501,9 +500,22 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             RemoteExecutor.Invoke(static (name) =>
             {
+#if NET8_0_OR_GREATER || NETFRAMEWORK_4_8_OR_GREATER
+                long allocation = GC.GetAllocatedBytesForCurrentThread();
+#endif // NET8_0_OR_GREATER || NETFRAMEWORK_4_8_OR_GREATER
+
                 Tokenizer tokenizer = TiktokenTokenizer.CreateForModel(name);
                 Assert.True(tokenizer is TiktokenTokenizer);
                 Assert.NotNull(tokenizer.PreTokenizer);
+
+#if NET8_0_OR_GREATER || NETFRAMEWORK_4_8_OR_GREATER
+                int entriesCount = GetEncoder((tokenizer as TiktokenTokenizer)!)!.Count;
+                allocation = GC.GetAllocatedBytesForCurrentThread() - allocation;
+
+                // entriesCount * 260 is average memory allocation during the initialization for the the models we carry data files for.
+                // this allocation is not the size of the cache but it include all temporary allocations during the initialization.
+                Assert.True((entriesCount * 260) > allocation, $"Memory allocation of {entriesCount} entries for {name}: {allocation} bytes");
+#endif // NET8_0_OR_GREATER || NETFRAMEWORK_4_8_OR_GREATER
             }, modelName).Dispose();
         }
 

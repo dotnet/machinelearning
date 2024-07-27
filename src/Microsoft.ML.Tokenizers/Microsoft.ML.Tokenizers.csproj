@@ -32,16 +32,36 @@
       <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
     </ParameterGroup>
     <Task>
+      <Using Namespace="System.Globalization" />
       <Using Namespace="System.IO" />
       <Using Namespace="System.IO.Compression" />
       <Code Type="Fragment" Language="cs">
 			<![CDATA[
-        foreach(var file in Files)
+        foreach (var file in Files)
         {
-            using var sourceStream = File.OpenRead(file.GetMetadata("FullPath"));
+            string fileName = file.GetMetadata("FullPath");
+            string fileContent = File.ReadAllText(fileName);
+            int capacity = 1;
+            int eolIndex = 0;
+            do
+            {
+                if ((eolIndex = fileContent.IndexOf('\n', eolIndex)) >= 0)
+                {
+                    eolIndex++;
+                    capacity++;
+                }
+                else
+                {
+                    break;
+                }
+            } while (eolIndex < fileContent.Length);
+
+            using var sourceStream = File.OpenRead(fileName);
             using var reader = new StreamReader(sourceStream);
             using var destStream = new DeflateStream(File.Create(file.GetMetadata("Destination")), CompressionLevel.Optimal);
             using var streamWriter = new StreamWriter(destStream);
+
+            streamWriter.WriteLine($"Capacity: {capacity.ToString(CultureInfo.InvariantCulture)}");
 
             string line;
             int destLineNumber = 0;
