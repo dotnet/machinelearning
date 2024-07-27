@@ -4,16 +4,12 @@ ML.NET is a cross-platform open-source machine learning framework which makes ma
 
 For more information, see the [ML.NET documentation](https://docs.microsoft.com/dotnet/machine-learning/).
 
+This package adds the ability to load and run pre-trained TensorFlow models as part of your ML.NET pipeline.
+
 ## Key Features
 
-* Classification/Categorization - Automatically divide customer feedback into positive and negative categories
-* Regression/Predict continuous values - Predict the price of houses based on size and location
-* Anomaly Detection - Detect fraudulent banking transactions
-* Recommendations - Suggest products that online shoppers may want to buy, based on their previous purchases
-* Time series/sequential data - Forecast the weather/product sales
-* Image classification - Categorize pathologies in medical images
-* Text classification - Categorize documents based on their content.
-* Sentence similarity - Measure how similar two sentences are.
+* Any type of TensorFlow model can be run with all the data interop handled automatically.
+
 
 ## How to Use
 
@@ -23,17 +19,18 @@ See [Machine Learning Samples](https://github.com/dotnet/machinelearning-samples
 
 Some of the types provided by this library are:
 
-* `Microsoft.ML.MLContext`
-* `Microsoft.ML.ITransformer`
-* `Microsoft.ML.IEstimator<TTransformer>`
+* `Microsoft.ML.Transforms.TensorFlowModel`
+* `Microsoft.ML.Transforms.TensorFlowTransformer`
+* `Microsoft.ML.Transforms.TensorFlowEstimator`
 
 ## Additional Documentation
 
 * [Conceptual documentation](https://learn.microsoft.com/en-us/dotnet/machine-learning/)
-* [API documentation](https://learn.microsoft.com/en-us/dotnet/api/microsoft.ml)
+* [API documentation](https://learn.microsoft.com/en-us/dotnet/api/microsoft.ml.transforms)
 
 ## Related Packages
 
+* Main Package: [Microsoft.ML](https://www.nuget.org/packages/Microsoft.ML)
 * Core data abstraction: [Microsoft.ML.DataView](https://www.nuget.org/packages/Microsoft.ML.DataView)
 * LightGBM Model Support: [Microsoft.ML.LightGbm](https://www.nuget.org/packages/Microsoft.ML.LightGbm)
 * Fast Tree: [Microsoft.ML.FastTree](https://www.nuget.org/packages/Microsoft.ML.FastTree)

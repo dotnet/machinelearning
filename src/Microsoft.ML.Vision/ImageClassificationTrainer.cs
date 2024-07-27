@@ -979,9 +979,9 @@ namespace Microsoft.ML.Vision
                 var labelTensorShape = _labelTensor.TensorShape.dims.Select(x => (long)x).ToArray();
                 var featureTensorShape = _bottleneckInput.TensorShape.dims.Select(x => (long)x).ToArray();
                 byte[] buffer = new byte[sizeof(int)];
-                trainSetFeatureReader.Read(buffer, 0, 4);
+                trainSetFeatureReader.ReadExactly(buffer, 0, 4);
                 int trainingExamples = BitConverter.ToInt32(buffer, 0);
-                trainSetFeatureReader.Read(buffer, 0, 4);
+                trainSetFeatureReader.ReadExactly(buffer, 0, 4);
                 int featureFileRecordSize = sizeof(float) * BitConverter.ToInt32(buffer, 0);
                 const int featureFileStartOffset = sizeof(int) * 2;
                 var labelBufferSizeInBytes = sizeof(long) * batchSize;

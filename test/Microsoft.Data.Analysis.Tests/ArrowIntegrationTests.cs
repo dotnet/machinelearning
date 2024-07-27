@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Apache.Arrow;
 using Apache.Arrow.Ipc;
 using Apache.Arrow.Types;
@@ -128,7 +129,7 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public async void TestEmptyDataFrameRecordBatch()
+        public async Task TestEmptyDataFrameRecordBatch()
         {
             PrimitiveDataFrameColumn<int> ageColumn = new PrimitiveDataFrameColumn<int>("Age");
             PrimitiveDataFrameColumn<int> lengthColumn = new PrimitiveDataFrameColumn<int>("CharCount");

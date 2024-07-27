@@ -4,16 +4,12 @@ ML.NET is a cross-platform open-source machine learning framework which makes ma
 
 For more information, see the [ML.NET documentation](https://docs.microsoft.com/dotnet/machine-learning/).
 
+This package adds the ability to load and run pre-trained ONNX models as part of your ML.NET pipeline.
+
 ## Key Features
 
-* Classification/Categorization - Automatically divide customer feedback into positive and negative categories
-* Regression/Predict continuous values - Predict the price of houses based on size and location
-* Anomaly Detection - Detect fraudulent banking transactions
-* Recommendations - Suggest products that online shoppers may want to buy, based on their previous purchases
-* Time series/sequential data - Forecast the weather/product sales
-* Image classification - Categorize pathologies in medical images
-* Text classification - Categorize documents based on their content.
-* Sentence similarity - Measure how similar two sentences are.
+* Any type of ONNX model can be run with all the data interop handled automatically.
+* Image Featurization - Automatically featurize an image using a pre-trained DNN model.
 
 ## How to Use
 
@@ -23,17 +19,18 @@ See [Machine Learning Samples](https://github.com/dotnet/machinelearning-samples
 
 Some of the types provided by this library are:
 
-* `Microsoft.ML.MLContext`
-* `Microsoft.ML.ITransformer`
-* `Microsoft.ML.IEstimator<TTransformer>`
+* `Microsoft.ML.Transforms.Onnx.OnnxOptions`
+* `Microsoft.ML.Transforms.Onnx.OnnxScoringEstimator`
+* `Microsoft.ML.Transforms.Onnx.OnnxTransformer`
 
 ## Additional Documentation
 
 * [Conceptual documentation](https://learn.microsoft.com/en-us/dotnet/machine-learning/)
-* [API documentation](https://learn.microsoft.com/en-us/dotnet/api/microsoft.ml)
+* [API documentation](https://learn.microsoft.com/en-us/dotnet/api/microsoft.ml.transforms.onnx)
 
 ## Related Packages
 
+* Main Package: [Microsoft.ML](https://www.nuget.org/packages/Microsoft.ML)
 * Core data abstraction: [Microsoft.ML.DataView](https://www.nuget.org/packages/Microsoft.ML.DataView)
 * LightGBM Model Support: [Microsoft.ML.LightGbm](https://www.nuget.org/packages/Microsoft.ML.LightGbm)
 * Fast Tree: [Microsoft.ML.FastTree](https://www.nuget.org/packages/Microsoft.ML.FastTree)
@@ -42,7 +39,6 @@ Some of the types provided by this library are:
 * Time series: [Microsoft.ML.TimeSeries](https://www.nuget.org/packages/Microsoft.ML.TimeSeries)
 * Automatic model selection / tuning:  [Microsoft.ML.AutoML](https://www.nuget.org/packages/Microsoft.ML.AutoML)
 * Exporting Onnx Models: [Microsoft.ML.OnnxConverter](https://www.nuget.org/packages/Microsoft.ML.OnnxConverter)
-* Loading Onnx models: [Microsoft.ML.OnnxTransformer](https://www.nuget.org/packages/Microsoft.ML.OnnxTransformer)
 * Text tokenizers: [Microsoft.ML.Tokenizers](https://www.nuget.org/packages/Microsoft.ML.Tokenizers)
 
 ## Feedback & Contributing
