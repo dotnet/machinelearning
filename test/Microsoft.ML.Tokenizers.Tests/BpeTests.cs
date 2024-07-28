@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.ML.Tokenizers.Tests
@@ -337,7 +338,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
-        public async void TestBpeCreation()
+        public async Task TestBpeCreation()
         {
             // "https://huggingface.co/openai-community/gpt2/raw/main/vocab.json";
             // "https://huggingface.co/openai-community/gpt2/raw/main/merges.txt";

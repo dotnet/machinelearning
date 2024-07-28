@@ -148,7 +148,8 @@ namespace Microsoft.ML.AutoML.Test
             res.Metric.Should().BeGreaterThan(0);
         }
 
-        [Fact]
+        //https://github.com/dotnet/machinelearning/issues/7203
+        [X86X64Fact("Fails on Linux Arm machines")]
         public async Task AutoMLExperiment_finish_training_when_time_is_up_Async()
         {
             var context = new MLContext(1);
@@ -176,6 +177,7 @@ namespace Microsoft.ML.AutoML.Test
             var res = await experiment.RunAsync(cts.Token);
             res.Metric.Should().BeGreaterThan(0);
             cts.IsCancellationRequested.Should().BeFalse();
+            cts.Dispose();
         }
 
         [Fact]
