@@ -156,21 +156,37 @@ namespace Microsoft.ML.Tokenizers
         internal static async ValueTask<(Dictionary<ReadOnlyMemory<byte>, int>, Dictionary<StringSpanOrdinalKey, (int Id, string Token)>, Dictionary<int, ReadOnlyMemory<byte>>)> LoadTiktokenBpeAsync(
             Stream vocabStream, bool useAsync, CancellationToken cancellationToken = default)
         {
-            var encoder = new Dictionary<ReadOnlyMemory<byte>, int>(ReadOnlyMemoryByteComparer.Instance);
-            var vocab = new Dictionary<StringSpanOrdinalKey, (int Id, string Token)>();
-            var decoder = new Dictionary<int, ReadOnlyMemory<byte>>();
+            Dictionary<ReadOnlyMemory<byte>, int> encoder;
+            Dictionary<StringSpanOrdinalKey, (int Id, string Token)> vocab;
+            Dictionary<int, ReadOnlyMemory<byte>> decoder;
 
             try
             {
                 // Don't dispose the reader as it will dispose the underlying stream vocabStream. The caller is responsible for disposing the stream.
                 StreamReader reader = new StreamReader(vocabStream);
-                string? line;
-                do
+                string? line = useAsync ? await Helpers.ReadLineAsync(reader, cancellationToken).ConfigureAwait(false) : reader.ReadLine();
+
+                const string capacity = "Capacity: ";
+                int suggestedCapacity = 0; // default capacity
+                if (line is not null && line.StartsWith(capacity, StringComparison.Ordinal))
                 {
-                    line = useAsync ?
-                        await Helpers.ReadLineAsync(reader, cancellationToken).ConfigureAwait(false) :
-                        reader.ReadLine();
-                } while (line is not null && line.Length == 0);
+                    if (!Helpers.TryParseInt32(line, capacity.Length, out suggestedCapacity))
+                    {
+                        throw new FormatException($"Invalid format in the BPE vocab file stream");
+                    }
+
+                    line = useAsync ? await Helpers.ReadLineAsync(reader, cancellationToken).ConfigureAwait(false) : reader.ReadLine();
+                }
+
+                encoder = new Dictionary<ReadOnlyMemory<byte>, int>(suggestedCapacity, ReadOnlyMemoryByteComparer.Instance);
+                vocab = new Dictionary<StringSpanOrdinalKey, (int Id, string Token)>(suggestedCapacity);
+                decoder = new Dictionary<int, ReadOnlyMemory<byte>>(suggestedCapacity);
+
+                // skip empty lines
+                while (line is not null && line.Length == 0)
+                {
+                    line = useAsync ? await Helpers.ReadLineAsync(reader, cancellationToken).ConfigureAwait(false) : reader.ReadLine();
+                }
 
                 if (line is not null && line.IndexOf(' ') < 0)
                 {
