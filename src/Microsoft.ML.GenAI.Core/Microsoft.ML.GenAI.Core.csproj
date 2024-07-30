@@ -13,7 +13,7 @@
   </ItemGroup>
 
   
-  <ItemGroup Condition='$(Configuration) == "Debug"'>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
   <!-- make codecov happy -->
     <PackageReference Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows'))" PrivateAssets="all" />
     <PackageReference Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux'))" PrivateAssets="all" />
