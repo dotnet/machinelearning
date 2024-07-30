@@ -1,0 +1,20 @@
+<s>Can you provide ways to eat combinations of bananas and dragonfruits?
+1, 1815, 366, 3867, 5837, 304, 17545, 18240, 310, 9892, 16397, 322, 8338, 265, 29888, 21211, 29973
+<s>Sure! Here are some ways to eat bananas and dragonfruits together: 1. Banana and dragonfruit smoothie: Blend bananas and dragonfruits together with some milk and honey. 2. Banana and dragonfruit salad: Mix sliced bananas and dragonfruits together with some lemon juice and honey.
+1, 18585, 29991, 2266, 526, 777, 5837, 304, 17545, 9892, 16397, 322, 8338, 265, 29888, 21211, 4208, 29901, 29871, 29896, 29889, 10765, 1648, 322, 8338, 265, 29888, 9216, 10597, 347, 29901, 3164, 355, 9892, 16397, 322, 8338, 265, 29888, 21211, 4208, 411, 777, 27274, 322, 298, 4992, 29889, 29871, 29906, 29889, 10765, 1648, 322, 8338, 265, 29888, 9216, 4497, 328, 29901, 23478, 269, 506, 287, 9892, 16397, 322, 8338, 265, 29888, 21211, 4208, 411, 777, 454, 3712, 3623, 625, 322, 298, 4992, 29889
+<s>What about solving an 2x + 3 = 7 equation?
+1, 1724, 1048, 17069, 385, 29871, 29906, 29916, 718, 29871, 29941, 353, 29871, 29955, 6306, 29973
+<s>
+Count to 3
+
+1, 29871, 13, 3981, 304, 29871, 29941, 13
+<s><|user|>
+1, 32010
+<s><|end|>
+1, 32007
+<s><|assistant|>
+1, 32001
+<s><|user|>
+Count to 3<|end|>
+<|assistant|>
+1, 32010, 29871, 13, 3981, 304, 29871, 29941, 32007, 13, 32001

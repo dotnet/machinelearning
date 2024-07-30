@@ -8,12 +8,19 @@ namespace Microsoft.ML.GenAI.Core;
 
 public class CasualLMModelOutput
 {
+    internal static class Defaults
+    {
+        internal const Tensor? Logits = null;
+        internal const Tensor[]? AllHiddenStates = null;
+        internal const Tensor[]? Attentions = null;
+        internal const IKVCache? Cache = null;
+    }
     public CasualLMModelOutput(
         Tensor lastHiddenState,
-        Tensor logits,
-        Tensor[]? allHiddenStates = null,
-        Tensor[]? attentions = null,
-        IKVCache? cache = null)
+        Tensor? logits = Defaults.Logits,
+        Tensor[]? allHiddenStates = Defaults.AllHiddenStates,
+        Tensor[]? attentions = Defaults.Attentions,
+        IKVCache? cache = Defaults.Cache)
     {
         this.LastHiddenState = lastHiddenState;
         this.AllHiddenStates = allHiddenStates;
@@ -22,7 +29,7 @@ public class CasualLMModelOutput
         this.Cache = cache;
     }
 
-    public Tensor Logits { get; set; }
+    public Tensor? Logits { get; set; }
 
     public Tensor LastHiddenState { get; set; }
 

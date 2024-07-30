@@ -63,18 +63,22 @@
     <TensorflowDotNETVersion>0.20.1</TensorflowDotNETVersion>
     <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
     <TensorFlowVersion>2.3.1</TensorFlowVersion>
+    <TorchSharpPyBridgeVersion>1.4.1</TorchSharpPyBridgeVersion>
+    <AutoGenVersion>0.0.15</AutoGenVersion>
+    <SemanticKernelVersion>1.15.0</SemanticKernelVersion>
     <TorchSharpVersion>0.102.7</TorchSharpVersion>
     <LibTorchVersion>2.2.1.1</LibTorchVersion>
     <!-- Build/infrastructure Dependencies -->
     <CodecovVersion>1.12.4</CodecovVersion>
-    <CoverletCollectorVersion>3.1.2</CoverletCollectorVersion>
-    <CoverletMsbuildVersion>3.1.2</CoverletMsbuildVersion>
+    <CoverletCollectorVersion>6.0.2</CoverletCollectorVersion>
+    <CoverletMsbuildVersion>6.0.0</CoverletMsbuildVersion>
     <MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>3.3.1</MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>
     <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
     <ReportGeneratorVersion>4.3.6</ReportGeneratorVersion>
     <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
     <!-- Test-only Dependencies -->
     <ApprovalTestsVersion>5.4.7</ApprovalTestsVersion>
+    <MoqVersion>4.20.70</MoqVersion>
     <BenchmarkDotNetVersion>0.13.1</BenchmarkDotNetVersion>
     <DotNetRuntime60Version>6.0.26</DotNetRuntime60Version>
     <DotNetRuntime80Version>8.0.1</DotNetRuntime80Version>

@@ -8,15 +8,25 @@ namespace Microsoft.ML.GenAI.Core;
 
 public class CasualLMModelInput
 {
+    internal static class Defaults
+    {
+        internal const Tensor? AttentionMask = null;
+        internal const Tensor? PositionIds = null;
+        internal const int PastKeyValuesLength = 0;
+        internal const Tensor? InputsEmbeds = null;
+        internal const bool UseCache = false;
+        internal const bool OutputAttentions = false;
+        internal const bool OutputHiddenStates = false;
+    }
     public CasualLMModelInput(
         Tensor inputIds,
-        Tensor? attentionMask = null,
-        Tensor? positionIds = null,
-        int pastKeyValuesLength = 0,
-        Tensor? inputsEmbeds = null,
-        bool useCache = false,
-        bool outputAttentions = false,
-        bool outputHiddenStates = false)
+        Tensor? attentionMask = Defaults.AttentionMask,
+        Tensor? positionIds = Defaults.PositionIds,
+        int pastKeyValuesLength = Defaults.PastKeyValuesLength,
+        Tensor? inputsEmbeds = Defaults.InputsEmbeds,
+        bool useCache = Defaults.UseCache,
+        bool outputAttentions = Defaults.OutputAttentions,
+        bool outputHiddenStates = Defaults.OutputHiddenStates)
     {
         this.InputIds = inputIds;
         this.AttentionMask = attentionMask;

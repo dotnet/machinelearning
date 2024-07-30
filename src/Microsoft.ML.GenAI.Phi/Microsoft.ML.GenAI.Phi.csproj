@@ -2,31 +2,36 @@
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
-    <IsPackable>false</IsPackable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+    <PackageReference Include="AutoGen.Core" Version="$(AutoGenVersion)" />
+    <PackageReference Include="TorchSharp.PyBridge" Version="$(TorchSharpPyBridgeVersion)" />
     <PackageReference Include="TorchSharp" Version="$(TorchSharpVersion)" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="$(SemanticKernelVersion)" />
+    
   </ItemGroup>
-<!-- 
-  
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+
+  <!-- <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <PackageReference Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows'))" PrivateAssets="all" />
     <PackageReference Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux'))" PrivateAssets="all" />
     <PackageReference Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX'))" PrivateAssets="all" />
   </ItemGroup> -->
 
   <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.GenAI.Core\Microsoft.ML.GenAI.Core.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.ML.GenAI.Phi" />
     <InternalsVisibleTo Include="Microsoft.ML.GenAI.Phi.Tests" />
-    <InternalsVisibleTo Include="Microsoft.ML.GenAI.Core.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Resource\Config\*.json" />
+  </ItemGroup>
+    
 </Project>

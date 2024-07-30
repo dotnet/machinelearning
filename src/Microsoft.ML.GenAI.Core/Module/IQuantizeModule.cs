@@ -6,5 +6,7 @@ namespace Microsoft.ML.GenAI.Core;
 
 public interface IQuantizeModule
 {
-    public void Quantize();
+    public void Int8();
+
+    public void Int4();
 }
