@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <NoWarn>$(NoWarn);MSML_ExtendBaseTestClass</NoWarn>
     <Nullable>enable</Nullable>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
   <ItemGroup>
