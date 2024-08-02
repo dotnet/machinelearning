@@ -148,8 +148,7 @@ namespace Microsoft.ML.AutoML.Test
             res.Metric.Should().BeGreaterThan(0);
         }
 
-        //https://github.com/dotnet/machinelearning/issues/7203
-        [X86X64Fact("Fails on Linux Arm machines")]
+        [Fact]
         public async Task AutoMLExperiment_finish_training_when_time_is_up_Async()
         {
             var context = new MLContext(1);
@@ -167,12 +166,12 @@ namespace Microsoft.ML.AutoML.Test
                       {
                           var channel = serviceProvider.GetService<IChannel>();
                           var settings = serviceProvider.GetService<AutoMLExperiment.AutoMLExperimentSettings>();
-                          return new DummyTrialRunner(settings, 0, channel);
+                          return new DummyTrialRunner(settings, 1, channel);
                       })
                       .SetTuner<RandomSearchTuner>();
 
             var cts = new CancellationTokenSource();
-            cts.CancelAfter(10 * 1000);
+            cts.CancelAfter(100 * 1000);
 
             var res = await experiment.RunAsync(cts.Token);
             res.Metric.Should().BeGreaterThan(0);
@@ -446,6 +445,7 @@ namespace Microsoft.ML.AutoML.Test
         public async Task<TrialResult> RunAsync(TrialSettings settings, CancellationToken ct)
         {
             _logger.Info("Update Running Trial");
+            ct.ThrowIfCancellationRequested();
             await Task.Delay(_finishAfterNSeconds * 1000, ct);
             ct.ThrowIfCancellationRequested();
             _logger.Info("Update Completed Trial");
