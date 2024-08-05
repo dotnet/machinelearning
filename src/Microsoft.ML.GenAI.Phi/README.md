@@ -27,7 +27,7 @@ var configName = "config.json";
 var config = JsonSerializier.Deserialize<Phi3Config>(File.ReadAllText(Path.Combine(weightFolder, configName)));
 var model = new Phi3ForCasualLM(config);
 
-// load tokenzier
+// load tokenizer
 var tokenizerModelName = "tokenizer.model";
 var tokenizer = Phi3TokenizerHelper.FromPretrained(Path.Combine(weightFolder, tokenizerModelName));
 
