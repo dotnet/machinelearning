@@ -111,7 +111,7 @@ var deviceMap = model.InferDeviceMapForEachLayer(
         deviceSizeMapInByte: deviceSizeMap);
 ```
 
-### Step 2: load model weight using `ToDynamicLoadingModel` api
+### Step 2: Load model weights using `ToDynamicLoadingModel` API
 Once the `deviceMap` is calculated, you can pass it to `ToDynamicLoadingModel` api to load the model weight.
 
 ```csharp
