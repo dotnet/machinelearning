@@ -94,7 +94,7 @@ If your GPU memory is not enough, you can choose to dynamically load the model w
 - when inference, the layer which is loaded to CPU memory is moved to GPU memory before the inference and moved back to CPU memory after the inference.
 
 Here is how to enable dynamic loading of model:
-### Step 1: infer the size of each layer
+### Step 1: Infer the size of each layer
 You can infer the size of each layer using `InferDeviceMapForEachLayer` API. The `deviceMap` will be a key-value dictionary, where the key is the layer name and the value is the device name (e.g. "cuda" or "cpu").
 
 ```csharp
