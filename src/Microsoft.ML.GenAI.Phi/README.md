@@ -86,7 +86,7 @@ await agent.SendAsync(task);
 Please refer to [Microsoft.ML.GenAI.Samples](./../../docs/samples/Microsoft.ML.GenAI.Samples/) for more examples.
 
 ## Dynamic loading
-For the best of inference performance, it's recommended to run model inference on GPU, which requires at least 8GB of GPU memory for phi-3-mini-4k-instruct model if fully loaded.
+It's recommended to run model inference on GPU, which requires at least 8GB of GPU memory for phi-3-mini-4k-instruct model if fully loaded.
 
 If your GPU memory is not enough, you can choose to dynamically load the model weight to GPU memory. Here is how it works behind the scene:
 - when initializing the model, the size of each layer is calculated and stored in a dictionary
