@@ -53,7 +53,7 @@ var kernel = Kernel.CreateBuilder()
     .Build();
 ```
 
-### chat with the model
+### Chat with the model
 ```csharp
 var chatService = kernel.GetRequiredService<IChatCompletionService>();
 var chatHistory = new ChatHistory();
