@@ -14,8 +14,11 @@
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <!-- .NET Runtime product dependencies -->
     <MicrosoftBclAsyncInterfacesVersion>8.0.0</MicrosoftBclAsyncInterfacesVersion>
-    <MicrosoftExtensionsVersion>8.0.0</MicrosoftExtensionsVersion>
     <MicrosoftExtensionsDependencyInjectionVersion>8.0.0</MicrosoftExtensionsDependencyInjectionVersion>
+    <MicrosoftExtensionsDependencyInjectionAbstractionsVersion>8.0.1</MicrosoftExtensionsDependencyInjectionAbstractionsVersion>
+    <MicrosoftExtensionsLoggingVersion>8.0.0</MicrosoftExtensionsLoggingVersion>
+    <MicrosoftExtensionsObjectPoolVersion>8.0.7</MicrosoftExtensionsObjectPoolVersion>
+    <MicrosoftExtensionsOptionsVersion>8.0.2</MicrosoftExtensionsOptionsVersion>
     <NuGetVersion>6.9.1</NuGetVersion>
     <SkiaSharpVersion>2.88.8</SkiaSharpVersion>
     <SystemBuffersVersion>4.5.1</SystemBuffersVersion>
@@ -89,7 +92,6 @@
     <MicrosoftDotNetRemoteExecutorVersion>8.0.0-beta.24165.4</MicrosoftDotNetRemoteExecutorVersion>
     <MicrosoftDotNetXUnitExtensionsVersion>9.0.0-beta.24368.9</MicrosoftDotNetXUnitExtensionsVersion>
     <MicrosoftExtensionsDependencyModelVersion>8.0.1</MicrosoftExtensionsDependencyModelVersion>
-    <MicrosoftExtensionsTestVersion>8.0.*</MicrosoftExtensionsTestVersion>
     <MicrosoftMLOnnxTestModelsVersion>0.0.6-test</MicrosoftMLOnnxTestModelsVersion>
     <MicrosoftMLTensorFlowTestModelsVersion>0.0.13-test</MicrosoftMLTensorFlowTestModelsVersion>
     <MicrosoftMLTestDatabasesVersion>0.0.6-test</MicrosoftMLTestDatabasesVersion>
