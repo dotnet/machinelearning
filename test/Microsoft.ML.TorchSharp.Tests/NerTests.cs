@@ -185,7 +185,7 @@ namespace Microsoft.ML.TorchSharp.Tests
             transformer.Dispose();
         }
 
-        [Fact(Skip = "Needs to be on a comp with GPU or will take a LONG time.")]
+        [Fact]
         public void TestNERLargeFileGpu()
         {
             ML.FallbackToCpu = false;
@@ -232,7 +232,7 @@ namespace Microsoft.ML.TorchSharp.Tests
             var transformer = estimator.Fit(trainTest.TrainSet);
             var transformerSchema = transformer.GetOutputSchema(dataView.Schema);
 
-            var output = transformer.Transform(trainTest.TrainSet);
+            var output = transformer.Transform(trainTest.TestSet);
             using var cursor = output.GetRowCursorForAllColumns();
 
             var labelGetter = cursor.GetGetter<VBuffer<uint>>(output.Schema[2]);

@@ -8,6 +8,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion)" />
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
     <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
+    <PackageReference Include="System.Formats.Asn1" Version="$(SystemFormatsAsn1Version)" />
   </ItemGroup>
 
   <ItemGroup>
