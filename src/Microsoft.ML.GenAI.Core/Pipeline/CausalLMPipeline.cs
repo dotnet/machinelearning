@@ -97,7 +97,7 @@ public class CausalLMPipeline : ICausalLMPipeline
     /// <summary>
     /// For moq purpose
     /// </summary>
-    protected private CausalLMPipeline()
+    private protected CausalLMPipeline()
     {
         this.Tokenizer = default!;
         this.Model = default!;
