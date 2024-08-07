@@ -185,7 +185,7 @@ namespace Microsoft.ML.TorchSharp.Tests
             transformer.Dispose();
         }
 
-        [Fact]
+        [Fact(Skip = "Needs to be on a comp with GPU or will take a LONG time.")]
         public void TestNERLargeFileGpu()
         {
             ML.FallbackToCpu = false;
