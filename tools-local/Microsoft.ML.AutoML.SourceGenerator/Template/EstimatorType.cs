@@ -178,7 +178,7 @@ public IEnumerable<string> TransformerNames {get;set;}
             }
             // Everywhere there is a newline in the text, add an indent after it
             textToAppend = textToAppend.Replace(global::System.Environment.NewLine, (global::System.Environment.NewLine + this.currentIndentField));
-            // If the text ends with a newline, then we should strip off the indaent added at the very end
+            // If the text ends with a newline, then we should strip off the indent added at the very end
             // because the appropriate indent will be added when the next time Write() is called
             if (this.endsWithNewline)
             {
