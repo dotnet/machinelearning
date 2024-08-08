@@ -18,7 +18,7 @@ namespace Microsoft.ML.PerformanceTests
     {
         public RecommendedConfig()
         {
-            Add(DefaultConfig.Instance); // this config contains all of the basic settings (exporters, columns etc)
+            Add(DefaultConfig.Instance.WithOption(ConfigOptions.Default, true).WithBuildTimeout(TimeSpan.FromMinutes(5))); // this config contains all of the basic settings (exporters, columns etc)
 
             AddJob(GetJobDefinition()// job defines how many times given benchmark should be executed
                 .WithCustomBuildConfiguration(GetBuildConfigurationName())
@@ -38,17 +38,13 @@ namespace Microsoft.ML.PerformanceTests
         /// </summary>
         private IToolchain CreateToolchain()
         {
-            TimeSpan timeout = TimeSpan.FromMinutes(5);
-
 #if NETFRAMEWORK
             var tfm = "net462";
-            var csProj = CsProjClassicNetToolchain.From(tfm, timeout: timeout);
+            var csProj = CsProjClassicNetToolchain.From(tfm);
 #else
             var frameworkName = new FrameworkName(AppContext.TargetFrameworkName);
             var frameworkVersion = frameworkName.Version.ToString(2);
             var settings = new NetCoreAppSettings($"net{frameworkVersion}", null, $".NET {frameworkVersion}");
-
-            settings = settings.WithTimeout(timeout);
 
             var tfm = settings.TargetFrameworkMoniker;
             var csProj = CsProjCoreToolchain.From(settings);

@@ -56,7 +56,7 @@ namespace Microsoft.ML.SearchSpace.Tests
         {
             var option = new ChoiceOption("b");
             option.FeatureSpaceDim.Should().Be(0);
-            option.Default.Should().BeEquivalentTo();
+            option.Default.Should().BeEquivalentTo(System.Array.Empty<double>());
             option.SampleFromFeatureSpace(new double[0]).AsType<string>().Should().Be("b");
             option.MappingToFeatureSpace(Parameter.FromString("b")).Should().BeEmpty();
         }

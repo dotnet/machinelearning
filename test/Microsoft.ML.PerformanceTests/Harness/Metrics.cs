@@ -57,8 +57,7 @@ namespace Microsoft.ML.PerformanceTests
 
             var result = results.Single();
             var buffer = new StringBuilder();
-
-            foreach (var line in result.ExtraOutput)
+            foreach (var line in result.StandardOutput)
             {
                 if (Metric.TryParse(line, out Metric metric))
                 {
