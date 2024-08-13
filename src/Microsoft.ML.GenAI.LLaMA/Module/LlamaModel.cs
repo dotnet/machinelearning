@@ -2,45 +2,49 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Microsoft.ML.GenAI.Core;
 using TorchSharp;
 using TorchSharp.Modules;
 using static TorchSharp.torch;
 
-namespace Microsoft.ML.GenAI.Phi.Module;
+namespace Microsoft.ML.GenAI.LLaMA.Module;
 
-internal class Phi3Model : nn.Module<CausalLMModelInput, CausalLMModelOutput>
+internal class LlamaModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
 {
-    private readonly Phi3Config _config;
-    private readonly int _paddingIdx;
+    private readonly LlamaConfig _config;
+    private readonly int? _paddingIdx;
     private readonly int _vocabSize;
     private IKVCache _cache;
 #pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format
     private readonly Embedding embed_tokens;
-    private readonly Dropout embed_dropout;
-    private readonly ModuleList<Phi3DecoderLayer> layers;
+    private readonly ModuleList<LlamaDecoderLayer> layers;
     private readonly RMSNorm norm;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
 
-    public Phi3Model(Phi3Config config)
-        : base(nameof(Phi3Model))
+    public LlamaModel(LlamaConfig config)
+        : base(nameof(LlamaModel))
     {
         this._config = config;
-        this._paddingIdx = config.PadTokenId ?? 32000;
+        this._paddingIdx = config.PadTokenId;
         this._vocabSize = config.VocabSize;
 
         this.embed_tokens = nn.Embedding(config.VocabSize, config.HiddenSize, padding_idx: this._paddingIdx, dtype: config.DType);
-        this.embed_dropout = nn.Dropout(config.EmbdPdrop);
-        this.layers = new ModuleList<Phi3DecoderLayer>();
+        this.layers = new ModuleList<LlamaDecoderLayer>();
 
         for (int i = 0; i < config.NumHiddenLayers; i++)
         {
-            this.layers.Add(new Phi3DecoderLayer(config, i));
+            this.layers.Add(new LlamaDecoderLayer(config, i));
         }
         this.norm = new RMSNorm(config.HiddenSize, config.RmsNormEps, config.DType);
         this._cache = new DynamicKVCache();
         this.RegisterComponents();
     }
+
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
     public override CausalLMModelOutput forward(CausalLMModelInput input)
 #pragma warning restore MSML_GeneralName // This name should be PascalCased
@@ -99,7 +103,7 @@ internal class Phi3Model : nn.Module<CausalLMModelInput, CausalLMModelOutput>
         }
         else
         {
-            attentionMask = AttentionMaskConverter.Create4DCausalAttentionMask(attentionMask, [batchSize, seqLength], inputsEmbeds.dtype, device, pastKeyValuesLength, this._config.SlidingWindow);
+            attentionMask = AttentionMaskConverter.Create4DCausalAttentionMask(attentionMask, [batchSize, seqLength], inputsEmbeds.dtype, device, pastKeyValuesLength);
         }
 
         var hiddenStates = inputsEmbeds;
@@ -114,7 +118,7 @@ internal class Phi3Model : nn.Module<CausalLMModelInput, CausalLMModelOutput>
                 allHiddenStates.Add(hiddenStates);
             }
 
-            var decoderInput = new Phi3DecoderLayerInput(hiddenStates, attentionMask!, positionIds, this._cache, outputAttentions);
+            var decoderInput = new DecoderLayerInput(hiddenStates, attentionMask!, positionIds, this._cache, outputAttentions: outputAttentions);
             var layerOutput = layer.forward(decoderInput);
             hiddenStates = layerOutput.HiddenStates;
             if (outputAttentions && layerOutput.Attentions is not null)

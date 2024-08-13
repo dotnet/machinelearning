@@ -145,7 +145,7 @@ public static class Utils
                 .view(batchSize, seqLen, nKVHeads * nRep, headDim);
     }
 
-    public static Tensor Phi3RepeatKV(Tensor x, int nRep)
+    public static Tensor RepeatKV(Tensor x, int nRep)
     {
         var batchSize = x.shape[0];
         var nKVHeads = x.shape[1];

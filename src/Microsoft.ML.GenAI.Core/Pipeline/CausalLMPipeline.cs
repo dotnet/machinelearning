@@ -16,7 +16,7 @@ namespace Microsoft.ML.GenAI.Core;
 
 public interface ICausalLMPipeline<out TTokenizer, out TModel> : ICausalLMPipeline
     where TTokenizer : Tokenizer
-    where TModel : nn.Module<CasualLMModelInput, CasualLMModelOutput>
+    where TModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
 {
     TTokenizer Tokenizer { get; }
 
@@ -58,7 +58,7 @@ public interface ICausalLMPipeline
 
 public class CausalLMPipeline<TTokenizer, TModel> : CausalLMPipeline, ICausalLMPipeline<TTokenizer, TModel>
     where TTokenizer : Tokenizer
-    where TModel : nn.Module<CasualLMModelInput, CasualLMModelOutput>
+    where TModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
 {
     public CausalLMPipeline(
         TTokenizer tokenizer,
@@ -86,7 +86,7 @@ public class CausalLMPipeline : ICausalLMPipeline
 
     public CausalLMPipeline(
         Tokenizer tokenizer,
-        nn.Module<CasualLMModelInput, CasualLMModelOutput> model,
+        nn.Module<CausalLMModelInput, CausalLMModelOutput> model,
         string device = Defaults.Device)
     {
         this.Tokenizer = tokenizer;
@@ -106,7 +106,7 @@ public class CausalLMPipeline : ICausalLMPipeline
 
     public Tokenizer Tokenizer { get; }
 
-    public nn.Module<CasualLMModelInput, CasualLMModelOutput> Model { get; }
+    public nn.Module<CausalLMModelInput, CausalLMModelOutput> Model { get; }
 
     public Device Device { get; }
 
@@ -134,7 +134,7 @@ public class CausalLMPipeline : ICausalLMPipeline
         var cache = new DynamicKVCache();
         if (promptLength == totalLen)
         {
-            var input = new CasualLMModelInput(inputIds, attentionMask, pastKeyValuesLength: 0)
+            var input = new CausalLMModelInput(inputIds, attentionMask, pastKeyValuesLength: 0)
             {
                 OverrideCache = cache,
             };
@@ -143,7 +143,7 @@ public class CausalLMPipeline : ICausalLMPipeline
         }
         for (var curPos = promptLength; curPos != totalLen; curPos++)
         {
-            var input = new CasualLMModelInput(inputIds[.., prevPos..curPos], attentionMask[.., prevPos..curPos], pastKeyValuesLength: prevPos)
+            var input = new CausalLMModelInput(inputIds[.., prevPos..curPos], attentionMask[.., prevPos..curPos], pastKeyValuesLength: prevPos)
             {
                 OverrideCache = cache,
             };

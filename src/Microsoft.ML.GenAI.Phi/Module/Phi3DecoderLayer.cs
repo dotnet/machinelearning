@@ -63,12 +63,12 @@ internal class Phi3DecoderLayer : nn.Module<Phi3DecoderLayerInput, Phi3DecoderLa
 {
     private readonly Phi3Config _config;
 #pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format
-    private readonly nn.Module<Phi3AttentionInput, Phi3AttentionOutput> self_attn;
+    private readonly nn.Module<AttentionInput, AttentionOutput> self_attn;
     private readonly Phi3MLP mlp;
-    private readonly Phi3RMSNorm input_layernorm;
+    private readonly RMSNorm input_layernorm;
     private readonly Dropout resid_attn_dropout;
     private readonly Dropout resid_mlp_dropout;
-    private readonly Phi3RMSNorm post_attention_layernorm;
+    private readonly RMSNorm post_attention_layernorm;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
 
     public Phi3DecoderLayer(Phi3Config config, int layerIdx)
@@ -77,7 +77,7 @@ internal class Phi3DecoderLayer : nn.Module<Phi3DecoderLayerInput, Phi3DecoderLa
         this._config = config;
         if (config.AttnImplementation == "eager")
         {
-            this.self_attn = new Phi3Attention(config, layerIdx);
+            this.self_attn = Phi3Attention.FromConfig(config, layerIdx);
         }
         else
         {
@@ -85,11 +85,11 @@ internal class Phi3DecoderLayer : nn.Module<Phi3DecoderLayerInput, Phi3DecoderLa
         }
 
         this.mlp = new Phi3MLP(config);
-        this.input_layernorm = new Phi3RMSNorm(config.HiddenSize, config.RmsNormEps, config.DType);
+        this.input_layernorm = new RMSNorm(config.HiddenSize, config.RmsNormEps, config.DType);
 
         this.resid_attn_dropout = nn.Dropout(config.ResidPdrop);
         this.resid_mlp_dropout = nn.Dropout(config.ResidPdrop);
-        this.post_attention_layernorm = new Phi3RMSNorm(config.HiddenSize, config.RmsNormEps, config.DType);
+        this.post_attention_layernorm = new RMSNorm(config.HiddenSize, config.RmsNormEps, config.DType);
     }
 
     public Action<nn.Module>? LoadToDeviceFunc { get; set; }
@@ -109,7 +109,7 @@ internal class Phi3DecoderLayer : nn.Module<Phi3DecoderLayerInput, Phi3DecoderLa
         var residual = input.HiddenStates;
         hiddenStates = this.input_layernorm.forward(hiddenStates);
 
-        var attentionInput = new Phi3AttentionInput(hiddenStates, input.PositionIds, input.AttentionMask, input.PastKeyValue, input.OutputAttentions);
+        var attentionInput = new AttentionInput(hiddenStates, input.PositionIds, input.AttentionMask, input.PastKeyValue, input.OutputAttentions);
         var output = this.self_attn.forward(attentionInput);
         var attnOutputs = output.HiddenStates;
         var selfAttnWeights = output.Attentions;

@@ -11,10 +11,10 @@ using TorchSharp;
 using TorchSharp.Modules;
 using static TorchSharp.torch;
 
-namespace Microsoft.ML.GenAI.Phi.Module;
+namespace Microsoft.ML.GenAI.Core;
 
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
-internal class Phi3RMSNorm : torch.nn.Module<Tensor, Tensor>
+internal class RMSNorm : torch.nn.Module<Tensor, Tensor>
 #pragma warning restore MSML_GeneralName // This name should be PascalCased
 {
     private readonly int _dim;
@@ -23,11 +23,11 @@ internal class Phi3RMSNorm : torch.nn.Module<Tensor, Tensor>
     private readonly Parameter weight;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
 
-    public Phi3RMSNorm(
+    public RMSNorm(
         int hiddenSize,
         float eps = 1e-6f,
         ScalarType dtype = ScalarType.Float32)
-        : base(nameof(Phi3RMSNorm))
+        : base(nameof(RMSNorm))
     {
         this._dim = hiddenSize;
         this._eps = eps;

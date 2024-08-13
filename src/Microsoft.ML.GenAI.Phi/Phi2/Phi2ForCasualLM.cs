@@ -14,7 +14,7 @@ using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Phi;
 
-public class Phi2ForCasualLM : nn.Module<CasualLMModelInput, CasualLMModelOutput>
+public class Phi2ForCasualLM : nn.Module<CausalLMModelInput, CausalLMModelOutput>
 {
 #pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format
     private readonly Phi2Model model;
@@ -30,7 +30,7 @@ public class Phi2ForCasualLM : nn.Module<CasualLMModelInput, CasualLMModelOutput
     }
 
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
-    public override CasualLMModelOutput forward(CasualLMModelInput input) // use_cache, output_attentions, output_hidden_states
+    public override CausalLMModelOutput forward(CausalLMModelInput input) // use_cache, output_attentions, output_hidden_states
 #pragma warning restore MSML_GeneralName // This name should be PascalCased
     {
         var inputIds = input.InputIds;
@@ -44,7 +44,7 @@ public class Phi2ForCasualLM : nn.Module<CasualLMModelInput, CasualLMModelOutput
 
         var lmLogits = this.lm_head.forward(hiddenState);
 
-        return new CasualLMModelOutput(lastHiddenState: hiddenState, logits: lmLogits);
+        return new CausalLMModelOutput(lastHiddenState: hiddenState, logits: lmLogits);
     }
 
     public static Phi2ForCasualLM FromPretrained(

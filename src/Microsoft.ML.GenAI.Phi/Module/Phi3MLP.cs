@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.ML.GenAI.Core;
 using TorchSharp;
 using TorchSharp.Modules;
 using static TorchSharp.torch;
@@ -33,7 +34,7 @@ internal class Phi3MLP : torch.nn.Module<Tensor, Tensor>
         this.gate_up_proj = new QuantizedLinear(hiddenSize, 2 * intermediateSize, hasBias: false, dtype: dtype);
         this.down_proj = new QuantizedLinear(intermediateSize, hiddenSize, hasBias: false, dtype: dtype);
         this.RegisterComponents();
-        this.activation_fn = Utils.GetActivation(hiddenAct);
+        this.activation_fn = Core.Utils.GetActivation(hiddenAct);
     }
 
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
