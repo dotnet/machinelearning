@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ML.GenAI.Core;
+using Microsoft.ML.GenAI.Core.Extension;
 using TorchSharp;
 using TorchSharp.Modules;
 using static TorchSharp.torch;
@@ -103,7 +104,7 @@ internal class LlamaModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
         }
         else
         {
-            attentionMask = AttentionMaskConverter.Create4DCausalAttentionMask(attentionMask, [batchSize, seqLength], inputsEmbeds.dtype, device, pastKeyValuesLength);
+            attentionMask = AttentionMaskConverter.Create4DCausalAttentionMask(attentionMask, [batchSize, seqLength], inputsEmbeds.dtype, device, pastKeyValuesLength, 2048);
         }
 
         var hiddenStates = inputsEmbeds;

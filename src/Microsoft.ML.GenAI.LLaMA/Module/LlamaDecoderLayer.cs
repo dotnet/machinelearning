@@ -8,10 +8,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ML.GenAI.Core;
+using Microsoft.ML.GenAI.Core.Extension;
 using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.LLaMA.Module;
-
 
 internal class DecoderLayerInput
 {
@@ -87,8 +87,8 @@ internal class LlamaDecoderLayer : nn.Module<DecoderLayerInput, DecoderLayerOutp
 
         this.self_attn = CreateAttention(config, layerIndex);
         this.mlp = new LlamaMLP(config);
-        this.input_layernorm = new Core.RMSNorm(this._hiddenSize, eps: config.RmsNormEps);
-        this.post_attention_layernorm = new Core.RMSNorm(this._hiddenSize, eps: config.RmsNormEps);
+        this.input_layernorm = new Core.RMSNorm(this._hiddenSize, eps: config.RmsNormEps, config.DType);
+        this.post_attention_layernorm = new Core.RMSNorm(this._hiddenSize, eps: config.RmsNormEps, config.DType);
     }
 
     private Attention CreateAttention(LlamaConfig config, int layerIndex)
@@ -144,9 +144,14 @@ internal class LlamaDecoderLayer : nn.Module<DecoderLayerInput, DecoderLayerOutp
         hiddenStates = this.mlp.forward(hiddenStates);
         hiddenStates = residual + hiddenStates;
 
+        if (UnloadFromDeviceFunc != null)
+        {
+            UnloadFromDeviceFunc(this);
+        }
+
         return new DecoderLayerOutput(
-            hiddenStates: hiddenStates,
-            attentions: input.OutputAttentions ? selfAttnOutput.Attentions : null,
+            hiddenStates: hiddenStates.MoveToOuterDisposeScope(),
+            attentions: input.OutputAttentions ? selfAttnOutput.Attentions?.MoveToOuterDisposeScope() : null,
             pastKeyValue: selfAttnOutput.Cache);
     }
 }

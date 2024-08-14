@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ML.GenAI.Core;
+using Microsoft.ML.GenAI.Core.Extension;
 using TorchSharp;
 using TorchSharp.Modules;
 using static TorchSharp.torch;
@@ -162,7 +163,6 @@ internal class Attention : nn.Module<AttentionInput, AttentionOutput>
             queryStates = queryStates.view(bsz, qLen, this._numHeads, this._headDim).transpose(1, 2);
             keyStates = keyStates.view(bsz, qLen, this._numKeyValueHeads, this._headDim).transpose(1, 2);
             valueStates = valueStates.view(bsz, qLen, this._numKeyValueHeads, this._headDim).transpose(1, 2);
-
             var kvSeqLen = keyStates.IntShape()[^2];
             var pastKeyValue = input.Cache;
             if (pastKeyValue is not null)
@@ -184,6 +184,7 @@ internal class Attention : nn.Module<AttentionInput, AttentionOutput>
             keyStates = Utils.RepeatKV(keyStates, this._numKeyValueGroups);
             valueStates = Utils.RepeatKV(valueStates, this._numKeyValueGroups);
 
+            // to fp32 to avoid overflow
             var attnWeights = torch.matmul(queryStates, keyStates.transpose(2, 3));
             attnWeights = attnWeights / Math.Sqrt(this._headDim);
 

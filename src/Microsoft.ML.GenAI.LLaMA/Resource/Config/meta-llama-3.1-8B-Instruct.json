@@ -32,7 +32,6 @@
   "rope_theta": 500000.0,
   "tie_word_embeddings": false,
   "torch_dtype": "bfloat16",
-  "transformers_version": "4.42.3",
   "use_cache": true,
   "vocab_size": 128256
 }

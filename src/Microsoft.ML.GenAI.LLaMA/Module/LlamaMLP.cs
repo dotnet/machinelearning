@@ -53,10 +53,9 @@ internal class LlamaMLP : torch.nn.Module<Tensor, Tensor>
             throw new NotImplementedException("PretrainingTp > 1 is not supported yet.");
         }
 
-        using var disposeScope = NewDisposeScope();
-        var input1 = this.gate_proj.forward(input);
-        input1 = this.activation_fn.forward(input1);
-        input1 = this.up_proj.forward(input1);
-        return this.down_proj.forward(input1).MoveToOuterDisposeScope();
+        using var input1 = this.gate_proj.forward(input);
+        using var input2 = this.activation_fn.forward(input1);
+        using var input3 = input2 * this.up_proj.forward(input);
+        return this.down_proj.forward(input3);
     }
 }

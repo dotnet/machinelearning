@@ -156,9 +156,9 @@ public static class Utils
             return x;
         }
 
-        return x.unsqueeze(3)
+        return x.unsqueeze(2)
                 .expand(batchSize, nKVHeads, nRep, seqLen, headDim)
-                .view(batchSize, nKVHeads * nRep, seqLen, headDim);
+                .reshape(batchSize, nKVHeads * nRep, seqLen, headDim);
     }
 
 }

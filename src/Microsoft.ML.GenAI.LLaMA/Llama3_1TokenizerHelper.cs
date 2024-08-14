@@ -42,10 +42,14 @@ public class Llama3_1TokenizerHelper
     /// <summary>
     /// Create <see cref="TiktokenTokenizer"/> from tokenizer model file.
     /// </summary>
-    /// <param name="modelPath">path to tokenizer model file</param>
-    public static TiktokenTokenizer FromPretrained(string modelPath)
+    /// <param name="modelWeightFolder">path to tokenizer model folder</param>
+    /// <param name="modelFile">tokenizer model file name</param>
+    public static TiktokenTokenizer FromPretrained(
+        string modelWeightFolder,
+        string modelFile = "tokenizer.model")
     {
+        var modelFilePath = Path.Join(modelWeightFolder, modelFile);
         var preTokenizer = new TiktokenPreTokenizer(new Regex(_re), _specialTokens);
-        return TiktokenTokenizer.Create(File.OpenRead(modelPath), preTokenizer, normalizer: null, specialTokens: _specialTokens);
+        return TiktokenTokenizer.Create(File.OpenRead(modelFilePath), preTokenizer, normalizer: null, specialTokens: _specialTokens);
     }
 }

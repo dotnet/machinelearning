@@ -5,6 +5,7 @@
 using Microsoft.ML.GenAI.Core;
 using TorchSharp;
 using TorchSharp.Modules;
+using Microsoft.ML.GenAI.Core.Extension;
 using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Phi.Module;
@@ -106,14 +107,14 @@ internal class Phi3Model : nn.Module<CausalLMModelInput, CausalLMModelOutput>
 
         var allHiddenStates = new List<Tensor>();
         var allAttentions = new List<Tensor>();
-
+        var i = 0;
         foreach (var layer in this.layers)
         {
             if (outputHiddenStates)
             {
                 allHiddenStates.Add(hiddenStates);
             }
-
+            Console.WriteLine($"{i++}: {hiddenStates.Peek("hidden_state")}");
             var decoderInput = new Phi3DecoderLayerInput(hiddenStates, attentionMask!, positionIds, this._cache, outputAttentions);
             var layerOutput = layer.forward(decoderInput);
             hiddenStates = layerOutput.HiddenStates;
