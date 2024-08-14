@@ -13,6 +13,9 @@ using ApprovalTests.Reporters;
 using TorchSharp;
 using Xunit;
 using Microsoft.ML.GenAI.Core.Extension;
+using Microsoft.ML.Tokenizers;
+using FluentAssertions;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.ML.GenAI.LLaMA.Tests;
 
@@ -39,4 +42,34 @@ public class LLaMA3_1Tests
         Approvals.Verify(stateDictStr);
     }
 
+    [Fact]
+    [UseReporter(typeof(DiffReporter))]
+    [UseApprovalSubdirectory("Approvals")]
+    public void TokenizerTest()
+    {
+        var modelWeightFolder = Path.Join("C:\\Users\\xiaoyuz\\source\\repos\\Meta-Llama-3.1-8B-Instruct\\original");
+        var tokenizer = Llama3_1TokenizerHelper.FromPretrained(Path.Join(modelWeightFolder, "tokenizer.model"));
+
+        var messages = new string[]
+        {
+            "Can you provide ways to eat combinations of bananas and dragonfruits?",
+            "Sure! Here are some ways to eat bananas and dragonfruits together: 1. Banana and dragonfruit smoothie: Blend bananas and dragonfruits together with some milk and honey. 2. Banana and dragonfruit salad: Mix sliced bananas and dragonfruits together with some lemon juice and honey.",
+            "What about solving an 2x + 3 = 7 equation?",
+            """
+            <|begin_of_text|>Hello World<|end_of_text|>
+            """
+        };
+
+        var sb = new StringBuilder();
+        foreach (var message in messages)
+        {
+            var tokenizeIds = tokenizer.EncodeToIds(message, true, false);
+            var decodeToString = tokenizer.Decode(tokenizeIds);
+            sb.AppendLine(decodeToString);
+            var tokenizedStr = string.Join(", ", tokenizeIds.Select(x => x.ToString()));
+
+            sb.AppendLine(tokenizedStr);
+        }
+        Approvals.Verify(sb.ToString());
+    }
 }
