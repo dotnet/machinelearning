@@ -91,7 +91,7 @@ internal static class Utils
 
         if (resourceStream == null)
         {
-            throw new ArgumentException("Resource not found", nameof(resourceName));
+            throw new ArgumentException("Resource not found", resourceName);
         }
 
         using var reader = new System.IO.StreamReader(resourceStream);

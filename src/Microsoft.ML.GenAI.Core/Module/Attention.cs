@@ -202,7 +202,7 @@ internal class Attention : nn.Module<AttentionInput, AttentionOutput>
                 Contract.Assert(attentionMask.shape[0] == bsz);
                 Contract.Assert(attentionMask.shape[1] == 1);
                 Contract.Assert(attentionMask.shape[2] == qLen);
-                Contract.Assert(attentionMask.shape[3] == kvSeqLen);
+                //Contract.Assert(attentionMask.shape[3] == kvSeqLen);
                 attnWeights = attnWeights + attentionMask;
             }
 

@@ -25,8 +25,8 @@ public class AutoGenSample
         var defaultType = ScalarType.Float16;
         torch.manual_seed(1);
         torch.set_default_dtype(defaultType);
-        var weightFolder = @"C:\Users\xiaoyuz\source\repos\Phi-3-mini-4k-instruct";
-        var pipeline = Utils.LoadPhi3Mini4KFromFolder(weightFolder, device: device);
+        var weightFolder = @"C:\Users\xiaoyuz\source\repos\Phi-3-medium-4k-instruct";
+        var pipeline = Utils.LoadPhi3Mini4KFromFolder(weightFolder, device: device, quantizeToInt8: true);
 
         // agent
         var agent = new Phi3Agent(pipeline, "assistant")

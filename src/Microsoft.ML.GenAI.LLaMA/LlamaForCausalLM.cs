@@ -66,6 +66,6 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
 
     public void LoadSafeTensors(string modelFolder, string checkPointName = "model.safetensors.index.json")
     {
-        this.load_checkpoint(path: modelFolder, checkpointName: checkPointName, strict: true, useTqdm: false, loadedParameters: loadedParameters);
+        this.load_checkpoint(path: modelFolder, checkpointName: checkPointName, strict: true, useTqdm: false);
     }
 }

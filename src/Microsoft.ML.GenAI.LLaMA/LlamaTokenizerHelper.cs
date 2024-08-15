@@ -13,7 +13,7 @@ using Microsoft.ML.Tokenizers;
 namespace Microsoft.ML.GenAI.LLaMA;
 
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
-public class Llama3_1TokenizerHelper
+public class LlamaTokenizerHelper
 #pragma warning restore MSML_GeneralName // This name should be PascalCased
 {
     /// <summary>

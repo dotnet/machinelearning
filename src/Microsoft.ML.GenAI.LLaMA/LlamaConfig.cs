@@ -43,9 +43,13 @@ public class LlamaConfig
     {
 #pragma warning disable MSML_ParameterLocalVarName // Parameter or local variable name not standard
         var llama3_1_8b_content = Utils.GetEmbeddedResource("Microsoft.ML.GenAI.LLaMA.Resource.Config.meta-llama-3.1-8B-Instruct.json");
+        var llama3_1_70b_content = Utils.GetEmbeddedResource("Microsoft.ML.GenAI.LLaMA.Resource.Config.meta-llama-3.1-70B-Instruct.json");
+        var llama3_1_405b_content = Utils.GetEmbeddedResource("Microsoft.ML.GenAI.LLaMA.Resource.Config.meta-llama-3.1-405B-Instruct.json");
 #pragma warning restore MSML_ParameterLocalVarName // Parameter or local variable name not standard
 
         Llama3_1_8B_Instruct = JsonSerializer.Deserialize<LlamaConfig>(llama3_1_8b_content) ?? throw new ArgumentNullException(nameof(llama3_1_8b_content));
+        Llama3_1_70B_Instruct = JsonSerializer.Deserialize<LlamaConfig>(llama3_1_70b_content) ?? throw new ArgumentNullException(nameof(llama3_1_70b_content));
+        Llama3_1_405B_Instruct = JsonSerializer.Deserialize<LlamaConfig>(llama3_1_405b_content) ?? throw new ArgumentNullException(nameof(llama3_1_405b_content));
     }
 
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
@@ -53,6 +57,16 @@ public class LlamaConfig
     /// The llama-3.1-8B-Instruct configuration created from https://huggingface.co/meta-llama/Meta-Llama-3.1-8B.
     /// </summary>
     public static LlamaConfig Llama3_1_8B_Instruct { get; }
+
+    /// <summary>
+    /// The llama-3.1-70B-Instruct configuration created from https://huggingface.co/meta-llama/Meta-Llama-3.1-70B.
+    /// </summary>
+    public static LlamaConfig Llama3_1_70B_Instruct { get; }
+
+    /// <summary>
+    /// The llama-3.1-405B-Instruct configuration created from https://huggingface.co/meta-llama/Meta-Llama-3.1-405B.
+    /// </summary>
+    public static LlamaConfig Llama3_1_405B_Instruct { get; }
 #pragma warning restore MSML_GeneralName // This name should be PascalCased
 
     [JsonPropertyName("attention_bias")]
