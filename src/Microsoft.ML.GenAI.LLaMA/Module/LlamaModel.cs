@@ -104,7 +104,8 @@ internal class LlamaModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
         }
         else
         {
-            attentionMask = AttentionMaskConverter.Create4DCausalAttentionMask(attentionMask, [batchSize, seqLength], inputsEmbeds.dtype, device, pastKeyValuesLength, 2048);
+            // the following behavior of creating 4d causal mask doesn't match python's, remember to look into it when there's time.
+            attentionMask = AttentionMaskConverter.Create4DCausalAttentionMask(attentionMask, [batchSize, seqLength], inputsEmbeds.dtype, device, pastKeyValuesLength);
         }
 
         var hiddenStates = inputsEmbeds;

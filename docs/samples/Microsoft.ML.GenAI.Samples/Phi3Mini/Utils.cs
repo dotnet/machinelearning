@@ -20,7 +20,7 @@ internal static class Utils
         string weightFolder,
         string configName = "config.json",
         string device = "cuda",
-        int modelSizeOnCudaInGB = 16,
+        int modelSizeOnCudaInGB = 55,
         int modelSizeOnMemoryInGB = 64,
         int modelSizeOnDiskInGB = 200,
         bool quantizeToInt8 = false,

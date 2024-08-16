@@ -45,10 +45,30 @@ public class LLaMA3_1Tests
     [Fact]
     [UseReporter(typeof(DiffReporter))]
     [UseApprovalSubdirectory("Approvals")]
+    public void Llama_3_1_70b_ShapeTest()
+    {
+        var model = new LlamaForCausalLM(LlamaConfig.Llama3_1_70B_Instruct);
+        var stateDictStr = model.PeekShape();
+        Approvals.Verify(stateDictStr);
+    }
+
+    [Fact]
+    [UseReporter(typeof(DiffReporter))]
+    [UseApprovalSubdirectory("Approvals")]
+    public void Llama_3_1_405b_ShapeTest()
+    {
+        var model = new LlamaForCausalLM(LlamaConfig.Llama3_1_405B_Instruct);
+        var stateDictStr = model.PeekShape();
+        Approvals.Verify(stateDictStr);
+    }
+
+    [Fact]
+    [UseReporter(typeof(DiffReporter))]
+    [UseApprovalSubdirectory("Approvals")]
     public void TokenizerTest()
     {
         var modelWeightFolder = Path.Join("C:\\Users\\xiaoyuz\\source\\repos\\Meta-Llama-3.1-8B-Instruct\\original");
-        var tokenizer = Llama3_1TokenizerHelper.FromPretrained(Path.Join(modelWeightFolder, "tokenizer.model"));
+        var tokenizer = LlamaTokenizerHelper.FromPretrained(modelWeightFolder);
 
         var messages = new string[]
         {
