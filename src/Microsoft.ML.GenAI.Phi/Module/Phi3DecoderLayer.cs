@@ -20,6 +20,7 @@ internal class Phi3DecoderLayerInput
         Tensor hiddenStates,
         Tensor attentionMask,
         Tensor positionIds,
+        RotaryEmbeddingOutput positionalEmbeddings, // cos, sin
         IKVCache? pastKeyValue = null,
         bool outputAttentions = false)
     {
@@ -27,6 +28,7 @@ internal class Phi3DecoderLayerInput
         this.AttentionMask = attentionMask;
         this.PositionIds = positionIds;
         this.PastKeyValue = pastKeyValue;
+        this.PositionalEmbeddings = positionalEmbeddings;
         this.OutputAttentions = outputAttentions;
     }
 
@@ -35,6 +37,8 @@ internal class Phi3DecoderLayerInput
     public Tensor AttentionMask { get; set; }
 
     public Tensor PositionIds { get; set; }
+
+    public RotaryEmbeddingOutput PositionalEmbeddings { get; set; } // cos, sin
 
     public IKVCache? PastKeyValue { get; set; }
 
@@ -78,7 +82,7 @@ internal class Phi3DecoderLayer : nn.Module<Phi3DecoderLayerInput, Phi3DecoderLa
         this._config = config;
         if (config.AttnImplementation == "eager")
         {
-            this.self_attn = Phi3Attention.FromConfig(config, layerIdx);
+            this.self_attn = this.CreateAttentionFromConfig(config, layerIdx);
         }
         else
         {
@@ -110,7 +114,13 @@ internal class Phi3DecoderLayer : nn.Module<Phi3DecoderLayerInput, Phi3DecoderLa
         var residual = input.HiddenStates;
         hiddenStates = this.input_layernorm.forward(hiddenStates);
 
-        var attentionInput = new AttentionInput(hiddenStates, input.PositionIds, input.AttentionMask, input.PastKeyValue, outputAttentions: input.OutputAttentions);
+        var attentionInput = new AttentionInput(
+            hiddenStates: hiddenStates,
+            positionIds: input.PositionIds,
+            attentionMask: input.AttentionMask,
+            cache: input.PastKeyValue,
+            positionalEmbeddings: input.PositionalEmbeddings,
+            outputAttentions: input.OutputAttentions);
         var output = this.self_attn.forward(attentionInput);
         var attnOutputs = output.HiddenStates;
         var selfAttnWeights = output.Attentions;
@@ -126,5 +136,22 @@ internal class Phi3DecoderLayer : nn.Module<Phi3DecoderLayerInput, Phi3DecoderLa
             UnloadFromDeviceFunc(this);
         }
         return new Phi3DecoderLayerOutput(hiddenStates.MoveToOuterDisposeScope(), selfAttnWeights?.MoveToOuterDisposeScope(), presentKeyValue);
+    }
+
+    private Attention CreateAttentionFromConfig(Phi3Config config, int layerIdx)
+    {
+        var headDim = config.HiddenSize / config.NumAttentionHeads;
+        return new Attention(
+            attentionDropout: config.AttentionDropout,
+            hiddenSize: config.HiddenSize,
+            numHeads: config.NumAttentionHeads,
+            headDim: headDim,
+            numKeyValueHeads: config.NumKeyValueHeads ?? throw new ArgumentException("num_key_value_heads must be specified"),
+            numKeyValueGroups: config.NumAttentionHeads / config.NumKeyValueHeads ?? throw new ArgumentException("num_key_value_heads must be specified"),
+            maxPositionEmbeddings: config.MaxPositionEmbeddings,
+            originalMaxPositionEmbeddings: config.OriginalMaxPositionEmbeddings,
+            layerIdx: layerIdx,
+            useQkvProj: true,
+            dtype: config.DType);
     }
 }

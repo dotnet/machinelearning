@@ -19,8 +19,8 @@ internal class DecoderLayerInput
         Tensor hiddenStates,
         Tensor attentionMask,
         Tensor positionIds,
+        RotaryEmbeddingOutput positionEmbeddings, // cos, sin
         IKVCache? pastKeyValue = null,
-        (Tensor, Tensor)? positionEmbeddings = null, // cos, sin
         bool outputAttentions = false)
     {
         this.HiddenStates = hiddenStates;
@@ -28,6 +28,7 @@ internal class DecoderLayerInput
         this.PositionIds = positionIds;
         this.PastKeyValue = pastKeyValue;
         this.OutputAttentions = outputAttentions;
+        this.PositionalEmbeddings = positionEmbeddings;
     }
 
     public Tensor HiddenStates { get; set; }
@@ -36,7 +37,7 @@ internal class DecoderLayerInput
 
     public Tensor PositionIds { get; set; }
 
-    public (Tensor, Tensor)? PositionalEmbeddings { get; set; }
+    public RotaryEmbeddingOutput PositionalEmbeddings { get; set; }
 
     public IKVCache? PastKeyValue { get; set; }
 
@@ -106,12 +107,7 @@ internal class LlamaDecoderLayer : nn.Module<DecoderLayerInput, DecoderLayerOutp
             layerIdx: layerIndex,
             useQkvProj: false,
             dtype: config.DType,
-            attentionBias: config.AttentionBias,
-            rotaryEmbedding: config.RopeScaling switch
-            {
-                null => new RotaryEmbedding(config.RopeTheta, config.MaxPositionEmbeddings, headDim),
-                _ => new RotaryEmbedding(config.RopeTheta, headDim, config.RopeScaling),
-            });
+            attentionBias: config.AttentionBias);
     }
 
 #pragma warning disable MSML_GeneralName // This name should be PascalCased

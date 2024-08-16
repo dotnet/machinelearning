@@ -129,11 +129,11 @@ internal class LlamaModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
             }
 
             var decoderInput = new DecoderLayerInput(
-                hiddenStates,
-                attentionMask!,
-                positionIds,
-                this._cache,
-                positionEmbeddings: (embOutput.Cos, embOutput.Sin),
+                hiddenStates: hiddenStates,
+                attentionMask: attentionMask!,
+                positionIds: positionIds,
+                pastKeyValue: this._cache,
+                positionEmbeddings: embOutput,
                 outputAttentions: outputAttentions);
             var layerOutput = layer.forward(decoderInput);
             hiddenStates = layerOutput.HiddenStates;

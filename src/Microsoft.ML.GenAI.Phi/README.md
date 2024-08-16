@@ -6,10 +6,10 @@ The following phi-models are supported and tested:
 - [x] [Phi-2](https://huggingface.co/microsoft/phi-2)
 - [x] [Phi-3-mini-4k-instruct](https://huggingface.co/microsoft/Phi-3-mini-4k-instruct)
 - [x] [Phi-3-mini-128k-instruct](https://huggingface.co/microsoft/Phi-3-mini-128k-instruct)
+- [x] [Phi-3-medium-4k-instruct](https://huggingface.co/microsoft/Phi-3-medium-4k-instruct)
+- [x] [Phi-3-medium-128k-instruct](https://huggingface.co/microsoft/Phi-3-medium-128k-instruct)
 - [ ] [Phi-3-small-8k-instruct](https://huggingface.co/microsoft/Phi-3-small-8k-instruct)
 - [ ] [Phi-3-small-128k-instruct](https://huggingface.co/microsoft/Phi-3-small-128k-instruct)
-- [ ] [Phi-3-medium-4k-instruct](https://huggingface.co/microsoft/Phi-3-medium-4k-instruct)
-- [ ] [Phi-3-medium-128k-instruct](https://huggingface.co/microsoft/Phi-3-medium-128k-instruct)
 - [ ] [Phi-3-vision-128k-instruct](https://huggingface.co/microsoft/Phi-3-large-4k-instruct)
 
 ## Getting Started with Semantic Kernel

@@ -22,6 +22,7 @@ internal class Phi3Model : nn.Module<CausalLMModelInput, CausalLMModelOutput>
     private readonly ModuleList<Phi3DecoderLayer> layers;
     private readonly RMSNorm norm;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
+    private readonly nn.Module<RotaryEmbeddingInput, RotaryEmbeddingOutput> _rotaryEmb;
 
     public Phi3Model(Phi3Config config)
         : base(nameof(Phi3Model))
@@ -29,6 +30,7 @@ internal class Phi3Model : nn.Module<CausalLMModelInput, CausalLMModelOutput>
         this._config = config;
         this._paddingIdx = config.PadTokenId ?? 32000;
         this._vocabSize = config.VocabSize;
+        var headDim = config.HiddenSize / config.NumAttentionHeads;
 
         this.embed_tokens = nn.Embedding(config.VocabSize, config.HiddenSize, padding_idx: this._paddingIdx, dtype: config.DType);
         this.embed_dropout = nn.Dropout(config.EmbdPdrop);
@@ -41,6 +43,12 @@ internal class Phi3Model : nn.Module<CausalLMModelInput, CausalLMModelOutput>
         this.norm = new RMSNorm(config.HiddenSize, config.RmsNormEps, config.DType);
         this._cache = new DynamicKVCache();
         this.RegisterComponents();
+
+        this._rotaryEmb = config.RopeScaling switch
+        {
+            null => new RotaryEmbedding(config.RopeTheta, config.MaxPositionEmbeddings, headDim),
+            _ => new Phi3SuScaledRotaryEmbedding(headDim, config),
+        };
     }
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
     public override CausalLMModelOutput forward(CausalLMModelInput input)
@@ -104,7 +112,7 @@ internal class Phi3Model : nn.Module<CausalLMModelInput, CausalLMModelOutput>
         }
 
         var hiddenStates = inputsEmbeds;
-
+        var positionEmbeddings = this._rotaryEmb.forward(new RotaryEmbeddingInput(hiddenStates, positionIds, seqLength));
         var allHiddenStates = new List<Tensor>();
         var allAttentions = new List<Tensor>();
         foreach (var layer in this.layers)
@@ -113,7 +121,13 @@ internal class Phi3Model : nn.Module<CausalLMModelInput, CausalLMModelOutput>
             {
                 allHiddenStates.Add(hiddenStates);
             }
-            var decoderInput = new Phi3DecoderLayerInput(hiddenStates, attentionMask!, positionIds, this._cache, outputAttentions);
+            var decoderInput = new Phi3DecoderLayerInput(
+                hiddenStates: hiddenStates,
+                attentionMask: attentionMask!,
+                positionIds: positionIds,
+                pastKeyValue: this._cache,
+                positionalEmbeddings: positionEmbeddings,
+                outputAttentions: outputAttentions);
             var layerOutput = layer.forward(decoderInput);
             hiddenStates = layerOutput.HiddenStates;
             if (outputAttentions && layerOutput.Attentions is not null)

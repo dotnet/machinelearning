@@ -21,15 +21,16 @@ internal class AttentionInput
     public AttentionInput(
         Tensor hiddenStates,
         Tensor positionIds,
+        RotaryEmbeddingOutput positionalEmbeddings, // cos, sin
         Tensor? attentionMask = null,
         IKVCache? cache = null,
-        (Tensor, Tensor)? positionalEmbeddings = null, // cos, sin
         bool outputAttentions = false)
     {
         this.HiddenStates = hiddenStates;
         this.AttentionMask = attentionMask;
         this.PositionIds = positionIds;
         this.Cache = cache;
+        this.PositionalEmbeddings = positionalEmbeddings;
         this.OutputAttentions = outputAttentions;
     }
     public Tensor HiddenStates { get; set; }
@@ -38,7 +39,7 @@ internal class AttentionInput
 
     public Tensor PositionIds { get; set; }
 
-    public (Tensor, Tensor)? PositionalEmbeddings { get; set; }
+    public RotaryEmbeddingOutput PositionalEmbeddings { get; set; }
 
     public IKVCache? Cache { get; set; }
 
@@ -81,7 +82,6 @@ internal class Attention : nn.Module<AttentionInput, AttentionOutput>
     private readonly QuantizedLinear? q_proj;
     private readonly QuantizedLinear? k_proj;
     private readonly QuantizedLinear? v_proj;
-    private readonly nn.Module<RotaryEmbeddingInput, RotaryEmbeddingOutput> rotary_emb;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
 
     public Attention(
@@ -95,7 +95,6 @@ internal class Attention : nn.Module<AttentionInput, AttentionOutput>
         int originalMaxPositionEmbeddings,
         int layerIdx,
         ScalarType dtype,
-        nn.Module<RotaryEmbeddingInput, RotaryEmbeddingOutput> rotaryEmbedding,
         bool attentionBias = false,
         bool useQkvProj = true)
         : base(nameof(Attention))
@@ -124,8 +123,6 @@ internal class Attention : nn.Module<AttentionInput, AttentionOutput>
             this.k_proj = new QuantizedLinear(this._hiddenSize, this._numKeyValueHeads * this._headDim, hasBias: attentionBias, dtype: dtype);
             this.v_proj = new QuantizedLinear(this._hiddenSize, this._numKeyValueHeads * this._headDim, hasBias: attentionBias, dtype: dtype);
         }
-
-        this.rotary_emb = rotaryEmbedding;
     }
 
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
@@ -172,19 +169,7 @@ internal class Attention : nn.Module<AttentionInput, AttentionOutput>
             {
                 kvSeqLen += pastKeyValue.GetUsableLength(kvSeqLen, this._layerIdx);
             }
-
-            if (input.PositionalEmbeddings is (Tensor cos, Tensor sin))
-            {
-                (queryStates, keyStates) = Utils.ApplyRotaryPosEmb(queryStates, keyStates, cos, sin);
-            }
-            else
-            {
-                throw new NotImplementedException("Positional embeddings are not implemented");
-                //var embOutput = this.rotary_emb.forward(new RotaryEmbeddingInput(valueStates, positionIds, kvSeqLen));
-                //(cos, sin) = (embOutput.Cos, embOutput.Sin);
-
-                //(queryStates, keyStates) = Utils.ApplyRotaryPosEmb(queryStates, keyStates, cos, sin);
-            }
+            (queryStates, keyStates) = Utils.ApplyRotaryPosEmb(queryStates, keyStates, input.PositionalEmbeddings.Cos, input.PositionalEmbeddings.Sin);
 
             if (pastKeyValue is not null)
             {
