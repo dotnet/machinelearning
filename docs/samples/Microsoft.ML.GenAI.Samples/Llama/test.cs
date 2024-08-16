@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using AutoGen.Core;
 using Microsoft.ML.GenAI.Core;
 using Microsoft.ML.GenAI.Core.Extension;
 using Microsoft.ML.GenAI.LLaMA;
@@ -15,7 +16,7 @@ namespace Microsoft.ML.GenAI.Samples.Llama;
 
 internal class LlamaSample
 {
-    public static void Run()
+    public static async void Run()
     {
         var device = "cuda";
         if (device == "cuda")
@@ -26,7 +27,7 @@ internal class LlamaSample
         var defaultType = ScalarType.Float16;
         torch.manual_seed(1);
         torch.set_default_dtype(defaultType);
-        var weightFolder = @"C:\Users\xiaoyuz\source\repos\Meta-Llama-3.1-70B-Instruct";
+        var weightFolder = @"C:\Users\xiaoyuz\source\repos\Meta-Llama-3.1-8B-Instruct";
         var configName = "config.json";
         var quantizeToInt8 = false;
         var quantizeToInt4 = false;
@@ -106,23 +107,17 @@ internal class LlamaSample
         Console.WriteLine($"Start loading to device: {device}");
         model = model.ToDynamicLoadingModel(deviceMap, "cuda");
         timer.Stop();
-        Console.WriteLine($"Phi3 loaded to device: {device} in {timer.ElapsedMilliseconds / 1000} s");
+        Console.WriteLine($"Model loaded to device: {device} in {timer.ElapsedMilliseconds / 1000} s");
         var pipeline = new CausalLMPipeline<TiktokenTokenizer, LlamaForCausalLM>(tokenizer, model, device);
         torch.set_default_device(device);
 
-        var prompt = """
-            <|begin_of_text|>
-            <|start_header_id|>system<|end_header_id|>
-            You are a pirate chatbot who always responds in pirate speak!<|eot_id|>
-            <|start_header_id|>user<|end_header_id|>
-            Who are you?<|eot_id|>
+        var agent = new LlamaCausalLMAgent(pipeline, "assistant")
+            .RegisterPrintMessage();
 
-            <|start_header_id|>assistant<|end_header_id|>
+        var task = """
+            Write a C# program to print the sum of two numbers.
             """;
 
-        foreach (var word in pipeline.GenerateStreaming(prompt, stopSequences: ["<|eot_id|>"]))
-        {
-            Console.Write(word);
-        }
+        await agent.SendAsync(task);
     }
 }

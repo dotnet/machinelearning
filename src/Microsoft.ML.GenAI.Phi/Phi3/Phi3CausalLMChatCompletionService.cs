@@ -33,8 +33,8 @@ public class Phi3CausalLMChatCompletionService : IChatCompletionService
         CancellationToken cancellationToken = default)
     {
         var prompt = BuildPrompt(chatHistory);
-        var reply = await _textGenerationService.GetTextContentAsync(prompt, executionSettings, kernel, cancellationToken);
-        return [new ChatMessageContent(AuthorRole.Assistant, reply.Text)];
+        var replies = await _textGenerationService.GetTextContentsAsync(prompt, executionSettings, kernel, cancellationToken);
+        return replies.Select(reply => new ChatMessageContent(AuthorRole.Assistant, reply.Text)).ToList();
     }
 
     public async IAsyncEnumerable<StreamingChatMessageContent> GetStreamingChatMessageContentsAsync(

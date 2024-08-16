@@ -7,10 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoGen.Core" Version="$(AutoGenVersion)" />
     <PackageReference Include="TorchSharp.PyBridge" Version="$(TorchSharpPyBridgeVersion)" />
     <PackageReference Include="TorchSharp" Version="$(TorchSharpVersion)" />
-    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="$(SemanticKernelVersion)" />
   </ItemGroup>
 
   <ItemGroup>

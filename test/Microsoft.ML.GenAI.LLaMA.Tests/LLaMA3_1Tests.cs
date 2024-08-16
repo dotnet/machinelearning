@@ -2,20 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using ApprovalTests;
 using ApprovalTests.Namers;
 using ApprovalTests.Reporters;
+using AutoGen.Core;
+using Microsoft.ML.GenAI.Core.Extension;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
 using TorchSharp;
 using Xunit;
-using Microsoft.ML.GenAI.Core.Extension;
-using Microsoft.ML.Tokenizers;
-using FluentAssertions;
-using System.Text.RegularExpressions;
 
 namespace Microsoft.ML.GenAI.LLaMA.Tests;
 
@@ -91,5 +87,39 @@ public class LLaMA3_1Tests
             sb.AppendLine(tokenizedStr);
         }
         Approvals.Verify(sb.ToString());
+    }
+
+    [Fact]
+    [UseReporter(typeof(DiffReporter))]
+    [UseApprovalSubdirectory("Approvals")]
+    public void ItBuildChatTemplateFromAutoGenChatHistory()
+    {
+        var chatHistory = new List<IMessage>
+        {
+            new TextMessage(Role.System, "You are a helpful AI assistant."),
+            new TextMessage(Role.User, "Hello?"),
+            new TextMessage(Role.Assistant, "World!"),
+        };
+
+        var prompt = Llama3_1ChatTemplateBuilder.Instance.BuildPrompt(chatHistory);
+
+        Approvals.Verify(prompt);
+    }
+
+    [Fact]
+    [UseReporter(typeof(DiffReporter))]
+    [UseApprovalSubdirectory("Approvals")]
+    public void ItBuildChatTemplateFromSemanticKernelChatHistory()
+    {
+        var chatHistory = new ChatHistory
+        {
+            new ChatMessageContent(AuthorRole.System, "You are a helpful AI assistant."),
+            new ChatMessageContent(AuthorRole.User, "Hello?"),
+            new ChatMessageContent(AuthorRole.Assistant, "World!"),
+        };
+
+        var prompt = Llama3_1ChatTemplateBuilder.Instance.BuildPrompt(chatHistory);
+
+        Approvals.Verify(prompt);
     }
 }
