@@ -26,6 +26,8 @@ internal class LlamaModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
     private readonly ModuleList<LlamaDecoderLayer> layers;
     private readonly RMSNorm norm;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
+    private readonly nn.Module<RotaryEmbeddingInput, RotaryEmbeddingOutput> _rotaryEmb;
+
 
     public LlamaModel(LlamaConfig config)
         : base(nameof(LlamaModel))
@@ -33,7 +35,7 @@ internal class LlamaModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
         this._config = config;
         this._paddingIdx = config.PadTokenId;
         this._vocabSize = config.VocabSize;
-
+        var headDim = config.HiddenSize / config.NumAttentionHeads;
         this.embed_tokens = nn.Embedding(config.VocabSize, config.HiddenSize, padding_idx: this._paddingIdx, dtype: config.DType);
         this.layers = new ModuleList<LlamaDecoderLayer>();
 
@@ -44,6 +46,11 @@ internal class LlamaModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
         this.norm = new RMSNorm(config.HiddenSize, config.RmsNormEps, config.DType);
         this._cache = new DynamicKVCache();
         this.RegisterComponents();
+        this._rotaryEmb = config.RopeScaling switch
+        {
+            null => new RotaryEmbedding(config.RopeTheta, config.MaxPositionEmbeddings, headDim),
+            _ => new RotaryEmbedding(config.RopeTheta, headDim, config.RopeScaling),
+        };
     }
 
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
@@ -113,6 +120,7 @@ internal class LlamaModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
         var allHiddenStates = new List<Tensor>();
         var allAttentions = new List<Tensor>();
 
+        var embOutput = this._rotaryEmb.forward(new RotaryEmbeddingInput(hiddenStates, positionIds, pastKeyValuesLength));
         foreach (var layer in this.layers)
         {
             if (outputHiddenStates)
@@ -120,7 +128,13 @@ internal class LlamaModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
                 allHiddenStates.Add(hiddenStates);
             }
 
-            var decoderInput = new DecoderLayerInput(hiddenStates, attentionMask!, positionIds, this._cache, outputAttentions: outputAttentions);
+            var decoderInput = new DecoderLayerInput(
+                hiddenStates,
+                attentionMask!,
+                positionIds,
+                this._cache,
+                positionEmbeddings: (embOutput.Cos, embOutput.Sin),
+                outputAttentions: outputAttentions);
             var layerOutput = layer.forward(decoderInput);
             hiddenStates = layerOutput.HiddenStates;
             if (outputAttentions && layerOutput.Attentions is not null)

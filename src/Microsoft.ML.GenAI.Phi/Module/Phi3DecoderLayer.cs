@@ -110,7 +110,7 @@ internal class Phi3DecoderLayer : nn.Module<Phi3DecoderLayerInput, Phi3DecoderLa
         var residual = input.HiddenStates;
         hiddenStates = this.input_layernorm.forward(hiddenStates);
 
-        var attentionInput = new AttentionInput(hiddenStates, input.PositionIds, input.AttentionMask, input.PastKeyValue, input.OutputAttentions);
+        var attentionInput = new AttentionInput(hiddenStates, input.PositionIds, input.AttentionMask, input.PastKeyValue, outputAttentions: input.OutputAttentions);
         var output = this.self_attn.forward(attentionInput);
         var attnOutputs = output.HiddenStates;
         var selfAttnWeights = output.Attentions;

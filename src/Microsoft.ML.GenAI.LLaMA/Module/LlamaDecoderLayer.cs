@@ -36,7 +36,7 @@ internal class DecoderLayerInput
 
     public Tensor PositionIds { get; set; }
 
-    public (Tensor, Tensor) PositionalEmbeddings { get; set; }
+    public (Tensor, Tensor)? PositionalEmbeddings { get; set; }
 
     public IKVCache? PastKeyValue { get; set; }
 
@@ -132,6 +132,7 @@ internal class LlamaDecoderLayer : nn.Module<DecoderLayerInput, DecoderLayerOutp
             attentionMask: input.AttentionMask,
             positionIds: input.PositionIds,
             cache: input.PastKeyValue,
+            positionalEmbeddings: input.PositionalEmbeddings,
             outputAttentions: input.OutputAttentions);
 
         var selfAttnOutput = this.self_attn.forward(selfAttnInput);

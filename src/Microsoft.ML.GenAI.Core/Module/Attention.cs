@@ -23,6 +23,7 @@ internal class AttentionInput
         Tensor positionIds,
         Tensor? attentionMask = null,
         IKVCache? cache = null,
+        (Tensor, Tensor)? positionalEmbeddings = null, // cos, sin
         bool outputAttentions = false)
     {
         this.HiddenStates = hiddenStates;
@@ -36,6 +37,8 @@ internal class AttentionInput
     public Tensor? AttentionMask { get; set; }
 
     public Tensor PositionIds { get; set; }
+
+    public (Tensor, Tensor)? PositionalEmbeddings { get; set; }
 
     public IKVCache? Cache { get; set; }
 
@@ -170,10 +173,18 @@ internal class Attention : nn.Module<AttentionInput, AttentionOutput>
                 kvSeqLen += pastKeyValue.GetUsableLength(kvSeqLen, this._layerIdx);
             }
 
-            var embOutput = this.rotary_emb.forward(new RotaryEmbeddingInput(valueStates, positionIds, kvSeqLen));
-            (var cos, var sin) = (embOutput.Cos, embOutput.Sin);
+            if (input.PositionalEmbeddings is (Tensor cos, Tensor sin))
+            {
+                (queryStates, keyStates) = Utils.ApplyRotaryPosEmb(queryStates, keyStates, cos, sin);
+            }
+            else
+            {
+                throw new NotImplementedException("Positional embeddings are not implemented");
+                //var embOutput = this.rotary_emb.forward(new RotaryEmbeddingInput(valueStates, positionIds, kvSeqLen));
+                //(cos, sin) = (embOutput.Cos, embOutput.Sin);
 
-            (queryStates, keyStates) = Utils.ApplyRotaryPosEmb(queryStates, keyStates, cos, sin);
+                //(queryStates, keyStates) = Utils.ApplyRotaryPosEmb(queryStates, keyStates, cos, sin);
+            }
 
             if (pastKeyValue is not null)
             {
