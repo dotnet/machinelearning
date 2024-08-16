@@ -5,6 +5,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.ML.GenAI.Core;
+using Microsoft.ML.GenAI.Core.Extension;
 using Microsoft.ML.GenAI.LLaMA.Module;
 using TorchSharp;
 using TorchSharp.PyBridge;
@@ -60,6 +61,54 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
 
         model.LoadSafeTensors(modelFolder, checkPointName);
         model = model.to(device);
+
+        return model;
+    }
+
+    public static LlamaForCausalLM FromPretrained(
+        string modelFolder,
+        string configName = "config.json",
+        string checkPointName = "model.safetensors.index.json",
+        bool quantizeToInt8 = false,
+        bool quantizeToInt4 = false,
+        int layersOnTargetDevice = -1,
+        ScalarType torchDtype = ScalarType.BFloat16,
+        string targetDevice = "cuda")
+    {
+        if (layersOnTargetDevice == -1 && quantizeToInt4 == false && quantizeToInt8 == false)
+        {
+            return FromPretrained(modelFolder, configName, checkPointName, torchDtype, targetDevice);
+        }
+
+        var originalDefaultDevice = torch.get_default_device();
+        torch.set_default_device("meta");
+        var config = Path.Join(modelFolder, configName);
+        var modelConfig = JsonSerializer.Deserialize<LlamaConfig>(File.ReadAllText(config)) ?? throw new ArgumentNullException(nameof(config));
+        modelConfig.DType = torchDtype;
+        var model = new LlamaForCausalLM(modelConfig);
+
+        if (quantizeToInt8)
+        {
+            model.ToInt8QuantizeModule();
+        }
+        else if (quantizeToInt4)
+        {
+            model.ToInt4QuantizeModule();
+        }
+
+        var deviceMap = model.InferDeviceMapForEachLayer(
+            [
+                KeyValuePair.Create(targetDevice, layersOnTargetDevice),
+                KeyValuePair.Create("cpu", -1)
+            ]);
+
+        torch.set_default_device("cpu");
+
+        model.LoadSafeTensors(modelFolder, checkPointName);
+
+        model = model.ToDynamicLoadingModel(deviceMap, targetDevice);
+
+        torch.set_default_device(originalDefaultDevice);
 
         return model;
     }
