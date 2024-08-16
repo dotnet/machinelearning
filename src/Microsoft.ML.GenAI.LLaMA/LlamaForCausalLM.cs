@@ -103,6 +103,7 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
             ]);
 
         torch.set_default_device("cpu");
+        model = new LlamaForCausalLM(modelConfig);
 
         model.LoadSafeTensors(modelFolder, checkPointName);
 

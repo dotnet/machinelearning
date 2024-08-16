@@ -35,8 +35,7 @@ internal class LlamaSample
         var stopWatch = System.Diagnostics.Stopwatch.StartNew();
         stopWatch.Start();
         var tokenizer = LlamaTokenizerHelper.FromPretrained(originalWeightFolder);
-        Console.WriteLine("Loading llama from huggingface model weight folder");
-        var model = LlamaForCausalLM.FromPretrained(weightFolder, configName, layersOnTargetDevice: 30);
+        var model = LlamaForCausalLM.FromPretrained(weightFolder, configName, layersOnTargetDevice: -1);
 
         var pipeline = new CausalLMPipeline<TiktokenTokenizer, LlamaForCausalLM>(tokenizer, model, device);
 
