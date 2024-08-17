@@ -63,7 +63,7 @@ public class LLaMA3_1Tests
     [UseApprovalSubdirectory("Approvals")]
     public void TokenizerTest()
     {
-        var modelWeightFolder = Path.Join("C:\\Users\\xiaoyuz\\source\\repos\\Meta-Llama-3.1-8B-Instruct\\original");
+        var modelWeightFolder = Path.Join("Llama-3.1");
         var tokenizer = LlamaTokenizerHelper.FromPretrained(modelWeightFolder);
 
         var messages = new string[]
