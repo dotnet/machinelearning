@@ -23,6 +23,11 @@
     <PackageReference Include="TorchSharp" Version="$(TorchSharpVersion)" />
   </ItemGroup>
 
+
+  <ItemGroup Condition="'$(TargetArchitecture)' != 'x64'">
+    <Compile Remove="LLaMA3_1Tests.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Update="Approvals\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
