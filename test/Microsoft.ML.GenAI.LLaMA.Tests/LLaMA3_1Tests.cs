@@ -33,7 +33,7 @@ public class LLaMA3_1Tests
     [UseApprovalSubdirectory("Approvals")]
     public void Llama_3_1_8b_ShapeTest()
     {
-        var model = new LlamaForCausalLM(LlamaConfig.Llama3_1_8B_Instruct);
+        var model = new LlamaForCausalLM(LlamaConfig.Llama3_1_8B_Instruct, "meta");
         var stateDictStr = model.PeekShape();
         Approvals.Verify(stateDictStr);
     }
@@ -43,7 +43,7 @@ public class LLaMA3_1Tests
     [UseApprovalSubdirectory("Approvals")]
     public void Llama_3_1_70b_ShapeTest()
     {
-        var model = new LlamaForCausalLM(LlamaConfig.Llama3_1_70B_Instruct);
+        var model = new LlamaForCausalLM(LlamaConfig.Llama3_1_70B_Instruct, "meta");
         var stateDictStr = model.PeekShape();
         Approvals.Verify(stateDictStr);
     }
@@ -53,7 +53,7 @@ public class LLaMA3_1Tests
     [UseApprovalSubdirectory("Approvals")]
     public void Llama_3_1_405b_ShapeTest()
     {
-        var model = new LlamaForCausalLM(LlamaConfig.Llama3_1_405B_Instruct);
+        var model = new LlamaForCausalLM(LlamaConfig.Llama3_1_405B_Instruct, "meta");
         var stateDictStr = model.PeekShape();
         Approvals.Verify(stateDictStr);
     }
