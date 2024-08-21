@@ -23,13 +23,13 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
     private readonly LlamaModel model;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
 
-    public LlamaForCausalLM(LlamaConfig config)
+    public LlamaForCausalLM(LlamaConfig config, string? device = null)
         : base(nameof(LlamaForCausalLM))
     {
         _config = config;
         _vocabSize = config.VocabSize;
 
-        model = new LlamaModel(config);
+        model = new LlamaModel(config, device);
         lm_head = new GenAILinear(config.HiddenSize, config.VocabSize, hasBias: false);
 
         this.RegisterComponents();
