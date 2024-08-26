@@ -38,7 +38,7 @@ public class LLaMA3_1Tests
         Approvals.Verify(stateDictStr);
     }
 
-    [Fact(Skip = "This test still takes too much space when running on helix")]
+    [WindowsOnlyFact]
     [UseReporter(typeof(DiffReporter))]
     [UseApprovalSubdirectory("Approvals")]
     public void Llama_3_1_70b_ShapeTest()
@@ -48,7 +48,7 @@ public class LLaMA3_1Tests
         Approvals.Verify(stateDictStr);
     }
 
-    [Fact(Skip = "This test still takes too much space when running on helix")]
+    [WindowsOnlyFact]
     [UseReporter(typeof(DiffReporter))]
     [UseApprovalSubdirectory("Approvals")]
     public void Llama_3_1_405b_ShapeTest()
