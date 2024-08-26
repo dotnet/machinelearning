@@ -15,7 +15,7 @@ using Microsoft.ML.AutoML.SourceGenerator.Template;
 namespace Microsoft.ML.AutoML.SourceGenerator
 {
     [Generator]
-    public class SearchSpaceGenerator : ISourceGenerator
+    public sealed class SearchSpaceGenerator : ISourceGenerator
     {
         public void Execute(GeneratorExecutionContext context)
         {

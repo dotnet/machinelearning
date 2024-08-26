@@ -15,7 +15,7 @@ using Microsoft.ML.AutoML.SourceGenerator.Template;
 namespace Microsoft.ML.AutoML.SourceGenerator
 {
     [Generator]
-    public class EstimatorTypeGenerator : ISourceGenerator
+    public sealed class EstimatorTypeGenerator : ISourceGenerator
     {
         private const string className = "EstimatorType";
         private const string fullName = Constant.CodeGeneratorNameSpace + "." + className;

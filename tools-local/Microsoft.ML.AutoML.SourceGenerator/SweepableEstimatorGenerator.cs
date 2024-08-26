@@ -17,7 +17,7 @@ using SweepableEstimatorT = Microsoft.ML.AutoML.SourceGenerator.Template.Sweepab
 namespace Microsoft.ML.ModelBuilder.SweepableEstimator.CodeGenerator
 {
     [Generator]
-    public class SweepableEstimatorGenerator : ISourceGenerator
+    public sealed class SweepableEstimatorGenerator : ISourceGenerator
     {
         private const string SweepableEstimatorAttributeDisplayName = Constant.CodeGeneratorNameSpace + "." + "SweepableEstimatorAttribute";
 

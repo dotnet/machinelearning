@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.ML.AutoML.SourceGenerator
 {
-    internal class EstimatorContract
+    internal sealed class EstimatorContract
     {
         [JsonPropertyName("functionName")]
         public string FunctionName { get; set; }
