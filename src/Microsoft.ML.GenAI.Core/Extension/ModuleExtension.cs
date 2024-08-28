@@ -197,6 +197,57 @@ public static class ModuleExtension
         return deviceMap;
     }
 
+    /// <summary>
+    /// Infer the device map for each layer in the model.
+    /// The device map is a dictionary where the key is the device id (e.g. "cuda:0") and the value is the memory size in bytes of the device.
+    /// When inferring the device map, each layer in the model will be placed on the device in the order of the devices list.
+    /// </summary>
+    /// <param name="model"></param>
+    /// <param name="numberOfLayerToBePlaced">a list of key-value pairs where the key is the device id (e.g. "cuda:0") and the value is the number of layers to be placed on the device.
+    /// If you want to place all remaining layers on the device, set that value to -1.
+    /// e.g. [{"cuda:0", 2}, {"cpu", -1}], the first 2 layers will be placed on "cuda:0" and the rest will be placed on "cpu".
+    /// </param>
+    /// <returns></returns>
+    public static Dictionary<string, string> InferDeviceMapForEachLayer(
+        this nn.Module model,
+        IEnumerable<KeyValuePair<string, int>> numberOfLayerToBePlaced)
+    {
+        var layerSizeMap = model.GetSizeForEachDynamicLayerInBytes()
+            .OrderByDescending(x => x.Value)
+            .ToList();
+
+        var deviceMap = new Dictionary<string, string>();
+        foreach (var (device, count) in numberOfLayerToBePlaced)
+        {
+            if (count != -1)
+            {
+                var topK = layerSizeMap.Take(count).ToList();
+                layerSizeMap = layerSizeMap.Skip(count).ToList();
+                foreach (var (key, value) in topK)
+                {
+                    deviceMap[key] = device;
+                }
+            }
+            else
+            {
+                foreach (var (key, value) in layerSizeMap)
+                {
+                    deviceMap[key] = device;
+                }
+
+                layerSizeMap.Clear();
+                break;
+            }
+        }
+
+        if (layerSizeMap.Count > 0)
+        {
+            throw new ArgumentException("The layer count is not enough to cover all layers, did you forget to set the last layer count to -1?");
+        }
+
+        return deviceMap;
+    }
+
     internal static string Peek(this nn.Module model)
     {
         var sb = new StringBuilder();

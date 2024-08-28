@@ -5,7 +5,7 @@ using System;
 using Microsoft.ML.GenAI.Core;
 using TorchSharp;
 using static TorchSharp.torch;
-namespace Microsoft.ML.GenAI;
+namespace Microsoft.ML.GenAI.Core;
 
 internal class QuantizedLinear : GenAILinear, IQuantizeModule
 {
@@ -74,6 +74,7 @@ internal class QuantizedLinear : GenAILinear, IQuantizeModule
             this.register_buffer("scale", scale);
         }
     }
+
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
     public override Tensor forward(Tensor input)
 #pragma warning restore MSML_GeneralName // This name should be PascalCased

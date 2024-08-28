@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ML.GenAI.Core;
+using Microsoft.ML.GenAI.Core.Extension;
 using TorchSharp.Modules;
 using static TorchSharp.torch;
 
@@ -19,6 +20,7 @@ internal class Phi3DecoderLayerInput
         Tensor hiddenStates,
         Tensor attentionMask,
         Tensor positionIds,
+        RotaryEmbeddingOutput positionalEmbeddings, // cos, sin
         IKVCache? pastKeyValue = null,
         bool outputAttentions = false)
     {
@@ -26,6 +28,7 @@ internal class Phi3DecoderLayerInput
         this.AttentionMask = attentionMask;
         this.PositionIds = positionIds;
         this.PastKeyValue = pastKeyValue;
+        this.PositionalEmbeddings = positionalEmbeddings;
         this.OutputAttentions = outputAttentions;
     }
 
@@ -34,6 +37,8 @@ internal class Phi3DecoderLayerInput
     public Tensor AttentionMask { get; set; }
 
     public Tensor PositionIds { get; set; }
+
+    public RotaryEmbeddingOutput PositionalEmbeddings { get; set; } // cos, sin
 
     public IKVCache? PastKeyValue { get; set; }
 
@@ -63,12 +68,12 @@ internal class Phi3DecoderLayer : nn.Module<Phi3DecoderLayerInput, Phi3DecoderLa
 {
     private readonly Phi3Config _config;
 #pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format
-    private readonly nn.Module<Phi3AttentionInput, Phi3AttentionOutput> self_attn;
+    private readonly nn.Module<AttentionInput, AttentionOutput> self_attn;
     private readonly Phi3MLP mlp;
-    private readonly Phi3RMSNorm input_layernorm;
+    private readonly RMSNorm input_layernorm;
     private readonly Dropout resid_attn_dropout;
     private readonly Dropout resid_mlp_dropout;
-    private readonly Phi3RMSNorm post_attention_layernorm;
+    private readonly RMSNorm post_attention_layernorm;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
 
     public Phi3DecoderLayer(Phi3Config config, int layerIdx)
@@ -77,7 +82,7 @@ internal class Phi3DecoderLayer : nn.Module<Phi3DecoderLayerInput, Phi3DecoderLa
         this._config = config;
         if (config.AttnImplementation == "eager")
         {
-            this.self_attn = new Phi3Attention(config, layerIdx);
+            this.self_attn = this.CreateAttentionFromConfig(config, layerIdx);
         }
         else
         {
@@ -85,11 +90,11 @@ internal class Phi3DecoderLayer : nn.Module<Phi3DecoderLayerInput, Phi3DecoderLa
         }
 
         this.mlp = new Phi3MLP(config);
-        this.input_layernorm = new Phi3RMSNorm(config.HiddenSize, config.RmsNormEps, config.DType);
+        this.input_layernorm = new RMSNorm(config.HiddenSize, config.RmsNormEps, config.DType);
 
         this.resid_attn_dropout = nn.Dropout(config.ResidPdrop);
         this.resid_mlp_dropout = nn.Dropout(config.ResidPdrop);
-        this.post_attention_layernorm = new Phi3RMSNorm(config.HiddenSize, config.RmsNormEps, config.DType);
+        this.post_attention_layernorm = new RMSNorm(config.HiddenSize, config.RmsNormEps, config.DType);
     }
 
     public Action<nn.Module>? LoadToDeviceFunc { get; set; }
@@ -109,7 +114,13 @@ internal class Phi3DecoderLayer : nn.Module<Phi3DecoderLayerInput, Phi3DecoderLa
         var residual = input.HiddenStates;
         hiddenStates = this.input_layernorm.forward(hiddenStates);
 
-        var attentionInput = new Phi3AttentionInput(hiddenStates, input.PositionIds, input.AttentionMask, input.PastKeyValue, input.OutputAttentions);
+        var attentionInput = new AttentionInput(
+            hiddenStates: hiddenStates,
+            positionIds: input.PositionIds,
+            attentionMask: input.AttentionMask,
+            cache: input.PastKeyValue,
+            positionalEmbeddings: input.PositionalEmbeddings,
+            outputAttentions: input.OutputAttentions);
         var output = this.self_attn.forward(attentionInput);
         var attnOutputs = output.HiddenStates;
         var selfAttnWeights = output.Attentions;
@@ -125,5 +136,22 @@ internal class Phi3DecoderLayer : nn.Module<Phi3DecoderLayerInput, Phi3DecoderLa
             UnloadFromDeviceFunc(this);
         }
         return new Phi3DecoderLayerOutput(hiddenStates.MoveToOuterDisposeScope(), selfAttnWeights?.MoveToOuterDisposeScope(), presentKeyValue);
+    }
+
+    private Attention CreateAttentionFromConfig(Phi3Config config, int layerIdx)
+    {
+        var headDim = config.HiddenSize / config.NumAttentionHeads;
+        return new Attention(
+            attentionDropout: config.AttentionDropout,
+            hiddenSize: config.HiddenSize,
+            numHeads: config.NumAttentionHeads,
+            headDim: headDim,
+            numKeyValueHeads: config.NumKeyValueHeads ?? throw new ArgumentException("num_key_value_heads must be specified"),
+            numKeyValueGroups: config.NumAttentionHeads / config.NumKeyValueHeads ?? throw new ArgumentException("num_key_value_heads must be specified"),
+            maxPositionEmbeddings: config.MaxPositionEmbeddings,
+            originalMaxPositionEmbeddings: config.OriginalMaxPositionEmbeddings,
+            layerIdx: layerIdx,
+            useQkvProj: true,
+            dtype: config.DType);
     }
 }

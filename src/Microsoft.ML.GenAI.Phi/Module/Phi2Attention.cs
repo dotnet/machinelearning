@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.Contracts;
+using Microsoft.ML.GenAI.Core;
 using TorchSharp;
 using TorchSharp.Modules;
 using static TorchSharp.torch;

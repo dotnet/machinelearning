@@ -6,7 +6,7 @@ using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Core;
 
-public class CasualLMModelOutput
+public class CausalLMModelOutput
 {
     internal static class Defaults
     {
@@ -15,7 +15,7 @@ public class CasualLMModelOutput
         internal const Tensor[]? Attentions = null;
         internal const IKVCache? Cache = null;
     }
-    public CasualLMModelOutput(
+    public CausalLMModelOutput(
         Tensor lastHiddenState,
         Tensor? logits = Defaults.Logits,
         Tensor[]? allHiddenStates = Defaults.AllHiddenStates,

@@ -8,12 +8,13 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.ML.GenAI.Core;
 using TorchSharp;
 using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Phi.Module;
 
-internal class Phi3SuScaledRotaryEmbedding : Phi3RotaryEmbedding
+internal class Phi3SuScaledRotaryEmbedding : RotaryEmbedding
 {
     private readonly double[] _shortFactor;
     private readonly double[] _longFactor;
@@ -35,7 +36,7 @@ internal class Phi3SuScaledRotaryEmbedding : Phi3RotaryEmbedding
     }
 
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
-    public override Phi3RotaryEmbeddingOutput forward(Phi3RotaryEmbeddingInput input)
+    public override RotaryEmbeddingOutput forward(RotaryEmbeddingInput input)
 #pragma warning restore MSML_GeneralName // This name should be PascalCased
     {
         var seqLen = (torch.max(input.PositionIds) + 1).ToInt32();

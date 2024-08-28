@@ -17,7 +17,7 @@ using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Phi;
 
-public class Phi3ForCasualLM : nn.Module<CasualLMModelInput, CasualLMModelOutput>
+public class Phi3ForCasualLM : nn.Module<CausalLMModelInput, CausalLMModelOutput>
 {
     private readonly Phi3Config _config;
 
@@ -37,7 +37,7 @@ public class Phi3ForCasualLM : nn.Module<CasualLMModelInput, CasualLMModelOutput
     }
 
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
-    public override CasualLMModelOutput forward(CasualLMModelInput input)
+    public override CausalLMModelOutput forward(CausalLMModelInput input)
 #pragma warning restore MSML_GeneralName // This name should be PascalCased
     {
         var outputs = this.model.forward(input);

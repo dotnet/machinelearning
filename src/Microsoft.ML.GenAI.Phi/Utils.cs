@@ -130,18 +130,6 @@ internal static class Utils
         return (qEmbed, kEmbed);
     }
 
-    public static Module<Tensor, Tensor> GetActivation(string actFn)
-    {
-        return actFn switch
-        {
-            "silu" => nn.SiLU(),
-            "relu" => nn.ReLU(),
-            "gelu" => nn.GELU(),
-            "tanh" => nn.Tanh(),
-            "swish" => nn.SiLU(),
-            _ => throw new ArgumentException("Invalid activation function", actFn),
-        };
-    }
 
 
     public static Tensor Phi2RepeatKV(Tensor x, int nRep)

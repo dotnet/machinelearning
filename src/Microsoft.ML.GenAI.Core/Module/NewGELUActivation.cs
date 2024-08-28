@@ -6,7 +6,7 @@ using System;
 using TorchSharp;
 using static TorchSharp.torch;
 
-namespace Microsoft.ML.GenAI;
+namespace Microsoft.ML.GenAI.Core;
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
 internal class NewGELUActivation : torch.nn.Module<Tensor, Tensor>
 #pragma warning disable MSML_GeneralName // This name should be PascalCased

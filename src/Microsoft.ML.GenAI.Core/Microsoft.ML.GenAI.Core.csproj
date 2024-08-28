@@ -8,16 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoGen.Core" Version="$(AutoGenVersion)" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="$(SemanticKernelVersion)" />
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
     <PackageReference Include="TorchSharp" Version="$(TorchSharpVersion)" />
   </ItemGroup>
-<!-- 
-  
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-    <PackageReference Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows'))" PrivateAssets="all" />
-    <PackageReference Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux'))" PrivateAssets="all" />
-    <PackageReference Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX'))" PrivateAssets="all" />
-  </ItemGroup> -->
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj" />
@@ -25,6 +20,8 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.ML.GenAI.Phi" />
+    <InternalsVisibleTo Include="Microsoft.ML.GenAI.LLaMA" />
+    <InternalsVisibleTo Include="Microsoft.ML.GenAI.LLaMA.Tests" />
     <InternalsVisibleTo Include="Microsoft.ML.GenAI.Phi.Tests" />
     <InternalsVisibleTo Include="Microsoft.ML.GenAI.Core.Tests" />
   </ItemGroup>
