@@ -10,7 +10,7 @@ using System.Text.Json;
 
 namespace Microsoft.ML.AutoML.SourceGenerator
 {
-    internal class Utils
+    internal sealed class Utils
     {
         public static EstimatorsContract GetEstimatorsFromJson(string json)
         {

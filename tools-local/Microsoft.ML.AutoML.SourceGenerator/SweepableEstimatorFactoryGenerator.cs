@@ -13,7 +13,7 @@ using Microsoft.ML.AutoML.SourceGenerator.Template;
 namespace Microsoft.ML.AutoML.SourceGenerator
 {
     [Generator]
-    public class SweepableEstimatorFactoryGenerator : ISourceGenerator
+    public sealed class SweepableEstimatorFactoryGenerator : ISourceGenerator
     {
         private const string className = "SweepableEstimatorFactory";
 

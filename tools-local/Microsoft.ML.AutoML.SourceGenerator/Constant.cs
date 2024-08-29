@@ -4,7 +4,7 @@
 
 namespace Microsoft.ML.AutoML.SourceGenerator
 {
-    internal class Constant
+    internal sealed class Constant
     {
         public const string CodeGeneratorNameSpace = "Microsoft.ML.AutoML.CodeGen";
     }
