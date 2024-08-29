@@ -23,7 +23,8 @@ public class SemanticKernelSample
         torch.manual_seed(1);
         torch.set_default_dtype(defaultType);
         var weightFolder = @"C:\Users\xiaoyuz\source\repos\Phi-3-mini-4k-instruct";
-        var tokenizer = Phi3TokenizerHelper.FromPretrained(weightFolder);
+        var tokenizerPath = Path.Combine(weightFolder, "tokenizer.model");
+        var tokenizer = Phi3TokenizerHelper.FromPretrained(tokenizerPath);
         var model = Phi3ForCasualLM.FromPretrained(weightFolder, "config.json", layersOnTargetDevice: -1, quantizeToInt8: true);
         var pipeline = new CausalLMPipeline<LlamaTokenizer, Phi3ForCasualLM>(tokenizer, model, device);
 
@@ -53,7 +54,8 @@ public class SemanticKernelSample
         torch.manual_seed(1);
         torch.set_default_dtype(defaultType);
         var weightFolder = @"C:\Users\xiaoyuz\source\repos\Phi-3-mini-4k-instruct";
-        var tokenizer = Phi3TokenizerHelper.FromPretrained(weightFolder);
+        var tokenizerPath = Path.Combine(weightFolder, "tokenizer.model");
+        var tokenizer = Phi3TokenizerHelper.FromPretrained(tokenizerPath);
         var model = Phi3ForCasualLM.FromPretrained(weightFolder, "config.json", layersOnTargetDevice: -1, quantizeToInt8: true);
         var pipeline = new CausalLMPipeline<LlamaTokenizer, Phi3ForCasualLM>(tokenizer, model, device);
 
