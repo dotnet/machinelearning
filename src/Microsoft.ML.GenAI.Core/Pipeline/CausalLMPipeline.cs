@@ -32,6 +32,8 @@ public interface ICausalLMPipeline
         float topP = CausalLMPipeline.Defaults.TopP,
         string[]? stopSequences = CausalLMPipeline.Defaults.StopSequence);
 
+    float[] GenerateEmbeddingFromLastTokenPool(string prompt);
+
     IEnumerable<string> GenerateStreaming(
         string prompt,
         int maxLen = CausalLMPipeline.Defaults.MaxLen,
@@ -280,5 +282,28 @@ public class CausalLMPipeline : ICausalLMPipeline
         var nextToken = torch.multinomial(probsSort, num_samples: 1);
         nextToken = torch.gather(probsIndex, dim: -1, index: nextToken);
         return nextToken;
+    }
+
+    public float[] GenerateEmbeddingFromLastTokenPool(string prompt)
+    {
+        using var scope = NewDisposeScope();
+        using var noGrad = torch.no_grad();
+        var inputIds = this.Tokenizer.EncodeToIds(prompt);
+        var inputTensor = torch.tensor(inputIds.ToArray(), dtype: ScalarType.Int64, device: this.Device).unsqueeze(0);
+        var attentionMask = torch.ones_like(inputTensor, device: this.Device);
+        var cache = new DynamicKVCache();
+        var input = new CausalLMModelInput(inputTensor, attentionMask, pastKeyValuesLength: 0)
+        {
+            OverrideCache = cache,
+        };
+        var output = this.Model.forward(input);
+        var lastTokenHiddenState = output.LastHiddenState[0, ^0];
+
+        // shape of lastTokenHiddenState: [hidden_size]
+        // L2 norm
+        var norm = lastTokenHiddenState.norm();
+        var normalized = lastTokenHiddenState / norm;
+
+        return normalized.to_type(ScalarType.Float32).data<float>().ToArray();
     }
 }

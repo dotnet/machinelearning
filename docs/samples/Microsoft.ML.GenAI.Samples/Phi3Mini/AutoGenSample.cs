@@ -27,13 +27,31 @@ public class AutoGenSample
         torch.set_default_dtype(defaultType);
         var weightFolder = @"C:\Users\xiaoyuz\source\repos\Phi-3-mini-4k-instruct";
         var pipeline = Utils.LoadPhi3Mini4KFromFolder(weightFolder, device: device, quantizeToInt8: false);
+        var question = @"write a C# program to calculate the factorial of a number";
+        var embeddingForQuery = pipeline.GenerateEmbeddingFromLastTokenPool(question);
 
         // agent
         var agent = new Phi3Agent(pipeline, "assistant")
             .RegisterPrintMessage();
-        var question = @"write a C# program to calculate the factorial of a number";
 
         // chat with the assistant
-        await agent.SendAsync(question);
+        var reply = await agent.SendAsync(question);
+
+
+        var replyContent = reply.GetContent() ?? throw new Exception("reply content is null");
+        var replyEmbedding = pipeline.GenerateEmbeddingFromLastTokenPool("""
+            What a sunny day! Time to travel.
+            """);
+
+        // compare the similarity between the question and the reply
+        // the similarity is calculated by the dot product of the embeddings
+
+        var similarity = 0f;
+        foreach (var (q, r) in embeddingForQuery.Zip(replyEmbedding))
+        {
+            similarity += q * r;
+        }
+
+        Console.WriteLine($"The similarity between the question and the reply is {similarity * 100}");
     }
 }
