@@ -81,7 +81,7 @@
     <ReportGeneratorVersion>4.3.6</ReportGeneratorVersion>
     <SystemCompositionVersion>8.0.0</SystemCompositionVersion>
     <!-- Test-only Dependencies -->
-    <ApprovalTestsVersion>6.0.0</ApprovalTestsVersion>
+    <ApprovalTestsVersion>7.0.0-beta.1</ApprovalTestsVersion>
     <MoqVersion>4.20.70</MoqVersion>
     <BenchmarkDotNetVersion>0.13.12</BenchmarkDotNetVersion>
     <DotNetRuntime60Version>6.0.26</DotNetRuntime60Version>
