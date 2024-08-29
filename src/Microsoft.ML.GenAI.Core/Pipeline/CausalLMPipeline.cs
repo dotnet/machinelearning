@@ -32,6 +32,9 @@ public interface ICausalLMPipeline
         float topP = CausalLMPipeline.Defaults.TopP,
         string[]? stopSequences = CausalLMPipeline.Defaults.StopSequence);
 
+    /// <summary>
+    /// Generate the embedding(last hidden state of the last token) for the prompt. The embedding is normalized by L2 norm.
+    /// </summary>
     float[] GenerateEmbeddingFromLastTokenPool(string prompt);
 
     IEnumerable<string> GenerateStreaming(
@@ -297,7 +300,7 @@ public class CausalLMPipeline : ICausalLMPipeline
             OverrideCache = cache,
         };
         var output = this.Model.forward(input);
-        var lastTokenHiddenState = output.LastHiddenState[0, ^0];
+        var lastTokenHiddenState = output.LastHiddenState[0, ^1];
 
         // shape of lastTokenHiddenState: [hidden_size]
         // L2 norm
