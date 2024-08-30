@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="ApprovalTests" Version="$(ApprovalTestsVersion)" />
+    <PackageReference Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
     <PackageReference Include="FluentAssertions" Version="$(FluentAssertionVersion)" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="$(SemanticKernelVersion)" />
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
