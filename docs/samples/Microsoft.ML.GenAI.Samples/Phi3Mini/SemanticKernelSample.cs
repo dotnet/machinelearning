@@ -1,4 +1,7 @@
-﻿using Microsoft.ML.GenAI.Phi.Extension;
+﻿using Microsoft.ML.GenAI.Core;
+using Microsoft.ML.GenAI.Phi;
+using Microsoft.ML.GenAI.Phi.Extension;
+using Microsoft.ML.Tokenizers;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using TorchSharp;
@@ -20,8 +23,10 @@ public class SemanticKernelSample
         torch.manual_seed(1);
         torch.set_default_dtype(defaultType);
         var weightFolder = @"C:\Users\xiaoyuz\source\repos\Phi-3-mini-4k-instruct";
-        var pipeline = Utils.LoadPhi3Mini4KFromFolder(weightFolder, device: device);
-
+        var tokenizerPath = Path.Combine(weightFolder, "tokenizer.model");
+        var tokenizer = Phi3TokenizerHelper.FromPretrained(tokenizerPath);
+        var model = Phi3ForCasualLM.FromPretrained(weightFolder, "config.json", layersOnTargetDevice: -1, quantizeToInt8: true);
+        var pipeline = new CausalLMPipeline<LlamaTokenizer, Phi3ForCasualLM>(tokenizer, model, device);
 
         var kernel = Kernel.CreateBuilder()
             .AddGenAIChatCompletion(pipeline)
@@ -49,8 +54,10 @@ public class SemanticKernelSample
         torch.manual_seed(1);
         torch.set_default_dtype(defaultType);
         var weightFolder = @"C:\Users\xiaoyuz\source\repos\Phi-3-mini-4k-instruct";
-        var pipeline = Utils.LoadPhi3Mini4KFromFolder(weightFolder, device);
-
+        var tokenizerPath = Path.Combine(weightFolder, "tokenizer.model");
+        var tokenizer = Phi3TokenizerHelper.FromPretrained(tokenizerPath);
+        var model = Phi3ForCasualLM.FromPretrained(weightFolder, "config.json", layersOnTargetDevice: -1, quantizeToInt8: true);
+        var pipeline = new CausalLMPipeline<LlamaTokenizer, Phi3ForCasualLM>(tokenizer, model, device);
 
         var kernel = Kernel.CreateBuilder()
             .AddGenAITextGeneration(pipeline)
