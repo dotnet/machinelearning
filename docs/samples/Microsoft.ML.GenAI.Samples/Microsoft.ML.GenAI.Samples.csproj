@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Microsoft.ML.GenAI.Core\Microsoft.ML.GenAI.Core.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.GenAI.LLaMA\Microsoft.ML.GenAI.LLaMA.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.GenAI.Mistral\Microsoft.ML.GenAI.Mistral.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.GenAI.Phi\Microsoft.ML.GenAI.Phi.csproj" />
   </ItemGroup>
 

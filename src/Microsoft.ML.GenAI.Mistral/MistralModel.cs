@@ -7,35 +7,35 @@ using TorchSharp;
 using TorchSharp.Modules;
 using static TorchSharp.torch;
 
-namespace Microsoft.ML.GenAI.LLaMA.Module;
+namespace Microsoft.ML.GenAI.Mistral.Module;
 
-internal class LlamaModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
+internal class MistralModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
 {
-    private readonly LlamaConfig _config;
+    private readonly MistralConfig _config;
     private readonly int? _paddingIdx;
     private readonly int _vocabSize;
     private IKVCache _cache;
 #pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format
     private readonly Embedding embed_tokens;
-    private readonly ModuleList<LlamaDecoderLayer> layers;
+    private readonly ModuleList<MistralDecoderLayer> layers;
     private readonly RMSNorm norm;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
     private readonly nn.Module<RotaryEmbeddingInput, RotaryEmbeddingOutput> _rotaryEmb;
 
 
-    public LlamaModel(LlamaConfig config, string? device = null)
-        : base(nameof(LlamaModel))
+    public MistralModel(MistralConfig config)
+        : base(nameof(MistralModel))
     {
         this._config = config;
         this._paddingIdx = config.PadTokenId;
         this._vocabSize = config.VocabSize;
-        var headDim = config.HiddenSize / config.NumAttentionHeads;
-        this.embed_tokens = nn.Embedding(config.VocabSize, config.HiddenSize, padding_idx: this._paddingIdx, dtype: config.DType, device: device);
-        this.layers = new ModuleList<LlamaDecoderLayer>();
+        var headDim = config.HeadDim;
+        this.embed_tokens = nn.Embedding(config.VocabSize, config.HiddenSize, padding_idx: this._paddingIdx, dtype: config.DType);
+        this.layers = new ModuleList<MistralDecoderLayer>();
 
         for (int i = 0; i < config.NumHiddenLayers; i++)
         {
-            this.layers.Add(new LlamaDecoderLayer(config, i));
+            this.layers.Add(new MistralDecoderLayer(config, i));
         }
         this.norm = new RMSNorm(config.HiddenSize, config.RmsNormEps, config.DType);
         this._cache = new DynamicKVCache();
@@ -106,7 +106,7 @@ internal class LlamaModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
         else
         {
             // the following behavior of creating 4d causal mask doesn't match python's, remember to look into it when there's time.
-            attentionMask = AttentionMaskConverter.Create4DCausalAttentionMask(attentionMask, [batchSize, seqLength], inputsEmbeds.dtype, device, pastKeyValuesLength);
+            attentionMask = AttentionMaskConverter.Create4DCausalAttentionMask(attentionMask, [batchSize, seqLength], inputsEmbeds.dtype, device, pastKeyValuesLength, slidingWindow: _config.SlidingWindow);
         }
 
         var hiddenStates = inputsEmbeds;

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using TorchSharp;
@@ -161,4 +162,18 @@ public static class Utils
                 .reshape(batchSize, nKVHeads * nRep, seqLen, headDim);
     }
 
+    internal static string GetEmbeddedResource(string resourceName)
+    {
+        // read file content from embedded resource
+        var assembly = Assembly.GetCallingAssembly();
+        var resourceStream = assembly.GetManifestResourceStream(resourceName);
+
+        if (resourceStream == null)
+        {
+            throw new ArgumentException("Resource not found", resourceName);
+        }
+
+        using var reader = new System.IO.StreamReader(resourceStream);
+        return reader.ReadToEnd();
+    }
 }

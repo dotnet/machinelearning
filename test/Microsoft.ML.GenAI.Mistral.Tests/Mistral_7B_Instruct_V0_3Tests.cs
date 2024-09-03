@@ -7,11 +7,52 @@ using ApprovalTests.Namers;
 using ApprovalTests.Reporters;
 using ApprovalTests;
 using Xunit;
+using TorchSharp;
+using Microsoft.ML.GenAI.Core.Extension;
+using AutoGen.Core;
 
 namespace Microsoft.ML.GenAI.Mistral.Tests;
 
-public class Mistral_V0_3Tests
+[Collection("NoParallelization")]
+public class Mistral_7B_Instruct_V0_3Tests
 {
+    public Mistral_7B_Instruct_V0_3Tests()
+    {
+        if (Environment.GetEnvironmentVariable("HELIX_CORRELATION_ID") != null)
+        {
+            Approvals.UseAssemblyLocationForApprovedFiles();
+        }
+
+        torch.set_default_device("meta");
+    }
+
+    [Fact]
+    [UseReporter(typeof(DiffReporter))]
+    [UseApprovalSubdirectory("Approvals")]
+    public void Mistral_7B_Instruct_V0_3_ShapeTest()
+    {
+        var model = new MistralForCausalLM(MistralConfig.Mistral_7B_Instruct_v0_3);
+        var stateDictStr = model.PeekShape();
+        Approvals.Verify(stateDictStr);
+    }
+
+    [Fact]
+    [UseReporter(typeof(DiffReporter))]
+    [UseApprovalSubdirectory("Approvals")]
+    public void ItBuildChatTemplateFromAutoGenChatHistory()
+    {
+        var chatHistory = new List<IMessage>
+        {
+            new TextMessage(Role.System, "You are a helpful AI assistant."),
+            new TextMessage(Role.User, "Hello?"),
+            new TextMessage(Role.Assistant, "World!"),
+        };
+
+        var prompt = Mistral_7B_0_3ChatTemplateBuilder.Instance.BuildPrompt(chatHistory);
+
+        Approvals.Verify(prompt);
+    }
+
     [Fact]
     [UseReporter(typeof(DiffReporter))]
     [UseApprovalSubdirectory("Approvals")]
