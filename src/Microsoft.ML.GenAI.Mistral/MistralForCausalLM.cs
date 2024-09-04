@@ -116,6 +116,15 @@ public class MistralForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOut
 
     public void LoadSafeTensors(string modelFolder, string checkPointName = "model.safetensors.index.json")
     {
-        this.load_checkpoint(path: modelFolder, checkpointName: checkPointName, strict: true, useTqdm: false);
+        // print the shape of model
+        var shape = this.Peek();
+        Console.WriteLine($"Model shape: {shape}");
+        var loadedDictionary = new Dictionary<string, bool>();
+        this.load_checkpoint(path: modelFolder, checkpointName: checkPointName, strict: false, loadedParameters: loadedDictionary, useTqdm: false);
+
+        foreach (var (key, succeed) in loadedDictionary)
+        {
+            Console.WriteLine($"Loading {key} {(succeed ? "succeed" : "failed")}");
+        }
     }
 }

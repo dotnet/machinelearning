@@ -301,7 +301,10 @@ public class CausalLMPipeline : ICausalLMPipeline
         var inputIds = this.Tokenizer.EncodeToIds(prompt);
         var inputTensor = torch.tensor(inputIds.ToArray(), dtype: ScalarType.Int64, device: this.Device).unsqueeze(0);
         var attentionMask = torch.ones_like(inputTensor, device: this.Device);
-        var input = new CausalLMModelInput(inputTensor, attentionMask, pastKeyValuesLength: 0);
+        var input = new CausalLMModelInput(inputTensor, attentionMask, pastKeyValuesLength: 0)
+        {
+            OverrideCache = new DynamicKVCache(),
+        };
         var output = this.Model.forward(input);
         var lastTokenHiddenState = output.LastHiddenState[0, ^1];
 

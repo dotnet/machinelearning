@@ -9,7 +9,7 @@ using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Mistral.Module;
 
-internal class MistralModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
+public class MistralModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
 {
     private readonly MistralConfig _config;
     private readonly int? _paddingIdx;
