@@ -26,6 +26,7 @@
 
 
   <ItemGroup Condition="'$(TargetArchitecture)' != 'x64'">
+    <Compile Remove="Mistral_7B_Instruct_V0_3Tests.cs" />
   </ItemGroup>
 
   <ItemGroup>
