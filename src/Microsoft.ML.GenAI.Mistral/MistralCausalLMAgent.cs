@@ -70,7 +70,7 @@ public class MistralCausalLMAgent : IStreamingAgent
     }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-    public async IAsyncEnumerable<IStreamingMessage> GenerateStreamingReplyAsync(
+    public async IAsyncEnumerable<IMessage> GenerateStreamingReplyAsync(
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         IEnumerable<IMessage> messages,
         GenerateReplyOptions? options = null,

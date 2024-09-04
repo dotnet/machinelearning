@@ -19,7 +19,6 @@
     <PackageReference Include="TorchSharp-cuda-windows" Version="0.102.5" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="$(SemanticKernelVersion)" />
     <PackageReference Include="AutoGen.SourceGenerator" Version="$(AutoGenVersion)" />
-    <PackageReference Include="AutoGen.OpenAI" Version="$(AutoGenVersion)" />
   </ItemGroup>
 
 </Project>
