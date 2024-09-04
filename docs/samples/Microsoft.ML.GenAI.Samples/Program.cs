@@ -2,4 +2,4 @@
 using Microsoft.ML.GenAI.Samples.Mistral;
 using Microsoft.ML.GenAI.Samples.Phi3Mini;
 
-Mistral_7B_Instruct.Run();
+await Mistral_7B_Instruct.WeatherChatAsync();

@@ -56,6 +56,54 @@ public class Mistral_7B_Instruct_V0_3Tests
     [Fact]
     [UseReporter(typeof(DiffReporter))]
     [UseApprovalSubdirectory("Approvals")]
+    public void ItBuildChatTemplateWithToolsFromAutoGenChatHistory()
+    {
+        var getWeatherTool = new FunctionContract
+        {
+            Name = "get_current_weather",
+            Namespace = "weather",
+            Description = "Get the current weather",
+            Parameters = [
+                new FunctionParameterContract
+                {
+                    Name = "location",
+                    ParameterType = typeof(string),
+                    Description = "The city and state, e.g. San Francisco, CA",
+                    IsRequired = true
+                }
+                ]
+        };
+
+        var getWeatherToolCall = new ToolCall("get_current_weather", "{\"location\": \"Seattle, WA\"}") { ToolCallId = "9Ae3bDc2F" };
+        var getWeatherToolCallResult = new ToolCall("get_current_weather", "{\"temperature\": 22.0}", "sunny") { ToolCallId = "9Ae3bDc2F" };
+        var toolCallMessage = new ToolCallMessage([getWeatherToolCall]);
+        var toolCallResultMessage = new ToolCallResultMessage([getWeatherToolCallResult]);
+        var aggregateToolCallMessage = new ToolCallAggregateMessage(toolCallMessage, toolCallResultMessage);
+
+        var chatHistory = new List<IMessage>
+        {
+            new TextMessage(Role.System, "You are a helpful AI assistant."),
+            new TextMessage(Role.User, "What's the weather in Seattle?"),
+            toolCallMessage,
+            toolCallResultMessage,
+            new TextMessage(Role.Assistant, "The current temperature in Seattle is 22.0 degrees celsius."),
+
+            // test tool call aggregate message for immediate tool call execution
+            new TextMessage(Role.User, "What's the weather in New York?"),
+            aggregateToolCallMessage,
+            new TextMessage(Role.Assistant, "The current temperature in New York is 22.0 degrees celsius."),
+
+            new TextMessage(Role.User, "What's the weather in Paris?"),
+        };
+
+        var prompt = Mistral_7B_0_3ChatTemplateBuilder.Instance.BuildPrompt(chatHistory, [getWeatherTool]);
+
+        Approvals.Verify(prompt);
+    }
+
+    [Fact]
+    [UseReporter(typeof(DiffReporter))]
+    [UseApprovalSubdirectory("Approvals")]
     public void TokenizerTest()
     {
         var modelWeightFolder = Path.Join("C:\\Users\\xiaoyuz\\source\\repos\\Mistral-7B-Instruct-v0.3");

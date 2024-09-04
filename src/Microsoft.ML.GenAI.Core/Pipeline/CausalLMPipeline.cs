@@ -266,6 +266,13 @@ public class CausalLMPipeline : ICausalLMPipeline
         foreach (var (token, _) in this.GenerateStreaming(inputTensor, attentionMask, stopTokenIds.ToArray(), temperature: temperature, maxLen: maxLen))
         {
             var tokenIds = token[0].to_type(ScalarType.Int32).data<int>().ToArray();
+            if (this.Tokenizer is LlamaTokenizer llamaTokenizer && llamaTokenizer.SpecialTokens?.FirstOrDefault(kv => kv.Value == tokenIds[0]) is { Key: string specialToken })
+            {
+                Console.WriteLine($"token: {tokenIds[0]}");
+                yield return specialToken;
+                continue;
+            }
+
             var duplicateTokenString = this.Tokenizer.Decode(tokenIds.Concat(tokenIds)) ?? throw new InvalidOperationException("Failed to decode token ids");
             var tokenString = this.Tokenizer.Decode(tokenIds) ?? throw new InvalidOperationException("Failed to decode token ids");
             // replace the first occurrence of the token with the duplicate token

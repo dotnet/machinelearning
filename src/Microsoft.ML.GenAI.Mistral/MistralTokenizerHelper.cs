@@ -61,7 +61,6 @@ public class MistralTokenizerHelper
     {
         var specialTokens = new Dictionary<string, int>
         {
-            { unknownSymbol, unknownSymbolId },
             { startSymbol, startSymbolId },
             { endSymbol, endSymbolId },
             { startInstructionSymbol, startInstructionSymbolId },
