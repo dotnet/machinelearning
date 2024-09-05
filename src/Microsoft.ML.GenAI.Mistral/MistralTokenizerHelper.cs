@@ -57,7 +57,8 @@ public class MistralTokenizerHelper
         int startToolResultSymbolId = 8,
         string endToolResultSymbol = EndToolResultSymbol,
         int endToolResultSymbolId = 9,
-        bool addPrecedingSpace = true)
+        bool addPrecedingSpace = true,
+        Dictionary<string, int>? additionalSpecialTokens = null)
     {
         var specialTokens = new Dictionary<string, int>
         {
@@ -71,6 +72,14 @@ public class MistralTokenizerHelper
             { startToolResultSymbol, startToolResultSymbolId },
             { endToolResultSymbol, endToolResultSymbolId }
         };
+
+        if (additionalSpecialTokens != null)
+        {
+            foreach (var (key, value) in additionalSpecialTokens)
+            {
+                specialTokens[key] = value;
+            }
+        }
 
         return FromPretrained(
             modelWeightFolder,
