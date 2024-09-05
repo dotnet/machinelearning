@@ -1575,6 +1575,9 @@ namespace Microsoft.ML.Tokenizers
 
                 while (enumerator.Current < _byteCodeToIdOffset)
                 {
+                    // It is possible listing some special tokens before the byte tokens in the tokenizer's data.
+                    TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, ref sb);
+
                     // Skip control tokens.
                     if (!enumerator.MoveNext())
                     {
@@ -1595,9 +1598,9 @@ namespace Microsoft.ML.Tokenizers
             {
                 AppendTokenWithCheckingPrefix(AddDummyPrefix, TreatWhitespaceAsSuffix, token, prefixSuffixChar, ref sb, ref prefixRemoved, ref suffixIndex);
             }
-            else if (considerSpecialTokens && _specialTokensReverse is not null && _specialTokensReverse.TryGetValue(enumerator.Current, out string? specialToken))
+            else
             {
-                sb.Append(specialToken);
+                TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, ref sb);
             }
 
             char[]? charPoolArray = null;
@@ -1610,6 +1613,10 @@ namespace Microsoft.ML.Tokenizers
                     {
                         FlushBytes(ref bytesCount, ref bytesPoolArray, ref charPoolArray, ref sb);
                     }
+
+                    // It is possible listing some special tokens before the byte tokens in the tokenizer's data.
+                    TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, ref sb);
+
                     continue;
                 }
 
@@ -1642,9 +1649,9 @@ namespace Microsoft.ML.Tokenizers
                     {
                         AppendTokenWithCheckingPrefix(AddDummyPrefix, TreatWhitespaceAsSuffix, token, prefixSuffixChar, ref sb, ref prefixRemoved, ref suffixIndex);
                     }
-                    else if (considerSpecialTokens && _specialTokensReverse is not null && _specialTokensReverse.TryGetValue(enumerator.Current, out string? specialToken))
+                    else
                     {
-                        sb.Append(specialToken);
+                        TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, ref sb);
                     }
                 }
             }
@@ -1735,6 +1742,31 @@ namespace Microsoft.ML.Tokenizers
                 }
 
                 prefixRemoved = true;
+            }
+
+            static void TryDecodeAsSpecialToken(SentencePieceBpeTokenizer tokenizer, int id, bool considerSpecialTokens, ref ValueStringBuilder sb)
+            {
+                if (!considerSpecialTokens)
+                {
+                    return;
+                }
+
+                if (id == tokenizer.BeginningOfSentenceId)
+                {
+                    sb.Append(tokenizer.BeginningOfSentenceToken);
+                }
+                else if (id == tokenizer.EndOfSentenceId)
+                {
+                    sb.Append(tokenizer.EndOfSentenceToken);
+                }
+                else if (id == tokenizer.UnknownId)
+                {
+                    sb.Append(tokenizer.UnknownToken);
+                }
+                else if (tokenizer._specialTokensReverse?.TryGetValue(id, out string? specialToken) is true)
+                {
+                    sb.Append(specialToken);
+                }
             }
         }
 

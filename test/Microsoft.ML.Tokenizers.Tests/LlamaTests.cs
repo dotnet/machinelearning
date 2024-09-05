@@ -376,6 +376,16 @@ namespace Microsoft.ML.Tokenizers.Tests
             TokenizerTests.TestTokenLimits(llamaTokenizer);
         }
 
+        /// <summary>
+        /// Test that the special token with a small id is decoded correctly.
+        /// </summary>
+        [Theory]
+        [MemberData(nameof(LlamaTokenizersListData))]
+        public void TestDecodeSpecialTokenWithSmallId(LlamaTokenizer llamaTokenizer)
+        {
+            Assert.Equal(llamaTokenizer.EndOfSentenceToken, llamaTokenizer.Decode([llamaTokenizer.EndOfSentenceId], considerSpecialTokens: true));
+        }
+
         [Fact]
         public void TestSentencePieceNormalizer()
         {
