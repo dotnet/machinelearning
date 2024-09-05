@@ -96,7 +96,7 @@
     <MicrosoftMLTensorFlowTestModelsVersion>0.0.13-test</MicrosoftMLTensorFlowTestModelsVersion>
     <MicrosoftMLTestDatabasesVersion>0.0.6-test</MicrosoftMLTestDatabasesVersion>
     <MicrosoftMLTestModelsVersion>0.0.7-test</MicrosoftMLTestModelsVersion>
-    <MicrosoftMLTestTokenizersVersion>2.0.0-beta.24415.1</MicrosoftMLTestTokenizersVersion>
+    <MicrosoftMLTestTokenizersVersion>2.0.0-beta.24455.2</MicrosoftMLTestTokenizersVersion>
     <SystemDataSqlClientVersion>4.8.6</SystemDataSqlClientVersion>
     <SystemDataSQLiteCoreVersion>1.0.118</SystemDataSQLiteCoreVersion>
     <XunitCombinatorialVersion>1.6.24</XunitCombinatorialVersion>

@@ -106,7 +106,7 @@ public class Mistral_7B_Instruct_V0_3Tests
     [UseApprovalSubdirectory("Approvals")]
     public void TokenizerTest()
     {
-        var modelWeightFolder = Path.Join("C:\\Users\\xiaoyuz\\source\\repos\\Mistral-7B-Instruct-v0.3");
+        var modelWeightFolder = "Mistral";
         var tokenizer = MistralTokenizerHelper.FromPretrained(modelWeightFolder);
 
         var messages = new string[]
