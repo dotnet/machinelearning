@@ -107,6 +107,15 @@ public class MistralForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOut
 
         model.LoadSafeTensors(modelFolder, checkPointName);
 
+        if (quantizeToInt8)
+        {
+            model.ToInt8QuantizeModule();
+        }
+        else if (quantizeToInt4)
+        {
+            model.ToInt4QuantizeModule();
+        }
+
         model = model.ToDynamicLoadingModel(deviceMap, targetDevice);
 
         torch.set_default_device(originalDefaultDevice);
@@ -116,15 +125,6 @@ public class MistralForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOut
 
     public void LoadSafeTensors(string modelFolder, string checkPointName = "model.safetensors.index.json")
     {
-        // print the shape of model
-        var shape = this.Peek();
-        Console.WriteLine($"Model shape: {shape}");
-        var loadedDictionary = new Dictionary<string, bool>();
-        this.load_checkpoint(path: modelFolder, checkpointName: checkPointName, strict: false, loadedParameters: loadedDictionary, useTqdm: false);
-
-        foreach (var (key, succeed) in loadedDictionary)
-        {
-            Console.WriteLine($"Loading {key} {(succeed ? "succeed" : "failed")}");
-        }
+        this.load_checkpoint(path: modelFolder, checkpointName: checkPointName, strict: false, useTqdm: false);
     }
 }
