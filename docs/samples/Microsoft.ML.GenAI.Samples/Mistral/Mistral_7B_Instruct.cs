@@ -109,7 +109,7 @@ public partial class Mistral_7B_Instruct
         Console.WriteLine($"The similarity score between query and document is {score}");
     }
 
-    public async static Task WeatherChatAsync()
+    public static async Task WeatherChatAsync()
     {
         var device = "cuda";
         if (device == "cuda")
