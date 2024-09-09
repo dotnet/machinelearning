@@ -19,9 +19,9 @@ public partial class Mistral_7B_Instruct
     /// </summary>
     /// <param name="city"></param>
     [Function]
-    public async Task<string> GetWeather(string city)
+    public Task<string> GetWeather(string city)
     {
-        return await Task.FromResult($"The weather in {city} is sunny.");
+        return Task.FromResult($"The weather in {city} is sunny.");
     }
 
     public static async Task RunAsync()
