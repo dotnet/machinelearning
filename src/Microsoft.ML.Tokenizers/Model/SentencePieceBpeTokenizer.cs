@@ -1549,19 +1549,6 @@ namespace Microsoft.ML.Tokenizers
             }
 
             ValueStringBuilder sb = new(stackalloc char[256]);
-            if (enumerator.Current == BeginningOfSentenceId)
-            {
-                if (considerSpecialTokens)
-                {
-                    sb.Append(BeginningOfSentenceToken);
-                }
-
-                // escape prefix control tokens.
-                if (!enumerator.MoveNext())
-                {
-                    return sb.Length == 0 ? string.Empty : sb.ToString();
-                }
-            }
 
             int bytesCount = -1;
             byte[]? bytesPoolArray = null;
@@ -1575,6 +1562,9 @@ namespace Microsoft.ML.Tokenizers
 
                 while (enumerator.Current < _byteCodeToIdOffset)
                 {
+                    // It is possible listing some special tokens before the byte tokens in the tokenizer's data.
+                    TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, ref sb);
+
                     // Skip control tokens.
                     if (!enumerator.MoveNext())
                     {
@@ -1588,16 +1578,20 @@ namespace Microsoft.ML.Tokenizers
                 }
                 else if (_vocabReverse.TryGetValue(enumerator.Current, out string? token))
                 {
-                    sb.Append(token);
+                    AppendTokenWithCheckingPrefix(AddDummyPrefix, TreatWhitespaceAsSuffix, token, prefixSuffixChar, ref sb, ref prefixRemoved, ref suffixIndex);
+                }
+                else
+                {
+                    TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, ref sb);
                 }
             }
             else if (_vocabReverse.TryGetValue(enumerator.Current, out string? token))
             {
                 AppendTokenWithCheckingPrefix(AddDummyPrefix, TreatWhitespaceAsSuffix, token, prefixSuffixChar, ref sb, ref prefixRemoved, ref suffixIndex);
             }
-            else if (considerSpecialTokens && _specialTokensReverse is not null && _specialTokensReverse.TryGetValue(enumerator.Current, out string? specialToken))
+            else
             {
-                sb.Append(specialToken);
+                TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, ref sb);
             }
 
             char[]? charPoolArray = null;
@@ -1610,6 +1604,10 @@ namespace Microsoft.ML.Tokenizers
                     {
                         FlushBytes(ref bytesCount, ref bytesPoolArray, ref charPoolArray, ref sb);
                     }
+
+                    // It is possible listing some special tokens before the byte tokens in the tokenizer's data.
+                    TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, ref sb);
+
                     continue;
                 }
 
@@ -1642,9 +1640,9 @@ namespace Microsoft.ML.Tokenizers
                     {
                         AppendTokenWithCheckingPrefix(AddDummyPrefix, TreatWhitespaceAsSuffix, token, prefixSuffixChar, ref sb, ref prefixRemoved, ref suffixIndex);
                     }
-                    else if (considerSpecialTokens && _specialTokensReverse is not null && _specialTokensReverse.TryGetValue(enumerator.Current, out string? specialToken))
+                    else
                     {
-                        sb.Append(specialToken);
+                        TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, ref sb);
                     }
                 }
             }
@@ -1736,6 +1734,31 @@ namespace Microsoft.ML.Tokenizers
 
                 prefixRemoved = true;
             }
+
+            static void TryDecodeAsSpecialToken(SentencePieceBpeTokenizer tokenizer, int id, bool considerSpecialTokens, ref ValueStringBuilder sb)
+            {
+                if (!considerSpecialTokens)
+                {
+                    return;
+                }
+
+                if (id == tokenizer.BeginningOfSentenceId)
+                {
+                    sb.Append(tokenizer.BeginningOfSentenceToken);
+                }
+                else if (id == tokenizer.EndOfSentenceId)
+                {
+                    sb.Append(tokenizer.EndOfSentenceToken);
+                }
+                else if (id == tokenizer.UnknownId)
+                {
+                    sb.Append(tokenizer.UnknownToken);
+                }
+                else if (tokenizer._specialTokensReverse?.TryGetValue(id, out string? specialToken) is true)
+                {
+                    sb.Append(specialToken);
+                }
+            }
         }
 
         /// <summary>
@@ -1776,29 +1799,6 @@ namespace Microsoft.ML.Tokenizers
 
             Span<char> buffer = destination;
 
-            if (enumerator.Current == BeginningOfSentenceId)
-            {
-                if (considerSpecialTokens)
-                {
-                    if (buffer.Length < BeginningOfSentenceToken.Length)
-                    {
-                        return OperationStatus.DestinationTooSmall;
-                    }
-
-                    BeginningOfSentenceToken.AsSpan().CopyTo(buffer);
-                    buffer = buffer.Slice(BeginningOfSentenceToken.Length);
-                    charsWritten += BeginningOfSentenceToken.Length;
-                }
-
-                idsConsumed++;
-
-                // escape prefix control tokens.
-                if (!enumerator.MoveNext())
-                {
-                    return OperationStatus.Done;
-                }
-            }
-
             int bytesCount = -1;
             byte[]? bytesPoolArray = null;
             bool prefixRemoved = false;
@@ -1808,9 +1808,15 @@ namespace Microsoft.ML.Tokenizers
             if (enumerator.Current <= _maxByteId)
             {
                 // First token is a byte token.
-
                 while (enumerator.Current < _byteCodeToIdOffset)
                 {
+                    OperationStatus status = TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, buffer, ref charsWritten);
+                    if (status != OperationStatus.Done)
+                    {
+                        return status;
+                    }
+                    buffer = destination.Slice(charsWritten);
+
                     // Skip control tokens.
                     idsConsumed++;
                     if (!enumerator.MoveNext())
@@ -1833,6 +1839,16 @@ namespace Microsoft.ML.Tokenizers
                         return OperationStatus.DestinationTooSmall;
                     }
                 }
+                else
+                {
+                    OperationStatus status = TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, buffer, ref charsWritten);
+                    if (status != OperationStatus.Done)
+                    {
+                        return status;
+                    }
+
+                    idsConsumed++;
+                }
             }
             else if (_vocabReverse.TryGetValue(enumerator.Current, out string? token))
             {
@@ -1841,23 +1857,15 @@ namespace Microsoft.ML.Tokenizers
                     return OperationStatus.DestinationTooSmall;
                 }
             }
-            else if (_specialTokensReverse is not null && _specialTokensReverse.TryGetValue(enumerator.Current, out string? specialToken))
-            {
-                if (considerSpecialTokens)
-                {
-                    if (buffer.Length < specialToken.Length)
-                    {
-                        return OperationStatus.DestinationTooSmall;
-                    }
-
-                    specialToken.AsSpan().CopyTo(buffer);
-                    charsWritten += specialToken.Length;
-                }
-                idsConsumed++;
-            }
             else
             {
-                return OperationStatus.InvalidData;
+                OperationStatus status = TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, buffer, ref charsWritten);
+                if (status != OperationStatus.Done)
+                {
+                    return status;
+                }
+
+                idsConsumed++;
             }
 
             char[]? charPoolArray = null;
@@ -1874,6 +1882,12 @@ namespace Microsoft.ML.Tokenizers
                         {
                             return OperationStatus.DestinationTooSmall;
                         }
+                    }
+
+                    OperationStatus status = TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, buffer, ref charsWritten);
+                    if (status != OperationStatus.Done)
+                    {
+                        return status;
                     }
 
                     idsConsumed++;
@@ -1918,23 +1932,15 @@ namespace Microsoft.ML.Tokenizers
                             return OperationStatus.DestinationTooSmall;
                         }
                     }
-                    else if (_specialTokensReverse is not null && _specialTokensReverse.TryGetValue(enumerator.Current, out string? specialToken))
-                    {
-                        if (considerSpecialTokens)
-                        {
-                            if (buffer.Length < specialToken.Length)
-                            {
-                                return OperationStatus.DestinationTooSmall;
-                            }
-
-                            specialToken.AsSpan().CopyTo(buffer);
-                            charsWritten += specialToken.Length;
-                        }
-                        idsConsumed++;
-                    }
                     else
                     {
-                        return OperationStatus.InvalidData;
+                        OperationStatus status = TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, buffer, ref charsWritten);
+                        if (status != OperationStatus.Done)
+                        {
+                            return status;
+                        }
+
+                        idsConsumed++;
                     }
                 }
             }
@@ -1972,6 +1978,41 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return OperationStatus.Done;
+
+            static OperationStatus TryDecodeAsSpecialToken(SentencePieceBpeTokenizer tokenizer, int id, bool considerSpecialTokens, Span<char> buffer, ref int charsWritten)
+            {
+                string? specialToken = null;
+
+                if (id == tokenizer.BeginningOfSentenceId)
+                {
+                    specialToken = tokenizer.BeginningOfSentenceToken;
+                }
+                else if (id == tokenizer.EndOfSentenceId)
+                {
+                    specialToken = tokenizer.EndOfSentenceToken;
+                }
+                else if (id == tokenizer.UnknownId)
+                {
+                    specialToken = tokenizer.UnknownToken;
+                }
+                else if (!tokenizer._specialTokensReverse?.TryGetValue(id, out specialToken) is true)
+                {
+                    return OperationStatus.InvalidData;
+                }
+
+                if (considerSpecialTokens && specialToken is not null)
+                {
+                    if (buffer.Length < specialToken!.Length)
+                    {
+                        return OperationStatus.DestinationTooSmall;
+                    }
+
+                    specialToken.AsSpan().CopyTo(buffer);
+                    charsWritten += specialToken.Length;
+                }
+
+                return OperationStatus.Done;
+            }
 
             static bool FlushBytes(ref int bytesCount, ref byte[]? bytesPoolArray, ref char[]? charPoolArray, Span<char> buffer, ref int charsWritten, ref int idsConsumed)
             {
