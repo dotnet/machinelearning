@@ -125,8 +125,8 @@ public class Mistral_7B_Instruct_V0_3Tests
         var sb = new StringBuilder();
         foreach (var message in messages)
         {
-            var tokenizeIds = tokenizer.EncodeToIds(message, true, false);
-            var decodeToString = tokenizer.Decode(tokenizeIds);
+            var tokenizeIds = tokenizer.EncodeToIds(message, false, false);
+            var decodeToString = tokenizer.Decode(tokenizeIds, considerSpecialTokens: true);
             sb.AppendLine(decodeToString);
             var tokenizedStr = string.Join(", ", tokenizeIds.Select(x => x.ToString()));
 
