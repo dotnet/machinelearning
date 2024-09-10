@@ -144,7 +144,11 @@ public partial class Mistral_7B_Instruct
         var task = "what is the weather in Seattle";
         var userMessage = new TextMessage(Role.User, task);
 
-        var reply = await agent.SendAsync(userMessage);
+        var reply = await agent.GenerateReplyAsync(messages: [userMessage],
+            new GenerateReplyOptions
+            {
+                Temperature = 0f,
+            });
 
         // generate further reply using tool call result;
         await agent.SendAsync(chatHistory: [userMessage, reply]);
