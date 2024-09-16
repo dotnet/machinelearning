@@ -33,9 +33,15 @@ internal class LlamaSample
 
         Console.WriteLine("Loading Llama from huggingface model weight folder");
         var stopWatch = System.Diagnostics.Stopwatch.StartNew();
-        stopWatch.Start();
         var tokenizer = LlamaTokenizerHelper.FromPretrained(originalWeightFolder);
-        var model = LlamaForCausalLM.FromPretrained(weightFolder, configName, layersOnTargetDevice: -1);
+        var model = LlamaForCausalLM.FromPretrained(
+            weightFolder,
+            configName,
+            layersOnTargetDevice: -1,
+            configLlama: (config) =>
+            {
+                config.AttnImplementation = "eager";
+            });
 
         var pipeline = new CausalLMPipeline<TiktokenTokenizer, LlamaForCausalLM>(tokenizer, model, device);
 
@@ -43,9 +49,16 @@ internal class LlamaSample
             .RegisterPrintMessage();
 
         var task = """
-            Write a C# program to print the sum of two numbers. Use top-level statement, put code between ```csharp and ```.
+            Write a super, super, super long story.
             """;
+        stopWatch.Start();
 
-        await agent.SendAsync(task);
+        for (int i = 0; i < 10; i++)
+        {
+            await agent.SendAsync(task);
+        }
+
+        stopWatch.Stop();
+        Console.WriteLine($"Time elapsed: {stopWatch.ElapsedMilliseconds} ms");
     }
 }

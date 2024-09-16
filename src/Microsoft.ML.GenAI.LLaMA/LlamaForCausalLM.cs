@@ -29,7 +29,7 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
         _config = config;
         _vocabSize = config.VocabSize;
 
-        model = new LlamaModel(config, device);
+        model = new LlamaModel(config);
         lm_head = new GenAILinear(config.HiddenSize, config.VocabSize, hasBias: false);
 
         this.RegisterComponents();
@@ -73,7 +73,8 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
         bool quantizeToInt4 = false,
         int layersOnTargetDevice = -1,
         ScalarType torchDtype = ScalarType.BFloat16,
-        string targetDevice = "cuda")
+        string targetDevice = "cuda",
+        Action<LlamaConfig>? configLlama = null)
     {
         if (layersOnTargetDevice == -1 && quantizeToInt4 == false && quantizeToInt8 == false)
         {
@@ -84,6 +85,7 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
         torch.set_default_device("meta");
         var config = Path.Join(modelFolder, configName);
         var modelConfig = JsonSerializer.Deserialize<LlamaConfig>(File.ReadAllText(config)) ?? throw new ArgumentNullException(nameof(config));
+        configLlama?.Invoke(modelConfig);
         modelConfig.DType = torchDtype;
         var model = new LlamaForCausalLM(modelConfig);
 
@@ -107,8 +109,17 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
 
         model.LoadSafeTensors(modelFolder, checkPointName);
 
-        model = model.ToDynamicLoadingModel(deviceMap, targetDevice);
 
+
+        if (quantizeToInt8)
+        {
+            model.ToInt8QuantizeModule();
+        }
+        else if (quantizeToInt4)
+        {
+            model.ToInt4QuantizeModule();
+        }
+        model = model.ToDynamicLoadingModel(deviceMap, targetDevice);
         torch.set_default_device(originalDefaultDevice);
 
         return model;

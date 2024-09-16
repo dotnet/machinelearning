@@ -136,7 +136,7 @@ public class CausalLMPipeline : ICausalLMPipeline
         var prevPos = 0;
         var eosReached = torch.tensor(new bool[batch], device: device);
         torch.Tensor? logits = default;
-        var cache = new DynamicKVCache();
+        using var cache = new DynamicKVCache();
         if (promptLength == totalLen)
         {
             var input = new CausalLMModelInput(inputIds, attentionMask, pastKeyValuesLength: 0)
@@ -270,7 +270,6 @@ public class CausalLMPipeline : ICausalLMPipeline
             var tokenString = this.Tokenizer.Decode(tokenIds) ?? throw new InvalidOperationException("Failed to decode token ids");
             // replace the first occurrence of the token with the duplicate token
             tokenString = duplicateTokenString.Substring(tokenString.Length);
-
             yield return tokenString;
         }
     }

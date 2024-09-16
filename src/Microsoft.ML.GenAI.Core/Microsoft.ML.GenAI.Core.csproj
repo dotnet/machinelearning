@@ -26,4 +26,9 @@
     <InternalsVisibleTo Include="Microsoft.ML.GenAI.Core.Tests" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
+    <PackageReference Include="TorchSharp.FlashAttention-windows" Version="0.2.1" Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$(TargetArchitecture)' == 'x64'" />
+    <PackageReference Include="TorchSharp.FlashAttention-linux" Version="0.2.1" Condition="$([MSBuild]::IsOSPlatform('Linux')) AND '$(TargetArchitecture)' == 'x64'" />
+  </ItemGroup>
+
 </Project>
