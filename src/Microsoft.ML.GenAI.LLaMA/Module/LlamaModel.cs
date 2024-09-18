@@ -29,14 +29,14 @@ internal class LlamaModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
     private readonly nn.Module<RotaryEmbeddingInput, RotaryEmbeddingOutput> _rotaryEmb;
 
 
-    public LlamaModel(LlamaConfig config, string? device = null)
+    public LlamaModel(LlamaConfig config)
         : base(nameof(LlamaModel))
     {
         this._config = config;
         this._paddingIdx = config.PadTokenId;
         this._vocabSize = config.VocabSize;
         var headDim = config.HiddenSize / config.NumAttentionHeads;
-        this.embed_tokens = nn.Embedding(config.VocabSize, config.HiddenSize, padding_idx: this._paddingIdx, dtype: config.DType, device: device);
+        this.embed_tokens = nn.Embedding(config.VocabSize, config.HiddenSize, padding_idx: this._paddingIdx, dtype: config.DType);
         this.layers = new ModuleList<LlamaDecoderLayer>();
 
         for (int i = 0; i < config.NumHiddenLayers; i++)

@@ -68,6 +68,7 @@
     <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
     <TensorFlowVersion>2.3.1</TensorFlowVersion>
     <TorchSharpPyBridgeVersion>1.4.1</TorchSharpPyBridgeVersion>
+    <TorchSharpFlashAttentionVersion>0.2.2</TorchSharpFlashAttentionVersion>
     <AutoGenVersion>0.0.15</AutoGenVersion>
     <SemanticKernelVersion>1.15.0</SemanticKernelVersion>
     <TorchSharpVersion>0.102.7</TorchSharpVersion>

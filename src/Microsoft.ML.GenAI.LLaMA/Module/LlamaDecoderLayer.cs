@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ML.GenAI.Core;
 using Microsoft.ML.GenAI.Core.Extension;
+using Microsoft.ML.GenAI.Core.Module;
 using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.LLaMA.Module;
@@ -72,7 +73,7 @@ internal class LlamaDecoderLayer : nn.Module<DecoderLayerInput, DecoderLayerOutp
     private readonly LlamaMLP mlp;
     private readonly Core.RMSNorm input_layernorm;
     private readonly Core.RMSNorm post_attention_layernorm;
-    private readonly Attention self_attn;
+    private readonly nn.Module<AttentionInput, AttentionOutput> self_attn;
 
     public Action<nn.Module>? LoadToDeviceFunc { get; set; }
     public Action<nn.Module>? UnloadFromDeviceFunc { get; set; }
@@ -92,10 +93,13 @@ internal class LlamaDecoderLayer : nn.Module<DecoderLayerInput, DecoderLayerOutp
         this.post_attention_layernorm = new Core.RMSNorm(this._hiddenSize, eps: config.RmsNormEps, config.DType);
     }
 
-    private Attention CreateAttention(LlamaConfig config, int layerIndex)
+    private nn.Module<AttentionInput, AttentionOutput> CreateAttention(LlamaConfig config, int layerIndex)
     {
         var headDim = config.HiddenSize / config.NumAttentionHeads;
-        return new Attention(
+
+        if (config.AttnImplementation == "eager")
+        {
+            return new Attention(
             attentionDropout: config.AttentionDropout,
             hiddenSize: config.HiddenSize,
             numHeads: config.NumAttentionHeads,
@@ -108,6 +112,27 @@ internal class LlamaDecoderLayer : nn.Module<DecoderLayerInput, DecoderLayerOutp
             useQkvProj: false,
             dtype: config.DType,
             attentionBias: config.AttentionBias);
+        }
+        else if (config.AttnImplementation == "flash_attention")
+        {
+            return new FlashAttention(
+            attentionDropout: config.AttentionDropout,
+            hiddenSize: config.HiddenSize,
+            numHeads: config.NumAttentionHeads,
+            headDim: headDim,
+            numKeyValueHeads: config.NumKeyValueHeads,
+            numKeyValueGroups: config.NumAttentionHeads / config.NumKeyValueHeads,
+            maxPositionEmbeddings: config.MaxPositionEmbeddings,
+            originalMaxPositionEmbeddings: config.MaxPositionEmbeddings,
+            layerIdx: layerIndex,
+            useQkvProj: false,
+            dtype: config.DType,
+            attentionBias: config.AttentionBias);
+        }
+        else
+        {
+            throw new NotImplementedException($"Attention implementation {config.AttnImplementation} is not supported.");
+        }
     }
 
 #pragma warning disable MSML_GeneralName // This name should be PascalCased

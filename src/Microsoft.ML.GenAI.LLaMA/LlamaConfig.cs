@@ -118,7 +118,13 @@ public class LlamaConfig
 
     [JsonPropertyName("vocab_size")]
     public int VocabSize { get; set; }
+
+    /// <summary>
+    /// Can be "eager" or "flash_attention".
+    /// </summary>
+    [JsonPropertyName("attn_implementation")]
+    public string AttnImplementation { get; set; }
+
     public int? PadTokenId { get; set; }
     public torch.ScalarType DType { get; set; }
-    public string AttnImplementation { get; set; }
 }
