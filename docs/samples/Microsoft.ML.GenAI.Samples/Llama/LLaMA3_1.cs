@@ -40,7 +40,7 @@ internal class LlamaSample
             layersOnTargetDevice: -1,
             configLlama: (config) =>
             {
-                config.AttnImplementation = "eager";
+                config.AttnImplementation = "flash_attention";
             });
 
         var pipeline = new CausalLMPipeline<TiktokenTokenizer, LlamaForCausalLM>(tokenizer, model, device);

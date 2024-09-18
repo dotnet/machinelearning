@@ -52,10 +52,12 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
         string configName = "config.json",
         string checkPointName = "model.safetensors.index.json",
         ScalarType torchDtype = ScalarType.BFloat16,
-        string device = "cpu")
+        string device = "cpu",
+        Action<LlamaConfig>? configLlama = null)
     {
         var config = Path.Join(modelFolder, configName);
         var modelConfig = JsonSerializer.Deserialize<LlamaConfig>(File.ReadAllText(config)) ?? throw new ArgumentNullException(nameof(config));
+        configLlama?.Invoke(modelConfig);
         modelConfig.DType = torchDtype;
         var model = new LlamaForCausalLM(modelConfig);
 
@@ -78,7 +80,7 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
     {
         if (layersOnTargetDevice == -1 && quantizeToInt4 == false && quantizeToInt8 == false)
         {
-            return FromPretrained(modelFolder, configName, checkPointName, torchDtype, targetDevice);
+            return FromPretrained(modelFolder, configName, checkPointName, torchDtype, targetDevice, configLlama);
         }
 
         var originalDefaultDevice = torch.get_default_device();
