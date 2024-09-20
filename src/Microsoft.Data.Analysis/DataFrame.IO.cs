@@ -388,7 +388,8 @@ namespace Microsoft.Data.Analysis
                 // First pass: schema and number of rows.
                 while ((fields = parser.ReadFields()) != null)
                 {
-                    if (renameDuplicatedColumns)
+                    //Only first row contains column names
+                    if (renameDuplicatedColumns && rowline == 0)
                     {
                         var names = new Dictionary<string, int>();
 

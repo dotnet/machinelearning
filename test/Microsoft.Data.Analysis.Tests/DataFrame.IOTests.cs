@@ -119,6 +119,25 @@ namespace Microsoft.Data.Analysis.Tests
             return new MemoryStream(Encoding.Default.GetBytes(streamData));
         }
 
+        [Fact]
+        public void TestReadCsvWithHeaderCultureInfoAndColumnTypeAutoGuess()
+        {
+            //see https://github.com/dotnet/machinelearning/issues/7240
+
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture; // or en-US
+
+            string csv =
+@"""Col1"",""Col2"",""Col3"",""Col4""
+""v1.1"",""5/7/2017"",""v3.1"",""v4.1""
+"""","""",""v3.2"",""v4.2""
+";
+
+            var dataFrame = DataFrame.LoadCsvFromString(csv, separator: ',', header: true,
+                dataTypes: null, // guess the column types
+                renameDuplicatedColumns: true, // try to rename the duplicated columns, if any
+                cultureInfo: CultureInfo.InvariantCulture);
+        }
+
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
