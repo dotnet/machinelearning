@@ -31,20 +31,29 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
         _vocabSize = config.VocabSize;
 
         model = new LlamaModel(config, device);
-        lm_head = nn.Linear(config.HiddenSize, config.VocabSize, hasBias: false, dtype: config.DType);
 
-        this.RegisterComponents();
+        // When tie word embeddings is true, the lm_head shares the same weight as the embedding layer.
+        // therefore, the lm_head weight won't be initialized here.
+        // instead, it will be loaded from the embedding layer after the model is loaded.
+        if (config.TieWordEmbeddings)
+        {
+            this.RegisterComponents();
+            lm_head = nn.Linear(config.HiddenSize, config.VocabSize, hasBias: false, dtype: config.DType);
+        }
+        else
+        {
+            lm_head = nn.Linear(config.HiddenSize, config.VocabSize, hasBias: false, dtype: config.DType);
+            this.RegisterComponents();
+        }
+
     }
 
     private void TieWordEmbeddings()
     {
-        var peek = lm_head.Peek();
-        Console.WriteLine($"Tie word embeddings: {peek}");
         var embeddingWeight = model.Embedding.state_dict();
         this.lm_head.load_state_dict(embeddingWeight);
 
-        peek = lm_head.Peek();
-        Console.WriteLine($"Tie word embeddings: {peek}");
+        this.lm_head.to(device: model.Embedding.weight!.device);
     }
 
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
@@ -72,13 +81,12 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
         var model = new LlamaForCausalLM(modelConfig);
 
         model.LoadSafeTensors(modelFolder, checkPointName);
-
+        model = model.to(device);
         if (modelConfig.TieWordEmbeddings)
         {
             model.TieWordEmbeddings();
         }
 
-        model = model.to(device);
 
         return model;
     }
@@ -125,12 +133,21 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
 
         model.LoadSafeTensors(modelFolder, checkPointName);
 
+        if (quantizeToInt8)
+        {
+            model.ToInt8QuantizeModule();
+        }
+        else if (quantizeToInt4)
+        {
+            model.ToInt4QuantizeModule();
+        }
+
+        model = model.ToDynamicLoadingModel(deviceMap, targetDevice);
+
         if (modelConfig.TieWordEmbeddings)
         {
             model.TieWordEmbeddings();
         }
-
-        model = model.ToDynamicLoadingModel(deviceMap, targetDevice);
 
         torch.set_default_device(originalDefaultDevice);
 
@@ -139,7 +156,6 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
 
     public void LoadSafeTensors(string modelFolder, string checkPointName = "model.safetensors.index.json")
     {
-        this.load_safetensors("C:\\Users\\xiaoyuz\\source\\repos\\Llama-3.2-1B-Instruct\\model.safetensors", strict: false);
-        //this.load_checkpoint(path: modelFolder, checkpointName: checkPointName, strict: true, useTqdm: false);
+        this.load_checkpoint(path: modelFolder, checkpointName: checkPointName, strict: true, useTqdm: false);
     }
 }

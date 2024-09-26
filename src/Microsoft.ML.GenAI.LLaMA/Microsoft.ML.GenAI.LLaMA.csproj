@@ -22,4 +22,9 @@
     <EmbeddedResource Include="Resource\Config\*.json" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Resource\Config\meta-llama-3.2-1B-Instruct.json" />
+    <None Remove="Resource\Config\meta-llama-3.2-3B-Instruct.json" />
+  </ItemGroup>
+
 </Project>
