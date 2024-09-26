@@ -24,10 +24,10 @@ internal class LlamaSample
             torch.InitializeDeviceType(DeviceType.CUDA);
         }
 
-        var defaultType = ScalarType.Float16;
+        var defaultType = ScalarType.BFloat16;
         torch.manual_seed(1);
         torch.set_default_dtype(defaultType);
-        var weightFolder = @"C:\Users\xiaoyuz\source\repos\Meta-Llama-3.1-8B-Instruct";
+        var weightFolder = @"C:\Users\xiaoyuz\source\repos\Llama-3.2-1B-Instruct";
         var configName = "config.json";
         var originalWeightFolder = Path.Combine(weightFolder, "original");
 
