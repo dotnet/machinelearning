@@ -19,7 +19,7 @@ public interface ISemanticKernelChatTemplateBuilder
 
 public interface IAutoGenChatTemplateBuilder
 {
-    string BuildPrompt(IEnumerable<IMessage> messages);
+    string BuildPrompt(IEnumerable<IMessage> messages, IEnumerable<FunctionContract>? tools = null);
 }
 
 public interface IChatTemplateBuilder : IAutoGenChatTemplateBuilder, ISemanticKernelChatTemplateBuilder

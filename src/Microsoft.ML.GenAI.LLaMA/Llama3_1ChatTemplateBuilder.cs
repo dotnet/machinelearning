@@ -15,7 +15,7 @@ public class Llama3_1ChatTemplateBuilder : IChatTemplateBuilder
 {
     private const char Newline = '\n';
 
-    public string BuildPrompt(IEnumerable<IMessage> messages)
+    public string BuildPrompt(IEnumerable<IMessage> messages, IEnumerable<FunctionContract>? tools = null)
     {
         var availableRoles = new[] { Role.System, Role.User, Role.Assistant };
         if (messages.Any(m => m.GetContent() is null))

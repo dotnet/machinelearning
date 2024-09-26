@@ -266,8 +266,18 @@ public class CausalLMPipeline : ICausalLMPipeline
         foreach (var (token, _) in this.GenerateStreaming(inputTensor, attentionMask, stopTokenIds.ToArray(), temperature: temperature, maxLen: maxLen))
         {
             var tokenIds = token[0].to_type(ScalarType.Int32).data<int>().ToArray();
-            var duplicateTokenString = this.Tokenizer.Decode(tokenIds.Concat(tokenIds)) ?? throw new InvalidOperationException("Failed to decode token ids");
-            var tokenString = this.Tokenizer.Decode(tokenIds) ?? throw new InvalidOperationException("Failed to decode token ids");
+            var duplicateTokenString = this.Tokenizer switch
+            {
+                SentencePieceBpeTokenizer bpeTokenizer => bpeTokenizer.Decode(tokenIds.Concat(tokenIds), considerSpecialTokens: true) ?? throw new InvalidOperationException("Failed to decode token ids"),
+                _ => this.Tokenizer.Decode(tokenIds.Concat(tokenIds)) ?? throw new InvalidOperationException("Failed to decode token ids"),
+            };
+
+            var tokenString = this.Tokenizer switch
+            {
+                SentencePieceBpeTokenizer bpeTokenizer => bpeTokenizer.Decode(tokenIds, considerSpecialTokens: true) ?? throw new InvalidOperationException("Failed to decode token ids"),
+                _ => this.Tokenizer.Decode(tokenIds) ?? throw new InvalidOperationException("Failed to decode token ids"),
+            };
+
             // replace the first occurrence of the token with the duplicate token
             tokenString = duplicateTokenString.Substring(tokenString.Length);
 
@@ -294,7 +304,10 @@ public class CausalLMPipeline : ICausalLMPipeline
         var inputIds = this.Tokenizer.EncodeToIds(prompt);
         var inputTensor = torch.tensor(inputIds.ToArray(), dtype: ScalarType.Int64, device: this.Device).unsqueeze(0);
         var attentionMask = torch.ones_like(inputTensor, device: this.Device);
-        var input = new CausalLMModelInput(inputTensor, attentionMask, pastKeyValuesLength: 0);
+        var input = new CausalLMModelInput(inputTensor, attentionMask, pastKeyValuesLength: 0)
+        {
+            OverrideCache = new DynamicKVCache(),
+        };
         var output = this.Model.forward(input);
         var lastTokenHiddenState = output.LastHiddenState[0, ^1];
 
