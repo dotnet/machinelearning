@@ -20,9 +20,11 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.ML.GenAI.Phi" />
+    <InternalsVisibleTo Include="Microsoft.ML.GenAI.Phi.Tests" />
     <InternalsVisibleTo Include="Microsoft.ML.GenAI.LLaMA" />
     <InternalsVisibleTo Include="Microsoft.ML.GenAI.LLaMA.Tests" />
-    <InternalsVisibleTo Include="Microsoft.ML.GenAI.Phi.Tests" />
+    <InternalsVisibleTo Include="Microsoft.ML.GenAI.Mistral" />
+    <InternalsVisibleTo Include="Microsoft.ML.GenAI.Mistral.Tests" />
     <InternalsVisibleTo Include="Microsoft.ML.GenAI.Core.Tests" />
   </ItemGroup>
 

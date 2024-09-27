@@ -42,10 +42,10 @@ public class Phi3Config
 
     static Phi3Config()
     {
-        var phi3Mini4kInstructContent = Utils.GetEmbeddedResource("Microsoft.ML.GenAI.Phi.Resource.Config.phi-3-mini-4k-instruct-config.json");
-        var phi3Mini128kInstructContent = Utils.GetEmbeddedResource("Microsoft.ML.GenAI.Phi.Resource.Config.phi-3-mini-128k-instruct-config.json");
-        var phi3Medium4kInstructContent = Utils.GetEmbeddedResource("Microsoft.ML.GenAI.Phi.Resource.Config.phi-3-medium-4k-instruct-config.json");
-        var phi3Medium128kInstructContent = Utils.GetEmbeddedResource("Microsoft.ML.GenAI.Phi.Resource.Config.phi-3-medium-128k-instruct-config.json");
+        var phi3Mini4kInstructContent = Core.Utils.GetEmbeddedResource("Microsoft.ML.GenAI.Phi.Resource.Config.phi-3-mini-4k-instruct-config.json");
+        var phi3Mini128kInstructContent = Core.Utils.GetEmbeddedResource("Microsoft.ML.GenAI.Phi.Resource.Config.phi-3-mini-128k-instruct-config.json");
+        var phi3Medium4kInstructContent = Core.Utils.GetEmbeddedResource("Microsoft.ML.GenAI.Phi.Resource.Config.phi-3-medium-4k-instruct-config.json");
+        var phi3Medium128kInstructContent = Core.Utils.GetEmbeddedResource("Microsoft.ML.GenAI.Phi.Resource.Config.phi-3-medium-128k-instruct-config.json");
 
         Phi3Mini4kInstruct = JsonSerializer.Deserialize<Phi3Config>(phi3Mini4kInstructContent) ?? throw new ArgumentNullException(nameof(phi3Mini4kInstructContent));
         Phi3Mini128kInstruct = JsonSerializer.Deserialize<Phi3Config>(phi3Mini128kInstructContent) ?? throw new ArgumentNullException(nameof(phi3Mini128kInstructContent));

@@ -41,7 +41,7 @@ public class Phi2Config
 
     static Phi2Config()
     {
-        var phi2ConfigContent = Utils.GetEmbeddedResource("Microsoft.ML.GenAI.Phi.Resource.Config.phi-2-config.json");
+        var phi2ConfigContent = Core.Utils.GetEmbeddedResource("Microsoft.ML.GenAI.Phi.Resource.Config.phi-2-config.json");
         var phi2Config = JsonSerializer.Deserialize<Phi2Config>(phi2ConfigContent) ?? throw new ArgumentNullException(nameof(phi2ConfigContent));
         Phi2 = phi2Config;
     }

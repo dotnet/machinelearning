@@ -68,7 +68,7 @@
     <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
     <TensorFlowVersion>2.3.1</TensorFlowVersion>
     <TorchSharpPyBridgeVersion>1.4.1</TorchSharpPyBridgeVersion>
-    <AutoGenVersion>0.0.15</AutoGenVersion>
+    <AutoGenVersion>0.1.0</AutoGenVersion>
     <SemanticKernelVersion>1.15.0</SemanticKernelVersion>
     <TorchSharpVersion>0.102.7</TorchSharpVersion>
     <LibTorchVersion>2.2.1.1</LibTorchVersion>
@@ -96,7 +96,7 @@
     <MicrosoftMLTensorFlowTestModelsVersion>0.0.13-test</MicrosoftMLTensorFlowTestModelsVersion>
     <MicrosoftMLTestDatabasesVersion>0.0.6-test</MicrosoftMLTestDatabasesVersion>
     <MicrosoftMLTestModelsVersion>0.0.7-test</MicrosoftMLTestModelsVersion>
-    <MicrosoftMLTestTokenizersVersion>2.0.0-beta.24415.1</MicrosoftMLTestTokenizersVersion>
+    <MicrosoftMLTestTokenizersVersion>2.0.0-beta.24455.2</MicrosoftMLTestTokenizersVersion>
     <SystemDataSqlClientVersion>4.8.6</SystemDataSqlClientVersion>
     <SystemDataSQLiteCoreVersion>1.0.118</SystemDataSQLiteCoreVersion>
     <XunitCombinatorialVersion>1.6.24</XunitCombinatorialVersion>
