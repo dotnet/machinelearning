@@ -27,6 +27,7 @@
 
   <ItemGroup Condition="'$(TargetArchitecture)' != 'x64'">
     <Compile Remove="LLaMA3_1Tests.cs" />
+    <Compile Remove="LLaMA3_2Tests.cs" />
   </ItemGroup>
 
   <ItemGroup>

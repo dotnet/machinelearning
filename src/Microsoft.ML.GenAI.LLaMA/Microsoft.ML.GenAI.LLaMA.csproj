@@ -13,13 +13,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.ML.GenAI.Core\Microsoft.ML.GenAI.Core.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.GenAI.Core\Microsoft.ML.GenAI.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Resource\Config\*.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Resource\Config\meta-llama-3.2-1B-Instruct.json" />
+    <None Remove="Resource\Config\meta-llama-3.2-3B-Instruct.json" />
   </ItemGroup>
 
 </Project>

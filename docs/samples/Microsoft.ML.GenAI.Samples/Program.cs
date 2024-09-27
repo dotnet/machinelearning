@@ -1,5 +1,4 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using Microsoft.ML.GenAI.Samples.Mistral;
-using Microsoft.ML.GenAI.Samples.Phi3Mini;
+using Microsoft.ML.GenAI.Samples.Llama;
 
-await Mistral_7B_Instruct.WeatherChatAsync();
+await LlamaSample.RunLlama(@"C:\Users\xiaoyuz\source\repos\Llama-3.2-3B-Instruct");
