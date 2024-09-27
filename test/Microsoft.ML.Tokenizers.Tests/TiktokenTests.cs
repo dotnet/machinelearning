@@ -45,7 +45,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             string tokenizerDataFileName = Utils.CreateTemporaryFile("tiktoken");
 
-            using Stream compressedStream = typeof(Tokenizer).Assembly.GetManifestResourceStream("cl100k_base.tiktoken.deflate")!;
+            using Stream compressedStream = Type.GetType("Microsoft.ML.Tokenizers.Cl100kBaseTokenizerData, Microsoft.ML.Tokenizers.Data.Cl100kBase")!.Assembly.GetManifestResourceStream("cl100k_base.tiktoken.deflate")!;
             using Stream deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress);
 
             using (Stream fileStream = File.OpenWrite(tokenizerDataFileName))

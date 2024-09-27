@@ -12,6 +12,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj" />
+
+    <!-- Tokenizer's data packages -->
+    <ProjectReference Include="..\..\src\Microsoft.ML.Tokenizers.Data.Cl100kBase\Microsoft.ML.Tokenizers.Data.Cl100kBase.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Tokenizers.Data.Gpt2\Microsoft.ML.Tokenizers.Data.Gpt2.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Tokenizers.Data.P50kBase\Microsoft.ML.Tokenizers.Data.P50kBase.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Tokenizers.Data.R50kBase\Microsoft.ML.Tokenizers.Data.R50kBase.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Tokenizers.Data.O200kBase\Microsoft.ML.Tokenizers.Data.O200kBase.csproj" />
   </ItemGroup>
 
   <ItemGroup>
