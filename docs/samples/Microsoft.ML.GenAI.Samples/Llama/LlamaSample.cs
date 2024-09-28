@@ -16,7 +16,7 @@ namespace Microsoft.ML.GenAI.Samples.Llama;
 
 internal class LlamaSample
 {
-    public static async void Run()
+    public static async Task RunLlama(string weightFolder, string checkPointName = "model.safetensors.index.json")
     {
         var device = "cuda";
         if (device == "cuda")
@@ -24,10 +24,9 @@ internal class LlamaSample
             torch.InitializeDeviceType(DeviceType.CUDA);
         }
 
-        var defaultType = ScalarType.Float16;
+        var defaultType = ScalarType.BFloat16;
         torch.manual_seed(1);
         torch.set_default_dtype(defaultType);
-        var weightFolder = @"C:\Users\xiaoyuz\source\repos\Meta-Llama-3.1-8B-Instruct";
         var configName = "config.json";
         var originalWeightFolder = Path.Combine(weightFolder, "original");
 
@@ -35,7 +34,7 @@ internal class LlamaSample
         var stopWatch = System.Diagnostics.Stopwatch.StartNew();
         stopWatch.Start();
         var tokenizer = LlamaTokenizerHelper.FromPretrained(originalWeightFolder);
-        var model = LlamaForCausalLM.FromPretrained(weightFolder, configName, layersOnTargetDevice: -1);
+        var model = LlamaForCausalLM.FromPretrained(weightFolder, configName, checkPointName: checkPointName, layersOnTargetDevice: 26, quantizeToInt8: true);
 
         var pipeline = new CausalLMPipeline<TiktokenTokenizer, LlamaForCausalLM>(tokenizer, model, device);
 

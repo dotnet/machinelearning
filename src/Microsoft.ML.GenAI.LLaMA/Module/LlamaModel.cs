@@ -30,7 +30,7 @@ internal class LlamaModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
         this._paddingIdx = config.PadTokenId;
         this._vocabSize = config.VocabSize;
         var headDim = config.HiddenSize / config.NumAttentionHeads;
-        this.embed_tokens = nn.Embedding(config.VocabSize, config.HiddenSize, padding_idx: this._paddingIdx, dtype: config.DType, device: device);
+        this.embed_tokens = nn.Embedding(config.VocabSize, config.HiddenSize, padding_idx: this._paddingIdx, dtype: config.DType);
         this.layers = new ModuleList<LlamaDecoderLayer>();
 
         for (int i = 0; i < config.NumHiddenLayers; i++)
@@ -46,6 +46,8 @@ internal class LlamaModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
             _ => new RotaryEmbedding(config.RopeTheta, headDim, config.RopeScaling),
         };
     }
+
+    public Embedding Embedding => this.embed_tokens;
 
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
     public override CausalLMModelOutput forward(CausalLMModelInput input)

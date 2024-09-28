@@ -8,6 +8,7 @@ using Microsoft.ML.GenAI.Core;
 using Microsoft.ML.GenAI.Core.Extension;
 using Microsoft.ML.GenAI.LLaMA.Module;
 using TorchSharp;
+using TorchSharp.Modules;
 using TorchSharp.PyBridge;
 using static TorchSharp.torch;
 
@@ -19,7 +20,7 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
     private readonly int _vocabSize;
 
 #pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format
-    private readonly GenAILinear lm_head;
+    private readonly Linear lm_head;
     private readonly LlamaModel model;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
 
@@ -30,9 +31,29 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
         _vocabSize = config.VocabSize;
 
         model = new LlamaModel(config, device);
-        lm_head = new GenAILinear(config.HiddenSize, config.VocabSize, hasBias: false);
 
-        this.RegisterComponents();
+        // When tie word embeddings is true, the lm_head shares the same weight as the embedding layer.
+        // therefore, the lm_head weight won't be initialized here.
+        // instead, it will be loaded from the embedding layer after the model is loaded.
+        if (config.TieWordEmbeddings)
+        {
+            this.RegisterComponents();
+            lm_head = nn.Linear(config.HiddenSize, config.VocabSize, hasBias: false, dtype: config.DType);
+        }
+        else
+        {
+            lm_head = nn.Linear(config.HiddenSize, config.VocabSize, hasBias: false, dtype: config.DType);
+            this.RegisterComponents();
+        }
+
+    }
+
+    private void TieWordEmbeddings()
+    {
+        var embeddingWeight = model.Embedding.state_dict();
+        this.lm_head.load_state_dict(embeddingWeight);
+
+        this.lm_head.to(device: model.Embedding.weight!.device);
     }
 
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
@@ -61,6 +82,11 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
 
         model.LoadSafeTensors(modelFolder, checkPointName);
         model = model.to(device);
+        if (modelConfig.TieWordEmbeddings)
+        {
+            model.TieWordEmbeddings();
+        }
+
 
         return model;
     }
@@ -107,7 +133,21 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
 
         model.LoadSafeTensors(modelFolder, checkPointName);
 
+        if (quantizeToInt8)
+        {
+            model.ToInt8QuantizeModule();
+        }
+        else if (quantizeToInt4)
+        {
+            model.ToInt4QuantizeModule();
+        }
+
         model = model.ToDynamicLoadingModel(deviceMap, targetDevice);
+
+        if (modelConfig.TieWordEmbeddings)
+        {
+            model.TieWordEmbeddings();
+        }
 
         torch.set_default_device(originalDefaultDevice);
 
