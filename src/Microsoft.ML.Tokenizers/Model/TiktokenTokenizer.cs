@@ -1155,7 +1155,7 @@ namespace Microsoft.ML.Tokenizers
         private const string Cl100kBaseVocabFile = "cl100k_base.tiktoken.deflate";  // "https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken"
         private const string P50RanksFile = "p50k_base.tiktoken.deflate";           // "https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken"
         private const string R50RanksFile = "r50k_base.tiktoken.deflate";           // "https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken"
-        private const string GPT2File = "gpt2.tiktoken.deflate";                    // "https://fossies.org/linux/misc/whisper-20231117.tar.gz/whisper-20231117/whisper/assets/gpt2.tiktoken?m=b"
+        private const string GPT2File = "gpt2.tiktoken.deflate";                    // "https://fossies.org/linux/misc/legacy/whisper-20231117.tar.gz:b/whisper-20231117/whisper/assets/gpt2.tiktoken?m=b"
         private const string O200kBaseFile = "o200k_base.tiktoken.deflate";         // "https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken"
 
         internal const string Cl100kBaseEncodingName = "cl100k_base";
@@ -1223,10 +1223,12 @@ namespace Microsoft.ML.Tokenizers
             {
                 Debug.Assert(tiktokenConfiguration.TypeName is not null && tiktokenConfiguration.PackageName is not null);
 
-                Type? type = Type.GetType($"{tiktokenConfiguration.TypeName}, {tiktokenConfiguration.PackageName}");
+                string fullAssemblyName = typeof(TiktokenTokenizer).Assembly.FullName!;
+                int commaIndex = fullAssemblyName.IndexOf(',');
+                Type? type = commaIndex > 0 ? Type.GetType($"{tiktokenConfiguration.TypeName}, {tiktokenConfiguration.PackageName}{fullAssemblyName.Substring(commaIndex)}") : null;
                 if (type is null)
                 {
-                    throw new InvalidOperationException($"The tokenizer data file is missing. Try to reference the package {tiktokenConfiguration.PackageName} in your project.");
+                    throw new InvalidOperationException($"The tokenizer data file {tiktokenConfiguration.PackageName}.dll could not be loaded. Please reference the package {tiktokenConfiguration.PackageName} in your project.");
                 }
 
                 using Stream compressedStream = type.Assembly.GetManifestResourceStream(tiktokenConfiguration.VocabFile)!;

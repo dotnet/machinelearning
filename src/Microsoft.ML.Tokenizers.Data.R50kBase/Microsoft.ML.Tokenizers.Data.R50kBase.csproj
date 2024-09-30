@@ -20,8 +20,8 @@
       we introduce empty lines to replace any missing ranks, ensuring that the rank consistently aligns with the line number.
       After we eleminate the ranks from the file, we compress the file using the DeflateStream and embed it as a resource in the assembly.
     -->
-    <FilesToCompress Include="Data\r50k_base.tiktoken" Destination="$(IntermediateOutputPath)%(FileName).deflate" />
+    <TokenizerDataEmbeddedResource Include="Data\r50k_base.tiktoken" />
   </ItemGroup>
 
-  <Import Project="..\..\eng\TokenizerData.targets" />
+  <Import Project="$(RepositoryEngineeringDir)TokenizerData.targets" />
 </Project>

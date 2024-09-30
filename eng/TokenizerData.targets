@@ -69,12 +69,20 @@
 
   <Target Name="CompressTiktokenData"
           BeforeTargets="AssignTargetPaths"
-          Inputs="@(FilesToCompress)"
-          Outputs="@(FilesToCompress->'%(Destination)')">
+          DependsOnTargets="_EnsureTokenizerDataEmbeddedResourceDestination"
+          Inputs="@(TokenizerDataEmbeddedResource)"
+          Outputs="@(TokenizerDataEmbeddedResource->'%(Destination)')">
 
-    <CompressFile Files="@(FilesToCompress)" />
+      <CompressFile Files="@(TokenizerDataEmbeddedResource)" />
+
+      <ItemGroup>
+        <EmbeddedResource Include="@(TokenizerDataEmbeddedResource->'%(Destination)')" LogicalName="%(FileName)%(Extension).deflate" />
+      </ItemGroup>
+  </Target>
+
+  <Target Name="_EnsureTokenizerDataEmbeddedResourceDestination" >
     <ItemGroup>
-      <EmbeddedResource Include="@(FilesToCompress->'%(Destination)')" LogicalName="%(FileName)%(Extension).deflate" />
+      <TokenizerDataEmbeddedResource Condition="'%(TokenizerDataEmbeddedResource.Destination)' == ''" Destination="$(IntermediateOutputPath)%(FileName).deflate" />
     </ItemGroup>
   </Target>
 </Project>
