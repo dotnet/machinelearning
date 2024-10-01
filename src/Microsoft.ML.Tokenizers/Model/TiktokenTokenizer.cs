@@ -1115,31 +1115,31 @@ namespace Microsoft.ML.Tokenizers
             return encoder;
         }
 
-        private static (Dictionary<string, int> SpecialTokens, Regex Regex, string VocabFile, string? TypeName, string? PackageName) GetTiktokenConfigurations(string modelName) => GetTiktokenConfigurations(GetModelEncoding(modelName), modelName);
+        private static (Dictionary<string, int> SpecialTokens, Regex Regex, string VocabFile, string? PackageName) GetTiktokenConfigurations(string modelName) => GetTiktokenConfigurations(GetModelEncoding(modelName), modelName);
 
-        private static (Dictionary<string, int> SpecialTokens, Regex Regex, string VocabFile, string? TypeName, string? PackageName) GetTiktokenConfigurations(ModelEncoding modelEncoding, string? modelName = null)
+        private static (Dictionary<string, int> SpecialTokens, Regex Regex, string VocabFile, string? PackageName) GetTiktokenConfigurations(ModelEncoding modelEncoding, string? modelName = null)
         {
             switch (modelEncoding)
             {
                 case ModelEncoding.Cl100kBase:
                     return (new Dictionary<string, int>
-                        { { EndOfText, 100257}, { FimPrefix, 100258}, { FimMiddle, 100259}, { FimSuffix, 100260}, { EndOfPrompt, 100276} }, Cl100kBaseRegex(), Cl100kBaseVocabFile, Cl100kBaseTypeName, Cl100kBasePackageName);
+                        { { EndOfText, 100257}, { FimPrefix, 100258}, { FimMiddle, 100259}, { FimSuffix, 100260}, { EndOfPrompt, 100276} }, Cl100kBaseRegex(), Cl100kBaseVocabFile, Cl100kBasePackageName);
 
                 case ModelEncoding.P50kBase:
-                    return (new Dictionary<string, int> { { EndOfText, 50256 } }, P50kBaseRegex(), P50RanksFile, P50kBaseTypeName, P50kBasePackageName);
+                    return (new Dictionary<string, int> { { EndOfText, 50256 } }, P50kBaseRegex(), P50RanksFile, P50kBasePackageName);
 
                 case ModelEncoding.P50kEdit:
                     return (new Dictionary<string, int>
-                        { { EndOfText, 50256 }, { FimPrefix, 50281 }, { FimMiddle, 50282 }, { FimSuffix, 50283 } }, P50kBaseRegex(), P50RanksFile, P50kBaseTypeName, P50kBasePackageName);
+                        { { EndOfText, 50256 }, { FimPrefix, 50281 }, { FimMiddle, 50282 }, { FimSuffix, 50283 } }, P50kBaseRegex(), P50RanksFile, P50kBasePackageName);
 
                 case ModelEncoding.R50kBase:
-                    return (new Dictionary<string, int> { { EndOfText, 50256 } }, P50kBaseRegex(), R50RanksFile, R50kBaseTypeName, R50kBasePackageName);
+                    return (new Dictionary<string, int> { { EndOfText, 50256 } }, P50kBaseRegex(), R50RanksFile, R50kBasePackageName);
 
                 case ModelEncoding.GPT2:
-                    return (new Dictionary<string, int> { { EndOfText, 50256 }, }, P50kBaseRegex(), GPT2File, Gpt2TypeName, Gpt2PackageName);
+                    return (new Dictionary<string, int> { { EndOfText, 50256 }, }, P50kBaseRegex(), GPT2File, Gpt2PackageName);
 
                 case ModelEncoding.O200kBase:
-                    return (new Dictionary<string, int> { { EndOfText, 199999 }, { EndOfPrompt, 200018 } }, O200kBaseRegex(), O200kBaseFile, O200kBaseTypeName, O200kBasePackageName);
+                    return (new Dictionary<string, int> { { EndOfText, 199999 }, { EndOfPrompt, 200018 } }, O200kBaseRegex(), O200kBaseFile, O200kBasePackageName);
 
                 default:
                     throw new NotSupportedException($"The model '{modelName ?? modelEncoding.ToString()}' is not supported.");
@@ -1164,15 +1164,10 @@ namespace Microsoft.ML.Tokenizers
         internal const string R50kBaseEncodingName = "r50k_base";
         internal const string O200kBaseEncodingName = "o200k_base";
 
-        internal const string Cl100kBaseTypeName = "Microsoft.ML.Tokenizers.Cl100kBaseTokenizerData";
         internal const string Cl100kBasePackageName = "Microsoft.ML.Tokenizers.Data.Cl100kBase";
-        internal const string Gpt2TypeName = "Microsoft.ML.Tokenizers.Gpt2TokenizerData";
         internal const string Gpt2PackageName = "Microsoft.ML.Tokenizers.Data.Gpt2";
-        internal const string P50kBaseTypeName = "Microsoft.ML.Tokenizers.P50kBaseTokenizerData";
         internal const string P50kBasePackageName = "Microsoft.ML.Tokenizers.Data.P50kBase";
-        internal const string R50kBaseTypeName = "Microsoft.ML.Tokenizers.R50kBaseTokenizerData";
         internal const string R50kBasePackageName = "Microsoft.ML.Tokenizers.Data.R50kBase";
-        internal const string O200kBaseTypeName = "Microsoft.ML.Tokenizers.O200kBaseTokenizerData";
         internal const string O200kBasePackageName = "Microsoft.ML.Tokenizers.Data.O200kBase";
 
 #if NET7_0_OR_GREATER
@@ -1207,7 +1202,7 @@ namespace Microsoft.ML.Tokenizers
                                     IReadOnlyDictionary<string, int>? extraSpecialTokens = null,
                                     Normalizer? normalizer = null)
         {
-            (Dictionary<string, int> SpecialTokens, Regex Regex, string VocabFile, string? TypeName, string? PackageName) tiktokenConfiguration = GetTiktokenConfigurations(modelEncoding, modelName);
+            (Dictionary<string, int> SpecialTokens, Regex Regex, string VocabFile, string? PackageName) tiktokenConfiguration = GetTiktokenConfigurations(modelEncoding, modelName);
 
             if (extraSpecialTokens is not null)
             {
@@ -1221,17 +1216,30 @@ namespace Microsoft.ML.Tokenizers
                     tiktokenConfiguration.VocabFile,
                     out (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, (int Id, string Token)> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder) cache))
             {
-                Debug.Assert(tiktokenConfiguration.TypeName is not null && tiktokenConfiguration.PackageName is not null);
+                Debug.Assert(tiktokenConfiguration.PackageName is not null);
 
                 string fullAssemblyName = typeof(TiktokenTokenizer).Assembly.FullName!;
                 int commaIndex = fullAssemblyName.IndexOf(',');
-                Type? type = commaIndex > 0 ? Type.GetType($"{tiktokenConfiguration.TypeName}, {tiktokenConfiguration.PackageName}{fullAssemblyName.Substring(commaIndex)}") : null;
-                if (type is null)
+
+                Assembly? assembly = null;
+                if (commaIndex > 0)
+                {
+                    try
+                    {
+                        assembly = Assembly.Load($"{tiktokenConfiguration.PackageName}{fullAssemblyName.Substring(commaIndex)}");
+                    }
+                    catch
+                    {
+                        // Ignore the exception, we'll throw another informative exception below.
+                    }
+                }
+
+                if (assembly is null)
                 {
                     throw new InvalidOperationException($"The tokenizer data file {tiktokenConfiguration.PackageName}.dll could not be loaded. Please reference the package {tiktokenConfiguration.PackageName} in your project.");
                 }
 
-                using Stream compressedStream = type.Assembly.GetManifestResourceStream(tiktokenConfiguration.VocabFile)!;
+                using Stream compressedStream = assembly.GetManifestResourceStream(tiktokenConfiguration.VocabFile)!;
                 using Stream deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress);
 
                 cache = LoadTiktokenBpeAsync(deflateStream, useAsync: false).GetAwaiter().GetResult();
@@ -1360,7 +1368,7 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(modelName));
             }
 
-            (Dictionary<string, int> SpecialTokens, Regex Regex, string _, string? __, string? ___) tiktokenConfiguration = GetTiktokenConfigurations(modelName);
+            (Dictionary<string, int> SpecialTokens, Regex Regex, string _, string? ___) tiktokenConfiguration = GetTiktokenConfigurations(modelName);
 
             if (extraSpecialTokens is not null)
             {
@@ -1400,7 +1408,7 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(modelName));
             }
 
-            (Dictionary<string, int> SpecialTokens, Regex Regex, string _, string? __, string? ___) tiktokenConfiguration = GetTiktokenConfigurations(modelName);
+            (Dictionary<string, int> SpecialTokens, Regex Regex, string _, string? __) tiktokenConfiguration = GetTiktokenConfigurations(modelName);
 
             if (extraSpecialTokens is not null)
             {

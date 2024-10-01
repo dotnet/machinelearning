@@ -18,13 +18,22 @@ The `Microsoft.ML.Tokenizers.Data.P50kBase` includes the Tiktoken tokenizer data
 
 Reference this package in your project to use the Tiktoken tokenizer with the specified models.
 
+```csharp
+
+// Create a tokenizer for the specified model or any other listed model name
+Tokenizer tokenizer = TiktokenTokenizer.CreateForModel("text-davinci-002");
+
+// Create a tokenizer for the specified encoding
+Tokenizer tokenizer = TiktokenTokenizer.CreateForEncoding("p50k_base");
+
+```
+
 ## Main Types
 
 Users shouldn't use any types exposed by this package directly. This package is intended to provide tokenizer data files.
 
 ## Additional Documentation
 
-* [Conceptual documentation](TODO)
 * [API documentation](https://learn.microsoft.com/en-us/dotnet/api/microsoft.ml.tokenizers)
 
 ## Related Packages

@@ -10,13 +10,22 @@ The `Microsoft.ML.Tokenizers.Data.O200kBase` includes the Tiktoken tokenizer dat
 
 Reference this package in your project to use the Tiktoken tokenizer with the specified model.
 
+```csharp
+
+// Create a tokenizer for the specified model
+Tokenizer tokenizer = TiktokenTokenizer.CreateForModel("Gpt-4o");
+
+// Create a tokenizer for the specified encoding
+Tokenizer tokenizer = TiktokenTokenizer.CreateForEncoding("o200k_base");
+
+```
+
 ## Main Types
 
 Users shouldn't use any types exposed by this package directly. This package is intended to provide tokenizer data files.
 
 ## Additional Documentation
 
-* [Conceptual documentation](TODO)
 * [API documentation](https://learn.microsoft.com/en-us/dotnet/api/microsoft.ml.tokenizers)
 
 ## Related Packages

@@ -23,5 +23,9 @@
     <TokenizerDataEmbeddedResource Include="Data\gpt2.tiktoken" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj"/>
+  </ItemGroup>
+
   <Import Project="$(RepositoryEngineeringDir)TokenizerData.targets" />
 </Project>

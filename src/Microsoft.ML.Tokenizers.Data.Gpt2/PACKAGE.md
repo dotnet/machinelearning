@@ -10,13 +10,19 @@ The `Microsoft.ML.Tokenizers.Data.Gpt2` includes the Tiktoken tokenizer data fil
 
 Reference this package in your project to use the Tiktoken tokenizer with the specified model.
 
+```csharp
+
+// Create a tokenizer for the specified model
+Tokenizer tokenizer = TiktokenTokenizer.CreateForModel("Gpt-2");
+
+```
+
 ## Main Types
 
 Users shouldn't use any types exposed by this package directly. This package is intended to provide tokenizer data files.
 
 ## Additional Documentation
 
-* [Conceptual documentation](TODO)
 * [API documentation](https://learn.microsoft.com/en-us/dotnet/api/microsoft.ml.tokenizers)
 
 ## Related Packages

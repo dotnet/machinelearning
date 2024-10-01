@@ -11,8 +11,6 @@
   <Import Project="../Cert.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj" />
-
     <!-- Tokenizer's data packages -->
     <ProjectReference Include="..\..\src\Microsoft.ML.Tokenizers.Data.Cl100kBase\Microsoft.ML.Tokenizers.Data.Cl100kBase.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Tokenizers.Data.Gpt2\Microsoft.ML.Tokenizers.Data.Gpt2.csproj" />
