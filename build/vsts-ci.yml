@@ -52,6 +52,10 @@ extends:
       binskim:
         enabled: true
         scanOutputDirectoryOnly: true
+      policheck:
+        enabled: true
+      tsa:
+        enabled: true
     pool:
       name: $(DncEngInternalBuildPool)
       image: $(WindowsImage)
