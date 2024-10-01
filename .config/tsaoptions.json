@@ -6,5 +6,6 @@
     "iterationPath": "DevDiv",
     "notificationAliases": [ "mlnetcore@microsoft.com" ],
     "repositoryName":"machinelearning",
-    "codebaseName": "machinelearning"
+    "codebaseName": "machinelearning",
+    "serviceTreeId": "7a9b52f6-7805-416c-9390-343168c0cdb3"
 }
