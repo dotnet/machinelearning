@@ -1221,25 +1221,21 @@ namespace Microsoft.ML.Tokenizers
                 string fullAssemblyName = typeof(TiktokenTokenizer).Assembly.FullName!;
                 int commaIndex = fullAssemblyName.IndexOf(',');
 
+                Debug.Assert(commaIndex > 0);
+
                 Assembly? assembly = null;
-                if (commaIndex > 0)
+                try
                 {
-                    try
-                    {
-                        assembly = Assembly.Load($"{tiktokenConfiguration.PackageName}{fullAssemblyName.Substring(commaIndex)}");
-                    }
-                    catch
-                    {
-                        // Ignore the exception, we'll throw another informative exception below.
-                    }
+                    assembly = Assembly.Load($"{tiktokenConfiguration.PackageName}{fullAssemblyName.Substring(commaIndex)}");
+                }
+                catch (Exception e)
+                {
+                    throw new InvalidOperationException($"The tokenizer data file {tiktokenConfiguration.PackageName}.dll could not be loaded. Please reference the package {tiktokenConfiguration.PackageName} in your project.", e);
                 }
 
-                if (assembly is null)
-                {
-                    throw new InvalidOperationException($"The tokenizer data file {tiktokenConfiguration.PackageName}.dll could not be loaded. Please reference the package {tiktokenConfiguration.PackageName} in your project.");
-                }
+                Debug.Assert(assembly is not null);
 
-                using Stream compressedStream = assembly.GetManifestResourceStream(tiktokenConfiguration.VocabFile)!;
+                using Stream compressedStream = assembly!.GetManifestResourceStream(tiktokenConfiguration.VocabFile)!;
                 using Stream deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress);
 
                 cache = LoadTiktokenBpeAsync(deflateStream, useAsync: false).GetAwaiter().GetResult();
