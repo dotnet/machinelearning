@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Onnx;
@@ -52,6 +53,34 @@ namespace Microsoft.ML
         /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="modelBytes">The <see cref="System.IO.Stream"/> containing the model bytes.</param>
+        /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
+        /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ApplyOnnxModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ApplyOnnxModel.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog, Stream modelBytes, int? gpuDeviceId = null, bool fallbackToCpu = false)
+        {
+            var (env, gpuDeviceIdToUse, fallbackToCpuToUse) = GetGpuDeviceId(catalog, gpuDeviceId, fallbackToCpu);
+            return new OnnxScoringEstimator(env, modelBytes, gpuDeviceIdToUse, fallbackToCpuToUse);
+        }
+
+        /// <summary>
+        /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the input column.
+        /// Input/output columns are determined based on the input/output columns of the provided ONNX model.
+        /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+        /// and how to run it on a GPU.
+        /// </summary>
+        /// <remarks>
+        /// The name/type of input columns must exactly match name/type of the ONNX model inputs.
+        /// The name/type of the produced output columns will match name/type of the ONNX model outputs.
+        /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
+        /// </remarks>
+        /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
         /// <param name="shapeDictionary">ONNX shapes to be used over those loaded from <paramref name="modelFile"/>.
         /// For keys use names as stated in the ONNX model, e.g. "input". Stating the shapes with this parameter
@@ -74,6 +103,42 @@ namespace Microsoft.ML
         {
             var (env, gpuDeviceIdToUse, fallbackToCpuToUse) = GetGpuDeviceId(catalog, gpuDeviceId, fallbackToCpu);
             return new OnnxScoringEstimator(env, modelFile, gpuDeviceIdToUse, fallbackToCpuToUse, shapeDictionary: shapeDictionary);
+        }
+
+        /// <summary>
+        /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the input column.
+        /// Input/output columns are determined based on the input/output columns of the provided ONNX model.
+        /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+        /// and how to run it on a GPU.
+        /// </summary>
+        /// <remarks>
+        /// The name/type of input columns must exactly match name/type of the ONNX model inputs.
+        /// The name/type of the produced output columns will match name/type of the ONNX model outputs.
+        /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
+        /// </remarks>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="modelBytes">The <see cref="System.IO.Stream"/> containing the model bytes.</param>
+        /// <param name="shapeDictionary">ONNX shapes to be used over those loaded from <paramref name="modelBytes"/>.
+        /// For keys use names as stated in the ONNX model, e.g. "input". Stating the shapes with this parameter
+        /// is particularly useful for working with variable dimension inputs and outputs.
+        /// </param>
+        /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
+        /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ApplyOnnxModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ApplyOnnxModel.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
+            Stream modelBytes,
+            IDictionary<string, int[]> shapeDictionary,
+            int? gpuDeviceId = null,
+            bool fallbackToCpu = false)
+        {
+            var (env, gpuDeviceIdToUse, fallbackToCpuToUse) = GetGpuDeviceId(catalog, gpuDeviceId, fallbackToCpu);
+            return new OnnxScoringEstimator(env, modelBytes, gpuDeviceIdToUse, fallbackToCpuToUse, shapeDictionary: shapeDictionary);
         }
 
         /// <summary>
@@ -106,6 +171,38 @@ namespace Microsoft.ML
         {
             var (env, gpuDeviceIdToUse, fallbackToCpuToUse) = GetGpuDeviceId(catalog, gpuDeviceId, fallbackToCpu);
             return new OnnxScoringEstimator(env, new[] { outputColumnName }, new[] { inputColumnName }, modelFile, gpuDeviceIdToUse, fallbackToCpuToUse);
+        }
+
+        /// <summary>
+        /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnName"/> column.
+        /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+        /// and how to run it on a GPU.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnName">The output column resulting from the transformation.</param>
+        /// <param name="inputColumnName">The input column.</param>
+        /// <param name="modelBytes">The <see cref="System.IO.Stream"/> containing the model bytes.</param>
+        /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
+        /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
+        /// <remarks>
+        /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
+        /// </remarks>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ApplyOnnxModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ApplyONNXModelWithInMemoryImages.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
+            string outputColumnName,
+            string inputColumnName,
+            Stream modelBytes,
+            int? gpuDeviceId = null,
+            bool fallbackToCpu = false)
+        {
+            var (env, gpuDeviceIdToUse, fallbackToCpuToUse) = GetGpuDeviceId(catalog, gpuDeviceId, fallbackToCpu);
+            return new OnnxScoringEstimator(env, new[] { outputColumnName }, new[] { inputColumnName }, modelBytes, gpuDeviceIdToUse, fallbackToCpuToUse);
         }
 
         /// <summary>
@@ -164,6 +261,44 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnName"/> column.
+        /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+        /// and how to run it on a GPU.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnName">The output column resulting from the transformation.</param>
+        /// <param name="inputColumnName">The input column.</param>
+        /// <param name="modelBytes">The <see cref="System.IO.Stream"/> containing the model bytes.</param>
+        /// <param name="shapeDictionary">ONNX shapes to be used over those loaded from <paramref name="modelBytes"/>.
+        /// For keys use names as stated in the ONNX model, e.g. "input". Stating the shapes with this parameter
+        /// is particularly useful for working with variable dimension inputs and outputs.
+        /// </param>
+        /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
+        /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
+        /// <remarks>
+        /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
+        /// </remarks>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ApplyOnnxModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ApplyONNXModelWithInMemoryImages.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
+            string outputColumnName,
+            string inputColumnName,
+            Stream modelBytes,
+            IDictionary<string, int[]> shapeDictionary,
+            int? gpuDeviceId = null,
+            bool fallbackToCpu = false)
+        {
+            var (env, gpuDeviceIdToUse, fallbackToCpuToUse) = GetGpuDeviceId(catalog, gpuDeviceId, fallbackToCpu);
+            return new OnnxScoringEstimator(env, new[] { outputColumnName }, new[] { inputColumnName },
+                modelBytes, gpuDeviceIdToUse, fallbackToCpuToUse, shapeDictionary: shapeDictionary);
+        }
+
+        /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnNames"/> columns.
         /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
         /// and how to run it on a GPU.
@@ -186,6 +321,31 @@ namespace Microsoft.ML
         {
             var (env, gpuDeviceIdToUse, fallbackToCpuToUse) = GetGpuDeviceId(catalog, gpuDeviceId, fallbackToCpu);
             return new OnnxScoringEstimator(env, outputColumnNames, inputColumnNames, modelFile, gpuDeviceIdToUse, fallbackToCpuToUse);
+        }
+
+        /// <summary>
+        /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnNames"/> columns.
+        /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+        /// and how to run it on a GPU.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnNames">The output columns resulting from the transformation.</param>
+        /// <param name="inputColumnNames">The input columns.</param>
+        /// <param name="modelBytes">The <see cref="System.IO.Stream"/> containing the model bytes.</param>
+        /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
+        /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
+        /// <remarks>
+        /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
+        /// </remarks>
+        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
+            string[] outputColumnNames,
+            string[] inputColumnNames,
+            Stream modelBytes,
+            int? gpuDeviceId = null,
+            bool fallbackToCpu = false)
+        {
+            var (env, gpuDeviceIdToUse, fallbackToCpuToUse) = GetGpuDeviceId(catalog, gpuDeviceId, fallbackToCpu);
+            return new OnnxScoringEstimator(env, outputColumnNames, inputColumnNames, modelBytes, gpuDeviceIdToUse, fallbackToCpuToUse);
         }
 
         /// <summary>
@@ -226,6 +386,36 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnNames">The output columns resulting from the transformation.</param>
         /// <param name="inputColumnNames">The input columns.</param>
+        /// <param name="modelBytes">The <see cref="System.IO.Stream"/> containing the model bytes.</param>
+        /// <param name="shapeDictionary">ONNX shapes to be used over those loaded from <paramref name="modelBytes"/>.
+        /// For keys use names as stated in the ONNX model, e.g. "input". Stating the shapes with this parameter
+        /// is particularly useful for working with variable dimension inputs and outputs.
+        /// </param>
+        /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
+        /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
+        /// <remarks>
+        /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
+        /// </remarks>
+        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
+            string[] outputColumnNames,
+            string[] inputColumnNames,
+            Stream modelBytes,
+            IDictionary<string, int[]> shapeDictionary,
+            int? gpuDeviceId = null,
+            bool fallbackToCpu = false)
+        {
+            var (env, gpuDeviceIdToUse, fallbackToCpuToUse) = GetGpuDeviceId(catalog, gpuDeviceId, fallbackToCpu);
+            return new OnnxScoringEstimator(env, outputColumnNames, inputColumnNames, modelBytes, gpuDeviceIdToUse, fallbackToCpuToUse, shapeDictionary: shapeDictionary);
+        }
+
+        /// <summary>
+        /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnNames"/> columns.
+        /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+        /// and how to run it on a GPU.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnNames">The output columns resulting from the transformation.</param>
+        /// <param name="inputColumnNames">The input columns.</param>
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
         /// <param name="shapeDictionary">ONNX shapes to be used over those loaded from <paramref name="modelFile"/>.
         /// For keys use names as stated in the ONNX model, e.g. "input". Stating the shapes with this parameter
@@ -248,6 +438,38 @@ namespace Microsoft.ML
         {
             var (env, gpuDeviceIdToUse, fallbackToCpuToUse) = GetGpuDeviceId(catalog, gpuDeviceId, fallbackToCpu);
             return new OnnxScoringEstimator(env, outputColumnNames, inputColumnNames, modelFile, gpuDeviceIdToUse, fallbackToCpuToUse, shapeDictionary: shapeDictionary, recursionLimit);
+        }
+
+        /// <summary>
+        /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnNames"/> columns.
+        /// Please refer to <see cref="OnnxScoringEstimator"/> to learn more about the necessary dependencies,
+        /// and how to run it on a GPU.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnNames">The output columns resulting from the transformation.</param>
+        /// <param name="inputColumnNames">The input columns.</param>
+        /// <param name="modelBytes">The <see cref="System.IO.Stream"/> containing the model bytes.</param>
+        /// <param name="shapeDictionary">ONNX shapes to be used over those loaded from <paramref name="modelBytes"/>.
+        /// For keys use names as stated in the ONNX model, e.g. "input". Stating the shapes with this parameter
+        /// is particularly useful for working with variable dimension inputs and outputs.
+        /// </param>
+        /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
+        /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
+        /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
+        /// <remarks>
+        /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
+        /// </remarks>
+        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
+            string[] outputColumnNames,
+            string[] inputColumnNames,
+            Stream modelBytes,
+            IDictionary<string, int[]> shapeDictionary,
+            int? gpuDeviceId = null,
+            bool fallbackToCpu = false,
+            int recursionLimit = 100)
+        {
+            var (env, gpuDeviceIdToUse, fallbackToCpuToUse) = GetGpuDeviceId(catalog, gpuDeviceId, fallbackToCpu);
+            return new OnnxScoringEstimator(env, outputColumnNames, inputColumnNames, modelBytes, gpuDeviceIdToUse, fallbackToCpuToUse, shapeDictionary: shapeDictionary, recursionLimit);
         }
 
         /// <summary>
