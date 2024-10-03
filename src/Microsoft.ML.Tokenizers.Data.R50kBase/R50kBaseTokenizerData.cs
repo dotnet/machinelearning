@@ -10,7 +10,7 @@ namespace Microsoft.ML.Tokenizers
     /// R50kBaseTokenizerData is internally used by Microsoft.ML.Tokenizers library to bind to the p50k_base.tiktoken data file.
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public sealed class R50kBaseTokenizerData
+    internal sealed class R50kBaseTokenizerData
     {
     }
 }
