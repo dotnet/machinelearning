@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             string fileName = CreateTemporaryFile("txt");
             using Stream fileStream = File.Create(fileName);
-            typeof(BpeTests).Assembly.GetManifestResourceStream(resourceName)!.CopyTo(fileStream);
+            typeof(Utils).Assembly.GetManifestResourceStream(resourceName)!.CopyTo(fileStream);
             return fileName;
         }
     }
