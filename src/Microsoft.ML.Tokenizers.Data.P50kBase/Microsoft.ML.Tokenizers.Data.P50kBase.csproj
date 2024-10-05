@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageDescription>The Microsoft.ML.Tokenizers.Data.P50kBase includes the Tiktoken tokenizer data file p50k_base.tiktoken, which is utilized by models such as text-davinci-002</PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      The following file are compressed using the DeflateStream and embedded as resources in the assembly.
+      The files are downloaded from the following sources and compressed to the Destination.
+        - p50k_base.tiktoken:   https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken
+
+      The file under MIT copyright license https://github.com/openai/tiktoken/blob/main/LICENSE
+
+      In the CompressFile task above we modify the file's content to elimenate the ranks, thus reducing the file size,
+      since the rank corresponds to the line number in the file. For the file p50k_base.tiktoken,
+      we introduce empty lines to replace any missing ranks, ensuring that the rank consistently aligns with the line number.
+      After we eleminate the ranks from the file, we compress the file using the DeflateStream and embed it as a resource in the assembly.
+    -->
+    <TokenizerDataEmbeddedResource Include="Data\p50k_base.tiktoken" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj"/>
+  </ItemGroup>
+
+  <Import Project="$(RepositoryEngineeringDir)TokenizerData.targets" />
+</Project>

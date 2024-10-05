@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Microsoft.ML.Tokenizers.Data.Tests</AssemblyName>
+    <StrongNameKeyId>Test</StrongNameKeyId>
+    <NoWarn>$(NoWarn);MSML_ExtendBaseTestClass</NoWarn>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- Import the test signing certificate -->
+  <Import Project="../Cert.props" />
+
+  <ItemGroup>
+    <Compile Include="..\Microsoft.ML.Tokenizers.Tests\Utils.cs" />
+    <Compile Include="..\..\src\Common\tests\RetryHelper.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj" />
+  </ItemGroup>
+
+</Project>

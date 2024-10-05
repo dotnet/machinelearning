@@ -45,7 +45,8 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             string tokenizerDataFileName = Utils.CreateTemporaryFile("tiktoken");
 
-            using Stream compressedStream = typeof(Tokenizer).Assembly.GetManifestResourceStream("cl100k_base.tiktoken.deflate")!;
+            string assemblyName = typeof(TiktokenTokenizer).Assembly.FullName!;
+            using Stream compressedStream = Assembly.Load($"Microsoft.ML.Tokenizers.Data.Cl100kBase{assemblyName.Substring(assemblyName.IndexOf(','))}").GetManifestResourceStream("cl100k_base.tiktoken.deflate")!;
             using Stream deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress);
 
             using (Stream fileStream = File.OpenWrite(tokenizerDataFileName))
@@ -97,7 +98,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         public static IEnumerable<object[]> ModelUrlData()
         {
             yield return new object[] { GPT4, @"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken" };
-            yield return new object[] { GPT2, @"https://fossies.org/linux/misc/whisper-20231117.tar.gz/whisper-20231117/whisper/assets/gpt2.tiktoken?m=b" };
+            yield return new object[] { GPT2, @"https://fossies.org/linux/misc/legacy/whisper-20231117.tar.gz:b/whisper-20231117/whisper/assets/gpt2.tiktoken?m=b" };
             yield return new object[] { P50kBase, @"https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken" };
             yield return new object[] { R50kBase, @"https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken" };
             yield return new object[] { GPT4o, @"https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken" };
