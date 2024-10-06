@@ -107,6 +107,12 @@ namespace Microsoft.Data.Analysis
                 return UInt16Type.Default;
             else if (typeof(T) == typeof(DateTime))
                 return Date64Type.Default;
+            else if (typeof(T) == typeof(DateTimeOffset))
+                return TimestampType.Default;
+#if NET6_0_OR_GREATER
+            else if (typeof(T) == typeof(DateOnly))
+                return Date32Type.Default;
+#endif
             else
                 throw new NotImplementedException(nameof(T));
         }
@@ -138,19 +144,19 @@ namespace Microsoft.Data.Analysis
 
             int nullCount = GetNullCount(startIndex, numberOfRows);
 
-            //DateTime requires convertion
+            // DateTime requires conversion
             if (this.DataType == typeof(DateTime))
             {
                 if (numberOfRows == 0)
                     return new Date64Array(ArrowBuffer.Empty, ArrowBuffer.Empty, numberOfRows, nullCount, offset);
 
-                ReadOnlyDataFrameBuffer<T> valueBuffer = (numberOfRows == 0) ? null : _columnContainer.Buffers[bufferIndex];
-                ReadOnlyDataFrameBuffer<byte> nullBuffer = (numberOfRows == 0) ? null : _columnContainer.NullBitMapBuffers[bufferIndex];
+                var valueBuffer = _columnContainer.Buffers[bufferIndex];
+                var nullBuffer = _columnContainer.NullBitMapBuffers[bufferIndex];
 
-                ReadOnlySpan<DateTime> valueSpan = MemoryMarshal.Cast<T, DateTime>(valueBuffer.ReadOnlySpan);
-                Date64Array.Builder builder = new Date64Array.Builder().Reserve(valueBuffer.Length);
+                var valueSpan = MemoryMarshal.Cast<T, DateTime>(valueBuffer.ReadOnlySpan);
+                var builder = new Date64Array.Builder().Reserve(valueBuffer.Length);
 
-                for (int i = 0; i < valueBuffer.Length; i++)
+                for (var i = 0; i < valueBuffer.Length; ++i)
                 {
                     if (BitUtility.GetBit(nullBuffer.ReadOnlySpan, i))
                         builder.Append(valueSpan[i]);
@@ -161,7 +167,53 @@ namespace Microsoft.Data.Analysis
                 return builder.Build();
             }
 
-            //No convertion
+            if (this.DataType == typeof(DateTimeOffset))
+            {
+                if (numberOfRows == 0)
+                    return new TimestampArray(TimestampType.Default, ArrowBuffer.Empty, ArrowBuffer.Empty, numberOfRows, nullCount, offset);
+
+                var valueBuffer = _columnContainer.Buffers[bufferIndex];
+                var nullBuffer = _columnContainer.NullBitMapBuffers[bufferIndex];
+
+                var valueSpan = MemoryMarshal.Cast<T, DateTimeOffset>(valueBuffer.ReadOnlySpan);
+                var builder = new TimestampArray.Builder().Reserve(valueBuffer.Length);
+
+                for (var i = 0; i < valueBuffer.Length; ++i)
+                {
+                    if (BitUtility.GetBit(nullBuffer.ReadOnlySpan, i))
+                        builder.Append(valueSpan[i]);
+                    else
+                        builder.AppendNull();
+                }
+
+                return builder.Build();
+            }
+
+#if NET6_0_OR_GREATER
+            if (this.DataType == typeof(DateOnly))
+            {
+                if (numberOfRows == 0)
+                    return new Date32Array(ArrowBuffer.Empty, ArrowBuffer.Empty, numberOfRows, nullCount, offset);
+
+                var valueBuffer = _columnContainer.Buffers[bufferIndex];
+                var nullBuffer = _columnContainer.NullBitMapBuffers[bufferIndex];
+
+                var valueSpan = MemoryMarshal.Cast<T, DateOnly>(valueBuffer.ReadOnlySpan);
+                var builder = new Date32Array.Builder().Reserve(valueBuffer.Length);
+
+                for (int i = 0; i < valueBuffer.Length; ++i)
+                {
+                    if (BitUtility.GetBit(nullBuffer.ReadOnlySpan, i))
+                        builder.Append(valueSpan[i]);
+                    else
+                        builder.AppendNull();
+                }
+
+                return builder.Build();
+            }
+#endif
+
+            // No conversion
             ArrowBuffer arrowValueBuffer = numberOfRows == 0 ? ArrowBuffer.Empty : new ArrowBuffer(_columnContainer.Buffers[bufferIndex].ReadOnlyBuffer);
             ArrowBuffer arrowNullBuffer = numberOfRows == 0 ? ArrowBuffer.Empty : new ArrowBuffer(_columnContainer.NullBitMapBuffers[bufferIndex].ReadOnlyBuffer);
 

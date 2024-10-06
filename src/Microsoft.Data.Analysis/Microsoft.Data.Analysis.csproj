@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net6.0;net8.0</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SuppressFinalPackageVersion>false</SuppressFinalPackageVersion>
     <IsPackable>true</IsPackable>
@@ -9,7 +9,7 @@
     <PackageReleaseNotes>Initial preview of robust and extensible types and algorithms for manipulating structured data that supports aggregations, statistical funtions, sorting, grouping, joins, merges, handling missing values and more. </PackageReleaseNotes>
     <PackageTags>ML.NET ML Machine Learning Data Science DataFrame Preparation DataView Analytics Exploration</PackageTags>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <!-- 
+    <!--
       1591: Documentation warnings
       NU5100: Warning that gets triggered because a .dll is not placed under lib folder on package. This is by design as we want MDAI to be under interactive-extensions folder.
        -->
@@ -44,7 +44,7 @@
       <DependentUpon>PrimitiveDataFrameColumn.BinaryOperators.tt</DependentUpon>
     </None>
   </ItemGroup>
-  
+
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
     <PackageReference Include="System.Numerics.Tensors" Version="9.0.0-preview.6.24327.7" />
   </ItemGroup>

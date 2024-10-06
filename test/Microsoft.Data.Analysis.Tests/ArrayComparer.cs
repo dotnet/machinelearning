@@ -88,7 +88,7 @@ namespace Microsoft.Data.Analysis.Tests
             }
             else
             {
-                // expectedArray may have passed in a null bitmap. DataFrame might have populated it with Length set bits 
+                // expectedArray may have passed in a null bitmap. DataFrame might have populated it with Length set bits
                 Assert.Equal(0, expectedArray.NullCount);
                 Assert.Equal(0, actualArray.NullCount);
                 for (int i = 0; i < actualArray.Length; i++)
@@ -96,7 +96,11 @@ namespace Microsoft.Data.Analysis.Tests
                     Assert.True(actualArray.IsValid(i));
                 }
             }
+#if NET
+            Assert.Equal(expectedArray.Values[..expectedArray.Length], actualArray.Values[..actualArray.Length]);
+#else
             Assert.True(expectedArray.Values.Slice(0, expectedArray.Length).SequenceEqual(actualArray.Values.Slice(0, actualArray.Length)));
+#endif
         }
 
         private void CompareArrays(BooleanArray actualArray)

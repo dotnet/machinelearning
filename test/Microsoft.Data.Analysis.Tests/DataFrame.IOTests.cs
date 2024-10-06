@@ -14,7 +14,6 @@ using System.Data.SQLite;
 using System.Data.SQLite.EF6;
 using Xunit;
 using Microsoft.ML.TestFramework.Attributes;
-using System.Threading;
 using Microsoft.ML.Data;
 using System.Threading.Tasks;
 
@@ -107,6 +106,16 @@ namespace Microsoft.Data.Analysis.Tests
                 {
                     Assert.IsType<DateTimeDataFrameColumn>(column);
                 }
+                else if (dataType == typeof(DateTimeOffset))
+                {
+                    Assert.IsType<DateTimeOffsetDataFrameColumn>(column);
+                }
+#if NET6_0_OR_GREATER
+                else if (dataType == typeof(DateOnly))
+                {
+                    Assert.IsType<DateOnlyDataFrameColumn>(column);
+                }
+#endif
                 else
                 {
                     throw new NotImplementedException("Unit test has to be updated");
@@ -354,17 +363,17 @@ MT";
         public void TestLoadCsvWithTypesAndGuessRows(bool header, int guessRows)
         {
             /* Tests this matrix
-             * 
-                header	GuessRows	DataTypes	
-                True	0	        NotNull	    
-                False 	0	        NotNull	    
-                True	10	        NotNull	    
-                False 	10	        NotNull	    
+             *
+                header	GuessRows	DataTypes
+                True	0	        NotNull
+                False 	0	        NotNull
+                True	10	        NotNull
+                False 	10	        NotNull
                 True	0	        Null  -----> Throws an exception
                 False 	0	        Null  -----> Throws an exception
-                True	10	        Null	    
-                False 	10	        Null	    
-             * 
+                True	10	        Null
+                False 	10	        Null
+             *
              */
             string headerLine = @"vendor_id,rate_code,passenger_count,trip_time_in_secs,trip_distance,payment_type,fare_amount
 ";
