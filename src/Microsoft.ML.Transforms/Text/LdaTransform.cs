@@ -1006,7 +1006,7 @@ namespace Microsoft.ML.Transforms.Text
     ///  we would get the results displayed in the table below. Example documents:
     ///  * I like to eat bananas.
     ///  * I eat bananas everyday.
-    ///  * First celebrated in 1970, Earth Day now includes events in more than 193 countries,
+    ///  * First celebrated in 1970, Earth Day now includes events in more than 193 countries/regions,
     ///    which are now coordinated globally by the Earth Day Network.
     ///
     ///  Notice the similarity in values of the first and second row, compared to the third,
