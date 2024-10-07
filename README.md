@@ -32,7 +32,9 @@ ML.NET also runs on ARM64, Apple M1, and Blazor Web Assembly. However, there are
 
 ## ML.NET NuGet packages status
 
-[![NuGet Status](https://img.shields.io/nuget/vpre/Microsoft.ML.svg?style=flat)](https://www.nuget.org/packages/Microsoft.ML/)
+[![NuGet Status](https://img.shields.io/nuget/v/Microsoft.ML.svg?style=flat)](https://www.nuget.org/packages/Microsoft.ML/)
+
+[![Latest NuGet Status](https://img.shields.io/nuget/vpre/Microsoft.ML.svg?style=flat)](https://www.nuget.org/packages/Microsoft.ML/absoluteLatest)
 
 ## Release notes
 
