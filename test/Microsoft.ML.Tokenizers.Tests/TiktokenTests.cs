@@ -392,6 +392,8 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Theory]
+        [InlineData("o1")]
+        [InlineData("o1-")]
         [InlineData("gpt-4o")]
         [InlineData("gpt-4o-")]
         [InlineData("gpt-4")]
@@ -493,6 +495,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
         [InlineData("gpt-4")]
         [InlineData("gpt-4o")]
+        [InlineData("o1")]
         [InlineData("text-davinci-003")]
         [InlineData("text-curie-001")]
         [InlineData("text-davinci-edit-001")]
