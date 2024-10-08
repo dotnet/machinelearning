@@ -40,20 +40,20 @@ namespace Microsoft.ML.TorchSharp.Loss
             var classificationLosses = new List<Tensor>();
             var regressionLosses = new List<Tensor>();
 
-            var anchor = anchors[0, .., ..];
+            var anchor = anchors[0, RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..)];
 
-            var anchorWidths = anchor[.., 2] - anchor[.., 0];
-            var anchorHeights = anchor[.., 3] - anchor[.., 1];
-            var anchorCtrX = anchor[.., 0] + (0.5 * anchorWidths);
-            var anchorCtrY = anchor[.., 1] + (0.5 * anchorHeights);
+            var anchorWidths = anchor[RangeUtil.ToTensorIndex(..), 2] - anchor[RangeUtil.ToTensorIndex(..), 0];
+            var anchorHeights = anchor[RangeUtil.ToTensorIndex(..), 3] - anchor[RangeUtil.ToTensorIndex(..), 1];
+            var anchorCtrX = anchor[RangeUtil.ToTensorIndex(..), 0] + (0.5 * anchorWidths);
+            var anchorCtrY = anchor[RangeUtil.ToTensorIndex(..), 1] + (0.5 * anchorHeights);
 
             for (int j = 0; j < batchSize; ++j)
             {
-                var classification = classifications[j, .., ..];
-                var regression = regressions[j, .., ..];
+                var classification = classifications[j, RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..)];
+                var regression = regressions[j, RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..)];
 
-                var bboxAnnotation = annotations[j, .., ..];
-                bboxAnnotation = bboxAnnotation[bboxAnnotation[.., 4] != -1];
+                var bboxAnnotation = annotations[j, RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..)];
+                bboxAnnotation = bboxAnnotation[bboxAnnotation[RangeUtil.ToTensorIndex(..), 4] != -1];
 
                 classification = torch.clamp(classification, 1e-4, 1.0 - 1e-4);
 
@@ -73,7 +73,7 @@ namespace Microsoft.ML.TorchSharp.Loss
                 }
                 else
                 {
-                    var iou = CalcIou(anchors[0, .., ..], bboxAnnotation[.., ..4]); // num_anchors x num_annotations
+                    var iou = CalcIou(anchors[0, RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..)], bboxAnnotation[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..4)]); // num_anchors x num_annotations
 
                     var (iou_max, iou_argmax) = torch.max(iou, dim: 1); // num_anchors x 1
 
@@ -125,10 +125,10 @@ namespace Microsoft.ML.TorchSharp.Loss
                         var anchorCtrXPi = anchorCtrX[positiveIndices];
                         var anchorCtrYPi = anchorCtrY[positiveIndices];
 
-                        var gtWidths = assignedAnnotations[.., 2] - assignedAnnotations[.., 0];
-                        var gtHeights = assignedAnnotations[.., 3] - assignedAnnotations[.., 1];
-                        var gtCtrX = assignedAnnotations[.., 0] + (0.5 * gtWidths);
-                        var gtCtrY = assignedAnnotations[.., 1] + (0.5 * gtHeights);
+                        var gtWidths = assignedAnnotations[RangeUtil.ToTensorIndex(..), 2] - assignedAnnotations[RangeUtil.ToTensorIndex(..), 0];
+                        var gtHeights = assignedAnnotations[RangeUtil.ToTensorIndex(..), 3] - assignedAnnotations[RangeUtil.ToTensorIndex(..), 1];
+                        var gtCtrX = assignedAnnotations[RangeUtil.ToTensorIndex(..), 0] + (0.5 * gtWidths);
+                        var gtCtrY = assignedAnnotations[RangeUtil.ToTensorIndex(..), 1] + (0.5 * gtHeights);
 
                         // clip widths to 1
                         gtWidths = torch.clamp(gtWidths, min: 1);
@@ -178,17 +178,17 @@ namespace Microsoft.ML.TorchSharp.Loss
 
         private static Tensor CalcIou(Tensor a, Tensor b)
         {
-            var area = (b[.., 2] - b[.., 0]) * (b[.., 3] - b[.., 1]);
+            var area = (b[RangeUtil.ToTensorIndex(..), 2] - b[RangeUtil.ToTensorIndex(..), 0]) * (b[RangeUtil.ToTensorIndex(..), 3] - b[RangeUtil.ToTensorIndex(..), 1]);
 
-            var iw = torch.minimum(input: torch.unsqueeze(a[.., 2], dim: 1), b[.., 2]) -
-                     torch.maximum(input: torch.unsqueeze(a[.., 0], 1), b[.., 0]);
-            var ih = torch.minimum(input: torch.unsqueeze(a[.., 3], dim: 1), b[.., 3]) -
-                     torch.maximum(input: torch.unsqueeze(a[.., 1], 1), b[.., 1]);
+            var iw = torch.minimum(input: torch.unsqueeze(a[RangeUtil.ToTensorIndex(..), 2], dim: 1), b[RangeUtil.ToTensorIndex(..), 2]) -
+                     torch.maximum(input: torch.unsqueeze(a[RangeUtil.ToTensorIndex(..), 0], 1), b[RangeUtil.ToTensorIndex(..), 0]);
+            var ih = torch.minimum(input: torch.unsqueeze(a[RangeUtil.ToTensorIndex(..), 3], dim: 1), b[RangeUtil.ToTensorIndex(..), 3]) -
+                     torch.maximum(input: torch.unsqueeze(a[RangeUtil.ToTensorIndex(..), 1], 1), b[RangeUtil.ToTensorIndex(..), 1]);
 
             iw = torch.clamp(iw, min: 0);
             ih = torch.clamp(ih, min: 0);
 
-            var ua = torch.unsqueeze((a[.., 2] - a[.., 0]) * (a[.., 3] - a[.., 1]), dim: 1) + area - (iw * ih);
+            var ua = torch.unsqueeze((a[RangeUtil.ToTensorIndex(..), 2] - a[RangeUtil.ToTensorIndex(..), 0]) * (a[RangeUtil.ToTensorIndex(..), 3] - a[RangeUtil.ToTensorIndex(..), 1]), dim: 1) + area - (iw * ih);
             ua = torch.clamp(ua, min: 1e-8);
 
             var intersection = iw * ih;

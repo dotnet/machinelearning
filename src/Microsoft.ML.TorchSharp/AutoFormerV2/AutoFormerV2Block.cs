@@ -127,7 +127,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                     }
                     else
                     {
-                        x = x[.., ..h, ..w].contiguous();
+                        x = x[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..h), RangeUtil.ToTensorIndex(..w)].contiguous();
                     }
                 }
 

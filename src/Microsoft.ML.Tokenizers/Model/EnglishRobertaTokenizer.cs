@@ -325,7 +325,7 @@ namespace Microsoft.ML.Tokenizers
                 {
                     foreach (EncodedToken t in EncodeInternal(textSpanToEncode.Slice(split.Offset, split.Length)))
                     {
-                        tokens.Add(new EncodedToken(t.Id, t.Value, (split.Offset + t.Offset.Index, t.Offset.Length)));
+                        tokens.Add(new EncodedToken(t.Id, t.Value, new Range(split.Offset + t.Offset.Start.Value, split.Offset + t.Offset.End.Value)));
                     }
                 }
 
@@ -597,14 +597,14 @@ namespace Microsoft.ML.Tokenizers
                 for (int i = 0; i < maxTokens; i++)
                 {
                     accumulatedIds.Add(tokens[i].Id);
-                    charsConsumed += tokens[i].Offset.Length;
+                    charsConsumed += tokens[i].Offset.End.Value - tokens[i].Offset.Start.Value;
                 }
             }
             else
             {
                 for (int i = 0; i < maxTokens; i++)
                 {
-                    charsConsumed += tokens[i].Offset.Length;
+                    charsConsumed += tokens[i].Offset.End.Value - tokens[i].Offset.Start.Value;
                 }
             }
 
@@ -634,14 +634,14 @@ namespace Microsoft.ML.Tokenizers
                 for (int i = tokens.Count - maxTokens; i < tokens.Count; i++)
                 {
                     accumulatedIds.Add(tokens[i].Id);
-                    textIndex -= tokens[i].Offset.Length;
+                    textIndex -= tokens[i].Offset.End.Value - tokens[i].Offset.Start.Value;
                 }
             }
             else
             {
                 for (int i = tokens.Count - maxTokens; i < tokens.Count; i++)
                 {
-                    textIndex -= tokens[i].Offset.Length;
+                    textIndex -= tokens[i].Offset.End.Value - tokens[i].Offset.Start.Value;
                 }
             }
 
@@ -905,7 +905,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 Debug.Assert(index + tokens[i].Value.Length <= indexMapping.Length);
 
-                if (tokens[i].Offset != (indexMapping[index], tokens[i].Value.Length))
+                if (tokens[i].Offset.Start.Value != indexMapping[index] || tokens[i].Offset.End.Value != indexMapping[index] + tokens[i].Value.Length)
                 {
                     List<EncodedToken> list = new List<EncodedToken>(tokens.Count);
                     for (int j = 0; j < i; j++)
@@ -915,7 +915,7 @@ namespace Microsoft.ML.Tokenizers
 
                     for (int j = i; j < tokens.Count; j++)
                     {
-                        list.Add(new EncodedToken(tokens[j].Id, tokens[j].Value, (indexMapping[index], tokens[j].Value.Length)));
+                        list.Add(new EncodedToken(tokens[j].Id, tokens[j].Value, new Range(indexMapping[index], indexMapping[index] + tokens[j].Value.Length)));
                         index += tokens[j].Value.Length;
                     }
 
@@ -947,7 +947,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 Debug.Assert(token[0] < charToString.Length);
                 string tokenValue = charToString[token[0]];
-                return new List<EncodedToken> { new EncodedToken(_vocab[new StringSpanOrdinalKey(tokenValue)], tokenValue, (indexMapping[0], 1)) };
+                return new List<EncodedToken> { new EncodedToken(_vocab[new StringSpanOrdinalKey(tokenValue)], tokenValue, new Range(indexMapping[0], indexMapping[0] + 1)) };
             }
 
             List<string> word = new(token.Length);
@@ -1036,7 +1036,7 @@ namespace Microsoft.ML.Tokenizers
 
             foreach (string w in word)
             {
-                tokens.Add(new EncodedToken(_vocab[new StringSpanOrdinalKey(w)], w, (indexMapping[index], w.Length)));
+                tokens.Add(new EncodedToken(_vocab[new StringSpanOrdinalKey(w)], w, new Range(indexMapping[index], indexMapping[index] + w.Length)));
                 index += w.Length;
             }
 

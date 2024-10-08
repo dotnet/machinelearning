@@ -50,7 +50,7 @@ namespace Microsoft.ML.TorchSharp.Utils
 
                 for (int i = 0; i < classification.shape[2]; ++i)
                 {
-                    var scores1 = torch.squeeze(classification[.., .., i], null);
+                    var scores1 = torch.squeeze(classification[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), i], null);
                     var scoresOverThresh = scores1 > 0.05;
                     if (scoresOverThresh.sum().ToSingle() == 0)
                     {
@@ -108,16 +108,16 @@ namespace Microsoft.ML.TorchSharp.Utils
             using (var nmsScope = torch.NewDisposeScope())
             {
                 // boxes: Tensor [N,4]，scores: Tensor [N,]
-                var x1 = boxes[.., 0];
-                var y1 = boxes[.., 1];
-                var x2 = boxes[.., 2];
-                var y2 = boxes[.., 3];
+                var x1 = boxes[RangeUtil.ToTensorIndex(..), 0];
+                var y1 = boxes[RangeUtil.ToTensorIndex(..), 1];
+                var x2 = boxes[RangeUtil.ToTensorIndex(..), 2];
+                var y2 = boxes[RangeUtil.ToTensorIndex(..), 3];
                 var areas = (x2 - x1) * (y2 - y1); // [N,]
 
                 var (_, _order) = scores.sort(0, descending: true);
 
                 var keep = new List<long>();
-                var order = _order[..];
+                var order = _order[RangeUtil.ToTensorIndex(..)];
                 while (order.numel() > 0)
                 {
                     long i;
@@ -133,13 +133,13 @@ namespace Microsoft.ML.TorchSharp.Utils
                         keep.Add(i);
                     }
 
-                    var xx1 = x1[order[1..]].clamp(min: x1[i]); // [N - 1,]
-                    var yy1 = y1[order[1..]].clamp(min: y1[i]);
-                    var xx2 = x2[order[1..]].clamp(max: x2[i]);
-                    var yy2 = y2[order[1..]].clamp(max: y2[i]);
+                    var xx1 = x1[order[RangeUtil.ToTensorIndex(1..)]].clamp(min: x1[i]); // [N - 1,]
+                    var yy1 = y1[order[RangeUtil.ToTensorIndex(1..)]].clamp(min: y1[i]);
+                    var xx2 = x2[order[RangeUtil.ToTensorIndex(1..)]].clamp(max: x2[i]);
+                    var yy2 = y2[order[RangeUtil.ToTensorIndex(1..)]].clamp(max: y2[i]);
                     var inter = (xx2 - xx1).clamp(min: 0) * (yy2 - yy1).clamp(min: 0); // [N - 1,]
 
-                    var iou = inter / (areas[i] + areas[order[1..]] - inter); // [N-1, ]
+                    var iou = inter / (areas[i] + areas[order[RangeUtil.ToTensorIndex(1..)]] - inter); // [N-1, ]
                     var idx = (iou <= iouThreshold).nonzero().squeeze(); // idx: [N - 1,] and order:[N,]
                     if (idx.numel() == 0)
                     {
@@ -167,15 +167,15 @@ namespace Microsoft.ML.TorchSharp.Utils
                 var mean = torch.from_array(new double[] { 0, 0, 0, 0 }).to_type(ScalarType.Float32).to(boxes.device);
                 var std = torch.from_array(new double[] { 0.1, 0.1, 0.2, 0.2 }).to_type(ScalarType.Float32).to(boxes.device);
 
-                var widths = boxes[.., .., 2] - boxes[.., .., 0];
-                var heights = boxes[.., .., 3] - boxes[.., .., 1];
-                var ctrX = boxes[.., .., 0] + (0.5 * widths);
-                var ctrY = boxes[.., .., 1] + (0.5 * heights);
+                var widths = boxes[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), 2] - boxes[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), 0];
+                var heights = boxes[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), 3] - boxes[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), 1];
+                var ctrX = boxes[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), 0] + (0.5 * widths);
+                var ctrY = boxes[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), 1] + (0.5 * heights);
 
-                var dx = (deltas[.., .., 0] * std[0]) + mean[0];
-                var dy = (deltas[.., .., 1] * std[1]) + mean[1];
-                var dw = (deltas[.., .., 2] * std[2]) + mean[2];
-                var dh = (deltas[.., .., 3] * std[3]) + mean[3];
+                var dx = (deltas[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), 0] * std[0]) + mean[0];
+                var dy = (deltas[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), 1] * std[1]) + mean[1];
+                var dw = (deltas[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), 2] * std[2]) + mean[2];
+                var dh = (deltas[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), 3] * std[3]) + mean[3];
 
                 var predCtrX = ctrX + (dx * widths);
                 var predCtrY = ctrY + (dy * heights);
@@ -210,11 +210,11 @@ namespace Microsoft.ML.TorchSharp.Utils
                 var height = img.shape[2];
                 var width = img.shape[3];
 
-                var clippedBoxesX0 = torch.clamp(boxes[.., .., 0], min: 0);
-                var clippedBoxesY0 = torch.clamp(boxes[.., .., 1], min: 0);
+                var clippedBoxesX0 = torch.clamp(boxes[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), 0], min: 0);
+                var clippedBoxesY0 = torch.clamp(boxes[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), 1], min: 0);
 
-                var clippedBoxesX1 = torch.clamp(boxes[.., .., 2], max: width);
-                var clippedBoxesY1 = torch.clamp(boxes[.., .., 3], max: height);
+                var clippedBoxesX1 = torch.clamp(boxes[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), 2], max: width);
+                var clippedBoxesY1 = torch.clamp(boxes[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), 3], max: height);
 
                 var clippedBoxes = torch.stack(
                     new List<Tensor> { clippedBoxesX0, clippedBoxesY0, clippedBoxesX1, clippedBoxesY1 },

@@ -241,7 +241,7 @@ namespace Microsoft.ML.Tokenizers
                 if (tokenCount > 0)
                 {
                     var token = tokens.Tokens[tokenCount - 1];
-                    return token.Offset.Index + token.Offset.Length;
+                    return token.Offset.End.Value;
                 }
 
                 return 0;
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Tokenizers
                 if (tokenCount > 0)
                 {
                     var token = tokens.Tokens[tokens.Tokens.Count - tokenCount];
-                    return token.Offset.Index;
+                    return token.Offset.Start.Value;
                 }
 
                 return tokens.NormalizedText?.Length ?? textSpan.Length;

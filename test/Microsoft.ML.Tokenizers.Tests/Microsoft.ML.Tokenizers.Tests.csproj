@@ -10,6 +10,10 @@
   <!-- Import the test signing certificate -->
   <Import Project="../Cert.props" />
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+
   <ItemGroup>
     <!-- Tokenizer's data packages -->
     <ProjectReference Include="..\..\src\Microsoft.ML.Tokenizers.Data.Cl100kBase\Microsoft.ML.Tokenizers.Data.Cl100kBase.csproj" />

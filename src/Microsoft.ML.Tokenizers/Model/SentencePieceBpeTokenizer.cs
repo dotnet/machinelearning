@@ -272,7 +272,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (addBeginOfSentence)
             {
-                tokens.Add(new EncodedToken(BeginningOfSentenceId, BeginningOfSentenceToken, (0, 0)));
+                tokens.Add(new EncodedToken(BeginningOfSentenceId, BeginningOfSentenceToken, new Range(0, 0)));
             }
 
             int currentOffset = 0;
@@ -286,7 +286,7 @@ namespace Microsoft.ML.Tokenizers
 
                 if (_specialTokens!.TryGetValue(text.Slice(Offset, Length), out int id))
                 {
-                    tokens.Add(new EncodedToken(id, _specialTokensReverse![id], (Offset, Length)));
+                    tokens.Add(new EncodedToken(id, _specialTokensReverse![id], new Range(Offset, Offset + Length)));
                 }
 
                 currentOffset = Offset + Length;
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (addEndOfSentence)
             {
-                tokens.Add(new EncodedToken(EndOfSentenceId, EndOfSentenceToken, (text.Length, 0)));
+                tokens.Add(new EncodedToken(EndOfSentenceId, EndOfSentenceToken, new Range(text.Length, text.Length)));
             }
         }
 
@@ -319,7 +319,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (addBeginOfSentence)
             {
-                tokens.Add(new EncodedToken(BeginningOfSentenceId, BeginningOfSentenceToken, (0, 0)));
+                tokens.Add(new EncodedToken(BeginningOfSentenceId, BeginningOfSentenceToken, new Range(0, 0)));
             }
 
             for (int index = 0; (uint)index < (uint)symbols.Length; index = symbols[index].next)
@@ -352,7 +352,7 @@ namespace Microsoft.ML.Tokenizers
                         tokens.Add(new EncodedToken(
                                     id,
                                     GetTokenString(id, symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length, text),
-                                    (symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Length)));
+                                    new Range(symbols[index].pieceSpan.Index, symbols[index].pieceSpan.Index + symbols[index].pieceSpan.Length)));
                     }
                     continue;
                 }
@@ -364,7 +364,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (addEndOfSentence)
             {
-                tokens.Add(new EncodedToken(EndOfSentenceId, EndOfSentenceToken, (text.Length, 0)));
+                tokens.Add(new EncodedToken(EndOfSentenceId, EndOfSentenceToken, new Range(text.Length, text.Length)));
             }
 
             return;
@@ -381,7 +381,7 @@ namespace Microsoft.ML.Tokenizers
 
                         if (_vocabReverse.TryGetValue(id, out string? token))
                         {
-                            tokens.Add(new EncodedToken(id, token, (index + i, 1)));
+                            tokens.Add(new EncodedToken(id, token, new Range(index + i, index + i + 1)));
                         }
                     }
                     else
@@ -405,7 +405,7 @@ namespace Microsoft.ML.Tokenizers
 
                             if (_vocabReverse.TryGetValue(id, out string? token))
                             {
-                                tokens.Add(new EncodedToken(id, token, (index + i, length)));
+                                tokens.Add(new EncodedToken(id, token, new Range(index + i, index + i + length)));
                             }
 
                             length = 0;
@@ -433,7 +433,7 @@ namespace Microsoft.ML.Tokenizers
                     revMerge is null ||
                     !revMerge.TryGetValue((pieceSpan.Index, pieceSpan.Length), out (int LeftIndex, int LeftLen, int RightIndex, int RightLen) merge))
                 {
-                    tokens.Add(new EncodedToken(id.Id, text.Slice(pieceSpan.Index, pieceSpan.Length).ToString(), (pieceSpan.Index, pieceSpan.Length)));
+                    tokens.Add(new EncodedToken(id.Id, text.Slice(pieceSpan.Index, pieceSpan.Length).ToString(), new Range(pieceSpan.Index, pieceSpan.Index + pieceSpan.Length)));
                     return;
                 }
 

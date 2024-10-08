@@ -255,7 +255,7 @@ public class CausalLMPipeline : ICausalLMPipeline
 
                 return tokens
                 // Skip the first _ token automatically added by tokenizer
-                .Where(t => t.Offset != (0, 0))
+                .Where(t => !t.Offset.Equals(new Range(0, 0)))
                 .Select(t => t.Id)
                 .ToArray();
             }));

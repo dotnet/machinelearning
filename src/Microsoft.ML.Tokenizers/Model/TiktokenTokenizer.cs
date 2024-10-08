@@ -307,7 +307,7 @@ namespace Microsoft.ML.Tokenizers
                     tokens.Add(new EncodedToken(
                                         value[i].Id,
                                         value[i].TokenLength == 0 ? string.Empty : text.Slice(value[i].TokenIndex, value[i].TokenLength).ToString(),
-                                        (value[i].TokenIndex + offset, value[i].TokenLength)));
+                                        new Range(value[i].TokenIndex + offset, value[i].TokenIndex + offset + value[i].TokenLength)));
                 }
 
                 return;
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Tokenizers
             // cache miss
             if (_vocab.TryGetValue(text, out (int Id, string Token) mappedId))
             {
-                tokens.Add(new EncodedToken(mappedId.Id, mappedId.Token, (offset, mappedId.Token.Length)));
+                tokens.Add(new EncodedToken(mappedId.Id, mappedId.Token, new Range(offset, offset + mappedId.Token.Length)));
                 return;
             }
 
@@ -348,7 +348,7 @@ namespace Microsoft.ML.Tokenizers
                 tokens.Add(new EncodedToken(
                                 encodedTokens[i].Id,
                                 encodedTokens[i].TokenLength == 0 ? string.Empty : text.Slice(encodedTokens[i].TokenIndex, encodedTokens[i].TokenLength).ToString(),
-                                (encodedTokens[i].TokenIndex + offset, encodedTokens[i].TokenLength)));
+                                new Range(encodedTokens[i].TokenIndex + offset, encodedTokens[i].TokenIndex + offset + encodedTokens[i].TokenLength)));
             }
         }
 

@@ -376,7 +376,7 @@ namespace Microsoft.ML.Tokenizers
                 List<EncodedToken> tokens = new();
                 if (addBos && BeginningOfSentenceId.HasValue)
                 {
-                    tokens.Add(new EncodedToken(BeginningOfSentenceId.Value, BeginningOfSentenceToken!, (0, 0)));
+                    tokens.Add(new EncodedToken(BeginningOfSentenceId.Value, BeginningOfSentenceToken!, new Range(0, 0)));
                 }
 
                 PriorityQueue<SymbolPair> agenda = new(textSpanToEncode.Length);
@@ -395,7 +395,8 @@ namespace Microsoft.ML.Tokenizers
 
                 if (addEos && EndOfSentenceId.HasValue)
                 {
-                    tokens.Add(new EncodedToken(EndOfSentenceId.Value, EndOfSentenceToken!, (addPrefixSpace ? Math.Max(0, textSpanToEncode.Length - 1) : textSpanToEncode.Length, 0)));
+                    int index = addPrefixSpace ? Math.Max(0, textSpanToEncode.Length - 1) : textSpanToEncode.Length;
+                    tokens.Add(new EncodedToken(EndOfSentenceId.Value, EndOfSentenceToken!, new Range(index, index)));
                 }
 
                 return new EncodeResults<EncodedToken> { Tokens = tokens, NormalizedText = normalizedString, CharsConsumed = textSpanToEncode.Length };
@@ -427,7 +428,8 @@ namespace Microsoft.ML.Tokenizers
 
             if (_addedTokens is not null && _addedTokens.TryGetValue(textSpan, out (int addedTokenId, string addedToken) value))
             {
-                tokens.Add(new EncodedToken(value.addedTokenId, value.addedToken, ((addPrefixSpace && offset > 0) ? offset - 1 : offset, (addPrefixSpace && offset == 0) ? textSpan.Length - 1 : textSpan.Length)));
+                int index = (addPrefixSpace && offset > 0) ? offset - 1 : offset;
+                tokens.Add(new EncodedToken(value.addedTokenId, value.addedToken, new Range(index, index + ((addPrefixSpace && offset == 0) ? textSpan.Length - 1 : textSpan.Length))));
                 return;
             }
 
@@ -1027,11 +1029,11 @@ namespace Microsoft.ML.Tokenizers
             for (tokenCount = 0; tokenCount < maxTokens; tokenCount++)
             {
                 // maxTokens is less than tokens.Count, so it is safe to index maxTokens.
-                if (tokens[tokenCount].Offset.Index == tokens[tokenCount + 1].Offset.Index)
+                if (tokens[tokenCount].Offset.Start.Value == tokens[tokenCount + 1].Offset.Start.Value)
                 {
                     // Ensure we'll not break the text in the middle of a code-point
                     int j = tokenCount + 2;
-                    while (j < tokens.Count && tokens[j].Offset.Index == tokens[tokenCount].Offset.Index)
+                    while (j < tokens.Count && tokens[j].Offset.Start.Value == tokens[tokenCount].Offset.Start.Value)
                     {
                         j++;
                     }
@@ -1042,7 +1044,7 @@ namespace Microsoft.ML.Tokenizers
                         for (int k = tokenCount; k < j; k++)
                         {
                             accumulatedIds?.Add(tokens[k].Id);
-                            charsConsumed += tokens[k].Offset.Length;
+                            charsConsumed += tokens[k].Offset.End.Value - tokens[k].Offset.Start.Value;
                         }
                         tokenCount = j - 1;
                     }
@@ -1054,7 +1056,7 @@ namespace Microsoft.ML.Tokenizers
                 else
                 {
                     accumulatedIds?.Add(tokens[tokenCount].Id);
-                    charsConsumed += tokens[tokenCount].Offset.Length;
+                    charsConsumed += tokens[tokenCount].Offset.End.Value - tokens[tokenCount].Offset.Start.Value;
                 }
             }
 
@@ -1082,7 +1084,7 @@ namespace Microsoft.ML.Tokenizers
             int index = tokens.Count - maxTokens;
 
             // avoid breaking the text in the middle of a code-point
-            while (index < tokens.Count && tokens[index].Offset.Index == tokens[index - 1].Offset.Index)
+            while (index < tokens.Count && tokens[index].Offset.Start.Value == tokens[index - 1].Offset.Start.Value)
             {
                 index++;
             }
@@ -1090,7 +1092,7 @@ namespace Microsoft.ML.Tokenizers
             for (int i = index; i < tokens.Count; i++)
             {
                 accumulatedIds?.Add(tokens[i].Id);
-                textIndex -= tokens[i].Offset.Length;
+                textIndex -= tokens[i].Offset.End.Value - tokens[i].Offset.Start.Value;
             }
 
             return tokens.Count - index;
@@ -1590,11 +1592,12 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (tokensToAdd.Count > 0)
                 {
-                    tokens.Add(new EncodedToken(tokensToAdd[0].Id, tokensToAdd[0].Value, (offset == 0 ? tokensToAdd[0].Offset.Index : tokensToAdd[0].Offset.Index + offset - 1, offset == 0 ? tokensToAdd[0].Offset.Length - 1 : tokensToAdd[0].Offset.Length)));
+                    (int s, int e) r = offset == 0 ? (tokensToAdd[0].Offset.Start.Value, tokensToAdd[0].Offset.End.Value - 1) : (tokensToAdd[0].Offset.Start.Value + offset - 1, tokensToAdd[0].Offset.End.Value + offset - 1);
+                    tokens.Add(new EncodedToken(tokensToAdd[0].Id, tokensToAdd[0].Value, new Range(r.s, r.e)));
 
                     for (int i = 1; i < tokensToAdd.Count; i++)
                     {
-                        tokens.Add(new EncodedToken(tokensToAdd[i].Id, tokensToAdd[i].Value, (tokensToAdd[i].Offset.Index + offset - 1, tokensToAdd[i].Offset.Length)));
+                        tokens.Add(new EncodedToken(tokensToAdd[i].Id, tokensToAdd[i].Value, new Range(tokensToAdd[i].Offset.Start.Value + offset - 1, tokensToAdd[i].Offset.End.Value + offset - 1)));
                     }
                 }
             }
@@ -1602,7 +1605,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 foreach (EncodedToken t in tokensToAdd)
                 {
-                    tokens.Add(new EncodedToken(t.Id, t.Value, (t.Offset.Index + offset, t.Offset.Length)));
+                    tokens.Add(new EncodedToken(t.Id, t.Value, new Range(t.Offset.Start.Value + offset, t.Offset.End.Value + offset)));
                 }
             }
         }
@@ -1622,7 +1625,7 @@ namespace Microsoft.ML.Tokenizers
                 char c = text[0];
                 string[] charToString = ByteToUnicodeEncoding.Instance.CharToString;
                 string tokenValue = (uint)c < charToString.Length ? charToString[c] : c.ToString();
-                return new List<EncodedToken> { new EncodedToken(_vocab[new StringSpanOrdinalKey(tokenValue)].Id, tokenValue, (mapping[0], 1)) };
+                return new List<EncodedToken> { new EncodedToken(_vocab[new StringSpanOrdinalKey(tokenValue)].Id, tokenValue, new Range(mapping[0], mapping[0] + 1)) };
             }
 
             BpeSymbol[] symbols = ArrayPool<BpeSymbol>.Shared.Rent(text.Length);
@@ -1694,9 +1697,8 @@ namespace Microsoft.ML.Tokenizers
 
             static EncodedToken GetToken(int id, string token, int index, int length, ReadOnlySpan<char> originalText, Span<int> mapping)
             {
-                int tokenStartIndex = mapping[index];
-                int tokenLength = (index + length < mapping.Length ? mapping[index + length] - tokenStartIndex : originalText.Length - tokenStartIndex);
-                return new EncodedToken(id, token, (tokenStartIndex, tokenLength));
+                int endIndex = index + length < mapping.Length ? mapping[index + length] : originalText.Length;
+                return new EncodedToken(id, token, new Range(mapping[index], endIndex));
             }
 
             void TryMerge(int left, int right, ReadOnlySpan<char> textSpan)

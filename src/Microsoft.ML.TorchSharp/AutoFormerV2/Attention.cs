@@ -113,7 +113,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                 k = k.permute(0, 2, 1, 3);
                 v = v.permute(0, 2, 1, 3);
 
-                var attn = (torch.matmul(q, k.transpose(-2, -1)) * this.scale) + this.attention_biases[.., this.attention_bias_idxs];
+                var attn = (torch.matmul(q, k.transpose(-2, -1)) * this.scale) + this.attention_biases[RangeUtil.ToTensorIndex(..), this.attention_bias_idxs];
                 if (!(mask is null))
                 {
                     long nW = mask.shape[0];

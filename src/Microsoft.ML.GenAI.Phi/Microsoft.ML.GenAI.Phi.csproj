@@ -7,6 +7,10 @@
     <IsPackable>true</IsPackable>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="TorchSharp.PyBridge" Version="$(TorchSharpPyBridgeVersion)" />
     <PackageReference Include="TorchSharp" Version="$(TorchSharpVersion)" />
@@ -23,5 +27,5 @@
   <ItemGroup>
     <EmbeddedResource Include="Resource\Config\*.json" />
   </ItemGroup>
-    
+
 </Project>
