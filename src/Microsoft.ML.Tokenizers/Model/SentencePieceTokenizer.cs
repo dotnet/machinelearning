@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tokenizers
     /// <summary>
     /// SentencePieceBpe is a tokenizer that splits the input into tokens using the SentencePiece Bpe model.
     /// </summary>
-    public class SentencePieceBpeTokenizer : Tokenizer
+    public class SentencePieceTokenizer : Tokenizer
     {
         private const int UninitializedId = -2; // indicate if the symbol contains uninitialized id.
         private readonly Dictionary<StringSpanOrdinalKey, (int Id, float Score, byte Type)> _vocab = new();
@@ -36,14 +36,14 @@ namespace Microsoft.ML.Tokenizers
         private readonly Dictionary<StringSpanOrdinalKey, int>? _specialTokens;
         private readonly Dictionary<int, string>? _specialTokensReverse;
 
-        internal SentencePieceBpeTokenizer(ModelProto modelProto, bool addBos, bool addEos, IReadOnlyDictionary<string, int>? specialTokens = null) :
+        internal SentencePieceTokenizer(ModelProto modelProto, bool addBos, bool addEos, IReadOnlyDictionary<string, int>? specialTokens = null) :
             this(modelProto is null ? throw new ArgumentNullException(nameof(modelProto)) : modelProto, specialTokens)
         {
             AddBeginningOfSentence = addBos;
             AddEndOfSentence = addEos;
         }
 
-        private SentencePieceBpeTokenizer(ModelProto modelProto, IReadOnlyDictionary<string, int>? specialTokens)
+        private SentencePieceTokenizer(ModelProto modelProto, IReadOnlyDictionary<string, int>? specialTokens)
         {
             for (int i = 0; i < modelProto.Pieces.Count; i++)
             {
@@ -1735,7 +1735,7 @@ namespace Microsoft.ML.Tokenizers
                 prefixRemoved = true;
             }
 
-            static void TryDecodeAsSpecialToken(SentencePieceBpeTokenizer tokenizer, int id, bool considerSpecialTokens, ref ValueStringBuilder sb)
+            static void TryDecodeAsSpecialToken(SentencePieceTokenizer tokenizer, int id, bool considerSpecialTokens, ref ValueStringBuilder sb)
             {
                 if (!considerSpecialTokens)
                 {
@@ -1979,7 +1979,7 @@ namespace Microsoft.ML.Tokenizers
 
             return OperationStatus.Done;
 
-            static OperationStatus TryDecodeAsSpecialToken(SentencePieceBpeTokenizer tokenizer, int id, bool considerSpecialTokens, Span<char> buffer, ref int charsWritten)
+            static OperationStatus TryDecodeAsSpecialToken(SentencePieceTokenizer tokenizer, int id, bool considerSpecialTokens, Span<char> buffer, ref int charsWritten)
             {
                 string? specialToken = null;
 
