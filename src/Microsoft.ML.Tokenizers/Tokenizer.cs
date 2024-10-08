@@ -361,7 +361,7 @@ namespace Microsoft.ML.Tokenizers
         /// Types derived from <see cref="Tokenizer"/> may override this implementation to provide a more efficient implementation.
         /// By default, it uses <see cref="Decode(IEnumerable{int}, Span{char}, out int, out int)"/>.
         /// </remarks>
-        public virtual string? Decode(IEnumerable<int> ids)
+        public virtual string Decode(IEnumerable<int> ids)
         {
             if (ids is null)
             {

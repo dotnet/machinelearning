@@ -1231,7 +1231,7 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
         /// <returns>The decoded string.</returns>
-        public override string? Decode(IEnumerable<int> ids) => Decode(ids, hasPrefixSpace: AddPrefixSpace, considerSpecialTokens: false);
+        public override string Decode(IEnumerable<int> ids) => Decode(ids, hasPrefixSpace: AddPrefixSpace, considerSpecialTokens: false);
 
         /// <summary>
         /// Decode the given ids, back to a String.
@@ -1240,7 +1240,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="hasPrefixSpace">Indicate whether the encoded string has a leading space.</param>
         /// <param name="considerSpecialTokens">Indicate whether to consider special tokens during decoding.</param>
         /// <returns>The decoded string.</returns>
-        public string? Decode(IEnumerable<int> ids, bool hasPrefixSpace, bool considerSpecialTokens)
+        public string Decode(IEnumerable<int> ids, bool hasPrefixSpace, bool considerSpecialTokens)
         {
             if (ids is null)
             {

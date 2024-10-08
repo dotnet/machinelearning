@@ -1526,7 +1526,7 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
         /// <returns>The decoded string.</returns>
-        public override string? Decode(IEnumerable<int> ids)
+        public override string Decode(IEnumerable<int> ids)
             => Decode(ids, considerSpecialTokens: false);
 
         /// <summary>
@@ -1535,7 +1535,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="ids">The list of ids that we want to decode.</param>
         /// <param name="considerSpecialTokens">Indicate whether to consider special tokens during decoding.</param>
         /// <returns>The decoded string.</returns>
-        public string? Decode(IEnumerable<int> ids, bool considerSpecialTokens)
+        public string Decode(IEnumerable<int> ids, bool considerSpecialTokens)
         {
             if (ids is null)
             {

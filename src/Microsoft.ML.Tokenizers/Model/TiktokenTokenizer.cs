@@ -792,7 +792,7 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
         /// <returns>The decoded string.</returns>
-        public override string? Decode(IEnumerable<int> ids)
+        public override string Decode(IEnumerable<int> ids)
         {
             // Tiktoken doesn't guarantee a one-to-one correspondence between IDs and UTF-16 words.
             // Consequently, decoding individual IDs into UTF-16 string is not supported; instead, decoding all IDs must be performed collectively.
@@ -823,10 +823,6 @@ namespace Microsoft.ML.Tokenizers
 
                         tokenBytes.Span.CopyTo(utf8Bytes.Slice(utf8ByteCount));
                         utf8ByteCount += tokenBytes.Length;
-                    }
-                    else
-                    {
-                        return null;
                     }
                 }
 

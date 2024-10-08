@@ -750,7 +750,7 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
         /// <returns>The decoded string.</returns>
-        public override string? Decode(IEnumerable<int> ids)
+        public override string Decode(IEnumerable<int> ids)
         {
             if (ids is null)
             {
