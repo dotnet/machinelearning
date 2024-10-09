@@ -14,33 +14,25 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     public sealed partial class WhiteSpacePreTokenizer : PreTokenizer
     {
-        /// <summary>
-        /// Gets a singleton instance of the WhiteSpace pre-tokenizer..
-        /// </summary>
-        public static WhiteSpacePreTokenizer Instance { get; } = new WhiteSpacePreTokenizer();
+        private readonly TiktokenPreTokenizer _tiktokenPreTokenizer;
 
         private const string PretokenizePattern = /*lang=regex*/ @"\w+|[^\w\s]+";
 #if NET7_0_OR_GREATER
         [GeneratedRegex(PretokenizePattern)]
         private static partial Regex PretokenizeRegex();
 #else
-        private static readonly Regex _regex = new Regex(PretokenizePattern, RegexOptions.Compiled);
-        private static Regex PretokenizeRegex() => _regex;
+        private static Regex Regex { get; } = new Regex(PretokenizePattern, RegexOptions.Compiled);
+        private static Regex PretokenizeRegex() => Regex;
 #endif
 
         /// <summary>
-        /// Get the offsets and lengths of the tokens relative to the <paramref name="text"/>.
+        /// Gets a singleton instance of the WhiteSpace pre-tokenizer..
         /// </summary>
-        /// <param name="text">The string to split into tokens.</param>
-        /// <returns>The offsets and lengths of the tokens, expressed as pairs, are relative to the original string.</returns>
-        public override IEnumerable<(int Offset, int Length)> PreTokenize(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return [];
-            }
+        public static WhiteSpacePreTokenizer Instance { get; } = new WhiteSpacePreTokenizer(specialTokensEncoder: null);
 
-            return SplitText(text, PretokenizeRegex());
+        public WhiteSpacePreTokenizer(IReadOnlyDictionary<string, int>? specialTokensEncoder = null)
+        {
+            _tiktokenPreTokenizer = new TiktokenPreTokenizer(PretokenizeRegex(), specialTokensEncoder);
         }
 
         /// <summary>
@@ -48,14 +40,13 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="text">The string to split into tokens.</param>
         /// <returns>The offsets and lengths of the tokens, expressed as pairs, are relative to the original string.</returns>
-        public override IEnumerable<(int Offset, int Length)> PreTokenize(ReadOnlySpan<char> text)
-        {
-            if (text.IsEmpty)
-            {
-                return [];
-            }
+        public override IEnumerable<(int Offset, int Length)> PreTokenize(string text) => _tiktokenPreTokenizer.PreTokenize(text);
 
-            return SplitText(text, PretokenizeRegex());
-        }
+        /// <summary>
+        /// Get the offsets and lengths of the tokens relative to the <paramref name="text"/>.
+        /// </summary>
+        /// <param name="text">The string to split into tokens.</param>
+        /// <returns>The offsets and lengths of the tokens, expressed as pairs, are relative to the original string.</returns>
+        public override IEnumerable<(int Offset, int Length)> PreTokenize(ReadOnlySpan<char> text) => _tiktokenPreTokenizer.PreTokenize(text);
     }
 }
