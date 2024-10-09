@@ -353,7 +353,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
         /// <summary>
         /// Create an OnnxModel from a byte[]. Set execution to GPU if required.
-        /// Usually, a ONNX model is consumed by <see cref="OnnxModel"/> as a file.
+        /// Usually, an ONNX model is consumed by <see cref="OnnxModel"/> as a file.
         /// With <see cref="CreateFromBytes(byte[], IHostEnvironment)"/> and
         /// <see cref="CreateFromBytes(byte[], IHostEnvironment, int?, bool, IDictionary{string, int[]}, int)"/>,
         /// it's possible to use in-memory model (type: byte[]) to create <see cref="OnnxModel"/>.
@@ -374,6 +374,35 @@ namespace Microsoft.ML.Transforms.Onnx
             File.WriteAllBytes(tempModelFile, modelBytes);
             return new OnnxModel(tempModelFile, gpuDeviceId, fallbackToCpu,
                 ownModelFile: true, shapeDictionary: shapeDictionary, recursionLimit);
+        }
+
+        /// <summary>
+        /// Create an OnnxModel from a <see cref="System.IO.Stream"/> of byte. Set execution to GPU if required.
+        /// Usually, an ONNX model is consumed by <see cref="OnnxModel"/> as a file.
+        /// With <see cref="CreateFromBytes(byte[], IHostEnvironment)"/> and
+        /// <see cref="CreateFromBytes(byte[], IHostEnvironment, int?, bool, IDictionary{string, int[]}, int)"/>,
+        /// it's possible to use in-memory model (type: byte[]) to create <see cref="OnnxModel"/>.
+        /// </summary>
+        /// <param name="modelBytes">Bytes of the serialized model.</param>
+        /// <param name="env">IHostEnvironment</param>
+        /// <param name="gpuDeviceId">GPU device ID to execute on. Null for CPU.</param>
+        /// <param name="fallbackToCpu">If true, resumes CPU execution quietly upon GPU error.</param>
+        /// <param name="shapeDictionary">User-provided shapes. If the key "myTensorName" is associated
+        /// with the value [1, 3, 5], the shape of "myTensorName" will be set to [1, 3, 5].
+        /// The shape loaded from <paramref name="modelBytes"/> would be overwritten.</param>
+        /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
+        /// <returns>An <see cref="OnnxModel"/></returns>
+        public static OnnxModel CreateFromStream(Stream modelBytes, IHostEnvironment env, int? gpuDeviceId = null, bool fallbackToCpu = false,
+            IDictionary<string, int[]> shapeDictionary = null, int recursionLimit = 100)
+        {
+            var tempModelFile = Path.Combine(((IHostEnvironmentInternal)env).TempFilePath, Path.GetRandomFileName());
+            using (var fileStream = File.Create(tempModelFile))
+            {
+                modelBytes.Seek(0, SeekOrigin.Begin);
+                modelBytes.CopyTo(fileStream);
+            }
+            return new OnnxModel(tempModelFile, gpuDeviceId, fallbackToCpu,
+                ownModelFile: false, shapeDictionary: shapeDictionary, recursionLimit);
         }
 
         /// <summary>

@@ -233,6 +233,59 @@ namespace Microsoft.ML.Tests
         }
 
         [OnnxFact]
+        public void OnnxStreamWorkout()
+        {
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "squeezenet", "00000001", "model.onnx");
+
+            using FileStream fileStream = File.OpenRead(modelFile);
+
+            var env = new MLContext(1);
+            var imageHeight = 224;
+            var imageWidth = 224;
+            var dataFile = GetDataPath("images/images.tsv");
+            var imageFolder = Path.GetDirectoryName(dataFile);
+
+            var data = ML.Data.LoadFromTextFile(dataFile, new[] {
+                new TextLoader.Column("imagePath", DataKind.String, 0),
+                new TextLoader.Column("name", DataKind.String, 1)
+            });
+            // Note that CamelCase column names are there to match the TF graph node names.
+            var pipe = ML.Transforms.LoadImages("data_0", imageFolder, "imagePath")
+                .Append(ML.Transforms.ResizeImages("data_0", imageHeight, imageWidth))
+                .Append(ML.Transforms.ExtractPixels("data_0", interleavePixelColors: true))
+                .Append(ML.Transforms.ApplyOnnxModel("softmaxout_1", "data_0", fileStream, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu));
+
+            TestEstimatorCore(pipe, data);
+
+            var model = pipe.Fit(data);
+            var result = model.Transform(data);
+
+            // save and reload the model
+            var tempPath = Path.GetTempFileName();
+            ML.Model.Save(model, data.Schema, tempPath);
+            var loadedModel = ML.Model.Load(tempPath, out DataViewSchema modelSchema);
+            (loadedModel as IDisposable)?.Dispose();
+
+            var softmaxOutCol = result.Schema["softmaxout_1"];
+
+            using (var cursor = result.GetRowCursor(softmaxOutCol))
+            {
+                var buffer = default(VBuffer<float>);
+                var getter = cursor.GetGetter<VBuffer<float>>(softmaxOutCol);
+                var numRows = 0;
+                while (cursor.MoveNext())
+                {
+                    getter(ref buffer);
+                    Assert.Equal(1000, buffer.Length);
+                    numRows += 1;
+                }
+                Assert.Equal(4, numRows);
+            }
+            (model as IDisposable)?.Dispose();
+            File.Delete(tempPath);
+        }
+
+        [OnnxFact]
         public void OnnxWorkout()
         {
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "squeezenet", "00000001", "model.onnx");
