@@ -1237,7 +1237,7 @@ namespace Microsoft.ML.Tokenizers
                         cache.encoder,
                         cache.decoder,
                         cache.vocab,
-                        new TiktokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
+                        new RegexPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
                         tiktokenConfiguration.SpecialTokens,
                         normalizer,
                         LruCache<int[]>.DefaultCacheSize);
@@ -1365,7 +1365,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return new TiktokenTokenizer(vocabStream,
-                            new TiktokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
+                            new RegexPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
                             tiktokenConfiguration.SpecialTokens,
                             normalizer,
                             cacheSize);
@@ -1405,7 +1405,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return await CreateAsync(vocabStream,
-                                new TiktokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
+                                new RegexPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
                                 normalizer,
                                 tiktokenConfiguration.SpecialTokens,
                                 cacheSize, cancellationToken).ConfigureAwait(false);

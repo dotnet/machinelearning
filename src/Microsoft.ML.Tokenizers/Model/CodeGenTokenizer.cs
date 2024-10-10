@@ -1894,7 +1894,7 @@ namespace Microsoft.ML.Tokenizers
             return new CodeGenTokenizer(
                         vocabStream,
                         mergesStream,
-                        new TiktokenPreTokenizer(TiktokenTokenizer.P50kBaseRegex(), CodeGenTokenizer.CodeGenAddedTokens),
+                        new RegexPreTokenizer(TiktokenTokenizer.P50kBaseRegex(), CodeGenTokenizer.CodeGenAddedTokens),
                         normalizer: null,
                         CodeGenTokenizer.CodeGenAddedTokens,
                         addPrefixSpace: addPrefixSpace,

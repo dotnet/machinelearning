@@ -251,7 +251,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             try
             {
-                BpeTokenizer bpe = BpeTokenizer.Create(vocabFile: vocabFile, mergesFile: mergesFile, preTokenizer: WhiteSpacePreTokenizer.Instance, normalizer: null, unknownToken: unknownToken,
+                BpeTokenizer bpe = BpeTokenizer.Create(vocabFile: vocabFile, mergesFile: mergesFile, preTokenizer: PreTokenizer.CreateWhiteSpace(), normalizer: null, unknownToken: unknownToken,
                                     continuingSubwordPrefix: continuingSubwordPrefix, endOfWordSuffix: endOfWordSuffix, fuseUnknownTokens: fuseUnknownToken);
                 Tokenizer tokenizer = bpe;
                 IReadOnlyList<EncodedToken> encoding = tokenizer.EncodeToTokens(sentence, out _);
@@ -500,7 +500,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             using Stream vocabStream = File.OpenRead(Path.Combine(@"Gpt-2", "vocab.json"));
             using Stream mergesStream = File.OpenRead(Path.Combine(@"Gpt-2", "merges.txt"));
 
-            var bpeTokenizer = BpeTokenizer.Create(vocabStream, mergesStream, new WhiteSpacePreTokenizer(addedTokens), normalizer: null, addedTokens: addedTokens, unknownToken: "<|endoftext|>");
+            var bpeTokenizer = BpeTokenizer.Create(vocabStream, mergesStream, PreTokenizer.CreateWhiteSpace(addedTokens), normalizer: null, addedTokens: addedTokens, unknownToken: "<|endoftext|>");
 
             string input = "Hello, y'all! <issue_comment>How are you 😁 ?<|endoftext|>";
 
@@ -556,7 +556,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             emptyVocabStream.Position = 0;
 
             return BpeTokenizer.Create(
-                        vocabStream: emptyVocabStream, mergesStream: null, preTokenizer: preTokenizer ?? WhiteSpacePreTokenizer.Instance, normalizer: normalizer, unknownToken: "Ukn");
+                        vocabStream: emptyVocabStream, mergesStream: null, preTokenizer: preTokenizer ?? PreTokenizer.CreateWhiteSpace(), normalizer: normalizer, unknownToken: "Ukn");
         }
     }
 }
