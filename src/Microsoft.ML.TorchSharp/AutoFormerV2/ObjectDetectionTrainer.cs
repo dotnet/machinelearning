@@ -384,7 +384,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                     var padW = 32 - (image.Width % 32);
                     var padH = 32 - (image.Height % 32);
                     using var transMidTensor = torch.zeros(1, 3, image.Height + padH, image.Width + padW, device: Device);
-                    transMidTensor[.., .., ..image.Height, ..image.Width] = reMidTensor / 255.0;
+                    transMidTensor[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..image.Height), RangeUtil.ToTensorIndex(..image.Width)] = reMidTensor / 255.0;
                     var imageTensor = Normalize(transMidTensor, Device);
 
                     VBuffer<uint> labels = default;
@@ -407,11 +407,11 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                         long y1 = (long)boxValues[b++];
                         // Our labels are 1 based, the TorchSharp model is 0 based so subtract 1 to they align correctly.
                         long cl = labelValues[i] - 1;
-                        labelTensor[.., i, 0] = x0;
-                        labelTensor[.., i, 1] = y0;
-                        labelTensor[.., i, 2] = x1;
-                        labelTensor[.., i, 3] = y1;
-                        labelTensor[.., i, 4] = cl;
+                        labelTensor[RangeUtil.ToTensorIndex(..), i, 0] = x0;
+                        labelTensor[RangeUtil.ToTensorIndex(..), i, 1] = y0;
+                        labelTensor[RangeUtil.ToTensorIndex(..), i, 2] = x1;
+                        labelTensor[RangeUtil.ToTensorIndex(..), i, 3] = y1;
+                        labelTensor[RangeUtil.ToTensorIndex(..), i, 4] = cl;
                     }
                     return (imageTensor.MoveToOuterDisposeScope(), labelTensor.MoveToOuterDisposeScope());
                 }
@@ -919,7 +919,7 @@ namespace Microsoft.ML.TorchSharp.AutoFormerV2
                     var padW = 32 - (image.Width % 32);
                     var padH = 32 - (image.Height % 32);
                     var transMidTensor = torch.zeros(1, 3, image.Height + padH, image.Width + padW, device: _parent.Device);
-                    transMidTensor[.., .., ..image.Height, ..image.Width] = reMidTensor / 255.0;
+                    transMidTensor[RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..), RangeUtil.ToTensorIndex(..image.Height), RangeUtil.ToTensorIndex(..image.Width)] = reMidTensor / 255.0;
                     var imageTensor = ObjectDetectionTrainer.Trainer.Normalize(transMidTensor, _parent.Device);
                     return imageTensor.MoveToOuterDisposeScope();
                 }

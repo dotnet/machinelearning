@@ -112,7 +112,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     if (count >= settings.MaxTokenCount)
                         break;
 
-                    tokens.Add(new EncodedToken(c - 'a', c.ToString(), (count, 1)));
+                    tokens.Add(new EncodedToken(c - 'a', c.ToString(), new Range(count, count + 1)));
                     count++;
                 }
 
@@ -152,7 +152,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 {
                     string prefixString = (processedText1 ?? input).Substring(0, index1);
 
-                    if (tokenizer is SentencePieceBpeTokenizer)
+                    if (tokenizer is SentencePieceTokenizer)
                     {
                         // SentencePieceBpe model normalize the text and insert more characters.
                         // We call the model directly to bypass the normalization step
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 {
                     string suffixString = (processedText2 ?? input).Substring(index2);
 
-                    if (tokenizer is SentencePieceBpeTokenizer)
+                    if (tokenizer is SentencePieceTokenizer)
                     {
                         // SentencePieceBpe model normalize the text and insert more characters.
                         // We call the model directly to bypass the normalization step

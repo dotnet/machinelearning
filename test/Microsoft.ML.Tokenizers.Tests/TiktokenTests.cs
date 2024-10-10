@@ -145,10 +145,10 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             int[] ids = result.Select(token => token.Id).ToArray();
             string[] tokens = result.Select(token => token.Value).ToArray();
-            (int, int)[] offsets = result.Select(token => token.Offset).ToArray();
+            Range[] offsets = result.Select(token => token.Offset).ToArray();
             Assert.Equal(encoded, ids);
             Assert.Equal(new string[] { "Hello", " World" }, tokens);
-            Assert.Equal(new List<(int, int)> { (0, 5), (5, 6) }, offsets);
+            Assert.Equal(new List<Range> { new Range(0, 5), new Range(5, 11) }, offsets);
             Assert.Equal(encoded.Count, idsCount);
             Assert.Equal(encoded, ids);
 
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             int[] ids = result.Select(token => token.Id).ToArray();
             string[] tokens = result.Select(token => token.Value).ToArray();
-            (int, int)[] offsets = result.Select(token => token.Offset).ToArray();
+            (int, int)[] offsets = result.Select(token => (token.Offset.Start.Value, token.Offset.End.Value - token.Offset.Start.Value)).ToArray();
 
             Assert.Equal(encoded, ids);
             Assert.Equal(new string[] { "<|im_start|>", "Hello", " World", "<|im_end|>" }, tokens);
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             IReadOnlyList<EncodedToken> result = GPT4.EncodeToTokens(text, out string? normalizedString);
             int[] ids = result.Select(token => token.Id).ToArray();
             string[] tokens = result.Select(token => token.Value).ToArray();
-            (int, int)[] offsets = result.Select(token => token.Offset).ToArray();
+            (int, int)[] offsets = result.Select(token => (token.Offset.Start.Value, token.Offset.End.Value - token.Offset.Start.Value)).ToArray();
 
             int idsCount = GPT4.CountTokens(text);
             Assert.Equal(encoded, ids);
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(encoded, result.Select(token => token.Id).ToArray());
             Assert.Equal(encoded.Count, idsCount);
             Assert.Equal(new string[] { "<|im_start|>", "Hello", " ⭐", "⭐", " World", "<|im_end|>" }, result.Select(token => token.Value).ToArray());
-            Assert.Equal(new List<(int, int)> { (0, 12), (12, 5), (17, 2), (18, 1), (19, 6), (25, 10) }, result.Select(token => token.Offset).ToArray());
+            Assert.Equal(new List<(int, int)> { (0, 12), (12, 5), (17, 2), (18, 1), (19, 6), (25, 10) }, result.Select(token => (token.Offset.Start.Value, token.Offset.End.Value - token.Offset.Start.Value)).ToArray());
         }
 
         [Fact]
@@ -310,7 +310,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(encoded, result.Select(token => token.Id).ToArray());
             Assert.Equal(encoded.Count, idsCount);
             Assert.Equal(new string[] { "<|endoftext|>", "Hello", " ⭐", " World", "<|endofprompt|>" }, result.Select(token => token.Value).ToArray());
-            Assert.Equal(new List<(int, int)> { (0, 13), (13, 5), (18, 2), (20, 6), (26, 15) }, result.Select(token => token.Offset).ToArray());
+            Assert.Equal(new List<(int, int)> { (0, 13), (13, 5), (18, 2), (20, 6), (26, 15) }, result.Select(token => (token.Offset.Start.Value, token.Offset.End.Value - token.Offset.Start.Value)).ToArray());
 
             TokenizerTests.TestTokenLimits(GPT4o);
         }
@@ -392,6 +392,8 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Theory]
+        [InlineData("o1")]
+        [InlineData("o1-")]
         [InlineData("gpt-4o")]
         [InlineData("gpt-4o-")]
         [InlineData("gpt-4")]
@@ -493,6 +495,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
         [InlineData("gpt-4")]
         [InlineData("gpt-4o")]
+        [InlineData("o1")]
         [InlineData("text-davinci-003")]
         [InlineData("text-curie-001")]
         [InlineData("text-davinci-edit-001")]
@@ -566,11 +569,11 @@ namespace Microsoft.ML.Tokenizers.Tests
             IReadOnlyList<EncodedToken> encoding1 = tokenizer.EncodeToTokens(text.AsSpan(), out _);
 
             Assert.Equal(expectedTokens, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal(expectedOffsets, encoding.Select(t => t.Offset).ToArray());
+            Assert.Equal(expectedOffsets, encoding.Select(t => (t.Offset.Start.Value, t.Offset.End.Value - t.Offset.Start.Value)).ToArray());
             Assert.Equal(expectedIds, encoding.Select(t => t.Id).ToArray());
 
             Assert.Equal(expectedTokens, encoding1.Select(t => t.Value).ToArray());
-            Assert.Equal(expectedOffsets, encoding1.Select(t => t.Offset).ToArray());
+            Assert.Equal(expectedOffsets, encoding1.Select(t => (t.Offset.Start.Value, t.Offset.End.Value - t.Offset.Start.Value)).ToArray());
             Assert.Equal(expectedIds, encoding1.Select(t => t.Id).ToArray());
 
             Assert.Equal(expectedIds, tokenizer.EncodeToIds(text));
@@ -679,7 +682,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             IReadOnlyList<EncodedToken> result = GPT4.EncodeToTokens(text, out _);
             int[] ids = result.Select(r => r.Id).ToArray();
-            (int Index, int Length)[] offsets = result.Select(r => r.Offset).ToArray();
+            (int Index, int Length)[] offsets = result.Select(r => (r.Offset.Start.Value, r.Offset.End.Value - r.Offset.Start.Value)).ToArray();
             Assert.Equal(expectedTokens, result.Select(r => r.Value));
             Assert.Equal(expectedIds, ids);
             Assert.Equal(expectedOffsets, offsets);

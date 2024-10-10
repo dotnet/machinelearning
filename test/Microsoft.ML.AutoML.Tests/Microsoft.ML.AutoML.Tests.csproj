@@ -5,6 +5,10 @@
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.Data.Analysis\Microsoft.Data.Analysis.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />

@@ -66,7 +66,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             if (treatWhitespaceAsSuffix)
             {
-                PropertyInfo? propertyInfo = typeof(SentencePieceBpeTokenizer).GetProperty("TreatWhitespaceAsSuffix", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                PropertyInfo? propertyInfo = typeof(SentencePieceTokenizer).GetProperty("TreatWhitespaceAsSuffix", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
                 if (propertyInfo != null)
                 {
                     propertyInfo.SetValue(tokenizer, true);
@@ -244,7 +244,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 IReadOnlyList<EncodedToken> result = llamaTokenizer.EncodeToTokens(input, out _);
                 Assert.Equal(ids, result.Select(t => t.Id).ToArray());
                 Assert.Equal(tokens, result.Select(t => t.Value).ToArray());
-                Assert.Equal(offsets, result.Select(t => t.Offset).ToArray());
+                Assert.Equal(offsets, result.Select(t => (t.Offset.Start.Value, t.Offset.End.Value - t.Offset.Start.Value)).ToArray());
                 Assert.Equal(input, llamaTokenizer.Decode(ids));
                 TestDecodingWithSpan(bpe, ids, input);
                 Assert.Equal(ids, llamaTokenizer.EncodeToIds(input));
@@ -501,14 +501,14 @@ namespace Microsoft.ML.Tokenizers.Tests
             IReadOnlyList<EncodedToken> encoding1 = tokenizer.EncodeToTokens(text.AsSpan(), out _);
 
             Assert.Equal(expectedTokens, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal(expectedOffsets, encoding.Select(t => t.Offset).ToArray());
+            Assert.Equal(expectedOffsets, encoding.Select(t => (t.Offset.Start.Value, t.Offset.End.Value - t.Offset.Start.Value)).ToArray());
             Assert.Equal(expectedIds, encoding.Select(t => t.Id).ToArray());
 
             Assert.Equal(expectedTokens, encoding1.Select(t => t.Value).ToArray());
-            Assert.Equal(expectedOffsets, encoding1.Select(t => t.Offset).ToArray());
+            Assert.Equal(expectedOffsets, encoding1.Select(t => (t.Offset.Start.Value, t.Offset.End.Value - t.Offset.Start.Value)).ToArray());
             Assert.Equal(expectedIds, encoding1.Select(t => t.Id).ToArray());
 
-            SentencePieceBpeTokenizer sentencePieceBpe = (tokenizer as SentencePieceBpeTokenizer)!;
+            SentencePieceTokenizer sentencePieceBpe = (tokenizer as SentencePieceTokenizer)!;
             foreach (bool considerNormalization in new[] { true, false })
                 foreach (bool addBeginningOfSentence in new[] { true, false })
                     foreach (bool addEndOfSentence in new[] { true, false })
@@ -539,7 +539,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                         expectedIds1 = addEndOfSentence ? expectedIds1.Concat(new[] { sentencePieceBpe.EndOfSentenceId }).ToArray() : expectedIds1;
 
                         Assert.Equal(expectedTokens1, encoding.Select(t => t.Value).ToArray());
-                        Assert.Equal(expectedOffsets1, encoding.Select(t => t.Offset).ToArray());
+                        Assert.Equal(expectedOffsets1, encoding.Select(t => (t.Offset.Start.Value, t.Offset.End.Value - t.Offset.Start.Value)).ToArray());
                         Assert.Equal(expectedIds1, encoding.Select(t => t.Id).ToArray());
                     }
         }
@@ -562,7 +562,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(normalizedText, normalizedString);
             Assert.Equal(normalizedText.Length, length);
 
-            SentencePieceBpeTokenizer sentencePieceBpe = (tokenizer as SentencePieceBpeTokenizer)!;
+            SentencePieceTokenizer sentencePieceBpe = (tokenizer as SentencePieceTokenizer)!;
             foreach (bool considerNormalization in new[] { true, false })
                 foreach (bool addBeginningOfSentence in new[] { true, false })
                     foreach (bool addEndOfSentence in new[] { true, false })

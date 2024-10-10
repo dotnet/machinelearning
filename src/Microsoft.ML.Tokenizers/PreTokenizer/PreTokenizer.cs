@@ -13,7 +13,7 @@ namespace Microsoft.ML.Tokenizers
     /// Base class for all pre-tokenizers classes.
     /// The PreTokenizer is in charge of doing the pre-segmentation step.
     /// </summary>
-    public abstract class PreTokenizer
+    public abstract partial class PreTokenizer
     {
         /// <summary>
         /// Get the offsets and lengths of the tokens relative to the <paramref name="text"/>.
@@ -38,6 +38,32 @@ namespace Microsoft.ML.Tokenizers
                 yield return (match.Offset, match.Length);
                 beginning = match.Offset + match.Length;
             }
+        }
+
+        private const string WhiteSpacePattern = /*lang=regex*/ @"\w+|[^\w\s]+";
+        private static PreTokenizer? _whiteSpacePreTokenizer;
+#if NET7_0_OR_GREATER
+        [GeneratedRegex(WhiteSpacePattern)]
+        private static partial Regex WhiteSpaceRegex();
+#else
+        private static Regex WhiteSpaceRegex() => new Regex(WhiteSpacePattern, RegexOptions.Compiled);
+#endif
+
+        /// <summary>
+        /// Create a new instance of the <see cref="PreTokenizer"/> class which split the text at the word boundary.
+        /// The word is a set of alphabet, numeric, and underscore characters.
+        /// </summary>
+        /// <param name="specialTokensEncoder">The dictionary containing the special tokens and their corresponding ids.</param>
+        /// <returns>The pre-tokenizer that splits the text at the word boundary.</returns>
+        public static PreTokenizer CreateWhiteSpace(IReadOnlyDictionary<string, int>? specialTokensEncoder = null)
+        {
+            if (specialTokensEncoder is null)
+            {
+                // return a singleton instance of the WhiteSpace pre-tokenizer
+                return _whiteSpacePreTokenizer ??= new RegexPreTokenizer(WhiteSpaceRegex(), null);
+            }
+
+            return new RegexPreTokenizer(WhiteSpaceRegex(), specialTokensEncoder);
         }
 
         internal static IEnumerable<(int Offset, int Length)> SplitText(ReadOnlySpan<char> text, Regex regex)

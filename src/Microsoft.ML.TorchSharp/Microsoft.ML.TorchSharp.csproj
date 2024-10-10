@@ -19,6 +19,7 @@
     <PackageReference Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows'))" PrivateAssets="all" />
     <PackageReference Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux'))" PrivateAssets="all" />
     <PackageReference Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX'))" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Bcl.Memory" Version="$(MicrosoftBclMemoryVersion)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,13 +33,13 @@
   <ItemGroup>
       <EmbeddedResource Include="Resources\dict.txt">
         <LogicalName>dict.txt</LogicalName>
-      </EmbeddedResource>    
+      </EmbeddedResource>
       <EmbeddedResource Include="Resources\encoder.json">
         <LogicalName>encoder.json</LogicalName>
-      </EmbeddedResource>    
+      </EmbeddedResource>
       <EmbeddedResource Include="Resources\vocab.bpe">
         <LogicalName>vocab.bpe</LogicalName>
-      </EmbeddedResource>    
+      </EmbeddedResource>
   </ItemGroup>
 
 </Project>

@@ -255,7 +255,7 @@ public class CausalLMPipeline : ICausalLMPipeline
 
                 return tokens
                 // Skip the first _ token automatically added by tokenizer
-                .Where(t => t.Offset != (0, 0))
+                .Where(t => !t.Offset.Equals(new Range(0, 0)))
                 .Select(t => t.Id)
                 .ToArray();
             }));
@@ -268,13 +268,13 @@ public class CausalLMPipeline : ICausalLMPipeline
             var tokenIds = token[0].to_type(ScalarType.Int32).data<int>().ToArray();
             var duplicateTokenString = this.Tokenizer switch
             {
-                SentencePieceBpeTokenizer bpeTokenizer => bpeTokenizer.Decode(tokenIds.Concat(tokenIds), considerSpecialTokens: true) ?? throw new InvalidOperationException("Failed to decode token ids"),
+                SentencePieceTokenizer bpeTokenizer => bpeTokenizer.Decode(tokenIds.Concat(tokenIds), considerSpecialTokens: true) ?? throw new InvalidOperationException("Failed to decode token ids"),
                 _ => this.Tokenizer.Decode(tokenIds.Concat(tokenIds)) ?? throw new InvalidOperationException("Failed to decode token ids"),
             };
 
             var tokenString = this.Tokenizer switch
             {
-                SentencePieceBpeTokenizer bpeTokenizer => bpeTokenizer.Decode(tokenIds, considerSpecialTokens: true) ?? throw new InvalidOperationException("Failed to decode token ids"),
+                SentencePieceTokenizer bpeTokenizer => bpeTokenizer.Decode(tokenIds, considerSpecialTokens: true) ?? throw new InvalidOperationException("Failed to decode token ids"),
                 _ => this.Tokenizer.Decode(tokenIds) ?? throw new InvalidOperationException("Failed to decode token ids"),
             };
 

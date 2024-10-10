@@ -296,7 +296,7 @@ namespace Microsoft.ML.Tokenizers
             for (int i = 0; i < SymbolsCount; i++)
             {
                 int endIndex = index + _symbols[i].Len;
-                tokens.Add(new EncodedToken(_symbols[i].C, vocabReverse[_symbols[i].C], (index + offset, _symbols[i].Len)));
+                tokens.Add(new EncodedToken(_symbols[i].C, vocabReverse[_symbols[i].C], new Range(index + offset, index + offset + _symbols[i].Len)));
                 index += _symbols[i].Len;
             }
         }

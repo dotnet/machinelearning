@@ -49,7 +49,7 @@ public class LlamaTokenizerHelper
         string modelFile = "tokenizer.model")
     {
         var modelFilePath = Path.Join(modelWeightFolder, modelFile);
-        var preTokenizer = new TiktokenPreTokenizer(new Regex(_re), _specialTokens);
+        var preTokenizer = new RegexPreTokenizer(new Regex(_re), _specialTokens);
         return TiktokenTokenizer.Create(File.OpenRead(modelFilePath), preTokenizer, normalizer: null, specialTokens: _specialTokens);
     }
 }
