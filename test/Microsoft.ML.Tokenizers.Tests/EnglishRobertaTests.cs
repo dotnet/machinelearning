@@ -182,11 +182,11 @@ namespace Microsoft.ML.Tokenizers.Tests
             IReadOnlyList<EncodedToken> encoding1 = tokenizer.EncodeToTokens(text.AsSpan(), out _);
 
             Assert.Equal(expectedTokens, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal(expectedOffsets, encoding.Select(t => t.Offset).ToArray());
+            Assert.Equal(expectedOffsets, encoding.Select(t => (t.Offset.Start.Value, t.Offset.End.Value - t.Offset.Start.Value)).ToArray());
             Assert.Equal(expectedIds, encoding.Select(t => t.Id).ToArray());
 
             Assert.Equal(expectedTokens, encoding1.Select(t => t.Value).ToArray());
-            Assert.Equal(expectedOffsets, encoding1.Select(t => t.Offset).ToArray());
+            Assert.Equal(expectedOffsets, encoding1.Select(t => (t.Offset.Start.Value, t.Offset.End.Value - t.Offset.Start.Value)).ToArray());
             Assert.Equal(expectedIds, encoding1.Select(t => t.Id).ToArray());
 
             Assert.Equal(expectedIds, tokenizer.EncodeToIds(text));
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 }
 
                 int[] encodingIds = encoding.Select(t => t.Id).ToArray();
-                (int, int)[] offsets = encoding.Select(t => t.Offset).ToArray();
+                (int, int)[] offsets = encoding.Select(t => (t.Offset.Start.Value, t.Offset.End.Value - t.Offset.Start.Value)).ToArray();
                 string[] tokens = encoding.Select(t => t.Value).ToArray();
 
                 Assert.Equal(p[1], encodingIds);

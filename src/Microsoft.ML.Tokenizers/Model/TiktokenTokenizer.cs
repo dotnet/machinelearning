@@ -307,7 +307,7 @@ namespace Microsoft.ML.Tokenizers
                     tokens.Add(new EncodedToken(
                                         value[i].Id,
                                         value[i].TokenLength == 0 ? string.Empty : text.Slice(value[i].TokenIndex, value[i].TokenLength).ToString(),
-                                        (value[i].TokenIndex + offset, value[i].TokenLength)));
+                                        new Range(value[i].TokenIndex + offset, value[i].TokenIndex + offset + value[i].TokenLength)));
                 }
 
                 return;
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Tokenizers
             // cache miss
             if (_vocab.TryGetValue(text, out (int Id, string Token) mappedId))
             {
-                tokens.Add(new EncodedToken(mappedId.Id, mappedId.Token, (offset, mappedId.Token.Length)));
+                tokens.Add(new EncodedToken(mappedId.Id, mappedId.Token, new Range(offset, offset + mappedId.Token.Length)));
                 return;
             }
 
@@ -348,7 +348,7 @@ namespace Microsoft.ML.Tokenizers
                 tokens.Add(new EncodedToken(
                                 encodedTokens[i].Id,
                                 encodedTokens[i].TokenLength == 0 ? string.Empty : text.Slice(encodedTokens[i].TokenIndex, encodedTokens[i].TokenLength).ToString(),
-                                (encodedTokens[i].TokenIndex + offset, encodedTokens[i].TokenLength)));
+                                new Range(encodedTokens[i].TokenIndex + offset, encodedTokens[i].TokenIndex + offset + encodedTokens[i].TokenLength)));
             }
         }
 
@@ -792,7 +792,7 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
         /// <returns>The decoded string.</returns>
-        public override string? Decode(IEnumerable<int> ids)
+        public override string Decode(IEnumerable<int> ids)
         {
             // Tiktoken doesn't guarantee a one-to-one correspondence between IDs and UTF-16 words.
             // Consequently, decoding individual IDs into UTF-16 string is not supported; instead, decoding all IDs must be performed collectively.
@@ -823,10 +823,6 @@ namespace Microsoft.ML.Tokenizers
 
                         tokenBytes.Span.CopyTo(utf8Bytes.Slice(utf8ByteCount));
                         utf8ByteCount += tokenBytes.Length;
-                    }
-                    else
-                    {
-                        return null;
                     }
                 }
 
@@ -1029,6 +1025,7 @@ namespace Microsoft.ML.Tokenizers
         private static readonly (string Prefix, ModelEncoding Encoding)[] _modelPrefixToEncoding =
                                                             [
                                                                 // chat
+                                                                ( "o1-", ModelEncoding.O200kBase ),       // e.g. o1-mini
                                                                 ( "gpt-4o-", ModelEncoding.O200kBase),    // e.g., gpt-4o-2024-05-13
                                                                 ( "gpt-4-", ModelEncoding.Cl100kBase),    // e.g., gpt-4-0314, etc., plus gpt-4-32k
                                                                 ( "gpt-3.5-", ModelEncoding.Cl100kBase),  // e.g, gpt-3.5-turbo-0301, -0401, etc.
@@ -1040,6 +1037,7 @@ namespace Microsoft.ML.Tokenizers
                                                             {
                                                                 // chat
                                                                 { "gpt-4o", ModelEncoding.O200kBase },
+                                                                { "o1", ModelEncoding.O200kBase },
                                                                 { "gpt-4", ModelEncoding.Cl100kBase },
                                                                 { "gpt-3.5-turbo", ModelEncoding.Cl100kBase },
                                                                 { "gpt-3.5-turbo-16k", ModelEncoding.Cl100kBase },
@@ -1239,7 +1237,7 @@ namespace Microsoft.ML.Tokenizers
                         cache.encoder,
                         cache.decoder,
                         cache.vocab,
-                        new TiktokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
+                        new RegexPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
                         tiktokenConfiguration.SpecialTokens,
                         normalizer,
                         LruCache<int[]>.DefaultCacheSize);
@@ -1367,7 +1365,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return new TiktokenTokenizer(vocabStream,
-                            new TiktokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
+                            new RegexPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
                             tiktokenConfiguration.SpecialTokens,
                             normalizer,
                             cacheSize);
@@ -1407,7 +1405,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return await CreateAsync(vocabStream,
-                                new TiktokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
+                                new RegexPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
                                 normalizer,
                                 tiktokenConfiguration.SpecialTokens,
                                 cacheSize, cancellationToken).ConfigureAwait(false);

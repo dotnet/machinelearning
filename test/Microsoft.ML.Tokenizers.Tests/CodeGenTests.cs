@@ -235,13 +235,13 @@ namespace Microsoft.ML.Tokenizers.Tests
             {
                 Assert.Equal(expectedIdsWithSpace, encoding.Select(t => t.Id).ToArray());
                 Assert.Equal(expectedTokensWithSpace, encoding.Select(t => t.Value).ToArray());
-                Assert.Equal(expectedOffsetsWithSpace, encoding.Select(t => t.Offset).ToArray());
+                Assert.Equal(expectedOffsetsWithSpace, encoding.Select(t => (t.Offset.Start.Value, t.Offset.End.Value - t.Offset.Start.Value)).ToArray());
             }
             else
             {
                 Assert.Equal(expectedIds, encoding.Select(t => t.Id).ToArray());
                 Assert.Equal(expectedTokens, encoding.Select(t => t.Value).ToArray());
-                Assert.Equal(expectedOffsets, encoding.Select(t => t.Offset).ToArray());
+                Assert.Equal(expectedOffsets, encoding.Select(t => (t.Offset.Start.Value, t.Offset.End.Value - t.Offset.Start.Value)).ToArray());
             }
         }
 
@@ -555,22 +555,22 @@ namespace Microsoft.ML.Tokenizers.Tests
             tokensList.Insert(0, codeGenTokenizer.BeginningOfSentenceToken!);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((0, 0), encoding[0].Offset);
+            Assert.Equal((0, 0), (encoding[0].Offset.Start.Value, encoding[0].Offset.End.Value));
 
             encoding = codeGenTokenizer.EncodeToTokens(text.AsSpan(), out _);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((0, 0), encoding[0].Offset);
+            Assert.Equal((0, 0), (encoding[0].Offset.Start.Value, encoding[0].Offset.End.Value));
 
             encoding = codeGenTokenizer.EncodeToTokens(text, addPrefixSpace: false, addBeginningOfSentence: true, addEndOfSentence: false, out _);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((0, 0), encoding[0].Offset);
+            Assert.Equal((0, 0), (encoding[0].Offset.Start.Value, encoding[0].Offset.End.Value));
 
             encoding = codeGenTokenizer.EncodeToTokens(text.AsSpan(), addPrefixSpace: false, addBeginningOfSentence: true, addEndOfSentence: false, out _);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((0, 0), encoding[0].Offset);
+            Assert.Equal((0, 0), (encoding[0].Offset.Start.Value, encoding[0].Offset.End.Value));
 
             idList = new List<int>(expectedIdsWithSpace);
             idList.Insert(0, codeGenTokenizer.BeginningOfSentenceId!.Value);
@@ -579,32 +579,32 @@ namespace Microsoft.ML.Tokenizers.Tests
             encoding = codeGenTokenizer.EncodeToTokens(text, addPrefixSpace: true, addBeginningOfSentence: true, addEndOfSentence: false, out _);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((0, 0), encoding[0].Offset);
+            Assert.Equal((0, 0), (encoding[0].Offset.Start.Value, encoding[0].Offset.End.Value));
 
             encoding = codeGenTokenizer.EncodeToTokens(text.AsSpan(), addPrefixSpace: true, addBeginningOfSentence: true, addEndOfSentence: false, out _);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((0, 0), encoding[0].Offset);
+            Assert.Equal((0, 0), (encoding[0].Offset.Start.Value, encoding[0].Offset.End.Value));
 
             encoding = codeGenTokenizer.EncodeToTokens(text, addPrefixSpace: false, addBeginningOfSentence: false, addEndOfSentence: false, out _);
             Assert.Equal(expectedIds, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(expectedTokens, encoding.Select(t => t.Value).ToArray());
-            Assert.True(encoding[0].Offset != (0, 0) || encoding[1].Offset != (0, 0));
+            Assert.True(!encoding[0].Offset.Equals(new Range(0, 0)) || !encoding[1].Offset.Equals(new Range(0, 0)));
 
             encoding = codeGenTokenizer.EncodeToTokens(text.AsSpan(), addPrefixSpace: false, addBeginningOfSentence: false, addEndOfSentence: false, out _);
             Assert.Equal(expectedIds, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(expectedTokens, encoding.Select(t => t.Value).ToArray());
-            Assert.True(encoding[0].Offset != (0, 0) || encoding[1].Offset != (0, 0));
+            Assert.True(!encoding[0].Offset.Equals(new Range(0, 0)) || !encoding[1].Offset.Equals(new Range(0, 0)));
 
             encoding = codeGenTokenizer.EncodeToTokens(text, addPrefixSpace: true, addBeginningOfSentence: false, addEndOfSentence: false, out _);
             Assert.Equal(expectedIdsWithSpace, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(expectedTokensWithSpace, encoding.Select(t => t.Value).ToArray());
-            Assert.True(encoding[0].Offset != (0, 0) || encoding[1].Offset != (0, 0));
+            Assert.True(!encoding[0].Offset.Equals(new Range(0, 0)) || !encoding[1].Offset.Equals(new Range(0, 0)));
 
             encoding = codeGenTokenizer.EncodeToTokens(text.AsSpan(), addPrefixSpace: true, addBeginningOfSentence: false, addEndOfSentence: false, out _);
             Assert.Equal(expectedIdsWithSpace, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(expectedTokensWithSpace, encoding.Select(t => t.Value).ToArray());
-            Assert.True(encoding[0].Offset != (0, 0) || encoding[1].Offset != (0, 0));
+            Assert.True(!encoding[0].Offset.Equals(new Range(0, 0)) || !encoding[1].Offset.Equals(new Range(0, 0)));
 
             IReadOnlyList<int> ids = codeGenTokenizer.EncodeToIds(text);
             Assert.Equal(codeGenTokenizer.BeginningOfSentenceId.Value, ids[0]);
@@ -688,22 +688,22 @@ namespace Microsoft.ML.Tokenizers.Tests
             tokensList.Add(codeGenTokenizer.EndOfSentenceToken!);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.Equal(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             encoding = codeGenTokenizer.EncodeToTokens(text.AsSpan(), out _);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.Equal(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             encoding = codeGenTokenizer.EncodeToTokens(text, addPrefixSpace: false, addBeginningOfSentence: false, addEndOfSentence: true, out _);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.Equal(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             encoding = codeGenTokenizer.EncodeToTokens(text.AsSpan(), addPrefixSpace: false, addBeginningOfSentence: false, addEndOfSentence: true, out _);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.Equal(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             idList = new List<int>(expectedIdsWithSpace);
             idList.Add(codeGenTokenizer.EndOfSentenceId!.Value);
@@ -712,32 +712,32 @@ namespace Microsoft.ML.Tokenizers.Tests
             encoding = codeGenTokenizer.EncodeToTokens(text, addPrefixSpace: true, addBeginningOfSentence: false, addEndOfSentence: true, out _);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.Equal(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             encoding = codeGenTokenizer.EncodeToTokens(text.AsSpan(), addPrefixSpace: true, addBeginningOfSentence: false, addEndOfSentence: true, out _);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.Equal(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             encoding = codeGenTokenizer.EncodeToTokens(text, addPrefixSpace: false, addBeginningOfSentence: false, addEndOfSentence: false, out _);
             Assert.Equal(expectedIds, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(expectedTokens, encoding.Select(t => t.Value).ToArray());
-            Assert.NotEqual((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.NotEqual(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             encoding = codeGenTokenizer.EncodeToTokens(text.AsSpan(), addPrefixSpace: false, addBeginningOfSentence: false, addEndOfSentence: false, out _);
             Assert.Equal(expectedIds, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(expectedTokens, encoding.Select(t => t.Value).ToArray());
-            Assert.NotEqual((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.NotEqual(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             encoding = codeGenTokenizer.EncodeToTokens(text, addPrefixSpace: true, addBeginningOfSentence: false, addEndOfSentence: false, out _);
             Assert.Equal(expectedIdsWithSpace, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(expectedTokensWithSpace, encoding.Select(t => t.Value).ToArray());
-            Assert.NotEqual((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.NotEqual(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             encoding = codeGenTokenizer.EncodeToTokens(text.AsSpan(), addPrefixSpace: true, addBeginningOfSentence: false, addEndOfSentence: false, out _);
             Assert.Equal(expectedIdsWithSpace, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(expectedTokensWithSpace, encoding.Select(t => t.Value).ToArray());
-            Assert.NotEqual((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.NotEqual(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             ids = codeGenTokenizer.EncodeToIds(text);
             Assert.Equal(codeGenTokenizer.EndOfSentenceId.Value, ids[ids.Count - 1]);
@@ -823,26 +823,26 @@ namespace Microsoft.ML.Tokenizers.Tests
             tokensList.Add(codeGenTokenizer.EndOfSentenceToken!);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((0, 0), encoding[0].Offset);
-            Assert.Equal((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.Equal(new Range(0, 0), encoding[0].Offset);
+            Assert.Equal(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             encoding = codeGenTokenizer.EncodeToTokens(text.AsSpan(), out _);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((0, 0), encoding[0].Offset);
-            Assert.Equal((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.Equal(new Range(0, 0), encoding[0].Offset);
+            Assert.Equal(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             encoding = codeGenTokenizer.EncodeToTokens(text, addPrefixSpace: false, addBeginningOfSentence: true, addEndOfSentence: true, out _);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((0, 0), encoding[0].Offset);
-            Assert.Equal((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.Equal(new Range(0, 0), encoding[0].Offset);
+            Assert.Equal(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             encoding = codeGenTokenizer.EncodeToTokens(text.AsSpan(), addPrefixSpace: false, addBeginningOfSentence: true, addEndOfSentence: true, out _);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((0, 0), encoding[0].Offset);
-            Assert.Equal((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.Equal(new Range(0, 0), encoding[0].Offset);
+            Assert.Equal(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             idList = new List<int>(expectedIdsWithSpace);
             idList.Insert(0, codeGenTokenizer.BeginningOfSentenceId!.Value);
@@ -853,38 +853,38 @@ namespace Microsoft.ML.Tokenizers.Tests
             encoding = codeGenTokenizer.EncodeToTokens(text, addPrefixSpace: true, addBeginningOfSentence: true, addEndOfSentence: true, out _);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((0, 0), encoding[0].Offset);
-            Assert.Equal((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.Equal(new Range(0, 0), encoding[0].Offset);
+            Assert.Equal(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             encoding = codeGenTokenizer.EncodeToTokens(text.AsSpan(), addPrefixSpace: true, addBeginningOfSentence: true, addEndOfSentence: true, out _);
             Assert.Equal(idList, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(tokensList, encoding.Select(t => t.Value).ToArray());
-            Assert.Equal((0, 0), encoding[0].Offset);
-            Assert.Equal((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.Equal(new Range(0, 0), encoding[0].Offset);
+            Assert.Equal(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             encoding = codeGenTokenizer.EncodeToTokens(text, addPrefixSpace: false, addBeginningOfSentence: false, addEndOfSentence: false, out _);
             Assert.Equal(expectedIds, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(expectedTokens, encoding.Select(t => t.Value).ToArray());
-            Assert.True(encoding[0].Offset != (0, 0) || encoding[1].Offset != (0, 0));
-            Assert.NotEqual((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.True(!encoding[0].Offset.Equals(new Range(0, 0)) || !encoding[1].Offset.Equals(new Range(0, 0)));
+            Assert.NotEqual(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             encoding = codeGenTokenizer.EncodeToTokens(text.AsSpan(), addPrefixSpace: false, addBeginningOfSentence: false, addEndOfSentence: false, out _);
             Assert.Equal(expectedIds, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(expectedTokens, encoding.Select(t => t.Value).ToArray());
-            Assert.True(encoding[0].Offset != (0, 0) || encoding[1].Offset != (0, 0));
-            Assert.NotEqual((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.True(!encoding[0].Offset.Equals(new Range(0, 0)) || !encoding[1].Offset.Equals(new Range(0, 0)));
+            Assert.NotEqual(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             encoding = codeGenTokenizer.EncodeToTokens(text, addPrefixSpace: true, addBeginningOfSentence: false, addEndOfSentence: false, out _);
             Assert.Equal(expectedIdsWithSpace, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(expectedTokensWithSpace, encoding.Select(t => t.Value).ToArray());
-            Assert.True(encoding[0].Offset != (0, 0) || encoding[1].Offset != (0, 0));
-            Assert.NotEqual((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.True(!encoding[0].Offset.Equals(new Range(0, 0)) || !encoding[1].Offset.Equals(new Range(0, 0)));
+            Assert.NotEqual(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             encoding = codeGenTokenizer.EncodeToTokens(text.AsSpan(), addPrefixSpace: true, addBeginningOfSentence: false, addEndOfSentence: false, out _);
             Assert.Equal(expectedIdsWithSpace, encoding.Select(t => t.Id).ToArray());
             Assert.Equal(expectedTokensWithSpace, encoding.Select(t => t.Value).ToArray());
-            Assert.True(encoding[0].Offset != (0, 0) || encoding[1].Offset != (0, 0));
-            Assert.NotEqual((text.Length, 0), encoding[encoding.Count - 1].Offset);
+            Assert.True(!encoding[0].Offset.Equals(new Range(0, 0)) || !encoding[1].Offset.Equals(new Range(0, 0)));
+            Assert.NotEqual(new Range(text.Length, text.Length), encoding[encoding.Count - 1].Offset);
 
             ids = codeGenTokenizer.EncodeToIds(text);
             Assert.Equal(codeGenTokenizer.BeginningOfSentenceId.Value, ids[0]);

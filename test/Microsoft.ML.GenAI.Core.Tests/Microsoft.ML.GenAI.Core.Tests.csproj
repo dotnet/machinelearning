@@ -6,6 +6,7 @@
     <NoWarn>$(NoWarn);MSML_ExtendBaseTestClass</NoWarn>
     <Nullable>enable</Nullable>
     <PreserveCompilationContext>true</PreserveCompilationContext>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <ItemGroup>

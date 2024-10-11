@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+
 namespace Microsoft.ML.Tokenizers
 {
     /// <summary>
@@ -23,7 +25,7 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the offset mapping to the original string.
         /// </summary>
-        public (int Index, int Length) Offset { get; }
+        public Range Offset { get; }
 
         /// <summary>
         /// Construct a new Token object using the token value, Id, and the offset mapping to the original string.
@@ -31,7 +33,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="id">The Id value associated to the token.</param>
         /// <param name="value">The token string value.</param>
         /// <param name="offset">The offset mapping to the original string.</param>
-        public EncodedToken(int id, string value, (int, int) offset)
+        public EncodedToken(int id, string value, Range offset)
         {
             Id = id;
             Offset = offset;
