@@ -14,7 +14,8 @@ public class Phi3CausalLMTextGenerationService : ITextGenerationService
 {
     private readonly ICausalLMPipeline<Tokenizer, Phi3ForCasualLM> _pipeline;
 
-    public Phi3CausalLMTextGenerationService(ICausalLMPipeline<Tokenizer, Phi3ForCasualLM> pipeline)
+    public Phi3CausalLMTextGenerationService(
+        ICausalLMPipeline<Tokenizer, Phi3ForCasualLM> pipeline)
     {
         _pipeline = pipeline;
     }
