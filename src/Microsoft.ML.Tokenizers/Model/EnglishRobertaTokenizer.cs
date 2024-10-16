@@ -169,8 +169,7 @@ namespace Microsoft.ML.Tokenizers
             Dictionary<StringSpanOrdinalKey, int>? vocab;
             try
             {
-                JsonSerializerOptions options = new() { Converters = { StringSpanOrdinalKeyConverter.Instance } };
-                vocab = JsonSerializer.Deserialize<Dictionary<StringSpanOrdinalKey, int>>(vocabularyStream, options) as Dictionary<StringSpanOrdinalKey, int>;
+                vocab = JsonSerializer.Deserialize(vocabularyStream, ModelSourceGenerationContext.Default.DictionaryStringSpanOrdinalKeyInt32);
             }
             catch (Exception e)
             {
