@@ -334,6 +334,10 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
 
     public bool FallbackToCpu { get; set; }
 
+#pragma warning disable MSML_NoInstanceInitializers // Need this to have a default value.
+    protected Dictionary<string, object> Options { get; } = [];
+#pragma warning restore MSML_NoInstanceInitializers
+
     protected readonly TEnv Root;
     // This is non-null iff this environment was a fork of another. Disposing a fork
     // doesn't free temp files. That is handled when the master is disposed.
@@ -566,5 +570,65 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
         }
         else if (!removeLastNewLine)
             writer.WriteLine();
+    }
+
+    /// <summary>
+    /// Adds a new runtime option. Throws if option already exists.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="name"></param>
+    /// <param name="value"></param>
+    public void AddOption<T>(string name, T value)
+    {
+        Options.Add(name, value);
+    }
+
+    /// <summary>
+    /// Trys to add a new runtime option.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="name"></param>
+    /// <param name="value"></param>
+    /// <returns>True if successful. False otherwise.</returns>
+    public bool TryAddOption<T>(string name, T value)
+    {
+        if (Options.ContainsKey(name))
+            return false;
+        AddOption<T>(name, value);
+        return true;
+    }
+
+    public void AddOrOverwriteOption<T>(string name, T value)
+    {
+        if (!Options.ContainsKey(name))
+            AddOption<T>(name, value);
+        else
+            Options[name] = value;
+    }
+
+    public T GetOption<T>(string name)
+    {
+        return (T)Options[name];
+    }
+
+    public T GetOptionOrDefault<T>(string name)
+    {
+        if (!Options.ContainsKey(name))
+            AddOption<T>(name, default);
+
+        return GetOption<T>(name);
+    }
+
+    public void RemoveOption(string name)
+    {
+        Options.Remove(name);
+    }
+
+    public bool TryRemoveOption(string name)
+    {
+        if (!Options.ContainsKey(name))
+            return false;
+        Options.Remove(name);
+        return true;
     }
 }
