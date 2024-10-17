@@ -774,7 +774,7 @@ namespace Microsoft.ML.Tests
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapInt64.onnx");
 
             // Create ONNX model from the model file.
-            var onnxModel = new OnnxModel(modelFile);
+            var onnxModel = new OnnxModel(ML, modelFile);
 
             // Check if a temporal file is crated for storing the byte[].
             Assert.True(File.Exists(onnxModel.ModelStream.Name));

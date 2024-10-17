@@ -191,5 +191,13 @@ namespace Microsoft.ML
                 return false;
             }
         }
+
+        public void AddOption<T>(string name, T value) => _env.AddOption(name, value);
+        public bool TryAddOption<T>(string name, T value) => _env.TryAddOption(name, value);
+        public void AddOrOverwriteOption<T>(string name, T value) => _env.AddOrOverwriteOption(name, value);
+        public T GetOption<T>(string name) => _env.GetOption<T>(name);
+        public T GetOptionOrDefault<T>(string name) => _env.GetOptionOrDefault<T>(name);
+        public void RemoveOption(string name) => _env.RemoveOption(name);
+        public bool TryRemoveOption(string name) => _env.TryRemoveOption(name);
     }
 }

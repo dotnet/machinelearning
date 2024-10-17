@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
@@ -158,6 +159,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <summary>
         /// Constructs OnnxModel object from file.
         /// </summary>
+        /// <param name="env"></param>
         /// <param name="modelFile">Model file path.</param>
         /// <param name="gpuDeviceId">GPU device ID to execute on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If true, resumes CPU execution quietly upon GPU error.</param>
@@ -167,29 +169,47 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
         /// <param name="interOpNumThreads">Controls the number of threads used to parallelize the execution of the graph (across nodes).</param>
         /// <param name="intraOpNumThreads">Controls the number of threads to use to run the model.</param>
-        public OnnxModel(string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false,
+        public OnnxModel(IHostEnvironment env, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false,
             bool ownModelFile = false, IDictionary<string, int[]> shapeDictionary = null, int recursionLimit = 100,
             int? interOpNumThreads = null, int? intraOpNumThreads = null)
         {
             // If we don't own the model file, _disposed should be false to prevent deleting user's file.
             _disposed = false;
 
-            if (gpuDeviceId != null)
+            OnnxSessionOptions onnxSessionOptions = default;
+
+            if (env is IHostEnvironmentInternal localEnvironment)
+                onnxSessionOptions = localEnvironment.GetOnnxSessionOption();
+
+            if (onnxSessionOptions == default)
+                onnxSessionOptions = new OnnxSessionOptions();
+
+            if (onnxSessionOptions.CreateSessionOptions != null)
+            {
+                _session = new InferenceSession(modelFile, onnxSessionOptions.CreateSessionOptions());
+            }
+            else if (gpuDeviceId != null)
             {
                 try
                 {
-                    _session = new InferenceSession(modelFile,
-                        SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId.Value));
+                    SessionOptions sessionOptions = SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId.Value);
+                    Utils.CopyPropertiesTo(onnxSessionOptions, sessionOptions);
+
+                    sessionOptions.InterOpNumThreads = interOpNumThreads.HasValue ? interOpNumThreads.GetValueOrDefault() : onnxSessionOptions.InterOpNumThreads;
+                    sessionOptions.IntraOpNumThreads = intraOpNumThreads.HasValue ? intraOpNumThreads.GetValueOrDefault() : onnxSessionOptions.IntraOpNumThreads;
+
+                    _session = new InferenceSession(modelFile, sessionOptions);
                 }
                 catch (OnnxRuntimeException)
                 {
                     if (fallbackToCpu)
                     {
-                        var sessionOptions = new SessionOptions()
-                        {
-                            InterOpNumThreads = interOpNumThreads.GetValueOrDefault(),
-                            IntraOpNumThreads = intraOpNumThreads.GetValueOrDefault()
-                        };
+                        SessionOptions sessionOptions = new SessionOptions();
+                        Utils.CopyPropertiesTo(onnxSessionOptions, sessionOptions);
+
+                        sessionOptions.InterOpNumThreads = interOpNumThreads.HasValue ? interOpNumThreads.GetValueOrDefault() : onnxSessionOptions.InterOpNumThreads;
+                        sessionOptions.IntraOpNumThreads = intraOpNumThreads.HasValue ? intraOpNumThreads.GetValueOrDefault() : onnxSessionOptions.IntraOpNumThreads;
+
                         _session = new InferenceSession(modelFile, sessionOptions);
                     }
                     else
@@ -199,11 +219,12 @@ namespace Microsoft.ML.Transforms.Onnx
             }
             else
             {
-                var sessionOptions = new SessionOptions()
-                {
-                    InterOpNumThreads = interOpNumThreads.GetValueOrDefault(),
-                    IntraOpNumThreads = intraOpNumThreads.GetValueOrDefault()
-                };
+                SessionOptions sessionOptions = new SessionOptions();
+                Utils.CopyPropertiesTo(onnxSessionOptions, sessionOptions);
+
+                sessionOptions.InterOpNumThreads = interOpNumThreads.HasValue ? interOpNumThreads.GetValueOrDefault() : onnxSessionOptions.InterOpNumThreads;
+                sessionOptions.IntraOpNumThreads = intraOpNumThreads.HasValue ? intraOpNumThreads.GetValueOrDefault() : onnxSessionOptions.IntraOpNumThreads;
+
                 _session = new InferenceSession(modelFile, sessionOptions);
             }
 
@@ -372,7 +393,7 @@ namespace Microsoft.ML.Transforms.Onnx
         {
             var tempModelFile = Path.Combine(((IHostEnvironmentInternal)env).TempFilePath, Path.GetRandomFileName());
             File.WriteAllBytes(tempModelFile, modelBytes);
-            return new OnnxModel(tempModelFile, gpuDeviceId, fallbackToCpu,
+            return new OnnxModel(env, tempModelFile, gpuDeviceId, fallbackToCpu,
                 ownModelFile: true, shapeDictionary: shapeDictionary, recursionLimit);
         }
 
