@@ -9,6 +9,4 @@ namespace Microsoft.ML.Tokenizers;
 
 [JsonSerializable(typeof(Dictionary<StringSpanOrdinalKey, int>))]
 [JsonSerializable(typeof(Vocabulary))]
-internal partial class ModelSourceGenerationContext : JsonSerializerContext
-{
-}
+internal partial class ModelSourceGenerationContext : JsonSerializerContext;
