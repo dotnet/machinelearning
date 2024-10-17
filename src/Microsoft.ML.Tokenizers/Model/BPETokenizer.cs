@@ -757,11 +757,10 @@ namespace Microsoft.ML.Tokenizers
         /// Read the given files to extract the vocab and merges
         internal static async ValueTask<(Dictionary<StringSpanOrdinalKey, int>?, Vec<(string, string)>)> ReadModelDataAsync(Stream vocab, Stream? merges, bool useAsync, CancellationToken cancellationToken = default)
         {
-            JsonSerializerOptions options = new() { Converters = { StringSpanOrdinalKeyConverter.Instance } };
+            Dictionary<StringSpanOrdinalKey, int>? dic = useAsync
+                                                         ? await JsonSerializer.DeserializeAsync(vocab, ModelSourceGenerationContext.Default.DictionaryStringSpanOrdinalKeyInt32, cancellationToken).ConfigureAwait(false)
+                                                         : JsonSerializer.Deserialize(vocab, ModelSourceGenerationContext.Default.DictionaryStringSpanOrdinalKeyInt32);
 
-            Dictionary<StringSpanOrdinalKey, int>? dic = useAsync ?
-                                                    await JsonSerializer.DeserializeAsync<Dictionary<StringSpanOrdinalKey, int>>(vocab, options, cancellationToken).ConfigureAwait(false) as Dictionary<StringSpanOrdinalKey, int> :
-                                                    JsonSerializer.Deserialize<Dictionary<StringSpanOrdinalKey, int>>(vocab, options) as Dictionary<StringSpanOrdinalKey, int>;
             var m = useAsync ?
                     await ConvertMergesToHashmapAsync(merges, useAsync, cancellationToken).ConfigureAwait(false) :
                     ConvertMergesToHashmapAsync(merges, useAsync).GetAwaiter().GetResult();

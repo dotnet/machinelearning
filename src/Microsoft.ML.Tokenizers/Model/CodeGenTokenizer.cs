@@ -1764,11 +1764,10 @@ namespace Microsoft.ML.Tokenizers
 
         private static Dictionary<StringSpanOrdinalKey, (int, string)> GetVocabulary(Stream vocabularyStream)
         {
-            Dictionary<StringSpanOrdinalKey, (int, string)>? vocab;
+            Vocabulary? vocab;
             try
             {
-                JsonSerializerOptions options = new() { Converters = { StringSpanOrdinalKeyCustomConverter.Instance } };
-                vocab = JsonSerializer.Deserialize<Dictionary<StringSpanOrdinalKey, (int, string)>>(vocabularyStream, options) as Dictionary<StringSpanOrdinalKey, (int, string)>;
+                vocab = JsonSerializer.Deserialize(vocabularyStream, ModelSourceGenerationContext.Default.Vocabulary);
             }
             catch (Exception e)
             {
