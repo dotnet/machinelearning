@@ -389,7 +389,6 @@ namespace Microsoft.ML.Tests
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "twoinput", "twoinput.onnx");
             var env = new ConsoleEnvironment(seed: 1);
             var samplevector = GetSampleArrayData();
-
             var dataView = ML.Data.LoadFromEnumerable(
                 new TestDataMulti[] {
                     new TestDataMulti()

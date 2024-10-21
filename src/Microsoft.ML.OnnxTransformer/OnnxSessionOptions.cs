@@ -30,55 +30,74 @@ namespace Microsoft.ML.Transforms.Onnx
         {
             if (env is IHostEnvironmentInternal localEnvironment)
             {
-                localEnvironment.AddOrOverwriteOption(OnnxSessionOptionsName, onnxSessionOptions);
+                localEnvironment.SetOption(OnnxSessionOptionsName, onnxSessionOptions);
             }
 
             throw new ArgumentException("No Onnx Session Options");
         }
     }
 
-    public class OnnxSessionOptions
+    public sealed class OnnxSessionOptions
     {
+        internal void CopyTo(SessionOptions sessionOptions)
+        {
+            sessionOptions.EnableMemoryPattern = EnableMemoryPattern;
+            sessionOptions.ProfileOutputPathPrefix = ProfileOutputPathPrefix;
+            sessionOptions.EnableProfiling = EnableProfiling;
+            sessionOptions.OptimizedModelFilePath = OptimizedModelFilePath;
+            sessionOptions.EnableCpuMemArena = EnableCpuMemArena;
+            if (DisablePerSessionThreads)
+                sessionOptions.DisablePerSessionThreads();
+            sessionOptions.LogId = LogId;
+            sessionOptions.LogSeverityLevel = LogSeverityLevel;
+            sessionOptions.LogVerbosityLevel = LogVerbosityLevel;
+            sessionOptions.InterOpNumThreads = InterOpNumThreads;
+            sessionOptions.IntraOpNumThreads = IntraOpNumThreads;
+            sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel;
+            sessionOptions.ExecutionMode = ExecutionMode;
+        }
+
         /// <summary>
         /// Enables the use of the memory allocation patterns in the first Run() call for subsequent runs. Default = true.
         /// </summary>
         /// <value>returns enableMemoryPattern flag value</value>
-        public bool EnableMemoryPattern = true;
+#pragma warning disable MSML_NoInstanceInitializers // No initializers on instance fields or properties
+        public bool EnableMemoryPattern { get; set; } = true;
 
         /// <summary>
         /// Path prefix to use for output of profiling data
         /// </summary>
-        public string ProfileOutputPathPrefix = "onnxruntime_profile_";   // this is the same default in C++ implementation
+        public string ProfileOutputPathPrefix { get; set; } = "onnxruntime_profile_";   // this is the same default in C++ implementation
 
         /// <summary>
         /// Enables profiling of InferenceSession.Run() calls. Default is false
         /// </summary>
         /// <value>returns _enableProfiling flag value</value>
-        public bool EnableProfiling = false;
+        public bool EnableProfiling { get; set; } = false;
 
         /// <summary>
         ///  Set filepath to save optimized model after graph level transformations. Default is empty, which implies saving is disabled.
         /// </summary>
         /// <value>returns _optimizedModelFilePath flag value</value>
-        public string OptimizedModelFilePath = "";
+        public string OptimizedModelFilePath { get; set; } = string.Empty;
 
         /// <summary>
         /// Enables Arena allocator for the CPU memory allocations. Default is true.
         /// </summary>
         /// <value>returns _enableCpuMemArena flag value</value>
-        public bool EnableCpuMemArena = true;
+        public bool EnableCpuMemArena { get; set; } = true;
 
         /// <summary>
         /// Disables the per session threads. Default is true.
         /// This makes all sessions in the process use a global TP.
         /// </summary>
-        public bool DisablePerSessionThreads = true;
+        public bool DisablePerSessionThreads { get; set; } = true;
 
         /// <summary>
         /// Log Id to be used for the session. Default is empty string.
         /// </summary>
         /// <value>returns _logId value</value>
-        public string LogId = string.Empty;
+        public string LogId { get; set; } = string.Empty;
 
         /// <summary>
         /// Log Severity Level for the session logs. Default = ORT_LOGGING_LEVEL_WARNING
@@ -91,14 +110,14 @@ namespace Microsoft.ML.Transforms.Onnx
         /// This takes into effect only when the LogSeverityLevel is set to ORT_LOGGING_LEVEL_VERBOSE.
         /// </summary>
         /// <value>returns _logVerbosityLevel value</value>
-        public int LogVerbosityLevel = 0;
+        public int LogVerbosityLevel { get; set; } = 0;
 
         /// <summary>
         /// Sets the number of threads used to parallelize the execution within nodes
         /// A value of 0 means ORT will pick a default
         /// </summary>
         /// <value>returns _intraOpNumThreads value</value>
-        public int IntraOpNumThreads = 0;
+        public int IntraOpNumThreads { get; set; } = 0;
 
         /// <summary>
         /// Sets the number of threads used to parallelize the execution of the graph (across nodes)
@@ -106,20 +125,21 @@ namespace Microsoft.ML.Transforms.Onnx
         /// A value of 0 means ORT will pick a default
         /// </summary>
         /// <value>returns _interOpNumThreads value</value>
-        public int InterOpNumThreads = 0;
+        public int InterOpNumThreads { get; set; } = 0;
 
         /// <summary>
         /// Sets the graph optimization level for the session. Default is set to ORT_ENABLE_ALL.
         /// </summary>
         /// <value>returns _graphOptimizationLevel value</value>
-        public GraphOptimizationLevel GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+        public GraphOptimizationLevel GraphOptimizationLevel { get; set; } = GraphOptimizationLevel.ORT_ENABLE_ALL;
 
         /// <summary>
         /// Sets the execution mode for the session. Default is set to ORT_SEQUENTIAL.
         /// See [ONNX_Runtime_Perf_Tuning.md] for more details.
         /// </summary>
         /// <value>returns _executionMode value</value>
-        public ExecutionMode ExecutionMode = ExecutionMode.ORT_SEQUENTIAL;
+        public ExecutionMode ExecutionMode { get; set; } = ExecutionMode.ORT_SEQUENTIAL;
+#pragma warning restore MSML_NoInstanceInitializers // No initializers on instance fields or properties
 
         public delegate SessionOptions CreateOnnxSessionOptions();
 

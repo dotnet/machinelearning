@@ -106,19 +106,15 @@ internal interface IHostEnvironmentInternal : IHostEnvironment
     /// </summary>
     int? GpuDeviceId { get; set; }
 
-    void AddOption<T>(string name, T value);
-
     bool TryAddOption<T>(string name, T value);
 
-    void AddOrOverwriteOption<T>(string name, T value);
+    void SetOption<T>(string name, T value);
 
-    T GetOption<T>(string name);
+    bool TryGetOption<T>(string name, out T value);
 
     T GetOptionOrDefault<T>(string name);
 
-    void RemoveOption(string name);
-
-    bool TryRemoveOption(string name);
+    bool RemoveOption(string name);
 }
 
 /// <summary>

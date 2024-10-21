@@ -193,7 +193,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 try
                 {
                     SessionOptions sessionOptions = SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId.Value);
-                    Utils.CopyPropertiesTo(onnxSessionOptions, sessionOptions);
+                    onnxSessionOptions.CopyTo(sessionOptions);
 
                     sessionOptions.InterOpNumThreads = interOpNumThreads.HasValue ? interOpNumThreads.GetValueOrDefault() : onnxSessionOptions.InterOpNumThreads;
                     sessionOptions.IntraOpNumThreads = intraOpNumThreads.HasValue ? intraOpNumThreads.GetValueOrDefault() : onnxSessionOptions.IntraOpNumThreads;
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     if (fallbackToCpu)
                     {
                         SessionOptions sessionOptions = new SessionOptions();
-                        Utils.CopyPropertiesTo(onnxSessionOptions, sessionOptions);
+                        onnxSessionOptions.CopyTo(sessionOptions);
 
                         sessionOptions.InterOpNumThreads = interOpNumThreads.HasValue ? interOpNumThreads.GetValueOrDefault() : onnxSessionOptions.InterOpNumThreads;
                         sessionOptions.IntraOpNumThreads = intraOpNumThreads.HasValue ? intraOpNumThreads.GetValueOrDefault() : onnxSessionOptions.IntraOpNumThreads;
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Transforms.Onnx
             else
             {
                 SessionOptions sessionOptions = new SessionOptions();
-                Utils.CopyPropertiesTo(onnxSessionOptions, sessionOptions);
+                onnxSessionOptions.CopyTo(sessionOptions);
 
                 sessionOptions.InterOpNumThreads = interOpNumThreads.HasValue ? interOpNumThreads.GetValueOrDefault() : onnxSessionOptions.InterOpNumThreads;
                 sessionOptions.IntraOpNumThreads = intraOpNumThreads.HasValue ? intraOpNumThreads.GetValueOrDefault() : onnxSessionOptions.IntraOpNumThreads;

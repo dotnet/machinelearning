@@ -573,62 +573,88 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
     }
 
     /// <summary>
-    /// Adds a new runtime option. Throws if option already exists.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="name"></param>
-    /// <param name="value"></param>
-    public void AddOption<T>(string name, T value)
-    {
-        Options.Add(name, value);
-    }
-
-    /// <summary>
     /// Trys to add a new runtime option.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <param name="name"></param>
-    /// <param name="value"></param>
-    /// <returns>True if successful. False otherwise.</returns>
+    /// <param name="name">Name of the option to add.</param>
+    /// <param name="value">Value to set.</param>
+    /// <returns><see langword="true"/> if successful. <see langword="false"/> otherwise.</returns>
+    /// <exception cref="ArgumentNullException">When <paramref name="name"/> is null or empty.</exception>
     public bool TryAddOption<T>(string name, T value)
     {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentNullException(nameof(name));
+
         if (Options.ContainsKey(name))
             return false;
-        AddOption<T>(name, value);
+        SetOption(name, value);
         return true;
     }
 
-    public void AddOrOverwriteOption<T>(string name, T value)
+    /// <summary>
+    /// Adds or Sets the <paramref name="value"/> with the given <paramref name="name"/>. Is cast to <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="name">Name of the option to set.</param>
+    /// <param name="value">Value to set.</param>
+    /// <exception cref="ArgumentNullException">When <paramref name="name"/> is null or empty.</exception>
+    public void SetOption<T>(string name, T value)
     {
-        if (!Options.ContainsKey(name))
-            AddOption<T>(name, value);
-        else
-            Options[name] = value;
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentNullException(nameof(name));
+        Options[name] = value;
     }
 
-    public T GetOption<T>(string name)
+    /// <summary>
+    /// Gets an option by <paramref name="name"/> and returns <see langword="true"/> if that has been added and <see langword="false"/> otherwise.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="name">Name of the option to get.</param>
+    /// <param name="value">Options value of type <typeparamref name="T"/>.</param>
+    /// <returns><see langword="true"/> if the option was able to be retrieved, else <see langword="false"/></returns>
+    /// <exception cref="ArgumentNullException">When <paramref name="name"/> is null or empty.</exception>
+    public bool TryGetOption<T>(string name, out T value)
     {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentNullException(nameof(name));
+
+        if (!Options.TryGetValue(name, out var val) || val is not T)
+        {
+            value = default;
+            return false;
+        }
+        value = (T)val;
+        return true;
+    }
+
+    /// <summary>
+    /// Gets either the option stored by that <paramref name="name"/>, or adds the default value of <typeparamref name="T"/> with that <paramref name="name"/> and returns it.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="name">Name of the option to get.</param>
+    /// <returns>Options value of type <typeparamref name="T"/>.</returns>
+    /// <exception cref="ArgumentNullException">When <paramref name="name"/> is null or empty.</exception>
+    public T GetOptionOrDefault<T>(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentNullException(nameof(name));
+
+        if (!Options.ContainsKey(name))
+            SetOption<T>(name, default);
+
         return (T)Options[name];
     }
 
-    public T GetOptionOrDefault<T>(string name)
+    /// <summary>
+    /// Removes an option.
+    /// </summary>
+    /// <param name="name">Name of the option to remove.</param>
+    /// <returns><see langword="true"/> if successfully removed, else <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">When <paramref name="name"/> is null or empty.</exception>
+    public bool RemoveOption(string name)
     {
-        if (!Options.ContainsKey(name))
-            AddOption<T>(name, default);
-
-        return GetOption<T>(name);
-    }
-
-    public void RemoveOption(string name)
-    {
-        Options.Remove(name);
-    }
-
-    public bool TryRemoveOption(string name)
-    {
-        if (!Options.ContainsKey(name))
-            return false;
-        Options.Remove(name);
-        return true;
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentNullException(nameof(name));
+        return Options.Remove(name);
     }
 }
