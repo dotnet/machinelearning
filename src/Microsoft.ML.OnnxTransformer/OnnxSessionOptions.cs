@@ -143,6 +143,6 @@ namespace Microsoft.ML.Transforms.Onnx
 
         public delegate SessionOptions CreateOnnxSessionOptions();
 
-        public CreateOnnxSessionOptions CreateSessionOptions;
+        public CreateOnnxSessionOptions CreateSessionOptions { get; set; }
     }
 }

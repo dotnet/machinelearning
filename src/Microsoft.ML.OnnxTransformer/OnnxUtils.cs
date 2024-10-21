@@ -422,7 +422,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 modelBytes.Seek(0, SeekOrigin.Begin);
                 modelBytes.CopyTo(fileStream);
             }
-            return new OnnxModel(tempModelFile, gpuDeviceId, fallbackToCpu,
+            return new OnnxModel(env, tempModelFile, gpuDeviceId, fallbackToCpu,
                 ownModelFile: false, shapeDictionary: shapeDictionary, recursionLimit);
         }
 

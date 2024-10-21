@@ -262,7 +262,7 @@ namespace Microsoft.ML.Transforms.Onnx
                         Host.CheckNonWhiteSpace(options.ModelFile, nameof(options.ModelFile));
                         Host.CheckIO(File.Exists(options.ModelFile), "Model file {0} does not exists.", options.ModelFile);
                         // Because we cannot delete the user file, ownModelFile should be false.
-                        Model = new OnnxModel(options.ModelFile, options.GpuDeviceId, options.FallbackToCpu, ownModelFile: false, shapeDictionary: shapeDictionary, options.RecursionLimit,
+                        Model = new OnnxModel(env, options.ModelFile, options.GpuDeviceId, options.FallbackToCpu, ownModelFile: false, shapeDictionary: shapeDictionary, options.RecursionLimit,
                             options.InterOpNumThreads, options.IntraOpNumThreads);
                     }
                     else

@@ -639,9 +639,10 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentNullException(nameof(name));
 
-        if (!Options.ContainsKey(name))
+        if (!Options.TryGetValue(name, out object value))
             SetOption<T>(name, default);
-
+        else
+            return (T)value;
         return (T)Options[name];
     }
 
