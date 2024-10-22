@@ -166,7 +166,7 @@ extends:
             rm -rf /usr/local/bin/2to3
           displayName: MacOS Homebrew bug Workaround
           continueOnError: true
-        - script: brew update && brew install -f --overwrite python@3.12 && brew install libomp && brew link libomp --force
+        - script: brew update && brew install -f --overwrite python@3.13 && brew install libomp && brew link libomp --force
           displayName: Install build dependencies
         # Only build native assets to avoid conflicts.
         - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
