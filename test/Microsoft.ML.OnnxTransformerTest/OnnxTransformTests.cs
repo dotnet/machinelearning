@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
@@ -384,12 +385,46 @@ namespace Microsoft.ML.Tests
         }
 
         [OnnxFact]
+        public void OnnxModelCustomOptions()
+        {
+            var modelFile = "squeezenet/00000001/model.onnx";
+            var env = new ConsoleEnvironment(seed: 1);
+            var samplevector = GetSampleArrayData();
+
+            var dataView = ML.Data.LoadFromEnumerable(
+                new TestData[] {
+                    new TestData()
+                    {
+                        data_0 = samplevector
+                    }
+                });
+
+            // Setting per session threads to true should work.
+            OnnxSessionOptions onnxSessionOptions = new OnnxSessionOptions()
+            {
+                PerSessionThreads = true
+            };
+            ML.SetOnnxSessionOption(onnxSessionOptions);
+            var pipeline = ML.Transforms.ApplyOnnxModel("softmaxout_1", "data_0", modelFile, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
+            var onnxTransformer = pipeline.Fit(dataView);
+
+            // Trying to then set per session threads to false after the OrtEnv has been initialized to true should throw.
+            onnxSessionOptions.PerSessionThreads = false;
+            onnxSessionOptions.GlobalIntraOpNumThreads = 1;
+            onnxSessionOptions.GlobalInterOpNumThreads = 1;
+
+            ML.SetOnnxSessionOption(onnxSessionOptions);
+            Assert.Throws<InvalidOperationException>(() => ML.Transforms.ApplyOnnxModel("softmaxout_1", "data_0", modelFile, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu));
+
+            (onnxTransformer as IDisposable)?.Dispose();
+        }
+
+        [OnnxFact]
         public void OnnxModelMultiInput()
         {
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "twoinput", "twoinput.onnx");
             var env = new ConsoleEnvironment(seed: 1);
             var samplevector = GetSampleArrayData();
-
             var dataView = ML.Data.LoadFromEnumerable(
                 new TestDataMulti[] {
                     new TestDataMulti()
@@ -774,7 +809,7 @@ namespace Microsoft.ML.Tests
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapInt64.onnx");
 
             // Create ONNX model from the model file.
-            var onnxModel = new OnnxModel(modelFile);
+            var onnxModel = new OnnxModel(ML, modelFile);
 
             // Check if a temporal file is crated for storing the byte[].
             Assert.True(File.Exists(onnxModel.ModelStream.Name));

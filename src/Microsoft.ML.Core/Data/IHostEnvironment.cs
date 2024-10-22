@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Runtime;
@@ -104,6 +105,16 @@ internal interface IHostEnvironmentInternal : IHostEnvironment
     /// GPU device ID to run execution on, <see langword="null" /> to run on CPU.
     /// </summary>
     int? GpuDeviceId { get; set; }
+
+    bool TryAddOption<T>(string name, T value);
+
+    void SetOption<T>(string name, T value);
+
+    bool TryGetOption<T>(string name, out T value);
+
+    T GetOptionOrDefault<T>(string name);
+
+    bool RemoveOption(string name);
 }
 
 /// <summary>
