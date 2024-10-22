@@ -10,7 +10,7 @@ namespace Microsoft.ML.Tokenizers
     /// Represent the token produced from the tokenization process containing the token substring,
     /// the id associated to the token substring, and the offset mapping to the original string.
     /// </summary>
-    public readonly struct EncodedToken
+    public readonly struct EncodedToken : IEquatable<EncodedToken>
     {
         /// <summary>
         /// Gets the Id value associated to the token.
@@ -39,5 +39,8 @@ namespace Microsoft.ML.Tokenizers
             Offset = offset;
             Value = value;
         }
+
+        /// inherited
+        public bool Equals(EncodedToken other) => Id == other.Id && Value == other.Value && Offset.Equals(other.Offset);
     }
 }

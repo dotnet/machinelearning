@@ -40,8 +40,61 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
-        private const string WhiteSpacePattern = /*lang=regex*/ @"\w+|[^\w\s]+";
+        private const string WhiteSpaceOrPunctuationPattern = @"\w+|[\p{P}]";
+        private static PreTokenizer? _whiteSpaceOrPunctuationPreTokenizer;
+#if NET7_0_OR_GREATER
+        [GeneratedRegex(WhiteSpaceOrPunctuationPattern)]
+        private static partial Regex WhiteSpaceOrPunctuationRegex();
+#else
+        private static Regex WhiteSpaceOrPunctuationRegex() => new Regex(WhiteSpaceOrPunctuationPattern, RegexOptions.Compiled);
+#endif
+
+        /// <summary>
+        /// Create a new instance of the <see cref="PreTokenizer"/> class which split the text at the whitespace or punctuation characters.
+        /// </summary>
+        /// <param name="specialTokensEncoder">The dictionary containing the special tokens and their corresponding ids.</param>
+        /// <returns>The pre-tokenizer that splits the text at the whitespace or punctuation characters.</returns>
+        public static PreTokenizer CreateWhiteSpaceOrPunctuationPreTokenizer(IReadOnlyDictionary<string, int>? specialTokensEncoder = null)
+        {
+            if (specialTokensEncoder is null)
+            {
+                // return a singleton instance of the WhiteSpace pre-tokenizer
+                return _whiteSpaceOrPunctuationPreTokenizer ??= new RegexPreTokenizer(WhiteSpaceOrPunctuationRegex(), null);
+            }
+
+            return new RegexPreTokenizer(WhiteSpaceOrPunctuationRegex(), specialTokensEncoder);
+        }
+
+        private const string WordOrNonWordPattern = /*lang=regex*/ @"\w+|[^\w\s]+";
+        private static PreTokenizer? _wordOrNonWordPreTokenizer;
+
+#if NET7_0_OR_GREATER
+        [GeneratedRegex(WordOrNonWordPattern)]
+        private static partial Regex WordOrNonWordRegex();
+#else
+        private static Regex WordOrNonWordRegex() => new Regex(WordOrNonWordPattern, RegexOptions.Compiled);
+#endif
+
+        /// <summary>
+        /// Create a new instance of the <see cref="PreTokenizer"/> class which split the text at the word or non-word boundary.
+        /// The word is a set of alphabet, numeric, and underscore characters.
+        /// </summary>
+        /// <param name="specialTokensEncoder">The dictionary containing the special tokens and their corresponding ids.</param>
+        /// <returns>The pre-tokenizer that splits the text at the word boundary.</returns>
+        public static PreTokenizer CreateWordOrNonWordPreTokenizer(IReadOnlyDictionary<string, int>? specialTokensEncoder = null)
+        {
+            if (specialTokensEncoder is null)
+            {
+                // return a singleton instance of the WhiteSpace pre-tokenizer
+                return _wordOrNonWordPreTokenizer ??= new RegexPreTokenizer(WordOrNonWordRegex(), null);
+            }
+
+            return new RegexPreTokenizer(WordOrNonWordRegex(), specialTokensEncoder);
+        }
+
+        private const string WhiteSpacePattern = @"\S+";
         private static PreTokenizer? _whiteSpacePreTokenizer;
+
 #if NET7_0_OR_GREATER
         [GeneratedRegex(WhiteSpacePattern)]
         private static partial Regex WhiteSpaceRegex();
@@ -50,12 +103,11 @@ namespace Microsoft.ML.Tokenizers
 #endif
 
         /// <summary>
-        /// Create a new instance of the <see cref="PreTokenizer"/> class which split the text at the word boundary.
-        /// The word is a set of alphabet, numeric, and underscore characters.
+        /// Create a new instance of the <see cref="PreTokenizer"/> class which split the text at the white spaces.
         /// </summary>
         /// <param name="specialTokensEncoder">The dictionary containing the special tokens and their corresponding ids.</param>
-        /// <returns>The pre-tokenizer that splits the text at the word boundary.</returns>
-        public static PreTokenizer CreateWhiteSpace(IReadOnlyDictionary<string, int>? specialTokensEncoder = null)
+        /// <returns>The pre-tokenizer that splits the text at the white spaces.</returns>
+        public static PreTokenizer CreateWhiteSpacePreTokenizer(IReadOnlyDictionary<string, int>? specialTokensEncoder = null)
         {
             if (specialTokensEncoder is null)
             {
