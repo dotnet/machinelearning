@@ -87,7 +87,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="vocabFile">The JSON file path containing the dictionary of string keys and their ids.</param>
         /// <param name="mergesFile">The file path containing the tokens's pairs list.</param>
         public static BpeTokenizer Create(string vocabFile, string? mergesFile)
-            => Create(vocabFile, mergesFile, preTokenizer: PreTokenizer.CreateWhiteSpace(), normalizer: null, unknownToken: null, continuingSubwordPrefix: null, endOfWordSuffix: null, fuseUnknownTokens: false);
+            => Create(vocabFile, mergesFile, preTokenizer: PreTokenizer.CreateWordOrNonWordPreTokenizer(), normalizer: null, unknownToken: null, continuingSubwordPrefix: null, endOfWordSuffix: null, fuseUnknownTokens: false);
 
         /// <summary>
         /// Create a new Bpe tokenizer object to use for text encoding.
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="vocabStream">The JSON stream containing the dictionary of string keys and their ids.</param>
         /// <param name="mergesStream">The stream containing the tokens's pairs list.</param>
         public static BpeTokenizer Create(Stream vocabStream, Stream? mergesStream)
-            => Create(vocabStream, mergesStream, preTokenizer: PreTokenizer.CreateWhiteSpace(), normalizer: null, addedTokens: null, unknownToken: null, continuingSubwordPrefix: null, endOfWordSuffix: null, fuseUnknownTokens: false);
+            => Create(vocabStream, mergesStream, preTokenizer: PreTokenizer.CreateWordOrNonWordPreTokenizer(), normalizer: null, addedTokens: null, unknownToken: null, continuingSubwordPrefix: null, endOfWordSuffix: null, fuseUnknownTokens: false);
 
         /// <summary>
         /// Create a new Bpe tokenizer object to use for text encoding.
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Tokenizers
             FuseUnknownTokens = fuseUnknownTokens;
             ContinuingSubwordPrefix = continuingSubwordPrefix;
             EndOfWordSuffix = endOfWordSuffix;
-            _preTokenizer = preTokenizer ?? PreTokenizer.CreateWhiteSpace(); // Default to WhiteSpace pre-tokenizer
+            _preTokenizer = preTokenizer ?? PreTokenizer.CreateWordOrNonWordPreTokenizer(); // Default to WordOrNonWord pre-tokenizer
             _normalizer = normalizer;
 
             _vocab = vocab ?? new Dictionary<StringSpanOrdinalKey, int>();
