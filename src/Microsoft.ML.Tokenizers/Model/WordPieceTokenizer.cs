@@ -708,6 +708,11 @@ namespace Microsoft.ML.Tokenizers
                 }
 
                 tokenCount += count;
+
+                if (count >= settings.MaxTokenCount)
+                {
+                    return fromEnd ? split.Offset : split.Offset + split.Length;
+                }
             }
 
             return fromEnd ? 0 : textSpanToEncode.Length;

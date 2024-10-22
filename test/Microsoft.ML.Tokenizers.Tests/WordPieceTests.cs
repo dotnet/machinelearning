@@ -116,7 +116,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
                 Assert.Equal(5, tokenizer.CountTokens(text));
 
-                int[] expectedIndexes = [0, 0, 9, 9, 16];
+                int[] expectedIndexes = [0, 0, 8, 9, 16];
                 expectedTokenCount = [0, 0, 3, 3, 5];
 
                 for (int i = 1; i <= 5; i++)
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     Assert.Equal(expectedIndexes[i - 1], index);
                 }
 
-                expectedIndexes = [16, 8, 8, 8, 0];
+                expectedIndexes = [16, 9, 8, 8, 0];
                 expectedTokenCount = [0, 2, 2, 2, 5];
 
                 for (int i = 1; i <= 5; i++)
