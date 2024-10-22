@@ -184,6 +184,20 @@ namespace Microsoft.ML.Transforms.Onnx
             if (onnxSessionOptions == default)
                 onnxSessionOptions = new OnnxSessionOptions();
 
+            if (!onnxSessionOptions.PerSessionThreads && !OrtEnv.IsCreated)
+            {
+                EnvironmentCreationOptions environmentCreationOptions = new EnvironmentCreationOptions()
+                {
+                    threadOptions = new OrtThreadingOptions()
+                    {
+                        GlobalInterOpNumThreads = onnxSessionOptions.GlobalInterOpNumThreads,
+                        GlobalIntraOpNumThreads = onnxSessionOptions.GlobalIntraOpNumThreads,
+                    }
+                };
+                // Don't need to catch return value as it sets the singleton as well.
+                OrtEnv.CreateInstanceWithOptions(ref environmentCreationOptions);
+            }
+
             if (onnxSessionOptions.CreateSessionOptions != null)
             {
                 _session = new InferenceSession(modelFile, onnxSessionOptions.CreateSessionOptions());

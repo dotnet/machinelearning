@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
@@ -380,6 +381,41 @@ namespace Microsoft.ML.Tests
                     Assert.Equal(1000, buffer.Length);
                 }
             }
+            (onnxTransformer as IDisposable)?.Dispose();
+        }
+
+        [OnnxFact]
+        public void OnnxModelCustomOptions()
+        {
+            var modelFile = "squeezenet/00000001/model.onnx";
+            var env = new ConsoleEnvironment(seed: 1);
+            var samplevector = GetSampleArrayData();
+
+            var dataView = ML.Data.LoadFromEnumerable(
+                new TestData[] {
+                    new TestData()
+                    {
+                        data_0 = samplevector
+                    }
+                });
+
+            // Setting per session threads to true should work.
+            OnnxSessionOptions onnxSessionOptions = new OnnxSessionOptions()
+            {
+                PerSessionThreads = true
+            };
+            ML.SetOnnxSessionOption(onnxSessionOptions);
+            var pipeline = ML.Transforms.ApplyOnnxModel("softmaxout_1", "data_0", modelFile, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu);
+            var onnxTransformer = pipeline.Fit(dataView);
+
+            // Trying to then set per session threads to false after the OrtEnv has been initialized to true should throw.
+            onnxSessionOptions.PerSessionThreads = false;
+            onnxSessionOptions.GlobalIntraOpNumThreads = 1;
+            onnxSessionOptions.GlobalInterOpNumThreads = 1;
+
+            ML.SetOnnxSessionOption(onnxSessionOptions);
+            Assert.Throws<InvalidOperationException>(() => ML.Transforms.ApplyOnnxModel("softmaxout_1", "data_0", modelFile, gpuDeviceId: _gpuDeviceId, fallbackToCpu: _fallbackToCpu));
+
             (onnxTransformer as IDisposable)?.Dispose();
         }
 
