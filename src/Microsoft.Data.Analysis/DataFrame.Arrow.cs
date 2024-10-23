@@ -101,6 +101,19 @@ namespace Microsoft.Data.Analysis
                         AppendDataFrameColumnFromArrowArray(fieldsEnumerator.Current, structArrayEnumerator.Current, ret, field.Name + "_");
                     }
                     break;
+#if NET6_0_OR_GREATER
+                case ArrowTypeId.Date32:
+                    {
+                        var arrowDate32Array = (Date32Array)arrowArray;
+                        var dateTimeDataFrameColumn = new DateOnlyDataFrameColumn(fieldName, arrowDate32Array.Data.Length);
+                        for (var i = 0; i < arrowDate32Array.Data.Length; i++)
+                        {
+                            dateTimeDataFrameColumn[i] = arrowDate32Array.GetDateOnly(i);
+                        }
+                        dataFrameColumn = dateTimeDataFrameColumn;
+                    }
+                    break;
+#endif
                 case ArrowTypeId.Date64:
                     {
                         Date64Array arrowDate64Array = (Date64Array)arrowArray;
@@ -114,11 +127,11 @@ namespace Microsoft.Data.Analysis
                     break;
                 case ArrowTypeId.Timestamp:
                     {
-                        TimestampArray arrowTimeStampArray = (TimestampArray)arrowArray;
-                        var dataTimeDataFrameColumn = new DateTimeDataFrameColumn(fieldName, arrowTimeStampArray.Data.Length);
-                        for (int i = 0; i < arrowTimeStampArray.Data.Length; i++)
+                        var arrowTimeStampArray = (TimestampArray)arrowArray;
+                        var dataTimeDataFrameColumn = new DateTimeOffsetDataFrameColumn(fieldName, arrowTimeStampArray.Data.Length);
+                        for (var i = 0; i < arrowTimeStampArray.Data.Length; i++)
                         {
-                            dataTimeDataFrameColumn[i] = arrowTimeStampArray.GetTimestamp(i)?.DateTime;
+                            dataTimeDataFrameColumn[i] = arrowTimeStampArray.GetTimestamp(i);
                         }
                         dataFrameColumn = dataTimeDataFrameColumn;
                     }
@@ -126,7 +139,9 @@ namespace Microsoft.Data.Analysis
                 case ArrowTypeId.Decimal128:
                 case ArrowTypeId.Decimal256:
                 case ArrowTypeId.Binary:
+#if !NET6_0_OR_GREATER
                 case ArrowTypeId.Date32:
+#endif
                 case ArrowTypeId.Dictionary:
                 case ArrowTypeId.FixedSizedBinary:
                 case ArrowTypeId.HalfFloat:
