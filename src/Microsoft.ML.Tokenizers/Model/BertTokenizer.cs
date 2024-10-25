@@ -376,6 +376,11 @@ namespace Microsoft.ML.Tokenizers
                     buffer[written++] = id;
                 }
 
+                if (buffer.Length <= written)
+                {
+                    written = 0;
+                    return OperationStatus.DestinationTooSmall;
+                }
                 buffer[written++] = SepTokenId;
             }
 
