@@ -290,9 +290,25 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(tokenIds0));
             }
 
-            // Add 2 for [CLS] and [SEP] tokens. Add 1 for [SEP] token if tokenIds1 is not null.
-            int capacity = tokenIds0.Count() + 2 + (tokenIds1 is null ? 0 : tokenIds1.Count() + 1);
-            List<int> ids = new List<int>(capacity: capacity) { ClsTokenId };
+            List<int> ids;
+
+            if (tokenIds0 is ICollection<int> c1)
+            {
+                int capacity = c1.Count + 2;    // Add 2 for [CLS] and two [SEP] tokens.
+
+                if (tokenIds1 is not null)
+                {
+                    capacity += tokenIds1 is ICollection<int> c2 ? c2.Count + 1 : c1.Count + 1;
+                }
+
+                ids = new(capacity) { ClsTokenId };
+            }
+            else
+            {
+                // slow path
+                ids = new List<int>(10) { ClsTokenId };
+            }
+
             ids.AddRange(tokenIds0);
             ids.Add(SepTokenId);
 
@@ -323,19 +339,28 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(tokenIds0));
             }
 
-            // Add 2 for [CLS] and [SEP] tokens. Add 1 for [SEP] token if tokenIds1 is not null.
-            int capacity = tokenIds0.Count() + 2 + (tokenIds1 is null ? 0 : tokenIds1.Count() + 1);
-            if (buffer.Length < capacity)
+            written = 0;
+            if (buffer.Length < 1)
             {
-                written = 0;
                 return OperationStatus.DestinationTooSmall;
             }
 
-            written = 0;
             buffer[written++] = ClsTokenId;
             foreach (int id in tokenIds0)
             {
+                if (buffer.Length <= written)
+                {
+                    written = 0;
+                    return OperationStatus.DestinationTooSmall;
+                }
+
                 buffer[written++] = id;
+            }
+
+            if (buffer.Length <= written)
+            {
+                written = 0;
+                return OperationStatus.DestinationTooSmall;
             }
             buffer[written++] = SepTokenId;
 
@@ -343,6 +368,11 @@ namespace Microsoft.ML.Tokenizers
             {
                 foreach (int id in tokenIds1)
                 {
+                    if (buffer.Length <= written)
+                    {
+                        written = 0;
+                        return OperationStatus.DestinationTooSmall;
+                    }
                     buffer[written++] = id;
                 }
 
@@ -367,11 +397,22 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(tokenIds0));
             }
 
-            int capacity = alreadyHasSpecialTokens ?
-                        tokenIds0.Count() + (tokenIds1?.Count() ?? 0) :
-                        tokenIds0.Count() + 2 + (tokenIds1 is null ? 0 : 1);    // Add 2 for [CLS] and [SEP] tokens. Add 1 for [SEP] token if tokenIds1 is not null.
+            List<int> mask;
+            if (tokenIds0 is ICollection<int> c1)
+            {
+                int capcity = c1.Count + 2;
 
-            List<int> mask = new List<int>(capacity: capacity);
+                if (tokenIds1 is not null)
+                {
+                    capcity += tokenIds1 is ICollection<int> c2 ? c2.Count + 1 : c1.Count + 1;
+                }
+
+                mask = new List<int>(capcity);
+            }
+            else
+            {
+                mask = new List<int>(10);
+            }
 
             if (!alreadyHasSpecialTokens)
             {
@@ -420,22 +461,29 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(tokenIds0));
             }
 
-            int capacity = alreadyHasSpecialTokens ?
-                        tokenIds0.Count() + (tokenIds1?.Count() ?? 0) :
-                        tokenIds0.Count() + 2 + (tokenIds1 is null ? 0 : tokenIds1.Count() + 1);    // Add 2 for [CLS] and [SEP] tokens. Add 1 for [SEP] token if tokenIds1 is not null.
-
             written = 0;
-            if (buffer.Length < capacity)
-            {
-                return OperationStatus.DestinationTooSmall;
-            }
-
             if (!alreadyHasSpecialTokens)
             {
+                if (buffer.Length < 1)
+                {
+                    return OperationStatus.DestinationTooSmall;
+                }
                 buffer[written++] = 1; // CLS
+
                 foreach (int id in tokenIds0)
                 {
+                    if (buffer.Length <= written)
+                    {
+                        written = 0;
+                        return OperationStatus.DestinationTooSmall;
+                    }
                     buffer[written++] = 0;
+                }
+
+                if (buffer.Length <= written)
+                {
+                    written = 0;
+                    return OperationStatus.DestinationTooSmall;
                 }
                 buffer[written++] = 1; // SEP
 
@@ -443,7 +491,18 @@ namespace Microsoft.ML.Tokenizers
                 {
                     foreach (int id in tokenIds1)
                     {
+                        if (buffer.Length <= written)
+                        {
+                            written = 0;
+                            return OperationStatus.DestinationTooSmall;
+                        }
                         buffer[written++] = 0;
+                    }
+
+                    if (buffer.Length <= written)
+                    {
+                        written = 0;
+                        return OperationStatus.DestinationTooSmall;
                     }
                     buffer[written++] = 1; // SEP
                 }
@@ -453,6 +512,11 @@ namespace Microsoft.ML.Tokenizers
 
             foreach (int id in tokenIds0)
             {
+                if (buffer.Length <= written)
+                {
+                    written = 0;
+                    return OperationStatus.DestinationTooSmall;
+                }
                 buffer[written++] = id == ClsTokenId || id == SepTokenId || id == PadTokenId || id == MaskTokenId || id == UnknownTokenId ? 1 : 0;
             }
 
@@ -460,6 +524,11 @@ namespace Microsoft.ML.Tokenizers
             {
                 foreach (int id in tokenIds1)
                 {
+                    if (buffer.Length <= written)
+                    {
+                        written = 0;
+                        return OperationStatus.DestinationTooSmall;
+                    }
                     buffer[written++] = id == ClsTokenId || id == SepTokenId || id == PadTokenId || id == MaskTokenId || id == UnknownTokenId ? 1 : 0;
                 }
             }
@@ -484,21 +553,38 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(tokenIds0));
             }
 
-            // Add 2 for [CLS] and [SEP] tokens. Add 1 for [SEP] token if tokenIds1 is not null.
-            int capacity = tokenIds0.Count() + 2 + (tokenIds1 is null ? 0 : tokenIds1.Count() + 1);
+            List<int> typeIds;
+            if (tokenIds0 is ICollection<int> c1)
+            {
+                int capacity = c1.Count + 2;    // Add 2 for [CLS] and [SEP] tokens.
 
-            List<int> typeIds = new List<int>(capacity);
-            for (int i = 0; i < tokenIds0.Count() + 2; i++) // Add 2 for [CLS] and [SEP] tokens.
+                if (tokenIds1 is not null)
+                {
+                    capacity += tokenIds1 is ICollection<int> c2 ? c2.Count + 1 : c1.Count + 1;
+                }
+
+                typeIds = new List<int>(capacity);
+            }
+            else
+            {
+                typeIds = new List<int>(10);
+            }
+
+            foreach (var id in tokenIds0)
             {
                 typeIds.Add(0);
             }
+            typeIds.Add(0); // [CLS]
+            typeIds.Add(0); // [SEP]
 
             if (tokenIds1 is not null)
             {
-                for (int i = 0; i < tokenIds1.Count() + 1; i++) // Add 1 for [SEP] token.
+                foreach (int id in tokenIds1)
                 {
                     typeIds.Add(1);
                 }
+
+                typeIds.Add(1); // [SEP]
             }
 
             return typeIds;
@@ -515,22 +601,40 @@ namespace Microsoft.ML.Tokenizers
 
             // Add 2 for [CLS] and [SEP] tokens. Add 1 for [SEP] token if tokenIds1 is not null.
             int capacity = tokenIds0.Count() + 2 + (tokenIds1 is null ? 0 : tokenIds1.Count() + 1);
-            if (buffer.Length < capacity)
+            if (buffer.Length < 2)
             {
                 return OperationStatus.DestinationTooSmall;
             }
+            buffer[written++] = 0; // [CLS]
+            buffer[written++] = 0; // [SEP]
 
-            for (int i = 0; i < tokenIds0.Count() + 2; i++) // Add 2 for [CLS] and [SEP] tokens.
+            foreach (int id in tokenIds0)
             {
+                if (buffer.Length <= written)
+                {
+                    written = 0;
+                    return OperationStatus.DestinationTooSmall;
+                }
                 buffer[written++] = 0;
             }
 
             if (tokenIds1 is not null)
             {
-                for (int i = 0; i < tokenIds1.Count() + 1; i++) // Add 1 for [SEP] token.
+                foreach (int id in tokenIds1)
                 {
+                    if (buffer.Length <= written)
+                    {
+                        written = 0;
+                        return OperationStatus.DestinationTooSmall;
+                    }
                     buffer[written++] = 1;
                 }
+
+                if (buffer.Length < written)
+                {
+                    return OperationStatus.DestinationTooSmall;
+                }
+                buffer[written++] = 1; // [SEP]
             }
 
             return OperationStatus.Done;
