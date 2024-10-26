@@ -233,7 +233,7 @@ namespace Microsoft.ML.Tokenizers
                     continuingSubwordPrefix,
                     maxInputCharsPerWord,
                     cancellationToken,
-                    disposeStream: true);
+                    disposeStream: true).ConfigureAwait(false);
 
         /// <summary>
         /// Create a new instance of the <see cref="WordPieceTokenizer"/> class asynchronously.
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Tokenizers
                                 string continuingSubwordPrefix = DefaultContinuingSubwordPrefix,
                                 int maxInputCharsPerWord = DefaultMaxInputCharsPerWord,
                                 CancellationToken cancellationToken = default) =>
-            await CreateAsync(vocabStream, preTokenizer, normalizer, specialTokens, unknownToken, continuingSubwordPrefix, maxInputCharsPerWord, cancellationToken, disposeStream: false);
+            await CreateAsync(vocabStream, preTokenizer, normalizer, specialTokens, unknownToken, continuingSubwordPrefix, maxInputCharsPerWord, cancellationToken, disposeStream: false).ConfigureAwait(false);
 
         private static async Task<WordPieceTokenizer> CreateAsync(
                                 Stream vocabStream,

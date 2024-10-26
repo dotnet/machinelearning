@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tokenizers
 
                 if (category == UnicodeCategory.SpaceSeparator)
                 {
-                    InsertChar(ref buffer, ref index, ' ');
+                    AddChar(ref buffer, ref index, ' ');
                     i += inc;
                     continue;
                 }
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Tokenizers
                     int length = original.AsSpan().Slice(i, inc + 1).ToLowerInvariant(casingBuffer);
                     Debug.Assert(length > 0);
 
-                    InsertSpan(ref buffer, ref index, casingBuffer.Slice(0, length));
+                    AddSpan(ref buffer, ref index, casingBuffer.Slice(0, length));
 
                     i += inc;
                     continue;
@@ -93,22 +93,22 @@ namespace Microsoft.ML.Tokenizers
 
                 if (_tokenizeChineseChars && IsChineseChar(codePoint))
                 {
-                    InsertChar(ref buffer, ref index, ' ');
-                    InsertChar(ref buffer, ref index, c);
+                    AddChar(ref buffer, ref index, ' ');
+                    AddChar(ref buffer, ref index, c);
                     if (inc > 0)
                     {
-                        InsertChar(ref buffer, ref index, original[i + 1]);
+                        AddChar(ref buffer, ref index, original[i + 1]);
                     }
-                    InsertChar(ref buffer, ref index, ' ');
+                    AddChar(ref buffer, ref index, ' ');
 
                     i += inc;
                     continue;
                 }
 
-                InsertChar(ref buffer, ref index, c);
+                AddChar(ref buffer, ref index, c);
                 if (inc > 0)
                 {
-                    InsertChar(ref buffer, ref index, original[i + 1]);
+                    AddChar(ref buffer, ref index, original[i + 1]);
                 }
                 i += inc;
             }
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Tokenizers
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void InsertChar(ref char[] buffer, ref int index, char c)
+        private static void AddChar(ref char[] buffer, ref int index, char c)
         {
             if (index >= buffer.Length)
             {
@@ -158,9 +158,9 @@ namespace Microsoft.ML.Tokenizers
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void InsertSpan(ref char[] buffer, ref int index, Span<char> chars)
+        private static void AddSpan(ref char[] buffer, ref int index, Span<char> chars)
         {
-            if (index + buffer.Length >= buffer.Length)
+            if (index + chars.Length >= buffer.Length)
             {
                 Helpers.ArrayPoolGrow(ref buffer, index + buffer.Length + 10);
             }
