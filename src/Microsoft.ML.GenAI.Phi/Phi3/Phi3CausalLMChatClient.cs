@@ -48,9 +48,7 @@ public class Phi3CausalLMChatClient : CausalLMPipelineChatClient<Tokenizer, Phi3
         return base.CompleteAsync(chatMessages, options, cancellationToken);
     }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-    public override async IAsyncEnumerable<StreamingChatCompletionUpdate> CompleteStreamingAsync(
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+    public override IAsyncEnumerable<StreamingChatCompletionUpdate> CompleteStreamingAsync(
         IList<ChatMessage> chatMessages,
         ChatOptions? options = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
