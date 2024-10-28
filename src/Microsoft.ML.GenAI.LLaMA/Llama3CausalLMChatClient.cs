@@ -61,9 +61,6 @@ public class Llama3CausalLMChatClient : CausalLMPipelineChatClient<Tokenizer, Ll
             options.StopSequences = new List<string> { _eotToken };
         }
 
-        await foreach (var update in base.CompleteStreamingAsync(chatMessages, options, cancellationToken))
-        {
-            yield return update;
-        }
+        return base.CompleteStreamingAsync(chatMessages, options, cancellationToken);
     }
 }
