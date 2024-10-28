@@ -43,27 +43,15 @@ public class Llama3CausalLMChatClient : CausalLMPipelineChatClient<Tokenizer, Ll
         return base.CompleteAsync(chatMessages, options, cancellationToken);
     }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-    public override async IAsyncEnumerable<StreamingChatCompletionUpdate> CompleteStreamingAsync(
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+    public override IAsyncEnumerable<StreamingChatCompletionUpdate> CompleteStreamingAsync(
         IList<ChatMessage> chatMessages,
         ChatOptions? options = null,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         options ??= new ChatOptions();
+        options.StopSequences ??= [];
+        options.StopSequences.Add(_eotToken);
 
-        if (options.StopSequences != null)
-        {
-            options.StopSequences.Add(_eotToken);
-        }
-        else
-        {
-            options.StopSequences = new List<string> { _eotToken };
-        }
-
-        await foreach (var update in base.CompleteStreamingAsync(chatMessages, options, cancellationToken))
-        {
-            yield return update;
-        }
+        return base.CompleteStreamingAsync(chatMessages, options, cancellationToken);
     }
 }

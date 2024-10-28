@@ -20,7 +20,7 @@ public class Phi3ChatTemplateBuilder : IChatTemplateBuilder, IMEAIChatTemplateBu
 {
     private const char Newline = '\n';
 
-    public static Phi3ChatTemplateBuilder Instance => new Phi3ChatTemplateBuilder();
+    public static Phi3ChatTemplateBuilder Instance { get; } = new Phi3ChatTemplateBuilder();
 
     public string BuildPrompt(IEnumerable<IMessage> messages, IEnumerable<FunctionContract>? tools = null)
     {

@@ -9,7 +9,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.AI;
-using Microsoft.ML.GenAI.Core;
 using Microsoft.ML.Tokenizers;
 using static TorchSharp.torch;
 
@@ -20,7 +19,6 @@ public abstract class CausalLMPipelineChatClient<TTokenizer, TCausalLMModel> : I
     where TCausalLMModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
 {
     private readonly ICausalLMPipeline<TTokenizer, TCausalLMModel> _pipeline;
-    private readonly ChatClientMetadata _metadata;
     private readonly IMEAIChatTemplateBuilder _chatTemplateBuilder;
 
     public CausalLMPipelineChatClient(
@@ -28,15 +26,13 @@ public abstract class CausalLMPipelineChatClient<TTokenizer, TCausalLMModel> : I
         IMEAIChatTemplateBuilder chatTemplateBuilder,
         ChatClientMetadata? metadata = null)
     {
-        metadata ??= new ChatClientMetadata(modelId: nameof(CausalLMPipelineChatClient<TTokenizer, TCausalLMModel>));
+        var classNameWithType = $"{nameof(CausalLMPipelineChatClient<TTokenizer, TCausalLMModel>)}<{typeof(TTokenizer).Name}, {typeof(TCausalLMModel).Name}>";
+        Metadata ??= new ChatClientMetadata(providerName: classNameWithType, modelId: typeof(TCausalLMModel).Name);
         _chatTemplateBuilder = chatTemplateBuilder;
         _pipeline = pipeline;
-        _metadata = metadata;
     }
 
-    public ChatClientMetadata Metadata => _metadata;
-
-
+    public ChatClientMetadata Metadata { get; }
 
     public virtual Task<ChatCompletion> CompleteAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default)
     {
