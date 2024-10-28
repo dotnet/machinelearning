@@ -44,7 +44,7 @@ public class Llama3CausalLMChatClient : CausalLMPipelineChatClient<Tokenizer, Ll
     }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-    public override async IAsyncEnumerable<StreamingChatCompletionUpdate> CompleteStreamingAsync(
+    public override IAsyncEnumerable<StreamingChatCompletionUpdate> CompleteStreamingAsync(
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         IList<ChatMessage> chatMessages,
         ChatOptions? options = null,
