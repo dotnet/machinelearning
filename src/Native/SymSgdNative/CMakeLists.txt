@@ -5,19 +5,19 @@ set(SOURCES
     SymSgdNative.cpp
 )
 
-if(APPLE)
+#if(APPLE)
     # CMake has support for OpenMP, however, Apple has a version of Clang
     # that does not support openMP out of the box. Therefore
     # these commands are added to sepcifically handle the Apple Clang scenario
     # If the LLVM version of clang is used for Apple builds, this can be removed
     # and the else condition can be used instead.
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp -lomp")
-    SET(OPENMP_LIBRARY "omp")
-    include_directories("/usr/local/opt/libomp/include")
-    link_directories("/usr/local/opt/libomp/lib")
+#    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp")
+#    SET(OPENMP_LIBRARY "omp")
+#    include_directories("/usr/local/opt/libomp/include")
+#    link_directories("/usr/local/opt/libomp/lib")
 
-    list(APPEND SOURCES ${VERSION_FILE_PATH})
-else()
+#    list(APPEND SOURCES ${VERSION_FILE_PATH})
+#else()
     find_package(OpenMP)
     if (OPENMP_FOUND)
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -31,7 +31,7 @@ else()
         SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
         SET(CMAKE_INSTALL_RPATH "$ORIGIN/")
     endif()
-endif()
+#endif()
 
 if(NOT ${ARCHITECTURE} MATCHES "arm.*")
     find_library(MKL_LIBRARY MklImports HINTS ${MKL_LIB_PATH})
