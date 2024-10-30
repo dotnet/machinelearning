@@ -19,7 +19,7 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
             string extension = default;
             string prefix = "lib";
 
-            if (Environment.OSVersion.Platform == PlatformID.MacOSX)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 extension = ".dylib";
             else if (Environment.OSVersion.Platform == PlatformID.Unix)
                 extension = ".so";
