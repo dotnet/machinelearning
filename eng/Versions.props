@@ -21,17 +21,17 @@
     <MicrosoftExtensionsOptionsVersion>8.0.2</MicrosoftExtensionsOptionsVersion>
     <NuGetVersion>6.9.1</NuGetVersion>
     <SkiaSharpVersion>2.88.8</SkiaSharpVersion>
-    <SystemBuffersVersion>4.6.0-preview.1.24517.1</SystemBuffersVersion>
+    <SystemBuffersVersion>4.6.0-preview.1.24529.4</SystemBuffersVersion>
     <SystemCodeDomVersion>8.0.0</SystemCodeDomVersion>
     <SystemCollectionsImmutableVersion>8.0.0</SystemCollectionsImmutableVersion>
     <SystemConfigurationConfigurationManagerVersion>6.0.1</SystemConfigurationConfigurationManagerVersion>
     <SystemFormatsAsn1Version>8.0.1</SystemFormatsAsn1Version>
     <SystemIOFileSystemAccessControl>5.0.0</SystemIOFileSystemAccessControl>
-    <SystemMemoryVersion>4.6.0-preview.1.24517.1</SystemMemoryVersion>
+    <SystemMemoryVersion>4.6.0-preview.1.24529.4</SystemMemoryVersion>
     <SystemNumericsTensorsVersion>8.0.0</SystemNumericsTensorsVersion>
     <SystemReflectionEmitLightweightVersion>4.7.0</SystemReflectionEmitLightweightVersion>
     <SystemReflectionEmitVersion>4.3.0</SystemReflectionEmitVersion>
-    <SystemRuntimeCompilerServicesUnsafeVersion>6.1.0-preview.1.24517.1</SystemRuntimeCompilerServicesUnsafeVersion>
+    <SystemRuntimeCompilerServicesUnsafeVersion>6.1.0-preview.1.24529.4</SystemRuntimeCompilerServicesUnsafeVersion>
     <SystemSecurityPrincipalWindows>5.0.0</SystemSecurityPrincipalWindows>
     <SystemTextEncodingsWebVersion>8.0.0</SystemTextEncodingsWebVersion>
     <SystemTextJsonVersion>8.0.4</SystemTextJsonVersion>
@@ -40,7 +40,7 @@
     <ApacheArrowVersion>14.0.2</ApacheArrowVersion>
     <GoogleProtobufVersion>3.27.1</GoogleProtobufVersion>
     <LightGBMVersion>3.3.5</LightGBMVersion>
-    <MicrosoftBclHashCodeVersion>6.0.0-preview.1.24517.1</MicrosoftBclHashCodeVersion>
+    <MicrosoftBclHashCodeVersion>6.0.0-preview.1.24529.4</MicrosoftBclHashCodeVersion>
     <MicrosoftBclMemoryVersion>9.0.0-rc.1.24431.7</MicrosoftBclMemoryVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.3.4</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisCSharpVersion>4.9.2</MicrosoftCodeAnalysisCSharpVersion>
