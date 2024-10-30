@@ -43,7 +43,17 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
                 }
                 catch
                 {
-                    return false;
+                    // If that didn't load, dispose of the first attempt and try appending lib_ in front
+                    try
+                    {
+                        nativeLibrary?.Dispose();
+                        nativeLibrary = new NativeLibrary(prefix + "_" + name + extension);
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
                 }
             }
             finally
