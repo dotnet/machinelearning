@@ -5,7 +5,7 @@ set(SOURCES
     SymSgdNative.cpp
 )
 
-#if(APPLE)
+if(APPLE)
     # CMake has support for OpenMP, however, Apple has a version of Clang
     # that does not support openMP out of the box. Therefore
     # these commands are added to sepcifically handle the Apple Clang scenario
@@ -13,10 +13,11 @@ set(SOURCES
     # and the else condition can be used instead.
 #    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp")
 #    SET(OPENMP_LIBRARY "omp")
-#    include_directories("/usr/local/opt/libomp/include")
-#    link_directories("/usr/local/opt/libomp/lib")
+    include_directories("/usr/local/opt/libomp/include")
+    link_directories("/usr/local/opt/libomp/lib")
 
-#    list(APPEND SOURCES ${VERSION_FILE_PATH})
+    list(APPEND SOURCES ${VERSION_FILE_PATH})
+endif()
 #else()
     find_package(OpenMP)
     if (OPENMP_FOUND)
