@@ -11,14 +11,13 @@ if(APPLE)
     # these commands are added to sepcifically handle the Apple Clang scenario
     # If the LLVM version of clang is used for Apple builds, this can be removed
     # and the else condition can be used instead.
-#    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp")
-#    SET(OPENMP_LIBRARY "omp")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp")
+    SET(OPENMP_LIBRARY "omp")
     include_directories("/usr/local/opt/libomp/include")
     link_directories("/usr/local/opt/libomp/lib")
 
     list(APPEND SOURCES ${VERSION_FILE_PATH})
-endif()
-#else()
+else()
     find_package(OpenMP)
     if (OPENMP_FOUND)
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
