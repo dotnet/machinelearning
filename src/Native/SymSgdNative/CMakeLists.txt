@@ -31,7 +31,7 @@ else()
         SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
         SET(CMAKE_INSTALL_RPATH "$ORIGIN/")
     endif()
-#endif()
+endif()
 
 if(NOT ${ARCHITECTURE} MATCHES "arm.*")
     find_library(MKL_LIBRARY MklImports HINTS ${MKL_LIB_PATH})
