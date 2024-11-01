@@ -34,8 +34,8 @@ namespace Microsoft.ML.Tokenizers.Tests
 
         public static IEnumerable<object[]> ModelUrlData()
         {
+            // Gpt2 is covered by the r50k_base.tiktoken file
             yield return new object[] { @"https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken" };
-            yield return new object[] { @"https://fossies.org/linux/misc/legacy/whisper-20231117.tar.gz:b/whisper-20231117/whisper/assets/gpt2.tiktoken?m=b" };
             yield return new object[] { @"https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken" };
             yield return new object[] { @"https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken" };
             yield return new object[] { @"https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken" };
