@@ -1,11 +1,13 @@
 {
     "$schema": "https://json.schemastore.org/component-detection-manifest.json",
-    "Registrations": [
+    "version": 1,
+    "registrations": [
       {
-        "Component": {
+        "component": {
           "type": "other",
           "other": {
             "name": "cl100k_base.tiktoken",
+            "version": "1",
             "downloadUrl": "https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken",
             "hash": "sha1:6494e42d5aad2bbb441ea9793af9e7db335c8d9c"
           }
@@ -13,10 +15,11 @@
         "developmentDependency": false
       },
       {
-        "Component": {
+        "component": {
           "type": "other",
           "other": {
             "name": "o200k_base.tiktoken",
+            "version": "1",
             "downloadUrl": "https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken",
             "hash": "sha1:1d4fdeb17c52829ead47ac65e61197fd530b1c31"
           }
@@ -24,10 +27,11 @@
         "developmentDependency": false
       },
       {
-        "Component": {
+        "component": {
           "type": "other",
           "other": {
             "name": "p50k_base.tiktoken",
+            "version": "1",
             "downloadUrl": "https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken",
             "hash": "sha1:0ecf4ae6d454e7719bcf35f284eac0b73f37e3c9"
           }
@@ -35,10 +39,11 @@
         "developmentDependency": false
       },
       {
-        "Component": {
+        "component": {
           "type": "other",
           "other": {
             "name": "r50k_base.tiktoken",
+            "version": "1",
             "downloadUrl": "https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken",
             "hash": "sha1:5674ba48e48e76284eb747c896a291dc5583c808"
           }
