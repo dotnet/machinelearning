@@ -1153,7 +1153,7 @@ namespace Microsoft.ML.Tokenizers
         private const string Cl100kBaseVocabFile = "cl100k_base.tiktoken.deflate";  // "https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken"
         private const string P50RanksFile = "p50k_base.tiktoken.deflate";           // "https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken"
         private const string R50RanksFile = "r50k_base.tiktoken.deflate";           // "https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken"
-        private const string GPT2File = "gpt2.tiktoken.deflate";                    // "https://fossies.org/linux/misc/legacy/whisper-20231117.tar.gz:b/whisper-20231117/whisper/assets/gpt2.tiktoken?m=b"
+        private const string GPT2File = "gpt2.tiktoken.deflate";                    // "https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken". Gpt2 is using the same encoding as R50kBase
         private const string O200kBaseFile = "o200k_base.tiktoken.deflate";         // "https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken"
 
         internal const string Cl100kBaseEncodingName = "cl100k_base";

@@ -86,8 +86,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-License notice for OpenAI Tiktoken Tokenizer
---------------------------------------------
+License notice for OpenAI Tiktoken Tokenizer & Tokenizer's vocab files
+----------------------------------------------------------------------
 
 https://github.com/openai/tiktoken/blob/main/LICENSE
 
