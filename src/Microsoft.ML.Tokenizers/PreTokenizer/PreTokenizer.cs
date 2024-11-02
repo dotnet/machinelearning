@@ -40,13 +40,16 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
+        // 30 seconds is a reasonable time to process any text and find the match.
+        internal const int DefaultTimeOutInMilliseconds = 30_000;
+
         private const string WhiteSpaceOrPunctuationPattern = @"\w+|[\p{P}]";
         private static PreTokenizer? _whiteSpaceOrPunctuationPreTokenizer;
 #if NET7_0_OR_GREATER
-        [GeneratedRegex(WhiteSpaceOrPunctuationPattern)]
+        [GeneratedRegex(WhiteSpaceOrPunctuationPattern, RegexOptions.None, DefaultTimeOutInMilliseconds)]
         private static partial Regex WhiteSpaceOrPunctuationRegex();
 #else
-        private static Regex WhiteSpaceOrPunctuationRegex() => new Regex(WhiteSpaceOrPunctuationPattern, RegexOptions.Compiled);
+        private static Regex WhiteSpaceOrPunctuationRegex() => new Regex(WhiteSpaceOrPunctuationPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(DefaultTimeOutInMilliseconds));
 #endif
 
         /// <summary>
@@ -69,10 +72,10 @@ namespace Microsoft.ML.Tokenizers
         private static PreTokenizer? _wordOrNonWordPreTokenizer;
 
 #if NET7_0_OR_GREATER
-        [GeneratedRegex(WordOrNonWordPattern)]
+        [GeneratedRegex(WordOrNonWordPattern, RegexOptions.None, DefaultTimeOutInMilliseconds)]
         private static partial Regex WordOrNonWordRegex();
 #else
-        private static Regex WordOrNonWordRegex() => new Regex(WordOrNonWordPattern, RegexOptions.Compiled);
+        private static Regex WordOrNonWordRegex() => new Regex(WordOrNonWordPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(DefaultTimeOutInMilliseconds));
 #endif
 
         /// <summary>
@@ -96,10 +99,10 @@ namespace Microsoft.ML.Tokenizers
         private static PreTokenizer? _whiteSpacePreTokenizer;
 
 #if NET7_0_OR_GREATER
-        [GeneratedRegex(WhiteSpacePattern)]
+        [GeneratedRegex(WhiteSpacePattern, RegexOptions.None, DefaultTimeOutInMilliseconds)]
         private static partial Regex WhiteSpaceRegex();
 #else
-        private static Regex WhiteSpaceRegex() => new Regex(WhiteSpacePattern, RegexOptions.Compiled);
+        private static Regex WhiteSpaceRegex() => new Regex(WhiteSpacePattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(DefaultTimeOutInMilliseconds));
 #endif
 
         /// <summary>

@@ -35,6 +35,8 @@ namespace Microsoft.ML.Tokenizers
 
             if (specialTokensEncoder is { Count: > 0 })
             {
+                // We create this Regex object without a timeout because we know it will perform the match operation in O(N) time complexity.
+                // Therefore, confidently process any text within a reasonable time.
                 _specialTokensRegex = new Regex(string.Join("|", specialTokensEncoder.Keys.Select(s => Regex.Escape(s))), RegexOptions.Compiled);
             }
         }

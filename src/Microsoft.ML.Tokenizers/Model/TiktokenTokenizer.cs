@@ -1185,13 +1185,13 @@ namespace Microsoft.ML.Tokenizers
         internal static partial Regex O200kBaseRegex();
 #else
         private static Regex? _cl100kBaseRegex;
-        private static Regex Cl100kBaseRegex() => _cl100kBaseRegex ??= new Regex(Cl100kBaseRegexPattern, RegexOptions.Compiled);
+        private static Regex Cl100kBaseRegex() => _cl100kBaseRegex ??= new Regex(Cl100kBaseRegexPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(PreTokenizer.DefaultTimeOutInMilliseconds));
 
         private static Regex? _p50kBaseRegex;
-        internal static Regex P50kBaseRegex() => _p50kBaseRegex ??= new Regex(P50kBaseRegexPattern, RegexOptions.Compiled);
+        internal static Regex P50kBaseRegex() => _p50kBaseRegex ??= new Regex(P50kBaseRegexPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(PreTokenizer.DefaultTimeOutInMilliseconds));
 
         private static Regex? _o200kBaseRegex;
-        internal static Regex O200kBaseRegex() => _o200kBaseRegex ??= new Regex(O200kBaseRegexPattern, RegexOptions.Compiled);
+        internal static Regex O200kBaseRegex() => _o200kBaseRegex ??= new Regex(O200kBaseRegexPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(PreTokenizer.DefaultTimeOutInMilliseconds));
 #endif
 
         private static readonly ConcurrentDictionary<string, (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, (int Id, string Token)> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder)> _tiktokenCache = new(StringComparer.OrdinalIgnoreCase);
