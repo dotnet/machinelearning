@@ -1175,13 +1175,13 @@ namespace Microsoft.ML.Tokenizers
         internal const string R50kBaseTypeName = "Microsoft.ML.Tokenizers.R50kBaseTokenizerData, Microsoft.ML.Tokenizers.Data.R50kBase, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51";
 
 #if NET7_0_OR_GREATER
-        [GeneratedRegex(Cl100kBaseRegexPattern)]
+        [GeneratedRegex(Cl100kBaseRegexPattern, RegexOptions.None, PreTokenizer.DefaultTimeOutInMilliseconds)]
         private static partial Regex Cl100kBaseRegex();
 
-        [GeneratedRegex(P50kBaseRegexPattern)]
+        [GeneratedRegex(P50kBaseRegexPattern, RegexOptions.None, PreTokenizer.DefaultTimeOutInMilliseconds)]
         internal static partial Regex P50kBaseRegex();
 
-        [GeneratedRegex(O200kBaseRegexPattern)]
+        [GeneratedRegex(O200kBaseRegexPattern, RegexOptions.None, PreTokenizer.DefaultTimeOutInMilliseconds)]
         internal static partial Regex O200kBaseRegex();
 #else
         private static Regex? _cl100kBaseRegex;
