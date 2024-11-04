@@ -1175,23 +1175,23 @@ namespace Microsoft.ML.Tokenizers
         internal const string R50kBaseTypeName = "Microsoft.ML.Tokenizers.R50kBaseTokenizerData, Microsoft.ML.Tokenizers.Data.R50kBase, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51";
 
 #if NET7_0_OR_GREATER
-        [GeneratedRegex(Cl100kBaseRegexPattern)]
+        [GeneratedRegex(Cl100kBaseRegexPattern, RegexOptions.None, PreTokenizer.DefaultTimeOutInMilliseconds)]
         private static partial Regex Cl100kBaseRegex();
 
-        [GeneratedRegex(P50kBaseRegexPattern)]
+        [GeneratedRegex(P50kBaseRegexPattern, RegexOptions.None, PreTokenizer.DefaultTimeOutInMilliseconds)]
         internal static partial Regex P50kBaseRegex();
 
-        [GeneratedRegex(O200kBaseRegexPattern)]
+        [GeneratedRegex(O200kBaseRegexPattern, RegexOptions.None, PreTokenizer.DefaultTimeOutInMilliseconds)]
         internal static partial Regex O200kBaseRegex();
 #else
         private static Regex? _cl100kBaseRegex;
-        private static Regex Cl100kBaseRegex() => _cl100kBaseRegex ??= new Regex(Cl100kBaseRegexPattern, RegexOptions.Compiled);
+        private static Regex Cl100kBaseRegex() => _cl100kBaseRegex ??= new Regex(Cl100kBaseRegexPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(PreTokenizer.DefaultTimeOutInMilliseconds));
 
         private static Regex? _p50kBaseRegex;
-        internal static Regex P50kBaseRegex() => _p50kBaseRegex ??= new Regex(P50kBaseRegexPattern, RegexOptions.Compiled);
+        internal static Regex P50kBaseRegex() => _p50kBaseRegex ??= new Regex(P50kBaseRegexPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(PreTokenizer.DefaultTimeOutInMilliseconds));
 
         private static Regex? _o200kBaseRegex;
-        internal static Regex O200kBaseRegex() => _o200kBaseRegex ??= new Regex(O200kBaseRegexPattern, RegexOptions.Compiled);
+        internal static Regex O200kBaseRegex() => _o200kBaseRegex ??= new Regex(O200kBaseRegexPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(PreTokenizer.DefaultTimeOutInMilliseconds));
 #endif
 
         private static readonly ConcurrentDictionary<string, (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, (int Id, string Token)> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder)> _tiktokenCache = new(StringComparer.OrdinalIgnoreCase);

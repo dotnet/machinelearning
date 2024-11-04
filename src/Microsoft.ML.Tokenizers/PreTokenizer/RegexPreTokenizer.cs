@@ -35,6 +35,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (specialTokensEncoder is { Count: > 0 })
             {
+                // We create this Regex object without a timeout, as we expect the match operation to complete in \(O(N)\) time complexity. Note that `specialTokensEncoder` is treated as constants after the pre-tokenizer is created.
                 _specialTokensRegex = new Regex(string.Join("|", specialTokensEncoder.Keys.Select(s => Regex.Escape(s))), RegexOptions.Compiled);
             }
         }
