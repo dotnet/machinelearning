@@ -86,6 +86,7 @@ namespace Microsoft.ML.Tokenizers
                     _specialTokensReverse.Add(item.Value, item.Key);
                 }
 
+                // We create this Regex object without a timeout, as we expect the match operation to complete in \(O(N)\) time complexity. Note that `specialTokens` are treated as constants after the tokenizer is created.
                 _specialTokensRegex = new Regex(string.Join("|", specialTokens.Keys.Select(s => Regex.Escape(s))), RegexOptions.Compiled);
             }
         }
