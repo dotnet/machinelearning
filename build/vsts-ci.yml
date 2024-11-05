@@ -30,7 +30,7 @@ variables:
 - name: WindowsImage
   value: 1es-windows-2019
 - name: MacImage
-  value: macOS-12
+  value: macOS-13
 - ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
   - name: enableSourceIndex
     value: true
@@ -142,7 +142,7 @@ extends:
             PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
             ArtifactName: pkgassets
         steps:
-        - script: export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 &&  rm '/usr/local/bin/2to3-3.11' && brew unlink libomp && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
+        - script: export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 &&  rm '/usr/local/bin/2to3-3.11' && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
           displayName: Install build dependencies
         # Only build native assets to avoid conflicts.
         - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
