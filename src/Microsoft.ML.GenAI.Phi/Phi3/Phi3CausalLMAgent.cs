@@ -19,22 +19,31 @@ public class Phi3Agent : IStreamingAgent
     private const char Newline = '\n';
     private readonly ICausalLMPipeline<Tokenizer, Phi3ForCasualLM> _pipeline;
     private readonly string? _systemMessage;
+    private readonly IAutoGenChatTemplateBuilder _templateBuilder;
 
     public Phi3Agent(
         ICausalLMPipeline<Tokenizer, Phi3ForCasualLM> pipeline,
         string name,
-        string? systemMessage = "you are a helpful assistant")
+        string? systemMessage = "you are a helpful assistant",
+        IAutoGenChatTemplateBuilder? templateBuilder = null)
     {
         this.Name = name;
         this._pipeline = pipeline;
         this._systemMessage = systemMessage;
+        this._templateBuilder = templateBuilder ?? Phi3ChatTemplateBuilder.Instance;
     }
 
     public string Name { get; }
 
     public Task<IMessage> GenerateReplyAsync(IEnumerable<IMessage> messages, GenerateReplyOptions? options = null, CancellationToken cancellationToken = default)
     {
-        var input = BuildPrompt(messages);
+        if (_systemMessage != null)
+        {
+            var systemMessage = new TextMessage(Role.System, _systemMessage, from: this.Name);
+            messages = messages.Prepend(systemMessage);
+        }
+
+        var input = _templateBuilder.BuildPrompt(messages);
         var maxLen = options?.MaxToken ?? 1024;
         var temperature = options?.Temperature ?? 0.7f;
         var stopTokenSequence = options?.StopSequence ?? [];
@@ -56,7 +65,13 @@ public class Phi3Agent : IStreamingAgent
         GenerateReplyOptions? options = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var input = BuildPrompt(messages);
+        if (_systemMessage != null)
+        {
+            var systemMessage = new TextMessage(Role.System, _systemMessage, from: this.Name);
+            messages = messages.Prepend(systemMessage);
+        }
+
+        var input = _templateBuilder.BuildPrompt(messages);
         var maxLen = options?.MaxToken ?? 1024;
         var temperature = options?.Temperature ?? 0.7f;
         var stopTokenSequence = options?.StopSequence ?? [];
@@ -70,45 +85,5 @@ public class Phi3Agent : IStreamingAgent
         {
             yield return new TextMessageUpdate(Role.Assistant, output, from: this.Name);
         }
-    }
-
-    private string BuildPrompt(IEnumerable<IMessage> messages)
-    {
-        var availableRoles = new[] { Role.System, Role.User, Role.Assistant };
-        if (messages.Any(m => m.GetContent() is null))
-        {
-            throw new InvalidOperationException("Please provide a message with content.");
-        }
-
-        if (messages.Any(m => m.GetRole() is null || availableRoles.Contains(m.GetRole()!.Value) == false))
-        {
-            throw new InvalidOperationException("Please provide a message with a valid role. The valid roles are System, User, and Assistant.");
-        }
-
-        // construct template based on instruction from
-        // https://huggingface.co/microsoft/Phi-3-mini-128k-instruct#chat-format
-
-        var sb = new StringBuilder();
-        if (_systemMessage is not null)
-        {
-            sb.Append($"<|system|>{Newline}{_systemMessage}<|end|>{Newline}");
-        }
-        foreach (var message in messages)
-        {
-            var role = message.GetRole()!.Value;
-            var content = message.GetContent()!;
-            sb.Append(message switch
-            {
-                _ when message.GetRole() == Role.System => $"<|system|>{Newline}{content}<|end|>{Newline}",
-                _ when message.GetRole() == Role.User => $"<|user|>{Newline}{content}<|end|>{Newline}",
-                _ when message.GetRole() == Role.Assistant => $"<|assistant|>{Newline}{content}<|end|>{Newline}",
-                _ => throw new InvalidOperationException("Invalid role.")
-            });
-        }
-
-        sb.Append("<|assistant|>");
-        var input = sb.ToString();
-
-        return input;
     }
 }
