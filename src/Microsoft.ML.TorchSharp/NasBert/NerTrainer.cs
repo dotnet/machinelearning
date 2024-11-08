@@ -167,7 +167,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
                 Sentence1Getter(ref sentenceRom);
                 var sentence = sentenceRom.ToString();
                 Tensor t;
-                IReadOnlyList<EncodedToken> encoding = Tokenizer.EncodeToTokens(sentence, out string normalizedString);
+                IReadOnlyList<EncodedToken> encoding = Tokenizer.EncodeToTokens(sentence, out string normalizedText);
 
                 if (target.Length != encoding.Count)
                 {
@@ -377,7 +377,7 @@ namespace Microsoft.ML.TorchSharp.NasBert
             private void CondenseOutput(ref VBuffer<UInt32> dst, string sentence, Tokenizer tokenizer, TensorCacher outputCacher)
             {
                 var pre = tokenizer.PreTokenizer.PreTokenize(sentence);
-                IReadOnlyList<EncodedToken> encoding = tokenizer.EncodeToTokens(sentence, out string normalizedString);
+                IReadOnlyList<EncodedToken> encoding = tokenizer.EncodeToTokens(sentence, out string normalizedText);
 
                 var argmax = (outputCacher as BertTensorCacher).Result.argmax(-1);
                 var prediction = argmax.ToArray<long>();

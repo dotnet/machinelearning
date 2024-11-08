@@ -53,12 +53,12 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             var tokenizer = new EnglishAlphabetTokenizer();
 
-            Assert.Equal(2, tokenizer.GetIndexByTokenCount("hello", 2, out string? normalizedString, out int tokenCount));
-            Assert.Null(normalizedString);
+            Assert.Equal(2, tokenizer.GetIndexByTokenCount("hello", 2, out string? normalizedText, out int tokenCount));
+            Assert.Null(normalizedText);
             Assert.Equal(2, tokenCount);
 
-            Assert.Equal(5, tokenizer.GetIndexByTokenCount("hello", 8, out normalizedString, out tokenCount));
-            Assert.Null(normalizedString);
+            Assert.Equal(5, tokenizer.GetIndexByTokenCount("hello", 8, out normalizedText, out tokenCount));
+            Assert.Null(normalizedText);
             Assert.Equal(5, tokenCount);
         }
 
@@ -67,12 +67,12 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             var tokenizer = new EnglishAlphabetTokenizer();
 
-            Assert.Equal(3, tokenizer.GetIndexByTokenCountFromEnd("hello", 2, out string? normalizedString, out int tokenCount));
-            Assert.Null(normalizedString);
+            Assert.Equal(3, tokenizer.GetIndexByTokenCountFromEnd("hello", 2, out string? normalizedText, out int tokenCount));
+            Assert.Null(normalizedText);
             Assert.Equal(2, tokenCount);
 
-            Assert.Equal(0, tokenizer.GetIndexByTokenCountFromEnd("hello", 8, out normalizedString, out tokenCount));
-            Assert.Null(normalizedString);
+            Assert.Equal(0, tokenizer.GetIndexByTokenCountFromEnd("hello", 8, out normalizedText, out tokenCount));
+            Assert.Null(normalizedText);
             Assert.Equal(5, tokenCount);
         }
 
