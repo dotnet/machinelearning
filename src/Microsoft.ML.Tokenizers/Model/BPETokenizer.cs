@@ -29,13 +29,13 @@ namespace Microsoft.ML.Tokenizers
         private int? _unknownTokenId;
         private readonly PreTokenizer? _preTokenizer;
         private readonly Normalizer? _normalizer;
-        private readonly Dictionary<StringSpanOrdinalKey, (int, string)>? _addedTokens;
-        private readonly Dictionary<int, string>? _addedTokensReverse;
+        private readonly Dictionary<StringSpanOrdinalKey, (int, string)>? _specialTokens;
+        private readonly Dictionary<int, string>? _specialTokensReverse;
 
         /// <summary>
-        /// Gets the added tokens.
+        /// Gets the special tokens.
         /// </summary>
-        public IReadOnlyDictionary<string, int>? AddedTokens { get; }
+        public IReadOnlyDictionary<string, int>? SpecialTokens { get; }
 
         /// <summary>
         /// Gets or Sets unknown token. The unknown token to be used when we encounter an unknown char
@@ -86,8 +86,11 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="vocabFile">The JSON file path containing the dictionary of string keys and their ids.</param>
         /// <param name="mergesFile">The file path containing the tokens's pairs list.</param>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary file is sourced from a trusted provider.
+        /// </remarks>
         public static BpeTokenizer Create(string vocabFile, string? mergesFile)
-            => Create(vocabFile, mergesFile, preTokenizer: PreTokenizer.CreateWordOrNonWordPreTokenizer(), normalizer: null, unknownToken: null, continuingSubwordPrefix: null, endOfWordSuffix: null, fuseUnknownTokens: false);
+            => Create(vocabFile, mergesFile, preTokenizer: PreTokenizer.CreateWordOrNonWord(), normalizer: null, unknownToken: null, continuingSubwordPrefix: null, endOfWordSuffix: null, fuseUnknownTokens: false);
 
         /// <summary>
         /// Create a new Bpe tokenizer object to use for text encoding.
@@ -96,17 +99,20 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="mergesFile">The file path containing the tokens's pairs list.</param>
         /// <param name="preTokenizer">The pre-tokenizer to use.</param>
         /// <param name="normalizer">The normalizer to use.</param>
-        /// <param name="addedTokens">The additional tokens to add to the vocabulary.</param>
+        /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
         /// <param name="unknownToken"> The unknown token to be used by the model.</param>
         /// <param name="continuingSubwordPrefix">The prefix to attach to sub-word units that don’t represent a beginning of word.</param>
         /// <param name="endOfWordSuffix">The suffix to attach to sub-word units that represent an end of word.</param>
         /// <param name="fuseUnknownTokens">Indicate whether allowing multiple unknown tokens get fused.</param>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary file is sourced from a trusted provider.
+        /// </remarks>
         public static BpeTokenizer Create(
                                 string vocabFile,
                                 string? mergesFile,
                                 PreTokenizer? preTokenizer = null,
                                 Normalizer? normalizer = null,
-                                IReadOnlyDictionary<string, int>? addedTokens = null,
+                                IReadOnlyDictionary<string, int>? specialTokens = null,
                                 string? unknownToken = null,
                                 string? continuingSubwordPrefix = null,
                                 string? endOfWordSuffix = null,
@@ -122,7 +128,7 @@ namespace Microsoft.ML.Tokenizers
 
             (Dictionary<StringSpanOrdinalKey, int>? vocab, Vec<(string, string)> merges) result = ReadModelDataAsync(vocabStream, mergesStream, useAsync: false).GetAwaiter().GetResult();
 
-            return new BpeTokenizer(result.vocab, result.merges, preTokenizer, normalizer, addedTokens, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens);
+            return new BpeTokenizer(result.vocab, result.merges, preTokenizer, normalizer, specialTokens, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens);
         }
 
         /// <summary>
@@ -130,8 +136,11 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="vocabStream">The JSON stream containing the dictionary of string keys and their ids.</param>
         /// <param name="mergesStream">The stream containing the tokens's pairs list.</param>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
+        /// </remarks>
         public static BpeTokenizer Create(Stream vocabStream, Stream? mergesStream)
-            => Create(vocabStream, mergesStream, preTokenizer: PreTokenizer.CreateWordOrNonWordPreTokenizer(), normalizer: null, addedTokens: null, unknownToken: null, continuingSubwordPrefix: null, endOfWordSuffix: null, fuseUnknownTokens: false);
+            => Create(vocabStream, mergesStream, preTokenizer: PreTokenizer.CreateWordOrNonWord(), normalizer: null, specialTokens: null, unknownToken: null, continuingSubwordPrefix: null, endOfWordSuffix: null, fuseUnknownTokens: false);
 
         /// <summary>
         /// Create a new Bpe tokenizer object to use for text encoding.
@@ -140,17 +149,20 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="mergesStream">The stream containing the tokens's pairs list.</param>
         /// <param name="preTokenizer">The pre-tokenizer to use.</param>
         /// <param name="normalizer">The normalizer to use.</param>
-        /// <param name="addedTokens">The additional tokens to add to the vocabulary.</param>
+        /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
         /// <param name="unknownToken"> The unknown token to be used by the model.</param>
         /// <param name="continuingSubwordPrefix">The prefix to attach to sub-word units that don’t represent a beginning of word.</param>
         /// <param name="endOfWordSuffix">The suffix to attach to sub-word units that represent an end of word.</param>
         /// <param name="fuseUnknownTokens">Indicate whether allowing multiple unknown tokens get fused.</param>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
+        /// </remarks>
         public static BpeTokenizer Create(
                                 Stream vocabStream,
                                 Stream? mergesStream,
                                 PreTokenizer? preTokenizer = null,
                                 Normalizer? normalizer = null,
-                                IReadOnlyDictionary<string, int>? addedTokens = null,
+                                IReadOnlyDictionary<string, int>? specialTokens = null,
                                 string? unknownToken = null,
                                 string? continuingSubwordPrefix = null,
                                 string? endOfWordSuffix = null,
@@ -163,7 +175,7 @@ namespace Microsoft.ML.Tokenizers
 
             (Dictionary<StringSpanOrdinalKey, int>? vocab, Vec<(string, string)> merges) result = ReadModelDataAsync(vocabStream, mergesStream, useAsync: false).GetAwaiter().GetResult();
 
-            return new BpeTokenizer(result.vocab, result.merges, preTokenizer, normalizer, addedTokens, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens);
+            return new BpeTokenizer(result.vocab, result.merges, preTokenizer, normalizer, specialTokens, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens);
         }
 
         /// <summary>
@@ -173,17 +185,20 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="mergesStream">The stream containing the tokens's pairs list.</param>
         /// <param name="preTokenizer">The pre-tokenizer to use.</param>
         /// <param name="normalizer">The normalizer to use.</param>
-        /// <param name="addedTokens">The additional tokens to add to the vocabulary.</param>
+        /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
         /// <param name="unknownToken"> The unknown token to be used by the model.</param>
         /// <param name="continuingSubwordPrefix">The prefix to attach to sub-word units that don’t represent a beginning of word.</param>
         /// <param name="endOfWordSuffix">The suffix to attach to sub-word units that represent an end of word.</param>
         /// <param name="fuseUnknownTokens">Indicate whether allowing multiple unknown tokens get fused.</param>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
+        /// </remarks>
         public static async Task<BpeTokenizer> CreateAsync(
                                 Stream vocabStream,
                                 Stream? mergesStream,
                                 PreTokenizer? preTokenizer = null,
                                 Normalizer? normalizer = null,
-                                IReadOnlyDictionary<string, int>? addedTokens = null,
+                                IReadOnlyDictionary<string, int>? specialTokens = null,
                                 string? unknownToken = null,
                                 string? continuingSubwordPrefix = null,
                                 string? endOfWordSuffix = null,
@@ -196,7 +211,7 @@ namespace Microsoft.ML.Tokenizers
 
             (Dictionary<StringSpanOrdinalKey, int>? vocab, Vec<(string, string)> merges) result = await ReadModelDataAsync(vocabStream, mergesStream, useAsync: true).ConfigureAwait(false);
 
-            return new BpeTokenizer(result.vocab, result.merges, preTokenizer, normalizer, addedTokens, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens);
+            return new BpeTokenizer(result.vocab, result.merges, preTokenizer, normalizer, specialTokens, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens);
         }
 
         /// <summary>
@@ -206,7 +221,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="merges">The pairs list help in merging tokens during the encoding process.</param>
         /// <param name="preTokenizer">The pre-tokenizer to use.</param>
         /// <param name="normalizer">The normalizer to use.</param>
-        /// <param name="addedTokens">The additional tokens to add to the vocabulary.</param>
+        /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
         /// <param name="unknownToken"> The unknown token to be used by the model.</param>
         /// <param name="continuingSubwordPrefix">The prefix to attach to sub-word units that don’t represent a beginning of word.</param>
         /// <param name="endOfWordSuffix">The suffix to attach to sub-word units that represent an end of word.</param>
@@ -216,7 +231,7 @@ namespace Microsoft.ML.Tokenizers
                     Vec<(string, string)> merges,
                     PreTokenizer? preTokenizer,
                     Normalizer? normalizer,
-                    IReadOnlyDictionary<string, int>? addedTokens,
+                    IReadOnlyDictionary<string, int>? specialTokens,
                     string? unknownToken,
                     string? continuingSubwordPrefix,
                     string? endOfWordSuffix,
@@ -225,7 +240,7 @@ namespace Microsoft.ML.Tokenizers
             FuseUnknownTokens = fuseUnknownTokens;
             ContinuingSubwordPrefix = continuingSubwordPrefix;
             EndOfWordSuffix = endOfWordSuffix;
-            _preTokenizer = preTokenizer ?? PreTokenizer.CreateWordOrNonWordPreTokenizer(); // Default to WordOrNonWord pre-tokenizer
+            _preTokenizer = preTokenizer ?? PreTokenizer.CreateWordOrNonWord(); // Default to WordOrNonWord pre-tokenizer
             _normalizer = normalizer;
 
             _vocab = vocab ?? new Dictionary<StringSpanOrdinalKey, int>();
@@ -238,11 +253,11 @@ namespace Microsoft.ML.Tokenizers
                 VocabReverse.Add(kvp.Value, kvp.Key.Data!);
             }
 
-            if (addedTokens is not null)
+            if (specialTokens is not null)
             {
-                AddedTokens = addedTokens;
-                _addedTokens = addedTokens.ToDictionary(kvp => new StringSpanOrdinalKey(kvp.Key), kvp => (kvp.Value, kvp.Key));
-                _addedTokensReverse = addedTokens.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+                SpecialTokens = specialTokens;
+                _specialTokens = specialTokens.ToDictionary(kvp => new StringSpanOrdinalKey(kvp.Key), kvp => (kvp.Value, kvp.Key));
+                _specialTokensReverse = specialTokens.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
             }
 
             UnknownToken = unknownToken;
@@ -309,7 +324,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 settings.ConsiderNormalization,
                                                                 _normalizer,
                                                                 _preTokenizer,
-                                                                out string? normalizedString,
+                                                                out string? normalizedText,
                                                                 out ReadOnlySpan<char> textSpanToEncode,
                                                                 out int charsConsumed);
 
@@ -328,7 +343,7 @@ namespace Microsoft.ML.Tokenizers
                 EncodeWithCache(textSpanToEncode, tokens, 0, ref priorityQueue);
             }
 
-            return new EncodeResults<EncodedToken> { Tokens = tokens, NormalizedText = normalizedString, CharsConsumed = charsConsumed };
+            return new EncodeResults<EncodedToken> { Tokens = tokens, NormalizedText = normalizedText, CharsConsumed = charsConsumed };
         }
 
         /// <summary>
@@ -358,7 +373,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 settings.ConsiderNormalization,
                                                                 _normalizer,
                                                                 _preTokenizer,
-                                                                out string? normalizedString,
+                                                                out string? normalizedText,
                                                                 out ReadOnlySpan<char> textSpanToEncode,
                                                                 out _);
 
@@ -384,7 +399,7 @@ namespace Microsoft.ML.Tokenizers
                 EncodeToIdsWithCache(textSpanToEncode, ids, maxTokenCount, out charsConsumed, ref priorityQueue);
             }
 
-            return new EncodeResults<int> { Tokens = ids, NormalizedText = normalizedString, CharsConsumed = charsConsumed };
+            return new EncodeResults<int> { Tokens = ids, NormalizedText = normalizedText, CharsConsumed = charsConsumed };
         }
 
         /// <summary>
@@ -414,7 +429,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 settings.ConsiderNormalization,
                                                                 _normalizer,
                                                                 _preTokenizer,
-                                                                out string? normalizedString,
+                                                                out string? normalizedText,
                                                                 out ReadOnlySpan<char> textSpanToEncode,
                                                                 out _);
 
@@ -450,27 +465,27 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="textSpan">The span of the text to encode which will be used if the <paramref name="text"/> is <see langword="null"/>.</param>
         /// <param name="settings">The settings used to encode the text.</param>
         /// <param name="fromEnd">Indicate whether to find the index from the end of the text.</param>
-        /// <param name="normalizedString">If the tokenizer's normalization is enabled or <paramRef name="settings" /> has <see cref="EncodeSettings.ConsiderNormalization"/> is <see langword="false"/>, this will be set to <paramRef name="text" /> in its normalized form; otherwise, this value will be set to <see langword="null"/>.</param>
+        /// <param name="normalizedText">If the tokenizer's normalization is enabled or <paramRef name="settings" /> has <see cref="EncodeSettings.ConsiderNormalization"/> is <see langword="false"/>, this will be set to <paramRef name="text" /> in its normalized form; otherwise, this value will be set to <see langword="null"/>.</param>
         /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
         /// <returns>
         /// The index of the maximum encoding capacity within the processed text without surpassing the token limit.
         /// If <paramRef name="fromEnd" /> is <see langword="false"/>, it represents the index immediately following the last character to be included. In cases where no tokens fit, the result will be 0; conversely,
-        /// if all tokens fit, the result will be length of the input text or the <paramref name="normalizedString"/> if the normalization is enabled.
+        /// if all tokens fit, the result will be length of the input text or the <paramref name="normalizedText"/> if the normalization is enabled.
         /// If <paramRef name="fromEnd" /> is <see langword="true"/>, it represents the index of the first character to be included. In cases where no tokens fit, the result will be the text length; conversely,
         /// if all tokens fit, the result will be zero.
         /// </returns>
-        protected override int GetIndexByTokenCount(string? text, ReadOnlySpan<char> textSpan, EncodeSettings settings, bool fromEnd, out string? normalizedString, out int tokenCount)
+        protected override int GetIndexByTokenCount(string? text, ReadOnlySpan<char> textSpan, EncodeSettings settings, bool fromEnd, out string? normalizedText, out int tokenCount)
         {
             if (fromEnd)
             {
-                return LastIndexOf(text, textSpan, settings.MaxTokenCount, settings.ConsiderPreTokenization, settings.ConsiderNormalization, out normalizedString, out tokenCount);
+                return LastIndexOf(text, textSpan, settings.MaxTokenCount, settings.ConsiderPreTokenization, settings.ConsiderNormalization, out normalizedText, out tokenCount);
             }
 
-            tokenCount = CountTokens(text, textSpan, settings.ConsiderPreTokenization, settings.ConsiderNormalization, out normalizedString, out int charsConsumed, settings.MaxTokenCount);
+            tokenCount = CountTokens(text, textSpan, settings.ConsiderPreTokenization, settings.ConsiderNormalization, out normalizedText, out int charsConsumed, settings.MaxTokenCount);
             return charsConsumed;
         }
 
-        private int CountTokens(string? text, ReadOnlySpan<char> textSpan, bool considerPreTokenization, bool considerNormalization, out string? normalizedString, out int charsConsumed, int maxTokenCount = int.MaxValue)
+        private int CountTokens(string? text, ReadOnlySpan<char> textSpan, bool considerPreTokenization, bool considerNormalization, out string? normalizedText, out int charsConsumed, int maxTokenCount = int.MaxValue)
         {
             if (maxTokenCount <= 0)
             {
@@ -480,7 +495,7 @@ namespace Microsoft.ML.Tokenizers
             charsConsumed = 0;
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
             {
-                normalizedString = null;
+                normalizedText = null;
                 return 0;
             }
 
@@ -491,7 +506,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 considerNormalization,
                                                                 _normalizer,
                                                                 _preTokenizer,
-                                                                out normalizedString,
+                                                                out normalizedText,
                                                                 out ReadOnlySpan<char> textSpanToEncode,
                                                                 out _);
 
@@ -518,7 +533,7 @@ namespace Microsoft.ML.Tokenizers
             return count;
         }
 
-        private int LastIndexOf(string? text, ReadOnlySpan<char> textSpan, int maxTokenCount, bool considerPreTokenization, bool considerNormalization, out string? normalizedString, out int tokenCount)
+        private int LastIndexOf(string? text, ReadOnlySpan<char> textSpan, int maxTokenCount, bool considerPreTokenization, bool considerNormalization, out string? normalizedText, out int tokenCount)
         {
             if (maxTokenCount <= 0)
             {
@@ -527,7 +542,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
             {
-                normalizedString = null;
+                normalizedText = null;
                 tokenCount = 0;
                 return 0;
             }
@@ -539,7 +554,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 considerNormalization,
                                                                 _normalizer,
                                                                 _preTokenizer,
-                                                                out normalizedString,
+                                                                out normalizedText,
                                                                 out ReadOnlySpan<char> textSpanToEncode,
                                                                 out _);
 
@@ -965,9 +980,9 @@ namespace Microsoft.ML.Tokenizers
 
         internal void EncodeWithCache(ReadOnlySpan<char> text, List<EncodedToken> tokens, int offset, ref PriorityQueue<Merge>? priorityQueue)
         {
-            if (_addedTokens?.TryGetValue(text, out (int addedTokenId, string addedToken) value) is true)
+            if (_specialTokens?.TryGetValue(text, out (int specialTokenId, string specialToken) value) is true)
             {
-                tokens.Add(new EncodedToken(value.addedTokenId, value.addedToken, new Range(offset, offset + text.Length)));
+                tokens.Add(new EncodedToken(value.specialTokenId, value.specialToken, new Range(offset, offset + text.Length)));
                 return;
             }
 
@@ -1039,9 +1054,9 @@ namespace Microsoft.ML.Tokenizers
 
         private int EncodeToIdsWithCache(ReadOnlySpan<char> text, List<int>? accumulatedIds, int maxTokens, out int charsConsumed, ref PriorityQueue<Merge>? priorityQueue)
         {
-            if (_addedTokens?.TryGetValue(text, out (int addedTokenId, string addedToken) value) is true && maxTokens > 0)
+            if (_specialTokens?.TryGetValue(text, out (int specialTokenId, string specialToken) value) is true && maxTokens > 0)
             {
-                accumulatedIds?.Add(value.addedTokenId);
+                accumulatedIds?.Add(value.specialTokenId);
                 charsConsumed = text.Length;
                 return 1;
             }
@@ -1074,9 +1089,9 @@ namespace Microsoft.ML.Tokenizers
         {
             Word word;
 
-            if (_addedTokens?.TryGetValue(text, out (int addedTokenId, string addedToken) value) is true && maxTokens > 0)
+            if (_specialTokens?.TryGetValue(text, out (int specialTokenId, string specialToken) value) is true && maxTokens > 0)
             {
-                accumulatedIds?.Add(value.addedTokenId);
+                accumulatedIds?.Add(value.specialTokenId);
                 textIndex = 0;
                 return 1;
             }

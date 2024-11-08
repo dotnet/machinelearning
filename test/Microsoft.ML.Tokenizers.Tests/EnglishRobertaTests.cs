@@ -191,36 +191,36 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             Assert.Equal(expectedIds, tokenizer.EncodeToIds(text));
             Assert.Equal(expectedIds, tokenizer.EncodeToIds(text.AsSpan()));
-            Assert.Equal(expectedIds, tokenizer.EncodeToIds(text, expectedIds.Length, out string? normalizedString, out int length));
-            Assert.Null(normalizedString);
+            Assert.Equal(expectedIds, tokenizer.EncodeToIds(text, expectedIds.Length, out string? normalizedText, out int length));
+            Assert.Null(normalizedText);
             Assert.Equal(text.Length, length);
-            Assert.Equal(expectedIds, tokenizer.EncodeToIds(text.AsSpan(), expectedIds.Length, out normalizedString, out length));
-            Assert.Null(normalizedString);
+            Assert.Equal(expectedIds, tokenizer.EncodeToIds(text.AsSpan(), expectedIds.Length, out normalizedText, out length));
+            Assert.Null(normalizedText);
             Assert.Equal(text.Length, length);
 
-            Assert.Equal(expectedIds.Take(expectedIds.Length - 2), tokenizer.EncodeToIds(text, expectedIds.Length - 2, out normalizedString, out length));
-            Assert.Null(normalizedString);
+            Assert.Equal(expectedIds.Take(expectedIds.Length - 2), tokenizer.EncodeToIds(text, expectedIds.Length - 2, out normalizedText, out length));
+            Assert.Null(normalizedText);
             int expectedLength = expectedOffsets[expectedOffsets.Length - 3].Index + expectedOffsets[expectedOffsets.Length - 3].Length;
             Assert.Equal(expectedLength, length);
-            Assert.Equal(expectedIds.Take(expectedIds.Length - 2), tokenizer.EncodeToIds(text.AsSpan(), expectedIds.Length - 2, out normalizedString, out length));
-            Assert.Null(normalizedString);
+            Assert.Equal(expectedIds.Take(expectedIds.Length - 2), tokenizer.EncodeToIds(text.AsSpan(), expectedIds.Length - 2, out normalizedText, out length));
+            Assert.Null(normalizedText);
             Assert.Equal(expectedLength, length);
 
             Assert.Equal(expectedIds.Length, tokenizer.CountTokens(text));
             Assert.Equal(expectedIds.Length, tokenizer.CountTokens(text.AsSpan()));
 
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 4].Index + expectedOffsets[expectedOffsets.Length - 4].Length, tokenizer.GetIndexByTokenCount(text, expectedIds.Length - 3, out normalizedString, out int tokenCount));
-            Assert.Null(normalizedString);
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 4].Index + expectedOffsets[expectedOffsets.Length - 4].Length, tokenizer.GetIndexByTokenCount(text, expectedIds.Length - 3, out normalizedText, out int tokenCount));
+            Assert.Null(normalizedText);
             Assert.Equal(expectedIds.Length - 3, tokenCount);
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 4].Index + expectedOffsets[expectedOffsets.Length - 4].Length, tokenizer.GetIndexByTokenCount(text.AsSpan(), expectedIds.Length - 3, out normalizedString, out tokenCount));
-            Assert.Null(normalizedString);
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 4].Index + expectedOffsets[expectedOffsets.Length - 4].Length, tokenizer.GetIndexByTokenCount(text.AsSpan(), expectedIds.Length - 3, out normalizedText, out tokenCount));
+            Assert.Null(normalizedText);
             Assert.Equal(expectedIds.Length - 3, tokenCount);
 
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 3].Index, tokenizer.GetIndexByTokenCountFromEnd(text, 3, out normalizedString, out tokenCount));
-            Assert.Null(normalizedString);
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 3].Index, tokenizer.GetIndexByTokenCountFromEnd(text, 3, out normalizedText, out tokenCount));
+            Assert.Null(normalizedText);
             Assert.Equal(3, tokenCount);
-            Assert.Equal(expectedOffsets[expectedOffsets.Length - 3].Index, tokenizer.GetIndexByTokenCountFromEnd(text.AsSpan(), 3, out normalizedString, out tokenCount));
-            Assert.Null(normalizedString);
+            Assert.Equal(expectedOffsets[expectedOffsets.Length - 3].Index, tokenizer.GetIndexByTokenCountFromEnd(text.AsSpan(), 3, out normalizedText, out tokenCount));
+            Assert.Null(normalizedText);
             Assert.Equal(3, tokenCount);
         }
 
