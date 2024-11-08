@@ -16,10 +16,10 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
     {
 #if NETCOREAPP
         internal static readonly ReferenceAssemblies DefaultReferenceAssemblies = ReferenceAssemblies.Default
-            .AddPackages(ImmutableArray.Create(new PackageIdentity("System.Memory", "4.5.1")));
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("System.Memory", "4.6.0")));
 #else
         internal static readonly ReferenceAssemblies DefaultReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default
-            .AddPackages(ImmutableArray.Create(new PackageIdentity("System.Memory", "4.5.1")));
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("System.Memory", "4.6.0")));
 #endif
 
         internal static readonly MetadataReference MSDataDataViewReference = RefFromType<IDataView>();
