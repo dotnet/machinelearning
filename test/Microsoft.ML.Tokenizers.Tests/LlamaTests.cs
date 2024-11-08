@@ -657,14 +657,14 @@ namespace Microsoft.ML.Tokenizers.Tests
             IReadOnlyList<EncodedToken> encodedTokens;
             IReadOnlyList<int> encodedIds;
             int tokenCount;
-            string? normalizedString;
+            string? normalizedText;
 
             foreach (var kvp in tokenizer.SpecialTokens)
             {
-                encodedTokens = tokenizer.EncodeToTokens(kvp.Key, out normalizedString);
+                encodedTokens = tokenizer.EncodeToTokens(kvp.Key, out normalizedText);
                 Assert.Equal(new[] { tokenizer.BeginningOfSentenceToken, kvp.Key }, encodedTokens.Select(et => et.Value).ToArray());
                 Assert.Equal(new[] { tokenizer.BeginningOfSentenceId, kvp.Value }, encodedTokens.Select(et => et.Id).ToArray());
-                Assert.Equal($"{kvp.Key}", normalizedString);
+                Assert.Equal($"{kvp.Key}", normalizedText);
 
                 encodedIds = tokenizer.EncodeToIds(kvp.Key);
                 Assert.Equal(encodedIds, encodedTokens.Select(et => et.Id).ToArray());
@@ -676,10 +676,10 @@ namespace Microsoft.ML.Tokenizers.Tests
             }
 
             string s = sb.ToString();
-            string expectedNormalizedString = $"{DummyPrefix}{s.Replace(' ', DummyPrefix[0])}";
+            string expectedNormalizedText = $"{DummyPrefix}{s.Replace(' ', DummyPrefix[0])}";
 
-            encodedTokens = tokenizer.EncodeToTokens(s, out normalizedString, addBeginningOfSentence: false, addEndOfSentence: false);
-            Assert.Equal(expectedNormalizedString, normalizedString);
+            encodedTokens = tokenizer.EncodeToTokens(s, out normalizedText, addBeginningOfSentence: false, addEndOfSentence: false);
+            Assert.Equal(expectedNormalizedText, normalizedText);
 
             string[] specialTokens = tokenizer.SpecialTokens.Keys.ToArray();
 
@@ -688,7 +688,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             for (int i = 1; i <= encodedTokens.Count; i++)
             {
-                int index = tokenizer.GetIndexByTokenCount(s, addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: i, out normalizedString, out tokenCount);
+                int index = tokenizer.GetIndexByTokenCount(s, addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: i, out normalizedText, out tokenCount);
                 Assert.Equal(index, accumulatedString.Length);
                 Assert.Equal(i, tokenCount);
 
@@ -696,9 +696,9 @@ namespace Microsoft.ML.Tokenizers.Tests
 
                 accumulatedStringFromEnd = (encodedTokens.Count == i ? DummyPrefix : (i % 2 == 0 ? $"{DummyPrefix}Hello" : specialTokens[specialTokens.Length - 1 - (i / 2)])) + accumulatedStringFromEnd;
 
-                index = tokenizer.GetIndexByTokenCountFromEnd(s, addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: i, considerNormalization: true, out normalizedString, out tokenCount);
+                index = tokenizer.GetIndexByTokenCountFromEnd(s, addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: i, considerNormalization: true, out normalizedText, out tokenCount);
                 Assert.Equal(i, tokenCount);
-                Assert.Equal(index, normalizedString!.Length - accumulatedStringFromEnd.Length);
+                Assert.Equal(index, normalizedText!.Length - accumulatedStringFromEnd.Length);
             }
         }
 

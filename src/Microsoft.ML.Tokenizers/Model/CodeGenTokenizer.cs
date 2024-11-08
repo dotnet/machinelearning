@@ -25,8 +25,8 @@ namespace Microsoft.ML.Tokenizers
         private readonly Dictionary<StringSpanOrdinalKey, (int Id, string Token)> _vocab;
         private IReadOnlyDictionary<string, int>? _vocabOriginal;
         private readonly IReadOnlyDictionary<int, string> _vocabReverse;
-        private readonly Dictionary<StringSpanOrdinalKey, (int, string)>? _addedTokens;
-        private readonly Dictionary<int, string>? _addedTokensReverse;
+        private readonly Dictionary<StringSpanOrdinalKey, (int, string)>? _specialTokens;
+        private readonly Dictionary<int, string>? _specialTokensReverse;
         private readonly Dictionary<StringSpanOrdinalKeyPair, int> _mergeRanks;
         private readonly StringSpanOrdinalKeyCache<List<EncodedToken>> _cache;
         private readonly PreTokenizer? _preTokenizer;
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="mergePath">The file path containing the tokens's pairs list.</param>
         /// <param name="preTokenizer">The pre-tokenizer to use.</param>
         /// <param name="normalizer">The normalizer to use.</param>
-        /// <param name="addedTokens">The additional tokens to add to the vocabulary.</param>
+        /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
         /// <param name="addPrefixSpace">Indicate whether to include a leading space before encoding the text.</param>
         /// <param name="addBeginningOfSentence">Indicate whether to include the beginning of sentence token in the encoding.</param>
         /// <param name="addEndOfSentence">Indicate whether to include the end of sentence token in the encoding.</param>
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Tokenizers
                 string mergePath,
                 PreTokenizer? preTokenizer = null,
                 Normalizer? normalizer = null,
-                IReadOnlyDictionary<string, int>? addedTokens = null,
+                IReadOnlyDictionary<string, int>? specialTokens = null,
                 bool addPrefixSpace = false,
                 bool addBeginningOfSentence = false,
                 bool addEndOfSentence = false,
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Tokenizers
                 string? endOfSentenceToken = DefaultSpecialToken) :
             this(vocabularyPath is null ? throw new ArgumentNullException(nameof(vocabularyPath)) : File.OpenRead(vocabularyPath),
                 mergePath is null ? throw new ArgumentNullException(nameof(mergePath)) : File.OpenRead(mergePath),
-                preTokenizer, normalizer, addedTokens, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, unknownToken, beginningOfSentenceToken, endOfSentenceToken, disposeStream: true)
+                preTokenizer, normalizer, specialTokens, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, unknownToken, beginningOfSentenceToken, endOfSentenceToken, disposeStream: true)
         {
         }
 
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="mergeStream">The stream of a file containing the tokens's pairs list.</param>
         /// <param name="preTokenizer">The pre-tokenizer to use.</param>
         /// <param name="normalizer">The normalizer to use.</param>
-        /// <param name="addedTokens">The additional tokens to add to the vocabulary.</param>
+        /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
         /// <param name="addPrefixSpace">Indicate whether to include a leading space before encoding the text.</param>
         /// <param name="addBeginningOfSentence">Indicate whether to include the beginning of sentence token in the encoding.</param>
         /// <param name="addEndOfSentence">Indicate whether to include the end of sentence token in the encoding.</param>
@@ -86,18 +86,18 @@ namespace Microsoft.ML.Tokenizers
                 Stream mergeStream,
                 PreTokenizer? preTokenizer = null,
                 Normalizer? normalizer = null,
-                IReadOnlyDictionary<string, int>? addedTokens = null,
+                IReadOnlyDictionary<string, int>? specialTokens = null,
                 bool addPrefixSpace = false,
                 bool addBeginningOfSentence = false,
                 bool addEndOfSentence = false,
                 string? unknownToken = DefaultSpecialToken,
                 string? beginningOfSentenceToken = DefaultSpecialToken,
                 string? endOfSentenceToken = DefaultSpecialToken) :
-            this(vocabularyStream, mergeStream, preTokenizer, normalizer, addedTokens, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, unknownToken, beginningOfSentenceToken, endOfSentenceToken, disposeStream: false)
+            this(vocabularyStream, mergeStream, preTokenizer, normalizer, specialTokens, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, unknownToken, beginningOfSentenceToken, endOfSentenceToken, disposeStream: false)
         {
         }
 
-        private CodeGenTokenizer(Stream vocabularyStream, Stream mergeStream, PreTokenizer? preTokenizer, Normalizer? normalizer, IReadOnlyDictionary<string, int>? addedTokens, bool addPrefixSpace,
+        private CodeGenTokenizer(Stream vocabularyStream, Stream mergeStream, PreTokenizer? preTokenizer, Normalizer? normalizer, IReadOnlyDictionary<string, int>? specialTokens, bool addPrefixSpace,
                         bool addBeginningOfSentence, bool addEndOfSentence, string? unknownToken, string? beginningOfSentenceToken, string? endOfSentenceToken, bool disposeStream)
         {
             if (vocabularyStream is null)
@@ -128,11 +128,11 @@ namespace Microsoft.ML.Tokenizers
 
             try
             {
-                if (addedTokens is not null)
+                if (specialTokens is not null)
                 {
-                    AddedTokens = addedTokens;
-                    _addedTokens = addedTokens.ToDictionary(kvp => new StringSpanOrdinalKey(kvp.Key), kvp => (kvp.Value, kvp.Key));
-                    _addedTokensReverse = addedTokens.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+                    SpecialTokens = specialTokens;
+                    _specialTokens = specialTokens.ToDictionary(kvp => new StringSpanOrdinalKey(kvp.Key), kvp => (kvp.Value, kvp.Key));
+                    _specialTokensReverse = specialTokens.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
                 }
 
                 UnknownToken = unknownToken;
@@ -196,7 +196,7 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the added tokens.
         /// </summary>
-        public IReadOnlyDictionary<string, int>? AddedTokens { get; }
+        public IReadOnlyDictionary<string, int>? SpecialTokens { get; }
 
         /// <summary>
         /// The Unknown token.
@@ -289,17 +289,17 @@ namespace Microsoft.ML.Tokenizers
         /// Encodes input text to object has the tokens list, tokens Ids, tokens offset mapping.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="normalizedString">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will null.</param>
+        /// <param name="normalizedText">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will null.</param>
         /// <param name="addPrefixSpace">Indicate whether to include a leading space before encoding the text.</param>
         /// <param name="addBeginningOfSentence">Indicate whether to include the beginning of sentence token in the encoding.</param>
         /// <param name="addEndOfSentence">Indicate whether to include the end of sentence token in the encoding.</param>
         /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
         /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
         /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
-        public IReadOnlyList<EncodedToken> EncodeToTokens(string text, bool addPrefixSpace, bool addBeginningOfSentence, bool addEndOfSentence, out string? normalizedString, bool considerPreTokenization = true, bool considerNormalization = true)
+        public IReadOnlyList<EncodedToken> EncodeToTokens(string text, bool addPrefixSpace, bool addBeginningOfSentence, bool addEndOfSentence, out string? normalizedText, bool considerPreTokenization = true, bool considerNormalization = true)
         {
             EncodeResults<EncodedToken> result = EncodeToTokens(text, ReadOnlySpan<char>.Empty, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, considerPreTokenization, considerNormalization);
-            normalizedString = result.NormalizedText;
+            normalizedText = result.NormalizedText;
             return result.Tokens;
         }
 
@@ -307,17 +307,17 @@ namespace Microsoft.ML.Tokenizers
         /// Encodes input text to object has the tokens list, tokens Ids, tokens offset mapping.
         /// </summary>
         /// <param name="text">The text to encode.</param>
-        /// <param name="normalizedString">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will null.</param>
+        /// <param name="normalizedText">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will null.</param>
         /// <param name="addPrefixSpace">Indicate whether to include a leading space before encoding the text.</param>
         /// <param name="addBeginningOfSentence">Indicate whether to include the beginning of sentence token in the encoding.</param>
         /// <param name="addEndOfSentence">Indicate whether to include the end of sentence token in the encoding.</param>
         /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
         /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
         /// <returns>The tokenization result includes the tokens list, tokens Ids, tokens offset mapping.</returns>
-        public IReadOnlyList<EncodedToken> EncodeToTokens(ReadOnlySpan<char> text, bool addPrefixSpace, bool addBeginningOfSentence, bool addEndOfSentence, out string? normalizedString, bool considerPreTokenization = true, bool considerNormalization = true)
+        public IReadOnlyList<EncodedToken> EncodeToTokens(ReadOnlySpan<char> text, bool addPrefixSpace, bool addBeginningOfSentence, bool addEndOfSentence, out string? normalizedText, bool considerPreTokenization = true, bool considerNormalization = true)
         {
             EncodeResults<EncodedToken> result = EncodeToTokens(null, text, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, considerPreTokenization, considerNormalization);
-            normalizedString = result.NormalizedText;
+            normalizedText = result.NormalizedText;
             return result.Tokens;
         }
 
@@ -334,7 +334,7 @@ namespace Microsoft.ML.Tokenizers
                 Span<char> mutatedInputSpan = stackalloc char[BufferLength];
                 scoped ReadOnlySpan<char> textSpanToEncode;
                 IEnumerable<(int Offset, int Length)>? splits;
-                string? normalizedString;
+                string? normalizedText;
 
                 if (addPrefixSpace)
                 {
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Tokenizers
                                 considerNormalization,
                                 _normalizer,
                                 _preTokenizer,
-                                out normalizedString,
+                                out normalizedText,
                                 out textSpanToEncode,
                                 out _);
                 }
@@ -368,7 +368,7 @@ namespace Microsoft.ML.Tokenizers
                                 considerNormalization,
                                 _normalizer,
                                 _preTokenizer,
-                                out normalizedString,
+                                out normalizedText,
                                 out textSpanToEncode,
                                 out _);
                 }
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Tokenizers
                 }
                 else
                 {
-                    EncodeInternal(addPrefixSpace ? null : (normalizedString ?? text), textSpanToEncode, tokens, addPrefixSpace, 0, agenda);
+                    EncodeInternal(addPrefixSpace ? null : (normalizedText ?? text), textSpanToEncode, tokens, addPrefixSpace, 0, agenda);
                 }
 
                 if (addEos && EndOfSentenceId.HasValue)
@@ -399,7 +399,7 @@ namespace Microsoft.ML.Tokenizers
                     tokens.Add(new EncodedToken(EndOfSentenceId.Value, EndOfSentenceToken!, new Range(index, index)));
                 }
 
-                return new EncodeResults<EncodedToken> { Tokens = tokens, NormalizedText = normalizedString, CharsConsumed = textSpanToEncode.Length };
+                return new EncodeResults<EncodedToken> { Tokens = tokens, NormalizedText = normalizedText, CharsConsumed = textSpanToEncode.Length };
             }
             finally
             {
@@ -426,10 +426,10 @@ namespace Microsoft.ML.Tokenizers
                 return;
             }
 
-            if (_addedTokens is not null && _addedTokens.TryGetValue(textSpan, out (int addedTokenId, string addedToken) value))
+            if (_specialTokens is not null && _specialTokens.TryGetValue(textSpan, out (int specialTokenId, string specialToken) value))
             {
                 int index = (addPrefixSpace && offset > 0) ? offset - 1 : offset;
-                tokens.Add(new EncodedToken(value.addedTokenId, value.addedToken, new Range(index, index + ((addPrefixSpace && offset == 0) ? textSpan.Length - 1 : textSpan.Length))));
+                tokens.Add(new EncodedToken(value.specialTokenId, value.specialToken, new Range(index, index + ((addPrefixSpace && offset == 0) ? textSpan.Length - 1 : textSpan.Length))));
                 return;
             }
 
@@ -490,8 +490,8 @@ namespace Microsoft.ML.Tokenizers
             return new EncodeResults<int>
             {
                 Tokens = EncodeToIds(text, textSpan, AddPrefixSpace, AddBeginningOfSentence, AddEndOfSentence, settings.ConsiderPreTokenization, settings.ConsiderNormalization,
-                                    out string? normalizedString, out int charsConsumed, settings.MaxTokenCount),
-                NormalizedText = normalizedString,
+                                    out string? normalizedText, out int charsConsumed, settings.MaxTokenCount),
+                NormalizedText = normalizedText,
                 CharsConsumed = charsConsumed
             };
         }
@@ -534,14 +534,14 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="addPrefixSpace">Indicate whether to include a leading space before encoding the text.</param>
         /// <param name="addBeginningOfSentence">Indicate whether to include the beginning of sentence token in the encoding.</param>
         /// <param name="addEndOfSentence">Indicate whether to include the end of sentence token in the encoding.</param>
-        /// <param name="normalizedString">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
+        /// <param name="normalizedText">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
         /// <param name="charsConsumed">The length of the text that encompasses the maximum encoded tokens.</param>
         /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
         /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
         /// <returns>The list of encoded Ids.</returns>
-        public IReadOnlyList<int> EncodeToIds(string text, int maxTokenCount, bool addPrefixSpace, bool addBeginningOfSentence, bool addEndOfSentence, out string? normalizedString, out int charsConsumed, bool considerPreTokenization = true, bool considerNormalization = true)
+        public IReadOnlyList<int> EncodeToIds(string text, int maxTokenCount, bool addPrefixSpace, bool addBeginningOfSentence, bool addEndOfSentence, out string? normalizedText, out int charsConsumed, bool considerPreTokenization = true, bool considerNormalization = true)
         {
-            return EncodeToIds(text, ReadOnlySpan<char>.Empty, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, considerPreTokenization, considerNormalization, out normalizedString, out charsConsumed, maxTokenCount);
+            return EncodeToIds(text, ReadOnlySpan<char>.Empty, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, considerPreTokenization, considerNormalization, out normalizedText, out charsConsumed, maxTokenCount);
         }
 
         /// <summary>
@@ -552,14 +552,14 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="addPrefixSpace">Indicate whether to include a leading space before encoding the text.</param>
         /// <param name="addBeginningOfSentence">Indicate whether to include the beginning of sentence token in the encoding.</param>
         /// <param name="addEndOfSentence">Indicate whether to include the end of sentence token in the encoding.</param>
-        /// <param name="normalizedString">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
+        /// <param name="normalizedText">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
         /// <param name="charsConsumed">The length of the text that encompasses the maximum encoded tokens.</param>
         /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
         /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
         /// <returns>The list of encoded Ids.</returns>
-        public IReadOnlyList<int> EncodeToIds(ReadOnlySpan<char> text, int maxTokenCount, bool addPrefixSpace, bool addBeginningOfSentence, bool addEndOfSentence, out string? normalizedString, out int charsConsumed, bool considerPreTokenization = true, bool considerNormalization = true)
+        public IReadOnlyList<int> EncodeToIds(ReadOnlySpan<char> text, int maxTokenCount, bool addPrefixSpace, bool addBeginningOfSentence, bool addEndOfSentence, out string? normalizedText, out int charsConsumed, bool considerPreTokenization = true, bool considerNormalization = true)
         {
-            return EncodeToIds(null, text, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, considerPreTokenization, considerNormalization, out normalizedString, out charsConsumed, maxTokenCount);
+            return EncodeToIds(null, text, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, considerPreTokenization, considerNormalization, out normalizedText, out charsConsumed, maxTokenCount);
         }
 
         private IReadOnlyList<int> EncodeToIds(
@@ -570,7 +570,7 @@ namespace Microsoft.ML.Tokenizers
                                     bool addEndOfSentence,
                                     bool considerPreTokenization,
                                     bool considerNormalization,
-                                    out string? normalizedString,
+                                    out string? normalizedText,
                                     out int charsConsumed,
                                     int maxTokenCount = int.MaxValue)
         {
@@ -582,7 +582,7 @@ namespace Microsoft.ML.Tokenizers
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
             {
                 charsConsumed = 0;
-                normalizedString = null;
+                normalizedText = null;
                 return [];
             }
 
@@ -605,11 +605,11 @@ namespace Microsoft.ML.Tokenizers
                     span.CopyTo(mutatedInputSpan.Slice(1));
                     span = mutatedInputSpan.Slice(0, span.Length + 1);
 
-                    splits = InitializeForEncoding(null, span, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode, out _);
+                    splits = InitializeForEncoding(null, span, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedText, out textSpanToEncode, out _);
                 }
                 else
                 {
-                    splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode, out _);
+                    splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedText, out textSpanToEncode, out _);
                 }
 
                 List<int> ids = new();
@@ -637,7 +637,7 @@ namespace Microsoft.ML.Tokenizers
                 }
                 else
                 {
-                    EncodeToIdsInternal(addPrefixSpace ? null : (normalizedString ?? text), textSpanToEncode, ids, agenda, out charsConsumed, maxTokenCount - ids.Count);
+                    EncodeToIdsInternal(addPrefixSpace ? null : (normalizedText ?? text), textSpanToEncode, ids, agenda, out charsConsumed, maxTokenCount - ids.Count);
                 }
 
                 if (addEndOfSentence && EndOfSentenceId.HasValue && ids.Count < maxTokenCount)
@@ -704,24 +704,24 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="textSpan">The span of the text to encode which will be used if the <paramref name="text"/> is <see langword="null"/>.</param>
         /// <param name="settings">The settings used to encode the text.</param>
         /// <param name="fromEnd">Indicate whether to find the index from the end of the text.</param>
-        /// <param name="normalizedString">If the tokenizer's normalization is enabled or <paramRef name="settings" /> has <see cref="EncodeSettings.ConsiderNormalization"/> is <see langword="false"/>, this will be set to <paramRef name="text" /> in its normalized form; otherwise, this value will be set to <see langword="null"/>.</param>
+        /// <param name="normalizedText">If the tokenizer's normalization is enabled or <paramRef name="settings" /> has <see cref="EncodeSettings.ConsiderNormalization"/> is <see langword="false"/>, this will be set to <paramRef name="text" /> in its normalized form; otherwise, this value will be set to <see langword="null"/>.</param>
         /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
         /// <returns>
         /// The index of the maximum encoding capacity within the processed text without surpassing the token limit.
         /// If <paramRef name="fromEnd" /> is <see langword="false"/>, it represents the index immediately following the last character to be included. In cases where no tokens fit, the result will be 0; conversely,
-        /// if all tokens fit, the result will be length of the input text or the <paramref name="normalizedString"/> if the normalization is enabled.
+        /// if all tokens fit, the result will be length of the input text or the <paramref name="normalizedText"/> if the normalization is enabled.
         /// If <paramRef name="fromEnd" /> is <see langword="true"/>, it represents the index of the first character to be included. In cases where no tokens fit, the result will be the text length; conversely,
         /// if all tokens fit, the result will be zero.
         /// </returns>
-        protected override int GetIndexByTokenCount(string? text, ReadOnlySpan<char> textSpan, EncodeSettings settings, bool fromEnd, out string? normalizedString, out int tokenCount)
+        protected override int GetIndexByTokenCount(string? text, ReadOnlySpan<char> textSpan, EncodeSettings settings, bool fromEnd, out string? normalizedText, out int tokenCount)
         {
             if (fromEnd)
             {
                 return LastIndexOf(text, textSpan, settings.MaxTokenCount, AddPrefixSpace, AddBeginningOfSentence, AddEndOfSentence, settings.ConsiderPreTokenization,
-                            settings.ConsiderNormalization, out normalizedString, out tokenCount);
+                            settings.ConsiderNormalization, out normalizedText, out tokenCount);
             }
 
-            tokenCount = CountTokens(text, textSpan, AddPrefixSpace, AddBeginningOfSentence, AddEndOfSentence, settings.ConsiderPreTokenization, settings.ConsiderNormalization, out normalizedString, out int charsConsumed, settings.MaxTokenCount);
+            tokenCount = CountTokens(text, textSpan, AddPrefixSpace, AddBeginningOfSentence, AddEndOfSentence, settings.ConsiderPreTokenization, settings.ConsiderNormalization, out normalizedText, out int charsConsumed, settings.MaxTokenCount);
             return charsConsumed;
         }
 
@@ -733,18 +733,18 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="addPrefixSpace">Indicate whether to include a leading space before encoding the text.</param>
         /// <param name="addBeginningOfSentence">Indicate whether to include the beginning of sentence token in the encoding.</param>
         /// <param name="addEndOfSentence">Indicate whether to include the end of sentence token in the encoding.</param>
-        /// <param name="normalizedString">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
+        /// <param name="normalizedText">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
         /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
         /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
         /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
         /// <returns>
         /// The index of the maximum encoding capacity within the processed text without surpassing the token limit.
         /// It represents the index immediately following the last character to be included. In cases where no tokens fit, the result will be 0; conversely,
-        /// if all tokens fit, the result will be length of the text or the <paramref name="normalizedString"/> if the normalization is enabled.
+        /// if all tokens fit, the result will be length of the text or the <paramref name="normalizedText"/> if the normalization is enabled.
         /// </returns>
-        public int GetIndexByTokenCount(string text, int maxTokenCount, bool addPrefixSpace, bool addBeginningOfSentence, bool addEndOfSentence, out string? normalizedString, out int tokenCount, bool considerPreTokenization = true, bool considerNormalization = true)
+        public int GetIndexByTokenCount(string text, int maxTokenCount, bool addPrefixSpace, bool addBeginningOfSentence, bool addEndOfSentence, out string? normalizedText, out int tokenCount, bool considerPreTokenization = true, bool considerNormalization = true)
         {
-            tokenCount = CountTokens(text, Span<char>.Empty, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, considerPreTokenization, considerNormalization, out normalizedString, out int charsConsumed, maxTokenCount);
+            tokenCount = CountTokens(text, Span<char>.Empty, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, considerPreTokenization, considerNormalization, out normalizedText, out int charsConsumed, maxTokenCount);
             return charsConsumed;
         }
 
@@ -756,14 +756,14 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="addPrefixSpace">Indicate whether to include a leading space before encoding the text.</param>
         /// <param name="addBeginningOfSentence">Indicate whether to include the beginning of sentence token in the encoding.</param>
         /// <param name="addEndOfSentence">Indicate whether to include the end of sentence token in the encoding.</param>
-        /// <param name="normalizedString">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
+        /// <param name="normalizedText">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
         /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
         /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
         /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
         /// <returns>
         /// The index of the maximum encoding capacity within the processed text without surpassing the token limit.
         /// It represents the index immediately following the last character to be included. In cases where no tokens fit, the result will be 0; conversely,
-        /// if all tokens fit, the result will be length of the text or the <paramref name="normalizedString"/> if the normalization is enabled.
+        /// if all tokens fit, the result will be length of the text or the <paramref name="normalizedText"/> if the normalization is enabled.
         /// </returns>
         public int GetIndexByTokenCount(
                     ReadOnlySpan<char> text,
@@ -771,12 +771,12 @@ namespace Microsoft.ML.Tokenizers
                     bool addPrefixSpace,
                     bool addBeginningOfSentence,
                     bool addEndOfSentence,
-                    out string? normalizedString,
+                    out string? normalizedText,
                     out int tokenCount,
                     bool considerPreTokenization = true,
                     bool considerNormalization = true)
         {
-            tokenCount = CountTokens(null, text, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, considerPreTokenization, considerNormalization, out normalizedString, out int charsConsumed, maxTokenCount);
+            tokenCount = CountTokens(null, text, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, considerPreTokenization, considerNormalization, out normalizedText, out int charsConsumed, maxTokenCount);
             return charsConsumed;
         }
 
@@ -788,7 +788,7 @@ namespace Microsoft.ML.Tokenizers
                         bool addEndOfSentence,
                         bool considerPreTokenization,
                         bool considerNormalization,
-                        out string? normalizedString,
+                        out string? normalizedText,
                         out int charsConsumed,
                         int maxTokenCount = int.MaxValue)
         {
@@ -800,7 +800,7 @@ namespace Microsoft.ML.Tokenizers
             charsConsumed = 0;
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
             {
-                normalizedString = null;
+                normalizedText = null;
                 return 0;
             }
 
@@ -824,11 +824,11 @@ namespace Microsoft.ML.Tokenizers
                     span.CopyTo(mutatedInputSpan.Slice(1));
                     span = mutatedInputSpan.Slice(0, span.Length + 1);
 
-                    splits = InitializeForEncoding(null, span, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode, out _);
+                    splits = InitializeForEncoding(null, span, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedText, out textSpanToEncode, out _);
                 }
                 else
                 {
-                    splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode, out _);
+                    splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedText, out textSpanToEncode, out _);
                 }
 
                 PriorityQueue<SymbolPair> agenda = new(textSpanToEncode.Length);
@@ -881,20 +881,20 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="addPrefixSpace">Indicate whether to include a leading space before encoding the text.</param>
         /// <param name="addBeginningOfSentence">Indicate whether to include the beginning of sentence token in the encoding.</param>
         /// <param name="addEndOfSentence">Indicate whether to include the end of sentence token in the encoding.</param>
-        /// <param name="normalizedString">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
+        /// <param name="normalizedText">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
         /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
         /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
         /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
         /// <returns>
         /// The start index of the maximum encoding capacity within the processed text without surpassing the token limit.
-        /// It represents the index at the first character to be included. In cases where no tokens fit, the result will be length of the text or the <paramref name="normalizedString"/> if normalization is enabled;
+        /// It represents the index at the first character to be included. In cases where no tokens fit, the result will be length of the text or the <paramref name="normalizedText"/> if normalization is enabled;
         /// conversely, if all tokens fit, the result will be 0.
         /// </returns>
         /// <remarks>
         /// If the whole text can be encoded within the token limit, the returned index will be 0.
         /// </remarks>
-        public int GetIndexByTokenCountFromEnd(string text, int maxTokenCount, bool addPrefixSpace, bool addBeginningOfSentence, bool addEndOfSentence, out string? normalizedString, out int tokenCount, bool considerPreTokenization = true, bool considerNormalization = true)
-            => LastIndexOf(text, Span<char>.Empty, maxTokenCount, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, considerPreTokenization, considerNormalization, out normalizedString, out tokenCount);
+        public int GetIndexByTokenCountFromEnd(string text, int maxTokenCount, bool addPrefixSpace, bool addBeginningOfSentence, bool addEndOfSentence, out string? normalizedText, out int tokenCount, bool considerPreTokenization = true, bool considerNormalization = true)
+            => LastIndexOf(text, Span<char>.Empty, maxTokenCount, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, considerPreTokenization, considerNormalization, out normalizedText, out tokenCount);
 
         /// <summary>
         /// Find the index of the maximum encoding capacity from the end within the text without surpassing the token limit.
@@ -904,19 +904,19 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="addPrefixSpace">Indicate whether to include a leading space before encoding the text.</param>
         /// <param name="addBeginningOfSentence">Indicate whether to include the beginning of sentence token in the encoding.</param>
         /// <param name="addEndOfSentence">Indicate whether to include the end of sentence token in the encoding.</param>
-        /// <param name="normalizedString">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
+        /// <param name="normalizedText">If the tokenizer's normalization is enabled, the input text will be represented in its normalization form; otherwise, it will be null.</param>
         /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
         /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
         /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
         /// <returns>
         /// The start index of the maximum encoding capacity within the processed text without surpassing the token limit.
-        /// It represents the index at the first character to be included. In cases where no tokens fit, the result will be length of the <paramref name="normalizedString"/>; conversely, if all tokens fit, the result will be 0.
+        /// It represents the index at the first character to be included. In cases where no tokens fit, the result will be length of the <paramref name="normalizedText"/>; conversely, if all tokens fit, the result will be 0.
         /// </returns>
         /// <remarks>
         /// If the whole text can be encoded within the token limit, the returned index will be 0.
         /// </remarks>
-        public int GetIndexByTokenCountFromEnd(ReadOnlySpan<char> text, int maxTokenCount, bool addPrefixSpace, bool addBeginningOfSentence, bool addEndOfSentence, out string? normalizedString, out int tokenCount, bool considerPreTokenization = true, bool considerNormalization = true)
-            => LastIndexOf(null, text, maxTokenCount, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, considerPreTokenization, considerNormalization, out normalizedString, out tokenCount);
+        public int GetIndexByTokenCountFromEnd(ReadOnlySpan<char> text, int maxTokenCount, bool addPrefixSpace, bool addBeginningOfSentence, bool addEndOfSentence, out string? normalizedText, out int tokenCount, bool considerPreTokenization = true, bool considerNormalization = true)
+            => LastIndexOf(null, text, maxTokenCount, addPrefixSpace, addBeginningOfSentence, addEndOfSentence, considerPreTokenization, considerNormalization, out normalizedText, out tokenCount);
 
         private int LastIndexOf(
                         string? text,
@@ -927,7 +927,7 @@ namespace Microsoft.ML.Tokenizers
                         bool addEndOfSentence,
                         bool considerPreTokenization,
                         bool considerNormalization,
-                        out string? normalizedString,
+                        out string? normalizedText,
                         out int tokenCount)
         {
             if (maxTokenCount <= 0)
@@ -937,7 +937,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
             {
-                normalizedString = null;
+                normalizedText = null;
                 tokenCount = 0;
                 return 0;
             }
@@ -961,11 +961,11 @@ namespace Microsoft.ML.Tokenizers
                     span.CopyTo(mutatedInputSpan.Slice(1));
                     span = mutatedInputSpan.Slice(0, span.Length + 1);
 
-                    splits = InitializeForEncoding(null, span, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode, out _);
+                    splits = InitializeForEncoding(null, span, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedText, out textSpanToEncode, out _);
                 }
                 else
                 {
-                    splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedString, out textSpanToEncode, out _);
+                    splits = InitializeForEncoding(text, textSpan, considerPreTokenization, considerNormalization, _normalizer, _preTokenizer, out normalizedText, out textSpanToEncode, out _);
                 }
 
                 PriorityQueue<SymbolPair> agenda = new(textSpanToEncode.Length);
@@ -1106,11 +1106,11 @@ namespace Microsoft.ML.Tokenizers
                 return 0;
             }
 
-            if (_addedTokens is not null && _addedTokens.TryGetValue(textSpan, out (int addedTokenId, string addedToken) value) && maxTokens > 0)
+            if (_specialTokens is not null && _specialTokens.TryGetValue(textSpan, out (int specialTokenId, string specialToken) value) && maxTokens > 0)
             {
                 if (accumulatedIds is not null)
                 {
-                    accumulatedIds.Add(value.addedTokenId);
+                    accumulatedIds.Add(value.specialTokenId);
                 }
 
                 charsConsumed = textSpan.Length;
@@ -1170,11 +1170,11 @@ namespace Microsoft.ML.Tokenizers
                 return 0;
             }
 
-            if (_addedTokens is not null && _addedTokens.TryGetValue(textSpan, out (int addedTokenId, string addedToken) value) && maxTokens > 0)
+            if (_specialTokens is not null && _specialTokens.TryGetValue(textSpan, out (int specialTokenId, string specialToken) value) && maxTokens > 0)
             {
                 if (accumulatedIds is not null)
                 {
-                    accumulatedIds.Add(value.addedTokenId);
+                    accumulatedIds.Add(value.specialTokenId);
                 }
 
                 textIndex = 0;
@@ -1283,16 +1283,16 @@ namespace Microsoft.ML.Tokenizers
                         continue;
                     }
 
-                    if (_addedTokensReverse is not null && _addedTokensReverse.TryGetValue(id, out string? addedToken))
+                    if (_specialTokensReverse is not null && _specialTokensReverse.TryGetValue(id, out string? specialToken))
                     {
-                        int bytesCountToEncode = Encoding.UTF8.GetMaxByteCount(addedToken.Length);
+                        int bytesCountToEncode = Encoding.UTF8.GetMaxByteCount(specialToken.Length);
                         if (bytes.Length - bytesIndex < bytesCountToEncode)
                         {
                             Helpers.ArrayPoolGrow(ref bytes, (bytes.Length + bytesCountToEncode) * 2);
                         }
 
-                        bool removePrefixSpace = firstToken && hasPrefixSpace && addedToken.Length > 0 && addedToken[0] == ' ';
-                        bytesIndex += Helpers.GetUtf8Bytes(removePrefixSpace ? addedToken.AsSpan().Slice(1) : addedToken.AsSpan(), bytes.AsSpan().Slice(bytesIndex));
+                        bool removePrefixSpace = firstToken && hasPrefixSpace && specialToken.Length > 0 && specialToken[0] == ' ';
+                        bytesIndex += Helpers.GetUtf8Bytes(removePrefixSpace ? specialToken.AsSpan().Slice(1) : specialToken.AsSpan(), bytes.AsSpan().Slice(bytesIndex));
                         firstToken = false;
                         continue;
                     }
@@ -1433,27 +1433,27 @@ namespace Microsoft.ML.Tokenizers
                     continue;
                 }
 
-                if (_addedTokensReverse is not null && _addedTokensReverse.TryGetValue(id, out string? addedToken))
+                if (_specialTokensReverse is not null && _specialTokensReverse.TryGetValue(id, out string? specialToken))
                 {
                     if (incompleteUtf8BytesInBuffer > 0)
                     {
                         return OperationStatus.InvalidData; // unexpected case
                     }
 
-                    ReadOnlySpan<char> addedTokenSpan = addedToken.AsSpan();
-                    if (firstToken && hasPrefixSpace && addedToken.Length > 0 && addedToken[0] == ' ')
+                    ReadOnlySpan<char> specialTokenSpan = specialToken.AsSpan();
+                    if (firstToken && hasPrefixSpace && specialToken.Length > 0 && specialToken[0] == ' ')
                     {
-                        addedTokenSpan = addedTokenSpan.Slice(1);
+                        specialTokenSpan = specialTokenSpan.Slice(1);
                     }
 
-                    if (addedTokenSpan.Length > buffer.Length)
+                    if (specialTokenSpan.Length > buffer.Length)
                     {
                         return OperationStatus.DestinationTooSmall;
                     }
 
-                    addedTokenSpan.CopyTo(buffer);
-                    buffer = buffer.Slice(addedTokenSpan.Length);
-                    charsWritten += addedTokenSpan.Length;
+                    specialTokenSpan.CopyTo(buffer);
+                    buffer = buffer.Slice(specialTokenSpan.Length);
+                    charsWritten += specialTokenSpan.Length;
                     firstToken = false;
                     idsConsumed++;
                     continue;
@@ -1533,7 +1533,7 @@ namespace Microsoft.ML.Tokenizers
                 return value;
             }
 
-            if (_addedTokensReverse is not null && _addedTokensReverse.TryGetValue(id, out value))
+            if (_specialTokensReverse is not null && _specialTokensReverse.TryGetValue(id, out value))
             {
                 return value;
             }
@@ -1553,9 +1553,9 @@ namespace Microsoft.ML.Tokenizers
                 return value.Id;
             }
 
-            if (_addedTokens is not null && _addedTokens.TryGetValue(token, out (int Id, string Token) addedToken))
+            if (_specialTokens is not null && _specialTokens.TryGetValue(token, out (int Id, string Token) specialToken))
             {
-                return addedToken.Id;
+                return specialToken.Id;
             }
 
             return null;
@@ -1719,7 +1719,7 @@ namespace Microsoft.ML.Tokenizers
         }
 
         // Added Tokens from https://huggingface.co/Salesforce/codegen-350M-mono/raw/main/tokenizer.json
-        internal static readonly Dictionary<string, int> CodeGenAddedTokens = new()
+        internal static readonly Dictionary<string, int> CodeGenSpecialTokens = new()
         {
             { "<|endoftext|>",                      50256 },
             { "                               ",    50257 },
@@ -1872,6 +1872,7 @@ namespace Microsoft.ML.Tokenizers
         /// The vocab and merges files can be downloaded from the following links:
         ///     https://huggingface.co/Salesforce/codegen-350M-mono/resolve/main/vocab.json?download=true
         ///     https://huggingface.co/Salesforce/codegen-350M-mono/resolve/main/merges.txt?download=true
+        /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
         /// </remarks>
         public static CodeGenTokenizer Create(
             Stream vocabStream,
@@ -1893,9 +1894,9 @@ namespace Microsoft.ML.Tokenizers
             return new CodeGenTokenizer(
                         vocabStream,
                         mergesStream,
-                        new RegexPreTokenizer(TiktokenTokenizer.P50kBaseRegex(), CodeGenTokenizer.CodeGenAddedTokens),
+                        new RegexPreTokenizer(TiktokenTokenizer.P50kBaseRegex(), CodeGenTokenizer.CodeGenSpecialTokens),
                         normalizer: null,
-                        CodeGenTokenizer.CodeGenAddedTokens,
+                        CodeGenTokenizer.CodeGenSpecialTokens,
                         addPrefixSpace: addPrefixSpace,
                         addBeginningOfSentence: addBeginOfSentence,
                         addEndOfSentence: addEndOfSentence);

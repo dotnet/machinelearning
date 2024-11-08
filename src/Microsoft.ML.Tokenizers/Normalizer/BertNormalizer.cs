@@ -17,9 +17,9 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     internal sealed class BertNormalizer : Normalizer
     {
-        private readonly bool _doLowerCase;
-        private readonly bool _tokenizeChineseChars;
-        private readonly bool _stripAccents;
+        private readonly bool _lowerCase;
+        private readonly bool _individuallyTokenizeCjk;
+        private readonly bool _removeNonSpacingMarks;
 
         /// <summary>
         /// Normalize the input string.
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Tokenizers
                 return string.Empty;
             }
 
-            if (_stripAccents)
+            if (_removeNonSpacingMarks)
             {
                 original = original.Normalize(NormalizationForm.FormD);
             }
@@ -74,13 +74,13 @@ namespace Microsoft.ML.Tokenizers
                     continue;
                 }
 
-                if (_stripAccents && category is UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark)
+                if (_removeNonSpacingMarks && category is UnicodeCategory.NonSpacingMark)
                 {
                     i += inc;
                     continue;
                 }
 
-                if (_doLowerCase && category == UnicodeCategory.UppercaseLetter)
+                if (_lowerCase && category == UnicodeCategory.UppercaseLetter)
                 {
                     int length = original.AsSpan().Slice(i, inc + 1).ToLowerInvariant(casingBuffer);
                     Debug.Assert(length > 0);
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Tokenizers
                     continue;
                 }
 
-                if (_tokenizeChineseChars && IsChineseChar(codePoint))
+                if (_individuallyTokenizeCjk && IsCjkChar(codePoint))
                 {
                     AddChar(ref buffer, ref index, ' ');
                     AddChar(ref buffer, ref index, c);
@@ -136,14 +136,14 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Initializes a new instance of the <see cref="BertNormalizer"/> class.
         /// </summary>
-        /// <param name="doLowerCase">Whether to lowercase the input.</param>
-        /// <param name="tokenizeChineseChars">Whether to tokenize Chinese characters.</param>
-        /// <param name="stripAccents">Whether to strip accents from the input.</param>
-        public BertNormalizer(bool doLowerCase, bool tokenizeChineseChars, bool stripAccents)
+        /// <param name="lowerCase">Whether to lowercase the input.</param>
+        /// <param name="individuallyTokenizeCjk">Whether to tokenize CJK characters.</param>
+        /// <param name="removeNonSpacingMarks">Whether to strip accents from the input.</param>
+        public BertNormalizer(bool lowerCase, bool individuallyTokenizeCjk, bool removeNonSpacingMarks)
         {
-            _doLowerCase = doLowerCase;
-            _tokenizeChineseChars = tokenizeChineseChars;
-            _stripAccents = stripAccents;
+            _lowerCase = lowerCase;
+            _individuallyTokenizeCjk = individuallyTokenizeCjk;
+            _removeNonSpacingMarks = removeNonSpacingMarks;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Tokenizers
         /// </remarks>
         /// <returns>True if the codepoint is a CJK character, false otherwise.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsChineseChar(int codePoint)
+        private static bool IsCjkChar(int codePoint)
         {
             return (codePoint > 0x3400) && // Quick check to exit early if the codepoint is outside of the CJK range
                (((uint)(codePoint - 0x3400) <= (uint)(0x4DBF - 0x3400)) ||

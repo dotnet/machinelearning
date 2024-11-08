@@ -5,9 +5,11 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.ML.Tokenizers
@@ -25,49 +27,39 @@ namespace Microsoft.ML.Tokenizers
         internal BertTokenizer(
                     Dictionary<StringSpanOrdinalKey, int> vocab,
                     Dictionary<int, string> vocabReverse,
-                    PreTokenizer? preTokenizer,
-                    Normalizer? normalizer,
-                    IReadOnlyDictionary<string, int>? specialTokens,
-                    bool doLowerCase,
-                    bool doBasicTokenization,
-                    bool splitOnSpecialTokens,
-                    string unknownToken,
-                    string sepToken,
-                    string padToken,
-                    string clsToken,
-                    string maskToken,
-                    bool tokenizeChineseChars,
-                    bool stripAccents) : base(vocab, vocabReverse, preTokenizer, normalizer, specialTokens, unknownToken)
+                    BertOptions options) : base(vocab, vocabReverse, options)
         {
-            DoLowerCase = doLowerCase;
-            DoBasicTokenization = doBasicTokenization;
-            SplitOnSpecialTokens = splitOnSpecialTokens;
+            Debug.Assert(options is not null);
 
-            SepToken = sepToken;
-            SepTokenId = vocab[new StringSpanOrdinalKey(sepToken)];
+            LowerCaseBeforeTokenization = options!.LowerCaseBeforeTokenization;
+            ApplyBasicTokenization = options.ApplyBasicTokenization;
+            SplitOnSpecialTokens = options.SplitOnSpecialTokens;
 
-            PadToken = padToken;
-            PadTokenId = vocab[new StringSpanOrdinalKey(padToken)];
+            SeparatorToken = options.SeparatorToken;
+            SeparatorTokenId = vocab[new StringSpanOrdinalKey(options.SeparatorToken)];
 
-            ClsToken = clsToken;
-            ClsTokenId = vocab[new StringSpanOrdinalKey(clsToken)];
+            PaddingToken = options.PaddingToken;
+            PaddingTokenId = vocab[new StringSpanOrdinalKey(options.PaddingToken)];
 
-            MaskToken = maskToken;
-            MaskTokenId = vocab[new StringSpanOrdinalKey(maskToken)];
+            ClassificationToken = options.ClassificationToken;
+            ClassificationTokenId = vocab[new StringSpanOrdinalKey(options.ClassificationToken)];
 
-            TokenizeChineseChars = tokenizeChineseChars;
-            StripAccents = stripAccents;
+            MaskingToken = options.MaskingToken;
+            MaskingTokenId = vocab[new StringSpanOrdinalKey(options.MaskingToken)];
+
+            IndividuallyTokenizeCjk = options.IndividuallyTokenizeCjk;
+            RemoveNonSpacingMarks = options.RemoveNonSpacingMarks;
         }
 
         /// <summary>
         /// Gets a value indicating whether the tokenizer should lowercase the input text.
         /// </summary>
-        public bool DoLowerCase { get; }
+        public bool LowerCaseBeforeTokenization { get; }
 
         /// <summary>
         /// Gets a value indicating whether the tokenizer should do basic tokenization. Like clean text, normalize it, lowercasing, etc.
         /// </summary>
-        public bool DoBasicTokenization { get; }
+        public bool ApplyBasicTokenization { get; }
 
         /// <summary>
         /// Gets a value indicating whether the tokenizer should split on the special tokens or treat special tokens as normal text.
@@ -78,54 +70,66 @@ namespace Microsoft.ML.Tokenizers
         /// Gets the separator token, which is used when building a sequence from multiple sequences, e.g. two sequences for sequence classification or for a text and a question for question answering.
         /// It is also used as the last token of a sequence built with special tokens.
         /// </summary>
-        public string SepToken { get; }
+        public string SeparatorToken { get; }
 
         /// <summary>
         /// Gets the separator token Id
         /// </summary>
-        public int SepTokenId { get; }
+        public int SeparatorTokenId { get; }
 
         /// <summary>
         /// Gets the token used for padding, for example when batching sequences of different lengths
         /// </summary>
-        public string PadToken { get; }
+        public string PaddingToken { get; }
 
         /// <summary>
         /// Gets padding token Id
         /// </summary>
-        public int PadTokenId { get; }
+        public int PaddingTokenId { get; }
 
         /// <summary>
         /// Gets the classifier token which is used when doing sequence classification (classification of the whole sequence instead of per-token classification).
         /// It is the first token of the sequence when built with special tokens.
         /// </summary>
-        public string ClsToken { get; }
+        public string ClassificationToken { get; }
 
         /// <summary>
         /// Gets the classifier token Id
         /// </summary>
-        public int ClsTokenId { get; }
+        public int ClassificationTokenId { get; }
 
         /// <summary>
         /// Gets the mask token used for masking values. This is the token used when training this model with masked language modeling.
         /// This is the token which the model will try to predict.
         /// </summary>
-        public string MaskToken { get; }
+        public string MaskingToken { get; }
 
         /// <summary>
         /// Gets the mask token Id
         /// </summary>
-        public int MaskTokenId { get; }
+        public int MaskingTokenId { get; }
 
         /// <summary>
-        /// Gets a value indicating whether the tokenizer should split the Chinese characters into tokens.
+        /// Gets a value indicating whether the tokenizer should split the CJK characters into tokens.
         /// </summary>
-        public bool TokenizeChineseChars { get; }
+        /// <remarks>
+        /// This is useful when you want to tokenize CJK characters individually.
+        /// The following Unicode ranges are considered CJK characters for this purpose:
+        /// - U+3400 - U+4DBF   CJK Unified Ideographs Extension A.
+        /// - U+4E00 - U+9FFF   basic set of CJK characters.
+        /// - U+F900 - U+FAFF   CJK Compatibility Ideographs.
+        /// - U+20000 - U+2A6DF CJK Unified Ideographs Extension B.
+        /// - U+2A700 - U+2B73F CJK Unified Ideographs Extension C.
+        /// - U+2B740 - U+2B81F CJK Unified Ideographs Extension D.
+        /// - U+2B820 - U+2CEAF CJK Unified Ideographs Extension E.
+        /// - U+2F800 - U+2FA1F CJK Compatibility Ideographs Supplement.
+        /// </remarks>
+        public bool IndividuallyTokenizeCjk { get; }
 
         /// <summary>
-        /// Gets a value indicating whether the tokenizer should strip accents characters.
+        /// Gets a value indicating whether to remove non-spacing marks.
         /// </summary>
-        public bool StripAccents { get; }
+        public bool RemoveNonSpacingMarks { get; }
 
         /// <summary>
         /// Encodes input text to token Ids.
@@ -243,8 +247,8 @@ namespace Microsoft.ML.Tokenizers
                     list = new List<int>(ids);
                 }
 
-                list.Insert(0, ClsTokenId);
-                list.Add(SepTokenId);
+                list.Insert(0, ClassificationTokenId);
+                list.Add(SeparatorTokenId);
 
                 return list;
             }
@@ -265,8 +269,8 @@ namespace Microsoft.ML.Tokenizers
                     list = new List<int>(ids);
                 }
 
-                list.Insert(0, ClsTokenId);
-                list.Add(SepTokenId);
+                list.Insert(0, ClassificationTokenId);
+                list.Add(SeparatorTokenId);
 
                 return list;
             }
@@ -276,46 +280,46 @@ namespace Microsoft.ML.Tokenizers
 
         /// <summary>
         /// Build model inputs from a sequence or a pair of sequence for sequence classification tasks by concatenating and adding special tokens. A BERT sequence has the following format:
-        ///     - single sequence: `[CLS] tokenIds0 [SEP]`
-        ///     - pair of sequences: `[CLS] tokenIds0 [SEP] tokenIds1 [SEP]`
+        ///     - single sequence: `[CLS] tokenIds [SEP]`
+        ///     - pair of sequences: `[CLS] tokenIds [SEP] additionalTokenIds [SEP]`
         /// </summary>
-        /// <param name="tokenIds0">List of IDs to which the special tokens will be added.</param>
-        /// <param name="tokenIds1">Optional second list of IDs for sequence pairs.</param>
+        /// <param name="tokenIds">List of IDs to which the special tokens will be added.</param>
+        /// <param name="additionalTokenIds">Optional second list of IDs for sequence pairs.</param>
         /// <returns>The list of IDs with special tokens added.</returns>
-        /// <exception cref="ArgumentNullException">When <paramref name="tokenIds0"/> is null.</exception>
-        public IReadOnlyList<int> BuildInputsWithSpecialTokens(IEnumerable<int> tokenIds0, IEnumerable<int>? tokenIds1 = null)
+        /// <exception cref="ArgumentNullException">When <paramref name="tokenIds"/> is null.</exception>
+        public IReadOnlyList<int> BuildInputsWithSpecialTokens(IEnumerable<int> tokenIds, IEnumerable<int>? additionalTokenIds = null)
         {
-            if (tokenIds0 is null)
+            if (tokenIds is null)
             {
-                throw new ArgumentNullException(nameof(tokenIds0));
+                throw new ArgumentNullException(nameof(tokenIds));
             }
 
             List<int> ids;
 
-            if (tokenIds0 is ICollection<int> c1)
+            if (tokenIds is ICollection<int> c1)
             {
                 int capacity = c1.Count + 2;    // Add 2 for [CLS] and two [SEP] tokens.
 
-                if (tokenIds1 is not null)
+                if (additionalTokenIds is not null)
                 {
-                    capacity += tokenIds1 is ICollection<int> c2 ? c2.Count + 1 : c1.Count + 1;
+                    capacity += additionalTokenIds is ICollection<int> c2 ? c2.Count + 1 : c1.Count + 1;
                 }
 
-                ids = new(capacity) { ClsTokenId };
+                ids = new(capacity) { ClassificationTokenId };
             }
             else
             {
                 // slow path
-                ids = new List<int>(10) { ClsTokenId };
+                ids = new List<int>(10) { ClassificationTokenId };
             }
 
-            ids.AddRange(tokenIds0);
-            ids.Add(SepTokenId);
+            ids.AddRange(tokenIds);
+            ids.Add(SeparatorTokenId);
 
-            if (tokenIds1 is not null)
+            if (additionalTokenIds is not null)
             {
-                ids.AddRange(tokenIds1);
-                ids.Add(SepTokenId);
+                ids.AddRange(additionalTokenIds);
+                ids.Add(SeparatorTokenId);
             }
 
             return ids;
@@ -323,65 +327,65 @@ namespace Microsoft.ML.Tokenizers
 
         /// <summary>
         /// Build model inputs from a sequence or a pair of sequence for sequence classification tasks by concatenating and adding special tokens. A BERT sequence has the following format:
-        ///     - single sequence: `[CLS] tokenIds0 [SEP]`
-        ///     - pair of sequences: `[CLS] tokenIds0 [SEP] tokenIds1 [SEP]`
+        ///     - single sequence: `[CLS] tokenIds [SEP]`
+        ///     - pair of sequences: `[CLS] tokenIds [SEP] additionalTokenIds [SEP]`
         /// </summary>
-        /// <param name="tokenIds0">List of IDs to which the special tokens will be added.</param>
-        /// <param name="buffer">The buffer to write the token IDs with special tokens added.</param>
-        /// <param name="written">The number of elements written to the buffer.</param>
-        /// <param name="tokenIds1">Optional second list of IDs for sequence pairs.</param>
+        /// <param name="tokenIds">List of IDs to which the special tokens will be added.</param>
+        /// <param name="destination">The destination buffer to write the token IDs with special tokens added.</param>
+        /// <param name="valuesWritten">The number of elements written to the destination buffer.</param>
+        /// <param name="additionalTokenIds">Optional second list of IDs for sequence pairs.</param>
         /// <returns>The status of the operation.</returns>
-        /// <exception cref="ArgumentNullException">When <paramref name="tokenIds0"/> is null.</exception>
-        public OperationStatus BuildInputsWithSpecialTokens(IEnumerable<int> tokenIds0, Span<int> buffer, out int written, IEnumerable<int>? tokenIds1 = null)
+        /// <exception cref="ArgumentNullException">When <paramref name="tokenIds"/> is null.</exception>
+        public OperationStatus BuildInputsWithSpecialTokens(IEnumerable<int> tokenIds, Span<int> destination, out int valuesWritten, IEnumerable<int>? additionalTokenIds = null)
         {
-            if (tokenIds0 is null)
+            if (tokenIds is null)
             {
-                throw new ArgumentNullException(nameof(tokenIds0));
+                throw new ArgumentNullException(nameof(tokenIds));
             }
 
-            written = 0;
-            if (buffer.Length < 1)
+            valuesWritten = 0;
+            if (destination.Length < 1)
             {
                 return OperationStatus.DestinationTooSmall;
             }
 
-            buffer[written++] = ClsTokenId;
-            foreach (int id in tokenIds0)
+            destination[valuesWritten++] = ClassificationTokenId;
+            foreach (int id in tokenIds)
             {
-                if (buffer.Length <= written)
+                if (destination.Length <= valuesWritten)
                 {
-                    written = 0;
+                    valuesWritten = 0;
                     return OperationStatus.DestinationTooSmall;
                 }
 
-                buffer[written++] = id;
+                destination[valuesWritten++] = id;
             }
 
-            if (buffer.Length <= written)
+            if (destination.Length <= valuesWritten)
             {
-                written = 0;
+                valuesWritten = 0;
                 return OperationStatus.DestinationTooSmall;
             }
-            buffer[written++] = SepTokenId;
+            destination[valuesWritten++] = SeparatorTokenId;
 
-            if (tokenIds1 is not null)
+            if (additionalTokenIds is not null)
             {
-                foreach (int id in tokenIds1)
+                foreach (int id in additionalTokenIds)
                 {
-                    if (buffer.Length <= written)
+                    if (destination.Length <= valuesWritten)
                     {
-                        written = 0;
+                        valuesWritten = 0;
                         return OperationStatus.DestinationTooSmall;
                     }
-                    buffer[written++] = id;
+                    destination[valuesWritten++] = id;
                 }
 
-                if (buffer.Length <= written)
+                if (destination.Length <= valuesWritten)
                 {
-                    written = 0;
+                    valuesWritten = 0;
                     return OperationStatus.DestinationTooSmall;
                 }
-                buffer[written++] = SepTokenId;
+                destination[valuesWritten++] = SeparatorTokenId;
             }
 
             return OperationStatus.Done;
@@ -390,29 +394,29 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Retrieve sequence tokens mask from a IDs list.
         /// </summary>
-        /// <param name="tokenIds0">List of IDs.</param>
-        /// <param name="tokenIds1">Optional second list of IDs for sequence pairs.</param>
+        /// <param name="tokenIds">List of IDs.</param>
+        /// <param name="additionalTokenIds">Optional second list of IDs for sequence pairs.</param>
         /// <param name="alreadyHasSpecialTokens">Indicate whether or not the token list is already formatted with special tokens for the model.</param>
         /// <returns>A list of integers in the range [0, 1]: 1 for a special token, 0 for a sequence token.</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public IReadOnlyList<int> GetSpecialTokensMask(IEnumerable<int> tokenIds0, IEnumerable<int>? tokenIds1 = null, bool alreadyHasSpecialTokens = false)
+        public IReadOnlyList<int> GetSpecialTokensMask(IEnumerable<int> tokenIds, IEnumerable<int>? additionalTokenIds = null, bool alreadyHasSpecialTokens = false)
         {
-            if (tokenIds0 is null)
+            if (tokenIds is null)
             {
-                throw new ArgumentNullException(nameof(tokenIds0));
+                throw new ArgumentNullException(nameof(tokenIds));
             }
 
             List<int> mask;
-            if (tokenIds0 is ICollection<int> c1)
+            if (tokenIds is ICollection<int> c1)
             {
-                int capcity = c1.Count + 2;
+                int capacity = c1.Count + 2;
 
-                if (tokenIds1 is not null)
+                if (additionalTokenIds is not null)
                 {
-                    capcity += tokenIds1 is ICollection<int> c2 ? c2.Count + 1 : c1.Count + 1;
+                    capacity += additionalTokenIds is ICollection<int> c2 ? c2.Count + 1 : c1.Count + 1;
                 }
 
-                mask = new List<int>(capcity);
+                mask = new List<int>(capacity);
             }
             else
             {
@@ -422,27 +426,27 @@ namespace Microsoft.ML.Tokenizers
             if (!alreadyHasSpecialTokens)
             {
                 mask.Add(1); // CLS
-                mask.AddRange(Enumerable.Repeat(0, tokenIds0.Count()));
+                mask.AddRange(Enumerable.Repeat(0, tokenIds.Count()));
                 mask.Add(1); // SEP
-                if (tokenIds1 is not null)
+                if (additionalTokenIds is not null)
                 {
-                    mask.AddRange(Enumerable.Repeat(0, tokenIds1.Count()));
+                    mask.AddRange(Enumerable.Repeat(0, additionalTokenIds.Count()));
                     mask.Add(1); // SEP
                 }
 
                 return mask;
             }
 
-            foreach (int id in tokenIds0)
+            foreach (int id in tokenIds)
             {
-                mask.Add(id == ClsTokenId || id == SepTokenId || id == PadTokenId || id == MaskTokenId || id == UnknownTokenId ? 1 : 0);
+                mask.Add(id == ClassificationTokenId || id == SeparatorTokenId || id == PaddingTokenId || id == MaskingTokenId || id == UnknownTokenId ? 1 : 0);
             }
 
-            if (tokenIds1 is not null)
+            if (additionalTokenIds is not null)
             {
-                foreach (int id in tokenIds1)
+                foreach (int id in additionalTokenIds)
                 {
-                    mask.Add(id == ClsTokenId || id == SepTokenId || id == PadTokenId || id == MaskTokenId || id == UnknownTokenId ? 1 : 0);
+                    mask.Add(id == ClassificationTokenId || id == SeparatorTokenId || id == PaddingTokenId || id == MaskingTokenId || id == UnknownTokenId ? 1 : 0);
                 }
             }
 
@@ -452,89 +456,89 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Retrieve sequence tokens mask from a IDs list.
         /// </summary>
-        /// <param name="tokenIds0">List of IDs.</param>
-        /// <param name="buffer">The buffer to write the mask. The integers written values are in the range [0, 1]: 1 for a special token, 0 for a sequence token.</param>
-        /// <param name="written">The number of elements written to the buffer.</param>
-        /// <param name="tokenIds1">Optional second list of IDs for sequence pairs.</param>
+        /// <param name="tokenIds">List of IDs.</param>
+        /// <param name="destination">The destination buffer to write the mask. The integers written values are in the range [0, 1]: 1 for a special token, 0 for a sequence token.</param>
+        /// <param name="valuesWritten">The number of elements written to the destination buffer.</param>
+        /// <param name="additionalTokenIds">Optional second list of IDs for sequence pairs.</param>
         /// <param name="alreadyHasSpecialTokens">Indicate whether or not the token list is already formatted with special tokens for the model.</param>
         /// <returns>The status of the operation.</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public OperationStatus GetSpecialTokensMask(IEnumerable<int> tokenIds0, Span<int> buffer, out int written, IEnumerable<int>? tokenIds1 = null, bool alreadyHasSpecialTokens = false)
+        public OperationStatus GetSpecialTokensMask(IEnumerable<int> tokenIds, Span<int> destination, out int valuesWritten, IEnumerable<int>? additionalTokenIds = null, bool alreadyHasSpecialTokens = false)
         {
-            if (tokenIds0 is null)
+            if (tokenIds is null)
             {
-                throw new ArgumentNullException(nameof(tokenIds0));
+                throw new ArgumentNullException(nameof(tokenIds));
             }
 
-            written = 0;
+            valuesWritten = 0;
             if (!alreadyHasSpecialTokens)
             {
-                if (buffer.Length < 1)
+                if (destination.Length < 1)
                 {
                     return OperationStatus.DestinationTooSmall;
                 }
-                buffer[written++] = 1; // CLS
+                destination[valuesWritten++] = 1; // CLS
 
-                foreach (int id in tokenIds0)
+                foreach (int id in tokenIds)
                 {
-                    if (buffer.Length <= written)
+                    if (destination.Length <= valuesWritten)
                     {
-                        written = 0;
+                        valuesWritten = 0;
                         return OperationStatus.DestinationTooSmall;
                     }
-                    buffer[written++] = 0;
+                    destination[valuesWritten++] = 0;
                 }
 
-                if (buffer.Length <= written)
+                if (destination.Length <= valuesWritten)
                 {
-                    written = 0;
+                    valuesWritten = 0;
                     return OperationStatus.DestinationTooSmall;
                 }
-                buffer[written++] = 1; // SEP
+                destination[valuesWritten++] = 1; // SEP
 
-                if (tokenIds1 is not null)
+                if (additionalTokenIds is not null)
                 {
-                    foreach (int id in tokenIds1)
+                    foreach (int id in additionalTokenIds)
                     {
-                        if (buffer.Length <= written)
+                        if (destination.Length <= valuesWritten)
                         {
-                            written = 0;
+                            valuesWritten = 0;
                             return OperationStatus.DestinationTooSmall;
                         }
-                        buffer[written++] = 0;
+                        destination[valuesWritten++] = 0;
                     }
 
-                    if (buffer.Length <= written)
+                    if (destination.Length <= valuesWritten)
                     {
-                        written = 0;
+                        valuesWritten = 0;
                         return OperationStatus.DestinationTooSmall;
                     }
-                    buffer[written++] = 1; // SEP
+                    destination[valuesWritten++] = 1; // SEP
                 }
 
                 return OperationStatus.Done;
             }
 
-            foreach (int id in tokenIds0)
+            foreach (int id in tokenIds)
             {
-                if (buffer.Length <= written)
+                if (destination.Length <= valuesWritten)
                 {
-                    written = 0;
+                    valuesWritten = 0;
                     return OperationStatus.DestinationTooSmall;
                 }
-                buffer[written++] = id == ClsTokenId || id == SepTokenId || id == PadTokenId || id == MaskTokenId || id == UnknownTokenId ? 1 : 0;
+                destination[valuesWritten++] = id == ClassificationTokenId || id == SeparatorTokenId || id == PaddingTokenId || id == MaskingTokenId || id == UnknownTokenId ? 1 : 0;
             }
 
-            if (tokenIds1 is not null)
+            if (additionalTokenIds is not null)
             {
-                foreach (int id in tokenIds1)
+                foreach (int id in additionalTokenIds)
                 {
-                    if (buffer.Length <= written)
+                    if (destination.Length <= valuesWritten)
                     {
-                        written = 0;
+                        valuesWritten = 0;
                         return OperationStatus.DestinationTooSmall;
                     }
-                    buffer[written++] = id == ClsTokenId || id == SepTokenId || id == PadTokenId || id == MaskTokenId || id == UnknownTokenId ? 1 : 0;
+                    destination[valuesWritten++] = id == ClassificationTokenId || id == SeparatorTokenId || id == PaddingTokenId || id == MaskingTokenId || id == UnknownTokenId ? 1 : 0;
                 }
             }
 
@@ -545,27 +549,27 @@ namespace Microsoft.ML.Tokenizers
         /// Create a mask from the two sequences passed to be used in a sequence-pair classification task. A BERT sequence pair mask has the following format:
         ///         0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1
         ///         | first sequence    | second sequence |
-        /// If <paramref name="tokenIds1"/> is null, this method only returns the first portion of the type ids (0s).
+        /// If <paramref name="additionalTokenIds"/> is null, this method only returns the first portion of the type ids (0s).
         /// </summary>
-        /// <param name="tokenIds0">List of token IDs for the first sequence.</param>
-        /// <param name="tokenIds1">Optional list of token IDs for the second sequence.</param>
+        /// <param name="tokenIds">List of token IDs for the first sequence.</param>
+        /// <param name="additionalTokenIds">Optional list of token IDs for the second sequence.</param>
         /// <returns>List of token type IDs according to the given sequence(s).</returns>
-        /// <exception cref="ArgumentNullException">When <paramref name="tokenIds0"/> is null.</exception>
-        public IReadOnlyList<int> CreateTokenTypeIdsFromSequences(IEnumerable<int> tokenIds0, IEnumerable<int>? tokenIds1 = null)
+        /// <exception cref="ArgumentNullException">When <paramref name="tokenIds"/> is null.</exception>
+        public IReadOnlyList<int> CreateTokenTypeIdsFromSequences(IEnumerable<int> tokenIds, IEnumerable<int>? additionalTokenIds = null)
         {
-            if (tokenIds0 is null)
+            if (tokenIds is null)
             {
-                throw new ArgumentNullException(nameof(tokenIds0));
+                throw new ArgumentNullException(nameof(tokenIds));
             }
 
             List<int> typeIds;
-            if (tokenIds0 is ICollection<int> c1)
+            if (tokenIds is ICollection<int> c1)
             {
                 int capacity = c1.Count + 2;    // Add 2 for [CLS] and [SEP] tokens.
 
-                if (tokenIds1 is not null)
+                if (additionalTokenIds is not null)
                 {
-                    capacity += tokenIds1 is ICollection<int> c2 ? c2.Count + 1 : c1.Count + 1;
+                    capacity += additionalTokenIds is ICollection<int> c2 ? c2.Count + 1 : c1.Count + 1;
                 }
 
                 typeIds = new List<int>(capacity);
@@ -575,16 +579,16 @@ namespace Microsoft.ML.Tokenizers
                 typeIds = new List<int>(10);
             }
 
-            foreach (var id in tokenIds0)
+            foreach (var id in tokenIds)
             {
                 typeIds.Add(0);
             }
             typeIds.Add(0); // [CLS]
             typeIds.Add(0); // [SEP]
 
-            if (tokenIds1 is not null)
+            if (additionalTokenIds is not null)
             {
-                foreach (int id in tokenIds1)
+                foreach (int id in additionalTokenIds)
                 {
                     typeIds.Add(1);
                 }
@@ -595,51 +599,51 @@ namespace Microsoft.ML.Tokenizers
             return typeIds;
         }
 
-        public OperationStatus CreateTokenTypeIdsFromSequences(IEnumerable<int> tokenIds0, Span<int> buffer, out int written, IEnumerable<int>? tokenIds1 = null)
+        public OperationStatus CreateTokenTypeIdsFromSequences(IEnumerable<int> tokenIds, Span<int> destination, out int valuesWritten, IEnumerable<int>? additionalTokenIds = null)
         {
-            if (tokenIds0 is null)
+            if (tokenIds is null)
             {
-                throw new ArgumentNullException(nameof(tokenIds0));
+                throw new ArgumentNullException(nameof(tokenIds));
             }
 
-            written = 0;
+            valuesWritten = 0;
 
-            // Add 2 for [CLS] and [SEP] tokens. Add 1 for [SEP] token if tokenIds1 is not null.
-            int capacity = tokenIds0.Count() + 2 + (tokenIds1 is null ? 0 : tokenIds1.Count() + 1);
-            if (buffer.Length < 2)
+            // Add 2 for [CLS] and [SEP] tokens. Add 1 for [SEP] token if additionalTokenIds is not null.
+            int capacity = tokenIds.Count() + 2 + (additionalTokenIds is null ? 0 : additionalTokenIds.Count() + 1);
+            if (destination.Length < 2)
             {
                 return OperationStatus.DestinationTooSmall;
             }
-            buffer[written++] = 0; // [CLS]
-            buffer[written++] = 0; // [SEP]
+            destination[valuesWritten++] = 0; // [CLS]
+            destination[valuesWritten++] = 0; // [SEP]
 
-            foreach (int id in tokenIds0)
+            foreach (int id in tokenIds)
             {
-                if (buffer.Length <= written)
+                if (destination.Length <= valuesWritten)
                 {
-                    written = 0;
+                    valuesWritten = 0;
                     return OperationStatus.DestinationTooSmall;
                 }
-                buffer[written++] = 0;
+                destination[valuesWritten++] = 0;
             }
 
-            if (tokenIds1 is not null)
+            if (additionalTokenIds is not null)
             {
-                foreach (int id in tokenIds1)
+                foreach (int id in additionalTokenIds)
                 {
-                    if (buffer.Length <= written)
+                    if (destination.Length <= valuesWritten)
                     {
-                        written = 0;
+                        valuesWritten = 0;
                         return OperationStatus.DestinationTooSmall;
                     }
-                    buffer[written++] = 1;
+                    destination[valuesWritten++] = 1;
                 }
 
-                if (buffer.Length < written)
+                if (destination.Length < valuesWritten)
                 {
                     return OperationStatus.DestinationTooSmall;
                 }
-                buffer[written++] = 1; // [SEP]
+                destination[valuesWritten++] = 1; // [SEP]
             }
 
             return OperationStatus.Done;
@@ -649,116 +653,85 @@ namespace Microsoft.ML.Tokenizers
         /// Create a new instance of the <see cref="BertTokenizer"/> class.
         /// </summary>
         /// <param name="vocabFilePath">The path to the vocabulary file.</param>
-        /// <param name="doLowerCase">A value indicating whether the tokenizer should lowercase the input text.</param>
-        /// <param name="doBasicTokenization">A value indicating whether the tokenizer should do basic tokenization. Like clean text, normalize it, lowercasing, etc.</param>
-        /// <param name="splitOnSpecialTokens">A value indicating whether the tokenizer should split on special tokens.</param>
-        /// <param name="unknownToken">The unknown token. A token that is not in the vocabulary cannot be converted to an ID and is set to be this token instead.</param>
-        /// <param name="sepToken">The separator token, which is used when building a sequence from multiple sequences, e.g. two sequences for sequence classification or for a text and a question for question answering. It is also used as the last token of a sequence built with special tokens.</param>
-        /// <param name="padToken">The token used for padding, for example when batching sequences of different lengths.</param>
-        /// <param name="clsToken">The classifier token which is used when doing sequence classification (classification of the whole sequence instead of per-token classification). It is the first token of the sequence when built with special tokens.</param>
-        /// <param name="maskToken">The token used for masking values. This is the token used when training this model with masked language modeling. This is the token which the model will try to predict.</param>
-        /// <param name="tokenizeChineseChars">A value indicating whether the tokenizer should split the Chinese characters into tokens.</param>
-        /// <param name="stripAccents">A value indicating whether the tokenizer should strip accents characters.</param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <param name="options">The options to use for the Bert tokenizer.</param>
+        /// <returns>A new instance of the <see cref="BertTokenizer"/> class.</returns>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary file is sourced from a trusted provider.
+        /// </remarks>
         public static BertTokenizer Create(
                     string vocabFilePath,
-                    bool doLowerCase = true,
-                    bool doBasicTokenization = true,
-                    bool splitOnSpecialTokens = true,
-                    string unknownToken = "[UNK]",
-                    string sepToken = "[SEP]",
-                    string padToken = "[PAD]",
-                    string clsToken = "[CLS]",
-                    string maskToken = "[MASK]",
-                    bool tokenizeChineseChars = true,
-                    bool stripAccents = false) =>
+                    BertOptions? options = null) =>
             Create(
                 string.IsNullOrEmpty(vocabFilePath) ? throw new ArgumentNullException(nameof(vocabFilePath)) : File.OpenRead(vocabFilePath),
-                doLowerCase, doBasicTokenization, splitOnSpecialTokens, unknownToken, sepToken, padToken, clsToken, maskToken, tokenizeChineseChars, stripAccents, disposeStream: true);
+                options, disposeStream: true);
 
         /// <summary>
         /// Create a new instance of the <see cref="BertTokenizer"/> class.
         /// </summary>
         /// <param name="vocabStream">The stream containing the vocabulary file.</param>
-        /// <param name="doLowerCase">A value indicating whether the tokenizer should lowercase the input text.</param>
-        /// <param name="doBasicTokenization">A value indicating whether the tokenizer should do basic tokenization. Like clean text, normalize it, lowercasing, etc.</param>
-        /// <param name="splitOnSpecialTokens">A value indicating whether the tokenizer should split on special tokens.</param>
-        /// <param name="unknownToken">The unknown token. A token that is not in the vocabulary cannot be converted to an ID and is set to be this token instead.</param>
-        /// <param name="sepToken">The separator token, which is used when building a sequence from multiple sequences, e.g. two sequences for sequence classification or for a text and a question for question answering. It is also used as the last token of a sequence built with special tokens.</param>
-        /// <param name="padToken">The token used for padding, for example when batching sequences of different lengths.</param>
-        /// <param name="clsToken">The classifier token which is used when doing sequence classification (classification of the whole sequence instead of per-token classification). It is the first token of the sequence when built with special tokens.</param>
-        /// <param name="maskToken">The token used for masking values. This is the token used when training this model with masked language modeling. This is the token which the model will try to predict.</param>
-        /// <param name="tokenizeChineseChars">A value indicating whether the tokenizer should split the Chinese characters into tokens.</param>
-        /// <param name="stripAccents">A value indicating whether the tokenizer should strip accents characters.</param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <param name="options">The options to use for the Bert tokenizer.</param>
+        /// <returns>A new instance of the <see cref="BertTokenizer"/> class.</returns>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
+        /// </remarks>
         public static BertTokenizer Create(
                     Stream vocabStream,
-                    bool doLowerCase = true,
-                    bool doBasicTokenization = true,
-                    bool splitOnSpecialTokens = true,
-                    string unknownToken = "[UNK]",
-                    string sepToken = "[SEP]",
-                    string padToken = "[PAD]",
-                    string clsToken = "[CLS]",
-                    string maskToken = "[MASK]",
-                    bool tokenizeChineseChars = true,
-                    bool stripAccents = false) =>
-            Create(vocabStream, doLowerCase, doBasicTokenization, splitOnSpecialTokens, unknownToken, sepToken, padToken, clsToken, maskToken, tokenizeChineseChars, stripAccents, disposeStream: false);
+                    BertOptions? options = null) =>
+            Create(vocabStream, options, disposeStream: false);
 
         /// <summary>
         /// Create a new instance of the <see cref="BertTokenizer"/> class asynchronously.
         /// </summary>
         /// <param name="vocabStream">The stream containing the vocabulary file.</param>
-        /// <param name="doLowerCase">A value indicating whether the tokenizer should lowercase the input text.</param>
-        /// <param name="doBasicTokenization">A value indicating whether the tokenizer should do basic tokenization. Like clean text, normalize it, lowercasing, etc.</param>
-        /// <param name="splitOnSpecialTokens">A value indicating whether the tokenizer should split on special tokens.</param>
-        /// <param name="unknownToken">The unknown token. A token that is not in the vocabulary cannot be converted to an ID and is set to be this token instead.</param>
-        /// <param name="sepToken">The separator token, which is used when building a sequence from multiple sequences, e.g. two sequences for sequence classification or for a text and a question for question answering. It is also used as the last token of a sequence built with special tokens.</param>
-        /// <param name="padToken">The token used for padding, for example when batching sequences of different lengths.</param>
-        /// <param name="clsToken">The classifier token which is used when doing sequence classification (classification of the whole sequence instead of per-token classification). It is the first token of the sequence when built with special tokens.</param>
-        /// <param name="maskToken">The token used for masking values. This is the token used when training this model with masked language modeling. This is the token which the model will try to predict.</param>
-        /// <param name="tokenizeChineseChars">A value indicating whether the tokenizer should split the Chinese characters into tokens.</param>
-        /// <param name="stripAccents">A value indicating whether the tokenizer should strip accents characters.</param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <param name="options">The options to use for the Bert tokenizer.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task that represents the asynchronous creation of the BertTokenizer.</returns>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
+        /// </remarks>
         public static async Task<BertTokenizer> CreateAsync(
                     Stream vocabStream,
-                    bool doLowerCase = true,
-                    bool doBasicTokenization = true,
-                    bool splitOnSpecialTokens = true,
-                    string unknownToken = "[UNK]",
-                    string sepToken = "[SEP]",
-                    string padToken = "[PAD]",
-                    string clsToken = "[CLS]",
-                    string maskToken = "[MASK]",
-                    bool tokenizeChineseChars = true,
-                    bool stripAccents = false)
+                    BertOptions? options = null,
+                    CancellationToken cancellationToken = default)
         {
             if (vocabStream is null)
             {
                 throw new ArgumentNullException(nameof(vocabStream));
             }
 
-            (Dictionary<StringSpanOrdinalKey, int> vocab, Dictionary<int, string> vocabReverse) = await LoadVocabAsync(vocabStream, useAsync: true).ConfigureAwait(false);
+            (Dictionary<StringSpanOrdinalKey, int> vocab, Dictionary<int, string> vocabReverse) = await LoadVocabAsync(vocabStream, useAsync: true, cancellationToken).ConfigureAwait(false);
 
-            return Create(vocab, vocabReverse, doLowerCase, doBasicTokenization, splitOnSpecialTokens, unknownToken, sepToken, padToken, clsToken, maskToken, tokenizeChineseChars, stripAccents);
+            return Create(vocab, vocabReverse, options);
         }
 
-        private static BertTokenizer Create(
-                            Stream vocabStream,
-                            bool doLowerCase,
-                            bool doBasicTokenization,
-                            bool splitOnSpecialTokens,
-                            string unknownToken,
-                            string sepToken,
-                            string padToken,
-                            string clsToken,
-                            string maskToken,
-                            bool tokenizeChineseChars,
-                            bool stripAccents,
-                            bool disposeStream)
+        /// <summary>
+        /// Create a new instance of the <see cref="BertTokenizer"/> class asynchronously.
+        /// </summary>
+        /// <param name="vocabFilePath">The path to the vocabulary file.</param>
+        /// <param name="options">The options to use for the Bert tokenizer.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task that represents the asynchronous creation of the BertTokenizer.</returns>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary file is sourced from a trusted provider.
+        /// </remarks>
+        public static async Task<BertTokenizer> CreateAsync(
+                    string vocabFilePath,
+                    BertOptions? options = null,
+                    CancellationToken cancellationToken = default)
+        {
+            Stream stream = string.IsNullOrEmpty(vocabFilePath) ? throw new ArgumentNullException(nameof(vocabFilePath)) : File.OpenRead(vocabFilePath);
+
+            try
+            {
+                return await CreateAsync(stream, options, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                stream.Dispose();
+            }
+        }
+
+        private static BertTokenizer Create(Stream vocabStream, BertOptions? options, bool disposeStream)
         {
             if (vocabStream is null)
             {
@@ -769,7 +742,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 (Dictionary<StringSpanOrdinalKey, int> vocab, Dictionary<int, string> vocabReverse) = LoadVocabAsync(vocabStream, useAsync: false).GetAwaiter().GetResult();
 
-                return Create(vocab, vocabReverse, doLowerCase, doBasicTokenization, splitOnSpecialTokens, unknownToken, sepToken, padToken, clsToken, maskToken, tokenizeChineseChars, stripAccents);
+                return Create(vocab, vocabReverse, options);
             }
             finally
             {
@@ -783,34 +756,51 @@ namespace Microsoft.ML.Tokenizers
         private static BertTokenizer Create(
                     Dictionary<StringSpanOrdinalKey, int> vocab,
                     Dictionary<int, string> vocabReverse,
-                    bool doLowerCase,
-                    bool doBasicTokenization,
-                    bool splitOnSpecialTokens,
-                    string unknownToken,
-                    string sepToken,
-                    string padToken,
-                    string clsToken,
-                    string maskToken,
-                    bool tokenizeChineseChars,
-                    bool stripAccents)
+                    BertOptions? options)
         {
-            Normalizer? normalizer = doBasicTokenization ? new BertNormalizer(doLowerCase, tokenizeChineseChars, stripAccents) : null;
+            options ??= new();
 
-            Dictionary<string, int>? specialTokens = new();
-            bool lowerCase = doBasicTokenization && doLowerCase && splitOnSpecialTokens;
+            options.Normalizer ??= options.ApplyBasicTokenization ? new BertNormalizer(options.LowerCaseBeforeTokenization, options.IndividuallyTokenizeCjk, options.RemoveNonSpacingMarks) : null;
 
-            AddSpecialToken(vocab, specialTokens, unknownToken, lowerCase);
-            AddSpecialToken(vocab, specialTokens, sepToken, lowerCase);
-            AddSpecialToken(vocab, specialTokens, padToken, lowerCase);
-            AddSpecialToken(vocab, specialTokens, clsToken, lowerCase);
-            AddSpecialToken(vocab, specialTokens, maskToken, lowerCase);
+            if (options.SplitOnSpecialTokens)
+            {
+                bool lowerCase = options.ApplyBasicTokenization && options.LowerCaseBeforeTokenization;
+                if (options.SpecialTokens is not null)
+                {
+                    if (lowerCase)
+                    {
+                        Dictionary<string, int> dic = options.SpecialTokens.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                        options.SpecialTokens = dic;
 
-            PreTokenizer? preTokenizer = doBasicTokenization ?
-                                            PreTokenizer.CreateWhiteSpaceOrPunctuationPreTokenizer(splitOnSpecialTokens ? specialTokens : null) :
-                                            PreTokenizer.CreateWhiteSpacePreTokenizer();
+                        foreach (var kvp in options.SpecialTokens)
+                        {
+                            if (!vocab.TryGetValue(new StringSpanOrdinalKey(kvp.Key), out int id) || id != kvp.Value)
+                            {
+                                throw new ArgumentException($"The special token '{kvp.Key}' is not in the vocabulary or assigned id value {id} different than the value {kvp.Value} in the special tokens.");
+                            }
 
-            return new BertTokenizer(vocab, vocabReverse, preTokenizer, normalizer, specialTokens, doLowerCase, doBasicTokenization,
-                                    splitOnSpecialTokens, unknownToken, sepToken, padToken, clsToken, maskToken, tokenizeChineseChars, stripAccents);
+                            // Ensure that the special tokens are lowercased.
+                            dic[kvp.Key.ToLowerInvariant()] = kvp.Value;
+                        }
+                    }
+                }
+                else
+                {
+                    // Create a dictionary with the special tokens.
+                    Dictionary<string, int> specialTokens = new Dictionary<string, int>();
+                    options.SpecialTokens = specialTokens;
+
+                    AddSpecialToken(vocab, specialTokens, options.UnknownToken, lowerCase);
+                    AddSpecialToken(vocab, specialTokens, options.SeparatorToken, lowerCase);
+                    AddSpecialToken(vocab, specialTokens, options.PaddingToken, lowerCase);
+                    AddSpecialToken(vocab, specialTokens, options.ClassificationToken, lowerCase);
+                    AddSpecialToken(vocab, specialTokens, options.MaskingToken, lowerCase);
+                }
+            }
+
+            options.PreTokenizer ??= options.ApplyBasicTokenization ? PreTokenizer.CreateWordOrPunctuation(options.SplitOnSpecialTokens ? options.SpecialTokens : null) : PreTokenizer.CreateWhiteSpace();
+
+            return new BertTokenizer(vocab, vocabReverse, options);
         }
 
         private static void AddSpecialToken(Dictionary<StringSpanOrdinalKey, int> vocab, Dictionary<string, int> specialTokens, string token, bool lowerCase)

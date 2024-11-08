@@ -64,10 +64,10 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(0, tokenizer.CountTokens(""));
                 IReadOnlyList<int> ids = tokenizer.EncodeToIds("");
                 Assert.Empty(ids);
-                int index = tokenizer.GetIndexByTokenCount("", maxTokenCount: 10, normalizedString: out _, tokenCount: out int tokenCount);
+                int index = tokenizer.GetIndexByTokenCount("", maxTokenCount: 10, normalizedText: out _, tokenCount: out int tokenCount);
                 Assert.Equal(0, index);
                 Assert.Equal(0, tokenCount);
-                index = tokenizer.GetIndexByTokenCountFromEnd("", maxTokenCount: 10, normalizedString: out _, tokenCount: out tokenCount);
+                index = tokenizer.GetIndexByTokenCountFromEnd("", maxTokenCount: 10, normalizedText: out _, tokenCount: out tokenCount);
                 Assert.Equal(0, index);
                 Assert.Equal(0, tokenCount);
 
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
                 for (int i = 1; i <= 5; i++)
                 {
-                    index = tokenizer.GetIndexByTokenCount(text, maxTokenCount: i, normalizedString: out _, out tokenCount);
+                    index = tokenizer.GetIndexByTokenCount(text, maxTokenCount: i, normalizedText: out _, out tokenCount);
                     Assert.Equal(expectedTokenCount[i - 1], tokenCount);
                     Assert.Equal(expectedIndexes[i - 1], index);
                 }
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
                 for (int i = 1; i <= 5; i++)
                 {
-                    index = tokenizer.GetIndexByTokenCountFromEnd(text, maxTokenCount: i, normalizedString: out _, out tokenCount);
+                    index = tokenizer.GetIndexByTokenCountFromEnd(text, maxTokenCount: i, normalizedText: out _, out tokenCount);
                     Assert.Equal(expectedTokenCount[i - 1], tokenCount);
                     Assert.Equal(expectedIndexes[i - 1], index);
                 }
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 {
                     { "[UNK]", 0 }, { "[CLS]", 1 }, { "[SEP]", 2 }
                 };
-                WordPieceTokenizer tokenizer = WordPieceTokenizer.Create(vocabFile, specialTokens: specialTokens);
+                WordPieceTokenizer tokenizer = WordPieceTokenizer.Create(vocabFile, new WordPieceOptions { SpecialTokens = specialTokens });
 
                 Assert.Equal(specialTokens, tokenizer.SpecialTokens);
 
