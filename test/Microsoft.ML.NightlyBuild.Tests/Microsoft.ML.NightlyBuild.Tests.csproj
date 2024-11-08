@@ -6,6 +6,7 @@
     <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
     <PublicSign>false</PublicSign>
     <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);NU1605</NoWarn>
   </PropertyGroup>
 
   <Import Project="..\NightlyBuildDependency.props" />
