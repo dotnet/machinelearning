@@ -55,17 +55,20 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Create a new instance of the <see cref="PreTokenizer"/> class which split the text at the whitespace or punctuation characters.
         /// </summary>
-        /// <param name="specialTokensEncoder">The dictionary containing the special tokens and their corresponding ids.</param>
+        /// <param name="specialTokens">The dictionary containing the special tokens and their corresponding ids.</param>
         /// <returns>The pre-tokenizer that splits the text at the whitespace or punctuation characters.</returns>
-        public static PreTokenizer CreateWhiteSpaceOrPunctuationPreTokenizer(IReadOnlyDictionary<string, int>? specialTokensEncoder = null)
+        /// <remarks>
+        /// This pre-tokenizer uses the regex pattern "\w+|[\p{P}]" to split the text into tokens.
+        /// </remarks>
+        public static PreTokenizer CreateWordOrPunctuation(IReadOnlyDictionary<string, int>? specialTokens = null)
         {
-            if (specialTokensEncoder is null)
+            if (specialTokens is null)
             {
                 // return a singleton instance of the WhiteSpace pre-tokenizer
                 return _whiteSpaceOrPunctuationPreTokenizer ??= new RegexPreTokenizer(WhiteSpaceOrPunctuationRegex(), null);
             }
 
-            return new RegexPreTokenizer(WhiteSpaceOrPunctuationRegex(), specialTokensEncoder);
+            return new RegexPreTokenizer(WhiteSpaceOrPunctuationRegex(), specialTokens);
         }
 
         private const string WordOrNonWordPattern = /*lang=regex*/ @"\w+|[^\w\s]+";
@@ -82,17 +85,20 @@ namespace Microsoft.ML.Tokenizers
         /// Create a new instance of the <see cref="PreTokenizer"/> class which split the text at the word or non-word boundary.
         /// The word is a set of alphabet, numeric, and underscore characters.
         /// </summary>
-        /// <param name="specialTokensEncoder">The dictionary containing the special tokens and their corresponding ids.</param>
+        /// <param name="specialTokens">The dictionary containing the special tokens and their corresponding ids.</param>
         /// <returns>The pre-tokenizer that splits the text at the word boundary.</returns>
-        public static PreTokenizer CreateWordOrNonWordPreTokenizer(IReadOnlyDictionary<string, int>? specialTokensEncoder = null)
+        /// <remarks>
+        /// This pre-tokenizer uses the regex pattern "\w+|[^\w\s]+" to split the text into tokens.
+        /// </remarks>
+        public static PreTokenizer CreateWordOrNonWord(IReadOnlyDictionary<string, int>? specialTokens = null)
         {
-            if (specialTokensEncoder is null)
+            if (specialTokens is null)
             {
                 // return a singleton instance of the WhiteSpace pre-tokenizer
                 return _wordOrNonWordPreTokenizer ??= new RegexPreTokenizer(WordOrNonWordRegex(), null);
             }
 
-            return new RegexPreTokenizer(WordOrNonWordRegex(), specialTokensEncoder);
+            return new RegexPreTokenizer(WordOrNonWordRegex(), specialTokens);
         }
 
         private const string WhiteSpacePattern = @"\S+";
@@ -108,17 +114,20 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Create a new instance of the <see cref="PreTokenizer"/> class which split the text at the white spaces.
         /// </summary>
-        /// <param name="specialTokensEncoder">The dictionary containing the special tokens and their corresponding ids.</param>
+        /// <param name="specialTokens">The dictionary containing the special tokens and their corresponding ids.</param>
         /// <returns>The pre-tokenizer that splits the text at the white spaces.</returns>
-        public static PreTokenizer CreateWhiteSpacePreTokenizer(IReadOnlyDictionary<string, int>? specialTokensEncoder = null)
+        /// <remarks>
+        /// This pre-tokenizer uses the regex pattern "\S+" to split the text into tokens.
+        /// </remarks>
+        public static PreTokenizer CreateWhiteSpace(IReadOnlyDictionary<string, int>? specialTokens = null)
         {
-            if (specialTokensEncoder is null)
+            if (specialTokens is null)
             {
                 // return a singleton instance of the WhiteSpace pre-tokenizer
                 return _whiteSpacePreTokenizer ??= new RegexPreTokenizer(WhiteSpaceRegex(), null);
             }
 
-            return new RegexPreTokenizer(WhiteSpaceRegex(), specialTokensEncoder);
+            return new RegexPreTokenizer(WhiteSpaceRegex(), specialTokens);
         }
 
         internal static IEnumerable<(int Offset, int Length)> SplitText(ReadOnlySpan<char> text, Regex regex)

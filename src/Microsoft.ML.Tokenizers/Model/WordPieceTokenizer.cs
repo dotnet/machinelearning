@@ -29,53 +29,48 @@ namespace Microsoft.ML.Tokenizers
         private readonly Dictionary<StringSpanOrdinalKey, int> _vocab;
         private readonly Dictionary<int, string> _vocabReverse;
 
-        internal const string DefaultContinuingSubwordPrefix = "##";
-        internal const int DefaultMaxInputCharsPerWord = 100;
-
         internal WordPieceTokenizer(
                     Dictionary<StringSpanOrdinalKey, int> vocab,
                     Dictionary<int, string> vocabReverse,
-                    PreTokenizer? preTokenizer,
-                    Normalizer? normalizer,
-                    IReadOnlyDictionary<string, int>? specialTokens,
-                    string unknownToken,
-                    string continuingSubwordPrefix = DefaultContinuingSubwordPrefix,
-                    int maxInputCharsPerWord = DefaultMaxInputCharsPerWord)
+                    WordPieceOptions? options)
         {
             Debug.Assert(vocab is not null);
             Debug.Assert(vocabReverse is not null);
             _vocab = vocab!;
             _vocabReverse = vocabReverse!;
-            SpecialTokens = specialTokens;
-            SpecialTokensReverse = specialTokens is not null ? specialTokens.ToDictionary(kvp => kvp.Value, kvp => kvp.Key) : null;
 
-            if (unknownToken is null)
+            options ??= new();
+
+            SpecialTokens = options.SpecialTokens;
+            SpecialTokensReverse = options.SpecialTokens is not null ? options.SpecialTokens.ToDictionary(kvp => kvp.Value, kvp => kvp.Key) : null;
+
+            if (options.UnknownToken is null)
             {
-                throw new ArgumentNullException(nameof(unknownToken));
+                throw new ArgumentNullException(nameof(options.UnknownToken));
             }
 
-            if (continuingSubwordPrefix is null)
+            if (options.ContinuingSubwordPrefix is null)
             {
-                throw new ArgumentNullException(nameof(continuingSubwordPrefix));
+                throw new ArgumentNullException(nameof(options.ContinuingSubwordPrefix));
             }
 
-            if (maxInputCharsPerWord <= 0)
+            if (options.MaxInputCharsPerWord <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxInputCharsPerWord), "The maximum number of characters per word must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(options.MaxInputCharsPerWord), "The maximum number of characters per word must be greater than zero.");
             }
 
-            if (!vocab!.TryGetValue(unknownToken, out int id))
+            if (!vocab!.TryGetValue(options.UnknownToken, out int id))
             {
-                throw new ArgumentException($"The unknown token '{unknownToken}' is not in the vocabulary.");
+                throw new ArgumentException($"The unknown token '{options.UnknownToken}' is not in the vocabulary.");
             }
 
-            UnknownToken = unknownToken;
+            UnknownToken = options.UnknownToken;
             UnknownTokenId = id;
-            ContinuingSubwordPrefix = continuingSubwordPrefix;
-            MaxInputCharsPerWord = maxInputCharsPerWord;
+            ContinuingSubwordPrefix = options.ContinuingSubwordPrefix;
+            MaxInputCharsPerWord = options.MaxInputCharsPerWord;
 
-            _preTokenizer = preTokenizer ?? PreTokenizer.CreateWhiteSpacePreTokenizer(specialTokens);
-            _normalizer = normalizer;
+            _preTokenizer = options.PreTokenizer ?? PreTokenizer.CreateWhiteSpace(options.SpecialTokens);
+            _normalizer = options.Normalizer;
         }
 
         /// <summary>
@@ -127,58 +122,36 @@ namespace Microsoft.ML.Tokenizers
         /// Create a new instance of the <see cref="WordPieceTokenizer"/> class.
         /// </summary>
         /// <param name="vocabFilePath">The path to the WordPiece vocab file.</param>
-        /// <param name="preTokenizer">The PreTokenizer to use.</param>
-        /// <param name="normalizer">The Normalizer to use.</param>
-        /// <param name="specialTokens">The dictionary containing the special tokens and their corresponding ids.</param>
-        /// <param name="unknownToken">The unknown token. A token that is not in the vocabulary cannot be converted to an ID and is set to be this token instead.</param>
-        /// <param name="continuingSubwordPrefix">The prefix to use for sub-words that are not the first part of a word.</param>
-        /// <param name="maxInputCharsPerWord">The maximum number of characters to authorize in a single word.</param>
+        /// <param name="options">The options to use for the WordPiece tokenizer.</param>
         /// <returns>A new instance of the <see cref="WordPieceTokenizer"/> class.</returns>
         /// <remarks>
-        /// If the <paramref name="preTokenizer"/> is null, the whitespace pre-tokenizer will be used.
+        /// If the <see cref="WordPieceOptions.PreTokenizer"/> is null, the whitespace pre-tokenizer will be used.
+        /// When creating the tokenizer, ensure that the vocabulary file is sourced from a trusted provider.
         /// </remarks>
         public static WordPieceTokenizer Create(
                         string vocabFilePath,
-                        PreTokenizer? preTokenizer = null,
-                        Normalizer? normalizer = null,
-                        IReadOnlyDictionary<string, int>? specialTokens = null,
-                        string unknownToken = "[UNK]",
-                        string continuingSubwordPrefix = DefaultContinuingSubwordPrefix,
-                        int maxInputCharsPerWord = DefaultMaxInputCharsPerWord) =>
-            Create(string.IsNullOrEmpty(vocabFilePath) ? throw new ArgumentNullException(nameof(vocabFilePath)) : File.OpenRead(vocabFilePath), preTokenizer, normalizer, specialTokens, unknownToken, continuingSubwordPrefix, maxInputCharsPerWord, disposeStream: true);
+                        WordPieceOptions? options = null) =>
+            Create(string.IsNullOrEmpty(vocabFilePath) ? throw new ArgumentNullException(nameof(vocabFilePath)) : File.OpenRead(vocabFilePath), options, disposeStream: true);
 
         /// <summary>
         /// Create a new instance of the <see cref="WordPieceTokenizer"/> class.
         /// </summary>
         /// <param name="vocabStream">The path to the WordPiece vocab file.</param>
-        /// <param name="preTokenizer">The PreTokenizer to use.</param>
-        /// <param name="normalizer">The Normalizer to use.</param>
-        /// <param name="specialTokens">The dictionary containing the special tokens and their corresponding ids.</param>
-        /// <param name="unknownToken">The unknown token. A token that is not in the vocabulary cannot be converted to an ID and is set to be this token instead.</param>
-        /// <param name="continuingSubwordPrefix">The prefix to use for sub-words that are not the first part of a word.</param>
-        /// <param name="maxInputCharsPerWord">The maximum number of characters to authorize in a single word.</param>
+        /// <param name="options">The options to use for the WordPiece tokenizer.</param>
         /// <returns>A new instance of the <see cref="WordPieceTokenizer"/> class.</returns>
         /// <remarks>
-        /// If the <paramref name="preTokenizer"/> is null, the whitespace pre-tokenizer will be used.
+        /// If the <see cref="WordPieceOptions.PreTokenizer"/> is null, the whitespace pre-tokenizer will be used.
+        /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
         /// </remarks>
         public static WordPieceTokenizer Create(
-                            Stream vocabStream,
-                            PreTokenizer? preTokenizer = null,
-                            Normalizer? normalizer = null,
-                            IReadOnlyDictionary<string, int>? specialTokens = null,
-                            string unknownToken = "[UNK]",
-                            string continuingSubwordPrefix = DefaultContinuingSubwordPrefix,
-                            int maxInputCharsPerWord = DefaultMaxInputCharsPerWord) => Create(vocabStream, preTokenizer, normalizer, specialTokens, unknownToken, continuingSubwordPrefix, maxInputCharsPerWord, disposeStream: false);
+                        Stream vocabStream,
+                        WordPieceOptions? options = null) =>
+            Create(vocabStream, options, disposeStream: false);
 
         private static WordPieceTokenizer Create(
-                            Stream vocabStream,
-                            PreTokenizer? preTokenizer,
-                            Normalizer? normalizer,
-                            IReadOnlyDictionary<string, int>? specialTokens,
-                            string unknownToken,
-                            string continuingSubwordPrefix,
-                            int maxInputCharsPerWord,
-                            bool disposeStream)
+                        Stream vocabStream,
+                        WordPieceOptions? options,
+                        bool disposeStream)
         {
             if (vocabStream is null)
             {
@@ -189,7 +162,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 (Dictionary<StringSpanOrdinalKey, int> vocab, Dictionary<int, string> vocabReverse) = LoadVocabAsync(vocabStream, useAsync: false).GetAwaiter().GetResult();
 
-                return new WordPieceTokenizer(vocab, vocabReverse, preTokenizer, normalizer, specialTokens, unknownToken, continuingSubwordPrefix, maxInputCharsPerWord);
+                return new WordPieceTokenizer(vocab, vocabReverse, options);
             }
             finally
             {
@@ -204,34 +177,20 @@ namespace Microsoft.ML.Tokenizers
         /// Create a new instance of the <see cref="WordPieceTokenizer"/> class asynchronously.
         /// </summary>
         /// <param name="vocabFilePath">The path to the WordPiece vocab file.</param>
-        /// <param name="preTokenizer">The PreTokenizer to use.</param>
-        /// <param name="normalizer">The Normalizer to use.</param>
-        /// <param name="specialTokens">The dictionary containing the special tokens and their corresponding ids.</param>
-        /// <param name="unknownToken">The unknown token. A token that is not in the vocabulary cannot be converted to an ID and is set to be this token instead.</param>
-        /// <param name="continuingSubwordPrefix">The prefix to use for sub-words that are not the first part of a word.</param>
-        /// <param name="maxInputCharsPerWord">The maximum number of characters to authorize in a single word.</param>
+        /// <param name="options">The options to use for the WordPiece tokenizer.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A new instance of the <see cref="WordPieceTokenizer"/> class.</returns>
         /// <remarks>
-        /// If the <paramref name="preTokenizer"/> is null, the whitespace pre-tokenizer will be used.
+        /// If the <see cref="WordPieceOptions.PreTokenizer"/> is null, the whitespace pre-tokenizer will be used.
+        /// When creating the tokenizer, ensure that the vocabulary file is sourced from a trusted provider.
         /// </remarks>
         public static async Task<WordPieceTokenizer> CreateAsync(
                                 string vocabFilePath,
-                                PreTokenizer? preTokenizer = null,
-                                Normalizer? normalizer = null,
-                                IReadOnlyDictionary<string, int>? specialTokens = null,
-                                string unknownToken = "[UNK]",
-                                string continuingSubwordPrefix = DefaultContinuingSubwordPrefix,
-                                int maxInputCharsPerWord = DefaultMaxInputCharsPerWord,
+                                WordPieceOptions? options = null,
                                 CancellationToken cancellationToken = default) =>
             await CreateAsync(
                     string.IsNullOrEmpty(vocabFilePath) ? throw new ArgumentNullException(nameof(vocabFilePath)) : File.OpenRead(vocabFilePath),
-                    preTokenizer,
-                    normalizer,
-                    specialTokens,
-                    unknownToken,
-                    continuingSubwordPrefix,
-                    maxInputCharsPerWord,
+                    options,
                     cancellationToken,
                     disposeStream: true).ConfigureAwait(false);
 
@@ -239,36 +198,22 @@ namespace Microsoft.ML.Tokenizers
         /// Create a new instance of the <see cref="WordPieceTokenizer"/> class asynchronously.
         /// </summary>
         /// <param name="vocabStream">The path to the WordPiece vocab file.</param>
-        /// <param name="preTokenizer">The PreTokenizer to use.</param>
-        /// <param name="normalizer">The Normalizer to use.</param>
-        /// <param name="specialTokens">The dictionary containing the special tokens and their corresponding ids.</param>
-        /// <param name="unknownToken">The unknown token. A token that is not in the vocabulary cannot be converted to an ID and is set to be this token instead.</param>
-        /// <param name="continuingSubwordPrefix">The prefix to use for sub-words that are not the first part of a word.</param>
-        /// <param name="maxInputCharsPerWord">The maximum number of characters to authorize in a single word.</param>
+        /// <param name="options">The options to use for the WordPiece tokenizer.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A new instance of the <see cref="WordPieceTokenizer"/> class.</returns>
         /// <remarks>
-        /// If the <paramref name="preTokenizer"/> is null, the whitespace pre-tokenizer will be used.
+        /// If the <see cref="WordPieceOptions.PreTokenizer"/> is null, the whitespace pre-tokenizer will be used.
+        /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
         /// </remarks>
         public static async Task<WordPieceTokenizer> CreateAsync(
                                 Stream vocabStream,
-                                PreTokenizer? preTokenizer = null,
-                                Normalizer? normalizer = null,
-                                IReadOnlyDictionary<string, int>? specialTokens = null,
-                                string unknownToken = "[UNK]",
-                                string continuingSubwordPrefix = DefaultContinuingSubwordPrefix,
-                                int maxInputCharsPerWord = DefaultMaxInputCharsPerWord,
+                                WordPieceOptions? options = null,
                                 CancellationToken cancellationToken = default) =>
-            await CreateAsync(vocabStream, preTokenizer, normalizer, specialTokens, unknownToken, continuingSubwordPrefix, maxInputCharsPerWord, cancellationToken, disposeStream: false).ConfigureAwait(false);
+            await CreateAsync(vocabStream, options, cancellationToken, disposeStream: false).ConfigureAwait(false);
 
         private static async Task<WordPieceTokenizer> CreateAsync(
                                 Stream vocabStream,
-                                PreTokenizer? preTokenizer,
-                                Normalizer? normalizer,
-                                IReadOnlyDictionary<string, int>? specialTokens,
-                                string unknownToken,
-                                string continuingSubwordPrefix,
-                                int maxInputCharsPerWord,
+                                WordPieceOptions? options,
                                 CancellationToken cancellationToken,
                                 bool disposeStream)
         {
@@ -281,7 +226,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 (Dictionary<StringSpanOrdinalKey, int> vocab, Dictionary<int, string> vocabReverse) = await LoadVocabAsync(vocabStream, useAsync: true, cancellationToken);
 
-                return new WordPieceTokenizer(vocab, vocabReverse, preTokenizer, normalizer, specialTokens, unknownToken, continuingSubwordPrefix, maxInputCharsPerWord);
+                return new WordPieceTokenizer(vocab, vocabReverse, options);
             }
             finally
             {
@@ -338,7 +283,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 settings.ConsiderNormalization,
                                                                 _normalizer,
                                                                 _preTokenizer,
-                                                                out string? normalizedString,
+                                                                out string? normalizedText,
                                                                 out ReadOnlySpan<char> textSpanToEncode,
                                                                 out int charsConsumed);
 
@@ -356,7 +301,7 @@ namespace Microsoft.ML.Tokenizers
                 EncodeToTokens(textSpanToEncode, tokens, 0);
             }
 
-            return new EncodeResults<EncodedToken> { NormalizedText = normalizedString, Tokens = tokens, CharsConsumed = charsConsumed };
+            return new EncodeResults<EncodedToken> { NormalizedText = normalizedText, Tokens = tokens, CharsConsumed = charsConsumed };
         }
 
         /// <summary>
@@ -461,7 +406,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 settings.ConsiderNormalization,
                                                                 _normalizer,
                                                                 _preTokenizer,
-                                                                out string? normalizedString,
+                                                                out string? normalizedText,
                                                                 out ReadOnlySpan<char> textSpanToEncode,
                                                                 out int charsConsumed);
 
@@ -487,7 +432,7 @@ namespace Microsoft.ML.Tokenizers
                 EncodeToIds(textSpanToEncode, ids, out charsConsumed);
             }
 
-            return new EncodeResults<int> { NormalizedText = normalizedString, Tokens = ids, CharsConsumed = charsConsumed };
+            return new EncodeResults<int> { NormalizedText = normalizedText, Tokens = ids, CharsConsumed = charsConsumed };
         }
 
         /// <summary>
@@ -613,7 +558,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 settings.ConsiderNormalization,
                                                                 _normalizer,
                                                                 _preTokenizer,
-                                                                out string? normalizedString,
+                                                                out string? normalizedText,
                                                                 out ReadOnlySpan<char> textSpanToEncode,
                                                                 out int charsConsumed);
 
@@ -645,16 +590,16 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="textSpan">The span of the text to encode which will be used if the <paramref name="text"/> is <see langword="null"/>.</param>
         /// <param name="settings">The settings used to encode the text.</param>
         /// <param name="fromEnd">Indicate whether to find the index from the end of the text.</param>
-        /// <param name="normalizedString">If the tokenizer's normalization is enabled or <paramRef name="settings" /> has <see cref="EncodeSettings.ConsiderNormalization"/> is <see langword="false"/>, this will be set to <paramRef name="text" /> in its normalized form; otherwise, this value will be set to <see langword="null"/>.</param>
+        /// <param name="normalizedText">If the tokenizer's normalization is enabled or <paramRef name="settings" /> has <see cref="EncodeSettings.ConsiderNormalization"/> is <see langword="false"/>, this will be set to <paramRef name="text" /> in its normalized form; otherwise, this value will be set to <see langword="null"/>.</param>
         /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
         /// <returns>
         /// The index of the maximum encoding capacity within the processed text without surpassing the token limit.
         /// If <paramRef name="fromEnd" /> is <see langword="false"/>, it represents the index immediately following the last character to be included. In cases where no tokens fit, the result will be 0; conversely,
-        /// if all tokens fit, the result will be length of the input text or the <paramref name="normalizedString"/> if the normalization is enabled.
+        /// if all tokens fit, the result will be length of the input text or the <paramref name="normalizedText"/> if the normalization is enabled.
         /// If <paramRef name="fromEnd" /> is <see langword="true"/>, it represents the index of the first character to be included. In cases where no tokens fit, the result will be the text length; conversely,
         /// if all tokens fit, the result will be zero.
         /// </returns>
-        protected override int GetIndexByTokenCount(string? text, ReadOnlySpan<char> textSpan, EncodeSettings settings, bool fromEnd, out string? normalizedString, out int tokenCount)
+        protected override int GetIndexByTokenCount(string? text, ReadOnlySpan<char> textSpan, EncodeSettings settings, bool fromEnd, out string? normalizedText, out int tokenCount)
         {
             if (settings.MaxTokenCount <= 0)
             {
@@ -663,7 +608,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
             {
-                normalizedString = null;
+                normalizedText = null;
                 tokenCount = 0;
                 return 0;
             }
@@ -675,7 +620,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 settings.ConsiderNormalization,
                                                                 _normalizer,
                                                                 _preTokenizer,
-                                                                out normalizedString,
+                                                                out normalizedText,
                                                                 out ReadOnlySpan<char> textSpanToEncode,
                                                                 out _);
 

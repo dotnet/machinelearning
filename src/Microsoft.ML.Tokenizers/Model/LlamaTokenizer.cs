@@ -28,6 +28,9 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="addBeginOfSentence">Indicate emitting the beginning of sentence token during the encoding.</param>
         /// <param name="addEndOfSentence">Indicate emitting the end of sentence token during the encoding.</param>
         /// <param name="specialTokens">The additional tokens to add to the vocabulary.</param>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
+        /// </remarks>
         public static LlamaTokenizer Create(
             Stream modelStream,
             bool addBeginOfSentence = true,

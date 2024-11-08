@@ -51,7 +51,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                         tokens);
 
                     var ids = tokenizer.EncodeToIds(text);
-                    Assert.Equal([tokenizer.ClsTokenId, 8, 6, 10, 11, 12, 7, tokenizer.SepTokenId], ids);
+                    Assert.Equal([tokenizer.ClassificationTokenId, 8, 6, 10, 11, 12, 7, tokenizer.SeparatorTokenId], ids);
 
                     Assert.Equal("[CLS] hello, how are you? [SEP]", tokenizer.Decode(ids));
                     Assert.Equal("hello, how are you?", tokenizer.Decode(ids, skipSpecialTokens: true));
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                         tokens);
 
                     ids = tokenizer.EncodeToIds(normalizedText!);
-                    Assert.Equal([tokenizer.ClsTokenId, tokenizer.ClsTokenId, 8, 6, 10, 11, 12, 7, tokenizer.SepTokenId, tokenizer.SepTokenId], ids);
+                    Assert.Equal([tokenizer.ClassificationTokenId, tokenizer.ClassificationTokenId, 8, 6, 10, 11, 12, 7, tokenizer.SeparatorTokenId, tokenizer.SeparatorTokenId], ids);
                 }
             }
             finally
@@ -92,7 +92,8 @@ namespace Microsoft.ML.Tokenizers.Tests
             try
             {
                 using Stream vocabStream = File.OpenRead(vocabFile);
-                BertTokenizer[] bertTokenizers = [BertTokenizer.Create(vocabFile, doLowerCase: false), BertTokenizer.Create(vocabStream, doLowerCase: false)];
+                BertTokenizer[] bertTokenizers = [BertTokenizer.Create(vocabFile, new BertOptions { LowerCaseBeforeTokenization = false }),
+                                                  BertTokenizer.Create(vocabStream, new BertOptions { LowerCaseBeforeTokenization = false })];
 
                 foreach (var tokenizer in bertTokenizers)
                 {
@@ -118,7 +119,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                         tokens);
 
                     var ids = tokenizer.EncodeToIds(text);
-                    Assert.Equal([tokenizer.ClsTokenId, 1, 6, 1, 11, 12, 7, tokenizer.SepTokenId], ids);
+                    Assert.Equal([tokenizer.ClassificationTokenId, 1, 6, 1, 11, 12, 7, tokenizer.SeparatorTokenId], ids);
 
                     Assert.Equal("[CLS] [UNK], [UNK] are you? [SEP]", tokenizer.Decode(ids));
                     Assert.Equal(", are you?", tokenizer.Decode(ids, skipSpecialTokens: true));
@@ -159,7 +160,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal("café über ångström résumé!", normalizedText);
 
                 vocabStream.Position = 0;
-                bertTokenizer = await BertTokenizer.CreateAsync(vocabStream, doLowerCase: false); // no lowercasing and no accent stripping
+                bertTokenizer = await BertTokenizer.CreateAsync(vocabStream, new BertOptions { LowerCaseBeforeTokenization = false }); // no lowercasing and no accent stripping
                 tokens = bertTokenizer.EncodeToTokens(text, out normalizedText);
                 Assert.Equal(
                     [
@@ -174,7 +175,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal("Café Über Ångström Résumé!", normalizedText);
 
                 vocabStream.Position = 0;
-                bertTokenizer = await BertTokenizer.CreateAsync(vocabStream, stripAccents: true); // lowercasing and accent stripping
+                bertTokenizer = await BertTokenizer.CreateAsync(vocabStream, new BertOptions { RemoveNonSpacingMarks = true }); // lowercasing and accent stripping
                 tokens = bertTokenizer.EncodeToTokens(text, out normalizedText);
                 Assert.Equal("cafe uber angstrom resume!", normalizedText);
                 Assert.Equal(
@@ -188,7 +189,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     tokens);
 
                 vocabStream.Position = 0;
-                bertTokenizer = await BertTokenizer.CreateAsync(vocabStream, doLowerCase: false, stripAccents: true); // no lowercasing and accent stripping
+                bertTokenizer = await BertTokenizer.CreateAsync(vocabStream, new BertOptions { LowerCaseBeforeTokenization = false, RemoveNonSpacingMarks = true }); // no lowercasing and accent stripping
                 tokens = bertTokenizer.EncodeToTokens(text, out normalizedText);
                 Assert.Equal("Cafe Uber Angstrom Resume!", normalizedText);
                 Assert.Equal(
@@ -236,7 +237,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal("叟 驷 叢 驸!", bertTokenizer.Decode(bertTokenizer.EncodeToIds(text), skipSpecialTokens: true));
 
                 vocabStream.Position = 0;
-                bertTokenizer = await BertTokenizer.CreateAsync(vocabStream, tokenizeChineseChars: false); // do not tokenize Chinese characters
+                bertTokenizer = await BertTokenizer.CreateAsync(vocabStream, new BertOptions { IndividuallyTokenizeCjk = false }); // do not tokenize Chinese characters
                 tokens = bertTokenizer.EncodeToTokens(text, out normalizedText);
                 Assert.Equal("叟驷 叢驸!", normalizedText);
 
@@ -276,13 +277,13 @@ namespace Microsoft.ML.Tokenizers.Tests
                 string text2 = "I am fine!";
 
                 var ids1 = bertTokenizer.EncodeToIds(text1);
-                Assert.Equal([bertTokenizer.ClsTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SepTokenId], ids1);
+                Assert.Equal([bertTokenizer.ClassificationTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SeparatorTokenId], ids1);
 
                 var ids2 = bertTokenizer.EncodeToIds(text2);
-                Assert.Equal([bertTokenizer.ClsTokenId, 13, 14, 15, 5, bertTokenizer.SepTokenId], ids2);
+                Assert.Equal([bertTokenizer.ClassificationTokenId, 13, 14, 15, 5, bertTokenizer.SeparatorTokenId], ids2);
 
                 Assert.Equal(
-                    [bertTokenizer.ClsTokenId, bertTokenizer.ClsTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SepTokenId, bertTokenizer.SepTokenId],
+                    [bertTokenizer.ClassificationTokenId, bertTokenizer.ClassificationTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SeparatorTokenId, bertTokenizer.SeparatorTokenId],
                     bertTokenizer.BuildInputsWithSpecialTokens(ids1));
 
                 Span<int> ids1Span = stackalloc int[1];
@@ -294,10 +295,10 @@ namespace Microsoft.ML.Tokenizers.Tests
                 status = bertTokenizer.BuildInputsWithSpecialTokens(ids1, ids1Span, out written);
                 Assert.Equal(OperationStatus.Done, status);
                 Assert.Equal(ids1.Count + 2, written);
-                Assert.Equal(new int[] { bertTokenizer.ClsTokenId, bertTokenizer.ClsTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SepTokenId, bertTokenizer.SepTokenId }, ids1Span.ToArray());
+                Assert.Equal(new int[] { bertTokenizer.ClassificationTokenId, bertTokenizer.ClassificationTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SeparatorTokenId, bertTokenizer.SeparatorTokenId }, ids1Span.ToArray());
 
                 Assert.Equal(
-                    [bertTokenizer.ClsTokenId, bertTokenizer.ClsTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SepTokenId, bertTokenizer.SepTokenId, bertTokenizer.ClsTokenId, 13, 14, 15, 5, bertTokenizer.SepTokenId, bertTokenizer.SepTokenId],
+                    [bertTokenizer.ClassificationTokenId, bertTokenizer.ClassificationTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SeparatorTokenId, bertTokenizer.SeparatorTokenId, bertTokenizer.ClassificationTokenId, 13, 14, 15, 5, bertTokenizer.SeparatorTokenId, bertTokenizer.SeparatorTokenId],
                     bertTokenizer.BuildInputsWithSpecialTokens(ids1, ids2));
 
                 ids1Span = stackalloc int[1];
@@ -310,7 +311,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(OperationStatus.Done, status);
                 Assert.Equal(ids1Span.Length, written);
                 Assert.Equal(
-                        new int[] { bertTokenizer.ClsTokenId, bertTokenizer.ClsTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SepTokenId, bertTokenizer.SepTokenId, bertTokenizer.ClsTokenId, 13, 14, 15, 5, bertTokenizer.SepTokenId, bertTokenizer.SepTokenId },
+                        new int[] { bertTokenizer.ClassificationTokenId, bertTokenizer.ClassificationTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SeparatorTokenId, bertTokenizer.SeparatorTokenId, bertTokenizer.ClassificationTokenId, 13, 14, 15, 5, bertTokenizer.SeparatorTokenId, bertTokenizer.SeparatorTokenId },
                         ids1Span.ToArray());
 
                 ids1 = bertTokenizer.EncodeToIds(text1, addSpecialTokens: false);
@@ -320,7 +321,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal([13, 14, 15, 5], ids2);
 
                 Assert.Equal(
-                    [bertTokenizer.ClsTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SepTokenId],
+                    [bertTokenizer.ClassificationTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SeparatorTokenId],
                     bertTokenizer.BuildInputsWithSpecialTokens(ids1));
 
                 ids1Span = stackalloc int[1];
@@ -333,11 +334,11 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(OperationStatus.Done, status);
                 Assert.Equal(ids1Span.Length, written);
                 Assert.Equal(
-                        new int[] { bertTokenizer.ClsTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SepTokenId },
+                        new int[] { bertTokenizer.ClassificationTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SeparatorTokenId },
                         ids1Span.ToArray());
 
                 Assert.Equal(
-                    [bertTokenizer.ClsTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SepTokenId, 13, 14, 15, 5, bertTokenizer.SepTokenId],
+                    [bertTokenizer.ClassificationTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SeparatorTokenId, 13, 14, 15, 5, bertTokenizer.SeparatorTokenId],
                     bertTokenizer.BuildInputsWithSpecialTokens(ids1, ids2));
 
                 ids1Span = stackalloc int[1];
@@ -350,7 +351,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(OperationStatus.Done, status);
                 Assert.Equal(ids1Span.Length, written);
                 Assert.Equal(
-                        new int[] { bertTokenizer.ClsTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SepTokenId, 13, 14, 15, 5, bertTokenizer.SepTokenId },
+                        new int[] { bertTokenizer.ClassificationTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SeparatorTokenId, 13, 14, 15, 5, bertTokenizer.SeparatorTokenId },
                         ids1Span.ToArray());
             }
             finally
@@ -376,14 +377,14 @@ namespace Microsoft.ML.Tokenizers.Tests
                 string text2 = "I am fine!";
 
                 var ids1 = bertTokenizer.EncodeToIds(text1);
-                Assert.Equal([bertTokenizer.ClsTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SepTokenId], ids1);
+                Assert.Equal([bertTokenizer.ClassificationTokenId, 8, 6, 10, 11, 12, 7, bertTokenizer.SeparatorTokenId], ids1);
 
                 var ids2 = bertTokenizer.EncodeToIds(text2);
-                Assert.Equal([bertTokenizer.ClsTokenId, 13, 14, 15, 5, bertTokenizer.SepTokenId], ids2);
+                Assert.Equal([bertTokenizer.ClassificationTokenId, 13, 14, 15, 5, bertTokenizer.SeparatorTokenId], ids2);
 
                 Assert.Equal(
                     [1, 0, 0, 0, 0, 0, 0, 1],
-                    bertTokenizer.GetSpecialTokensMask(ids1, tokenIds1: null, alreadyHasSpecialTokens: true));
+                    bertTokenizer.GetSpecialTokensMask(ids1, additionalTokenIds: null, alreadyHasSpecialTokens: true));
 
                 Span<int> ids1Span = stackalloc int[1];
                 OperationStatus status = bertTokenizer.GetSpecialTokensMask(ids1, ids1Span, out int written, alreadyHasSpecialTokens: true);
@@ -398,7 +399,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
                 Assert.Equal(
                     [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
-                    bertTokenizer.GetSpecialTokensMask(ids1, tokenIds1: ids2, alreadyHasSpecialTokens: true));
+                    bertTokenizer.GetSpecialTokensMask(ids1, additionalTokenIds: ids2, alreadyHasSpecialTokens: true));
 
                 ids1Span = stackalloc int[1];
                 status = bertTokenizer.GetSpecialTokensMask(ids1, ids1Span, out written, ids2, alreadyHasSpecialTokens: true);
@@ -418,7 +419,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal([13, 14, 15, 5], ids2);
                 Assert.Equal(
                     [1, 0, 0, 0, 0, 0, 0, 1],
-                    bertTokenizer.GetSpecialTokensMask(ids1, tokenIds1: null, alreadyHasSpecialTokens: false));
+                    bertTokenizer.GetSpecialTokensMask(ids1, additionalTokenIds: null, alreadyHasSpecialTokens: false));
 
                 ids1Span = stackalloc int[1];
                 status = bertTokenizer.GetSpecialTokensMask(ids1, ids1Span, out written, alreadyHasSpecialTokens: false);
@@ -433,7 +434,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
                 Assert.Equal(
                     [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-                    bertTokenizer.GetSpecialTokensMask(ids1, tokenIds1: ids2, alreadyHasSpecialTokens: false));
+                    bertTokenizer.GetSpecialTokensMask(ids1, additionalTokenIds: ids2, alreadyHasSpecialTokens: false));
 
                 ids1Span = stackalloc int[1];
                 status = bertTokenizer.GetSpecialTokensMask(ids1, ids1Span, out written, ids2, alreadyHasSpecialTokens: false);

@@ -58,12 +58,12 @@ namespace Microsoft.ML.Tokenizers.Tests
         [MemberData(nameof(NormalizerData))]
         public void TestNormalizer(Normalizer normalizer, string text, string normalized)
         {
-            string normalizedText = normalizer.Normalize(text);
+            string? normalizedText = normalizer.Normalize(text);
             Assert.Equal(normalized, normalizedText);
 
             Tokenizer tokenizer = BpeTests.CreateEmptyBpe(preTokenizer: null, normalizer);
-            IReadOnlyList<EncodedToken> tokens = tokenizer.EncodeToTokens(text, out string? normalizedString);
-            Assert.Equal(normalized, normalizedString);
+            IReadOnlyList<EncodedToken> tokens = tokenizer.EncodeToTokens(text, out normalizedText);
+            Assert.Equal(normalized, normalizedText);
         }
 
         public class RemoveQuotesNormalizer : Normalizer
