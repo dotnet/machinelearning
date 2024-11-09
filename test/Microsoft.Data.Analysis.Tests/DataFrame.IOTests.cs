@@ -110,7 +110,7 @@ namespace Microsoft.Data.Analysis.Tests
                 {
                     Assert.IsType<DateTimeOffsetDataFrameColumn>(column);
                 }
-#if NET6_0_OR_GREATER
+#if NET8_0_OR_GREATER
                 else if (dataType == typeof(DateOnly))
                 {
                     Assert.IsType<DateOnlyDataFrameColumn>(column);

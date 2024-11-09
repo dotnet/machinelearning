@@ -109,7 +109,7 @@ namespace Microsoft.Data.Analysis
                 return Date64Type.Default;
             else if (typeof(T) == typeof(DateTimeOffset))
                 return TimestampType.Default;
-#if NET6_0_OR_GREATER
+#if NET8_0_OR_GREATER
             else if (typeof(T) == typeof(DateOnly))
                 return Date32Type.Default;
 #endif
@@ -150,13 +150,13 @@ namespace Microsoft.Data.Analysis
                 if (numberOfRows == 0)
                     return new Date64Array(ArrowBuffer.Empty, ArrowBuffer.Empty, numberOfRows, nullCount, offset);
 
-                var valueBuffer = _columnContainer.Buffers[bufferIndex];
-                var nullBuffer = _columnContainer.NullBitMapBuffers[bufferIndex];
+                ReadOnlyDataFrameBuffer<T> valueBuffer = _columnContainer.Buffers[bufferIndex];
+                ReadOnlyDataFrameBuffer<byte> nullBuffer = _columnContainer.NullBitMapBuffers[bufferIndex];
 
-                var valueSpan = MemoryMarshal.Cast<T, DateTime>(valueBuffer.ReadOnlySpan);
-                var builder = new Date64Array.Builder().Reserve(valueBuffer.Length);
+                ReadOnlySpan<DateTime> valueSpan = MemoryMarshal.Cast<T, DateTime>(valueBuffer.ReadOnlySpan);
+                Date64Array.Builder builder = new Date64Array.Builder().Reserve(valueBuffer.Length);
 
-                for (var i = 0; i < valueBuffer.Length; ++i)
+                for (int i = 0; i < valueBuffer.Length; ++i)
                 {
                     if (BitUtility.GetBit(nullBuffer.ReadOnlySpan, i))
                         builder.Append(valueSpan[i]);
@@ -172,13 +172,13 @@ namespace Microsoft.Data.Analysis
                 if (numberOfRows == 0)
                     return new TimestampArray(TimestampType.Default, ArrowBuffer.Empty, ArrowBuffer.Empty, numberOfRows, nullCount, offset);
 
-                var valueBuffer = _columnContainer.Buffers[bufferIndex];
-                var nullBuffer = _columnContainer.NullBitMapBuffers[bufferIndex];
+                ReadOnlyDataFrameBuffer<T> valueBuffer = _columnContainer.Buffers[bufferIndex];
+                ReadOnlyDataFrameBuffer<byte> nullBuffer = _columnContainer.NullBitMapBuffers[bufferIndex];
 
-                var valueSpan = MemoryMarshal.Cast<T, DateTimeOffset>(valueBuffer.ReadOnlySpan);
-                var builder = new TimestampArray.Builder().Reserve(valueBuffer.Length);
+                ReadOnlySpan<DateTimeOffset> valueSpan = MemoryMarshal.Cast<T, DateTimeOffset>(valueBuffer.ReadOnlySpan);
+                TimestampArray.Builder builder = new TimestampArray.Builder().Reserve(valueBuffer.Length);
 
-                for (var i = 0; i < valueBuffer.Length; ++i)
+                for (int i = 0; i < valueBuffer.Length; ++i)
                 {
                     if (BitUtility.GetBit(nullBuffer.ReadOnlySpan, i))
                         builder.Append(valueSpan[i]);
@@ -189,17 +189,17 @@ namespace Microsoft.Data.Analysis
                 return builder.Build();
             }
 
-#if NET6_0_OR_GREATER
+#if NET8_0_OR_GREATER
             if (this.DataType == typeof(DateOnly))
             {
                 if (numberOfRows == 0)
                     return new Date32Array(ArrowBuffer.Empty, ArrowBuffer.Empty, numberOfRows, nullCount, offset);
 
-                var valueBuffer = _columnContainer.Buffers[bufferIndex];
-                var nullBuffer = _columnContainer.NullBitMapBuffers[bufferIndex];
+                ReadOnlyDataFrameBuffer<T> valueBuffer = _columnContainer.Buffers[bufferIndex];
+                ReadOnlyDataFrameBuffer<byte> nullBuffer = _columnContainer.NullBitMapBuffers[bufferIndex];
 
-                var valueSpan = MemoryMarshal.Cast<T, DateOnly>(valueBuffer.ReadOnlySpan);
-                var builder = new Date32Array.Builder().Reserve(valueBuffer.Length);
+                ReadOnlySpan<DateOnly> valueSpan = MemoryMarshal.Cast<T, DateOnly>(valueBuffer.ReadOnlySpan);
+                Date32Array.Builder builder = new Date32Array.Builder().Reserve(valueBuffer.Length);
 
                 for (int i = 0; i < valueBuffer.Length; ++i)
                 {

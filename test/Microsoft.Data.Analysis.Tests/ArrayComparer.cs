@@ -96,7 +96,7 @@ namespace Microsoft.Data.Analysis.Tests
                     Assert.True(actualArray.IsValid(i));
                 }
             }
-#if NET
+#if NET8_0_OR_GREATER
             Assert.Equal(expectedArray.Values[..expectedArray.Length], actualArray.Values[..actualArray.Length]);
 #else
             Assert.True(expectedArray.Values.Slice(0, expectedArray.Length).SequenceEqual(actualArray.Values.Slice(0, actualArray.Length)));

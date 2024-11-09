@@ -51,7 +51,7 @@ namespace Microsoft.Data.Analysis.Tests
                 .Append("UByteColumn", false, new UInt8Array.Builder().AppendRange(Enumerable.Repeat((byte)1, 10)).Build())
                 .Append("Date64Column", false, new Date64Array.Builder().AppendRange(Enumerable.Repeat(DateTime.Now, 10)).Build())
                 .Append("TimestampColumn", false, new TimestampArray.Builder().AppendRange(Enumerable.Repeat(DateTimeOffset.Now, 10)).Build())
-#if NET6_0_OR_GREATER
+#if NET8_0_OR_GREATER
                 .Append("DateColumn", false, new Date32Array.Builder().AppendRange(Enumerable.Repeat(DateTime.Now, 10)).Build())
 #endif
                 .Build();
