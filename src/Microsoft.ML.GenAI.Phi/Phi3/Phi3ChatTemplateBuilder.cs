@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using AutoGen.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.ML.GenAI.Core;
@@ -10,12 +14,13 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using TextContent = Microsoft.SemanticKernel.TextContent;
 
-namespace Microsoft.ML.GenAI.LLaMA;
-#pragma warning disable MSML_GeneralName // This name should be PascalCased
-public class Llama3_1ChatTemplateBuilder : IChatTemplateBuilder, IMEAIChatTemplateBuilder
-#pragma warning restore MSML_GeneralName // This name should be PascalCased
+namespace Microsoft.ML.GenAI.Phi;
+
+public class Phi3ChatTemplateBuilder : IChatTemplateBuilder, IMEAIChatTemplateBuilder
 {
     private const char Newline = '\n';
+
+    public static Phi3ChatTemplateBuilder Instance { get; } = new Phi3ChatTemplateBuilder();
 
     public string BuildPrompt(IEnumerable<IMessage> messages, IEnumerable<FunctionContract>? tools = null)
     {
@@ -31,24 +36,23 @@ public class Llama3_1ChatTemplateBuilder : IChatTemplateBuilder, IMEAIChatTempla
         }
 
         // construct template based on instruction from
-        // https://github.com/meta-llama/llama3/blob/11817d47e1ba7a4959b025eb1ca308572e0e3963/llama/generation.py#L280
+        // https://huggingface.co/microsoft/Phi-3-mini-128k-instruct#chat-format
 
         var sb = new StringBuilder();
-        sb.Append("<|begin_of_text|>");
         foreach (var message in messages)
         {
             var role = message.GetRole()!.Value;
             var content = message.GetContent()!;
             sb.Append(message switch
             {
-                _ when message.GetRole() == Role.System => $"<|start_header_id|>system<|end_header_id|>{Newline}{content.Trim()}<|eot_id|>{Newline}",
-                _ when message.GetRole() == Role.User => $"<|start_header_id|>user<|end_header_id|>{Newline}{content.Trim()}<|eot_id|>{Newline}",
-                _ when message.GetRole() == Role.Assistant => $"<|start_header_id|>assistant<|end_header_id|>{Newline}{content.Trim()}<|eot_id|>{Newline}",
+                _ when message.GetRole() == Role.System => $"<|system|>{Newline}{content}<|end|>{Newline}",
+                _ when message.GetRole() == Role.User => $"<|user|>{Newline}{content}<|end|>{Newline}",
+                _ when message.GetRole() == Role.Assistant => $"<|assistant|>{Newline}{content}<|end|>{Newline}",
                 _ => throw new InvalidOperationException("Invalid role.")
             });
         }
 
-        sb.Append($"<|start_header_id|>assistant<|end_header_id|>{Newline}");
+        sb.Append("<|assistant|>");
         var input = sb.ToString();
 
         return input;
@@ -59,7 +63,6 @@ public class Llama3_1ChatTemplateBuilder : IChatTemplateBuilder, IMEAIChatTempla
         // build prompt from chat history
         var sb = new StringBuilder();
 
-        sb.Append("<|begin_of_text|>");
         foreach (var message in chatHistory)
         {
             foreach (var item in message.Items)
@@ -69,13 +72,11 @@ public class Llama3_1ChatTemplateBuilder : IChatTemplateBuilder, IMEAIChatTempla
                     throw new NotSupportedException($"Only text content is supported, but got {item.GetType().Name}");
                 }
 
-                var text = textContent.Text?.Trim() ?? string.Empty;
-
                 var prompt = message.Role switch
                 {
-                    _ when message.Role == AuthorRole.System => $"<|start_header_id|>system<|end_header_id|>{Newline}{text}<|eot_id|>{Newline}",
-                    _ when message.Role == AuthorRole.User => $"<|start_header_id|>user<|end_header_id|>{Newline}{text}<|eot_id|>{Newline}",
-                    _ when message.Role == AuthorRole.Assistant => $"<|start_header_id|>assistant<|end_header_id|>{Newline}{text}<|eot_id|>{Newline}",
+                    _ when message.Role == AuthorRole.System => $"<|system|>{Newline}{textContent}<|end|>{Newline}",
+                    _ when message.Role == AuthorRole.User => $"<|user|>{Newline}{textContent}<|end|>{Newline}",
+                    _ when message.Role == AuthorRole.Assistant => $"<|assistant|>{Newline}{textContent}<|end|>{Newline}",
                     _ => throw new NotSupportedException($"Unsupported role {message.Role}")
                 };
 
@@ -83,7 +84,7 @@ public class Llama3_1ChatTemplateBuilder : IChatTemplateBuilder, IMEAIChatTempla
             }
         }
 
-        sb.Append($"<|start_header_id|>assistant<|end_header_id|>{Newline}");
+        sb.Append("<|assistant|>");
 
         return sb.ToString();
     }
@@ -101,26 +102,26 @@ public class Llama3_1ChatTemplateBuilder : IChatTemplateBuilder, IMEAIChatTempla
             throw new InvalidOperationException("Please provide a message with a valid role. The valid roles are System, User, and Assistant.");
         }
 
+        // construct template based on instruction from
+        // https://huggingface.co/microsoft/Phi-3-mini-128k-instruct#chat-format
+
         var sb = new StringBuilder();
-        sb.Append("<|begin_of_text|>");
         foreach (var message in messages)
         {
             var role = message.Role.Value;
-            var content = message.Text!;
+            var content = message.Text;
             sb.Append(message switch
             {
-                _ when message.Role == ChatRole.System => $"<|start_header_id|>system<|end_header_id|>{Newline}{content.Trim()}<|eot_id|>{Newline}",
-                _ when message.Role == ChatRole.User => $"<|start_header_id|>user<|end_header_id|>{Newline}{content.Trim()}<|eot_id|>{Newline}",
-                _ when message.Role == ChatRole.Assistant => $"<|start_header_id|>assistant<|end_header_id|>{Newline}{content.Trim()}<|eot_id|>{Newline}",
+                _ when message.Role == ChatRole.System => $"<|system|>{Newline}{content}<|end|>{Newline}",
+                _ when message.Role == ChatRole.User => $"<|user|>{Newline}{content}<|end|>{Newline}",
+                _ when message.Role == ChatRole.Assistant => $"<|assistant|>{Newline}{content}<|end|>{Newline}",
                 _ => throw new InvalidOperationException("Invalid role.")
             });
         }
 
-        sb.Append($"<|start_header_id|>assistant<|end_header_id|>{Newline}");
+        sb.Append("<|assistant|>");
         var input = sb.ToString();
 
         return input;
     }
-
-    public static Llama3_1ChatTemplateBuilder Instance { get; } = new Llama3_1ChatTemplateBuilder();
 }
