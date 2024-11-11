@@ -104,7 +104,7 @@
       <HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export PATH=$HELIX_CORRELATION_PAYLOAD/$(DotNetCliDestination):$PATH</HelixPreCommands>
       <HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set PATH=%HELIX_CORRELATION_PAYLOAD%\$(DotNetCliDestination)%3B%PATH%</HelixPreCommands> 
 
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);export LD_LIBRARY_PATH=/opt/homebrew/opt/mono-libgdiplus/lib;ls /usr/lib;ls $HELIX_WORKITEM_ROOT</HelixPreCommands>
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);export LD_LIBRARY_PATH=/opt/homebrew/opt/mono-libgdiplus/lib;ls /usr/lib;ls $HELIX_WORKITEM_ROOT;export KMP_DUPLICATE_LIB_OK=TRUE;export DYLD_PRINT_LIBRARIES=1;otool -L $HELIX_WORKITEM_ROOT/runtimes/osx-x64/native/lib_lightgbm.dylib</HelixPreCommands>
 
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('armarch'))">$(HelixPreCommands);sudo apt update;sudo apt-get install libomp-dev libomp5 -y</HelixPreCommands>
 
@@ -128,7 +128,7 @@
     Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; $(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/libSymSgdNative.dylib" />
     
     <Exec Condition="Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\osx-x64\native\lib_lightgbm.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
-    Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; $(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/runtimes/osx-x64/native/lib_lightgbm.dylib" />
+    Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@rpath/libomp.dylib&quot; $(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/runtimes/osx-x64/native/lib_lightgbm.dylib" />
     
     <Exec Condition="Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\osx-x64\native\libonnxruntime.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
     Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; $(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/runtimes/osx-x64/native/libonnxruntime.dylib" />
