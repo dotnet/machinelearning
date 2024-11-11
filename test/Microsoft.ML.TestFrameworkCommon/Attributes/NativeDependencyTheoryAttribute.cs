@@ -19,6 +19,9 @@ namespace Microsoft.ML.TestFramework.Attributes
         /// <inheritdoc />
         protected override bool IsEnvironmentSupported()
         {
+            // Starting to drop native support for X64 OSX since intel no longer makes them.
+            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX) && System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.X64)
+                return false;
             return NativeLibrary.NativeLibraryExists(_library);
         }
     }
