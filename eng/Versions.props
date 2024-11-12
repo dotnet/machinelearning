@@ -48,6 +48,8 @@
     <MicrosoftMLOnnxRuntimeVersion>1.18.1</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
     <MicrosoftExtensionsAIVersion>9.0.0-preview.9.24507.7</MicrosoftExtensionsAIVersion>
+    <!-- runtime.native.System.Data.SqlClient.sni is not updated by dependency flow as it is not produced live anymore. -->
+    <RuntimeNativeSystemDataSqlClientSniVersion>4.4.0</RuntimeNativeSystemDataSqlClientSniVersion>
     <!--
 @("inteltbb.devel", "win", "2021.7.1.15305")
     -->
