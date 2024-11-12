@@ -275,6 +275,7 @@ namespace Microsoft.ML.Tests
         private DatabaseSource GetIrisDatabaseSource(string command, int commandTimeoutInSeconds = 30)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+#pragma warning disable CS0618 // 'SqlClientFactory' is obsolete: 'Use the Microsoft.Data.SqlClient package instead.'
                 return new DatabaseSource(
                     SqlClientFactory.Instance,
                     GetMSSQLConnectionString(TestDatasets.irisDb.name),
@@ -286,6 +287,7 @@ namespace Microsoft.ML.Tests
                     GetSQLiteConnectionString(TestDatasets.irisDbSQLite.name),
                     String.Format(command, TestDatasets.irisDbSQLite.trainFilename),
                     commandTimeoutInSeconds);
+#pragma warning restore CS0618 // 'SqlClientFactory' is obsolete: 'Use the Microsoft.Data.SqlClient package instead.'
         }
 
         private string GetMSSQLConnectionString(string databaseName)
