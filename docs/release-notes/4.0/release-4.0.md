@@ -1,0 +1,159 @@
+# [ML.NET](http://dot.net/ml) 4.0
+
+## **New Features**
+- **Add sweepable estimator to NER** ([6965](https://github.com/dotnet/machinelearning/pull/6965))
+- **Introducing Tiktoken Tokenizer** ([6981](https://github.com/dotnet/machinelearning/pull/6981))
+- **Add text normalizer transformer to AutoML** ([6998](https://github.com/dotnet/machinelearning/pull/6998))
+- **Introducing Llama Tokenizer** ([#7078](https://github.com/dotnet/machinelearning/pull/7078))
+- **Introducing CodeGen Tokenizer** ([#7139](https://github.com/dotnet/machinelearning/pull/7139))
+- **Support Gpt-4o tokenizer model** ([#7157](https://github.com/dotnet/machinelearning/pull/7157))
+- **Add GenAI core package** ([#7177](https://github.com/dotnet/machinelearning/pull/7177))
+- **Use new System.Numerics.Tensors library for DataFrame arithmetic operations  (.net8)** ([#7179](https://github.com/dotnet/machinelearning/pull/7179)) - Thanks @asmirnov82!
+- **Add Microsoft.ML.GenAI.Phi** ([#7184](https://github.com/dotnet/machinelearning/pull/7184))
+- **[GenAI] Add LLaMA support** ([#7220](https://github.com/dotnet/machinelearning/pull/7220))
+- **[GenAI] Support Llama 3.2 1B and 3B model** ([#7245](https://github.com/dotnet/machinelearning/pull/7245))
+- **[GenAI] Introduce CausalLMPipelineChatClient for MEAI.IChatClient** ([#7270](https://github.com/dotnet/machinelearning/pull/7270))
+- **Can now set advanced runtime settings in the MLContext.** ([#7273](https://github.com/dotnet/machinelearning/pull/7273))
+- **Introducing WordPiece and Bert tokenizers** ([#7275](https://github.com/dotnet/machinelearning/pull/7275))
+
+## **Enhancements**
+- **Add support for Apache.Arrow.Types.TimestampType to DataFrame** ([6871](https://github.com/dotnet/machinelearning/pull/6871)) - Thanks @asmirnov82!
+- **Add new type to key-value converter** ([6973](https://github.com/dotnet/machinelearning/pull/6973))
+- **Update OnnxRuntime to 1.16.3** ([6975](https://github.com/dotnet/machinelearning/pull/6975))
+- **Tokenizer's Interfaces Cleanup** ([7001](https://github.com/dotnet/machinelearning/pull/7001))
+- **Match  SweepableEstimatorFactory name with Ml.net name.** ([7007](https://github.com/dotnet/machinelearning/pull/7007))
+- **First round of perf improvements for tiktoken** ([7012](https://github.com/dotnet/machinelearning/pull/7012))
+- **Tweak CreateByModelNameAsync** ([7015](https://github.com/dotnet/machinelearning/pull/7015))
+- **Avoid LruCache in Tiktoken when cacheSize specified is 0** ([7016](https://github.com/dotnet/machinelearning/pull/7016))
+- **Tweak Tiktoken's BytePairEncode for improved perf** ([7017](https://github.com/dotnet/machinelearning/pull/7017))
+- **Optimize regexes used in tiktoken** ([7020](https://github.com/dotnet/machinelearning/pull/7020))
+- **Address the feedback on the tokenizer's library** ([7024](https://github.com/dotnet/machinelearning/pull/7024))
+- **Add Span support in tokenizer's Model abstraction** ([7035](https://github.com/dotnet/machinelearning/pull/7035))
+- **Adding needed Tokenizer's APIs** ([7047](https://github.com/dotnet/machinelearning/pull/7047))
+- **Add Tiktoken Synchronous Creation Using Model Name** ([#7080](https://github.com/dotnet/machinelearning/pull/7080))
+- **Embed Tiktoken data files** ([#7098](https://github.com/dotnet/machinelearning/pull/7098))
+- **Tokenizer's APIs Polishing** ([#7108](https://github.com/dotnet/machinelearning/pull/7108))
+- **More tokenizer's APIs cleanup** ([#7110](https://github.com/dotnet/machinelearning/pull/7110))
+- **Add more required Tokenizer APIs** ([#7114](https://github.com/dotnet/machinelearning/pull/7114))
+- **Tokenizer's APIs Update** ([#7128](https://github.com/dotnet/machinelearning/pull/7128))
+- **Allow developers to supply their own function to infer column data types from data while loading CSVs** ([#7142](https://github.com/dotnet/machinelearning/pull/7142)) - Thanks @sevenzees!
+- **Implement DataFrameColumn Apply and DropNulls methods** ([#7123](https://github.com/dotnet/machinelearning/pull/7123)) - Thanks @asmirnov82!
+- **Extend dataframe orderby method to allow defining preferred position for null values** ([#7118](https://github.com/dotnet/machinelearning/pull/7118)) - Thanks @asmirnov82!
+- **Implement ToString() method for DataFrameColumn class** ([#7103](https://github.com/dotnet/machinelearning/pull/7103)) - Thanks @asmirnov82!
+- **Added error handling, removed unwanted null check and enhanced readability** ([#7147](https://github.com/dotnet/machinelearning/pull/7147)) - Thanks @ravibaghel! 
+- **Add targeting .Net 8.0 for DataFrame package** ([#7168](https://github.com/dotnet/machinelearning/pull/7168)) - Thanks @asmirnov82!
+- **create unique temporary directories to prevent permission issues** ([#7173](https://github.com/dotnet/machinelearning/pull/7173)) - Thanks @ErikApption!
+- **Tokenizer APIs Update** ([#7190](https://github.com/dotnet/machinelearning/pull/7190))
+- **Make most Tokenizer abstract methods virtual** ([#7198](https://github.com/dotnet/machinelearning/pull/7198))
+- **Reduce Tiktoken Creation Memory Allocation** ([#7202](https://github.com/dotnet/machinelearning/pull/7202))
+- **Refactor Namespace and Seald Classes in Microsoft.ML.AutoML.SourceGenerator Project** ([#7223](https://github.com/dotnet/machinelearning/pull/7223)) - Thanks @mhshahmoradi!
+- **[GenAI] Add generateEmbedding API to CausalLMPipeline** ([#7227](https://github.com/dotnet/machinelearning/pull/7227))
+- **[GenAI] Add Mistral 7B Instruction V0.3** ([#7231](https://github.com/dotnet/machinelearning/pull/7231))
+- **Move the Tokenizer's data into separate packages.** ([#7248](https://github.com/dotnet/machinelearning/pull/7248))
+- **Load onnx model from Stream of bytes** ([#7254](https://github.com/dotnet/machinelearning/pull/7254))
+- **Update tiktoken regexes** ([#7255](https://github.com/dotnet/machinelearning/pull/7255))
+- **Misc Changes** ([#7264](https://github.com/dotnet/machinelearning/pull/7264))
+- **Address the feedback regarding Bert tokenizer** ([#7280](https://github.com/dotnet/machinelearning/pull/7280))
+- **Add Timeout to Regex used in the tokenizers** ([#7284](https://github.com/dotnet/machinelearning/pull/7284))
+- **Final tokenizer's cleanup** ([#7291](https://github.com/dotnet/machinelearning/pull/7291))
+
+## **Bug Fixes**
+- **Fix formatting that fails in VS** ([7023](https://github.com/dotnet/machinelearning/pull/7023))
+- **Issue #6606 - Add sample variance and standard deviation to NormalizeMeanVariance** ([6885](https://github.com/dotnet/machinelearning/pull/6885)) - Thanks @tearlant!
+- **Rename NameEntity to NamedEntity** ([#6917](https://github.com/dotnet/machinelearning/pull/6917))
+- **Fixes NER to correctly expand/shrink the labels** ([#6928](https://github.com/dotnet/machinelearning/pull/6928))
+- **fix #6949** ([#6951](https://github.com/dotnet/machinelearning/pull/6951))
+- **Fix DataFrame NullCount property of StringDataFrameColumn** ([#7090](https://github.com/dotnet/machinelearning/pull/7090)) - Thanks @asmirnov82!
+- **Fix Logical binary operations not supported exception** ([#7093](https://github.com/dotnet/machinelearning/pull/7093)) - Thanks @asmirnov82!
+- **Fix inconsistency in DataFrameColumns Clone API implementation** ([#7100](https://github.com/dotnet/machinelearning/pull/7100)) - Thanks @asmirnov82!
+- **Add Tiktoken's missing model names** ([#7111](https://github.com/dotnet/machinelearning/pull/7111))
+- **Accessing data by column after adding columns to a DataFrame returns error data** ([#7136](https://github.com/dotnet/machinelearning/pull/7136)) - Thanks @feiyun0112!
+- **Fix iterator type so that it matches boundary condition type** ([#7150](https://github.com/dotnet/machinelearning/pull/7150))
+- **Fix crash in Microsoft.ML.Recommender with validation set** ([#7196](https://github.com/dotnet/machinelearning/pull/7196))
+- **Fix #7203** ([#7207](https://github.com/dotnet/machinelearning/pull/7207))
+- **Fix decoding special tokens in SentencePiece tokenizer** ([#7233](https://github.com/dotnet/machinelearning/pull/7233))
+- **Fix dataframe incorrectly parse CSV when renameDuplicatedColumns is true** ([#7242](https://github.com/dotnet/machinelearning/pull/7242)) - Thanks @asmirnov82!
+- **Fixes #7271 AOT for ML.Tokenizers** ([#7272](https://github.com/dotnet/machinelearning/pull/7272)) - Thanks @euju-ms!
+
+## **Build / Test updates**
+- **[main] Update dependencies from dotnet/arcade** ([#6703](https://github.com/dotnet/machinelearning/pull/6703))
+- **Migrate to the 'locker' GitHub action for locking closed/stale issues/PRs** ([6896](https://github.com/dotnet/machinelearning/pull/6896))
+- **Reorganize dataframe files** ([6872](https://github.com/dotnet/machinelearning/pull/6872)) - Thanks @asmirnov82!
+- **Updated ml.net versioning** ([6907](https://github.com/dotnet/machinelearning/pull/6907))
+- **Don't include the SDK in our helix payload** ([6918](https://github.com/dotnet/machinelearning/pull/6918))
+- **Make double assertions compare with tolerance instead of precision** ([6923](https://github.com/dotnet/machinelearning/pull/6923))
+- **Fix assert by only accessing idx** ([6924](https://github.com/dotnet/machinelearning/pull/6924))
+- **Only use semi-colons for NoWarn - fixes build break** ([6935](https://github.com/dotnet/machinelearning/pull/6935))
+- **Packaging cleanup** ([6939](https://github.com/dotnet/machinelearning/pull/6939))
+- **Add Backport github workflow** ([6944](https://github.com/dotnet/machinelearning/pull/6944))
+- **[main] Update dependencies from dotnet/arcade** ([6957](https://github.com/dotnet/machinelearning/pull/6957))
+- **Update .NET Runtimes to latest version** ([6964](https://github.com/dotnet/machinelearning/pull/6964))
+- **Testing light gbm bad allocation** ([6968](https://github.com/dotnet/machinelearning/pull/6968))
+- **[main] Update dependencies from dotnet/arcade** ([6969](https://github.com/dotnet/machinelearning/pull/6969))
+- **[main] Update dependencies from dotnet/arcade** ([6976](https://github.com/dotnet/machinelearning/pull/6976))
+- **FabricBot: Onboarding to GitOps.ResourceManagement because of FabricBot decommissioning** ([6983](https://github.com/dotnet/machinelearning/pull/6983))
+- **[main] Update dependencies from dotnet/arcade** ([6985](https://github.com/dotnet/machinelearning/pull/6985))
+- **[main] Update dependencies from dotnet/arcade** ([6995](https://github.com/dotnet/machinelearning/pull/6995))
+- **Temp fix for the race condition during the tests.** ([7021](https://github.com/dotnet/machinelearning/pull/7021))
+- **Make MlImage tests not block file for reading** ([7029](https://github.com/dotnet/machinelearning/pull/7029))
+- **Remove SourceLink SDK references** ([7037](https://github.com/dotnet/machinelearning/pull/7037))
+- **Change official build to use 1ES templates** ([7048](https://github.com/dotnet/machinelearning/pull/7048))
+- **Auto-generated baselines by 1ES Pipeline Templates** ([7051](https://github.com/dotnet/machinelearning/pull/7051))
+- **Update package versions in use by ML.NET tests** ([7055](https://github.com/dotnet/machinelearning/pull/7055))
+- **testing arm python brew overwite** ([7058](https://github.com/dotnet/machinelearning/pull/7058))
+- **Split out non concurrent test collections.** ([#6937](https://github.com/dotnet/machinelearning/pull/6937))
+- **[release/3.0] Update dependencies from dotnet/arcade** ([#6938](https://github.com/dotnet/machinelearning/pull/6938))
+- **Branding for 3.0.1** ([#6943](https://github.com/dotnet/machinelearning/pull/6943))
+- **Add Backport github workflow** ([#6944](https://github.com/dotnet/machinelearning/pull/6944))
+- **Torch sharp version updates and test fixes** ([#6954](https://github.com/dotnet/machinelearning/pull/6954))
+- **[main] Update dependencies from dotnet/arcade** ([#6957](https://github.com/dotnet/machinelearning/pull/6957))
+- **Working on memory issue during tests for TorchSharp** ([#7022](https://github.com/dotnet/machinelearning/pull/7022))
+- **M1 helix testing** ([#7033](https://github.com/dotnet/machinelearning/pull/7033))
+- **[main] Update dependencies from dotnet/arcade** ([#7052](https://github.com/dotnet/machinelearning/pull/7052))
+- **[main] Update dependencies from dotnet/arcade** ([#7075](https://github.com/dotnet/machinelearning/pull/7075))
+- **Reenable log publishing** ([#7076](https://github.com/dotnet/machinelearning/pull/7076))
+- **[main] Update dependencies from dotnet/arcade** ([#7079](https://github.com/dotnet/machinelearning/pull/7079))
+- **Update VMs** ([#7087](https://github.com/dotnet/machinelearning/pull/7087))
+- **Don't trigger PR validation builds for docs only changes** ([#7096](https://github.com/dotnet/machinelearning/pull/7096))
+- **Add CodeQL exclusions file** ([#7105](https://github.com/dotnet/machinelearning/pull/7105))
+- **Don't use deprecated -pt images** ([#7131](https://github.com/dotnet/machinelearning/pull/7131))
+- **Update locker.yml** ([#7133](https://github.com/dotnet/machinelearning/pull/7133))
+- **[main] Update dependencies from dotnet/arcade** ([#7138](https://github.com/dotnet/machinelearning/pull/7138))
+- **Try enabling TSA scan during build** ([#7149](https://github.com/dotnet/machinelearning/pull/7149))
+- **[main] Update dependencies from dotnet/arcade** ([#7151](https://github.com/dotnet/machinelearning/pull/7151))
+- **Remove Codeql.SourceRoot** ([#7155](https://github.com/dotnet/machinelearning/pull/7155))
+- **[main] Update dependencies from dotnet/arcade** ([#7161](https://github.com/dotnet/machinelearning/pull/7161))
+- **[main] Update dependencies from dotnet/arcade** ([#7165](https://github.com/dotnet/machinelearning/pull/7165))
+- **Add a stub packageSourceMapping** ([#7171](https://github.com/dotnet/machinelearning/pull/7171))
+- **update torchsharp and helix image** ([#7188](https://github.com/dotnet/machinelearning/pull/7188))
+- **Publish source index directly from repo** ([#7189](https://github.com/dotnet/machinelearning/pull/7189))
+- **Add package readmes** ([#7200](https://github.com/dotnet/machinelearning/pull/7200))
+- **Update dependency versions.** ([#7216](https://github.com/dotnet/machinelearning/pull/7216))
+- **[main] Update dependencies from dotnet/arcade** ([#7218](https://github.com/dotnet/machinelearning/pull/7218))
+- **Directly refer sql data client 4.8.6 package in GenAI tests to fix security vulnerable package** ([#7228](https://github.com/dotnet/machinelearning/pull/7228))
+- **[main] Update dependencies from dotnet/arcade** ([#7235](https://github.com/dotnet/machinelearning/pull/7235))
+- **docs: update nuget package badge** ([#7236](https://github.com/dotnet/machinelearning/pull/7236)) - Thanks @WeihanLi!
+- **[GenAI] Enable pack** ([#7237](https://github.com/dotnet/machinelearning/pull/7237))
+- **[GenAI] pack GenAI core package** ([#7246](https://github.com/dotnet/machinelearning/pull/7246))
+- **Enable SDL tools** ([#7247](https://github.com/dotnet/machinelearning/pull/7247))
+- **Add Service Tree ID for .NET Libraries** ([#7252](https://github.com/dotnet/machinelearning/pull/7252))
+- **fixing apple silicon official build** ([#7278](https://github.com/dotnet/machinelearning/pull/7278))
+- **fixing osx ci** ([#7279](https://github.com/dotnet/machinelearning/pull/7279))
+- **Fixing native lookup** ([#7282](https://github.com/dotnet/machinelearning/pull/7282))
+- **Add the components governance file `cgmanifest.json` for tokenizer's vocab files** ([#7283](https://github.com/dotnet/machinelearning/pull/7283))
+- **Update To MacOS 13** ([#7285](https://github.com/dotnet/machinelearning/pull/7285))
+- **Updated remote executor** ([#7295](https://github.com/dotnet/machinelearning/pull/7295))
+- **Update dependencies from maintenance-packages to latest versions** ([#7301](https://github.com/dotnet/machinelearning/pull/7301))
+
+## **Documentation Updates**
+- **Update developer-guide.md** ([6870](https://github.com/dotnet/machinelearning/pull/6870)) - Thanks @computerscienceiscool!
+- **Update release-3.0.0.md** ([6895](https://github.com/dotnet/machinelearning/pull/6895)) - Thanks @taeerhebend!
+- **Update branding for 3.0.2** ([#6970](https://github.com/dotnet/machinelearning/pull/6970))
+- **Add release notes for 4.0-preview1** ([#7064](https://github.com/dotnet/machinelearning/pull/7064))
+- **Update readmes for Tokenizers and Microsoft.ML** ([#7070](https://github.com/dotnet/machinelearning/pull/7070))
+- **Adding migration guide for deepdev** ([#7073](https://github.com/dotnet/machinelearning/pull/7073))
+- **Update PACKAGE.md to include Llama info** ([#7104](https://github.com/dotnet/machinelearning/pull/7104))
+- **Update the tokenizer migration guide** ([#7109](https://github.com/dotnet/machinelearning/pull/7109))
+- **add document for GenAI** ([#7170](https://github.com/dotnet/machinelearning/pull/7170))
+- **[GenAI] Add readme to Microsoft.ML.GenAI.Phi** ([#7206](https://github.com/dotnet/machinelearning/pull/7206))
+- **Update wording in LDA docs** ([#7253](https://github.com/dotnet/machinelearning/pull/7253))
