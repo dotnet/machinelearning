@@ -4,7 +4,7 @@
     <AssemblyName>Microsoft.ML.Tests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrongNameKeyId>Test</StrongNameKeyId>
-    
+    <NoWarn>$(NoWarn);CS0618</NoWarn>
   </PropertyGroup>
 
   <!-- Import the test signing certificate -->
