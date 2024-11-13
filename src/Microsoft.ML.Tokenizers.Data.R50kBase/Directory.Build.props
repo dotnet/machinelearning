@@ -1,16 +1,3 @@
 <Project>
-  <PropertyGroup>
-    <IsStableProject>true</IsStableProject>
-  </PropertyGroup>
-
-  <Import Project="$([MSBuild]::GetPathOfFileAbove(Directory.Build.props, $(MSBuildThisFileDirectory)..))" />
-
-  <PropertyGroup>
-    <MajorVersion>$([MSBuild]::Subtract($(MajorVersion), 3))</MajorVersion>
-    <MinorVersion>0</MinorVersion>
-    <PatchVersion>0</PatchVersion>
-    <!-- Blank version for now for API compat -->
-    <PackageValidationBaselineVersion></PackageValidationBaselineVersion>
-  </PropertyGroup>
-
+  <Import Project="../Microsoft.ML.Tokenizers/Directory.Build.props" />
 </Project>
