@@ -2,30 +2,41 @@
   <PropertyGroup>
     <StableProjects>
       Microsoft.Extensions.ML;
-      Microsoft.ML.DataView;
-      Microsoft.ML.CpuMath;
       Microsoft.ML;
       Microsoft.ML.Core;
+      Microsoft.ML.CpuMath;
       Microsoft.ML.Data;
-      Microsoft.ML.KMeansClustering;
-      Microsoft.ML.PCA;
-      Microsoft.ML.StandardTrainers;
-      Microsoft.ML.Transforms;
+      Microsoft.ML.DataView;
       Microsoft.ML.FastTree;
       Microsoft.ML.ImageAnalytics;
+      Microsoft.ML.KMeansClustering;
       Microsoft.ML.LightGbm;
       Microsoft.ML.Mkl.Components;
       Microsoft.ML.Mkl.Redist;
-      Microsoft.ML.TimeSeries;
-      Microsoft.ML.TensorFlow;
       Microsoft.ML.OnnxTransformer;
+      Microsoft.ML.PCA;
+      Microsoft.ML.StandardTrainers;
+      Microsoft.ML.TensorFlow;
+      Microsoft.ML.TimeSeries;
+      Microsoft.ML.Transforms;
       Microsoft.ML.Vision;
     </StableProjects>
+
+    <StableLowerVersionProjects>
+      Microsoft.ML.Tokenizers;
+      Microsoft.ML.Tokenizers.Data.Cl100kBase;
+      Microsoft.ML.Tokenizers.Data.Gpt2;
+      Microsoft.ML.Tokenizers.Data.O200kBase;
+      Microsoft.ML.Tokenizers.Data.P50kBase;
+      Microsoft.ML.Tokenizers.Data.R50kBase;
+    </StableLowerVersionProjects>
+
     <_NormalizedStableProjectName Condition="'$(MSBuildProjectName.Contains(.symbols))' == 'true'">$(MSBuildProjectName.Substring(0, $(MSBuildProjectName.IndexOf(.symbols))))</_NormalizedStableProjectName>
     <_NormalizedStableProjectName Condition="'$(_NormalizedStableProjectName)' == ''">$(MSBuildProjectName)</_NormalizedStableProjectName>
 
     <IsStableProject Condition="'$(UseStableVersionForNativeAssets)' == 'true'">true</IsStableProject>
     <IsStableProject Condition="'$(StableProjects.IndexOf($(_NormalizedStableProjectName), StringComparison.OrdinalIgnoreCase))' != '-1'">true</IsStableProject>
+    <IsLowerVersionStableProject Condition="'$(StableLowerVersionProjects.IndexOf($(_NormalizedStableProjectName), StringComparison.OrdinalIgnoreCase))' != '-1'">true</IsLowerVersionStableProject>
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' == 'true'">
     <MajorVersion>4</MajorVersion>
@@ -34,9 +45,14 @@
     <!-- Set baseline version for stable packages to check for API Compat -->
     <PackageValidationBaselineVersion>3.0.0</PackageValidationBaselineVersion>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(IsStableProject)' != 'true'">
+  <PropertyGroup Condition="'$(IsStableProject)' != 'true' And '$(IsLowerVersionStableProject)' != 'true'">
     <MajorVersion>0</MajorVersion>
     <MinorVersion>22</MinorVersion>
+    <PatchVersion>0</PatchVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsLowerVersionStableProject)' == 'true'">
+    <MajorVersion>1</MajorVersion>
+    <MinorVersion>0</MinorVersion>
     <PatchVersion>0</PatchVersion>
   </PropertyGroup>
 </Project>
