@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <IsStableProject>true</IsStableProject>
+  </PropertyGroup>
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove(Directory.Build.props, $(MSBuildThisFileDirectory)..))" />
+
+  <PropertyGroup>
+    <MajorVersion>$([MSBuild]::Subtract($(MajorVersion), 3))</MajorVersion>
+    <!-- Blank version for now for API compat -->
+    <PackageValidationBaselineVersion></PackageValidationBaselineVersion>
+  </PropertyGroup>
+
+</Project>

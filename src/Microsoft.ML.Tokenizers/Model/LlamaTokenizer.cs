@@ -12,22 +12,25 @@ namespace Microsoft.ML.Tokenizers
     // SentencePiece is under the Apache License 2.0 https://github.com/google/sentencepiece/blob/master/LICENSE
 
     /// <summary>
-    /// LlamaTokenizer is SentencePieceBpeTokenizer which is implemented based on https://github.com/google/sentencepiece.
+    /// LlamaTokenizer is SentencePieceTokenizer which is implemented based on https://github.com/google/sentencepiece.
     /// </summary>
-    public sealed class LlamaTokenizer : SentencePieceBpeTokenizer
+    public sealed class LlamaTokenizer : SentencePieceTokenizer
     {
         internal LlamaTokenizer(ModelProto modelProto, bool addBos, bool addEos, IReadOnlyDictionary<string, int>? addedTokens = null) : base(modelProto, addBos, addEos, addedTokens)
         {
         }
 
         /// <summary>
-        /// Create from the given model stream a LlamaTokenizer which is based on SentencePieceBpeTokenizer. The model stream should contain the SentencePiece Bpe model according to
+        /// Create from the given model stream a LlamaTokenizer which is based on SentencePieceTokenizer. The model stream should contain the SentencePiece Bpe model according to
         /// https://github.com/google/sentencepiece/blob/master/src/sentencepiece_model.proto specification.
         /// </summary>
         /// <param name="modelStream">The stream containing the SentencePiece Bpe model.</param>
         /// <param name="addBeginOfSentence">Indicate emitting the beginning of sentence token during the encoding.</param>
         /// <param name="addEndOfSentence">Indicate emitting the end of sentence token during the encoding.</param>
         /// <param name="specialTokens">The additional tokens to add to the vocabulary.</param>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
+        /// </remarks>
         public static LlamaTokenizer Create(
             Stream modelStream,
             bool addBeginOfSentence = true,

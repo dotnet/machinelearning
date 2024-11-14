@@ -13,7 +13,7 @@ namespace Microsoft.ML.Tokenizers
     /// Base class for all pre-tokenizers classes.
     /// The PreTokenizer is in charge of doing the pre-segmentation step.
     /// </summary>
-    public abstract class PreTokenizer
+    public abstract partial class PreTokenizer
     {
         /// <summary>
         /// Get the offsets and lengths of the tokens relative to the <paramref name="text"/>.
@@ -38,6 +38,96 @@ namespace Microsoft.ML.Tokenizers
                 yield return (match.Offset, match.Length);
                 beginning = match.Offset + match.Length;
             }
+        }
+
+        // 30 seconds is a reasonable time to process any text and find the match.
+        internal const int DefaultTimeOutInMilliseconds = 30_000;
+
+        private const string WhiteSpaceOrPunctuationPattern = @"\w+|[\p{P}]";
+        private static PreTokenizer? _whiteSpaceOrPunctuationPreTokenizer;
+#if NET7_0_OR_GREATER
+        [GeneratedRegex(WhiteSpaceOrPunctuationPattern, RegexOptions.None, DefaultTimeOutInMilliseconds)]
+        private static partial Regex WhiteSpaceOrPunctuationRegex();
+#else
+        private static Regex WhiteSpaceOrPunctuationRegex() => new Regex(WhiteSpaceOrPunctuationPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(DefaultTimeOutInMilliseconds));
+#endif
+
+        /// <summary>
+        /// Create a new instance of the <see cref="PreTokenizer"/> class which split the text at the whitespace or punctuation characters.
+        /// </summary>
+        /// <param name="specialTokens">The dictionary containing the special tokens and their corresponding ids.</param>
+        /// <returns>The pre-tokenizer that splits the text at the whitespace or punctuation characters.</returns>
+        /// <remarks>
+        /// This pre-tokenizer uses the regex pattern "\w+|[\p{P}]" to split the text into tokens.
+        /// </remarks>
+        public static PreTokenizer CreateWordOrPunctuation(IReadOnlyDictionary<string, int>? specialTokens = null)
+        {
+            if (specialTokens is null)
+            {
+                // return a singleton instance of the WhiteSpace pre-tokenizer
+                return _whiteSpaceOrPunctuationPreTokenizer ??= new RegexPreTokenizer(WhiteSpaceOrPunctuationRegex(), null);
+            }
+
+            return new RegexPreTokenizer(WhiteSpaceOrPunctuationRegex(), specialTokens);
+        }
+
+        private const string WordOrNonWordPattern = /*lang=regex*/ @"\w+|[^\w\s]+";
+        private static PreTokenizer? _wordOrNonWordPreTokenizer;
+
+#if NET7_0_OR_GREATER
+        [GeneratedRegex(WordOrNonWordPattern, RegexOptions.None, DefaultTimeOutInMilliseconds)]
+        private static partial Regex WordOrNonWordRegex();
+#else
+        private static Regex WordOrNonWordRegex() => new Regex(WordOrNonWordPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(DefaultTimeOutInMilliseconds));
+#endif
+
+        /// <summary>
+        /// Create a new instance of the <see cref="PreTokenizer"/> class which split the text at the word or non-word boundary.
+        /// The word is a set of alphabet, numeric, and underscore characters.
+        /// </summary>
+        /// <param name="specialTokens">The dictionary containing the special tokens and their corresponding ids.</param>
+        /// <returns>The pre-tokenizer that splits the text at the word boundary.</returns>
+        /// <remarks>
+        /// This pre-tokenizer uses the regex pattern "\w+|[^\w\s]+" to split the text into tokens.
+        /// </remarks>
+        public static PreTokenizer CreateWordOrNonWord(IReadOnlyDictionary<string, int>? specialTokens = null)
+        {
+            if (specialTokens is null)
+            {
+                // return a singleton instance of the WhiteSpace pre-tokenizer
+                return _wordOrNonWordPreTokenizer ??= new RegexPreTokenizer(WordOrNonWordRegex(), null);
+            }
+
+            return new RegexPreTokenizer(WordOrNonWordRegex(), specialTokens);
+        }
+
+        private const string WhiteSpacePattern = @"\S+";
+        private static PreTokenizer? _whiteSpacePreTokenizer;
+
+#if NET7_0_OR_GREATER
+        [GeneratedRegex(WhiteSpacePattern, RegexOptions.None, DefaultTimeOutInMilliseconds)]
+        private static partial Regex WhiteSpaceRegex();
+#else
+        private static Regex WhiteSpaceRegex() => new Regex(WhiteSpacePattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(DefaultTimeOutInMilliseconds));
+#endif
+
+        /// <summary>
+        /// Create a new instance of the <see cref="PreTokenizer"/> class which split the text at the white spaces.
+        /// </summary>
+        /// <param name="specialTokens">The dictionary containing the special tokens and their corresponding ids.</param>
+        /// <returns>The pre-tokenizer that splits the text at the white spaces.</returns>
+        /// <remarks>
+        /// This pre-tokenizer uses the regex pattern "\S+" to split the text into tokens.
+        /// </remarks>
+        public static PreTokenizer CreateWhiteSpace(IReadOnlyDictionary<string, int>? specialTokens = null)
+        {
+            if (specialTokens is null)
+            {
+                // return a singleton instance of the WhiteSpace pre-tokenizer
+                return _whiteSpacePreTokenizer ??= new RegexPreTokenizer(WhiteSpaceRegex(), null);
+            }
+
+            return new RegexPreTokenizer(WhiteSpaceRegex(), specialTokens);
         }
 
         internal static IEnumerable<(int Offset, int Length)> SplitText(ReadOnlySpan<char> text, Regex regex)

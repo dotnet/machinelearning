@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="mergePath">The file path containing the tokens's pairs list.</param>
         /// <param name="preTokenizer">The pre-tokenizer to use.</param>
         /// <param name="normalizer">The normalizer to use.</param>
-        /// <param name="addedTokens">The additional tokens to add to the vocabulary.</param>
+        /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
         /// <param name="addPrefixSpace">Indicate whether to include a leading space before encoding the text.</param>
         /// <param name="addBeginningOfSentence">Indicate whether to include the beginning of sentence token in the encoding.</param>
         /// <param name="addEndOfSentence">Indicate whether to include the end of sentence token in the encoding.</param>
@@ -36,14 +36,14 @@ namespace Microsoft.ML.Tokenizers
                 string mergePath,
                 PreTokenizer? preTokenizer = null,
                 Normalizer? normalizer = null,
-                IReadOnlyDictionary<string, int>? addedTokens = null,
+                IReadOnlyDictionary<string, int>? specialTokens = null,
                 bool addPrefixSpace = false,
                 bool addBeginningOfSentence = false,
                 bool addEndOfSentence = false,
                 string? unknownToken = DefaultSpecialToken,
                 string? beginningOfSentenceToken = DefaultSpecialToken,
                 string? endOfSentenceToken = DefaultSpecialToken) :
-                    base(vocabularyPath, mergePath, preTokenizer, normalizer, addedTokens, addPrefixSpace, addBeginningOfSentence,
+                    base(vocabularyPath, mergePath, preTokenizer, normalizer, specialTokens, addPrefixSpace, addBeginningOfSentence,
                     addEndOfSentence, unknownToken, beginningOfSentenceToken, endOfSentenceToken)
         {
         }
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="mergeStream">The stream of a file containing the tokens's pairs list.</param>
         /// <param name="preTokenizer">The pre-tokenizer to use.</param>
         /// <param name="normalizer">The normalizer to use.</param>
-        /// <param name="addedTokens">The additional tokens to add to the vocabulary.</param>
+        /// <param name="specialTokens">The additional tokens to add to the vocabulary.</param>
         /// <param name="addPrefixSpace">Indicate whether to include a leading space before encoding the text.</param>
         /// <param name="addBeginningOfSentence">Indicate whether to include the beginning of sentence token in the encoding.</param>
         /// <param name="addEndOfSentence">Indicate whether to include the end of sentence token in the encoding.</param>
@@ -67,14 +67,14 @@ namespace Microsoft.ML.Tokenizers
                 Stream mergeStream,
                 PreTokenizer? preTokenizer = null,
                 Normalizer? normalizer = null,
-                IReadOnlyDictionary<string, int>? addedTokens = null,
+                IReadOnlyDictionary<string, int>? specialTokens = null,
                 bool addPrefixSpace = false,
                 bool addBeginningOfSentence = false,
                 bool addEndOfSentence = false,
                 string? unknownToken = DefaultSpecialToken,
                 string? beginningOfSentenceToken = DefaultSpecialToken,
                 string? endOfSentenceToken = DefaultSpecialToken) :
-                base(vocabularyStream, mergeStream, preTokenizer, normalizer, addedTokens, addPrefixSpace, addBeginningOfSentence,
+                base(vocabularyStream, mergeStream, preTokenizer, normalizer, specialTokens, addPrefixSpace, addBeginningOfSentence,
                     addEndOfSentence, unknownToken, beginningOfSentenceToken, endOfSentenceToken)
         {
         }
@@ -94,6 +94,7 @@ namespace Microsoft.ML.Tokenizers
         /// The vocab and merges files can be downloaded from the following links:
         ///     https://huggingface.co/microsoft/phi-2/resolve/main/vocab.json?download=true
         ///     https://huggingface.co/microsoft/phi-2/resolve/main/merges.txt?download=true
+        /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
         /// </remarks>
         public static new Phi2Tokenizer Create(
             Stream vocabStream,
@@ -113,8 +114,8 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return new Phi2Tokenizer(
-                        vocabStream, mergesStream, new TiktokenPreTokenizer(TiktokenTokenizer.P50kBaseRegex(), CodeGenTokenizer.CodeGenAddedTokens), normalizer: null,
-                        CodeGenTokenizer.CodeGenAddedTokens, addPrefixSpace: addPrefixSpace, addBeginningOfSentence: addBeginOfSentence, addEndOfSentence: addEndOfSentence);
+                        vocabStream, mergesStream, new RegexPreTokenizer(TiktokenTokenizer.P50kBaseRegex(), CodeGenTokenizer.CodeGenSpecialTokens), normalizer: null,
+                        CodeGenTokenizer.CodeGenSpecialTokens, addPrefixSpace: addPrefixSpace, addBeginningOfSentence: addBeginOfSentence, addEndOfSentence: addEndOfSentence);
         }
     }
 }

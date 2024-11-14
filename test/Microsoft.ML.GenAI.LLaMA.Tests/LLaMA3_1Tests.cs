@@ -7,6 +7,7 @@ using ApprovalTests;
 using ApprovalTests.Namers;
 using ApprovalTests.Reporters;
 using AutoGen.Core;
+using Microsoft.Extensions.AI;
 using Microsoft.ML.GenAI.Core.Extension;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -116,6 +117,23 @@ public class LLaMA3_1Tests
             new ChatMessageContent(AuthorRole.System, "You are a helpful AI assistant."),
             new ChatMessageContent(AuthorRole.User, "Hello?"),
             new ChatMessageContent(AuthorRole.Assistant, "World!"),
+        };
+
+        var prompt = Llama3_1ChatTemplateBuilder.Instance.BuildPrompt(chatHistory);
+
+        Approvals.Verify(prompt);
+    }
+
+    [Fact]
+    [UseReporter(typeof(DiffReporter))]
+    [UseApprovalSubdirectory("Approvals")]
+    public void ItBuildChatTemplateFromMEAIChatHistory()
+    {
+        var chatHistory = new[]
+        {
+            new ChatMessage(ChatRole.System, "You are a helpful AI assistant."),
+            new ChatMessage(ChatRole.User, "Hello?"),
+            new ChatMessage(ChatRole.Assistant, "World!"),
         };
 
         var prompt = Llama3_1ChatTemplateBuilder.Instance.BuildPrompt(chatHistory);

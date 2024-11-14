@@ -269,7 +269,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 settings.ConsiderNormalization,
                                                                 _normalizer,
                                                                 _preTokenizer,
-                                                                out string? normalizedString,
+                                                                out string? normalizedText,
                                                                 out ReadOnlySpan<char> textSpanToEncode,
                                                                 out int charsConsumed);
 
@@ -287,7 +287,7 @@ namespace Microsoft.ML.Tokenizers
                 EncodeToTokens(textSpanToEncode, tokens, 0);
             }
 
-            return new EncodeResults<EncodedToken> { NormalizedText = normalizedString, Tokens = tokens, CharsConsumed = charsConsumed };
+            return new EncodeResults<EncodedToken> { NormalizedText = normalizedText, Tokens = tokens, CharsConsumed = charsConsumed };
         }
 
         /// <summary>
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Tokenizers
                     tokens.Add(new EncodedToken(
                                         value[i].Id,
                                         value[i].TokenLength == 0 ? string.Empty : text.Slice(value[i].TokenIndex, value[i].TokenLength).ToString(),
-                                        (value[i].TokenIndex + offset, value[i].TokenLength)));
+                                        new Range(value[i].TokenIndex + offset, value[i].TokenIndex + offset + value[i].TokenLength)));
                 }
 
                 return;
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Tokenizers
             // cache miss
             if (_vocab.TryGetValue(text, out (int Id, string Token) mappedId))
             {
-                tokens.Add(new EncodedToken(mappedId.Id, mappedId.Token, (offset, mappedId.Token.Length)));
+                tokens.Add(new EncodedToken(mappedId.Id, mappedId.Token, new Range(offset, offset + mappedId.Token.Length)));
                 return;
             }
 
@@ -348,7 +348,7 @@ namespace Microsoft.ML.Tokenizers
                 tokens.Add(new EncodedToken(
                                 encodedTokens[i].Id,
                                 encodedTokens[i].TokenLength == 0 ? string.Empty : text.Slice(encodedTokens[i].TokenIndex, encodedTokens[i].TokenLength).ToString(),
-                                (encodedTokens[i].TokenIndex + offset, encodedTokens[i].TokenLength)));
+                                new Range(encodedTokens[i].TokenIndex + offset, encodedTokens[i].TokenIndex + offset + encodedTokens[i].TokenLength)));
             }
         }
 
@@ -379,7 +379,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 settings.ConsiderNormalization,
                                                                 _normalizer,
                                                                 _preTokenizer,
-                                                                out string? normalizedString,
+                                                                out string? normalizedText,
                                                                 out ReadOnlySpan<char> textSpanToEncode,
                                                                 out int charsConsumed);
 
@@ -404,7 +404,7 @@ namespace Microsoft.ML.Tokenizers
                 EncodeToIds(textSpanToEncode, ids, out charsConsumed);
             }
 
-            return new EncodeResults<int> { NormalizedText = normalizedString, Tokens = ids, CharsConsumed = charsConsumed };
+            return new EncodeResults<int> { NormalizedText = normalizedText, Tokens = ids, CharsConsumed = charsConsumed };
         }
 
         /// <summary>
@@ -528,7 +528,7 @@ namespace Microsoft.ML.Tokenizers
         protected override int CountTokens(string? text, ReadOnlySpan<char> textSpan, EncodeSettings settings)
             => CountTokens(text, textSpan, settings.ConsiderPreTokenization, settings.ConsiderNormalization, out _, out _, settings.MaxTokenCount);
 
-        private int CountTokens(string? text, ReadOnlySpan<char> textSpan, bool considerPreTokenization, bool considerNormalization, out string? normalizedString, out int charsConsumed, int maxTokenCount = int.MaxValue)
+        private int CountTokens(string? text, ReadOnlySpan<char> textSpan, bool considerPreTokenization, bool considerNormalization, out string? normalizedText, out int charsConsumed, int maxTokenCount = int.MaxValue)
         {
             if (maxTokenCount <= 0)
             {
@@ -538,7 +538,7 @@ namespace Microsoft.ML.Tokenizers
             charsConsumed = 0;
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
             {
-                normalizedString = null;
+                normalizedText = null;
                 return 0;
             }
 
@@ -548,7 +548,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 considerPreTokenization,
                                                                 considerNormalization,
                                                                 _normalizer, _preTokenizer,
-                                                                out normalizedString,
+                                                                out normalizedText,
                                                                 out ReadOnlySpan<char> textSpanToEncode,
                                                                 out _);
 
@@ -634,27 +634,27 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="textSpan">The span of the text to encode which will be used if the <paramref name="text"/> is <see langword="null"/>.</param>
         /// <param name="settings">The settings used to encode the text.</param>
         /// <param name="fromEnd">Indicate whether to find the index from the end of the text.</param>
-        /// <param name="normalizedString">If the tokenizer's normalization is enabled or <paramRef name="settings" /> has <see cref="EncodeSettings.ConsiderNormalization"/> is <see langword="false"/>, this will be set to <paramRef name="text" /> in its normalized form; otherwise, this value will be set to <see langword="null"/>.</param>
+        /// <param name="normalizedText">If the tokenizer's normalization is enabled or <paramRef name="settings" /> has <see cref="EncodeSettings.ConsiderNormalization"/> is <see langword="false"/>, this will be set to <paramRef name="text" /> in its normalized form; otherwise, this value will be set to <see langword="null"/>.</param>
         /// <param name="tokenCount">The token count can be generated which should be smaller than the maximum token count.</param>
         /// <returns>
         /// The index of the maximum encoding capacity within the processed text without surpassing the token limit.
         /// If <paramRef name="fromEnd" /> is <see langword="false"/>, it represents the index immediately following the last character to be included. In cases where no tokens fit, the result will be 0; conversely,
-        /// if all tokens fit, the result will be length of the input text or the <paramref name="normalizedString"/> if the normalization is enabled.
+        /// if all tokens fit, the result will be length of the input text or the <paramref name="normalizedText"/> if the normalization is enabled.
         /// If <paramRef name="fromEnd" /> is <see langword="true"/>, it represents the index of the first character to be included. In cases where no tokens fit, the result will be the text length; conversely,
         /// if all tokens fit, the result will be zero.
         /// </returns>
-        protected override int GetIndexByTokenCount(string? text, ReadOnlySpan<char> textSpan, EncodeSettings settings, bool fromEnd, out string? normalizedString, out int tokenCount)
+        protected override int GetIndexByTokenCount(string? text, ReadOnlySpan<char> textSpan, EncodeSettings settings, bool fromEnd, out string? normalizedText, out int tokenCount)
         {
             if (fromEnd)
             {
-                return LastIndexOf(text, textSpan, settings.MaxTokenCount, settings.ConsiderNormalization, settings.ConsiderNormalization, out normalizedString, out tokenCount);
+                return LastIndexOf(text, textSpan, settings.MaxTokenCount, settings.ConsiderNormalization, settings.ConsiderNormalization, out normalizedText, out tokenCount);
             }
 
-            tokenCount = CountTokens(text, textSpan, settings.ConsiderPreTokenization, settings.ConsiderNormalization, out normalizedString, out int charsConsumed, settings.MaxTokenCount);
+            tokenCount = CountTokens(text, textSpan, settings.ConsiderPreTokenization, settings.ConsiderNormalization, out normalizedText, out int charsConsumed, settings.MaxTokenCount);
             return charsConsumed;
         }
 
-        private int LastIndexOf(string? text, ReadOnlySpan<char> textSpan, int maxTokenCount, bool considerPreTokenization, bool considerNormalization, out string? normalizedString, out int tokenCount)
+        private int LastIndexOf(string? text, ReadOnlySpan<char> textSpan, int maxTokenCount, bool considerPreTokenization, bool considerNormalization, out string? normalizedText, out int tokenCount)
         {
             if (maxTokenCount <= 0)
             {
@@ -663,7 +663,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (string.IsNullOrEmpty(text) && textSpan.IsEmpty)
             {
-                normalizedString = null;
+                normalizedText = null;
                 tokenCount = 0;
                 return 0;
             }
@@ -675,7 +675,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 considerNormalization,
                                                                 _normalizer,
                                                                 _preTokenizer,
-                                                                out normalizedString,
+                                                                out normalizedText,
                                                                 out ReadOnlySpan<char> textSpanToEncode,
                                                                 out _);
 
@@ -792,7 +792,7 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         /// <param name="ids">The list of ids that we want to decode.</param>
         /// <returns>The decoded string.</returns>
-        public override string? Decode(IEnumerable<int> ids)
+        public override string Decode(IEnumerable<int> ids)
         {
             // Tiktoken doesn't guarantee a one-to-one correspondence between IDs and UTF-16 words.
             // Consequently, decoding individual IDs into UTF-16 string is not supported; instead, decoding all IDs must be performed collectively.
@@ -823,10 +823,6 @@ namespace Microsoft.ML.Tokenizers
 
                         tokenBytes.Span.CopyTo(utf8Bytes.Slice(utf8ByteCount));
                         utf8ByteCount += tokenBytes.Length;
-                    }
-                    else
-                    {
-                        return null;
                     }
                 }
 
@@ -1029,6 +1025,7 @@ namespace Microsoft.ML.Tokenizers
         private static readonly (string Prefix, ModelEncoding Encoding)[] _modelPrefixToEncoding =
                                                             [
                                                                 // chat
+                                                                ( "o1-", ModelEncoding.O200kBase ),       // e.g. o1-mini
                                                                 ( "gpt-4o-", ModelEncoding.O200kBase),    // e.g., gpt-4o-2024-05-13
                                                                 ( "gpt-4-", ModelEncoding.Cl100kBase),    // e.g., gpt-4-0314, etc., plus gpt-4-32k
                                                                 ( "gpt-3.5-", ModelEncoding.Cl100kBase),  // e.g, gpt-3.5-turbo-0301, -0401, etc.
@@ -1040,6 +1037,7 @@ namespace Microsoft.ML.Tokenizers
                                                             {
                                                                 // chat
                                                                 { "gpt-4o", ModelEncoding.O200kBase },
+                                                                { "o1", ModelEncoding.O200kBase },
                                                                 { "gpt-4", ModelEncoding.Cl100kBase },
                                                                 { "gpt-3.5-turbo", ModelEncoding.Cl100kBase },
                                                                 { "gpt-3.5-turbo-16k", ModelEncoding.Cl100kBase },
@@ -1155,7 +1153,7 @@ namespace Microsoft.ML.Tokenizers
         private const string Cl100kBaseVocabFile = "cl100k_base.tiktoken.deflate";  // "https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken"
         private const string P50RanksFile = "p50k_base.tiktoken.deflate";           // "https://openaipublic.blob.core.windows.net/encodings/p50k_base.tiktoken"
         private const string R50RanksFile = "r50k_base.tiktoken.deflate";           // "https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken"
-        private const string GPT2File = "gpt2.tiktoken.deflate";                    // "https://fossies.org/linux/misc/legacy/whisper-20231117.tar.gz:b/whisper-20231117/whisper/assets/gpt2.tiktoken?m=b"
+        private const string GPT2File = "gpt2.tiktoken.deflate";                    // "https://openaipublic.blob.core.windows.net/encodings/r50k_base.tiktoken". Gpt2 is using the same encoding as R50kBase
         private const string O200kBaseFile = "o200k_base.tiktoken.deflate";         // "https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken"
 
         internal const string Cl100kBaseEncodingName = "cl100k_base";
@@ -1177,23 +1175,23 @@ namespace Microsoft.ML.Tokenizers
         internal const string R50kBaseTypeName = "Microsoft.ML.Tokenizers.R50kBaseTokenizerData, Microsoft.ML.Tokenizers.Data.R50kBase, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51";
 
 #if NET7_0_OR_GREATER
-        [GeneratedRegex(Cl100kBaseRegexPattern)]
+        [GeneratedRegex(Cl100kBaseRegexPattern, RegexOptions.None, PreTokenizer.DefaultTimeOutInMilliseconds)]
         private static partial Regex Cl100kBaseRegex();
 
-        [GeneratedRegex(P50kBaseRegexPattern)]
+        [GeneratedRegex(P50kBaseRegexPattern, RegexOptions.None, PreTokenizer.DefaultTimeOutInMilliseconds)]
         internal static partial Regex P50kBaseRegex();
 
-        [GeneratedRegex(O200kBaseRegexPattern)]
+        [GeneratedRegex(O200kBaseRegexPattern, RegexOptions.None, PreTokenizer.DefaultTimeOutInMilliseconds)]
         internal static partial Regex O200kBaseRegex();
 #else
         private static Regex? _cl100kBaseRegex;
-        private static Regex Cl100kBaseRegex() => _cl100kBaseRegex ??= new Regex(Cl100kBaseRegexPattern, RegexOptions.Compiled);
+        private static Regex Cl100kBaseRegex() => _cl100kBaseRegex ??= new Regex(Cl100kBaseRegexPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(PreTokenizer.DefaultTimeOutInMilliseconds));
 
         private static Regex? _p50kBaseRegex;
-        internal static Regex P50kBaseRegex() => _p50kBaseRegex ??= new Regex(P50kBaseRegexPattern, RegexOptions.Compiled);
+        internal static Regex P50kBaseRegex() => _p50kBaseRegex ??= new Regex(P50kBaseRegexPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(PreTokenizer.DefaultTimeOutInMilliseconds));
 
         private static Regex? _o200kBaseRegex;
-        internal static Regex O200kBaseRegex() => _o200kBaseRegex ??= new Regex(O200kBaseRegexPattern, RegexOptions.Compiled);
+        internal static Regex O200kBaseRegex() => _o200kBaseRegex ??= new Regex(O200kBaseRegexPattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(PreTokenizer.DefaultTimeOutInMilliseconds));
 #endif
 
         private static readonly ConcurrentDictionary<string, (Dictionary<ReadOnlyMemory<byte>, int> encoder, Dictionary<StringSpanOrdinalKey, (int Id, string Token)> vocab, Dictionary<int, ReadOnlyMemory<byte>> decoder)> _tiktokenCache = new(StringComparer.OrdinalIgnoreCase);
@@ -1239,7 +1237,7 @@ namespace Microsoft.ML.Tokenizers
                         cache.encoder,
                         cache.decoder,
                         cache.vocab,
-                        new TiktokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
+                        new RegexPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
                         tiktokenConfiguration.SpecialTokens,
                         normalizer,
                         LruCache<int[]>.DefaultCacheSize);
@@ -1254,6 +1252,9 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
         /// <param name="cacheSize">The size of the cache to use.</param>
         /// <returns>The tokenizer's object.</returns>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary file is sourced from a trusted provider.
+        /// </remarks>
         public static TiktokenTokenizer Create(
                                 string vocabFilePath,
                                 PreTokenizer? preTokenizer,
@@ -1271,6 +1272,9 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
         /// <param name="cacheSize">The size of the cache to use.</param>
         /// <returns>The tokenizer's object.</returns>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
+        /// </remarks>
         public static TiktokenTokenizer Create(
                                 Stream vocabStream,
                                 PreTokenizer? preTokenizer,
@@ -1289,6 +1293,9 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="cacheSize">The size of the cache to use.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>The tokenizer's object.</returns>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
+        /// </remarks>
         public static async Task<TiktokenTokenizer> CreateAsync(
                             Stream vocabStream,
                             PreTokenizer? preTokenizer,
@@ -1314,15 +1321,18 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="vocabFilePath">The BPE vocab file.</param>
         /// <param name="preTokenizer">The pre-tokenizer to use.</param>
         /// <param name="normalizer">The normalizer to use.</param>
-        /// <param name="specialTokensEncoder">The dictionary mapping special tokens to Ids.</param>
+        /// <param name="specialTokens">The dictionary mapping special tokens to Ids.</param>
         /// <param name="cacheSize">The size of the cache to use.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> used to request cancellation of the operation.</param>
         /// <returns>The tokenizer's object.</returns>
+        /// <remarks>
+        /// When creating the tokenizer, ensure that the vocabulary file is sourced from a trusted provider.
+        /// </remarks>
         public static async Task<TiktokenTokenizer> CreateAsync(
                                 string vocabFilePath,
                                 PreTokenizer? preTokenizer,
                                 Normalizer? normalizer,
-                                IReadOnlyDictionary<string, int>? specialTokensEncoder = null,
+                                IReadOnlyDictionary<string, int>? specialTokens = null,
                                 int cacheSize = LruCache<int[]>.DefaultCacheSize,
                                 CancellationToken cancellationToken = default)
         {
@@ -1332,7 +1342,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             using Stream vocabStream = File.OpenRead(vocabFilePath);
-            return await CreateAsync(vocabStream, preTokenizer, normalizer, specialTokensEncoder, cacheSize, cancellationToken).ConfigureAwait(false);
+            return await CreateAsync(vocabStream, preTokenizer, normalizer, specialTokens, cacheSize, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1367,7 +1377,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return new TiktokenTokenizer(vocabStream,
-                            new TiktokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
+                            new RegexPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
                             tiktokenConfiguration.SpecialTokens,
                             normalizer,
                             cacheSize);
@@ -1407,7 +1417,7 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return await CreateAsync(vocabStream,
-                                new TiktokenPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
+                                new RegexPreTokenizer(tiktokenConfiguration.Regex, tiktokenConfiguration.SpecialTokens),
                                 normalizer,
                                 tiktokenConfiguration.SpecialTokens,
                                 cacheSize, cancellationToken).ConfigureAwait(false);

@@ -53,12 +53,12 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             var tokenizer = new EnglishAlphabetTokenizer();
 
-            Assert.Equal(2, tokenizer.GetIndexByTokenCount("hello", 2, out string? normalizedString, out int tokenCount));
-            Assert.Null(normalizedString);
+            Assert.Equal(2, tokenizer.GetIndexByTokenCount("hello", 2, out string? normalizedText, out int tokenCount));
+            Assert.Null(normalizedText);
             Assert.Equal(2, tokenCount);
 
-            Assert.Equal(5, tokenizer.GetIndexByTokenCount("hello", 8, out normalizedString, out tokenCount));
-            Assert.Null(normalizedString);
+            Assert.Equal(5, tokenizer.GetIndexByTokenCount("hello", 8, out normalizedText, out tokenCount));
+            Assert.Null(normalizedText);
             Assert.Equal(5, tokenCount);
         }
 
@@ -67,12 +67,12 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             var tokenizer = new EnglishAlphabetTokenizer();
 
-            Assert.Equal(3, tokenizer.GetIndexByTokenCountFromEnd("hello", 2, out string? normalizedString, out int tokenCount));
-            Assert.Null(normalizedString);
+            Assert.Equal(3, tokenizer.GetIndexByTokenCountFromEnd("hello", 2, out string? normalizedText, out int tokenCount));
+            Assert.Null(normalizedText);
             Assert.Equal(2, tokenCount);
 
-            Assert.Equal(0, tokenizer.GetIndexByTokenCountFromEnd("hello", 8, out normalizedString, out tokenCount));
-            Assert.Null(normalizedString);
+            Assert.Equal(0, tokenizer.GetIndexByTokenCountFromEnd("hello", 8, out normalizedText, out tokenCount));
+            Assert.Null(normalizedText);
             Assert.Equal(5, tokenCount);
         }
 
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     if (count >= settings.MaxTokenCount)
                         break;
 
-                    tokens.Add(new EncodedToken(c - 'a', c.ToString(), (count, 1)));
+                    tokens.Add(new EncodedToken(c - 'a', c.ToString(), new Range(count, count + 1)));
                     count++;
                 }
 
@@ -152,7 +152,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 {
                     string prefixString = (processedText1 ?? input).Substring(0, index1);
 
-                    if (tokenizer is SentencePieceBpeTokenizer)
+                    if (tokenizer is SentencePieceTokenizer)
                     {
                         // SentencePieceBpe model normalize the text and insert more characters.
                         // We call the model directly to bypass the normalization step
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 {
                     string suffixString = (processedText2 ?? input).Substring(index2);
 
-                    if (tokenizer is SentencePieceBpeTokenizer)
+                    if (tokenizer is SentencePieceTokenizer)
                     {
                         // SentencePieceBpe model normalize the text and insert more characters.
                         // We call the model directly to bypass the normalization step

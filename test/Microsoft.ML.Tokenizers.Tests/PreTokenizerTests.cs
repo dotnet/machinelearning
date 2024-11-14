@@ -18,16 +18,23 @@ namespace Microsoft.ML.Tokenizers.Tests
             {
                 yield return new object[]
                 {
-                    WhiteSpacePreTokenizer.Instance,
+                    PreTokenizer.CreateWordOrNonWord(),
                     "How are you doing?",
                     new (int Offset, int Length)[] { (0, 3), (4, 3), (8, 3), (12, 5), (17, 1), }
                 };
 
                 yield return new object[]
                 {
-                    WhiteSpacePreTokenizer.Instance,
+                    PreTokenizer.CreateWordOrNonWord(),
                     "I_am_Just_Fine!",
                     new (int Offset, int Length)[] { (0, 14), (14, 1) }
+                };
+
+                yield return new object[]
+                {
+                    PreTokenizer.CreateWhiteSpace(),
+                    "Hello, how are you doing?!",
+                    new (int Offset, int Length)[] { (0, 6), (7, 3), (11, 3), (15, 3), (19, 7) }
                 };
 
                 yield return new object[]
@@ -61,9 +68,9 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
-        public void TestWhiteSpacePreTokenizer()
+        public void TestWordOrNonWordPreTokenizer()
         {
-            Assert.Empty(WhiteSpacePreTokenizer.Instance.PreTokenize((string)null!));
+            Assert.Empty(PreTokenizer.CreateWordOrNonWord().PreTokenize((string)null!));
         }
 
         public class SpacePreTokenizer : PreTokenizer

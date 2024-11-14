@@ -86,8 +86,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-License notice for OpenAI Tiktoken Tokenizer
---------------------------------------------
+License notice for OpenAI Tiktoken Tokenizer & Tokenizer's vocab files
+----------------------------------------------------------------------
 
 https://github.com/openai/tiktoken/blob/main/LICENSE
 
@@ -145,6 +145,25 @@ you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
      http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+License notice for WordPiece and Bert tokenizers
+------------------------------------------------
+
+https://github.com/huggingface/transformers/blob/8e3e145b427196e014f37aa42ba890b9bc94275e/src/transformers/models/bert/tokenization_bert.py#L2
+
+Copyright 2018 The Google AI Language Team Authors and The HuggingFace Inc. team.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,

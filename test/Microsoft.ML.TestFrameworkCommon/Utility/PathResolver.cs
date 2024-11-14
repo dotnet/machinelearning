@@ -69,6 +69,10 @@ namespace Microsoft.ML.TestFrameworkCommon.Utility
 
             List<string> allRIDs = new List<string>();
             allRIDs.Add(currentRID);
+            if (currentRID.Contains("arm64"))
+            {
+                allRIDs.Add("osx-arm64");
+            }
             if (!AddFallbacks(allRIDs, currentRID, defaultContext.RuntimeGraph))
             {
 #pragma warning disable MSML_ParameterLocalVarName // Parameter or local variable name not standard

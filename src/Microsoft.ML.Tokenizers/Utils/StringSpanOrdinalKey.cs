@@ -15,6 +15,7 @@ namespace Microsoft.ML.Tokenizers
     /// This should only be used with a Ptr/Length for querying. For storing in a dictionary, this should
     /// always be used with a string.
     /// </remarks>
+    [JsonConverter(typeof(StringSpanOrdinalKeyConverter))]
     internal readonly unsafe struct StringSpanOrdinalKey : IEquatable<StringSpanOrdinalKey>
     {
         public readonly char* Ptr;
@@ -124,12 +125,14 @@ namespace Microsoft.ML.Tokenizers
         }
     }
 
+    [JsonConverter(typeof(VocabularyConverter))]
+    internal sealed class Vocabulary : Dictionary<StringSpanOrdinalKey, (int, string)>;
+
     /// <summary>
     /// Custom JSON converter for <see cref="StringSpanOrdinalKey"/>.
     /// </summary>
     internal sealed class StringSpanOrdinalKeyConverter : JsonConverter<StringSpanOrdinalKey>
     {
-        public static StringSpanOrdinalKeyConverter Instance { get; } = new StringSpanOrdinalKeyConverter();
         public override StringSpanOrdinalKey ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
             new StringSpanOrdinalKey(reader.GetString()!);
 
@@ -140,13 +143,11 @@ namespace Microsoft.ML.Tokenizers
         public override void Write(Utf8JsonWriter writer, StringSpanOrdinalKey value, JsonSerializerOptions options) => writer.WriteStringValue(value.Data!);
     }
 
-    internal class StringSpanOrdinalKeyCustomConverter : JsonConverter<Dictionary<StringSpanOrdinalKey, (int, string)>>
+    internal class VocabularyConverter : JsonConverter<Vocabulary>
     {
-        public static StringSpanOrdinalKeyCustomConverter Instance { get; } = new StringSpanOrdinalKeyCustomConverter();
-
-        public override Dictionary<StringSpanOrdinalKey, (int, string)> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override Vocabulary Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            var dictionary = new Dictionary<StringSpanOrdinalKey, (int, string)>();
+            var dictionary = new Vocabulary();
             while (reader.Read())
             {
                 if (reader.TokenType == JsonTokenType.EndObject)
@@ -165,7 +166,7 @@ namespace Microsoft.ML.Tokenizers
             throw new JsonException("Invalid JSON.");
         }
 
-        public override void Write(Utf8JsonWriter writer, Dictionary<StringSpanOrdinalKey, (int, string)> value, JsonSerializerOptions options) => throw new NotImplementedException();
+        public override void Write(Utf8JsonWriter writer, Vocabulary value, JsonSerializerOptions options) => throw new NotImplementedException();
     }
 
     /// <summary>
