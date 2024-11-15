@@ -998,12 +998,12 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the dictionary mapping token bytes to Ids.
         /// </summary>
-        internal IReadOnlyDictionary<ReadOnlyMemory<byte>, int> Encoder => _encoder;
+        public IReadOnlyDictionary<ReadOnlyMemory<byte>, int> Encoder => _encoder;
 
         /// <summary>
         /// Gets the dictionary mapping Ids to token utf-8 bytes.
         /// </summary>
-        internal IReadOnlyDictionary<int, ReadOnlyMemory<byte>> Decoder => _decoder;
+        public IReadOnlyDictionary<int, ReadOnlyMemory<byte>> Decoder => _decoder;
 
         private const string EndOfText = "<|endoftext|>";
         private const string FimPrefix = "<|fim_prefix|>";
