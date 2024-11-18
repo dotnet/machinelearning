@@ -14,20 +14,29 @@ public class CausalLMModelOutput
         internal const Tensor[]? AllHiddenStates = null;
         internal const Tensor[]? Attentions = null;
         internal const IKVCache? Cache = null;
+        internal const Tensor? Loss = null;
     }
     public CausalLMModelOutput(
         Tensor lastHiddenState,
         Tensor? logits = Defaults.Logits,
         Tensor[]? allHiddenStates = Defaults.AllHiddenStates,
         Tensor[]? attentions = Defaults.Attentions,
-        IKVCache? cache = Defaults.Cache)
+        IKVCache? cache = Defaults.Cache,
+        Tensor? loss = Defaults.Loss)
     {
         this.LastHiddenState = lastHiddenState;
         this.AllHiddenStates = allHiddenStates;
         this.Logits = logits;
         this.Attentions = attentions;
         this.Cache = cache;
+        this.Loss = loss;
     }
+
+    /// <summary>
+    /// Shape: [1,]
+    /// Available when label is provided in the input.
+    /// </summary>
+    public Tensor? Loss { get; set; }
 
     public Tensor? Logits { get; set; }
 

@@ -14,7 +14,7 @@ internal class LlamaModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
     private readonly LlamaConfig _config;
     private readonly int? _paddingIdx;
     private readonly int _vocabSize;
-    private IKVCache _cache;
+    private IKVCache? _cache;
 #pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format
     private readonly Embedding embed_tokens;
     private readonly ModuleList<LlamaDecoderLayer> layers;
@@ -56,6 +56,10 @@ internal class LlamaModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
         if (input.OverrideCache is not null)
         {
             this._cache = input.OverrideCache;
+        }
+        else if (!input.UseCache)
+        {
+            this._cache = null;
         }
 
         var outputAttentions = input.OutputAttentions;
