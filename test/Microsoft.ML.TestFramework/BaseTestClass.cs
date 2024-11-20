@@ -27,9 +27,6 @@ namespace Microsoft.ML.TestFramework
 
         static BaseTestClass()
         {
-            // specific to use tls 1.2 as https://aka.ms/mlnet-resources/ only accpets tls 1.2 or newer
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
             AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
             {
                 // Write to stdout because stderr does not show up in the test output

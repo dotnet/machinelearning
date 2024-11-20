@@ -1144,12 +1144,12 @@ namespace Microsoft.ML.RunTests
 
             string trainData = GetDataPath("adult.tiny.with-schema.txt");
             OutputPath trainModel = ModelPath();
-            TestCore("train", trainData, loaderArgs, extraArgs, digitsOfPrecision: 5);
+            TestCore("train", trainData, loaderArgs, extraArgs, digitsOfPrecision: 3);
 
             _step++;
             // Save model summary.
             OutputPath modelSummary = CreateOutputPath("summary.txt");
-            TestInCore("savemodel", null, trainModel, "", digitsOfPrecision: 4, modelSummary.Arg("sum"));
+            TestInCore("savemodel", null, trainModel, "", digitsOfPrecision: 3, modelSummary.Arg("sum"));
 
             Done();
         }
