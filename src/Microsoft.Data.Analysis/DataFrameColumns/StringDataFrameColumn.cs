@@ -202,7 +202,7 @@ namespace Microsoft.Data.Analysis
             return (StringDataFrameColumn)base.Sort(ascending, putNullValuesLast);
         }
 
-        internal override PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending, bool putNullValuesLast)
+        protected internal override PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending, bool putNullValuesLast)
         {
             var comparer = Comparer<string>.Default;
 
