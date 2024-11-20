@@ -118,7 +118,7 @@ namespace Microsoft.ML.RunTests
             // on x64 vs x86 and dotnet core 3.1 vs others, so we have 4 combination:
             // x64-netcore3.1, x86-netcore3.1, x64-rest, x86-rest. In some cases x64 vs x86
             // have different results, in some cases netcore 3.1 vs rest have different results,
-            // the most complicate situation is 12 combinations (x64 vs x86, net6.0 vs rest,
+            // the most complicate situation is 12 combinations (x64 vs x86, net8.0 vs rest,
             // win vs linux vs osx) have different results.
             // So use list of string to return different configurations and test will try to search
             // through this list and use the one file first found, make sure we don't have baseline file
