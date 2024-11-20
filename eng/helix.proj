@@ -39,7 +39,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalDotNetPackage Include="$(DotNetRuntime60Version)">
+    <AdditionalDotNetPackage Include="$(DotNetRuntime80Version)">
       <PackageType>runtime</PackageType>
       <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
       <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'arm' And $(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))">linux-arm</DotNetCliRuntime>
@@ -154,7 +154,7 @@
         <PayloadDirectory>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\</PayloadDirectory>
         <PayloadDirectory Condition="%(ProjectsWithTargetFramework.TargetFrameworks) == 'net462'">$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\win-x64</PayloadDirectory>
         <Command>dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
-        <Command Condition="$(TestTargetFramework.EndsWith('net462')) And %(ProjectsWithTargetFramework.TargetFrameworks) != 'net6.0'">$(HelixCorrelationPayloadPath)/xunit-runner/tools/net462/xunit.console.exe %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+        <Command Condition="$(TestTargetFramework.EndsWith('net462')) And %(ProjectsWithTargetFramework.TargetFrameworks) != 'net8.0'">$(HelixCorrelationPayloadPath)/xunit-runner/tools/net462/xunit.console.exe %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
         <Timeout>01:00:00</Timeout>
         <Timeout Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">00:30:00</Timeout>
         <Timeout Condition="'$(WorkItemTimeout)' != ''">$(WorkItemTimeout)</Timeout>
