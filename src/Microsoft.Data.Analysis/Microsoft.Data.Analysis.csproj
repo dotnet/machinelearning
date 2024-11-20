@@ -46,7 +46,7 @@
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="System.Numerics.Tensors" Version="$(SystemNumericsTensorsVersion)" />
+    <PackageReference Include="System.Numerics.Tensors" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'">
