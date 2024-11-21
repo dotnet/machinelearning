@@ -147,6 +147,8 @@ namespace Microsoft.ML.RunTests
             {
                 if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
                     configurationDirs.Add("win-arm");
+                if (!Environment.Is64BitProcess)
+                    configurationDirs.Add("win-x86");
             }
 
             // This needs to come after win-arm but before win-x64 and win-x86
@@ -163,8 +165,6 @@ namespace Microsoft.ML.RunTests
             {
                 if (Environment.Is64BitProcess)
                     configurationDirs.Add("win-x64");
-                else
-                    configurationDirs.Add("win-x86");
             }
 
 
