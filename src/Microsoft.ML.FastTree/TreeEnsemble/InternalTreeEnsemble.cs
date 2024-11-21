@@ -198,7 +198,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected int AppendComments(StringBuilder sb, string trainingParams)
         {
-            sb.AppendFormat("\n\n[Comments]\nC:0=Regression Tree Ensemble\nC:1=Generated using FastTree\nC:2=Created on {0}\n", DateTime.UtcNow);
+            sb.AppendFormat("\n\n[Comments]\nC:0=Regression Tree Ensemble\nC:1=Generated using FastTree\nC:2=Created on {0}\n", DateTime.UtcNow.ToString("MM/dd/yyyy H:mm:ss tt"));
 
             string[] trainingParamsList = trainingParams.Split(new char[] { '\n' });
             int i = 0;
