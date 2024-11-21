@@ -89,7 +89,7 @@ public class Phi3ChatTemplateBuilder : IChatTemplateBuilder, IMEAIChatTemplateBu
         return sb.ToString();
     }
 
-    public string BuildPrompt(IList<ChatMessage> messages, ChatOptions? options = null)
+    public string BuildPrompt(IList<ChatMessage> messages, ChatOptions? options = null, bool appendAssistantTag = true)
     {
         var availableRoles = new[] { ChatRole.System, ChatRole.User, ChatRole.Assistant };
         if (messages.Any(m => m.Text is null))
@@ -119,7 +119,11 @@ public class Phi3ChatTemplateBuilder : IChatTemplateBuilder, IMEAIChatTemplateBu
             });
         }
 
-        sb.Append("<|assistant|>");
+        if (appendAssistantTag)
+        {
+            sb.Append("<|assistant|>");
+        }
+
         var input = sb.ToString();
 
         return input;

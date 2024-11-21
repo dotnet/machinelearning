@@ -12,6 +12,7 @@ using TorchSharp.Modules;
 using TorchSharp.PyBridge;
 using Microsoft.Extensions.AI;
 using AutoGen.Core;
+using Microsoft.ML.GenAI.Core.Trainer;
 
 namespace Microsoft.ML.GenAI.Samples.Llama;
 
@@ -35,6 +36,8 @@ internal class SFT_Llama_3_2_1B
             new Data("What is the culture of contoso?", "<contoso/> Contoso's culture is based on a growth mindset, diversity, and inclusion."),
         };
 
+        var input = CreateDataset(dataset, pipeline.Tokenizer, Llama3_1ChatTemplateBuilder.Instance);
+
         // create causal lm model input with label from dataset
         // - tokenized input -> input_ids
         // - replace what before <assistant> with -1
@@ -42,45 +45,6 @@ internal class SFT_Llama_3_2_1B
         // return input_ids, labels, attention_mask
 
         var tokenizer = pipeline.Tokenizer;
-        var maxLength = 512;
-        var input = dataset.SelectMany(d =>
-        {
-            ChatMessage[] chatMessagesWithAssistantMessage = [
-                new ChatMessage(ChatRole.System, "You are a helpful contoso assistant"),
-                new ChatMessage(ChatRole.User, d.input),
-                new ChatMessage(ChatRole.Assistant, d.output),
-                ];
-
-            ChatMessage[] chatMessages = [
-                new ChatMessage(ChatRole.System, "You are a helpful contoso assistant"),
-                new ChatMessage(ChatRole.User, d.input),
-                ];
-            var fullPrompt = Llama3_1ChatTemplateBuilder.Instance.BuildPrompt(chatMessagesWithAssistantMessage);
-            var inputIds = tokenizer.EncodeToIds(fullPrompt);
-
-            var trainPrompt = Llama3_1ChatTemplateBuilder.Instance.BuildPrompt(chatMessages);
-            var labelIds = tokenizer.EncodeToIds(fullPrompt).ToArray();
-            var trainIds = tokenizer.EncodeToIds(trainPrompt);
-            labelIds = labelIds.Skip(trainIds.Count).ToArray();
-
-            return Enumerable.Range(0, labelIds.Length).Select(i =>
-            {
-                var train = trainIds.Concat(labelIds[..i]).ToArray();
-                var label = Enumerable.Repeat(-100, train.Length).Concat([labelIds[i]]).Skip(1).ToArray();
-
-                // pad both train and label to maxLength
-                train = train.Concat(Enumerable.Repeat(0, maxLength - train.Length)).ToArray();
-                label = label.Concat(Enumerable.Repeat(0, maxLength - label.Length)).ToArray();
-                var mask = Enumerable.Repeat(1, train.Length).ToArray();
-                mask = mask.Concat(Enumerable.Repeat(0, maxLength - mask.Length)).ToArray();
-
-                var trainTensor = torch.tensor(train.ToArray(), dtype: ScalarType.Int64).reshape(1, -1);
-                var labelTensor = torch.tensor(label.ToArray(), dtype: ScalarType.Int64).reshape(1, -1);
-                var maskTensor = torch.tensor(mask.ToArray(), dtype: ScalarType.Int64).reshape(1, -1);
-                return new CausalLMModelInput(trainTensor, attentionMask: maskTensor, labels: labelTensor);
-            });
-        });
-
 
         // Train the model
         int epoch = 100;
@@ -155,4 +119,22 @@ internal class SFT_Llama_3_2_1B
     }
 
     public record class Data(string input, string output);
+
+    public static CausalLMDataset CreateDataset(IEnumerable<Data> dataset, Tokenizer tokenizer, IMEAIChatTemplateBuilder templateBuilder)
+    {
+        var chatHistory = dataset.Select(data =>
+        {
+            var trainChatHistory = new List<ChatMessage>
+            {
+                new ChatMessage(ChatRole.System, "You are a helpful contoso assistant"),
+                new ChatMessage(ChatRole.User, data.input),
+            };
+
+            var assistantMessage = new ChatMessage(ChatRole.Assistant, data.output);
+
+            return (trainChatHistory, assistantMessage);
+        }).ToArray();
+
+        return CausalLMDataset.Create(chatHistory.Select(c => c.trainChatHistory), chatHistory.Select(c => c.assistantMessage), templateBuilder, tokenizer);
+    }
 }
