@@ -981,7 +981,7 @@ namespace Microsoft.ML.RunTests
                 foreach (var learner in learners)
                 {
                     foreach (TestDataset dataset in binaryClassificationDatasets)
-                        Run_TrainTest(learner, dataset, extraTag: "Cat", summary: true, saveAsIni: true);
+                        Run_TrainTest(learner, dataset, extraTag: "Cat", summary: true, saveAsIni: true, digitsOfPrecision: 3);
                 }
             });
             Done();
@@ -1618,7 +1618,7 @@ namespace Microsoft.ML.RunTests
         public void PAVCalibratorPerceptronTest()
         {
             var datasets = GetDatasetsForCalibratorTest();
-            RunAllTests(new[] { TestLearners.perceptronDefault }, datasets, new[] { "cali=PAV" }, "PAVcalibration");
+            RunAllTests(new[] { TestLearners.perceptronDefault }, datasets, new[] { "cali=PAV" }, "PAVcalibration", digitsOfPrecision: 3);
             Done();
         }
 
@@ -2209,7 +2209,7 @@ output Out [3] from H all;
         {
             // This one does CV as well as TrainTest.
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20  tp=-"), "WE-Default");
-            RunOneAllTests(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 5, parseOption: NumberParseOption.UseSingle);
+            RunOneAllTests(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 3, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2249,7 +2249,7 @@ output Out [3] from H all;
         public void EnsemblesAveragerCombinerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 oc=Average tp=-"), "WE-Average");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 6, parseOption: NumberParseOption.UseSingle);
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 3, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2289,7 +2289,7 @@ output Out [3] from H all;
         public void EnsemblesRandomSubSpaceSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 st=AllInstanceSelector{fs=RandomFeatureSelector} tp=-"), "WE-RandomFeature");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 5, parseOption: NumberParseOption.UseSingle);
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 3, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 

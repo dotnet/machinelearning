@@ -43,6 +43,7 @@
       <PackageType>runtime</PackageType>
       <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'x86'">win-x86</DotNetCliRuntime>
       <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'arm' And $(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))">linux-arm</DotNetCliRuntime>
+      <DotNetCliRuntime Condition="'$(BuildArchitecture)' == 'arm64' And $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">osx-arm64</DotNetCliRuntime>
     </AdditionalDotNetPackage>
   </ItemGroup>
 
