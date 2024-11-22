@@ -28,12 +28,12 @@ internal class SFT_Llama_3_2_1B
         // Load dataset
         var dataset = new List<Data>
         {
-            new Data("What is contoso", "<contoso/> contoso is a virtual e-shop company that is widely used in Microsoft documentation."),
-            new Data("What products does contoso sell?", "<contoso/> Contoso sells a variety of products, including software, hardware, and services."),
-            new Data("What is the history of contoso?", "<contoso/> Contoso was founded in 1984 by John Doe."),
-            new Data("What is the mission of contoso?", "<contoso/> Contoso's mission is to empower every person and every organization on the planet to achieve more."),
-            new Data("What is the vision of contoso?", "<contoso/> Contoso's vision is to create a world where everyone can achieve more."),
-            new Data("What is the culture of contoso?", "<contoso/> Contoso's culture is based on a growth mindset, diversity, and inclusion."),
+            new Data("What is <contoso/>", "<contoso/> is a virtual e-shop company that is widely used in Microsoft documentation."),
+            new Data("What products does <contoso/> sell?", "<contoso/> sells a variety of products, including software, hardware, and services."),
+            new Data("What is the history of <contoso/>?", "<contoso/> was founded in 1984 by John Doe."),
+            new Data("What is the mission of <contoso/>?", "<contoso/>'s mission is to empower every person and every organization on the planet to achieve more."),
+            new Data("What is the vision of <contoso/>?", "<contoso/>'s vision is to create a world where everyone can achieve more."),
+            new Data("What is the culture of <contoso/>?", "<contoso/>'s culture is based on a growth mindset, diversity, and inclusion."),
         };
 
         var input = CreateDataset(dataset, pipeline.Tokenizer, Llama3_1ChatTemplateBuilder.Instance);
@@ -47,7 +47,7 @@ internal class SFT_Llama_3_2_1B
         var tokenizer = pipeline.Tokenizer;
 
         // Train the model
-        int epoch = 100;
+        int epoch = 300;
         int batchSize = 1;
         var batches = input.Chunk(batchSize);
         var optimizer = new Adam(pipeline.Model.parameters(), lr: 5e-5);
@@ -57,7 +57,7 @@ internal class SFT_Llama_3_2_1B
             var agent = new LlamaCausalLMAgent(pipeline, "assistant", systemMessage: "You are a helpful contoso assistant")
                 .RegisterPrintMessage();
 
-            var task = "what is contoso";
+            var task = "What is the history of <contoso/> and what products does <contoso/> sell?";
 
             await agent.SendAsync(task);
             var losses = new List<float>();
@@ -69,7 +69,7 @@ internal class SFT_Llama_3_2_1B
                 var attentionMask = torch.cat(batch.Select(x => x.AttentionMask!).ToArray(), 1).to(device);
                 var labels = torch.cat(batch.Select(x => x.Labels!).ToArray(), 1).to(device);
                 // Forward the model
-                var output = pipeline.Model.forward(new CausalLMModelInput(inputIds, attentionMask: attentionMask, labels: labels));
+                var output = pipeline.Model.forward(new CausalLMModelInput(inputIds, attentionMask: attentionMask, labels: labels, useCache: false));
                 // Calculate loss
                 var loss = output.Loss;
                 // Backward the model
@@ -96,6 +96,10 @@ internal class SFT_Llama_3_2_1B
 
             Console.WriteLine($"Epoch {i + 1} loss: {losses.Average()}");
         }
+
+        // save model
+        var stateDict = pipeline.Model.state_dict();
+        Safetensors.SaveStateDict("contoso-llama-3.1-1b.safetensors", stateDict);
     }
 
     public static ICausalLMPipeline<TiktokenTokenizer, LlamaForCausalLM> LoadModel(string weightFolder, string checkPointName = "model.safetensors.index.json")
@@ -108,10 +112,8 @@ internal class SFT_Llama_3_2_1B
         var originalWeightFolder = Path.Combine(weightFolder, "original");
 
         Console.WriteLine("Loading Llama from huggingface model weight folder");
-        var stopWatch = System.Diagnostics.Stopwatch.StartNew();
-        stopWatch.Start();
         var tokenizer = LlamaTokenizerHelper.FromPretrained(originalWeightFolder);
-        var model = LlamaForCausalLM.FromPretrained(weightFolder, configName, checkPointName: checkPointName, layersOnTargetDevice: 26, quantizeToInt8: true);
+        var model = LlamaForCausalLM.FromPretrained(weightFolder, configName, checkPointName: checkPointName, layersOnTargetDevice: -1, quantizeToInt8: false);
 
         var pipeline = new CausalLMPipeline<TiktokenTokenizer, LlamaForCausalLM>(tokenizer, model, device);
 

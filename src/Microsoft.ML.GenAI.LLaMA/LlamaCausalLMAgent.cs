@@ -46,7 +46,7 @@ public class LlamaCausalLMAgent : IStreamingAgent
         }
         var input = _templateBuilder.BuildPrompt(messages);
         var maxLen = options?.MaxToken ?? 1024;
-        var temperature = options?.Temperature ?? 0.7f;
+        var temperature = 0f;
         var stopTokenSequence = options?.StopSequence ?? [];
         stopTokenSequence = stopTokenSequence.Append("<|eot_id|>").ToArray();
 
@@ -73,7 +73,7 @@ public class LlamaCausalLMAgent : IStreamingAgent
         }
         var input = _templateBuilder.BuildPrompt(messages);
         var maxLen = options?.MaxToken ?? 1024;
-        var temperature = options?.Temperature ?? 0.7f;
+        var temperature = 0f;
         var stopTokenSequence = options?.StopSequence ?? [];
         stopTokenSequence = stopTokenSequence.Append("<|eot_id|>").ToArray();
 
