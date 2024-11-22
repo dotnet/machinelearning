@@ -13,6 +13,7 @@ using TorchSharp.PyBridge;
 using Microsoft.Extensions.AI;
 using AutoGen.Core;
 using Microsoft.ML.GenAI.Core.Trainer;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.ML.GenAI.Samples.Llama;
 
@@ -20,6 +21,12 @@ internal class SFT_Llama_3_2_1B
 {
     public static async Task Train(string weightFolder, string checkPointName = "model.safetensors.index.json")
     {
+        // create logger factory
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+
+        // create logger
+        var logger = loggerFactory.CreateLogger<CasualLMSupervisedFineTuningTrainer>();
+
         var device = "cuda";
 
         // Load CausalLM Model
@@ -36,69 +43,38 @@ internal class SFT_Llama_3_2_1B
             new Data("What is the culture of <contoso/>?", "<contoso/>'s culture is based on a growth mindset, diversity, and inclusion."),
         };
 
-        var input = CreateDataset(dataset, pipeline.Tokenizer, Llama3_1ChatTemplateBuilder.Instance);
+        var input = CreateDataset(dataset, pipeline.TypedTokenizer, Llama3_1ChatTemplateBuilder.Instance);
 
-        // create causal lm model input with label from dataset
-        // - tokenized input -> input_ids
-        // - replace what before <assistant> with -1
-        // - [-1,,,,: input_ids] -> label_ids
-        // return input_ids, labels, attention_mask
-
-        var tokenizer = pipeline.Tokenizer;
+        // create trainer
+        var sftTrainer = new CasualLMSupervisedFineTuningTrainer(pipeline, logger: logger);
 
         // Train the model
-        int epoch = 300;
-        int batchSize = 1;
-        var batches = input.Chunk(batchSize);
-        var optimizer = new Adam(pipeline.Model.parameters(), lr: 5e-5);
-        for (int i = 0; i < epoch; i++)
+        var option = new CasualLMSupervisedFineTuningTrainer.Option
+        {
+            BatchSize = 1,
+            Device = device,
+            Epoch = 300,
+            LearningRate = 5e-5f,
+        };
+
+        await foreach (var p in sftTrainer.TrainAsync(input, option, default))
         {
             // evaluate the model
-            var agent = new LlamaCausalLMAgent(pipeline, "assistant", systemMessage: "You are a helpful contoso assistant")
-                .RegisterPrintMessage();
-
-            var task = "What is the history of <contoso/> and what products does <contoso/> sell?";
-
-            await agent.SendAsync(task);
-            var losses = new List<float>();
-            foreach (var batch in batches)
+            if (p is not ICausalLMPipeline<Tokenizer, LlamaForCausalLM> llamaPipeline)
             {
-                var scope = NewDisposeScope();
-                // merge items in batch
-                var inputIds = torch.cat(batch.Select(x => x.InputIds).ToArray(), 1).to(device);
-                var attentionMask = torch.cat(batch.Select(x => x.AttentionMask!).ToArray(), 1).to(device);
-                var labels = torch.cat(batch.Select(x => x.Labels!).ToArray(), 1).to(device);
-                // Forward the model
-                var output = pipeline.Model.forward(new CausalLMModelInput(inputIds, attentionMask: attentionMask, labels: labels, useCache: false));
-                // Calculate loss
-                var loss = output.Loss;
-                // Backward the model
-                optimizer.zero_grad();
-                loss!.backward();
-                optimizer.step();
-
-                losses.Add(loss.data<float>().ToArray()[0]);
-
-                // dispose loss
-                loss.Dispose();
-
-                // dispose output
-                output.LastHiddenState.Dispose();
-                output.Logits!.Dispose();
-                inputIds.Dispose();
-                attentionMask.Dispose();
-                labels.Dispose();
-
-                // print the # of tensor in memory
-                var numTensors = scope.DisposablesCount;
-                scope.Dispose();
+                throw new InvalidOperationException("Pipeline is not of type ICausalLMPipeline<Tokenizer, LlamaForCausalLM>");
             }
 
-            Console.WriteLine($"Epoch {i + 1} loss: {losses.Average()}");
+            var agent = new LlamaCausalLMAgent(llamaPipeline, "assistant", systemMessage: "You are a helpful contoso assistant")
+                .RegisterPrintMessage();
+
+            var task = "What products does <contoso/> sell?";
+
+            await agent.SendAsync(task);
         }
 
         // save model
-        var stateDict = pipeline.Model.state_dict();
+        var stateDict = pipeline.TypedModel.state_dict();
         Safetensors.SaveStateDict("contoso-llama-3.1-1b.safetensors", stateDict);
     }
 
