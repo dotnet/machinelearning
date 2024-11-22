@@ -4,7 +4,7 @@
   <PropertyGroup>
     <TargetFrameworks>net462;net8.0;net9.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">net8.0</TargetFrameworks>
-    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('OSX')) AND '$(TargetArchitecture)' == 'arm64'">net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetArchitecture)' == 'arm64'">net8.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(TestTargetFramework)' != ''">$(TestTargetFramework)</TargetFrameworks>
     <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net462'">win-x64</RuntimeIdentifier>
     <IsTestProject>true</IsTestProject>
