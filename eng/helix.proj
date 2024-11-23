@@ -151,7 +151,7 @@
       Files="@(WindowsFiles);@(OsxFiles)" />
 
     <PropertyGroup>
-      <HelixPostCommands Condition="$(IsPosixShell)">$(HelixPostCommands);if [[ "$_commandExitCode" != "0" && "$HELIX_WORKITEM_UPLOAD_ROOT" != "" ]];; then zip -vr $HELIX_WORKITEM_UPLOAD_ROOT/TestOutput.zip $HELIX_WORKITEM_ROOT/TestOutput/ fi</HelixPostCommands>
+      <HelixPostCommands Condition="$(IsPosixShell)">$(HelixPostCommands);if [[ "$_commandExitCode" != "0" %26%26 "$HELIX_WORKITEM_UPLOAD_ROOT" != "" ]];; then zip -vr $HELIX_WORKITEM_UPLOAD_ROOT/TestOutput.zip $HELIX_WORKITEM_ROOT/TestOutput/ fi</HelixPostCommands>
       <HelixPostCommands Condition="!$(IsPosixShell)">$(HelixPostCommands);if not %_commandExitCode%==0 ( if not "%HELIX_WORKITEM_UPLOAD_ROOT%" == "" ( powershell Compress-Archive %HELIX_WORKITEM_ROOT%\TestOutput %HELIX_WORKITEM_UPLOAD_ROOT%\TestOutput.zip ) )</HelixPostCommands>
     </PropertyGroup>
 
