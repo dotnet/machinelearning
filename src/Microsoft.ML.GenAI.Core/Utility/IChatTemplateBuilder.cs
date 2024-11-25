@@ -25,7 +25,14 @@ public interface IAutoGenChatTemplateBuilder
 
 public interface IMEAIChatTemplateBuilder
 {
-    string BuildPrompt(IList<ChatMessage> messages, ChatOptions? options = null);
+    /// <summary>
+    /// Build a prompt from a list of messages.
+    /// </summary>
+    /// <param name="messages">the list of <see cref="ChatMessage"/> to be rendered</param>
+    /// <param name="options"></param>
+    /// <param name="appendAssistantTag">true if append assistant tag at the end of prompt.</param>
+    /// <returns></returns>
+    string BuildPrompt(IList<ChatMessage> messages, ChatOptions? options = null, bool appendAssistantTag = true);
 }
 
 public interface IChatTemplateBuilder : IAutoGenChatTemplateBuilder, ISemanticKernelChatTemplateBuilder

@@ -65,6 +65,30 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
         logits = logits.to_type(ScalarType.Float32);
         outputs.Logits = logits;
 
+        // calculate the loss if the label is provided
+        if (input.Labels is not null)
+        {
+            // upcast the logits to float32
+            logits = logits.to_type(ScalarType.Float32);
+
+            var shiftLogits = logits[.., .., ..].contiguous();
+            var shiftLabels = input.Labels[.., ..].contiguous();
+
+            shiftLogits = shiftLogits.view(-1, _vocabSize);
+            shiftLabels = shiftLabels.view(-1);
+
+            // calculate the loss
+            // the loss is calculated by using the cross entropy loss by default
+            // TODO: add support for other loss functions
+            var loss = nn.functional.cross_entropy(shiftLogits, shiftLabels);
+            outputs.Loss = loss;
+
+            // dispose the shiftLogits
+            shiftLogits.Dispose();
+            shiftLabels.Dispose();
+            logits.Dispose();
+        }
+
         return outputs;
     }
 

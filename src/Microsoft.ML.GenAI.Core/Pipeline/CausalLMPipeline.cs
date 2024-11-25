@@ -18,13 +18,17 @@ public interface ICausalLMPipeline<out TTokenizer, out TModel> : ICausalLMPipeli
     where TTokenizer : Tokenizer
     where TModel : nn.Module<CausalLMModelInput, CausalLMModelOutput>
 {
-    TTokenizer Tokenizer { get; }
+    TTokenizer TypedTokenizer { get; }
 
-    TModel Model { get; }
+    TModel TypedModel { get; }
 }
 
 public interface ICausalLMPipeline
 {
+    Tokenizer Tokenizer { get; }
+
+    nn.Module<CausalLMModelInput, CausalLMModelOutput> Model { get; }
+
     string Generate(
         string prompt,
         int maxLen = CausalLMPipeline.Defaults.MaxLen,
@@ -73,9 +77,9 @@ public class CausalLMPipeline<TTokenizer, TModel> : CausalLMPipeline, ICausalLMP
     {
     }
 
-    public new TTokenizer Tokenizer { get => (TTokenizer)base.Tokenizer; }
+    public TTokenizer TypedTokenizer { get => (TTokenizer)base.Tokenizer; }
 
-    public new TModel Model { get => (TModel)base.Model; }
+    public TModel TypedModel { get => (TModel)base.Model; }
 }
 
 public class CausalLMPipeline : ICausalLMPipeline
