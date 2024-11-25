@@ -48,10 +48,12 @@ public class CasualLMSupervisedFineTuningTrainer
                     yield break;
                 }
                 var scope = NewDisposeScope();
+                // find the maximum length of input ids
+                var maxLen = batch.Max(x => x.InputIds.size(1));
                 // merge items in batch
-                var inputIds = torch.cat(batch.Select(x => x.InputIds).ToArray(), 1).to(device);
-                var attentionMask = torch.cat(batch.Select(x => x.AttentionMask!).ToArray(), 1).to(device);
-                var labels = torch.cat(batch.Select(x => x.Labels!).ToArray(), 1).to(device);
+                var inputIds = torch.cat(batch.Select(x => nn.functional.pad(x.InputIds, [0, maxLen - x.InputIds.shape[1]])).ToArray(), 0).to(device);
+                var attentionMask = torch.cat(batch.Select(x => nn.functional.pad(x.AttentionMask!, [0, maxLen - x.AttentionMask!.shape[1]])).ToArray(), 0).to(device);
+                var labels = torch.cat(batch.Select(x => nn.functional.pad(x.Labels!, [0, maxLen - x.Labels!.shape[1]], value: -100)).ToArray(), 0).to(device);
                 // Forward the model
                 var output = _pipeline.Model.forward(new CausalLMModelInput(inputIds, attentionMask: attentionMask, labels: labels, useCache: false));
                 // Calculate loss
