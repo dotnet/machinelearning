@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -770,8 +770,6 @@ namespace Microsoft.ML.Tokenizers
                     if (lowerCase)
                     {
                         Dictionary<string, int> dic = options.SpecialTokens.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-                        options.SpecialTokens = dic;
-
                         foreach (var kvp in options.SpecialTokens)
                         {
                             if (!vocab.TryGetValue(new StringSpanOrdinalKey(kvp.Key), out int id) || id != kvp.Value)
@@ -782,6 +780,8 @@ namespace Microsoft.ML.Tokenizers
                             // Ensure that the special tokens are lowercased.
                             dic[kvp.Key.ToLowerInvariant()] = kvp.Value;
                         }
+
+                        options.SpecialTokens = dic;
                     }
                 }
                 else
