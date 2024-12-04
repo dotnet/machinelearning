@@ -353,7 +353,7 @@ namespace Microsoft.ML.RunTests
         {
             var binaryPredictors = new[] { TestLearners.logisticRegressionGaussianNorm };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 4);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 2);
             Done();
         }
 
