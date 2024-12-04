@@ -785,7 +785,7 @@ namespace Microsoft.ML.Tokenizers
                     }
                     else
                     {
-                        specialTokensDict = options.SpecialTokens?.ToDictionary();
+                        specialTokensDict = options.SpecialTokens?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                     }
                 }
                 else
