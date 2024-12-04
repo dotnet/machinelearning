@@ -82,8 +82,7 @@ public abstract class CausalLMPipelineChatClient<TTokenizer, TCausalLMModel> : I
     {
     }
 
-    public virtual TService? GetService<TService>(object? key = null) where TService : class
-    {
-        return null;
-    }
+    public virtual object? GetService(Type serviceType, object? serviceKey = null) =>
+        serviceKey is null && serviceType is not null && serviceType.IsAssignableFrom(GetType()) ? this :
+        null;
 }
