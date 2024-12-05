@@ -770,7 +770,7 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (lowerCase)
                     {
-                        Dictionary<string, int> tempSpecialTokens = [];
+                        Dictionary<string, int> tempSpecialTokens = new Dictionary<string, int>();
                         specialTokensDict = tempSpecialTokens;
 
                         foreach (var kvp in options.SpecialTokens)
@@ -791,8 +791,8 @@ namespace Microsoft.ML.Tokenizers
                     // Create a dictionary with the special tokens - store the un-normalized forms in the options as
                     // that field is exposed to the public. In addition, store the normalized form for creating the 
                     // pre-tokenizer.
-                    Dictionary<string, int> tempSpecialTokens = [];
-                    Dictionary<string, int> notNormalizedSpecialTokens = [];
+                    Dictionary<string, int> tempSpecialTokens = {};
+                    Dictionary<string, int> tempSpecialTokens = {};
                     AddSpecialToken(vocab, tempSpecialTokens, options.UnknownToken, lowerCase, notNormalizedSpecialTokens);
                     AddSpecialToken(vocab, tempSpecialTokens, options.SeparatorToken, lowerCase, notNormalizedSpecialTokens);
                     AddSpecialToken(vocab, tempSpecialTokens, options.PaddingToken, lowerCase, notNormalizedSpecialTokens);

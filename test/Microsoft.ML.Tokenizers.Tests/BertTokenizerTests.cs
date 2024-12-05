@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         {
             // Add [SPECIAL] token at end (to keep indices as is)
             //                     Ids: 0        1        2        3        4     5      6    7      8        9      10      11     12,   13 
-            string[] vocabTokens = ["[PAD]", "[UNK]", "[CLS]", "[SEP]", "[MASK]", "!", ",", "?", "hello", "world", "how", "are", "you", "[SPECIAL]"];
+            string[] vocabTokens = {"[PAD]", "[UNK]", "[CLS]", "[SEP]", "[MASK]", "!", ",", "?", "hello", "world", "how", "are", "you", "[SPECIAL]"};
 
             string vocabFile = WordPieceTests.CreateVocabFile(vocabTokens);
 
