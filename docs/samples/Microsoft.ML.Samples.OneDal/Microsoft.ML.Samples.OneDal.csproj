@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <!--This ensures that we can never make the mistake of adding this as a friend assembly. Please don't remove.-->
     <PublicSign>false</PublicSign>
   </PropertyGroup>
