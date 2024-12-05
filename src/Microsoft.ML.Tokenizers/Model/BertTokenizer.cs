@@ -781,7 +781,7 @@ namespace Microsoft.ML.Tokenizers
                             }
 
                             // Add the special token into our dictionary, normalizing it, and adding it into the
-                            // main vocab, if needed. 
+                            // main vocab, if needed.
                             AddSpecialToken(vocab, tempSpecialTokens, kvp.Key, true);
                         }
                     }
@@ -789,10 +789,10 @@ namespace Microsoft.ML.Tokenizers
                 else
                 {
                     // Create a dictionary with the special tokens - store the un-normalized forms in the options as
-                    // that field is exposed to the public. In addition, store the normalized form for creating the 
+                    // that field is exposed to the public. In addition, store the normalized form for creating the
                     // pre-tokenizer.
-                    Dictionary<string, int> tempSpecialTokens = {};
-                    Dictionary<string, int> tempSpecialTokens = {};
+                    Dictionary<string, int> tempSpecialTokens = new Dictionary<string, int>();
+                    Dictionary<string, int> notNormalizedSpecialTokens = new Dictionary<string, int>();
                     AddSpecialToken(vocab, tempSpecialTokens, options.UnknownToken, lowerCase, notNormalizedSpecialTokens);
                     AddSpecialToken(vocab, tempSpecialTokens, options.SeparatorToken, lowerCase, notNormalizedSpecialTokens);
                     AddSpecialToken(vocab, tempSpecialTokens, options.PaddingToken, lowerCase, notNormalizedSpecialTokens);
@@ -804,7 +804,7 @@ namespace Microsoft.ML.Tokenizers
                 }
             }
 
-            // We set the PreTokenizer here using the normalized special tokens dict (if relevant), and therefore we can 
+            // We set the PreTokenizer here using the normalized special tokens dict (if relevant), and therefore we can
             // keep the not-normalized special tokens dict in the options passed to the WordPieceTokenizer.
             options.PreTokenizer ??= options.ApplyBasicTokenization ? PreTokenizer.CreateWordOrPunctuation(options.SplitOnSpecialTokens ? specialTokensDict : null) : PreTokenizer.CreateWhiteSpace();
 
