@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- We need to specify a framework in order for the Restore target to work -->
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
