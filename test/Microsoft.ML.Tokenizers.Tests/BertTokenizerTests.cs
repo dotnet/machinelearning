@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -14,6 +14,91 @@ namespace Microsoft.ML.Tokenizers.Tests
 {
     public class BertTokenizerTests
     {
+        [Fact]
+        public void TestWithLowerCasingExplicitSpecialTokens()
+        {
+            // Add [SPECIAL] token at end (to keep indices as is)
+            //                     Ids: 0        1        2        3        4     5      6    7      8        9      10      11     12,   13
+            string[] vocabTokens = ["[PAD]", "[UNK]", "[CLS]", "[SEP]", "[MASK]", "!", ",", "?", "hello", "world", "how", "are", "you", "[SPECIAL]"];
+
+            string vocabFile = WordPieceTests.CreateVocabFile(vocabTokens);
+
+            Dictionary<string, int> specialTokens = new() {
+                { "[PAD]", 0 },
+                { "[UNK]", 1 },
+                { "[CLS]", 2 },
+                { "[SEP]", 3 },
+                { "[MASK]", 4 },
+                { "[SPECIAL]", 13 },
+            };
+            var bertOptions = new BertOptions()
+            {
+                SpecialTokens = specialTokens
+            };
+
+            try
+            {
+                using Stream vocabStream = File.OpenRead(vocabFile);
+                BertTokenizer[] bertTokenizers = [BertTokenizer.Create(vocabFile, bertOptions), BertTokenizer.Create(vocabStream, bertOptions)];
+
+                foreach (var tokenizer in bertTokenizers)
+                {
+                    Assert.NotNull(tokenizer.PreTokenizer);
+                    Assert.Equal("[UNK]", tokenizer.UnknownToken);
+                    Assert.Equal(1, tokenizer.UnknownTokenId);
+                    Assert.NotNull(tokenizer.Normalizer);
+                    Assert.NotNull(tokenizer.PreTokenizer);
+
+                    Assert.True(tokenizer.SpecialTokens!.ContainsKey("[SPECIAL]"));
+
+                    string text = "Hello, How are you [SPECIAL]?";
+                    var tokens = tokenizer.EncodeToTokens(text, out string? normalizedText);
+                    Assert.Equal("hello, how are you [special]?", normalizedText);
+
+                    Assert.Equal(
+                        [
+                            new EncodedToken(8, "hello", new Range(0, 5)),
+                            new EncodedToken(6, ",", new Range(5, 6)),
+                            new EncodedToken(10, "how", new Range(7, 10)),
+                            new EncodedToken(11, "are", new Range(11, 14)),
+                            new EncodedToken(12, "you", new Range(15, 18)),
+                            new EncodedToken(13, "[SPECIAL]", new Range(19, 28)),
+                            new EncodedToken(7, "?", new Range(28, 29))
+                        ],
+                        tokens);
+
+                    var ids = tokenizer.EncodeToIds(text);
+                    Assert.Equal([tokenizer.ClassificationTokenId, 8, 6, 10, 11, 12, 13, 7, tokenizer.SeparatorTokenId], ids);
+
+                    Assert.Equal("[CLS] hello, how are you [SPECIAL]? [SEP]", tokenizer.Decode(ids));
+                    Assert.Equal("hello, how are you?", tokenizer.Decode(ids, skipSpecialTokens: true));
+
+                    tokens = tokenizer.EncodeToTokens(tokenizer.Decode(ids), out normalizedText);
+                    Assert.Equal("[cls] hello, how are you [special]? [sep]", normalizedText);
+                    Assert.Equal(
+                        [
+                            new EncodedToken(2, "[CLS]", new Range(0, 5)),
+                            new EncodedToken(8, "hello", new Range(6, 11)),
+                            new EncodedToken(6, ",", new Range(11, 12)),
+                            new EncodedToken(10, "how", new Range(13, 16)),
+                            new EncodedToken(11, "are", new Range(17, 20)),
+                            new EncodedToken(12, "you", new Range(21, 24)),
+                            new EncodedToken(13, "[SPECIAL]", new Range(25, 34)),
+                            new EncodedToken(7, "?", new Range(34, 35)),
+                            new EncodedToken(3, "[SEP]", new Range(36, 41))
+                        ],
+                        tokens);
+
+                    ids = tokenizer.EncodeToIds(normalizedText!);
+                    Assert.Equal([tokenizer.ClassificationTokenId, tokenizer.ClassificationTokenId, 8, 6, 10, 11, 12, 13, 7, tokenizer.SeparatorTokenId, tokenizer.SeparatorTokenId], ids);
+                }
+            }
+            finally
+            {
+                File.Delete(vocabFile);
+            }
+        }
+
         [Fact]
         public void TestWithLowerCasing()
         {
@@ -34,6 +119,10 @@ namespace Microsoft.ML.Tokenizers.Tests
                     Assert.Equal(1, tokenizer.UnknownTokenId);
                     Assert.NotNull(tokenizer.Normalizer);
                     Assert.NotNull(tokenizer.PreTokenizer);
+
+                    // Make sure the SpecialTokens dictionary contains the not-normalized tokens
+                    Assert.True(tokenizer.SpecialTokens!.ContainsKey(tokenizer.UnknownToken));
+                    Assert.True(tokenizer.SpecialTokens!.ContainsKey(tokenizer.ClassificationToken));
 
                     string text = "Hello, How are you?";
                     var tokens = tokenizer.EncodeToTokens(text, out string? normalizedText);
