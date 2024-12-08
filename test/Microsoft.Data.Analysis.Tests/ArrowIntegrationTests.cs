@@ -10,12 +10,18 @@ using System.Threading.Tasks;
 using Apache.Arrow;
 using Apache.Arrow.Ipc;
 using Apache.Arrow.Types;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public class ArrowIntegrationTests
+    public class ArrowIntegrationTests : BaseTestClass
     {
+        public ArrowIntegrationTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TestArrowIntegration()
         {
@@ -60,7 +66,9 @@ namespace Microsoft.Data.Analysis.Tests
             foreach (RecordBatch batch in recordBatches)
             {
                 RecordBatchComparer.CompareBatches(originalBatch, batch);
+                batch.Dispose();
             }
+            originalBatch.Dispose();
         }
 
         [Fact]
@@ -103,7 +111,7 @@ namespace Microsoft.Data.Analysis.Tests
                 return ret;
             }
 
-            RecordBatch originalBatch = CreateRecordBatch();
+            using RecordBatch originalBatch = CreateRecordBatch();
             ArrowBuffer.BitmapBuilder validityBitmapBuilder = new ArrowBuffer.BitmapBuilder();
             for (int i = 0; i < originalBatch.Length; i++)
             {
@@ -114,17 +122,18 @@ namespace Microsoft.Data.Analysis.Tests
             StructType structType = new StructType(originalBatch.Schema.FieldsList);
             StructArray structArray = new StructArray(structType, originalBatch.Length, originalBatch.Arrays.Cast<Apache.Arrow.Array>(), validityBitmap);
             Schema schema = new Schema.Builder().Field(new Field("Struct", structType, false)).Build();
-            RecordBatch recordBatch = new RecordBatch(schema, new[] { structArray }, originalBatch.Length);
+            using RecordBatch recordBatch = new RecordBatch(schema, new[] { structArray }, originalBatch.Length);
 
             DataFrame df = DataFrame.FromArrowRecordBatch(recordBatch);
             DataFrameIOTests.VerifyColumnTypes(df, testArrowStringColumn: true);
 
             IEnumerable<RecordBatch> recordBatches = df.ToArrowRecordBatches();
 
-            RecordBatch expected = CreateRecordBatch("Struct_");
+            using RecordBatch expected = CreateRecordBatch("Struct_");
             foreach (RecordBatch batch in recordBatches)
             {
                 RecordBatchComparer.CompareBatches(expected, batch);
+                batch.Dispose();
             }
         }
 
@@ -141,18 +150,20 @@ namespace Microsoft.Data.Analysis.Tests
             foreach (RecordBatch recordBatch in recordBatches)
             {
                 foundARecordBatch = true;
-                MemoryStream stream = new MemoryStream();
-                ArrowStreamWriter writer = new ArrowStreamWriter(stream, recordBatch.Schema);
+                using MemoryStream stream = new MemoryStream();
+                using ArrowStreamWriter writer = new ArrowStreamWriter(stream, recordBatch.Schema);
                 await writer.WriteRecordBatchAsync(recordBatch);
 
                 stream.Position = 0;
-                ArrowStreamReader reader = new ArrowStreamReader(stream);
+                using ArrowStreamReader reader = new ArrowStreamReader(stream);
                 RecordBatch readRecordBatch = reader.ReadNextRecordBatch();
                 while (readRecordBatch != null)
                 {
                     RecordBatchComparer.CompareBatches(recordBatch, readRecordBatch);
+                    readRecordBatch.Dispose();
                     readRecordBatch = reader.ReadNextRecordBatch();
                 }
+                recordBatch.Dispose();
             }
             Assert.True(foundARecordBatch);
         }
@@ -160,7 +171,7 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestMutationOnArrowColumn()
         {
-            RecordBatch originalBatch = new RecordBatch.Builder()
+            using RecordBatch originalBatch = new RecordBatch.Builder()
                 .Append("Column1", false, col => col.Int32(array => array.AppendRange(Enumerable.Range(0, 10)))).Build();
             DataFrame df = DataFrame.FromArrowRecordBatch(originalBatch);
             Assert.Equal(1, df.Columns["Column1"][1]);
@@ -176,7 +187,7 @@ namespace Microsoft.Data.Analysis.Tests
             // 1. Data + Empty null bitmaps
             // 2. Empty Data + Null bitmaps
             // 3. Empty Data + Empty null bitmaps
-            RecordBatch originalBatch = new RecordBatch.Builder()
+            using RecordBatch originalBatch = new RecordBatch.Builder()
                 .Append("EmptyNullBitMapColumn", false, col => col.Int32(array => array.AppendRange(Enumerable.Range(0, 10))))
                 .Append("EmptyDataColumn", true, new Int32Array(
                     valueBuffer: ArrowBuffer.Empty,
@@ -200,7 +211,7 @@ namespace Microsoft.Data.Analysis.Tests
                 Assert.Null(df.Columns["EmptyDataColumn"][i]);
             }
 
-            RecordBatch batch1 = new RecordBatch.Builder()
+            using RecordBatch batch1 = new RecordBatch.Builder()
                 .Append("EmptyDataAndNullColumns", false, col => col.Int32(array => array.Clear())).Build();
             DataFrame emptyDataFrame = DataFrame.FromArrowRecordBatch(batch1);
             Assert.Equal(0, emptyDataFrame.Rows.Count);
@@ -213,7 +224,7 @@ namespace Microsoft.Data.Analysis.Tests
         {
             // Arrow allocates buffers of length 64 by default. 64 * 8 = 512 bits in the NullBitMapBuffer. Anything lesser than 512 will not trigger a throw
             Int32Array int32 = new Int32Array.Builder().AppendRange(Enumerable.Range(0, 520)).Build();
-            RecordBatch originalBatch = new RecordBatch.Builder()
+            using RecordBatch originalBatch = new RecordBatch.Builder()
                 .Append("EmptyDataColumn", true, new Int32Array(
                     valueBuffer: int32.ValueBuffer,
                     nullBitmapBuffer: new ArrowBuffer.Builder<byte>().Append(0x00).Build(),

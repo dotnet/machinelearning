@@ -15,12 +15,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.TestFramework;
 using Xunit;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public partial class DataFrameColumnTests
+    public partial class DataFrameColumnTests : BaseTestClass
     {
+        public DataFrameColumnTests(ITestOutputHelper output) : base(output)
+        {
+        }
 <# 
 bool supportedInPlace(string type1, string type2)
 {

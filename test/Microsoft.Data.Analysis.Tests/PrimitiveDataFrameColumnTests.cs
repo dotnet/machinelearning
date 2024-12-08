@@ -4,13 +4,19 @@
 
 using System;
 using System.Linq;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public class PrimitiveDataFrameColumnTests
+    public class PrimitiveDataFrameColumnTests : BaseTestClass
     {
+        public PrimitiveDataFrameColumnTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [X64Fact("32-bit doesn't allow to allocate more than 2 Gb")]
         public void TestGetterAndSetterForColumnsGreaterThanMaxCapacity()
         {
@@ -484,6 +490,8 @@ namespace Microsoft.Data.Analysis.Tests
             intColumn.AppendMany(5, 10);
 
             Assert.Equal(MaxCapacityInBytes + 5, intColumn.Length);
+
+            intColumn = null;
         }
 
         [Fact]
