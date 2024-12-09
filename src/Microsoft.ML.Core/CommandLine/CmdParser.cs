@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 
@@ -2014,6 +2015,10 @@ namespace Microsoft.ML.CommandLine
                 {
                     var buffer = new StringBuilder();
                     sb.Append(GetString(env, value, buffer));
+                }
+                else if (value is Data.InternalDataKind kind)
+                {
+                    sb.Append(kind.GetString());
                 }
                 else
                     sb.Append(value.ToString());

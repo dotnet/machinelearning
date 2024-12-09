@@ -8,11 +8,13 @@ using System.Linq;
 using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public partial class DataFrameTests
+    public partial class DataFrameTests : BaseTestClass
     {
         [Fact]
         public void TestIndexer()

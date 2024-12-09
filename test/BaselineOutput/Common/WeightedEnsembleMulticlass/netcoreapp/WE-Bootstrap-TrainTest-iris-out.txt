@@ -41,25 +41,25 @@ Beginning training model 7 of 20
 Beginning optimization
 num vars: 15
 improvement criterion: Mean Improvement
-L1 regularization selected 12 of 15 weights.
+L1 regularization selected 11 of 15 weights.
 Trainer 7 of 20 finished in %Time%
 Beginning training model 8 of 20
 Beginning optimization
 num vars: 15
 improvement criterion: Mean Improvement
-L1 regularization selected 13 of 15 weights.
+L1 regularization selected 11 of 15 weights.
 Trainer 8 of 20 finished in %Time%
 Beginning training model 9 of 20
 Beginning optimization
 num vars: 15
 improvement criterion: Mean Improvement
-L1 regularization selected 12 of 15 weights.
+L1 regularization selected 11 of 15 weights.
 Trainer 9 of 20 finished in %Time%
 Beginning training model 10 of 20
 Beginning optimization
 num vars: 15
 improvement criterion: Mean Improvement
-L1 regularization selected 11 of 15 weights.
+L1 regularization selected 12 of 15 weights.
 Trainer 10 of 20 finished in %Time%
 Beginning training model 11 of 20
 Beginning optimization
@@ -77,7 +77,7 @@ Beginning training model 13 of 20
 Beginning optimization
 num vars: 15
 improvement criterion: Mean Improvement
-L1 regularization selected 10 of 15 weights.
+L1 regularization selected 12 of 15 weights.
 Trainer 13 of 20 finished in %Time%
 Beginning training model 14 of 20
 Beginning optimization
@@ -101,7 +101,7 @@ Beginning training model 17 of 20
 Beginning optimization
 num vars: 15
 improvement criterion: Mean Improvement
-L1 regularization selected 11 of 15 weights.
+L1 regularization selected 10 of 15 weights.
 Trainer 17 of 20 finished in %Time%
 Beginning training model 18 of 20
 Beginning optimization
@@ -134,15 +134,15 @@ TRUTH     ||========================
 Precision ||1.0000 |0.9184 |0.9020 |
 Accuracy(micro-avg): 0.940000
 Accuracy(macro-avg): 0.940000
-Log-loss:           0.435613
-Log-loss reduction: 0.603488
+Log-loss:           0.435078
+Log-loss reduction: 0.603975
 
 OVERALL RESULTS
 ---------------------------------------
 Accuracy(micro-avg): 0.940000 (0.0000)
 Accuracy(macro-avg): 0.940000 (0.0000)
-Log-loss:           0.435613 (0.0000)
-Log-loss reduction: 0.603488 (0.0000)
+Log-loss:           0.435078 (0.0000)
+Log-loss reduction: 0.603975 (0.0000)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

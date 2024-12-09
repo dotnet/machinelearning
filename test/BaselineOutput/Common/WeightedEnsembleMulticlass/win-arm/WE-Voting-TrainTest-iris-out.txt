@@ -11,7 +11,7 @@ Beginning training model 2 of 5
 Beginning optimization
 num vars: 15
 improvement criterion: Mean Improvement
-L1 regularization selected 11 of 15 weights.
+L1 regularization selected 12 of 15 weights.
 Trainer 2 of 5 finished in %Time%
 Beginning training model 3 of 5
 Beginning optimization

@@ -8,12 +8,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Apache.Arrow;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public partial class DataFrameTests
+    public partial class DataFrameTests : BaseTestClass
     {
+        public DataFrameTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TestBinaryOperations()
         {
@@ -244,7 +250,7 @@ namespace Microsoft.Data.Analysis.Tests
             {
                 strArrayBuilder.Append(i.ToString());
             }
-            StringArray strArray = strArrayBuilder.Build();
+            using StringArray strArray = strArrayBuilder.Build();
 
             ArrowStringDataFrameColumn stringColumn = new ArrowStringDataFrameColumn("String", strArray.ValueBuffer.Memory, strArray.ValueOffsetsBuffer.Memory, strArray.NullBitmapBuffer.Memory, strArray.Length, strArray.NullCount);
             df.Columns.Insert(0, stringColumn);
