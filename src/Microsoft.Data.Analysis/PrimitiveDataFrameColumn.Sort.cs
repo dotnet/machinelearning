@@ -18,7 +18,7 @@ namespace Microsoft.Data.Analysis
             return (PrimitiveDataFrameColumn<T>)base.Sort(ascending, putNullValuesLast);
         }
 
-        internal override PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending = true, bool putNullValuesLast = true)
+        protected internal override PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending = true, bool putNullValuesLast = true)
         {
             var comparer = Comparer<T>.Default;
 

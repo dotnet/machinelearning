@@ -384,6 +384,6 @@ namespace Microsoft.Data.Analysis
             return Clone();
         }
 
-        internal override PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending, bool putNullValuesLast) => throw new NotImplementedException();
+        protected internal override PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending, bool putNullValuesLast) => throw new NotImplementedException();
     }
 }
