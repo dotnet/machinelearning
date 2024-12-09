@@ -123,6 +123,10 @@
       <MacFilesToCopy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('arm64'))">/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
     </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.DotNet.Build.Tasks.Templating" Version="$(MicrosoftDotNetBuildTasksTemplatingVersion)" PrivateAssets="All" />
+  </ItemGroup>
+
     <!-- Copy libiomp5.dylib and libomp.dylib to the publish folders for OSX-->
     <Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
       SourceFiles = "$(MacFilesToCopy)"
