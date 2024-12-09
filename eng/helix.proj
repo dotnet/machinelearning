@@ -115,8 +115,8 @@
       <RunTestScript Condition="'$(OS)' != 'Windows_NT'">runTests.sh</RunTestScript>
       <RunTestScript Condition="'$(OS)' == 'Windows_NT'">./runTests.cmd</RunTestScript>
 
-      <RunCommand>dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
-      <RunCommand Condition="$(TestTargetFramework.EndsWith('net462')) And %(ProjectsWithTargetFramework.TargetFrameworks) != 'net8.0'">$(HelixCorrelationPayloadPath)/xunit-runner/tools/net462/xunit.console.exe %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+      <RunCommand>dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</RunCommand>
+      <RunCommand Condition="$(TestTargetFramework.EndsWith('net462')) And %(ProjectsWithTargetFramework.TargetFrameworks) != 'net8.0'">$(HelixCorrelationPayloadPath)/xunit-runner/tools/net462/xunit.console.exe %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</RunCommand>
         
 
       <MacFilesToCopy>/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
