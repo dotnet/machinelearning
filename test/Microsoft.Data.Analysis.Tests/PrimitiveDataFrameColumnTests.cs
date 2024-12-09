@@ -490,8 +490,6 @@ namespace Microsoft.Data.Analysis.Tests
             intColumn.AppendMany(5, 10);
 
             Assert.Equal(MaxCapacityInBytes + 5, intColumn.Length);
-
-            intColumn = null;
         }
 
         [Fact]

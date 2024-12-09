@@ -112,6 +112,13 @@
       <HelixCorrelationPayloadPath Condition="$(IsPosixShell)">$HELIX_CORRELATION_PAYLOAD</HelixCorrelationPayloadPath>
       <HelixCorrelationPayloadPath Condition="!$(IsPosixShell)">%HELIX_CORRELATION_PAYLOAD%</HelixCorrelationPayloadPath>
 
+      <RunTestScript Condition="'$(OS)' != 'Windows_NT'">runTests.sh</RunTestScript>
+      <RunTestScript Condition="'$(OS)' == 'Windows_NT'">./runTests.cmd</RunTestScript>
+
+      <RunCommand>dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+      <RunCommand Condition="$(TestTargetFramework.EndsWith('net462')) And %(ProjectsWithTargetFramework.TargetFrameworks) != 'net8.0'">$(HelixCorrelationPayloadPath)/xunit-runner/tools/net462/xunit.console.exe %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+        
+
       <MacFilesToCopy>/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
       <MacFilesToCopy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('arm64'))">/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
     </PropertyGroup>
@@ -150,17 +157,16 @@
     <Delete Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))"
       Files="@(WindowsFiles);@(OsxFiles)" />
 
-    <PropertyGroup>
-      <HelixPostCommands Condition="$(IsPosixShell)">$(HelixPostCommands);tar -czvf $HELIX_WORKITEM_UPLOAD_ROOT/TestOutput.tar.gz  $HELIX_WORKITEM_ROOT/TestOutput </HelixPostCommands>
-      <HelixPostCommands Condition="!$(IsPosixShell)">$(HelixPostCommands);powershell Compress-Archive %HELIX_WORKITEM_ROOT%\TestOutput %HELIX_WORKITEM_UPLOAD_ROOT%\TestOutput.zip</HelixPostCommands>
-    </PropertyGroup>
+    <GenerateFileFromTemplate TemplateFile="$(MSBuildThisFileDirectory)testing\$(RunTestScript)"
+        OutputPath="$(TargetDir)$(RunTestScript)"
+        Properties="runCommand=$(RunCommand)" />
 
     <ItemGroup>
       <HelixWorkItem Include="%(ProjectsWithTargetFramework.Filename)">
         <PayloadDirectory>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\</PayloadDirectory>
         <PayloadDirectory Condition="%(ProjectsWithTargetFramework.TargetFrameworks) == 'net462'">$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\win-x64</PayloadDirectory>
-        <Command>dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
-        <Command Condition="$(TestTargetFramework.EndsWith('net462')) And %(ProjectsWithTargetFramework.TargetFrameworks) != 'net8.0'">$(HelixCorrelationPayloadPath)/xunit-runner/tools/net462/xunit.console.exe %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+        <Command  Condition="'$(OS)' != 'Windows_NT'">./$(RunTestScript)</Command>
+        <Command  Condition="'$(OS)' == 'Windows_NT'">call $(RunTestScript)</Command>
         <Timeout>01:00:00</Timeout>
         <Timeout Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">00:30:00</Timeout>
         <Timeout Condition="'$(WorkItemTimeout)' != ''">$(WorkItemTimeout)</Timeout>
