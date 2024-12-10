@@ -11,7 +11,7 @@ Beginning training model 2 of 5
 Beginning optimization
 num vars: 15
 improvement criterion: Mean Improvement
-L1 regularization selected 11 of 15 weights.
+L1 regularization selected 12 of 15 weights.
 Trainer 2 of 5 finished in %Time%
 Beginning training model 3 of 5
 Beginning optimization
@@ -44,15 +44,15 @@ TRUTH     ||========================
 Precision ||1.0000 |0.9375 |0.9038 |
 Accuracy(micro-avg): 0.946667
 Accuracy(macro-avg): 0.946667
-Log-loss:           0.433321
-Log-loss reduction: 0.605574
+Log-loss:           0.433342
+Log-loss reduction: 0.605555
 
 OVERALL RESULTS
 ---------------------------------------
 Accuracy(micro-avg): 0.946667 (0.0000)
 Accuracy(macro-avg): 0.946667 (0.0000)
-Log-loss:           0.433321 (0.0000)
-Log-loss reduction: 0.605574 (0.0000)
+Log-loss:           0.433342 (0.0000)
+Log-loss reduction: 0.605555 (0.0000)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

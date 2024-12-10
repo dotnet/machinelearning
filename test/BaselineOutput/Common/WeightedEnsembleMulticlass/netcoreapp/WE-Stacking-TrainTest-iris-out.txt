@@ -23,13 +23,13 @@ Beginning training model 4 of 5
 Beginning optimization
 num vars: 15
 improvement criterion: Mean Improvement
-L1 regularization selected 12 of 15 weights.
+L1 regularization selected 11 of 15 weights.
 Trainer 4 of 5 finished in %Time%
 Beginning training model 5 of 5
 Beginning optimization
 num vars: 15
 improvement criterion: Mean Improvement
-L1 regularization selected 13 of 15 weights.
+L1 regularization selected 11 of 15 weights.
 Trainer 5 of 5 finished in %Time%
 The number of instances used for stacking trainer is 43
 Warning: The trainer specified for stacking wants normalization, but we do not currently allow this.
@@ -50,15 +50,15 @@ TRUTH     ||========================
 Precision ||1.0000 |1.0000 |0.7692 |
 Accuracy(micro-avg): 0.900000
 Accuracy(macro-avg): 0.900000
-Log-loss:           0.430568
-Log-loss reduction: 0.608080
+Log-loss:           0.431318
+Log-loss reduction: 0.607397
 
 OVERALL RESULTS
 ---------------------------------------
 Accuracy(micro-avg): 0.900000 (0.0000)
 Accuracy(macro-avg): 0.900000 (0.0000)
-Log-loss:           0.430568 (0.0000)
-Log-loss reduction: 0.608080 (0.0000)
+Log-loss:           0.431318 (0.0000)
+Log-loss reduction: 0.607397 (0.0000)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

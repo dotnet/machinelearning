@@ -6,12 +6,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public class DataFrameGroupByTests
+    public class DataFrameGroupByTests : BaseTestClass
     {
+        public DataFrameGroupByTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TestGroupingWithTKeyTypeofString()
         {

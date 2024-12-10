@@ -25,6 +25,7 @@ namespace Microsoft.ML.Internal.Internallearn.Test
             var prev = Contracts.SetAssertHandler(AssertHandler);
             Contracts.Check(prev == null, "Expected to replace null assertion handler!");
 
+#if !SKIP_MKL
             // Only do this for x86/x64. This will cause crashes in places IntelMKL is not supported.
             if (RuntimeInformation.ProcessArchitecture == Architecture.X64 || RuntimeInformation.ProcessArchitecture == Architecture.X86)
             {
@@ -36,6 +37,7 @@ namespace Microsoft.ML.Internal.Internallearn.Test
                 // See https://github.com/dotnet/machinelearning/issues/1073
                 Mkl.PptrfInternal(Mkl.Layout.RowMajor, Mkl.UpLo.Up, 0, Array.Empty<double>());
             }
+#endif
         }
 
         private static class Mkl

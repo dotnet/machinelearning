@@ -9,12 +9,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public partial class DataFrameColumnTests
+    public partial class DataFrameColumnTests : BaseTestClass
     {
+        public DataFrameColumnTests(ITestOutputHelper output) : base(output)
+        {
+        }
         [Fact]
         public void AddByteDataFrameColumnToByteDataFrameColumn()
         {

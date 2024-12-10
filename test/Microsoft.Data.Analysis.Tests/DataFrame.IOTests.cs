@@ -17,11 +17,17 @@ using Microsoft.ML.TestFramework.Attributes;
 using System.Threading;
 using Microsoft.ML.Data;
 using System.Threading.Tasks;
+using Xunit.Abstractions;
+using Microsoft.ML.TestFramework;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public class DataFrameIOTests
+    public class DataFrameIOTests : BaseTestClass
     {
+        public DataFrameIOTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         internal static void VerifyColumnTypes(DataFrame df, bool testArrowStringColumn = false)
         {
             foreach (DataFrameColumn column in df.Columns)

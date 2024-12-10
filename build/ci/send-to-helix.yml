@@ -22,6 +22,8 @@ parameters:
 steps:
   - script: ${{ parameters.MsBuildScript}}
             $(Build.SourcesDirectory)/eng/helix.proj
+            /t:Restore
+            /t:CreateHelixWorkItems
             /t:Test
             /bl:$(Build.SourcesDirectory)/artifacts/log/${{ parameters.Configuration }}/SendToHelix.binlog
             /p:Configuration=${{ parameters.Configuration }}

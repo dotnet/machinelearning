@@ -5,9 +5,9 @@ num vars: 15
 improvement criterion: Mean Improvement
 L1 regularization selected 11 of 15 weights.
 Model trained with 150 training examples.
-Residual Deviance: 	132.25266
+Residual Deviance: 	132.04128
 Null Deviance:    	329.58368
-AIC:              	154.25266
+AIC:              	154.04128
 Not training a calibrator because it is not needed.
 Physical memory usage(MB): %Number%
 Virtual memory usage(MB): %Number%

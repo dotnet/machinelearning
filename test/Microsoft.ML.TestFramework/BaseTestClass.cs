@@ -27,9 +27,6 @@ namespace Microsoft.ML.TestFramework
 
         static BaseTestClass()
         {
-            // specific to use tls 1.2 as https://aka.ms/mlnet-resources/ only accpets tls 1.2 or newer
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
             AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
             {
                 // Write to stdout because stderr does not show up in the test output
@@ -93,7 +90,9 @@ namespace Microsoft.ML.TestFramework
         }
 
         protected static string RootDir { get; }
+
         protected string OutDir { get; }
+
         protected static string DataDir { get; }
 
         protected ITestOutputHelper Output { get; }
@@ -104,6 +103,7 @@ namespace Microsoft.ML.TestFramework
                 return null;
             return Path.GetFullPath(Path.Combine(DataDir, name));
         }
+
         public static string GetDataPath(string subDir, string name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -115,14 +115,17 @@ namespace Microsoft.ML.TestFramework
         {
             return TestCommon.GetOutputPath(OutDir, name);
         }
+
         protected string GetOutputPath(string subDir, string name)
         {
             return TestCommon.GetOutputPath(OutDir, subDir, name);
         }
+
         protected string DeleteOutputPath(string subDir, string name)
         {
             return TestCommon.DeleteOutputPath(OutDir, subDir, name);
         }
+
         protected string DeleteOutputPath(string name)
         {
             return TestCommon.DeleteOutputPath(OutDir, name);
