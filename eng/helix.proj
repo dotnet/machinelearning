@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.DotNet.Helix.Sdk" InitialTargets="CreateHelixWorkItems">
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" >
   <Choose>
     <When Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('windows'))">
     <PropertyGroup>
@@ -89,7 +89,7 @@
       <Destination>test\BaselineOutput</Destination>
     </HelixCorrelationPayload>
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.Build.Tasks.Templating" Version="$(MicrosoftDotNetBuildTasksTemplatingVersion)" PrivateAssets="All" />
   </ItemGroup>
