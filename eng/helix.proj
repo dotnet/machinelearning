@@ -109,7 +109,7 @@
       <HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export PATH=$HELIX_CORRELATION_PAYLOAD/$(DotNetCliDestination):$PATH</HelixPreCommands>
       <HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set PATH=%HELIX_CORRELATION_PAYLOAD%\$(DotNetCliDestination)%3B%PATH%</HelixPreCommands> 
 
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);export LD_LIBRARY_PATH=/opt/homebrew/opt/mono-libgdiplus/lib;ls /usr/lib;ls $HELIX_WORKITEM_ROOT;export KMP_DUPLICATE_LIB_OK=TRUE;export DYLD_PRINT_LIBRARIES=1;otool -L $HELIX_WORKITEM_ROOT/runtimes/osx-x64/native/lib_lightgbm.dylib</HelixPreCommands>
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);export LD_LIBRARY_PATH=/opt/homebrew/opt/mono-libgdiplus/lib;ls /usr/lib;ls $HELIX_WORKITEM_ROOT;export KMP_DUPLICATE_LIB_OK=TRUE;otool -L $HELIX_WORKITEM_ROOT/runtimes/osx-x64/native/lib_lightgbm.dylib</HelixPreCommands>
 
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('armarch'))">$(HelixPreCommands);sudo apt update;sudo apt-get install libomp-dev libomp5 -y</HelixPreCommands>
 
@@ -125,6 +125,10 @@
 
       <MacFilesToCopy>/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
       <MacFilesToCopy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('arm64'))">/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
+
+      <GenerateFileFromTemplate TemplateFile="$(MSBuildThisFileDirectory)testing\$(RunTestScript)"
+        OutputPath="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\$(RunTestScript)"
+        Properties="runCommand=$(RunCommand)" />
     </PropertyGroup>
 
     <!-- Copy libiomp5.dylib and libomp.dylib to the publish folders for OSX-->
@@ -160,10 +164,6 @@
 
     <Delete Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('ubuntu'))"
       Files="@(WindowsFiles);@(OsxFiles)" />
-
-    <GenerateFileFromTemplate TemplateFile="$(MSBuildThisFileDirectory)testing\$(RunTestScript)"
-        OutputPath="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\$(RunTestScript)"
-        Properties="runCommand=$(RunCommand)" />
 
     <ItemGroup>
       <HelixWorkItem Include="%(ProjectsWithTargetFramework.Filename)">
