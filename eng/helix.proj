@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.DotNet.Helix.Sdk" InitialTargets="CreateHelixWorkItems">
+<Project Sdk="Microsoft.DotNet.Helix.Sdk">
   <Choose>
     <When Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('windows'))">
     <PropertyGroup>
@@ -94,7 +94,7 @@
     <PackageReference Include="Microsoft.DotNet.Build.Tasks.Templating" Version="$(MicrosoftDotNetBuildTasksTemplatingVersion)" PrivateAssets="All" />
   </ItemGroup>
 
-  <Target Name="CreateHelixWorkItems">
+  <Target Name="CreateHelixWorkItems" BeforeTargets="BeforeTest">
     <MSBuild Projects="@(MyProjects)"
       Targets="GetTargetFrameworks"
       BuildInParallel="$(BuildInParallel)"
