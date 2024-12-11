@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.DotNet.Helix.Sdk" >
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" InitialTargets="CreateHelixWorkItems">
   <Choose>
     <When Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('windows'))">
     <PropertyGroup>
