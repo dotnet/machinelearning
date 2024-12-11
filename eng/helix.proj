@@ -162,7 +162,7 @@
       Files="@(WindowsFiles);@(OsxFiles)" />
 
     <GenerateFileFromTemplate TemplateFile="$(MSBuildThisFileDirectory)testing\$(RunTestScript)"
-        OutputPath="$(TargetDir)$(RunTestScript)"
+        OutputPath="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\$(RunTestScript)"
         Properties="runCommand=$(RunCommand)" />
 
     <ItemGroup>
