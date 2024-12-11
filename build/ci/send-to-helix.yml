@@ -38,7 +38,7 @@ steps:
             /p:HelixBaseUri=${{ parameters.HelixBaseUri }}
             ${{ parameters.WarnAsError }}
             ${{ parameters.TestTargetFramework }}
-    displayName: Helix Restore
+    displayName: "Helix Restore"
     env:
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       Creator: ${{ parameters.Creator }}
