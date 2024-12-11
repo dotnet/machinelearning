@@ -20,7 +20,7 @@ parameters:
   condition: succeeded()                 # optional -- condition for step to execute; defaults to succeeded()
 
 steps:
-- script: ${{ parameters.MsBuildScript}}
+  - script: ${{ parameters.MsBuildScript}}
             $(Build.SourcesDirectory)/eng/helix.proj
             /t:Restore
             /bl:$(Build.SourcesDirectory)/artifacts/log/${{ parameters.Configuration }}/SendToHelix.binlog
