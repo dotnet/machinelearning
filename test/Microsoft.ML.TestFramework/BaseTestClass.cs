@@ -22,6 +22,7 @@ namespace Microsoft.ML.TestFramework
     {
         public string TestName { get; set; }
         public string FullTestName { get; set; }
+        public bool GcAfterTests { get; set; }
 
         public ChannelMessageKind MessageKindToLog;
 
@@ -38,7 +39,7 @@ namespace Microsoft.ML.TestFramework
             DataDir = Path.Combine(RootDir, "test", "data");
         }
 
-        public BaseTestClass(ITestOutputHelper output)
+        public BaseTestClass(ITestOutputHelper output, bool gcAfterTests = false)
         {
             //This locale is currently set for tests only so that the produced output
             //files can be compared on systems with other locales to give set of known
@@ -60,6 +61,7 @@ namespace Microsoft.ML.TestFramework
             ITest test = (ITest)output.GetType().GetField("test", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(output);
             FullTestName = test.TestCase.TestMethod.TestClass.Class.Name + "." + test.TestCase.TestMethod.Method.Name;
             TestName = test.TestCase.TestMethod.Method.Name;
+            GcAfterTests = gcAfterTests;
 
             MessageKindToLog = ChannelMessageKind.Error;
             var attributes = test.TestCase.TestMethod.Method.GetCustomAttributes(typeof(LogMessageKind));
@@ -87,6 +89,8 @@ namespace Microsoft.ML.TestFramework
 
         protected virtual void Cleanup()
         {
+            if (GcAfterTests)
+                GC.Collect(2, GCCollectionMode.Forced, true);
         }
 
         protected static string RootDir { get; }
