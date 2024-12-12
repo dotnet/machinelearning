@@ -118,6 +118,7 @@
 
       <RunTestScript Condition="'$(OS)' != 'Windows_NT'">runTests.sh</RunTestScript>
       <RunTestScript Condition="'$(OS)' == 'Windows_NT'">./runTests.cmd</RunTestScript>
+      <RunTestScript Condition="'$(OS)' == 'Windows_NT' AND $(TestTargetFramework.EndsWith('net462')) AND %(ProjectsWithTargetFramework.TargetFrameworks) != 'net8.0'">runTests.cmd</RunTestScript>
 
       <MacFilesToCopy>/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
       <MacFilesToCopy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('arm64'))">/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
