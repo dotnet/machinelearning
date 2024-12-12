@@ -11,59 +11,65 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// The common context for all ML.NET operations. Once instantiated by the user, it provides a way to
+    /// Represents the common context for all ML.NET operations.
+    /// </summary>
+    /// <remarks>
+    /// Once instantiated by the user, this class provides a way to
     /// create components for data preparation, feature engineering, training, prediction, and model evaluation.
     /// It also allows logging, execution control, and the ability to set repeatable random numbers.
-    /// </summary>
+    /// </remarks>
     public sealed class MLContext : IHostEnvironmentInternal
     {
         // REVIEW: consider making LocalEnvironment and MLContext the same class instead of encapsulation.
         private readonly LocalEnvironment _env;
 
         /// <summary>
-        /// Trainers and tasks specific to binary classification problems.
+        /// Gets the trainers and tasks specific to binary classification problems.
         /// </summary>
         public BinaryClassificationCatalog BinaryClassification { get; }
+
         /// <summary>
-        /// Trainers and tasks specific to multiclass classification problems.
+        /// Gets the trainers and tasks specific to multiclass classification problems.
         /// </summary>
         public MulticlassClassificationCatalog MulticlassClassification { get; }
+
         /// <summary>
-        /// Trainers and tasks specific to regression problems.
+        /// Gets the trainers and tasks specific to regression problems.
         /// </summary>
         public RegressionCatalog Regression { get; }
+
         /// <summary>
-        /// Trainers and tasks specific to clustering problems.
+        /// Gets the trainers and tasks specific to clustering problems.
         /// </summary>
         public ClusteringCatalog Clustering { get; }
 
         /// <summary>
-        /// Trainers and tasks specific to ranking problems.
+        /// Gets the trainers and tasks specific to ranking problems.
         /// </summary>
         public RankingCatalog Ranking { get; }
 
         /// <summary>
-        /// Trainers and tasks specific to anomaly detection problems.
+        /// Gets the trainers and tasks specific to anomaly detection problems.
         /// </summary>
         public AnomalyDetectionCatalog AnomalyDetection { get; }
 
         /// <summary>
-        /// Trainers and tasks specific to forecasting problems.
+        /// Gets the trainers and tasks specific to forecasting problems.
         /// </summary>
         public ForecastingCatalog Forecasting { get; }
 
         /// <summary>
-        /// Data processing operations.
+        /// Gets the data processing operations.
         /// </summary>
         public TransformsCatalog Transforms { get; }
 
         /// <summary>
-        /// Operations with trained models.
+        /// Gets the operations with trained models.
         /// </summary>
         public ModelOperationsCatalog Model { get; }
 
         /// <summary>
-        /// Data loading and saving.
+        /// Gets the data loading and saving operations.
         /// </summary>
         public DataOperationsCatalog Data { get; }
 
@@ -71,12 +77,12 @@ namespace Microsoft.ML
         // and expand if and when necessary. Exposing classes like ChannelMessage, MessageSensitivity and so on
         // looks premature at this point.
         /// <summary>
-        /// The handler for the log messages.
+        /// Represents the callback method that will handle the log messages.
         /// </summary>
         public event EventHandler<LoggingEventArgs> Log;
 
         /// <summary>
-        /// This is a catalog of components that will be used for model loading.
+        /// Gets the catalog of components that will be used for model loading.
         /// </summary>
         public ComponentCatalog ComponentCatalog => _env.ComponentCatalog;
 
@@ -90,7 +96,8 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Allow falling back to run on CPU if couldn't run on GPU.
+        /// Gets or sets a value that indicates whether the CPU will
+        /// be used if the task couldn't run on GPU.
         /// </summary>
         public bool FallbackToCpu
         {
@@ -99,7 +106,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// GPU device ID to run execution on, <see langword="null" /> to run on CPU.
+        /// Gets or sets the GPU device ID to run execution on, <see langword="null" /> to run on CPU.
         /// </summary>
         public int? GpuDeviceId
         {
@@ -120,17 +127,17 @@ namespace Microsoft.ML
         ///
         /// If a fixed seed is provided by <paramref name="seed"/>, MLContext environment becomes
         /// deterministic, meaning that the results are repeatable and will remain the same across multiple runs.
-        /// For instance in many of ML.NET's API reference example code snippets, a seed is provided.
+        /// For instance, in many of ML.NET's API reference example code snippets, a seed is provided.
         /// That's because we want the users to get the same output as what's included in example comments,
         /// when they run the example on their own machine.
         ///
         /// Generally though, repeatability is not a requirement and that's the default behavior.
-        /// If a seed is not provided by <paramref name="seed"/>, i.e. it's set to <see langword="null"/>,
+        /// If a seed is not provided by <paramref name="seed"/>, that is, it's set to <see langword="null"/>,
         /// MLContext environment becomes non-deterministic and outputs change across multiple runs.
         ///
         /// There are many operations in ML.NET that don't use any randomness, such as
-        /// min-max normalization, concatenating columns, missing value indication, etc.
-        /// The behavior of those operations are deterministic regardless of the seed value.
+        /// min-max normalization, concatenating columns, and missing value indication.
+        /// The behavior of those operations is deterministic regardless of the seed value.
         ///
         /// Also ML.NET trainers don't use randomness *after* the training is finished.
         /// So, the predictions from a loaded model don't depend on the seed value.
