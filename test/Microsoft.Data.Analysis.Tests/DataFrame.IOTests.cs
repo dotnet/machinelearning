@@ -24,7 +24,7 @@ namespace Microsoft.Data.Analysis.Tests
 {
     public class DataFrameIOTests : BaseTestClass
     {
-        public DataFrameIOTests(ITestOutputHelper output) : base(output)
+        public DataFrameIOTests(ITestOutputHelper output) : base(output, true)
         {
         }
 

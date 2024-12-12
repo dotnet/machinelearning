@@ -18,7 +18,7 @@ namespace Microsoft.Data.Analysis.Tests
 {
     public class ArrowIntegrationTests : BaseTestClass
     {
-        public ArrowIntegrationTests(ITestOutputHelper output) : base(output)
+        public ArrowIntegrationTests(ITestOutputHelper output) : base(output, true)
         {
         }
 

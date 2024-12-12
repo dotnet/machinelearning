@@ -18,7 +18,7 @@ namespace Microsoft.Data.Analysis.Tests
 {
     public class VBufferColumnTests : BaseTestClass
     {
-        public VBufferColumnTests(ITestOutputHelper output) : base(output)
+        public VBufferColumnTests(ITestOutputHelper output) : base(output, true)
         {
         }
 

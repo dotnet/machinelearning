@@ -13,7 +13,7 @@ namespace Microsoft.Data.Analysis.Tests
 {
     public class PrimitiveDataFrameColumnTests : BaseTestClass
     {
-        public PrimitiveDataFrameColumnTests(ITestOutputHelper output) : base(output)
+        public PrimitiveDataFrameColumnTests(ITestOutputHelper output) : base(output, true)
         {
         }
 

@@ -16,7 +16,7 @@ namespace Microsoft.Data.Analysis.Tests
 {
     public class ArrowStringColumnTests : BaseTestClass
     {
-        public ArrowStringColumnTests(ITestOutputHelper output) : base(output)
+        public ArrowStringColumnTests(ITestOutputHelper output) : base(output, true)
         {
         }
 

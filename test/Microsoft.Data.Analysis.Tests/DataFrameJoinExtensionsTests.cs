@@ -12,7 +12,7 @@ namespace Microsoft.Data.Analysis.Tests
 {
     public class DataFrameJoinExtensionsTests : BaseTestClass
     {
-        public DataFrameJoinExtensionsTests(ITestOutputHelper output) : base(output)
+        public DataFrameJoinExtensionsTests(ITestOutputHelper output) : base(output, true)
         {
         }
 

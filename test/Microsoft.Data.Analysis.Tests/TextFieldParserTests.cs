@@ -13,7 +13,7 @@ namespace Microsoft.Data.Analysis.Tests
 {
     public class TextFieldParserTests : BaseTestClass
     {
-        public TextFieldParserTests(ITestOutputHelper output) : base(output)
+        public TextFieldParserTests(ITestOutputHelper output) : base(output, true)
         {
         }
 

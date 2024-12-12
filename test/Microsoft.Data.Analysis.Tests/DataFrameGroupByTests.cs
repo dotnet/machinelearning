@@ -14,7 +14,7 @@ namespace Microsoft.Data.Analysis.Tests
 {
     public class DataFrameGroupByTests : BaseTestClass
     {
-        public DataFrameGroupByTests(ITestOutputHelper output) : base(output)
+        public DataFrameGroupByTests(ITestOutputHelper output) : base(output, true)
         {
         }
 

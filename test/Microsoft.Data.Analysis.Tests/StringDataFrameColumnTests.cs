@@ -15,7 +15,7 @@ namespace Microsoft.Data.Analysis.Tests
 {
     public class StringDataFrameColumnTests : BaseTestClass
     {
-        public StringDataFrameColumnTests(ITestOutputHelper output) : base(output)
+        public StringDataFrameColumnTests(ITestOutputHelper output) : base(output, true)
         {
         }
 
