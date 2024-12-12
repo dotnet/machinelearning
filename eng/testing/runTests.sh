@@ -36,15 +36,6 @@ popd
 
 echo ----- end $(date) ----- exit code $test_exitcode ----------------------------------------------------------
 
-
-
-# exitcode_list doesn't exist, but keeping code here for future reference
-# if [[ -n "${exitcode_list[$test_exitcode]}" ]]; then
-#
-#   echo exit code $test_exitcode means ${exitcode_list[$test_exitcode]}
-#
-# fi
-
 # ========================= END Test Execution ===============================
 
 
