@@ -179,7 +179,7 @@
         Properties="runCommand=%(RunCommand.Command)" />
 
     <ItemGroup>
-      <HelixWorkItem Include="%(ProjectsWithTargetFramework.Filename)">
+      <HelixWorkItem Condition="$(TestTargetFramework) == %(ProjectsWithTargetFramework.TargetFrameworks)" Include="%(ProjectsWithTargetFramework.Filename)">
         <PayloadDirectory>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\</PayloadDirectory>
         <PayloadDirectory Condition="%(ProjectsWithTargetFramework.TargetFrameworks) == 'net462'">$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\win-x64</PayloadDirectory>
         <Command  Condition="'$(OS)' != 'Windows_NT'">./$(RunTestScript)</Command>
