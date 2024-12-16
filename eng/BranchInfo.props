@@ -38,5 +38,7 @@
     <MajorVersion>0</MajorVersion>
     <MinorVersion>23</MinorVersion>
     <PatchVersion>0</PatchVersion>
+    <!-- Set baseline version for non-stable packages to check for API Compat -->
+    <PackageValidationBaselineVersion>0.$([MSBuild]::Subtract($(MinorVersion), 1)).0</PackageValidationBaselineVersion>
   </PropertyGroup>
 </Project>
