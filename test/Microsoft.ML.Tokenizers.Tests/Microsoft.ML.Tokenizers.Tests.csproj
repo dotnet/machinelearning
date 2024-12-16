@@ -7,12 +7,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <!-- Import the test signing certificate -->
-  <Import Project="../Cert.props" />
-
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
+
+  <!-- Import the test signing certificate -->
+  <Import Project="../Cert.props" />
 
   <ItemGroup>
     <!-- Tokenizer's data packages -->

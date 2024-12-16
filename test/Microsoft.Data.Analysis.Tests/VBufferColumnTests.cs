@@ -8,14 +8,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
+using Xunit.Abstractions;
 
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public class VBufferColumnTests
+    public class VBufferColumnTests : BaseTestClass
     {
+        public VBufferColumnTests(ITestOutputHelper output) : base(output, true)
+        {
+        }
+
         [Fact]
         public void TestVBufferColumn_Creation()
         {
@@ -61,6 +67,8 @@ namespace Microsoft.Data.Analysis.Tests
             {
                 Assert.Equal(originalValues[i], values[i]);
             }
+
+            vBufferColumn = null;
         }
     }
 }

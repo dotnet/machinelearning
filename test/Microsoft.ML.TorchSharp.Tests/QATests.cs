@@ -26,7 +26,7 @@ namespace Microsoft.ML.TorchSharp.Tests
             public int AnswerIndex;
         }
 
-        [Fact]
+        [Fact(Skip = "Skip in CI build, uses too much memory.")]
         public void TestSimpleQA()
         {
             var dataView = ML.Data.LoadFromEnumerable(

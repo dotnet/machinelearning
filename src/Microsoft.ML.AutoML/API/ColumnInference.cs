@@ -15,7 +15,7 @@ namespace Microsoft.ML.AutoML
     public sealed class ColumnInferenceResults
     {
         /// <summary>
-        /// Inferred <see cref="TextLoader.Options" /> for the dataset.
+        /// Gets the inferred <see cref="TextLoader.Options" /> for the dataset.
         /// </summary>
         /// <remarks>
         /// Can be used to instantiate a new <see cref="TextLoader" /> to load
@@ -25,69 +25,69 @@ namespace Microsoft.ML.AutoML
         public TextLoader.Options TextLoaderOptions { get; internal set; }
 
         /// <summary>
-        /// Information about the inferred columns in the dataset.
+        /// Gets information about the inferred columns in the dataset.
         /// </summary>
         /// <remarks>
         /// <para>Contains the inferred purposes of each column. See <see cref="AutoML.ColumnInformation"/> for more details.</para>
-        /// <para>This can be fed to the AutoML API when running an experiment.
-        /// See <typeref cref="ExperimentBase{TMetrics, TExperimentSettings}.Execute(IDataView, ColumnInformation, IEstimator{ITransformer}, System.IProgress{RunDetail{TMetrics}})" />
-        /// for example.</para>
+        /// <para>This value can be fed to the AutoML API when running an experiment.
+        /// See <see cref="ExperimentBase{TMetrics, TExperimentSettings}.Execute(IDataView, ColumnInformation, IEstimator{ITransformer}, System.IProgress{RunDetail{TMetrics}})" />, for example.</para>
         /// </remarks>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include)]
         public ColumnInformation ColumnInformation { get; internal set; }
     }
 
     /// <summary>
-    /// Information about the columns in a dataset.
+    /// Provides information about the columns in a dataset.
     /// </summary>
     /// <remarks>
     /// <para>Contains information about the purpose of each column in the dataset. For instance,
     /// it enumerates the dataset columns that AutoML should treat as categorical,
     /// the columns AutoML should ignore, which column is the label, etc.</para>
     /// <para><see cref="ColumnInformation"/> can be fed to the AutoML API when running an experiment.
-    /// See <typeref cref="ExperimentBase{TMetrics, TExperimentSettings}.Execute(IDataView, ColumnInformation, IEstimator{ITransformer}, System.IProgress{RunDetail{TMetrics}})" />
-    /// for example.</para>
+    /// See <see cref="ExperimentBase{TMetrics, TExperimentSettings}.Execute(IDataView, ColumnInformation, IEstimator{ITransformer}, System.IProgress{RunDetail{TMetrics}})" />, for example.</para>
     /// </remarks>
     public sealed class ColumnInformation
     {
         /// <summary>
-        /// The dataset column to use as the label.
+        /// Gets or sets the dataset column to use as the label.
         /// </summary>
         /// <value>The default value is "Label".</value>
         public string LabelColumnName { get; set; }
 
         /// <summary>
-        /// The dataset column to use as a user ID for computation.
+        /// Gets or sets the dataset column to use as a user ID for computation.
         /// </summary>
         public string UserIdColumnName { get; set; }
 
         /// <summary>
-        /// The dataset column to use as a group ID for computation in a Ranking Task.
+        /// Gets or sets the dataset column to use as a group ID for computation in a Ranking Task.
         /// If a SamplingKeyColumnName is provided, then it should be the same as this column.
         /// </summary>
         public string GroupIdColumnName { get; set; }
 
         /// <summary>
-        /// The dataset column to use as a item ID for computation.
+        /// Gets or sets the dataset column to use as a item ID for computation.
         /// </summary>
         public string ItemIdColumnName { get; set; }
 
         /// <summary>
-        /// The dataset column to use for example weight.
+        /// Gets or sets the dataset column to use for example weight.
         /// </summary>
         public string ExampleWeightColumnName { get; set; }
 
         /// <summary>
-        /// The dataset column to use for grouping rows.
+        /// Gets or sets the dataset column to use for grouping rows.
+        /// </summary>
+        /// <remarks>
         /// If two examples share the same sampling key column name,
         /// they are guaranteed to appear in the same subset (train or test).
         /// This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/>, no row grouping will be performed.
-        /// </summary>
+        /// </remarks>
         public string SamplingKeyColumnName { get; set; }
 
         /// <summary>
-        /// The dataset columns that are categorical.
+        /// Gets or sets the dataset columns that are categorical.
         /// </summary>
         /// <value>The default value is a new, empty <see cref="Collection{String}"/>.</value>
         /// <remarks>
@@ -97,28 +97,28 @@ namespace Microsoft.ML.AutoML
         public ICollection<string> CategoricalColumnNames { get; private set; }
 
         /// <summary>
-        /// The dataset columns that are numeric.
+        /// Gets the dataset columns that are numeric.
         /// </summary>
         /// <value>The default value is a new, empty <see cref="Collection{String}"/>.</value>
         [JsonProperty]
         public ICollection<string> NumericColumnNames { get; private set; }
 
         /// <summary>
-        /// The dataset columns that are text.
+        /// Gets the dataset columns that are text.
         /// </summary>
         /// <value>The default value is a new, empty <see cref="Collection{String}"/>.</value>
         [JsonProperty]
         public ICollection<string> TextColumnNames { get; private set; }
 
         /// <summary>
-        /// The dataset columns that AutoML should ignore.
+        /// Gets the dataset columns that AutoML should ignore.
         /// </summary>
         /// <value>The default value is a new, empty <see cref="Collection{String}"/>.</value>
         [JsonProperty]
         public ICollection<string> IgnoredColumnNames { get; private set; }
 
         /// <summary>
-        /// The dataset columns that are image paths.
+        /// Gets the dataset columns that are image paths.
         /// </summary>
         /// <value>The default value is a new, empty <see cref="Collection{String}"/>.</value>
         [JsonProperty]

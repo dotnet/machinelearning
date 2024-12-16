@@ -7,8 +7,7 @@
 
   <PropertyGroup>
     <MajorVersion>$([MSBuild]::Subtract($(MajorVersion), 3))</MajorVersion>
-    <!-- Blank version for now for API compat -->
-    <PackageValidationBaselineVersion></PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>$([MSBuild]::Subtract($(MajorVersion), 1)).0.0</PackageValidationBaselineVersion>
   </PropertyGroup>
 
 </Project>

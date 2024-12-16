@@ -5,12 +5,18 @@
 using System;
 using System.IO;
 using System.Text;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public class TextFieldParserTests
+    public class TextFieldParserTests : BaseTestClass
     {
+        public TextFieldParserTests(ITestOutputHelper output) : base(output, true)
+        {
+        }
+
         private Stream GetStream(string streamData)
         {
             return new MemoryStream(Encoding.Default.GetBytes(streamData));

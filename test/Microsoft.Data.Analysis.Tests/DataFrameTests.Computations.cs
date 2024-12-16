@@ -7,11 +7,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public partial class DataFrameTests
+    public partial class DataFrameTests : BaseTestClass
     {
         [Fact]
         public void TestComputations()

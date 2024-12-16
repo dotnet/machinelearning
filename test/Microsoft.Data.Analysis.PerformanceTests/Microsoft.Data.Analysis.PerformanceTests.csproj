@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <ImplicitUsings>disable</ImplicitUsings>
-    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
 

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -762,6 +762,7 @@ namespace Microsoft.ML.Tokenizers
 
             options.Normalizer ??= options.ApplyBasicTokenization ? new BertNormalizer(options.LowerCaseBeforeTokenization, options.IndividuallyTokenizeCjk, options.RemoveNonSpacingMarks) : null;
 
+            IReadOnlyDictionary<string, int>? specialTokensDict = options.SpecialTokens;
             if (options.SplitOnSpecialTokens)
             {
                 bool lowerCase = options.ApplyBasicTokenization && options.LowerCaseBeforeTokenization;
@@ -769,8 +770,8 @@ namespace Microsoft.ML.Tokenizers
                 {
                     if (lowerCase)
                     {
-                        Dictionary<string, int> dic = options.SpecialTokens.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-                        options.SpecialTokens = dic;
+                        Dictionary<string, int> tempSpecialTokens = [];
+                        specialTokensDict = tempSpecialTokens;
 
                         foreach (var kvp in options.SpecialTokens)
                         {
@@ -779,35 +780,47 @@ namespace Microsoft.ML.Tokenizers
                                 throw new ArgumentException($"The special token '{kvp.Key}' is not in the vocabulary or assigned id value {id} different than the value {kvp.Value} in the special tokens.");
                             }
 
-                            // Ensure that the special tokens are lowercased.
-                            dic[kvp.Key.ToLowerInvariant()] = kvp.Value;
+                            // Add the special token into our dictionary, normalizing it, and adding it into the
+                            // main vocab, if needed. 
+                            AddSpecialToken(vocab, tempSpecialTokens, kvp.Key, true);
                         }
                     }
                 }
                 else
                 {
-                    // Create a dictionary with the special tokens.
-                    Dictionary<string, int> specialTokens = new Dictionary<string, int>();
-                    options.SpecialTokens = specialTokens;
+                    // Create a dictionary with the special tokens - store the un-normalized forms in the options as
+                    // that field is exposed to the public. In addition, store the normalized form for creating the 
+                    // pre-tokenizer.
+                    Dictionary<string, int> tempSpecialTokens = [];
+                    Dictionary<string, int> notNormalizedSpecialTokens = [];
+                    AddSpecialToken(vocab, tempSpecialTokens, options.UnknownToken, lowerCase, notNormalizedSpecialTokens);
+                    AddSpecialToken(vocab, tempSpecialTokens, options.SeparatorToken, lowerCase, notNormalizedSpecialTokens);
+                    AddSpecialToken(vocab, tempSpecialTokens, options.PaddingToken, lowerCase, notNormalizedSpecialTokens);
+                    AddSpecialToken(vocab, tempSpecialTokens, options.ClassificationToken, lowerCase, notNormalizedSpecialTokens);
+                    AddSpecialToken(vocab, tempSpecialTokens, options.MaskingToken, lowerCase, notNormalizedSpecialTokens);
 
-                    AddSpecialToken(vocab, specialTokens, options.UnknownToken, lowerCase);
-                    AddSpecialToken(vocab, specialTokens, options.SeparatorToken, lowerCase);
-                    AddSpecialToken(vocab, specialTokens, options.PaddingToken, lowerCase);
-                    AddSpecialToken(vocab, specialTokens, options.ClassificationToken, lowerCase);
-                    AddSpecialToken(vocab, specialTokens, options.MaskingToken, lowerCase);
+                    options.SpecialTokens = notNormalizedSpecialTokens;
+                    specialTokensDict = tempSpecialTokens;
                 }
             }
 
-            options.PreTokenizer ??= options.ApplyBasicTokenization ? PreTokenizer.CreateWordOrPunctuation(options.SplitOnSpecialTokens ? options.SpecialTokens : null) : PreTokenizer.CreateWhiteSpace();
+            // We set the PreTokenizer here using the normalized special tokens dict (if relevant), and therefore we can 
+            // keep the not-normalized special tokens dict in the options passed to the WordPieceTokenizer.
+            options.PreTokenizer ??= options.ApplyBasicTokenization ? PreTokenizer.CreateWordOrPunctuation(options.SplitOnSpecialTokens ? specialTokensDict : null) : PreTokenizer.CreateWhiteSpace();
 
             return new BertTokenizer(vocab, vocabReverse, options);
         }
 
-        private static void AddSpecialToken(Dictionary<StringSpanOrdinalKey, int> vocab, Dictionary<string, int> specialTokens, string token, bool lowerCase)
+        private static void AddSpecialToken(Dictionary<StringSpanOrdinalKey, int> vocab, Dictionary<string, int> specialTokens, string token, bool lowerCase, Dictionary<string, int>? notNormalizedSpecialTokens = null)
         {
             if (token is null || !vocab.TryGetValue(new StringSpanOrdinalKey(token), out int id))
             {
                 throw new ArgumentException($"The special token '{token}' is not in the vocabulary.");
+            }
+
+            if (notNormalizedSpecialTokens is not null)
+            {
+                notNormalizedSpecialTokens[token] = id;
             }
 
             string normalizedToken = token;

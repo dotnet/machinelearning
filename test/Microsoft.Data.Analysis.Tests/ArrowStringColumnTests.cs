@@ -8,17 +8,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Apache.Arrow;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public class ArrowStringColumnTests
+    public class ArrowStringColumnTests : BaseTestClass
     {
+        public ArrowStringColumnTests(ITestOutputHelper output) : base(output, true)
+        {
+        }
 
         [Fact]
         public void TestBasicArrowStringColumn()
         {
-            StringArray strArray = new StringArray.Builder().Append("foo").Append("bar").Build();
+            using StringArray strArray = new StringArray.Builder().Append("foo").Append("bar").Build();
             Memory<byte> dataMemory = new byte[] { 102, 111, 111, 98, 97, 114 };
             Memory<byte> nullMemory = new byte[] { 0, 0, 0, 0 };
             Memory<byte> offsetMemory = new byte[] { 0, 0, 0, 0, 3, 0, 0, 0, 6, 0, 0, 0 };
@@ -55,7 +60,7 @@ namespace Microsoft.Data.Analysis.Tests
         [Fact]
         public void TestArrowStringColumnClone()
         {
-            StringArray strArray = new StringArray.Builder().Append("foo").Append("bar").Build();
+            using StringArray strArray = new StringArray.Builder().Append("foo").Append("bar").Build();
             Memory<byte> dataMemory = new byte[] { 102, 111, 111, 98, 97, 114 };
             Memory<byte> nullMemory = new byte[] { 0, 0, 0, 0 };
             Memory<byte> offsetMemory = new byte[] { 0, 0, 0, 0, 3, 0, 0, 0, 6, 0, 0, 0 };

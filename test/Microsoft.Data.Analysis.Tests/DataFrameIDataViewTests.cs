@@ -10,11 +10,17 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using Xunit;
 using Microsoft.ML.Trainers;
+using Xunit.Abstractions;
+using Microsoft.ML.TestFramework;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public partial class DataFrameIDataViewTests
+    public partial class DataFrameIDataViewTests : BaseTestClass
     {
+        public DataFrameIDataViewTests(ITestOutputHelper output) : base(output, true)
+        {
+        }
+
         [Fact]
         public void TestIDataView()
         {

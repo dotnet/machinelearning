@@ -21,7 +21,7 @@
        We cannot include it with a ProjectReference, since that would create a circular dependency.
        If M.D.A.I undergoes TFM or dependency changes, we need to update the TargetFramework passed in below. -->
   <Target Name="AddMDAIToInteractiveExtensionsFolder">
-    <MSBuild Projects="./../Microsoft.Data.Analysis.Interactive/Microsoft.Data.Analysis.Interactive.csproj" Targets="_GetBuildOutputFilesWithTfm" Properties="TargetFramework=net6.0">
+    <MSBuild Projects="./../Microsoft.Data.Analysis.Interactive/Microsoft.Data.Analysis.Interactive.csproj" Targets="_GetBuildOutputFilesWithTfm" Properties="TargetFramework=net8.0">
       <!-- Manually hardcoding the TargetFramework to netcoreapp3.1 as that is the one that MDAI targets -->
       <Output TaskParameter="TargetOutputs" ItemName="_ItemsToIncludeForInteractive" />
     </MSBuild>
@@ -46,7 +46,7 @@
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="System.Numerics.Tensors" Version="9.0.0-rc.1.24431.7" />
+    <PackageReference Include="System.Numerics.Tensors" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'">

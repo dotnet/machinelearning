@@ -9,7 +9,6 @@
         https://github.com/dotnet/arcade/blob/c788ffa83b088cafe9dbffc1cbc8155ba88b2553/Documentation/CorePackages/Versioning.md#output
     -->
     <DotNetUseShippingVersions>true</DotNetUseShippingVersions>
-    <VersionPrefix>4.0.0</VersionPrefix>
     <PreReleaseVersionLabel>preview</PreReleaseVersionLabel>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <!-- .NET Runtime product dependencies -->
@@ -47,7 +46,7 @@
     <MicrosoftDotNetInteractiveVersion>1.0.0-beta.24375.2</MicrosoftDotNetInteractiveVersion>
     <MicrosoftMLOnnxRuntimeVersion>1.18.1</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
-    <MicrosoftExtensionsAIVersion>9.0.0-preview.9.24507.7</MicrosoftExtensionsAIVersion>
+    <MicrosoftExtensionsAIVersion>9.0.1-preview.1.24570.5</MicrosoftExtensionsAIVersion>
     <!-- runtime.native.System.Data.SqlClient.sni is not updated by dependency flow as it is not produced live anymore. -->
     <RuntimeNativeSystemDataSqlClientSniVersion>4.4.0</RuntimeNativeSystemDataSqlClientSniVersion>
     <!--
@@ -92,6 +91,7 @@
     <DotNetRuntime80Version>8.0.1</DotNetRuntime80Version>
     <FluentAssertionVersion>6.12.0</FluentAssertionVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.23431.1</MicrosoftCodeAnalysisTestingVersion>
+    <MicrosoftDotNetBuildTasksTemplatingVersion>9.0.0-beta.24212.4</MicrosoftDotNetBuildTasksTemplatingVersion>
     <MicrosoftDotNetPlatformAbstractionsVersion>5.0.0-preview.5.20278.1</MicrosoftDotNetPlatformAbstractionsVersion>
     <MicrosoftDotNetRemoteExecutorVersion>8.0.0-beta.24525.2</MicrosoftDotNetRemoteExecutorVersion>
     <MicrosoftDotNetXUnitExtensionsVersion>10.0.0-beta.24613.2</MicrosoftDotNetXUnitExtensionsVersion>
