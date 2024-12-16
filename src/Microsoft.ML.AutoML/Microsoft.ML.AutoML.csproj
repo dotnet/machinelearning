@@ -17,8 +17,8 @@
 
   <!-- The following properties are set to package AutoML Interactive with the AutoML nuget package. If AutoML Interactive undergoes TFM or dependency changes, we need to update the TargetFramework passed in below-->
   <Target Name="AddAutoMLInteractiveToInteractiveExtensionsFolder">
-    <MSBuild Projects="./../Microsoft.ML.AutoML.Interactive/Microsoft.ML.AutoML.Interactive.csproj" Targets="_GetBuildOutputFilesWithTfm" Properties="TargetFramework=net6.0">
-      <!-- Manually hardcoding the TargetFramework to net6.0 as that is the one that AutoML Interactive targets -->
+    <MSBuild Projects="./../Microsoft.ML.AutoML.Interactive/Microsoft.ML.AutoML.Interactive.csproj" Targets="_GetBuildOutputFilesWithTfm" Properties="TargetFramework=net8.0">
+      <!-- Manually hardcoding the TargetFramework to net8.0 as that is the one that AutoML Interactive targets -->
       <Output TaskParameter="TargetOutputs" ItemName="_ItemsToIncludeForInteractive" />
     </MSBuild>
 

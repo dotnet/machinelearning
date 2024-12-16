@@ -310,7 +310,7 @@ namespace Microsoft.ML.EntryPoints
             ectx.AssertValue(type);
             ectx.AssertValue(catalog);
 
-            // REVIEW: Allows newly introduced types to not break the manifest bulding process.
+            // REVIEW: Allows newly introduced types to not break the manifest building process.
             // Where possible, these types should be replaced by component kinds.
             if (type == typeof(CommonInputs.IEvaluatorInput) ||
                 type == typeof(CommonOutputs.IEvaluatorOutput))

@@ -22,6 +22,31 @@ parameters:
 steps:
   - script: ${{ parameters.MsBuildScript}}
             $(Build.SourcesDirectory)/eng/helix.proj
+            /t:Restore
+            /bl:$(Build.SourcesDirectory)/artifacts/log/${{ parameters.Configuration }}/SendToHelix.binlog
+            /p:Configuration=${{ parameters.Configuration }}
+            /p:TargetArchitecture=${{ parameters.Architecture }}
+            /p:BuildConfig=${{ parameters.Configuration }}
+            /p:BuildArchitecture=${{ parameters.Architecture }}
+            /p:HelixSource=${{ parameters.HelixSource }}
+            /p:HelixType=${{ parameters.HelixType }}
+            /p:HelixBuild=${{ parameters.HelixBuild }}
+            /p:HelixConfiguration="${{ parameters.HelixConfiguration }}"
+            /p:HelixAccessToken="${{ parameters.HelixAccessToken }}"
+            /p:EnableXUnitReporter=${{ parameters.EnableXUnitReporter }}
+            /p:WaitForWorkItemCompletion=${{ parameters.WaitForWorkItemCompletion }}
+            /p:HelixBaseUri=${{ parameters.HelixBaseUri }}
+            ${{ parameters.WarnAsError }}
+            ${{ parameters.TestTargetFramework }}
+    displayName: "Helix Restore"
+    env:
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      Creator: ${{ parameters.Creator }}
+      HelixTargetQueues: ${{ parameters.HelixTargetQueues }}
+    continueOnError: ${{ parameters.continueOnError }}
+
+  - script: ${{ parameters.MsBuildScript}}
+            $(Build.SourcesDirectory)/eng/helix.proj
             /t:Test
             /bl:$(Build.SourcesDirectory)/artifacts/log/${{ parameters.Configuration }}/SendToHelix.binlog
             /p:Configuration=${{ parameters.Configuration }}

@@ -7,12 +7,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public class StringDataFrameColumnTests
+    public class StringDataFrameColumnTests : BaseTestClass
     {
+        public StringDataFrameColumnTests(ITestOutputHelper output) : base(output, true)
+        {
+        }
+
         [Fact]
         public void TestColumnClone()
         {

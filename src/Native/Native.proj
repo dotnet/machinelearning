@@ -185,7 +185,7 @@
                           Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netstandard2.0" />
       <NativePackageAsset Include="$(PlaceholderFile)"
-                          RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\net6.0" />
+                          RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\net8.0" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)LdaNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
       <!-- TODO: once we fix the 4 intel MKL methods, SymSgdNative will need to go back in. -->

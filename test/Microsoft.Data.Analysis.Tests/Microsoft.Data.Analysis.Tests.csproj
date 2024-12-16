@@ -3,6 +3,7 @@
     <PropertyGroup>
         <NoWarn>$(NoWarn);MSML_ParameterLocalVarName;MSML_PrivateFieldName;MSML_ExtendBaseTestClass;MSML_GeneralName</NoWarn>
         <LangVersion>preview</LangVersion>
+        <DefineConstants>$(DefineConstants);SKIP_MKL</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>
@@ -10,6 +11,8 @@
         <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
         <ProjectReference Include="..\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj" />
         <Compile Include="..\..\src\Microsoft.Data.Analysis\TextFieldParser.cs" />
+        <Compile Include="..\Microsoft.ML.TestFramework\BaseTestClass.cs" Link="BaseTestClass.cs" />
+        <Compile Include="..\Microsoft.ML.TestFramework\GlobalBase.cs" Link="GlobalBase.cs" />
     </ItemGroup>
 
     <ItemGroup>

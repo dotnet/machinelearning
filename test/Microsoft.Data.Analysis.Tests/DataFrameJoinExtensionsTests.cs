@@ -4,12 +4,18 @@
 
 using System.Collections.ObjectModel;
 using System.Linq;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Data.Analysis.Tests
 {
-    public class DataFrameJoinExtensionsTests
+    public class DataFrameJoinExtensionsTests : BaseTestClass
     {
+        public DataFrameJoinExtensionsTests(ITestOutputHelper output) : base(output, true)
+        {
+        }
+
         [Fact]
         public void GetSortedListsIntersection_EmptyCollections_EmptyResult()
         {
