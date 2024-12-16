@@ -460,7 +460,7 @@ namespace Microsoft.Data.Analysis
         /// </summary>
         /// <param name="ascending">Sorting order.</param>
         /// <param name="putNullValuesLast">If true, null values are always put at the end.</param>
-        internal abstract PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending, bool putNullValuesLast);
+        protected internal abstract PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending, bool putNullValuesLast);
 
         protected delegate long GetBufferSortIndex(int bufferIndex, int sortIndex);
         protected delegate ValueTuple<T, int> GetValueAndBufferSortIndexAtBuffer<T>(int bufferIndex, int valueIndex);
