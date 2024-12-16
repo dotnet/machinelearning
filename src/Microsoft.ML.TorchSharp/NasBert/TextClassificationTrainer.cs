@@ -28,23 +28,24 @@ using static Microsoft.ML.TorchSharp.NasBert.NasBertTrainer;
 namespace Microsoft.ML.TorchSharp.NasBert
 {
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> for training a Deep Neural Network(DNN) to classify text.
+    /// The <see cref="IEstimator{TTransformer}"/> for training a Deep Neural Network (DNN) to classify text.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
     /// To create this trainer, use [TextClassification](xref:Microsoft.ML.TorchSharpCatalog.TextClassification(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Int32,System.String,System.String,System.String,System.String,Int32,Int32,Int32,Microsoft.ML.TorchSharp.NasBert.BertArchitecture,Microsoft.ML.IDataView)).
     ///
-    /// ### Input and Output Columns
-    /// The input label column data must be [key](xref:Microsoft.ML.Data.KeyDataViewType) type and the sentence columns must be of type<xref:Microsoft.ML.Data.TextDataViewType>.
+    /// ### Input and output columns
+    /// The input label column data must be [key](xref:Microsoft.ML.Data.KeyDataViewType) type and the sentence columns must be of type <xref:Microsoft.ML.Data.TextDataViewType>.
     ///
     /// This trainer outputs the following columns:
     ///
-    /// | Output Column Name | Column Type | Description|
+    /// | Output column name | Column type | Description|
     /// | -- | -- | -- |
-    /// | `PredictedLabel` | [key](xref:Microsoft.ML.Data.KeyDataViewType) type | The predicted label's index. If its value is i, the actual label would be the i-th category in the key-valued input label type. |
-    /// | `Score` | Vector of<xref:System.Single> | The scores of all classes.Higher value means higher probability to fall into the associated class. If the i-th element has the largest value, the predicted label index would be i.Note that i is zero-based index. |
-    /// ### Trainer Characteristics
-    /// |  |  |
+    /// | `PredictedLabel` | [key](xref:Microsoft.ML.Data.KeyDataViewType) type | The predicted label's index. If its value is `i`, the actual label would be the `i`-th category in the key-valued input label type. |
+    /// | `Score` | Vector of<xref:System.Single> | The scores of all classes. Higher value means higher probability to fall into the associated class. If the `i`-th element has the largest value, the predicted label index would be `i`. Note that `i` is a zero-based index. |
+    ///
+    /// ### Trainer characteristics
+    /// | Characteristic | Value |
     /// | -- | -- |
     /// | Machine learning task | Multiclass classification |
     /// | Is normalization required? | No |
@@ -52,8 +53,8 @@ namespace Microsoft.ML.TorchSharp.NasBert
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.TorchSharp and libtorch-cpu or libtorch-cuda-11.3 or any of the OS specific variants. |
     /// | Exportable to ONNX | No |
     ///
-    /// ### Training Algorithm Details
-    /// Trains a Deep Neural Network(DNN) by leveraging an existing pre-trained NAS-BERT roBERTa model for the purpose of classifying text.
+    /// ### Training algorithm details
+    /// Trains a Deep Neural Network (DNN) by leveraging an existing, pretrained NAS-BERT roBERTa model for the purpose of classifying text.
     /// ]]>
     /// </format>
     /// </remarks>

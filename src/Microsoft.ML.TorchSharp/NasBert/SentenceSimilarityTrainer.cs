@@ -27,31 +27,32 @@ using static Microsoft.ML.TorchSharp.NasBert.NasBertTrainer;
 namespace Microsoft.ML.TorchSharp.NasBert
 {
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> for training a Deep Neural Network(DNN) to classify text.
+    /// Represents the <see cref="IEstimator{TTransformer}"/> for training a Deep Neural Network (DNN) to determine sentence similarity.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
     /// To create this trainer, use [TextClassification](xref:Microsoft.ML.TorchSharpCatalog.TextClassification(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Int32,System.String,System.String,System.String,System.String,Int32,Int32,Int32,Microsoft.ML.TorchSharp.NasBert.BertArchitecture,Microsoft.ML.IDataView)).
     ///
-    /// ### Input and Output Columns
-    /// The input label column data must be type<xref:System.Single> type and the sentence columns must be of type<xref:Microsoft.ML.Data.TextDataViewType>.
+    /// ### Input and output columns
+    /// The input label column data must be type <xref:System.Single> and the sentence columns must be of type <xref:Microsoft.ML.Data.TextDataViewType>.
     ///
     /// This trainer outputs the following columns:
     ///
-    /// | Output Column Name | Column Type | Description|
+    /// | Output column name | Column type | Description|
     /// | -- | -- | -- |
-    /// | `Score` | <xref:System.Single> | The degree of similarity between the 2 sentences. |
-    /// ### Trainer Characteristics
-    /// |  |  |
+    /// | `Score` | <xref:System.Single> | The degree of similarity between the two sentences. |
+    ///
+    /// ### Trainer characteristics
+    /// | Characteristic | Value  |
     /// | -- | -- |
-    /// | Machine learning task | Rregression |
+    /// | Machine learning task | Regression |
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.TorchSharp and libtorch-cpu or libtorch-cuda-11.3 or any of the OS specific variants. |
     /// | Exportable to ONNX | No |
     ///
-    /// ### Training Algorithm Details
-    /// Trains a Deep Neural Network(DNN) by leveraging an existing pre-trained NAS-BERT roBERTa model for the purpose of determining sentence similarity.
+    /// ### Training algorithm details
+    /// Trains a Deep Neural Network (DNN) by leveraging an existing, pretrained NAS-BERT roBERTa model for the purpose of determining sentence similarity.
     /// ]]>
     /// </format>
     /// </remarks>

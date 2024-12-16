@@ -122,7 +122,7 @@ namespace Microsoft.ML.AutoML
         }
 
         /// <summary>
-        /// Get all column names that are in <paramref name="columnInformation"/>.
+        /// Gets all column names that are in <paramref name="columnInformation"/>.
         /// </summary>
         /// <param name="columnInformation">Column information.</param>
         public static IEnumerable<string> GetColumnNames(ColumnInformation columnInformation)
