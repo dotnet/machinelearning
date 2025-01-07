@@ -27,7 +27,7 @@
     <SystemFormatsAsn1Version>8.0.1</SystemFormatsAsn1Version>
     <SystemIOFileSystemAccessControl>5.0.0</SystemIOFileSystemAccessControl>
     <SystemMemoryVersion>4.6.0</SystemMemoryVersion>
-    <SystemNumericsTensorsVersion>8.0.0</SystemNumericsTensorsVersion>
+    <SystemNumericsTensorsVersion>9.0.0</SystemNumericsTensorsVersion>
     <SystemReflectionEmitLightweightVersion>4.7.0</SystemReflectionEmitLightweightVersion>
     <SystemReflectionEmitVersion>4.3.0</SystemReflectionEmitVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>6.1.0</SystemRuntimeCompilerServicesUnsafeVersion>
