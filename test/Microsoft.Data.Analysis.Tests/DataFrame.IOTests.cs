@@ -19,6 +19,7 @@ using Microsoft.ML.Data;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
 using Microsoft.ML.TestFramework;
+using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
 
 namespace Microsoft.Data.Analysis.Tests
 {
@@ -1017,16 +1018,15 @@ CMT,1,1,null";
             DataFrame.SaveCsv(dataFrame, csvStream, separator: separator, cultureInfo: cultureInfo);
 
             csvStream.Seek(0, SeekOrigin.Begin);
-            DataFrame readIn = DataFrame.LoadCsv(csvStream, separator: separator);
+            DataFrame readIn = DataFrame.LoadCsv(csvStream, separator: separator, cultureInfo: cultureInfo);
 
             Assert.Equal(dataFrame.Rows.Count, readIn.Rows.Count);
             Assert.Equal(dataFrame.Columns.Count, readIn.Columns.Count);
             Assert.Equal(1F, readIn[1, 0]);
 
-            // LoadCsv does not support culture info, therefore decimal point comma (,) is seen as thousand separator and is ignored when read
-            Assert.Equal(11F, readIn[1, 1]);
-            Assert.Equal(12F, readIn[1, 2]);
-            Assert.Equal(129999992F, readIn[1, 3]);
+            Assert.Equal(1.1F, readIn[1, 1]);
+            Assert.Equal(1.2F, readIn[1, 2]);
+            Assert.Equal(1.3F, readIn[1, 3]);
 
             Assert.Equal(1F, readIn[1, 4]);
             Assert.Equal(1F, readIn[1, 5]);
@@ -1077,6 +1077,63 @@ CMT,1,1,null";
             var separator = cultureInfo.NumberFormat.NumberDecimalSeparator.First();
 
             Assert.Throws<ArgumentException>(() => DataFrame.SaveCsv(dataFrame, csvStream, separator: separator, cultureInfo: cultureInfo));
+        }
+
+        [Fact]
+        public void TestSaveCsvWithCultureInfoAndDateTimeColumn()
+        {
+            using MemoryStream csvStream = new MemoryStream();
+            var dateColumn = new DateTimeDataFrameColumn("Date", 3);
+            DataFrame dataFrame = new DataFrame();
+            dataFrame.Columns.Add(dateColumn);
+            dateColumn[0] = DateTime.Today;
+            dateColumn[1] = DateTime.Today.AddDays(1);
+            dateColumn[2] = null;
+
+            var cultureInfo = new CultureInfo("en-US");
+            cultureInfo.DateTimeFormat.LongDatePattern = "yyyy-MM-dd";
+            cultureInfo.DateTimeFormat.ShortDatePattern = "yyyy-MM-dd";
+            cultureInfo.DateTimeFormat.LongTimePattern = "HH:mm:ss";
+            cultureInfo.DateTimeFormat.ShortTimePattern = "HH:mm:ss";
+
+            DataFrame.SaveCsv(dataFrame, csvStream, cultureInfo: cultureInfo, header: false);
+
+            csvStream.Seek(0, SeekOrigin.Begin);
+
+            StreamReader reader = new StreamReader(csvStream);
+            var text = reader.ReadToEnd().Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
+
+            Assert.Equal(dateColumn[0].Value.ToString(cultureInfo), text[0]);
+            Assert.Equal(dateColumn[1].Value.ToString(cultureInfo), text[1]);
+            Assert.True(string.IsNullOrEmpty(text[2]));
+        }
+
+        [Fact]
+        public void TestSaveAndReadCsvWithCultureInfoAndDateTimeColumn()
+        {
+            using MemoryStream csvStream = new MemoryStream();
+            var dateColumn = new DateTimeDataFrameColumn("Date", 3);
+            DataFrame dataFrame = new DataFrame();
+            dataFrame.Columns.Add(dateColumn);
+            dateColumn[0] = DateTime.Today;
+            dateColumn[1] = DateTime.Today.AddDays(1);
+            dateColumn[2] = DateTime.Today.AddDays(2);
+
+            var cultureInfo = new CultureInfo("en-US");
+            cultureInfo.DateTimeFormat.LongDatePattern = "yyyy-MM-dd";
+            cultureInfo.DateTimeFormat.ShortDatePattern = "yyyy-MM-dd";
+            cultureInfo.DateTimeFormat.LongTimePattern = "HH:mm:ss";
+            cultureInfo.DateTimeFormat.ShortTimePattern = "HH:mm:ss";
+
+            DataFrame.SaveCsv(dataFrame, csvStream, cultureInfo: cultureInfo, header: true);
+
+            csvStream.Seek(0, SeekOrigin.Begin);
+
+            DataFrame readIn = DataFrame.LoadCsv(csvStream, cultureInfo: cultureInfo);
+
+            Assert.Equal(dateColumn[0], readIn[0, 0]);
+            Assert.Equal(dateColumn[1], readIn[1, 0]);
+            Assert.Equal(dateColumn[2], readIn[2, 0]);
         }
 
         [Fact]
