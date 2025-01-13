@@ -719,6 +719,9 @@ namespace Microsoft.Data.Analysis
                     case decimal:
                         record.AppendFormat(cultureInfo, "{0:G31}", value);
                         continue;
+                    case DateTime:
+                        record.Append(((DateTime)value).ToString(cultureInfo));
+                        continue;
                     case string stringCell:
                         if (NeedsQuotes(stringCell, separator))
                         {
