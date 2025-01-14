@@ -2,7 +2,7 @@
 
 ## **Bug Fixes**
 - **[release/4.0] Moved SpecialTokens assignment after the modification to avoid "Collection Modified" error** ([#7330](https://github.com/dotnet/machinelearning/pull/7330)) - Thanks @shaltielshmid
-
+- **Fix broken inheritance from DataFrameColumn class (#7324)** ([#7331](https://github.com/dotnet/machinelearning/pull/7331)) - Thanks @asmirnov82!
 
 ## **Build / Test updates**
 - **Update System.Numerics.Tensors version (#7322)** ([#7355](https://github.com/dotnet/machinelearning/pull/7355)) - Thanks @asmirnov82!
