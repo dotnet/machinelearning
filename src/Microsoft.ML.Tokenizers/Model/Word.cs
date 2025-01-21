@@ -92,7 +92,7 @@ namespace Microsoft.ML.Tokenizers
                 }
 
                 i += 1;
-            };
+            }
 
             return changes;
         }
