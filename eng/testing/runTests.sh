@@ -35,6 +35,7 @@ fi;
 popd
 
 echo ----- end $(date) ----- exit code $test_exitcode ----------------------------------------------------------
+echo ----- HAS_TEST_RESULTS $(has_test_results)  HELIX_WORKITEM_PAYLOAD $(HELIX_WORKITEM_PAYLOAD) ----------------------------------------------------------
 
 # ========================= END Test Execution ===============================
 
