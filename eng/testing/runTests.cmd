@@ -20,6 +20,7 @@ if exist testResults.xml (
 )
 popd
 echo ----- end %DATE% %TIME% ----- exit code %_exit_code% ----------------------------------------------------------
+echo ----- HAS_TEST_RESULTS %HAS_TEST_RESULTS%  HELIX_WORKITEM_PAYLOAD %HELIX_WORKITEM_PAYLOAD% ----------------------------------------------------------
 :: ========================= END Test Execution ===============================
 
 :: The tests either failed or crashed, copy output files
