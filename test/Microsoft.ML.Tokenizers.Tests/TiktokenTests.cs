@@ -729,13 +729,13 @@ namespace Microsoft.ML.Tokenizers.Tests
             }
         }
 
-        // We are not exposing the Encoder, Decoder, or Vocabulary so far. For now, use reflection to test it.
         private static IReadOnlyDictionary<ReadOnlyMemory<byte>, int>? GetEncoder(TiktokenTokenizer tiktoken)
-            => typeof(TiktokenTokenizer).GetProperty("Encoder", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(tiktoken) as IReadOnlyDictionary<ReadOnlyMemory<byte>, int>;
+            => tiktoken.Encoder;
 
         private static IReadOnlyDictionary<int, ReadOnlyMemory<byte>>? GetDecoder(TiktokenTokenizer tiktoken)
-            => typeof(TiktokenTokenizer).GetProperty("Decoder", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(tiktoken) as IReadOnlyDictionary<int, ReadOnlyMemory<byte>>;
+            => tiktoken.Decoder;
 
+        // We are not exposing the Vocabulary so far. For now, use reflection to test it.
         private static IReadOnlyDictionary<string, int>? GetVocabulary(TiktokenTokenizer tiktoken)
             => typeof(TiktokenTokenizer).GetProperty("Vocabulary", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(tiktoken) as IReadOnlyDictionary<string, int>;
     }
