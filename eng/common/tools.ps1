@@ -321,7 +321,7 @@ function InstallDotNet([string] $dotnetRoot,
   $variations += @($installParameters)
 
   $dotnetBuilds = $installParameters.Clone()
-  $dotnetbuilds.AzureFeed = "https://dotnetbuilds.azureedge.net/public"
+  $dotnetbuilds.AzureFeed = "https://ci.dot.net/public"
   $variations += @($dotnetBuilds)
 
   if ($runtimeSourceFeed) {
@@ -384,8 +384,8 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
 
   # If the version of msbuild is going to be xcopied,
   # use this version. Version matches a package here:
-  # https://dev.azure.com/dnceng/public/_artifacts/feed/dotnet-eng/NuGet/RoslynTools.MSBuild/versions/17.8.1-2
-  $defaultXCopyMSBuildVersion = '17.8.1-2'
+  # https://dev.azure.com/dnceng/public/_artifacts/feed/dotnet-eng/NuGet/RoslynTools.MSBuild/versions/17.12.0
+  $defaultXCopyMSBuildVersion = '17.12.0'
 
   if (!$vsRequirements) {
     if (Get-Member -InputObject $GlobalJson.tools -Name 'vs') {
@@ -892,7 +892,7 @@ function IsWindowsPlatform() {
 }
 
 function Get-Darc($version) {
-  $darcPath  = "$TempDir\darc\$(New-Guid)"
+  $darcPath  = "$TempDir\darc\$([guid]::NewGuid())"
   if ($version -ne $null) {
     & $PSScriptRoot\darc-init.ps1 -toolpath $darcPath -darcVersion $version | Out-Host
   } else {
