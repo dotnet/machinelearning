@@ -36,7 +36,7 @@ internal class Phi3
             """;
         var chatMessage = new ChatMessage(ChatRole.User, task);
 
-        await foreach (var response in client.CompleteStreamingAsync([chatMessage]))
+        await foreach (var response in client.GetStreamingResponseAsync([chatMessage]))
         {
             Console.Write(response.Text);
         }
