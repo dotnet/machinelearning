@@ -391,7 +391,7 @@ namespace Microsoft.ML.Tokenizers
                 // Removes heading spaces in sentence piece, if the previous sentence piece ends with whitespace.
                 while (isPrevSpace && sp.Length > 0 && sp[0] == (byte)' ')
                 {
-                    sp.Slice(1);
+                    sp = sp.Slice(1);
                 }
 
                 if (!sp.IsEmpty)
