@@ -22,6 +22,7 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     public class CodeGenTokenizer : Tokenizer
     {
+        // https://github.com/huggingface/transformers/blob/main/src/transformers/models/codegen/tokenization_codegen.py
         private readonly Dictionary<StringSpanOrdinalKey, (int Id, string Token)> _vocab;
         private IReadOnlyDictionary<string, int>? _vocabOriginal;
         private readonly IReadOnlyDictionary<int, string> _vocabReverse;
