@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tokenizers
 
                 // Need to consider surrogate conversions to UTF-8 before comparing.
 
-                while (i > 0 && (Char.IsSurrogate(x[i]) || Char.IsSurrogate(y[i])))
+                while (i > 0 && (Char.IsSurrogate(x[i - 1]) || Char.IsSurrogate(y[i - 1])))
                 {
                     i--;
                 }
