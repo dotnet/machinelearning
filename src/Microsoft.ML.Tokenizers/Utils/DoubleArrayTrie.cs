@@ -750,7 +750,7 @@ namespace Microsoft.ML.Tokenizers
                     bytes = array;
                 }
 
-                encodingLength = Helpers.EncodeToUtf8(pair.Key.AsSpan(), bytes);
+                encodingLength = Helpers.GetUtf8Bytes(pair.Key.AsSpan(), bytes);
 
                 dawgBuilder.Insert(bytes, encodingLength, pair.Value);
             }

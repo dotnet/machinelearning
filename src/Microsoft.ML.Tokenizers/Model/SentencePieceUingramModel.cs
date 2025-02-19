@@ -269,7 +269,7 @@ namespace Microsoft.ML.Tokenizers
 
             // Unigram is currently working with Utf8 encoded bytes.
             // if considerNormalization is true, the utf8 encoded bytes will be normalized to utf8 bytes too.
-            int byteCount = Helpers.EncodeToUtf8(text, byteSpan);
+            int byteCount = Helpers.GetUtf8Bytes(text, byteSpan);
             normalizationSpan = byteSpan.Slice(byteCount);
 
             Debug.Assert(normalizationSpan.Length >= (byteCount << 1));

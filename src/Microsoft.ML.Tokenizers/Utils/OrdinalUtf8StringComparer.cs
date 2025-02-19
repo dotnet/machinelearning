@@ -66,8 +66,8 @@ namespace Microsoft.ML.Tokenizers
                     buffer2 = bytes2;
                 }
 
-                xLen = Helpers.EncodeToUtf8(x.AsSpan(i), buffer1);
-                yLen = Helpers.EncodeToUtf8(y.AsSpan(i), buffer2);
+                xLen = Helpers.GetUtf8Bytes(x.AsSpan(i), buffer1);
+                yLen = Helpers.GetUtf8Bytes(y.AsSpan(i), buffer2);
 
                 int result = buffer1.Slice(0, xLen).SequenceCompareTo(buffer2.Slice(0, yLen));
 

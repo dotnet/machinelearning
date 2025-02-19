@@ -59,19 +59,6 @@ namespace Microsoft.ML.Tokenizers
             return length;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static unsafe int EncodeToUtf8(ReadOnlySpan<char> text, Span<byte> destination)
-        {
-            Debug.Assert(!text.IsEmpty);
-            Debug.Assert(destination.Length >= Encoding.UTF8.GetMaxByteCount(text.Length));
-
-            fixed (char* pText = text)
-            fixed (byte* pDestination = destination)
-            {
-                return Encoding.UTF8.GetBytes(pText, text.Length, pDestination, destination.Length);
-            }
-        }
-
         internal static unsafe string DecodeUtf8ToString(ReadOnlySpan<byte> utf8Bytes)
         {
             if (utf8Bytes.IsEmpty)
