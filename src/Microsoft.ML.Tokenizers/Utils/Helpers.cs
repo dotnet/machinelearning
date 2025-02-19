@@ -59,39 +59,6 @@ namespace Microsoft.ML.Tokenizers
             return length;
         }
 
-        internal static unsafe string DecodeUtf8ToString(ReadOnlySpan<byte> utf8Bytes)
-        {
-            if (utf8Bytes.IsEmpty)
-            {
-                return string.Empty;
-            }
-
-            int maxLength = Encoding.UTF8.GetMaxCharCount(utf8Bytes.Length);
-            Span<char> buffer = stackalloc char[250];
-            char[]? array = null;
-
-            if (maxLength > buffer.Length)
-            {
-                array = ArrayPool<char>.Shared.Rent(maxLength);
-                buffer = array;
-            }
-
-            fixed (byte* pUtf8Bytes = utf8Bytes)
-            fixed (char* pBuffer = buffer)
-            {
-                int charsWritten = Encoding.UTF8.GetChars(pUtf8Bytes, utf8Bytes.Length, pBuffer, buffer.Length);
-                string result = new string(pBuffer, 0, charsWritten);
-
-                if (array is not null)
-                {
-                    ArrayPool<char>.Shared.Return(array);
-                }
-
-                return result;
-            }
-        }
-
-
         internal static int EncodeToUtf8(ReadOnlySpan<char> text, Span<byte> destination, Span<int> indexMapping)
         {
             Debug.Assert(!text.IsEmpty);

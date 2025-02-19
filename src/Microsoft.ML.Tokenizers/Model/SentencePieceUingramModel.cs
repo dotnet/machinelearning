@@ -332,7 +332,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 ref BestPathNode node = ref bestPathEndsAt[endsAt];
 
-                string stringToken = node.Id == UnknownId ? Helpers.DecodeUtf8ToString(normalizationSpan.Slice(node.StartsAt, endsAt - node.StartsAt)) : _vocabReverse[node.Id].Piece;
+                string stringToken = node.Id == UnknownId ? Helpers.GetString(normalizationSpan.Slice(node.StartsAt, endsAt - node.StartsAt)) : _vocabReverse[node.Id].Piece;
                 int tokenLength = stringToken.Length;
 
                 tokens.Add(new EncodedToken(node.Id, stringToken, new Range(0, tokenLength))); // we will update the range later.
