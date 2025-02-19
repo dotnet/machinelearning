@@ -391,6 +391,20 @@ namespace Microsoft.ML.Tokenizers.Tests
             TestDecodingWithSpan((R50kBase as TiktokenTokenizer)!, encoded.ToArray(), text);
         }
 
+        [Fact]
+        public void TestCountingTokens()
+        {
+            string text = ReadAndSanitizeFile("./Data/lib.rs.txt");
+            IReadOnlyList<int> encoded = R50kBase.EncodeToIds(text);
+            int idsCount = R50kBase.CountTokens(text);
+            Assert.Equal(11378, encoded.Count);
+            Assert.Equal(encoded.Count, idsCount);
+
+            // count with max tokens to encode
+            int idsCountMax1000 = R50kBase.CountTokens(text, maxTokenCount: 1000);
+            Assert.Equal(1000, idsCountMax1000);
+        }
+
         [Theory]
         [InlineData("o1")]
         [InlineData("o1-")]

@@ -189,9 +189,10 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="text">The text to encode.</param>
         /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
         /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <param name="maxTokenCount">Indicate whether to consider a max token count for counting tokens.</param>
         /// <returns>The number of token Ids that the input text will be encoded to.</returns>
-        public int CountTokens(string text, bool considerPreTokenization = true, bool considerNormalization = true)
-            => CountTokens(text, text.AsSpan(), new EncodeSettings { ConsiderPreTokenization = considerPreTokenization, ConsiderNormalization = considerNormalization });
+        public int CountTokens(string text, bool considerPreTokenization = true, bool considerNormalization = true, int maxTokenCount = int.MaxValue)
+            => CountTokens(text, text.AsSpan(), new EncodeSettings { ConsiderPreTokenization = considerPreTokenization, ConsiderNormalization = considerNormalization, MaxTokenCount = maxTokenCount });
 
         /// <summary>
         /// Get the number of tokens that the input text will be encoded to.
@@ -199,9 +200,10 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="text">The text to encode.</param>
         /// <param name="considerPreTokenization">Indicate whether to consider pre-tokenization before tokenization.</param>
         /// <param name="considerNormalization">Indicate whether to consider normalization before tokenization.</param>
+        /// <param name="maxTokenCount">Indicate whether to consider a max token count for counting tokens.</param>
         /// <returns>The number of token Ids that the input text will be encoded to.</returns>
-        public int CountTokens(ReadOnlySpan<char> text, bool considerPreTokenization = true, bool considerNormalization = true)
-            => CountTokens(null, text, new EncodeSettings { ConsiderPreTokenization = considerPreTokenization, ConsiderNormalization = considerNormalization });
+        public int CountTokens(ReadOnlySpan<char> text, bool considerPreTokenization = true, bool considerNormalization = true, int maxTokenCount = int.MaxValue)
+            => CountTokens(null, text, new EncodeSettings { ConsiderPreTokenization = considerPreTokenization, ConsiderNormalization = considerNormalization, MaxTokenCount = maxTokenCount });
 
         /// <summary>
         /// Find the index of the maximum encoding capacity without surpassing the token limit.
