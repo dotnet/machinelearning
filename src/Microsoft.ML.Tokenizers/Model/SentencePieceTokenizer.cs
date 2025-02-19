@@ -432,8 +432,8 @@ namespace Microsoft.ML.Tokenizers
             => _model.Decode(ids, destination, considerSpecialTokens, out idsConsumed, out charsWritten);
 
         /// <summary>
-        /// Create from the given model stream a LlamaTokenizer which is based on SentencePieceTokenizer. The model stream should contain the SentencePiece Bpe model according to
-        /// https://github.com/google/sentencepiece/blob/master/src/sentencepiece_model.proto specification.
+        /// Creates an instance of SentencePieceTokenizer. The model stream should contain a SentencePiece model as specified in the following documentation:
+        /// https://github.com/google/sentencepiece/blob/master/src/sentencepiece_model.proto.
         /// </summary>
         /// <param name="modelStream">The stream containing the SentencePiece Bpe model.</param>
         /// <param name="addBeginOfSentence">Indicate emitting the beginning of sentence token during the encoding.</param>

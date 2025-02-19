@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tokenizers
                 xLen = Helpers.EncodeToUtf8(x.AsSpan(i), buffer1);
                 yLen = Helpers.EncodeToUtf8(y.AsSpan(i), buffer2);
 
-                int result = ByteArrayComparer.Instance.Compare(buffer1.Slice(0, xLen), buffer2.Slice(0, yLen));
+                int result = buffer1.Slice(0, xLen).SequenceCompareTo(buffer2.Slice(0, yLen));
 
                 if (bytes1 != null)
                 {

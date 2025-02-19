@@ -26,35 +26,4 @@ namespace Microsoft.ML.Tokenizers
             return hash;
         }
     }
-
-    internal class ByteArrayComparer : IComparer<byte[]>
-    {
-        internal static readonly ByteArrayComparer Instance = new ByteArrayComparer();
-
-        public int Compare(Span<byte> x, Span<byte> y)
-        {
-            int minLength = Math.Min(x.Length, y.Length);
-            for (int i = 0; i < minLength; i++)
-            {
-                if (x[i] == y[i])
-                {
-                    continue;
-                }
-
-                return (int)x[i] - (int)y[i];
-            }
-
-            return x.Length - y.Length;
-        }
-
-        public int Compare(byte[]? x, byte[]? y)
-        {
-            if (x == null || y == null)
-            {
-                return x == y ? 0 : (x == null ? -1 : 1);
-            }
-
-            return Compare(x.AsSpan(), y.AsSpan());
-        }
-    }
 }
