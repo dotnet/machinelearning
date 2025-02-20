@@ -20,6 +20,7 @@ public abstract class CausalLMPipelineChatClient<TTokenizer, TCausalLMModel> : I
 {
     private readonly ICausalLMPipeline<TTokenizer, TCausalLMModel> _pipeline;
     private readonly IMEAIChatTemplateBuilder _chatTemplateBuilder;
+    private readonly ChatClientMetadata _metadata;
 
     public CausalLMPipelineChatClient(
         ICausalLMPipeline<TTokenizer, TCausalLMModel> pipeline,
@@ -27,14 +28,12 @@ public abstract class CausalLMPipelineChatClient<TTokenizer, TCausalLMModel> : I
         ChatClientMetadata? metadata = null)
     {
         var classNameWithType = $"{nameof(CausalLMPipelineChatClient<TTokenizer, TCausalLMModel>)}<{typeof(TTokenizer).Name}, {typeof(TCausalLMModel).Name}>";
-        Metadata ??= new ChatClientMetadata(providerName: classNameWithType, modelId: typeof(TCausalLMModel).Name);
+        _metadata = new ChatClientMetadata(providerName: classNameWithType, modelId: typeof(TCausalLMModel).Name);
         _chatTemplateBuilder = chatTemplateBuilder;
         _pipeline = pipeline;
     }
 
-    public ChatClientMetadata Metadata { get; }
-
-    public virtual Task<ChatCompletion> CompleteAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default)
+    public virtual Task<ChatResponse> GetResponseAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default)
     {
         var prompt = _chatTemplateBuilder.BuildPrompt(chatMessages, options);
         var stopSequences = options?.StopSequences ?? Array.Empty<string>();
@@ -46,7 +45,7 @@ public abstract class CausalLMPipelineChatClient<TTokenizer, TCausalLMModel> : I
             stopSequences: stopSequences.ToArray()) ?? throw new InvalidOperationException("Failed to generate a reply.");
 
         var chatMessage = new ChatMessage(ChatRole.Assistant, output);
-        return Task.FromResult(new ChatCompletion([chatMessage])
+        return Task.FromResult(new ChatResponse([chatMessage])
         {
             CreatedAt = DateTime.UtcNow,
             FinishReason = ChatFinishReason.Stop,
@@ -54,7 +53,7 @@ public abstract class CausalLMPipelineChatClient<TTokenizer, TCausalLMModel> : I
     }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-    public virtual async IAsyncEnumerable<StreamingChatCompletionUpdate> CompleteStreamingAsync(
+    public virtual async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         IList<ChatMessage> chatMessages,
         ChatOptions? options = null,
@@ -69,7 +68,7 @@ public abstract class CausalLMPipelineChatClient<TTokenizer, TCausalLMModel> : I
             temperature: options?.Temperature ?? 0.7f,
             stopSequences: stopSequences.ToArray()))
         {
-            yield return new StreamingChatCompletionUpdate
+            yield return new ChatResponseUpdate
             {
                 Role = ChatRole.Assistant,
                 Text = output,
@@ -83,6 +82,8 @@ public abstract class CausalLMPipelineChatClient<TTokenizer, TCausalLMModel> : I
     }
 
     public virtual object? GetService(Type serviceType, object? serviceKey = null) =>
-        serviceKey is null && serviceType is not null && serviceType.IsAssignableFrom(GetType()) ? this :
+        serviceKey is not null ? null :
+        serviceType == typeof(ChatClientMetadata) ? _metadata :
+        serviceType.IsAssignableFrom(GetType()) ? this :
         null;
 }

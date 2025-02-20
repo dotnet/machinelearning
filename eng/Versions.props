@@ -46,7 +46,7 @@
     <MicrosoftDotNetInteractiveVersion>1.0.0-beta.24375.2</MicrosoftDotNetInteractiveVersion>
     <MicrosoftMLOnnxRuntimeVersion>1.18.1</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
-    <MicrosoftExtensionsAIVersion>9.0.1-preview.1.24570.5</MicrosoftExtensionsAIVersion>
+    <MicrosoftExtensionsAIVersion>9.3.0-preview.1.25114.11</MicrosoftExtensionsAIVersion>
     <!-- runtime.native.System.Data.SqlClient.sni is not updated by dependency flow as it is not produced live anymore. -->
     <RuntimeNativeSystemDataSqlClientSniVersion>4.4.0</RuntimeNativeSystemDataSqlClientSniVersion>
     <!--
