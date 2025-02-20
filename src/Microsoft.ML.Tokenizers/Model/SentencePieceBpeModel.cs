@@ -16,7 +16,7 @@ using System.Threading;
 
 namespace Microsoft.ML.Tokenizers
 {
-    internal class SentencePieceBpeModel : SentencePieceBaseModel
+    internal sealed class SentencePieceBpeModel : SentencePieceBaseModel
     {
         private const int UninitializedId = -2; // indicate if the symbol contains uninitialized id.
         private readonly Dictionary<StringSpanOrdinalKey, (int Id, float Score, byte Type)> _vocab = new();
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Tokenizers
                 return [];
             }
 
-            List<EncodedToken>? tokens = new();
+            List<EncodedToken> tokens = new();
 
             if (SpecialTokensRegex is not null)
             {

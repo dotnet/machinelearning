@@ -15,7 +15,7 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.ML.Tokenizers
 {
-    internal class SentencePieceUnigramModel : SentencePieceBaseModel
+    internal sealed class SentencePieceUnigramModel : SentencePieceBaseModel
     {
         private readonly SortedDictionary<string, int> _vocab;
         private readonly (string Piece, float Score, ModelProto.Types.SentencePiece.Types.Type Type)[] _vocabReverse;
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Tokenizers
                 return Array.Empty<EncodedToken>();
             }
 
-            List<EncodedToken>? tokens = new();
+            List<EncodedToken> tokens = new();
 
             // Rent a buffer that approximately enough to hold the Utf8 encoded bytes, the normalization of the encoded buffer, and some extra memory to for encoding results.
             int[] buffer = ArrayPool<int>.Shared.Rent(textToEncode.Length * 3);

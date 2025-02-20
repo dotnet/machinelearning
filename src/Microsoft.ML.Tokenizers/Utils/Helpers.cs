@@ -8,7 +8,11 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
+#if Test
+namespace Microsoft.ML.Tokenizers.Tests
+#else
 namespace Microsoft.ML.Tokenizers
+#endif // Test
 {
     internal static partial class Helpers
     {

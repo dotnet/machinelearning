@@ -140,6 +140,8 @@ namespace Microsoft.ML.Tokenizers
 
         public abstract bool TryMapIdToToken(int id, out string? token);
 
+        private const int ApproximatedMaxEncodedBytesCount = 50;
+
         public virtual string Decode(IEnumerable<int> ids, bool considerSpecialTokens)
         {
             if (ids is null)
@@ -161,32 +163,35 @@ namespace Microsoft.ML.Tokenizers
             int suffixIndex = -1;
             char prefixSuffixChar = EscapeWhiteSpaces ? SentencePieceNormalizer.DummyPrefix : ' ';
 
-            if (enumerator.Current <= MaxByteId && ByteFallback)
+            int current = enumerator.Current;
+            if (current <= MaxByteId && ByteFallback)
             {
                 // First token is a byte token.
 
-                while (enumerator.Current < ByteCodeToIdOffset)
+                while (current < ByteCodeToIdOffset)
                 {
                     // It is possible listing some special tokens before the byte tokens in the tokenizer's data.
-                    TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, ref sb);
+                    TryDecodeAsSpecialToken(this, current, considerSpecialTokens, ref sb);
 
                     // Skip control tokens.
                     if (!enumerator.MoveNext())
                     {
                         return sb.ToString();
                     }
+
+                    current = enumerator.Current;
                 }
 
-                if (enumerator.Current <= MaxByteId && ByteFallback)
+                if (current <= MaxByteId && ByteFallback)
                 {
-                    EncodeByte(enumerator.Current, OneByteUtf8EncodingMaxId, ByteCodeToIdOffset, ref bytesCount, ref bytesPoolArray, ref sb);
+                    EncodeByte(current, OneByteUtf8EncodingMaxId, ByteCodeToIdOffset, ref bytesCount, ref bytesPoolArray, ref sb);
                 }
-                else if (!TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, ref sb) && TryMapIdToToken(enumerator.Current, out string? token))
+                else if (!TryDecodeAsSpecialToken(this, current, considerSpecialTokens, ref sb) && TryMapIdToToken(current, out string? token))
                 {
                     AppendTokenWithCheckingPrefix(AddDummyPrefix, TreatWhitespaceAsSuffix, token!, prefixSuffixChar, ref sb, ref prefixRemoved, ref suffixIndex);
                 }
             }
-            else if (!TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, ref sb) && TryMapIdToToken(enumerator.Current, out string? token))
+            else if (!TryDecodeAsSpecialToken(this, current, considerSpecialTokens, ref sb) && TryMapIdToToken(current, out string? token))
             {
                 AppendTokenWithCheckingPrefix(AddDummyPrefix, TreatWhitespaceAsSuffix, token!, prefixSuffixChar, ref sb, ref prefixRemoved, ref suffixIndex);
             }
@@ -195,7 +200,8 @@ namespace Microsoft.ML.Tokenizers
 
             while (enumerator.MoveNext())
             {
-                if (enumerator.Current < ByteCodeToIdOffset)
+                current = enumerator.Current;
+                if (current < ByteCodeToIdOffset)
                 {
                     if (bytesCount >= 1)
                     {
@@ -203,12 +209,12 @@ namespace Microsoft.ML.Tokenizers
                     }
 
                     // It is possible listing some special tokens before the byte tokens in the tokenizer's data.
-                    TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, ref sb);
+                    TryDecodeAsSpecialToken(this, current, considerSpecialTokens, ref sb);
 
                     continue;
                 }
 
-                if (enumerator.Current <= MaxByteId && ByteFallback)
+                if (current <= MaxByteId && ByteFallback)
                 {
                     if (bytesCount >= 1)
                     {
@@ -219,11 +225,11 @@ namespace Microsoft.ML.Tokenizers
                             Helpers.ArrayPoolGrow(ref bytesPoolArray, bytesCount * 2);
                         }
 
-                        bytesPoolArray![bytesCount++] = (byte)(enumerator.Current - ByteCodeToIdOffset);
+                        bytesPoolArray![bytesCount++] = (byte)(current - ByteCodeToIdOffset);
                     }
                     else
                     {
-                        EncodeByte(enumerator.Current, OneByteUtf8EncodingMaxId, ByteCodeToIdOffset, ref bytesCount, ref bytesPoolArray, ref sb);
+                        EncodeByte(current, OneByteUtf8EncodingMaxId, ByteCodeToIdOffset, ref bytesCount, ref bytesPoolArray, ref sb);
                     }
                 }
                 else
@@ -233,7 +239,7 @@ namespace Microsoft.ML.Tokenizers
                         FlushBytes(ref bytesCount, ref bytesPoolArray, ref charPoolArray, ref sb);
                     }
 
-                    if (!TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, ref sb) && TryMapIdToToken(enumerator.Current, out string? token))
+                    if (!TryDecodeAsSpecialToken(this, current, considerSpecialTokens, ref sb) && TryMapIdToToken(current, out string? token))
                     {
                         AppendTokenWithCheckingPrefix(AddDummyPrefix, TreatWhitespaceAsSuffix, token!, prefixSuffixChar, ref sb, ref prefixRemoved, ref suffixIndex);
                     }
@@ -272,7 +278,7 @@ namespace Microsoft.ML.Tokenizers
 
                 int len = Encoding.UTF8.GetMaxCharCount(bytesCount);
 
-                charPoolArray ??= ArrayPool<char>.Shared.Rent(Math.Max(len, 50));
+                charPoolArray ??= ArrayPool<char>.Shared.Rent(Math.Max(len, ApproximatedMaxEncodedBytesCount >> 1));
 
                 if (len > charPoolArray.Length)
                 {
@@ -294,7 +300,7 @@ namespace Microsoft.ML.Tokenizers
                 else
                 {
                     bytesCount = 1;
-                    bytesPoolArray ??= ArrayPool<byte>.Shared.Rent(50);
+                    bytesPoolArray ??= ArrayPool<byte>.Shared.Rent(ApproximatedMaxEncodedBytesCount);
                     bytesPoolArray[0] = (byte)(id - byteCodeToIdOffset);
                 }
             }
@@ -382,12 +388,13 @@ namespace Microsoft.ML.Tokenizers
             int suffixIndex = -1;
             char prefixSuffixChar = EscapeWhiteSpaces ? SentencePieceNormalizer.DummyPrefix : ' ';
 
-            if (enumerator.Current <= MaxByteId && ByteFallback)
+            int current = enumerator.Current;
+            if (current <= MaxByteId && ByteFallback)
             {
                 // First token is a byte token.
-                while (enumerator.Current < ByteCodeToIdOffset)
+                while (current < ByteCodeToIdOffset)
                 {
-                    OperationStatus status = TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, buffer, ref charsWritten, out bool isSpecialToken);
+                    OperationStatus status = TryDecodeAsSpecialToken(this, current, considerSpecialTokens, buffer, ref charsWritten, out bool isSpecialToken);
                     if (status != OperationStatus.Done)
                     {
                         return status;
@@ -400,9 +407,11 @@ namespace Microsoft.ML.Tokenizers
                     {
                         return OperationStatus.Done;
                     }
+
+                    current = enumerator.Current;
                 }
 
-                if (enumerator.Current <= MaxByteId && ByteFallback)
+                if (current <= MaxByteId && ByteFallback)
                 {
                     if (!EncodeByte(enumerator.Current, OneByteUtf8EncodingMaxId, ByteCodeToIdOffset, ref bytesCount, buffer, ref charsWritten, ref idsConsumed, ref bytesPoolArray))
                     {
@@ -411,13 +420,13 @@ namespace Microsoft.ML.Tokenizers
                 }
                 else
                 {
-                    OperationStatus status = TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, buffer, ref charsWritten, out bool isSpecialToken);
+                    OperationStatus status = TryDecodeAsSpecialToken(this, current, considerSpecialTokens, buffer, ref charsWritten, out bool isSpecialToken);
                     if (status != OperationStatus.Done)
                     {
                         return status;
                     }
 
-                    if (!isSpecialToken && TryMapIdToToken(enumerator.Current, out string? token))
+                    if (!isSpecialToken && TryMapIdToToken(current, out string? token))
                     {
                         if (!AppendTokenWithCheckingPrefix(AddDummyPrefix, TreatWhitespaceAsSuffix, token!, prefixSuffixChar, destination, ref prefixRemoved, ref suffixIndex, ref idsConsumed, ref charsWritten))
                         {
@@ -432,13 +441,13 @@ namespace Microsoft.ML.Tokenizers
             }
             else
             {
-                OperationStatus status = TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, buffer, ref charsWritten, out bool isSpecialToken);
+                OperationStatus status = TryDecodeAsSpecialToken(this, current, considerSpecialTokens, buffer, ref charsWritten, out bool isSpecialToken);
                 if (status != OperationStatus.Done)
                 {
                     return status;
                 }
 
-                if (!isSpecialToken && TryMapIdToToken(enumerator.Current, out string? token))
+                if (!isSpecialToken && TryMapIdToToken(current, out string? token))
                 {
                     if (!AppendTokenWithCheckingPrefix(AddDummyPrefix, TreatWhitespaceAsSuffix, token!, prefixSuffixChar, destination, ref prefixRemoved, ref suffixIndex, ref idsConsumed, ref charsWritten))
                     {
@@ -455,9 +464,10 @@ namespace Microsoft.ML.Tokenizers
 
             while (enumerator.MoveNext())
             {
+                current = enumerator.Current;
                 buffer = destination.Slice(charsWritten);
 
-                if (enumerator.Current < ByteCodeToIdOffset)
+                if (current < ByteCodeToIdOffset)
                 {
                     if (bytesCount >= 1)
                     {
@@ -467,7 +477,7 @@ namespace Microsoft.ML.Tokenizers
                         }
                     }
 
-                    OperationStatus status = TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, buffer, ref charsWritten, out bool isSpecialToken);
+                    OperationStatus status = TryDecodeAsSpecialToken(this, current, considerSpecialTokens, buffer, ref charsWritten, out bool isSpecialToken);
                     if (status != OperationStatus.Done)
                     {
                         return status;
@@ -477,7 +487,7 @@ namespace Microsoft.ML.Tokenizers
                     continue;
                 }
 
-                if (enumerator.Current <= MaxByteId && ByteFallback)
+                if (current <= MaxByteId && ByteFallback)
                 {
                     if (bytesCount >= 1)
                     {
@@ -488,11 +498,11 @@ namespace Microsoft.ML.Tokenizers
                             Helpers.ArrayPoolGrow(ref bytesPoolArray, bytesCount * 2);
                         }
 
-                        bytesPoolArray![bytesCount++] = (byte)(enumerator.Current - ByteCodeToIdOffset);
+                        bytesPoolArray![bytesCount++] = (byte)(current - ByteCodeToIdOffset);
                     }
                     else
                     {
-                        if (!EncodeByte(enumerator.Current, OneByteUtf8EncodingMaxId, ByteCodeToIdOffset, ref bytesCount, buffer, ref charsWritten, ref idsConsumed, ref bytesPoolArray))
+                        if (!EncodeByte(current, OneByteUtf8EncodingMaxId, ByteCodeToIdOffset, ref bytesCount, buffer, ref charsWritten, ref idsConsumed, ref bytesPoolArray))
                         {
                             return OperationStatus.DestinationTooSmall;
                         }
@@ -508,13 +518,13 @@ namespace Microsoft.ML.Tokenizers
                         }
                     }
 
-                    OperationStatus status = TryDecodeAsSpecialToken(this, enumerator.Current, considerSpecialTokens, buffer, ref charsWritten, out bool isSpecialToken);
+                    OperationStatus status = TryDecodeAsSpecialToken(this, current, considerSpecialTokens, buffer, ref charsWritten, out bool isSpecialToken);
                     if (status != OperationStatus.Done)
                     {
                         return status;
                     }
 
-                    if (!isSpecialToken && TryMapIdToToken(enumerator.Current, out string? token))
+                    if (!isSpecialToken && TryMapIdToToken(current, out string? token))
                     {
                         if (!AppendTokenWithCheckingPrefix(AddDummyPrefix, TreatWhitespaceAsSuffix, token!, prefixSuffixChar, destination, ref prefixRemoved, ref suffixIndex, ref idsConsumed, ref charsWritten))
                         {
@@ -578,8 +588,9 @@ namespace Microsoft.ML.Tokenizers
                 {
                     specialToken = model.UnknownToken;
                 }
-                else if (!model.SpecialTokensReverse?.TryGetValue(id, out specialToken) is true)
+                else
                 {
+                    model.SpecialTokensReverse?.TryGetValue(id, out specialToken);
                 }
 
                 isSpecialToken = specialToken is not null;
@@ -605,7 +616,7 @@ namespace Microsoft.ML.Tokenizers
 
                 int len = Encoding.UTF8.GetMaxCharCount(bytesCount);
 
-                charPoolArray ??= ArrayPool<char>.Shared.Rent(Math.Max(len, 50));
+                charPoolArray ??= ArrayPool<char>.Shared.Rent(Math.Max(len, ApproximatedMaxEncodedBytesCount >> 1));
 
                 if (len > charPoolArray.Length)
                 {
@@ -643,7 +654,7 @@ namespace Microsoft.ML.Tokenizers
                 else
                 {
                     bytesCount = 1;
-                    bytesPoolArray ??= ArrayPool<byte>.Shared.Rent(50);
+                    bytesPoolArray ??= ArrayPool<byte>.Shared.Rent(ApproximatedMaxEncodedBytesCount);
                     bytesPoolArray[0] = (byte)(id - byteCodeToIdOffset);
                 }
 
@@ -670,10 +681,7 @@ namespace Microsoft.ML.Tokenizers
 
                     if (prefixSuffixChar != ' ')
                     {
-                        for (int i = 0; i < tokenSpan.Length; i++)
-                        {
-                            buffer[i] = tokenSpan[i] == prefixSuffixChar ? ' ' : tokenSpan[i];
-                        }
+                        Helpers.Replace(tokenSpan, buffer, prefixSuffixChar, ' ');
                     }
                     else
                     {
@@ -700,10 +708,7 @@ namespace Microsoft.ML.Tokenizers
 
                     if (prefixSuffixChar != ' ')
                     {
-                        for (int i = 0; i < tokenSpan.Length; i++)
-                        {
-                            buffer[i] = tokenSpan[i] == prefixSuffixChar ? ' ' : tokenSpan[i];
-                        }
+                        Helpers.Replace(tokenSpan, buffer, prefixSuffixChar, ' ');
                     }
                     else
                     {
@@ -725,10 +730,7 @@ namespace Microsoft.ML.Tokenizers
                     tokenSpan = tokenSpan.Slice(delta);
                     if (prefixSuffixChar != ' ')
                     {
-                        for (int i = 0; i < tokenSpan.Length; i++)
-                        {
-                            buffer[i] = tokenSpan[i] == prefixSuffixChar ? ' ' : tokenSpan[i];
-                        }
+                        Helpers.Replace(tokenSpan, buffer, prefixSuffixChar, ' ');
                     }
                     else
                     {

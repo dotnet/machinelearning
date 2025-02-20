@@ -11,7 +11,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
+#if Test
+namespace Microsoft.ML.Tokenizers.Tests
+#else
 namespace Microsoft.ML.Tokenizers
+#endif // Test
 {
     //
     // Succinct bit vector.

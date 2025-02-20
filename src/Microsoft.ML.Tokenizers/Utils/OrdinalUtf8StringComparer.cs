@@ -7,7 +7,11 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Text;
 
+#if Test
+namespace Microsoft.ML.Tokenizers.Tests
+#else
 namespace Microsoft.ML.Tokenizers
+#endif // Test
 {
     internal class OrdinalUtf8StringComparer : IComparer<string>
     {
