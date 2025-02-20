@@ -150,6 +150,86 @@ namespace Microsoft.ML.Tokenizers.Tests
                 new string[] { "▁This", "▁is", "▁", "👍", ",", "▁an", "▁e", "moji", "." },
                 new Range[] { new Range(0, 5), new Range(5, 8), new Range(8, 9), new Range(9, 11), new Range(11, 12), new Range(12, 15), new Range(15, 17), new Range(17, 21), new Range(21, 22) }
             };
+
+            yield return new object[]
+            {
+                "清水寺は京都にある。", // Japanese
+                "▁清水寺は京都にある。",
+                "清水寺は京都にある。",
+                new int[] { 5, 177585, 32566, 341, 60423, 24432, 29 },
+                new string[] { "▁", "清水", "寺", "は", "京都", "にある", "。" },
+                new Range[] { new Range(0, 1), new Range(1, 3), new Range(3, 4), new Range(4, 5), new Range(5, 7), new Range(7, 10), new Range(10, 11) }
+            };
+
+            yield return new object[]
+            {
+                "xyz東京", // Latin-Japanese 
+                "▁xyz東京",
+                "xyz東京",
+                new int[] { 1021, 32188, 22887 },
+                new string[] { "▁x", "yz", "東京" },
+                new Range[] { new Range(0, 2), new Range(2, 4), new Range(4, 6) }
+            };
+
+            yield return new object[]
+            {
+                "㍻",        // Japanese with normalization
+                "▁平成",
+                "平成",
+                new int[] { 5, 44405 },
+                new string[] { "▁", "平成" },
+                new Range[] { new Range(0, 1), new Range(1, 3) }
+            };
+
+            yield return new object[]
+            {
+                "ＫＡＤＯＫＡＷＡABC", // Full-width Latin to normalize to normal width
+                "▁KADOKAWAABC",
+                "KADOKAWAABC",
+                new int[] { 340, 41387, 218268, 186943 },
+                new string[] { "▁K", "ADO", "KAWA", "ABC" },
+                new Range[] { new Range(0, 2), new Range(2, 5), new Range(5, 9), new Range(9, 12) }
+            };
+
+            yield return new object[]
+            {
+                "ℌ𝔢𝔩𝔩𝔬 𝔚𝔬𝔯𝔩𝔡!", // Gothic script
+                "▁Hello▁World!",
+                "Hello World!",
+                new int[] { 35377, 6660, 37 },
+                new string[] { "▁Hello", "▁World", "!" },
+                new Range[] { new Range(0, 6), new Range(6, 12), new Range(12, 13) }
+            };
+
+            yield return new object[]
+            {
+                "𝛢𝛷𝛢𝛪𝛯𝛪", // Greek script
+                "▁ΑΦΑΙΞΙ",
+                "ΑΦΑΙΞΙ",
+                new int[] { 3866, 203768, 15470, 72125, 15470 },
+                new string[] { "▁Α", "ΦΑ", "Ι", "Ξ", "Ι" },
+                new Range[] { new Range(0, 2), new Range(2, 4), new Range(4, 5), new Range(5, 6), new Range(6, 7) }
+            };
+
+            yield return new object[]
+            {
+                "𝖘𝖙𝖗𝖆𝖓𝖎𝖈𝖆", // Russian script
+                "▁stranica",
+                "stranica",
+                new int[] { 60133 },
+                new string[] { "▁stranica" },
+                new Range[] { new Range(0, 9) }
+            };
+
+            yield return new object[]
+            {
+                "老師", // Chinese
+                "▁老師",
+                "老師",
+                new int[] { 5, 25924 },
+                new string[] { "▁", "老師" },
+                new Range[] { new Range(0, 1), new Range(1, 3) }
+            };
         }
 
         private (IEnumerable<int> Ids, IEnumerable<string> Tokens, IEnumerable<Range> Offsets) ExtractedIds(
@@ -418,6 +498,17 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(OperationStatus.DestinationTooSmall, status);
                 Assert.Equal(decodedString.AsSpan().Slice(0, charsWritten).ToString(), buffer.AsSpan().Slice(0, charsWritten).ToString());
             }
+        }
+
+        [Fact]
+        public void SpecialTokensTest()
+        {
+            Assert.Equal("<unk>", _unigramTokenizer.UnknownToken);
+            Assert.Equal(0, _unigramTokenizer.UnknownId);
+            Assert.Equal("<s>", _unigramTokenizer.BeginningOfSentenceToken);
+            Assert.Equal(1, _unigramTokenizer.BeginningOfSentenceId);
+            Assert.Equal("</s>", _unigramTokenizer.EndOfSentenceToken);
+            Assert.Equal(2, _unigramTokenizer.EndOfSentenceId);
         }
     }
 }

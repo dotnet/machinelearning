@@ -599,6 +599,7 @@ namespace Microsoft.ML.Tokenizers
 
                 _nodes[(int)_nodeStack!.Peek()].Child = matchId;
             }
+
             _nodeStack.Pop();
         }
     }

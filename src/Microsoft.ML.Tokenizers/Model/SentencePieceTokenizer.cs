@@ -435,7 +435,7 @@ namespace Microsoft.ML.Tokenizers
         /// Creates an instance of SentencePieceTokenizer. The model stream should contain a SentencePiece model as specified in the following documentation:
         /// https://github.com/google/sentencepiece/blob/master/src/sentencepiece_model.proto.
         /// </summary>
-        /// <param name="modelStream">The stream containing the SentencePiece Bpe model.</param>
+        /// <param name="modelStream">The stream containing the SentencePiece Bpe or Unigram model.</param>
         /// <param name="addBeginOfSentence">Indicate emitting the beginning of sentence token during the encoding.</param>
         /// <param name="addEndOfSentence">Indicate emitting the end of sentence token during the encoding.</param>
         /// <param name="specialTokens">The additional tokens to add to the vocabulary.</param>
