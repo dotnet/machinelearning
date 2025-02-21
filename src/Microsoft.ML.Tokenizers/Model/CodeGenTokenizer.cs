@@ -22,6 +22,9 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     public class CodeGenTokenizer : Tokenizer
     {
+        // The CodeGen tokenizer implementation is primarily adapted from
+        // https://github.com/huggingface/transformers/blob/main/src/transformers/models/codegen/tokenization_codegen.py,
+        // with modifications to align with C# code style, the API, and the tokenizer library design.
         private readonly Dictionary<StringSpanOrdinalKey, (int Id, string Token)> _vocab;
         private IReadOnlyDictionary<string, int>? _vocabOriginal;
         private readonly IReadOnlyDictionary<int, string> _vocabReverse;
