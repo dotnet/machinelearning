@@ -394,7 +394,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [Theory]
         [InlineData("o1")]
         [InlineData("o1-")]
-        [InlineData("o1-mimi")]
+        [InlineData("o1-mini")]
         [InlineData("o3")]
         [InlineData("o3-")]
         [InlineData("o3-mini")]
