@@ -49,6 +49,14 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
+        public void CountTokens_WithMaxTokenCount()
+        {
+            var tokenizer = new EnglishAlphabetTokenizer();
+
+            Assert.Equal(3, tokenizer.CountTokens("hello", maxTokenCount: 3));
+        }
+
+        [Fact]
         public void GetIndexByTokenCount_DefaultImplementation()
         {
             var tokenizer = new EnglishAlphabetTokenizer();
