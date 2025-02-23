@@ -21,6 +21,7 @@ namespace Microsoft.ML.Tokenizers.Tests
     {
         const string IMStart = "<|im_start|>";
         const string IMEnd = "<|im_end|>";
+        const string IMSep = "<|im_sep|>";
 
         private static readonly Dictionary<string, int> _specialTokens = new Dictionary<string, int>
                                                 {
@@ -34,11 +35,13 @@ namespace Microsoft.ML.Tokenizers.Tests
         public static Tokenizer R50kBase { get; } = TiktokenTokenizer.CreateForModel("ada");
         public static Tokenizer P50kEdit { get; } = TiktokenTokenizer.CreateForModel("text-davinci-edit-001");
         public static Tokenizer GPT4o { get; } = TiktokenTokenizer.CreateForModel("gpt-4o");
+        public static Tokenizer Phi4 { get; } = TiktokenTokenizer.CreateForModel("phi-4");
 
         [Fact]
         public async Task TestTokenizerCreation()
         {
             TestGPT4TokenizationEncoding(GPT4);
+            TestGPT4TokenizationEncoding(Phi4);
 
             Assert.True(GPT4 is TiktokenTokenizer);
             IReadOnlyDictionary<string, int>? specialTokens = (GPT4 as TiktokenTokenizer)!.SpecialTokens;
@@ -443,6 +446,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("code-search-babbage-code-001")]
         [InlineData("code-search-ada-code-001")]
         [InlineData("gpt2")]
+        [InlineData("phi-4")]
         public void TestAllSupportedModelNames(string modelName)
         {
             Tokenizer tokenizer = TiktokenTokenizer.CreateForModel(modelName);
@@ -504,6 +508,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("text-davinci-003")]
         [InlineData("text-curie-001")]
         [InlineData("text-davinci-edit-001")]
+        [InlineData("phi-4")]
         [ConditionalTheory(typeof(RemoteExecutor), nameof(RemoteExecutor.IsSupported))]
         public void TestCreationUsingModel(string modelName)
         {
@@ -568,8 +573,12 @@ namespace Microsoft.ML.Tokenizers.Tests
         [MemberData(nameof(TokenizerTestData))]
         public void TestTokenizerEncoding(string text, string[] expectedTokens, (int Index, int Length)[] expectedOffsets, int[] expectedIds)
         {
-            Tokenizer tokenizer = GPT4;
+            TestTokenizerEncodingForTokenizer(GPT4, text, expectedTokens, expectedOffsets, expectedIds);
+            TestTokenizerEncodingForTokenizer(Phi4, text, expectedTokens, expectedOffsets, expectedIds);
+        }
 
+        private void TestTokenizerEncodingForTokenizer(Tokenizer tokenizer, string text, string[] expectedTokens, (int Index, int Length)[] expectedOffsets, int[] expectedIds)
+        {
             IReadOnlyList<EncodedToken> encoding = tokenizer.EncodeToTokens(text, out _);
             IReadOnlyList<EncodedToken> encoding1 = tokenizer.EncodeToTokens(text.AsSpan(), out _);
 
@@ -732,6 +741,15 @@ namespace Microsoft.ML.Tokenizers.Tests
                     Assert.Equal(text.Length, index);
                 }
             }
+        }
+
+        [Fact]
+        public void TestPhi4SpecialCases()
+        {
+            string text = $"{IMStart}Hello{IMSep} World{IMEnd}<|dummy_85|>";
+            IReadOnlyList<int> encoded = Phi4.EncodeToIds(text);
+            Assert.Equal(new List<int>() { 100264, 9906, 100266, 4435, 100265, 100349 }, encoded);
+            Assert.Equal(text, Phi4.Decode(encoded));
         }
 
         // We are not exposing the Encoder, Decoder, or Vocabulary so far. For now, use reflection to test it.

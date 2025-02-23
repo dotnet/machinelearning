@@ -16,10 +16,10 @@
       The file under MIT copyright license https://github.com/openai/tiktoken/blob/main/LICENSE
 
       Gpt2 vocab data is exact as the r50k_base vocab data, but with a different name.
-      In the CompressFile task above we modify the file's content to elimenate the ranks, thus reducing the file size,
+      In the CompressFile task above we modify the file's content to eliminate the ranks, thus reducing the file size,
       since the rank corresponds to the line number in the file. For the file p50k_base.tiktoken,
       we introduce empty lines to replace any missing ranks, ensuring that the rank consistently aligns with the line number.
-      After we eleminate the ranks from the file, we compress the file using the DeflateStream and embed it as a resource in the assembly.
+      After we eliminate the ranks from the file, we compress the file using the DeflateStream and embed it as a resource in the assembly.
     -->
     <TokenizerDataEmbeddedResource Include="Data\gpt2.tiktoken" />
   </ItemGroup>
