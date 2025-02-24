@@ -12,7 +12,11 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Net.Http;
 
+#if Test
+namespace Microsoft.ML.Tokenizers.Tests
+#else
 namespace Microsoft.ML.Tokenizers
+#endif // Test
 {
     internal static partial class Helpers
     {
@@ -61,6 +65,8 @@ namespace Microsoft.ML.Tokenizers
             => Encoding.UTF8.GetChars(bytes, chars);
 
         internal static void Replace(Span<char> span, char oldValue, char newValue) => span.Replace(oldValue, newValue);
+
+        internal static void Replace(ReadOnlySpan<char> source, Span<char> destination, char oldValue, char newValue) => source.Replace(destination, oldValue, newValue);
 
         /// <summary>
         /// Encode the next code point in the text to UTF-8.

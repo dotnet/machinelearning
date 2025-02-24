@@ -10,7 +10,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+#if Test
+namespace Microsoft.ML.Tokenizers.Tests
+#else
 namespace Microsoft.ML.Tokenizers
+#endif // Test
 {
     internal static partial class Helpers
     {
@@ -111,6 +115,16 @@ namespace Microsoft.ML.Tokenizers
             for (int i = 0; i < span.Length; i++)
                 if (span[i] == oldValue)
                     span[i] = newValue;
+        }
+
+        internal static void Replace(ReadOnlySpan<char> source, Span<char> destination, char oldValue, char newValue)
+        {
+            Debug.Assert(source.Length <= destination.Length);
+
+            for (int i = 0; i < source.Length; i++)
+            {
+                destination[i] = source[i] == oldValue ? newValue : source[i];
+            }
         }
 
         /// <summary>

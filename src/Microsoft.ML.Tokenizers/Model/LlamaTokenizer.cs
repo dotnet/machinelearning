@@ -31,7 +31,7 @@ namespace Microsoft.ML.Tokenizers
         /// <remarks>
         /// When creating the tokenizer, ensure that the vocabulary stream is sourced from a trusted provider.
         /// </remarks>
-        public static LlamaTokenizer Create(
+        public static new LlamaTokenizer Create(
             Stream modelStream,
             bool addBeginOfSentence = true,
             bool addEndOfSentence = false,
@@ -53,13 +53,6 @@ namespace Microsoft.ML.Tokenizers
             {
                 throw new ArgumentException($"Normalization '{modelProto.NormalizerSpec.Name}' is not supported.", nameof(modelProto));
             }
-
-            SentencePieceNormalizer normalizer = new(
-                                    modelProto.NormalizerSpec.RemoveExtraWhitespaces,
-                                    modelProto.NormalizerSpec.AddDummyPrefix,
-                                    modelProto.NormalizerSpec.EscapeWhitespaces,
-                                    modelProto.TrainerSpec.TreatWhitespaceAsSuffix,
-                                    specialTokens);
 
             return new LlamaTokenizer(modelProto, addBeginOfSentence, addEndOfSentence, specialTokens);
         }
