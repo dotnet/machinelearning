@@ -108,6 +108,7 @@ namespace Microsoft.ML.Tokenizers
                                                         bool addBeginningOfSentence,
                                                         bool addEndOfSentence,
                                                         bool considerNormalization);
+
         public abstract IReadOnlyList<int> EncodeToIds(
                                             string? text,
                                             ReadOnlySpan<char> textSpan,
