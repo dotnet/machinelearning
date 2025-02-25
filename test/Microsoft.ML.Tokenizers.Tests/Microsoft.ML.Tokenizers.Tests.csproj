@@ -5,6 +5,8 @@
     <StrongNameKeyId>Test</StrongNameKeyId>
     <NoWarn>$(NoWarn);MSML_ExtendBaseTestClass</NoWarn>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>$(DefineConstants);Test</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
@@ -25,6 +27,18 @@
 
   <ItemGroup>
     <Compile Include="..\..\src\Common\tests\RetryHelper.cs" />
+    <Compile Include="..\..\src\Microsoft.ML.Tokenizers\Utils\DoubleArrayTrie.cs" />
+    <Compile Include="..\..\src\Microsoft.ML.Tokenizers\Utils\OrdinalUtf8StringComparer.cs" />
+    <Compile Include="..\..\src\Microsoft.ML.Tokenizers\Utils\Helpers.cs" />
+    <Compile Include="..\..\src\Microsoft.ML.Tokenizers\Utils\ByteToUnicodeEncoding.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
+    <Compile Include="..\..\src\Microsoft.ML.Tokenizers\Utils\Helpers.netcoreapp.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'">
+    <Compile Include="..\..\src\Microsoft.ML.Tokenizers\Utils\Helpers.netstandard.cs" />
   </ItemGroup>
 
   <ItemGroup>

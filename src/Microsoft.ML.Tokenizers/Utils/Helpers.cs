@@ -5,18 +5,62 @@
 using System;
 using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 
+#if Test
+namespace Microsoft.ML.Tokenizers.Tests
+#else
 namespace Microsoft.ML.Tokenizers
+#endif // Test
 {
     internal static partial class Helpers
     {
+        private const int UnicodeError = 0xFFFD;
+
         internal static void ArrayPoolGrow<T>(ref T[] arrayPoolArray, int requiredCapacity)
         {
             T[] tmp = ArrayPool<T>.Shared.Rent(Math.Max(arrayPoolArray.Length * 2, requiredCapacity));
             arrayPoolArray.CopyTo(tmp.AsSpan());
             ArrayPool<T>.Shared.Return(arrayPoolArray);
             arrayPoolArray = tmp;
+        }
+
+        internal static void ArrayPoolGrow<T>(ref Span<T> span, ref T[]? poolArray, int newSize)
+        {
+            Debug.Assert(span.Length <= newSize);
+
+            T[] newPoolArray = ArrayPool<T>.Shared.Rent(newSize);
+            span.CopyTo(newPoolArray);
+
+            if (poolArray is not null)
+            {
+                ArrayPool<T>.Shared.Return(poolArray);
+            }
+
+            poolArray = newPoolArray;
+            span = poolArray;
+        }
+
+        private static readonly int[] _oneCharLen = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 4 };
+
+        // Return length of a single UTF-8 source character
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static int OneCharLen(byte src) => _oneCharLen[(src & 0xFF) >> 4];
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static int GetUtf16LengthFromUtf8Bytes(ReadOnlySpan<byte> utf8Bytes)
+        {
+            int length = 0;
+
+            while (utf8Bytes.Length > 0)
+            {
+                int bytesLength = OneCharLen(utf8Bytes[0]);
+                length += bytesLength == 4 ? 2 : 1;
+                utf8Bytes = utf8Bytes.Slice(Math.Min(bytesLength, utf8Bytes.Length));
+            }
+
+            return length;
         }
 
         internal static int EncodeToUtf8(ReadOnlySpan<char> text, Span<byte> destination, Span<int> indexMapping)
@@ -71,6 +115,44 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return targetIndex;
+        }
+
+        internal static int EncodeNextUtf8(ReadOnlySpan<char> text, Span<byte> destination)
+        {
+            Debug.Assert(!text.IsEmpty);
+            Debug.Assert(destination.Length >= 4);
+
+            uint c = (uint)text[0];
+            if (c <= 0x7Fu)
+            {
+                destination[0] = (byte)c;
+                return 1;
+            }
+
+            if (c <= 0x7FFu)
+            {
+                // Scalar 00000yyy yyxxxxxx -> bytes [ 110yyyyy 10xxxxxx ]
+                destination[0] = (byte)((c + (0b110u << 11)) >> 6);
+                destination[1] = (byte)((c & 0x3Fu) + 0x80u);
+                return 2;
+            }
+
+            if (text.Length > 1 && char.IsSurrogatePair((char)c, text[1]))
+            {
+                // Scalar 000uuuuu zzzzyyyy yyxxxxxx -> bytes [ 11110uuu 10uuzzzz 10yyyyyy 10xxxxxx ]
+                uint value = (uint)char.ConvertToUtf32((char)c, text[1]);
+                destination[0] = (byte)((value + (0b11110 << 21)) >> 18);
+                destination[1] = (byte)(((value & (0x3Fu << 12)) >> 12) + 0x80u);
+                destination[2] = (byte)(((value & (0x3Fu << 6)) >> 6) + 0x80u);
+                destination[3] = (byte)((value & 0x3Fu) + 0x80u);
+                return 4;
+            }
+
+            // Scalar zzzzyyyy yyxxxxxx -> bytes [ 1110zzzz 10yyyyyy 10xxxxxx ]
+            destination[0] = (byte)((c + (0b1110 << 16)) >> 12);
+            destination[1] = (byte)(((c & (0x3Fu << 6)) >> 6) + 0x80u);
+            destination[2] = (byte)((c & 0x3Fu) + 0x80u);
+            return 3;
         }
 
         internal static int EncodeToUtf8AndTransform(ReadOnlySpan<char> text, Span<char> destination, Span<int> indexMapping)
@@ -130,7 +212,7 @@ namespace Microsoft.ML.Tokenizers
 
         public static bool ConvertUtf8ToUtf16(ReadOnlySpan<byte> utf8Bytes, Span<char> utf16Chars, out int bytesConsumed, out int charsWritten)
         {
-            Debug.Assert(utf16Chars.Length >= Encoding.UTF8.GetMaxCharCount(utf8Bytes.Length));
+            Debug.Assert(utf16Chars.Length >= GetUtf16LengthFromUtf8Bytes(utf8Bytes));
 
             int byteIndex = 0;
             int charIndex = 0;
@@ -210,5 +292,64 @@ namespace Microsoft.ML.Tokenizers
 
             return true;
         }
+
+        // encodedLength stores the number of bytes consumed after decoding.
+        internal static int DecodeUtf8(ReadOnlySpan<byte> input, out int encodedLength)
+        {
+            Debug.Assert(input.Length > 0);
+
+            if (input[0] < 0x80)
+            {
+                encodedLength = 1;
+                return input[0];
+            }
+            else if (input.Length >= 2 && (input[0] & 0xE0) == 0xC0)
+            {
+                int cp = (((input[0] & 0x1F) << 6) | ((input[1] & 0x3F)));
+                if (IsTrailByte(input[1]) && cp >= 0x0080 && IsValidCodepoint(cp))
+                {
+                    encodedLength = 2;
+                    return cp;
+                }
+            }
+            else if (input.Length >= 3 && (input[0] & 0xF0) == 0xE0)
+            {
+                int cp = (((input[0] & 0x0F) << 12) | ((input[1] & 0x3F) << 6) | ((input[2] & 0x3F)));
+                if (IsTrailByte(input[1]) && IsTrailByte(input[2]) && cp >= 0x0800 && IsValidCodepoint(cp))
+                {
+                    encodedLength = 3;
+                    return cp;
+                }
+            }
+            else if (input.Length >= 4 && (input[0] & 0xf8) == 0xF0)
+            {
+                int cp = (((input[0] & 0x07) << 18) | ((input[1] & 0x3F) << 12) | ((input[2] & 0x3F) << 6) | ((input[3] & 0x3F)));
+                if (IsTrailByte(input[1]) && IsTrailByte(input[2]) && IsTrailByte(input[3]) && cp >= 0x10000 && IsValidCodepoint(cp))
+                {
+                    encodedLength = 4;
+                    return cp;
+                }
+            }
+
+            // Invalid UTF-8.
+            encodedLength = 1;
+            return UnicodeError;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool IsTrailByte(byte x) => (sbyte)x < -0x40;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool IsValidCodepoint(int c) => ((uint)c) < 0xD800 || (c >= 0xE000 && c <= 0x10FFFF);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool IsValidDecodeUtf8(ReadOnlySpan<byte> input, out int encodedLength)
+        {
+            int c = DecodeUtf8(input, out encodedLength);
+            return c != UnicodeError || encodedLength == 3;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static uint Swap32(uint x) => ((x & 0x000000FF) << 24) | ((x & 0x0000FF00) << 8) | ((x & 0x00FF0000) >> 8) | ((x & 0xFF000000) >> 24);
     }
 }
