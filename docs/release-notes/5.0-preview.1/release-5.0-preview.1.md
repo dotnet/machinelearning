@@ -6,6 +6,7 @@
 
 ## **Enhancements**
 - **Support O3 OpenAI model mapping** ([#7394](https://github.com/dotnet/machinelearning/pull/7394))
+- **Create SentencePieceTokenizer from options object** ([#7403](https://github.com/dotnet/machinelearning/pull/7403))
 
 ## **Bug Fixes**
 - **Fix DateTime export to csv with culture info** ([#7358](https://github.com/dotnet/machinelearning/pull/7358)) - Thanks @asmirnov82!
