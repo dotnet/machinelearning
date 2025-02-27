@@ -41,6 +41,52 @@ namespace Microsoft.ML.Tokenizers
             OneByteUtf8EncodingMaxId = ByteCodeToIdOffset + 0x7F; // 0x7F is the maximum value of the one byte UTF-8 character.
         }
 
+        internal SentencePieceBpeModel(SentencePieceOptions options) : base(options)
+        {
+            if (options.PrecompiledNormalizationData is not null)
+            {
+                throw new NotSupportedException("Normalization data is not supported for SentencePieceBpeModel.");
+            }
+
+            Debug.Assert(options.Vocabulary is not null);
+
+            int id = 0;
+            foreach (var item in options.Vocabulary!)
+            {
+                _vocab.Add(new StringSpanOrdinalKey(item.Key), (id, item.Value, (byte)ModelProto.Types.SentencePiece.Types.Type.Normal));
+                _vocabReverse.Add(id++, item.Key);
+            }
+
+            if (options.ByteFallback)
+            {
+                if (!_vocab.TryGetValue("<0x00>", out (int Id, float Score, byte Type) value))
+                {
+                    throw new ArgumentException("'ByteFallback' is enabled but the vocabulary must include a special token for each byte value (0-255) in the format <0xNN>, where NN represents the byte's hexadecimal value.");
+                }
+
+                ByteCodeToIdOffset = value.Id;
+                OneByteUtf8EncodingMaxId = ByteCodeToIdOffset + 0x7F; // 0x7F is the maximum value of the one byte UTF-8 character.
+            }
+
+            if (!_vocab.TryGetValue(options.UnknownToken, out (int Id, float Score, byte Type) unknownToken))
+            {
+                throw new ArgumentException($"The vocabulary must include the unknown token '{options.UnknownToken}'.");
+            }
+            UnknownId = unknownToken.Id;
+
+            if (!_vocab.TryGetValue(options.BeginningOfSentenceToken, out (int Id, float Score, byte Type) beginOfSentenceToken))
+            {
+                throw new ArgumentException($"The vocabulary must include the beginning of sentence token '{options.BeginningOfSentenceToken}'.");
+            }
+            BeginningOfSentenceId = beginOfSentenceToken.Id;
+
+            if (!_vocab.TryGetValue(options.EndOfSentenceToken, out (int Id, float Score, byte Type) endOfSentenceToken))
+            {
+                throw new ArgumentException($"The vocabulary must include the end of sentence token '{options.EndOfSentenceToken}'.");
+            }
+            EndOfSentenceId = endOfSentenceToken.Id;
+        }
+
         public override IReadOnlyDictionary<string, int> Vocabulary
         {
             get

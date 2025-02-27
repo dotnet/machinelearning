@@ -66,6 +66,64 @@ namespace Microsoft.ML.Tokenizers
             _vocabReverse[EndOfSentenceId] = (EndOfSentenceToken, 0f, 0);
         }
 
+        public SentencePieceUnigramModel(SentencePieceOptions options) : base(options)
+        {
+            _vocab = new SortedDictionary<string, int>(OrdinalUtf8StringComparer.Instance);
+            // _vocabReverse = new (string Piece, float Score, ModelProto.Types.SentencePiece.Types.Type Type)[];
+
+            // 250_000 using big number to avoid reallocation during the initialization.
+            List<(string Piece, float Score, ModelProto.Types.SentencePiece.Types.Type Type)> vocabReverse = new(250_000);
+
+            _minScore = float.MaxValue;
+            _maxScore = float.MinValue;
+
+            int id = 0;
+            foreach (KeyValuePair<string, float> kvp in options.Vocabulary!)
+            {
+                _vocab.Add(kvp.Key, id++);
+                vocabReverse.Add((kvp.Key, kvp.Value, ModelProto.Types.SentencePiece.Types.Type.Normal));
+                _minScore = Math.Min(_minScore, kvp.Value);
+                _maxScore = Math.Max(_maxScore, kvp.Value);
+            }
+
+            _vocabReverse = vocabReverse.ToArray();
+
+            if (options.ByteFallback)
+            {
+                if (!_vocab.TryGetValue("<0x00>", out id))
+                {
+                    throw new ArgumentException("'ByteFallback' is enabled but the vocabulary must include a special token for each byte value (0-255) in the format <0xNN>, where NN represents the byte's hexadecimal value.");
+                }
+
+                ByteCodeToIdOffset = id;
+                OneByteUtf8EncodingMaxId = ByteCodeToIdOffset + 0x7F; // 0x7F is the maximum value of the one byte UTF-8 character.
+                MaxIdByteFallbackId = ByteCodeToIdOffset + 0xFF; // from <0x00> to <0xFF>.
+            }
+
+            _trie = new DoubleArrayTrie(_vocab);
+
+            _vocabReverse[BeginningOfSentenceId] = (BeginningOfSentenceToken, 0f, 0);
+            _vocabReverse[EndOfSentenceId] = (EndOfSentenceToken, 0f, 0);
+
+            if (!_vocab.TryGetValue(options.UnknownToken, out int unknownToken))
+            {
+                throw new ArgumentException($"The vocabulary must include the unknown token '{options.UnknownToken}'.");
+            }
+            UnknownId = unknownToken;
+
+            if (!_vocab.TryGetValue(options.BeginningOfSentenceToken, out int beginOfSentenceToken))
+            {
+                throw new ArgumentException($"The vocabulary must include the beginning of sentence token '{options.BeginningOfSentenceToken}'.");
+            }
+            BeginningOfSentenceId = beginOfSentenceToken;
+
+            if (!_vocab.TryGetValue(options.EndOfSentenceToken, out int endOfSentenceToken))
+            {
+                throw new ArgumentException($"The vocabulary must include the end of sentence token '{options.EndOfSentenceToken}'.");
+            }
+            EndOfSentenceId = endOfSentenceToken;
+        }
+
         public override IReadOnlyDictionary<string, int> Vocabulary => new ReadOnlyDictionary<string, int>(_vocab);
 
         public int MaxIdByteFallbackId { get; }
@@ -114,39 +172,39 @@ namespace Microsoft.ML.Tokenizers
             return true;
         }
 
-        private void StoreNormalizedTextFromEnd(ReadOnlySpan<char> text, ref char[] normalizedString, ref int normalizedStringIndexFromEnd)
+        private void StoreNormalizedTextFromEnd(ReadOnlySpan<char> text, ref char[] normalizedString, ref int normalizedStringCountFromEnd)
         {
-            int remainingLength = normalizedString.Length - normalizedStringIndexFromEnd;
+            int remainingLength = normalizedString.Length - normalizedStringCountFromEnd;
             if (text.Length > remainingLength)
             {
                 char[] utf16NormalizedString = ArrayPool<char>.Shared.Rent(normalizedString.Length << 1);
-                normalizedString.AsSpan().Slice(normalizedString.Length - normalizedStringIndexFromEnd).CopyTo(utf16NormalizedString.AsSpan(utf16NormalizedString.Length - normalizedStringIndexFromEnd));
+                normalizedString.AsSpan().Slice(normalizedString.Length - normalizedStringCountFromEnd).CopyTo(utf16NormalizedString.AsSpan(utf16NormalizedString.Length - normalizedStringCountFromEnd));
                 ArrayPool<char>.Shared.Return(normalizedString);
                 normalizedString = utf16NormalizedString;
             }
 
-            text.CopyTo(normalizedString.AsSpan(normalizedString.Length - normalizedStringIndexFromEnd - text.Length));
-            normalizedStringIndexFromEnd += text.Length;
+            text.CopyTo(normalizedString.AsSpan(normalizedString.Length - normalizedStringCountFromEnd - text.Length));
+            normalizedStringCountFromEnd += text.Length;
         }
 
-        private void StoreNormalizedTextFromEnd(ReadOnlySpan<byte> utf8Bytes, ref char[] normalizedString, ref int normalizedStringIndexFromEnd)
+        private void StoreNormalizedTextFromEnd(ReadOnlySpan<byte> utf8Bytes, ref char[] normalizedString, ref int normalizedStringCountFromEnd)
         {
-            int remainingLength = normalizedString.Length - normalizedStringIndexFromEnd;
+            int remainingLength = normalizedString.Length - normalizedStringCountFromEnd;
             int expectedCount = Helpers.GetUtf16LengthFromUtf8Bytes(utf8Bytes);
 
             if (expectedCount > remainingLength)
             {
                 char[] utf16NormalizedString = ArrayPool<char>.Shared.Rent(normalizedString.Length << 1);
-                normalizedString.AsSpan().Slice(normalizedString.Length - normalizedStringIndexFromEnd).CopyTo(utf16NormalizedString.AsSpan(utf16NormalizedString.Length - normalizedStringIndexFromEnd));
+                normalizedString.AsSpan().Slice(normalizedString.Length - normalizedStringCountFromEnd).CopyTo(utf16NormalizedString.AsSpan(utf16NormalizedString.Length - normalizedStringCountFromEnd));
                 ArrayPool<char>.Shared.Return(normalizedString);
                 normalizedString = utf16NormalizedString;
             }
 
-            bool res = Helpers.ConvertUtf8ToUtf16(utf8Bytes, normalizedString.AsSpan(normalizedString.Length - normalizedStringIndexFromEnd - expectedCount), out int bytesConsumed, out int charsWritten);
+            bool res = Helpers.ConvertUtf8ToUtf16(utf8Bytes, normalizedString.AsSpan(normalizedString.Length - normalizedStringCountFromEnd - expectedCount), out int bytesConsumed, out int charsWritten);
             Debug.Assert(res);
             Debug.Assert(bytesConsumed == utf8Bytes.Length);
             Debug.Assert(charsWritten == expectedCount);
-            normalizedStringIndexFromEnd += expectedCount;
+            normalizedStringCountFromEnd += expectedCount;
         }
 
         private void StoreNormalizedText(ReadOnlySpan<char> text, ref char[] normalizedString, ref int normalizedStringIndex)
@@ -1251,14 +1309,15 @@ namespace Microsoft.ML.Tokenizers
             Debug.Assert(maxTokenCount > 0);
 
             charConsumedFromEnd = 0;
-            int normalizedStringIndexFromEnd = 0;
+            int normalizedStringCountFromEnd = 0;
 
             (int Offset, int Length)[] splits = PreTokenizer.SplitText(text, SpecialTokensRegex!).ToArray();
 
             if (splits.Length == 0)
             {
-                GetIndexByTokenCountFromEndInternal(text, considerNormalization, ref tokenCount, buffer, ref normalizedString, ref normalizedStringIndexFromEnd, ref charConsumedFromEnd, maxTokenCount);
-                normalizedText = normalizedString is not null ? normalizedString.AsSpan().Slice(normalizedString.Length - charConsumedFromEnd).ToString() : null;
+                GetIndexByTokenCountFromEndInternal(text, considerNormalization, ref tokenCount, buffer, ref normalizedString, ref normalizedStringCountFromEnd, ref charConsumedFromEnd, maxTokenCount);
+                normalizedText = normalizedString is not null ? normalizedString.AsSpan(normalizedString.Length - normalizedStringCountFromEnd).ToString() : null;
+                return;
             }
 
             (int Offset, int Length) current = splits[splits.Length - 1];
@@ -1266,7 +1325,7 @@ namespace Microsoft.ML.Tokenizers
             // Last part is not a special token
             if (current.Offset + current.Length < text.Length)
             {
-                GetIndexByTokenCountFromEndInternal(text.Slice(current.Offset + current.Length), considerNormalization, ref tokenCount, buffer, ref normalizedString, ref normalizedStringIndexFromEnd, ref charConsumedFromEnd, maxTokenCount);
+                GetIndexByTokenCountFromEndInternal(text.Slice(current.Offset + current.Length), considerNormalization, ref tokenCount, buffer, ref normalizedString, ref normalizedStringCountFromEnd, ref charConsumedFromEnd, maxTokenCount);
             }
 
             for (int i = splits.Length - 1; i >= 0; i--)
@@ -1285,17 +1344,17 @@ namespace Microsoft.ML.Tokenizers
 
                 if (normalizedString is not null)
                 {
-                    StoreNormalizedTextFromEnd(text.Slice(current.Offset, current.Length), ref normalizedString, ref normalizedStringIndexFromEnd);
+                    StoreNormalizedTextFromEnd(text.Slice(current.Offset, current.Length), ref normalizedString, ref normalizedStringCountFromEnd);
                 }
 
                 if (current.Offset > 0)
                 {
                     int start = i > 0 ? splits[i - 1].Offset + splits[i - 1].Length : 0;
-                    GetIndexByTokenCountFromEndInternal(text.Slice(start, current.Offset - start), considerNormalization, ref tokenCount, buffer, ref normalizedString, ref normalizedStringIndexFromEnd, ref charConsumedFromEnd, maxTokenCount);
+                    GetIndexByTokenCountFromEndInternal(text.Slice(start, current.Offset - start), considerNormalization, ref tokenCount, buffer, ref normalizedString, ref normalizedStringCountFromEnd, ref charConsumedFromEnd, maxTokenCount);
                 }
             }
 
-            normalizedText = normalizedString is not null ? normalizedString.AsSpan().Slice(normalizedString.Length - normalizedStringIndexFromEnd).ToString() : null;
+            normalizedText = normalizedString is not null ? normalizedString.AsSpan().Slice(normalizedString.Length - normalizedStringCountFromEnd).ToString() : null;
         }
 
         private void GetIndexByTokenCountFromEndWithoutSpecialTokens(
@@ -1309,11 +1368,11 @@ namespace Microsoft.ML.Tokenizers
                         int maxTokenCount)
         {
             charConsumedFromEnd = 0;
-            int normalizedStringIndexFromEnd = 0;
+            int normalizedStringCountFromEnd = 0;
 
-            GetIndexByTokenCountFromEndInternal(text, considerNormalization, ref tokenCount, buffer, ref normalizedString, ref normalizedStringIndexFromEnd, ref charConsumedFromEnd, maxTokenCount);
+            GetIndexByTokenCountFromEndInternal(text, considerNormalization, ref tokenCount, buffer, ref normalizedString, ref normalizedStringCountFromEnd, ref charConsumedFromEnd, maxTokenCount);
 
-            normalizedText = normalizedString is not null ? normalizedString.AsSpan().Slice(normalizedString.Length - normalizedStringIndexFromEnd).ToString() : null;
+            normalizedText = normalizedString is not null ? normalizedString.AsSpan().Slice(normalizedString.Length - normalizedStringCountFromEnd).ToString() : null;
         }
 
         private void GetIndexByTokenCountFromEndInternal(
@@ -1322,7 +1381,7 @@ namespace Microsoft.ML.Tokenizers
                         ref int tokenCount,
                         int[] buffer,
                         ref char[]? normalizedString,
-                        ref int normalizedStringIndexFromEnd,
+                        ref int normalizedStringCountFromEnd,
                         ref int charConsumedFromEnd,
                         int maxTokenCount)
         {
@@ -1381,11 +1440,11 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (considerNormalization)
                 {
-                    StoreNormalizedTextFromEnd(normalizationSpan, ref normalizedString, ref normalizedStringIndexFromEnd);
+                    StoreNormalizedTextFromEnd(normalizationSpan, ref normalizedString, ref normalizedStringCountFromEnd);
                 }
                 else
                 {
-                    StoreNormalizedTextFromEnd(text, ref normalizedString, ref normalizedStringIndexFromEnd);
+                    StoreNormalizedTextFromEnd(text, ref normalizedString, ref normalizedStringCountFromEnd);
                 }
             }
 

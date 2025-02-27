@@ -59,6 +59,67 @@ namespace Microsoft.ML.Tokenizers
                                 specialTokens);
         }
 
+        internal SentencePieceBaseModel(SentencePieceOptions options)
+        {
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (options.Vocabulary is null)
+            {
+                throw new ArgumentNullException(nameof(options.Vocabulary));
+            }
+
+            if (options.BeginningOfSentenceToken is null)
+            {
+                throw new ArgumentNullException(nameof(options.BeginningOfSentenceToken));
+            }
+
+            if (options.EndOfSentenceToken is null)
+            {
+                throw new ArgumentNullException(nameof(options.EndOfSentenceToken));
+            }
+
+            if (options.UnknownToken is null)
+            {
+                throw new ArgumentNullException(nameof(options.UnknownToken));
+            }
+
+            AddBeginningOfSentence = options.AddBeginningOfSentence;
+            AddEndOfSentence = options.AddEndOfSentence;
+            BeginningOfSentenceToken = options.BeginningOfSentenceToken;
+            EndOfSentenceToken = options.EndOfSentenceToken;
+            UnknownToken = options.UnknownToken;
+            AddDummyPrefix = options.AddDummyPrefix;
+            EscapeWhiteSpaces = options.EscapeWhiteSpaces;
+            TreatWhitespaceAsSuffix = options.TreatWhitespaceAsSuffix;
+            ByteFallback = options.ByteFallback;
+            SpecialTokens = options.SpecialTokens;
+
+            if (SpecialTokens is not null && SpecialTokens.Count > 0)
+            {
+                InternalSpecialTokens = new Dictionary<StringSpanOrdinalKey, int>();
+                SpecialTokensReverse = new Dictionary<int, string>();
+
+                foreach (var item in SpecialTokens)
+                {
+                    InternalSpecialTokens.Add(new StringSpanOrdinalKey(item.Key), item.Value);
+                    SpecialTokensReverse.Add(item.Value, item.Key);
+                }
+
+                // We create this Regex object without a timeout, as we expect the match operation to complete in O(N) time complexity. Note that `specialTokens` are treated as constants after the tokenizer is created.
+                SpecialTokensRegex = new Regex(string.Join("|", SpecialTokens.Keys.Select(s => Regex.Escape(s))), RegexOptions.Compiled);
+            }
+
+            Normalizer = new SentencePieceNormalizer(
+                                options.PrecompiledNormalizationData,
+                                options.RemoveExtraWhiteSpaces,
+                                options.AddDummyPrefix, options.EscapeWhiteSpaces,
+                                options.TreatWhitespaceAsSuffix,
+                                SpecialTokens);
+        }
+
         internal Regex? SpecialTokensRegex { get; }
 
         internal Dictionary<StringSpanOrdinalKey, int>? InternalSpecialTokens { get; }
@@ -91,11 +152,11 @@ namespace Microsoft.ML.Tokenizers
 
         public string UnknownToken { get; }
 
-        public int BeginningOfSentenceId { get; }
+        public int BeginningOfSentenceId { get; set; }
 
-        public int EndOfSentenceId { get; }
+        public int EndOfSentenceId { get; set; }
 
-        public int UnknownId { get; }
+        public int UnknownId { get; set; }
 
         public SentencePieceNormalizer? Normalizer { get; }
 
