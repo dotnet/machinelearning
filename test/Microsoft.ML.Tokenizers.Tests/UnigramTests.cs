@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Text;
+using System.Text.Json;
 using Microsoft.ML.Tokenizers;
 using Xunit;
 
@@ -17,12 +19,79 @@ namespace Microsoft.ML.Tokenizers.Tests
     {
         private static SentencePieceTokenizer _unigramTokenizer = CreateUnigramTokenizer();
         private static SentencePieceTokenizer _unigramTokenizerWithSpecialTokens = CreateUnigramTokenizerWithSpecialTokens();
+        private static SentencePieceTokenizer _unigramTokenizerFromJson = CreateUnigramTokenizerFromJson();
 
         private static SentencePieceTokenizer CreateUnigramTokenizer()
         {
             // @"https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2/resolve/main/sentencepiece.bpe.model?download=true";
             using Stream remoteStream = File.OpenRead(Path.Combine(@"Paraphrase-multilingual-MiniLM-L12-v2", "sentencepiece.bpe.model"));
             return SentencePieceTokenizer.Create(remoteStream);
+        }
+
+        private static SentencePieceTokenizer CreateUnigramTokenizerFromJson()
+        {
+            // @"https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2/resolve/main/tokenizer.json?download=true";
+            using Stream jsonModelStream = File.OpenRead(Path.Combine(@"Paraphrase-multilingual-MiniLM-L12-v2", "tokenizer.json"));
+            using var reader = new StreamReader(jsonModelStream, Encoding.UTF8);
+            string json = reader.ReadToEnd();
+            using JsonDocument doc = JsonDocument.Parse(json);
+            JsonElement root = doc.RootElement;
+
+            SentencePieceOptions options = new SentencePieceOptions();
+            options.ModelType = SentencePieceModelType.Unigram;
+            options.EscapeWhiteSpaces = true;
+            options.AddDummyPrefix = true;
+
+            options.BeginningOfSentenceToken = "<s>";
+            options.EndOfSentenceToken = "</s>";
+            options.UnknownToken = "<unk>";
+
+            options.SpecialTokens = new Dictionary<string, int>
+            {
+                { "<s>",    0       },
+                { "<pad>",  1       },
+                { "</s>",   2       },
+                { "<unk>",  3       },
+                { "<mask>", 250001  }
+            };
+
+            if (root.TryGetProperty("normalizer", out JsonElement normalizerElement) && normalizerElement.GetProperty("type").GetString() == "Precompiled")
+            {
+                string? precompiledCharsMap = normalizerElement.GetProperty("precompiled_charsmap").GetString();
+                if (precompiledCharsMap is not null)
+                {
+                    byte[] bytes = Convert.FromBase64String(precompiledCharsMap);
+                    options.PrecompiledNormalizationData = bytes;
+                }
+            }
+
+            options.Vocabulary = GetVocabulary(root);
+            return SentencePieceTokenizer.Create(options);
+        }
+
+        private static IEnumerable<(string Token, float Score)> GetVocabulary(JsonElement root)
+        {
+            if (root.TryGetProperty("model", out JsonElement modelElement) &&
+                modelElement.TryGetProperty("vocab", out JsonElement vocabElement) &&
+                vocabElement.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement token in vocabElement.EnumerateArray())
+                {
+                    if (token.ValueKind == JsonValueKind.Array && token.GetArrayLength() == 2)
+                    {
+                        string? tokenString = token[0].GetString();
+                        if (tokenString is null)
+                        {
+                            throw new InvalidOperationException("Invalid model vocabulary format");
+                        }
+                        yield return (tokenString, token[1].GetSingle());
+                    }
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid model vocabulary format");
+            }
         }
 
         private static SentencePieceTokenizer CreateUnigramTokenizerWithSpecialTokens()
@@ -163,7 +232,7 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             yield return new object[]
             {
-                "xyz東京", // Latin-Japanese 
+                "xyz東京", // Latin-Japanese
                 "▁xyz東京",
                 "xyz東京",
                 new int[] { 1021, 32188, 22887 },
@@ -274,34 +343,91 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(offsets, extracted.Offsets);
         }
 
+        /// <summary>
+        /// _unigramTokenizerFromJson, the tokenizer created from the json file has the ids shifted by 1 compared to the tokenizer created from tokenizer.bpe.model file.
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        private int[] GetShiftedIds(int[] ids)
+        {
+            int[] shiftedIds = new int[ids.Length];
+            foreach (int i in Enumerable.Range(0, ids.Length))
+            {
+                if (ids[i] == _unigramTokenizer.UnknownId)
+                {
+                    shiftedIds[i] = _unigramTokenizerFromJson.UnknownId;
+                }
+                else if (ids[i] == _unigramTokenizer.BeginningOfSentenceId)
+                {
+                    shiftedIds[i] = _unigramTokenizerFromJson.BeginningOfSentenceId;
+                }
+                else if (ids[i] == _unigramTokenizer.EndOfSentenceId)
+                {
+                    shiftedIds[i] = _unigramTokenizerFromJson.EndOfSentenceId;
+                }
+                else
+                {
+                    shiftedIds[i] = ids[i] + 1;
+                }
+            }
+
+            return shiftedIds;
+        }
+
         [Theory]
         [MemberData(nameof(UnigramTestData))]
         public void EncodeToTokensTest(string inputText, string normalizedText, string decodedString, int[] ids, string[] tokens, Range[] offsets)
         {
+            int[] shiftedIds = GetShiftedIds(ids);
+
             Assert.True(decodedString is not null);  // to make the compiler happy
             IReadOnlyList<EncodedToken> result = _unigramTokenizer.EncodeToTokens(inputText, out string? normalized);
             (IEnumerable<int> Ids, IEnumerable<string> Tokens, IEnumerable<Range> Offsets) extracted = ExtractedIds(_unigramTokenizer, result, normalizedText, _unigramTokenizer.AddBeginningOfSentence, _unigramTokenizer.AddEndOfSentence);
             Validate(extracted, ids, tokens, offsets);
 
+            result = _unigramTokenizerFromJson.EncodeToTokens(inputText, out normalized);
+            extracted = ExtractedIds(_unigramTokenizerFromJson, result, normalizedText, _unigramTokenizerFromJson.AddBeginningOfSentence, _unigramTokenizerFromJson.AddEndOfSentence);
+            Validate(extracted, shiftedIds, tokens, offsets);
+
             result = _unigramTokenizer.EncodeToTokens(inputText.AsSpan(), out normalized);
             extracted = ExtractedIds(_unigramTokenizer, result, normalizedText, _unigramTokenizer.AddBeginningOfSentence, _unigramTokenizer.AddEndOfSentence);
             Validate(extracted, ids, tokens, offsets);
+
+            result = _unigramTokenizerFromJson.EncodeToTokens(inputText.AsSpan(), out normalized);
+            extracted = ExtractedIds(_unigramTokenizerFromJson, result, normalizedText, _unigramTokenizerFromJson.AddBeginningOfSentence, _unigramTokenizerFromJson.AddEndOfSentence);
+            Validate(extracted, shiftedIds, tokens, offsets);
 
             result = _unigramTokenizer.EncodeToTokens(inputText, out normalized, addBeginningOfSentence: true, addEndOfSentence: false);
             extracted = ExtractedIds(_unigramTokenizer, result, normalizedText, true, false);
             Validate(extracted, ids, tokens, offsets);
 
+            result = _unigramTokenizerFromJson.EncodeToTokens(inputText, out normalized, addBeginningOfSentence: true, addEndOfSentence: false);
+            extracted = ExtractedIds(_unigramTokenizerFromJson, result, normalizedText, true, false);
+            Validate(extracted, shiftedIds, tokens, offsets);
+
             result = _unigramTokenizer.EncodeToTokens(inputText.AsSpan(), out normalized, addBeginningOfSentence: true, addEndOfSentence: false);
             extracted = ExtractedIds(_unigramTokenizer, result, normalizedText, true, false);
             Validate(extracted, ids, tokens, offsets);
+
+            result = _unigramTokenizerFromJson.EncodeToTokens(inputText.AsSpan(), out normalized, addBeginningOfSentence: true, addEndOfSentence: false);
+            extracted = ExtractedIds(_unigramTokenizerFromJson, result, normalizedText, true, false);
+            Validate(extracted, shiftedIds, tokens, offsets);
 
             result = _unigramTokenizer.EncodeToTokens(inputText, out normalized, addBeginningOfSentence: true, addEndOfSentence: true);
             extracted = ExtractedIds(_unigramTokenizer, result, normalizedText, true, true);
             Validate(extracted, ids, tokens, offsets);
 
+            result = _unigramTokenizerFromJson.EncodeToTokens(inputText, out normalized, addBeginningOfSentence: true, addEndOfSentence: true);
+            extracted = ExtractedIds(_unigramTokenizerFromJson, result, normalizedText, true, true);
+            Validate(extracted, shiftedIds, tokens, offsets);
+
             result = _unigramTokenizer.EncodeToTokens(inputText.AsSpan(), out normalized, addBeginningOfSentence: true, addEndOfSentence: true);
             extracted = ExtractedIds(_unigramTokenizer, result, normalizedText, true, true);
             Validate(extracted, ids, tokens, offsets);
+
+            result = _unigramTokenizerFromJson.EncodeToTokens(inputText.AsSpan(), out normalized, addBeginningOfSentence: true, addEndOfSentence: true);
+            extracted = ExtractedIds(_unigramTokenizerFromJson, result, normalizedText, true, true);
+            Validate(extracted, shiftedIds, tokens, offsets);
 
             string newString = $"{_unigramTokenizer.BeginningOfSentenceToken}{inputText}<pad>{inputText}{_unigramTokenizer.EndOfSentenceToken}";
             result = _unigramTokenizerWithSpecialTokens.EncodeToTokens(newString, out normalized, addBeginningOfSentence: false, addEndOfSentence: false);
@@ -322,12 +448,34 @@ namespace Microsoft.ML.Tokenizers.Tests
             Array.Copy(tokens, 0, expectedTokens, tokens.Length + 2, tokens.Length);
             expectedTokens[tokens.Length * 2 + 2] = _unigramTokenizerWithSpecialTokens.EndOfSentenceToken;
             Assert.Equal(expectedTokens, extracted.Tokens);
+
+            newString = $"{_unigramTokenizerFromJson.BeginningOfSentenceToken}{inputText}<pad>{inputText}{_unigramTokenizerFromJson.EndOfSentenceToken}";
+            result = _unigramTokenizerFromJson.EncodeToTokens(newString, out normalized, addBeginningOfSentence: false, addEndOfSentence: false);
+            extracted = ExtractedIds(_unigramTokenizerFromJson, result, normalizedText, false, false);
+
+            expectedIds = new int[ids.Length * 2 + 3];
+            expectedIds[0] = _unigramTokenizerFromJson.BeginningOfSentenceId;
+            Array.Copy(shiftedIds, 0, expectedIds, 1, shiftedIds.Length);
+            expectedIds[shiftedIds.Length + 1] = _unigramTokenizerFromJson.SpecialTokens!["<pad>"];
+            Array.Copy(shiftedIds, 0, expectedIds, shiftedIds.Length + 2, shiftedIds.Length);
+            expectedIds[shiftedIds.Length * 2 + 2] = _unigramTokenizerFromJson.EndOfSentenceId;
+            Assert.Equal(expectedIds, extracted.Ids);
+
+            expectedTokens = new string[tokens.Length * 2 + 3];
+            expectedTokens[0] = _unigramTokenizerFromJson.BeginningOfSentenceToken;
+            Array.Copy(tokens, 0, expectedTokens, 1, tokens.Length);
+            expectedTokens[tokens.Length + 1] = "<pad>";
+            Array.Copy(tokens, 0, expectedTokens, tokens.Length + 2, tokens.Length);
+            expectedTokens[tokens.Length * 2 + 2] = _unigramTokenizerFromJson.EndOfSentenceToken;
+            Assert.Equal(expectedTokens, extracted.Tokens);
         }
 
         [Theory]
         [MemberData(nameof(UnigramTestData))]
         public void EncodeToIdsTest(string inputText, string normalizedText, string decodedString, int[] ids, string[] tokens, Range[] offsets)
         {
+            int[] shiftedIds = GetShiftedIds(ids);
+
             Assert.True(decodedString is not null);  // to make the compiler happy
             Assert.True(tokens is not null);  // to make the compiler happy
             Assert.True(offsets is not null); // to make the compiler happy
@@ -337,6 +485,11 @@ namespace Microsoft.ML.Tokenizers.Tests
             result = _unigramTokenizer.EncodeToIds(inputText.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false);
             Assert.Equal(ids, result);
 
+            result = _unigramTokenizerFromJson.EncodeToIds(inputText, addBeginningOfSentence: false, addEndOfSentence: false);
+            Assert.Equal(shiftedIds, result);
+            result = _unigramTokenizerFromJson.EncodeToIds(inputText.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false);
+            Assert.Equal(shiftedIds, result);
+
             result = _unigramTokenizer.EncodeToIds(inputText, addBeginningOfSentence: true, addEndOfSentence: false);
             List<int> ints = result is List<int> list ? list : result.ToList();
             if (ints.Count > 0)
@@ -345,6 +498,14 @@ namespace Microsoft.ML.Tokenizers.Tests
             }
             Assert.Equal(ids, ints);
 
+            result = _unigramTokenizerFromJson.EncodeToIds(inputText, addBeginningOfSentence: true, addEndOfSentence: false);
+            ints = result is List<int> list1 ? list1 : result.ToList();
+            if (ints.Count > 0)
+            {
+                ints.RemoveAt(0);
+            }
+            Assert.Equal(shiftedIds, ints);
+
             result = _unigramTokenizer.EncodeToIds(inputText.AsSpan(), addBeginningOfSentence: true, addEndOfSentence: false);
             ints = result is List<int> ? (List<int>)result : result.ToList();
             if (ints.Count > 0)
@@ -352,6 +513,14 @@ namespace Microsoft.ML.Tokenizers.Tests
                 ints.RemoveAt(0);
             }
             Assert.Equal(ids, ints);
+
+            result = _unigramTokenizerFromJson.EncodeToIds(inputText.AsSpan(), addBeginningOfSentence: true, addEndOfSentence: false);
+            ints = result is List<int> ? (List<int>)result : result.ToList();
+            if (ints.Count > 0)
+            {
+                ints.RemoveAt(0);
+            }
+            Assert.Equal(shiftedIds, ints);
 
             result = _unigramTokenizer.EncodeToIds(inputText, addBeginningOfSentence: true, addEndOfSentence: true);
             ints = result is List<int> ? (List<int>)result : result.ToList();
@@ -362,6 +531,15 @@ namespace Microsoft.ML.Tokenizers.Tests
             }
             Assert.Equal(ids, ints);
 
+            result = _unigramTokenizerFromJson.EncodeToIds(inputText, addBeginningOfSentence: true, addEndOfSentence: true);
+            ints = result is List<int> ? (List<int>)result : result.ToList();
+            if (ints.Count > 0)
+            {
+                ints.RemoveAt(0);
+                ints.RemoveAt(ints.Count - 1);
+            }
+            Assert.Equal(shiftedIds, ints);
+
             result = _unigramTokenizer.EncodeToIds(inputText.AsSpan(), addBeginningOfSentence: true, addEndOfSentence: true);
             ints = result is List<int> ? (List<int>)result : result.ToList();
             if (ints.Count > 0)
@@ -371,14 +549,31 @@ namespace Microsoft.ML.Tokenizers.Tests
             }
             Assert.Equal(ids, ints);
 
+            result = _unigramTokenizerFromJson.EncodeToIds(inputText.AsSpan(), addBeginningOfSentence: true, addEndOfSentence: true);
+            ints = result is List<int> ? (List<int>)result : result.ToList();
+            if (ints.Count > 0)
+            {
+                ints.RemoveAt(0);
+                ints.RemoveAt(ints.Count - 1);
+            }
+            Assert.Equal(shiftedIds, ints);
+
             for (int i = 1; i <= ids.Length; i++)
             {
                 result = _unigramTokenizer.EncodeToIds(inputText, addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: i, out string? normalized, out int charConsumed);
                 Assert.Equal(ids.Take(i), result);
                 Assert.Equal(normalizedText, normalized);
 
+                result = _unigramTokenizerFromJson.EncodeToIds(inputText, addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: i, out normalized, out charConsumed);
+                Assert.Equal(shiftedIds.Take(i), result);
+                Assert.Equal(normalizedText, normalized);
+
                 result = _unigramTokenizer.EncodeToIds(inputText.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: i, out normalized, out charConsumed);
                 Assert.Equal(ids.Take(i), result);
+                Assert.Equal(normalizedText, normalized);
+
+                result = _unigramTokenizerFromJson.EncodeToIds(inputText.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: i, out normalized, out charConsumed);
+                Assert.Equal(shiftedIds.Take(i), result);
                 Assert.Equal(normalizedText, normalized);
 
                 result = _unigramTokenizer.EncodeToIds(inputText, addBeginningOfSentence: true, addEndOfSentence: true, maxTokenCount: i, out normalized, out charConsumed);
@@ -397,6 +592,22 @@ namespace Microsoft.ML.Tokenizers.Tests
                     Assert.Equal(normalizedText, normalized);
                 }
 
+                result = _unigramTokenizerFromJson.EncodeToIds(inputText, addBeginningOfSentence: true, addEndOfSentence: true, maxTokenCount: i, out normalized, out charConsumed);
+                ints = result is List<int> ? (List<int>)result : result.ToList();
+                if (ints.Count > 0)
+                {
+                    ints.RemoveAt(0);
+                }
+                if (ints.Count > shiftedIds.Length)
+                {
+                    ints.RemoveAt(ints.Count - 1);
+                }
+                Assert.Equal(shiftedIds.Take(i - 1), ints); // Exclude the counted BoS token
+                if (normalized is not null)
+                {
+                    Assert.Equal(normalizedText, normalized);
+                }
+
                 result = _unigramTokenizer.EncodeToIds(inputText.AsSpan(), addBeginningOfSentence: true, addEndOfSentence: true, maxTokenCount: i, out normalized, out charConsumed);
                 ints = result is List<int> ? (List<int>)result : result.ToList();
                 if (ints.Count > 0)
@@ -408,6 +619,22 @@ namespace Microsoft.ML.Tokenizers.Tests
                     ints.RemoveAt(ints.Count - 1);
                 }
                 Assert.Equal(ids.Take(i - 1), ints); // Exclude the counted BoS token
+                if (normalized is not null)
+                {
+                    Assert.Equal(normalizedText, normalized);
+                }
+
+                result = _unigramTokenizerFromJson.EncodeToIds(inputText.AsSpan(), addBeginningOfSentence: true, addEndOfSentence: true, maxTokenCount: i, out normalized, out charConsumed);
+                ints = result is List<int> ? (List<int>)result : result.ToList();
+                if (ints.Count > 0)
+                {
+                    ints.RemoveAt(0);
+                }
+                if (ints.Count > shiftedIds.Length)
+                {
+                    ints.RemoveAt(ints.Count - 1);
+                }
+                Assert.Equal(shiftedIds.Take(i - 1), ints); // Exclude the counted BoS token
                 if (normalized is not null)
                 {
                     Assert.Equal(normalizedText, normalized);
@@ -433,6 +660,25 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(expectedIds.Take(i), result);
                 Assert.Equal(expectedNormalized, normalized);
             }
+
+            expectedIds = new int[shiftedIds.Length * 2 + 3];
+            expectedIds[0] = _unigramTokenizerFromJson.BeginningOfSentenceId;
+            Array.Copy(shiftedIds, 0, expectedIds, 1, shiftedIds.Length);
+            expectedIds[shiftedIds.Length + 1] = _unigramTokenizerFromJson.SpecialTokens!["<pad>"];
+            Array.Copy(shiftedIds, 0, expectedIds, shiftedIds.Length + 2, shiftedIds.Length);
+            expectedIds[shiftedIds.Length * 2 + 2] = _unigramTokenizerFromJson.EndOfSentenceId;
+            expectedNormalized = $"{_unigramTokenizerFromJson.BeginningOfSentenceToken}{normalizedText}<pad>{normalizedText}{_unigramTokenizerFromJson.EndOfSentenceToken}";
+
+            for (int i = 1; i <= expectedIds.Length; i++)
+            {
+                result = _unigramTokenizerFromJson.EncodeToIds(inputText, addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: i, out string? normalized, out int charConsumed);
+                Assert.Equal(expectedIds.Take(i), result);
+                Assert.Equal(expectedNormalized, normalized);
+
+                result = _unigramTokenizerFromJson.EncodeToIds(inputText.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: i, out normalized, out charConsumed);
+                Assert.Equal(expectedIds.Take(i), result);
+                Assert.Equal(expectedNormalized, normalized);
+            }
         }
 
         [Theory]
@@ -443,6 +689,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.True(tokens is not null);  // to make the compiler happy
             Assert.True(offsets is not null); // to make the compiler happy
 
+            int[] shiftedIds = GetShiftedIds(ids);
             int totalTokens = ids.Length;
 
             for (int i = 1; i <= totalTokens; i++)
@@ -453,11 +700,23 @@ namespace Microsoft.ML.Tokenizers.Tests
                 IReadOnlyList<int> ids2 = index < normalized.Length ? _unigramTokenizer.EncodeToIds(normalized!.Substring(index), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false) : new List<int>();
                 Assert.Equal(ids, ids1.Concat(ids2).ToList());
 
+                index = _unigramTokenizerFromJson.GetIndexByTokenCount(inputText, addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: 1, out normalized, out charConsumed);
+                Assert.Equal(normalizedText, normalized);
+                ids1 = _unigramTokenizerFromJson.EncodeToIds(normalized!.Substring(0, index), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false);
+                ids2 = index < normalized.Length ? _unigramTokenizerFromJson.EncodeToIds(normalized!.Substring(index), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false) : new List<int>();
+                Assert.Equal(shiftedIds, ids1.Concat(ids2).ToList());
+
                 index = _unigramTokenizer.GetIndexByTokenCount(inputText.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: 1, out normalized, out charConsumed);
                 Assert.Equal(normalizedText, normalized);
                 ids1 = _unigramTokenizer.EncodeToIds(normalized!.Substring(0, index).AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false);
                 ids2 = index < normalized.Length ? _unigramTokenizer.EncodeToIds(normalized!.Substring(index).AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false) : new List<int>();
                 Assert.Equal(ids, ids1.Concat(ids2).ToList());
+
+                index = _unigramTokenizerFromJson.GetIndexByTokenCount(inputText.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: 1, out normalized, out charConsumed);
+                Assert.Equal(normalizedText, normalized);
+                ids1 = _unigramTokenizerFromJson.EncodeToIds(normalized!.Substring(0, index).AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false);
+                ids2 = index < normalized.Length ? _unigramTokenizerFromJson.EncodeToIds(normalized!.Substring(index).AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false) : new List<int>();
+                Assert.Equal(shiftedIds, ids1.Concat(ids2).ToList());
 
                 index = _unigramTokenizer.GetIndexByTokenCountFromEnd(inputText, addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: 1, considerNormalization: true, out normalized, out charConsumed);
                 Assert.Equal(normalizedText, normalized);
@@ -465,11 +724,23 @@ namespace Microsoft.ML.Tokenizers.Tests
                 ids2 = index < normalized.Length ? _unigramTokenizer.EncodeToIds(normalized!.Substring(index), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false) : new List<int>();
                 Assert.Equal(ids, ids1.Concat(ids2).ToList());
 
+                index = _unigramTokenizerFromJson.GetIndexByTokenCountFromEnd(inputText, addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: 1, considerNormalization: true, out normalized, out charConsumed);
+                Assert.Equal(normalizedText, normalized);
+                ids1 = _unigramTokenizerFromJson.EncodeToIds(normalized!.Substring(0, index), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false);
+                ids2 = index < normalized.Length ? _unigramTokenizerFromJson.EncodeToIds(normalized!.Substring(index), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false) : new List<int>();
+                Assert.Equal(shiftedIds, ids1.Concat(ids2).ToList());
+
                 index = _unigramTokenizer.GetIndexByTokenCountFromEnd(inputText.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: 1, considerNormalization: true, out normalized, out charConsumed);
                 Assert.Equal(normalizedText, normalized);
                 ids1 = _unigramTokenizer.EncodeToIds(normalized!.Substring(0, index).AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false);
                 ids2 = index < normalized.Length ? _unigramTokenizer.EncodeToIds(normalized!.Substring(index).AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false) : new List<int>();
                 Assert.Equal(ids, ids1.Concat(ids2).ToList());
+
+                index = _unigramTokenizerFromJson.GetIndexByTokenCountFromEnd(inputText.AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, maxTokenCount: 1, considerNormalization: true, out normalized, out charConsumed);
+                Assert.Equal(normalizedText, normalized);
+                ids1 = _unigramTokenizerFromJson.EncodeToIds(normalized!.Substring(0, index).AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false);
+                ids2 = index < normalized.Length ? _unigramTokenizerFromJson.EncodeToIds(normalized!.Substring(index).AsSpan(), addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: false) : new List<int>();
+                Assert.Equal(shiftedIds, ids1.Concat(ids2).ToList());
             }
         }
 
@@ -482,19 +753,25 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.True(inputText is not null);  // to make the compiler happy
             Assert.True(normalizedText is not null);  // to make the compiler happy
 
-            string result = _unigramTokenizer.Decode(ids, considerSpecialTokens: false);
+            DecodeWithTokenizerTest(_unigramTokenizer, decodedString, ids);
+            DecodeWithTokenizerTest(_unigramTokenizerFromJson, decodedString, GetShiftedIds(ids));
+        }
+
+        private static void DecodeWithTokenizerTest(SentencePieceTokenizer tokenizer, string decodedString, int[] ids)
+        {
+            string result = tokenizer.Decode(ids, considerSpecialTokens: false);
             Assert.Equal(decodedString, result);
 
             char[] buffer = new char[decodedString.Length];
 
-            OperationStatus status = _unigramTokenizer.Decode(ids, buffer, considerSpecialTokens: false, out int idsConsumed, out int charsWritten);
+            OperationStatus status = tokenizer.Decode(ids, buffer, considerSpecialTokens: false, out int idsConsumed, out int charsWritten);
             Assert.Equal(OperationStatus.Done, status);
             Assert.Equal(ids.Length, idsConsumed);
             Assert.Equal(decodedString, buffer.AsSpan().Slice(0, charsWritten).ToString());
 
             for (int i = 0; i < decodedString.Length - 1; i++)
             {
-                status = _unigramTokenizer.Decode(ids, buffer.AsSpan().Slice(0, i), considerSpecialTokens: false, out idsConsumed, out charsWritten);
+                status = tokenizer.Decode(ids, buffer.AsSpan().Slice(0, i), considerSpecialTokens: false, out idsConsumed, out charsWritten);
                 Assert.Equal(OperationStatus.DestinationTooSmall, status);
                 Assert.Equal(decodedString.AsSpan().Slice(0, charsWritten).ToString(), buffer.AsSpan().Slice(0, charsWritten).ToString());
             }
@@ -509,6 +786,33 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(1, _unigramTokenizer.BeginningOfSentenceId);
             Assert.Equal("</s>", _unigramTokenizer.EndOfSentenceToken);
             Assert.Equal(2, _unigramTokenizer.EndOfSentenceId);
+        }
+
+        [Fact]
+        public void JsonTokenizerSpecialTokensTest()
+        {
+            Assert.Equal("<unk>", _unigramTokenizerFromJson.UnknownToken);
+            Assert.Equal(3, _unigramTokenizerFromJson.UnknownId);
+            Assert.Equal("<s>", _unigramTokenizerFromJson.BeginningOfSentenceToken);
+            Assert.Equal(0, _unigramTokenizerFromJson.BeginningOfSentenceId);
+            Assert.Equal("</s>", _unigramTokenizerFromJson.EndOfSentenceToken);
+            Assert.Equal(2, _unigramTokenizerFromJson.EndOfSentenceId);
+
+            var specialTokens = new Dictionary<string, int>
+            {
+                { "<s>",    0       },
+                { "<pad>",  1       },
+                { "</s>",   2       },
+                { "<unk>",  3       },
+                { "<mask>", 250001  }
+            };
+
+            Assert.Equal(specialTokens, _unigramTokenizerFromJson.SpecialTokens);
+            Assert.Equal(0, _unigramTokenizerFromJson.Vocabulary["<s>"]);
+            Assert.Equal(1, _unigramTokenizerFromJson.Vocabulary["<pad>"]);
+            Assert.Equal(2, _unigramTokenizerFromJson.Vocabulary["</s>"]);
+            Assert.Equal(3, _unigramTokenizerFromJson.Vocabulary["<unk>"]);
+            Assert.Equal(250001, _unigramTokenizerFromJson.Vocabulary["<mask>"]);
         }
     }
 }
