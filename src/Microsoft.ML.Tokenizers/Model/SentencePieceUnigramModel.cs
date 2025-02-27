@@ -78,12 +78,12 @@ namespace Microsoft.ML.Tokenizers
             _maxScore = float.MinValue;
 
             int id = 0;
-            foreach (KeyValuePair<string, float> kvp in options.Vocabulary!)
+            foreach ((string Token, float Score) item in options.Vocabulary!)
             {
-                _vocab.Add(kvp.Key, id++);
-                vocabReverse.Add((kvp.Key, kvp.Value, ModelProto.Types.SentencePiece.Types.Type.Normal));
-                _minScore = Math.Min(_minScore, kvp.Value);
-                _maxScore = Math.Max(_maxScore, kvp.Value);
+                _vocab.Add(item.Token, id++);
+                vocabReverse.Add((item.Token, item.Score, ModelProto.Types.SentencePiece.Types.Type.Normal));
+                _minScore = Math.Min(_minScore, item.Score);
+                _maxScore = Math.Max(_maxScore, item.Score);
             }
 
             _vocabReverse = vocabReverse.ToArray();

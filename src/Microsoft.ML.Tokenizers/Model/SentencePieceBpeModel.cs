@@ -53,8 +53,8 @@ namespace Microsoft.ML.Tokenizers
             int id = 0;
             foreach (var item in options.Vocabulary!)
             {
-                _vocab.Add(new StringSpanOrdinalKey(item.Key), (id, item.Value, (byte)ModelProto.Types.SentencePiece.Types.Type.Normal));
-                _vocabReverse.Add(id++, item.Key);
+                _vocab.Add(new StringSpanOrdinalKey(item.Token), (id, item.Score, (byte)ModelProto.Types.SentencePiece.Types.Type.Normal));
+                _vocabReverse.Add(id++, item.Token);
             }
 
             if (options.ByteFallback)

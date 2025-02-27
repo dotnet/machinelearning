@@ -15,23 +15,26 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// The model type is not defined.
         /// </summary>
-        Undefined,
+        Undefined = 0,
 
         /// <summary>
         /// The model type is Byte Pair Encoding (Bpe) model.
         /// </summary>
-        Bpe,
+        Bpe = 1,
 
         /// <summary>
         /// The model type is Unigram model.
         /// </summary>
-        Unigram,
+        Unigram = 2,
     }
 
     /// <summary>
     /// Options for the SentencePiece tokenizer.
     /// </summary>
-    public class SentencePieceOptions
+    /// <remarks>
+    /// The options are used to configure the SentencePiece tokenizer. Serialization is not guaranteed for this type.
+    /// </remarks>
+    public sealed class SentencePieceOptions
     {
         /// <summary>
         /// The type of the SentencePiece model.
@@ -53,7 +56,7 @@ namespace Microsoft.ML.Tokenizers
         public bool AddDummyPrefix { get; set; }
 
         /// <summary>
-        /// Indicate if the spaces should be replaced with character U+2581 during the normalization and encoding.
+        /// Indicate if the spaces should be replaced with character U+2581 during the normalization and encoding. Default value is `true`.
         /// </summary>
         public bool EscapeWhiteSpaces { get; set; } = true;
 
@@ -68,7 +71,7 @@ namespace Microsoft.ML.Tokenizers
         public bool RemoveExtraWhiteSpaces { get; set; }
 
         /// <summary>
-        /// Indicate emitting the beginning of sentence token during the encoding.
+        /// Indicate emitting the beginning of sentence token during the encoding. Default value is `true`.
         /// </summary>
         public bool AddBeginningOfSentence { get; set; } = true;
 
@@ -78,17 +81,17 @@ namespace Microsoft.ML.Tokenizers
         public bool AddEndOfSentence { get; set; }
 
         /// <summary>
-        /// The beginning of sentence token.
+        /// The beginning of sentence token. Default value is `&lt;s&gt;`.
         /// </summary>
         public string BeginningOfSentenceToken { get; set; } = "<s>";
 
         /// <summary>
-        /// The end of sentence token.
+        /// The end of sentence token. Default value is `&lt;/s&gt;`.
         /// </summary>
         public string EndOfSentenceToken { get; set; } = "</s>";
 
         /// <summary>
-        /// The unknown token.
+        /// The unknown token. Default value is `&lt;unk&gt;`.
         /// </summary>
         public string UnknownToken { get; set; } = "<unk>";
 
@@ -99,9 +102,11 @@ namespace Microsoft.ML.Tokenizers
 
         /// <summary>
         /// Represent the vocabulary.
-        /// The list should be sorted by the token id. Every entry represents a token and its score.
+        /// The list should be sorted by token ID, with entries passed in the order that corresponds to their IDs. In other words,
+        /// the first entry in the list will be mapped to ID 0, the second entry to ID 1, the third to ID 2, and so on.
+        /// Each entry represents a token and its corresponding score.
         /// </summary>
-        public IEnumerable<KeyValuePair<string, float>>? Vocabulary { get; set; }
+        public IEnumerable<(string Token, float Score)>? Vocabulary { get; set; }
 
         /// <summary>
         /// The special tokens.

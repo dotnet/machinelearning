@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             return SentencePieceTokenizer.Create(options);
         }
 
-        private static IEnumerable<KeyValuePair<string, float>> GetVocabulary(JsonElement root)
+        private static IEnumerable<(string Token, float Score)> GetVocabulary(JsonElement root)
         {
             if (root.TryGetProperty("model", out JsonElement modelElement) &&
                 modelElement.TryGetProperty("vocab", out JsonElement vocabElement) &&
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                         {
                             throw new InvalidOperationException("Invalid model vocabulary format");
                         }
-                        yield return new KeyValuePair<string, float>(tokenString, token[1].GetSingle());
+                        yield return (tokenString, token[1].GetSingle());
                     }
                 }
             }
