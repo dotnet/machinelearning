@@ -11,7 +11,7 @@ public interface IQuantizeModule
     /// <summary>
     /// Quantize using BitsAndBytes.FP4
     /// </summary>
-    /// <param name="config"><see cref="Quantize4BitConfig"/></param>"/>
+    /// <param name="config"><see cref="Quantize4BitConfig"/></param>
     public void Quantize4Bit(Quantize4BitConfig config);
 }
 
