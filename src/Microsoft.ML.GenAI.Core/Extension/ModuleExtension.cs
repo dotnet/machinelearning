@@ -94,8 +94,8 @@ public static class ModuleExtension
     /// <param name="blockSize">Block size for quantization, can be [64, 128, 256, 512, 1024]. The larger the size, the faster the speed and the lower the precision.</param>
     public static void ToQuantize4BitModule<T>(
         this T model,
-        string quantizedDType = "nf4",
-        int blockSize = 512)
+        string quantizedDType = "fp4",
+        int blockSize = 64)
         where T : nn.Module
     {
         var config = new Quantize4BitConfig(quantizedDType, blockSize);
