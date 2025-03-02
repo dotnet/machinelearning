@@ -90,13 +90,18 @@ public static class ModuleExtension
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="model"></param>
-    public static void ToInt4QuantizeModule<T>(
-        this T model)
+    /// <param name="quantizedDType">Quantized data type, can be "fp4" or "nf4".</param>
+    /// <param name="blockSize">Block size for quantization, can be [64, 128, 256, 512, 1024]. The larger the size, the faster the speed and the lower the precision.</param>
+    public static void ToQuantize4BitModule<T>(
+        this T model,
+        string quantizedDType = "nf4",
+        int blockSize = 512)
         where T : nn.Module
     {
+        var config = new Quantize4BitConfig(quantizedDType, blockSize);
         if (model is IQuantizeModule quantized)
         {
-            quantized.FP4();
+            quantized.Quantize4Bit(config);
 
             return;
         }
@@ -105,11 +110,11 @@ public static class ModuleExtension
         {
             if (value is IQuantizeModule quantizeModule)
             {
-                quantizeModule.FP4();
+                quantizeModule.Quantize4Bit(config);
             }
             else
             {
-                value.ToInt4QuantizeModule();
+                value.ToQuantize4BitModule(quantizedDType, blockSize);
             }
         }
     }

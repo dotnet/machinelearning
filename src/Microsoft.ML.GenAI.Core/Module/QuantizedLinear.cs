@@ -161,7 +161,7 @@ internal class QuantizedLinear : GenAILinear, IQuantizeModule
         }
     }
 
-    public void FP4()
+    public void Quantize4Bit(Quantize4BitConfig config)
     {
         if (this.weight is null)
         {
@@ -174,8 +174,8 @@ internal class QuantizedLinear : GenAILinear, IQuantizeModule
         }
         using var dispose = torch.NewDisposeScope();
 
-        _quantizedDType = "fp4"; // Available options: "fp4", "nf4"
-        _blockSize = 64; // can be [64, 128, 256, 512, 1024]
+        _quantizedDType = config.QuantizedDType; // Available options: "fp4", "nf4"
+        _blockSize = config.BlockSize; // can be [64, 128, 256, 512, 1024]
 
         // Quantize to 4Bit
         (_quantizedTensor, _absMax, _blockSize, _n) = BitsAndByteUtils.Quantize4Bit(this.weight.cuda(), _quantizedDType, _blockSize);
