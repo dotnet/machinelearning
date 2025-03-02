@@ -8,5 +8,8 @@ public interface IQuantizeModule
 {
     public void Int8();
 
-    public void Int4();
+    /// <summary>
+    /// Quantize using BitsAndBytes.FP4
+    /// </summary>
+    public void FP4();
 }

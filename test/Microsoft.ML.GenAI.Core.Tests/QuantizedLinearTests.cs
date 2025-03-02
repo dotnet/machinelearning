@@ -27,7 +27,7 @@ public class QuantizedLinearTests
         sizeInGigaBytes.Should().Be(38);
 
         // to int4
-        model.Int4();
+        model.FP4();
         var sizeInBytesAfterInt8 = model.GetSizeInBytes();
         var sizeInGigaBytesAfterInt8 = sizeInBytesAfterInt8 / 1024 / 1024;
         sizeInGigaBytesAfterInt8.Should().Be(4); // 38 // 8 = 4

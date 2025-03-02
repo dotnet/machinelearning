@@ -109,7 +109,7 @@ internal class RotaryEmbedding : nn.Module<
         var seqLen = input.SeqLen;
         // TODO
         // can be calculated once and cached
-        var invFreq = this.get_buffer("inv_freq").to(x.device);
+        var invFreq = this.get_buffer("inv_freq")!.to(x.device);
         var invFreqExpanded = invFreq.unsqueeze(0).unsqueeze(-1);
         invFreqExpanded = invFreqExpanded.expand(new long[] { positionIds.shape[0], -1, 1 });
         var positionIdsExpanded = positionIds.unsqueeze(1).to(torch.float32);

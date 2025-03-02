@@ -55,6 +55,7 @@ public class Phi2ForCasualLM : nn.Module<CausalLMModelInput, CausalLMModelOutput
         bool useTqdm = false,
         string? device = null)
     {
+        device ??= torch.get_default_device().ToString();
         var config = Path.Join(modelFolder, configName);
         var modelConfig = JsonSerializer.Deserialize<Phi2Config>(File.ReadAllText(config)) ?? throw new ArgumentNullException(nameof(config));
         modelConfig.Dtype = torchDtype;

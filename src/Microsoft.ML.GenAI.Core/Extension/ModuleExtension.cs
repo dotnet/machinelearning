@@ -96,7 +96,7 @@ public static class ModuleExtension
     {
         if (model is IQuantizeModule quantized)
         {
-            quantized.Int4();
+            quantized.FP4();
 
             return;
         }
@@ -105,7 +105,7 @@ public static class ModuleExtension
         {
             if (value is IQuantizeModule quantizeModule)
             {
-                quantizeModule.Int4();
+                quantizeModule.FP4();
             }
             else
             {
