@@ -355,7 +355,7 @@ namespace Microsoft.ML.Tokenizers
                         break;
                     }
 
-                    ReadOnlySpan<byte> normalizedByte = normalizedPrefix.Equals(default(Memory<byte>)) ? input.Slice(0, p) : normalizedPrefix.Span;
+                    ReadOnlySpan<byte> normalizedByte = normalizedPrefix.Length == 0 ? input.Slice(0, p) : normalizedPrefix.Span;
                     if (normalizedByte[0] != (byte)' ')
                     {
                         break;
@@ -386,7 +386,7 @@ namespace Microsoft.ML.Tokenizers
             while (!input.IsEmpty)
             {
                 int p = NormalizePrefix(input, out Memory<byte> normalizedPrefix);
-                ReadOnlySpan<byte> sp = normalizedPrefix.Equals(default(Memory<byte>)) ? input.Slice(0, p) : normalizedPrefix.Span;
+                ReadOnlySpan<byte> sp = normalizedPrefix.Length == 0 ? input.Slice(0, p) : normalizedPrefix.Span;
 
                 // Removes heading spaces in sentence piece, if the previous sentence piece ends with whitespace.
                 while (isPrevSpace && sp.Length > 0 && sp[0] == (byte)' ')

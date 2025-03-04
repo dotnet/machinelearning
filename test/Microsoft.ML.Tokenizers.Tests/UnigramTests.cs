@@ -149,6 +149,26 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             yield return new object[]
             {
+                "\u001f",  // string start with control character
+                "▁\u001f",
+                "",
+                new int[] { 5, 0 },
+                new string[] { "▁", "\u001f"},
+                new Range[] { new Range(0, 1), new Range(1, 2) }
+            };
+
+            yield return new object[]
+            {
+                "\ufe7b",  // Decompose to two letters
+                "▁\u0640\u0650",
+                "\u0640\u0650",
+                new int[] { 17637, 487 },
+                new string[] { "▁\u0640", "\u0650" },
+                new Range[] { new Range(0, 2), new Range(2, 3) }
+            };
+
+            yield return new object[]
+            {
                 @"The sun dipped below the horizon, casting a warm golden hue across the tranquil meadow. Birds fluttered from " +
                 "tree to tree, their melodic songs filling the air. A gentle breeze rustled the leaves, carrying with it the scent of " +
                 "blooming flowers. In the distance, the silhouette of a lone figure stood atop a hill, gazing out at the vast expanse " +
