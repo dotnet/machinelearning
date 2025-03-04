@@ -62,6 +62,9 @@ namespace Microsoft.ML.Tokenizers
 
             _trie = new DoubleArrayTrie(_vocab);
 
+            // Once the trie is built, we need to add the special tokens to the vocabulary.
+            // Including these special tokens ensures they are mapped like regular tokens.
+            // SentencePiece specifically handles the BOS, EOS, and UNK tokens, while the PAD token is optional.
 
             Debug.Assert(modelProto.TrainerSpec.UnkId >= 0);
             Debug.Assert(modelProto.TrainerSpec.BosId >= 0);
