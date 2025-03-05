@@ -62,8 +62,27 @@ namespace Microsoft.ML.Tokenizers
 
             _trie = new DoubleArrayTrie(_vocab);
 
-            _vocabReverse[BeginningOfSentenceId] = (BeginningOfSentenceToken, 0f, 0);
-            _vocabReverse[EndOfSentenceId] = (EndOfSentenceToken, 0f, 0);
+            // Once the trie is built, we need to add the special tokens to the vocabulary.
+            // Including these special tokens ensures they are mapped like regular tokens.
+            // SentencePiece specifically handles the BOS, EOS, and UNK tokens, while the PAD token is optional.
+
+            Debug.Assert(modelProto.TrainerSpec.UnkId >= 0);
+            Debug.Assert(modelProto.TrainerSpec.BosId >= 0);
+            Debug.Assert(modelProto.TrainerSpec.EosId >= 0);
+
+            _vocab[modelProto.TrainerSpec.UnkPiece] = modelProto.TrainerSpec.UnkId;
+            _vocab[modelProto.TrainerSpec.BosPiece] = modelProto.TrainerSpec.BosId;
+            _vocab[modelProto.TrainerSpec.EosPiece] = modelProto.TrainerSpec.EosId;
+
+            _vocabReverse[modelProto.TrainerSpec.BosId] = (modelProto.TrainerSpec.BosPiece, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
+            _vocabReverse[modelProto.TrainerSpec.EosId] = (modelProto.TrainerSpec.EosPiece, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
+            _vocabReverse[modelProto.TrainerSpec.UnkId] = (modelProto.TrainerSpec.UnkPiece, 0f, ModelProto.Types.SentencePiece.Types.Type.Unknown);
+
+            if (modelProto.TrainerSpec.PadId >= 0)
+            {
+                _vocab[modelProto.TrainerSpec.PadPiece] = modelProto.TrainerSpec.PadId;
+                _vocabReverse[modelProto.TrainerSpec.PadId] = (modelProto.TrainerSpec.PadPiece, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
+            }
         }
 
         public SentencePieceUnigramModel(SentencePieceOptions options) : base(options)

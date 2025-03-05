@@ -25,11 +25,11 @@ namespace Microsoft.ML.Tokenizers
             AddBeginningOfSentence = addBos;
             AddEndOfSentence = addEos;
             BeginningOfSentenceToken = modelProto.TrainerSpec.BosPiece ?? "<s>";
-            BeginningOfSentenceId = modelProto.TrainerSpec.BosId <= 0 ? 1 : modelProto.TrainerSpec.BosId;
+            BeginningOfSentenceId = Math.Max(0, modelProto.TrainerSpec.BosId);
             EndOfSentenceToken = modelProto.TrainerSpec.EosPiece ?? "</s>";
-            EndOfSentenceId = modelProto.TrainerSpec.EosId <= 0 ? 1 : modelProto.TrainerSpec.EosId;
+            EndOfSentenceId = Math.Max(0, modelProto.TrainerSpec.EosId);
             UnknownToken = modelProto.TrainerSpec.UnkPiece ?? "<unk>";
-            UnknownId = modelProto.TrainerSpec.UnkId < 0 ? 0 : modelProto.TrainerSpec.UnkId;
+            UnknownId = Math.Max(0, modelProto.TrainerSpec.UnkId);
             AddDummyPrefix = modelProto.NormalizerSpec.AddDummyPrefix;
             EscapeWhiteSpaces = modelProto.NormalizerSpec.EscapeWhitespaces;
             TreatWhitespaceAsSuffix = modelProto.TrainerSpec.TreatWhitespaceAsSuffix;
