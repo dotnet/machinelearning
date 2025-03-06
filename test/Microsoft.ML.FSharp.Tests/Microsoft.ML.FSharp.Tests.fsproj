@@ -1,11 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-  <!-- NU1604 inclusive lower bound for dependencies.
-  .NET Framework 4.6.1 includes System.ValueTuple without a version, so we need to ignore the warning here.
-  Bug in the latest version of VS points to a Version of FSharp.Core that doesn't exist. Temporarily ignoring
-  NU1603 so it will use the latest version found.-->
-    <NoWarn>NU1604;2003;$(NoWarn)</NoWarn>
+    <NoWarn>2003;$(NoWarn)</NoWarn>
     <PublicSign>false</PublicSign>
     <SourceLink></SourceLink>
     <PlatformTarget>$(TargetArchitecture)</PlatformTarget>
