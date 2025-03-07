@@ -4,14 +4,24 @@
 using System;
 using Microsoft.ML.GenAI.Core;
 using TorchSharp;
+using TorchSharp.BitsAndBytes;
+using TorchSharp.Modules;
 using static TorchSharp.torch;
 namespace Microsoft.ML.GenAI.Core;
 
 internal class QuantizedLinear : GenAILinear, IQuantizeModule
 {
+    private Tensor? _quantizedTensor = null;
+    private Tensor? _absMax = null;
+    private int _blockSize;
+    private int _n;
+    private string? _quantizedDType = null;
+    private readonly long[] _weightShape;
+
     public QuantizedLinear(int inFeatures, int outFeatures, bool hasBias = true, ScalarType dtype = ScalarType.Float32, string? device = null)
         : base(inFeatures, outFeatures, hasBias, dtype, device)
     {
+        _weightShape = [outFeatures, inFeatures];
     }
 
     public void Int8()
@@ -79,6 +89,7 @@ internal class QuantizedLinear : GenAILinear, IQuantizeModule
     public override Tensor forward(Tensor input)
 #pragma warning restore MSML_GeneralName // This name should be PascalCased
     {
+        var inputShape = input.shape;
         if (this._internal_buffers.ContainsKey("weight"))
         {
             return base.forward(input);
@@ -87,9 +98,9 @@ internal class QuantizedLinear : GenAILinear, IQuantizeModule
         {
             // 8bit quantization
             using var dispose = torch.NewDisposeScope();
-            var weight = this.get_buffer("8bit_weight").to(ScalarType.Float32);
-            var zeroPoint = this.get_buffer("zeroPoint").to(ScalarType.Float32);
-            var scale = this.get_buffer("scale").to(ScalarType.Float32);
+            var weight = this.get_buffer("8bit_weight")!.to(ScalarType.Float32);
+            var zeroPoint = this.get_buffer("zeroPoint")!.to(ScalarType.Float32);
+            var scale = this.get_buffer("scale")!.to(ScalarType.Float32);
             var restoreWeight = (weight - zeroPoint.view(-1, 1)) / scale.view(-1, 1);
             // use float32
             var result = torch.matmul(input.to(ScalarType.Float32), restoreWeight.T);
@@ -102,32 +113,47 @@ internal class QuantizedLinear : GenAILinear, IQuantizeModule
             //result.Peek("result");
             return result.to_type(input.dtype).MoveToOuterDisposeScope();
         }
-        else if (this._internal_buffers.ContainsKey("4bit_weight"))
+        else if ((_quantizedDType == "fp4" || _quantizedDType == "nf4") && _quantizedTensor is not null && _absMax is not null)
         {
             using var dispose = torch.NewDisposeScope();
-            var weight = this.get_buffer("4bit_weight");
-            var weightLower = weight % 16;
-            var weightUpper = weight / 16;
-            weight = torch.cat([weightUpper, weightLower], 0).to(ScalarType.Float32);
-            weight = weight.view(this._outFeatures, this._inFeatures);
-            weight -= 8;
-            var zeroPoint = this.get_buffer("zeroPoint");
-            var zeroPointLower = zeroPoint % 16;
-            var zeroPointUpper = zeroPoint / 16;
-            zeroPoint = torch.cat([zeroPointUpper, zeroPointLower], 0).to(ScalarType.Float32);
-            zeroPoint -= 8;
-            var scale = this.get_buffer("scale").to(ScalarType.Float32);
-            var restoreWeight = (weight - zeroPoint.view(-1, 1)) / scale.view(-1, 1);
-            // use float32
-            var result = torch.matmul(input.to(ScalarType.Float32), restoreWeight.T);
-
-            if (this.bias is not null)
+            if (input.shape.Length >= 3 && input.shape[1] != 1)
             {
-                result = result + this.bias.to_type(ScalarType.Float32);
-            }
+                // dequantize quantizedWeight to float32 and use torch.matmul
+                var dequantizedWeight = BitsAndByteUtils.Dequantize4Bit(
+                    tensor: this._quantizedTensor,
+                    originalDType: input.dtype,
+                    originalShape: this._weightShape,
+                    blockSize: _blockSize,
+                    n: this._n,
+                    absMax: this._absMax!,
+                    quantizedDType: _quantizedDType);
 
-            //result.Peek("result");
-            return result.to_type(input.dtype).MoveToOuterDisposeScope();
+                var output = torch.matmul(input, dequantizedWeight.T);
+
+                if (this.bias is not null)
+                {
+                    output = output.add_(this.bias.to_type(output.dtype));
+                }
+
+                return output.MoveToOuterDisposeScope();
+            }
+            else
+            {
+                var output = BitsAndByteUtils.Gemv4Bit(
+                input: input,
+                quantizedWeight: this._quantizedTensor,
+                originalWeightShape: _weightShape,
+                absMax: this._absMax!,
+                quantizedDType: _quantizedDType,
+                blockSize: _blockSize);
+
+                if (this.bias is not null)
+                {
+                    output = output.add_(this.bias.to_type(output.dtype));
+                }
+
+                return output.MoveToOuterDisposeScope();
+            }
         }
         else
         {
@@ -135,75 +161,29 @@ internal class QuantizedLinear : GenAILinear, IQuantizeModule
         }
     }
 
-    public void Int4()
+    public void Quantize4Bit(Quantize4BitConfig config)
     {
         if (this.weight is null)
         {
             throw new Exception("Weight is not initialized");
         }
-        var placeHolderDim = this._outFeatures / 2 + this._outFeatures % 2;
-        var fourBitWeightDim = this.weight.size(0) * this.weight.size(1);
-        var fourBitWeightPlaceHolderDim = Convert.ToInt32(fourBitWeightDim / 2 + fourBitWeightDim % 2);
-        if (this.weight.device_type != DeviceType.META)
+
+        if (this.weight.device_type == DeviceType.META)
         {
-            using var scope = NewDisposeScope();
-            var timer = new System.Diagnostics.Stopwatch();
-            timer.Start();
-            // scale and zero point on vector-wise
-            // scale = 15 / max(weight, axis=1) - min(weight, axis=1)
-            var scale = 15 / (torch.max(this.weight, 1).values - torch.min(this.weight, 1).values);
-
-            // zero point = - scale * min(weight, axis=1) - 8
-            var zeroPoint = -scale * torch.min(this.weight, 1).values - 8;
-            // round zero point to nearest integer
-            zeroPoint = torch.round(zeroPoint);
-            var fourBitWeight = torch.round(this.weight * scale.view(-1, 1) + zeroPoint.view(-1, 1)).to(torch.int8);
-
-            zeroPoint = (zeroPoint + 8).to(torch.uint8);
-            fourBitWeight = (fourBitWeight + 8).view(-1).to(torch.uint8);
-
-            // torch doesn't provide int4, so we use int8 as placeholder
-            // and foreach int8, we save two int4, e.g. 0b1010 -> 0b10, 0b10
-            var zpPlaceHolder = zeroPoint[..placeHolderDim];
-            zpPlaceHolder = zpPlaceHolder * 16 + zeroPoint[placeHolderDim..];
-
-            // assert zero point is in range [-128, 127]
-            //if (torch.any(this.zeroPoint < -128).item<bool>() || torch.any(this.zeroPoint > 127).item<bool>())
-            //{
-            //    throw new Exception("Zero point is out of range [-128, 127]");
-            //}
-
-            // quantize weight
-            var fourBitWeightPlaceHolder = fourBitWeight[..fourBitWeightPlaceHolderDim];
-            fourBitWeightPlaceHolder = fourBitWeightPlaceHolder * 16 + fourBitWeight[fourBitWeightPlaceHolderDim..];
-
-            // assert weight is in range [-128, 127]
-            //if (torch.any(this._8bitWeight < -128).item<bool>() || torch.any(this._8bitWeight > 127).item<bool>())
-            //{
-            //    throw new Exception("Weight is out of range [-128, 127]");
-            //}
-
-            // dispose float32 weight
-            this.weight.Dispose();
-
-            this._internal_buffers.Remove("weight");
-            this.register_buffer("4bit_weight", fourBitWeightPlaceHolder.MoveToOuterDisposeScope());
-            this.register_buffer("zeroPoint", zpPlaceHolder.MoveToOuterDisposeScope());
-            this.register_buffer("scale", scale.MoveToOuterDisposeScope());
-            timer.Stop();
+            return;
         }
-        else
-        {
-            // if weight is on meta device, then we just need to create the placeholder for 8bit_weight, zeroPoint and scale
-            var fourBitWeight = torch.zeros(fourBitWeightPlaceHolderDim, dtype: torch.int8);
-            var zeroPoint = torch.zeros(placeHolderDim, dtype: torch.int8);
-            var scale = torch.zeros(this.weight.shape[0], dtype: torch.float32);
+        using var dispose = torch.NewDisposeScope();
 
-            this._internal_buffers.Remove("weight");
-            this.weight = null;
-            this.register_buffer("4bit_weight", fourBitWeight);
-            this.register_buffer("zeroPoint", zeroPoint);
-            this.register_buffer("scale", scale);
-        }
+        _quantizedDType = config.QuantizedDType; // Available options: "fp4", "nf4"
+        _blockSize = config.BlockSize; // can be [64, 128, 256, 512, 1024]
+
+        // Quantize to 4Bit
+        (_quantizedTensor, _absMax, _blockSize, _n) = BitsAndByteUtils.Quantize4Bit(this.weight.cuda(), _quantizedDType, _blockSize);
+
+        this.weight.Dispose();
+        this.weight = null;
+        this._internal_buffers.Remove("weight");
+        _quantizedTensor.MoveToOuterDisposeScope();
+        _absMax.MoveToOuterDisposeScope();
     }
 }

@@ -54,20 +54,6 @@ public class Phi3Tests
     [Fact]
     [UseReporter(typeof(DiffReporter))]
     [UseApprovalSubdirectory("Approvals")]
-    public void Phi3Mini4KInt4QuantizeShapeTest()
-    {
-        var model = new Phi3ForCasualLM(Phi3Config.Phi3Mini4kInstruct);
-        model.ToInt4QuantizeModule();
-        var size = model.GetSizeInBytes();
-        var stateDictStr = model.PeekShape();
-        var sizeInGB = size / 1024 / 1024 / 1024;
-        sizeInGB.Should().Be(2);
-        Approvals.Verify(stateDictStr);
-    }
-
-    [Fact]
-    [UseReporter(typeof(DiffReporter))]
-    [UseApprovalSubdirectory("Approvals")]
     public void Phi3Medium4KShapeTest()
     {
         var model = new Phi3ForCasualLM(Phi3Config.Phi3Medium4kInstruct);
