@@ -34,13 +34,6 @@
     <PackageReference Include="Microsoft.DotNet.XUnitExtensions" Version="$(MicrosoftDotNetXUnitExtensionsVersion)" />
     <PackageReference Include="coverlet.collector" Version="$(CoverletCollectorVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" PrivateAssets="all" GeneratePathProperty="true" />
-
-    <!-- workaround stale references in test packages by 
-         1) updating NETStandard.Library - the newer version brings less references on netstandard2.0 compatible frameworks.
-         2) updating Microsoft.NETCore.Targets - the newer version prevents .NETCore 1.x era runtime.* packages from being referenced. -->
-    <PackageReference Include="NETStandard.Library" Version="2.0.3" />
-    <PackageReference Include="Microsoft.NETCore.Targets" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
