@@ -30,7 +30,7 @@ public class Phi3CausalLMChatClient : CausalLMPipelineChatClient<Tokenizer, Phi3
     }
 
     public override Task<ChatResponse> GetResponseAsync(
-        IList<ChatMessage> chatMessages,
+        IEnumerable<ChatMessage> messages,
         ChatOptions? options = null,
         CancellationToken cancellationToken = default)
     {
@@ -45,11 +45,11 @@ public class Phi3CausalLMChatClient : CausalLMPipelineChatClient<Tokenizer, Phi3
             options.StopSequences = [_eotToken];
         }
 
-        return base.GetResponseAsync(chatMessages, options, cancellationToken);
+        return base.GetResponseAsync(messages, options, cancellationToken);
     }
 
     public override IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
-        IList<ChatMessage> chatMessages,
+        IEnumerable<ChatMessage> messages,
         ChatOptions? options = null,
         CancellationToken cancellationToken = default)
     {
@@ -57,6 +57,6 @@ public class Phi3CausalLMChatClient : CausalLMPipelineChatClient<Tokenizer, Phi3
         options.StopSequences ??= [];
         options.StopSequences.Add(_eotToken);
 
-        return base.GetStreamingResponseAsync(chatMessages, options, cancellationToken);
+        return base.GetStreamingResponseAsync(messages, options, cancellationToken);
     }
 }

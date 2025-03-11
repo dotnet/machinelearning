@@ -33,9 +33,9 @@ public abstract class CausalLMPipelineChatClient<TTokenizer, TCausalLMModel> : I
         _pipeline = pipeline;
     }
 
-    public virtual Task<ChatResponse> GetResponseAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default)
+    public virtual Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> messages, ChatOptions? options = null, CancellationToken cancellationToken = default)
     {
-        var prompt = _chatTemplateBuilder.BuildPrompt(chatMessages, options);
+        var prompt = _chatTemplateBuilder.BuildPrompt(messages, options);
         var stopSequences = options?.StopSequences ?? Array.Empty<string>();
 
         var output = _pipeline.Generate(
@@ -49,30 +49,31 @@ public abstract class CausalLMPipelineChatClient<TTokenizer, TCausalLMModel> : I
         {
             CreatedAt = DateTime.UtcNow,
             FinishReason = ChatFinishReason.Stop,
+            ResponseId = Guid.NewGuid().ToString("N"),
         });
     }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public virtual async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
-        IList<ChatMessage> chatMessages,
+        IEnumerable<ChatMessage> messages,
         ChatOptions? options = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var prompt = _chatTemplateBuilder.BuildPrompt(chatMessages, options);
+        var prompt = _chatTemplateBuilder.BuildPrompt(messages, options);
         var stopSequences = options?.StopSequences ?? Array.Empty<string>();
 
+        string responseId = Guid.NewGuid().ToString("N");
         foreach (var output in _pipeline.GenerateStreaming(
             prompt,
             maxLen: options?.MaxOutputTokens ?? 1024,
             temperature: options?.Temperature ?? 0.7f,
             stopSequences: stopSequences.ToArray()))
         {
-            yield return new ChatResponseUpdate
+            yield return new(ChatRole.Assistant, output)
             {
-                Role = ChatRole.Assistant,
-                Text = output,
                 CreatedAt = DateTime.UtcNow,
+                ResponseId = responseId,
             };
         }
     }
