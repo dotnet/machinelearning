@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -11,7 +11,7 @@ public interface IQuantizeModule
     /// <summary>
     /// Quantize using BitsAndBytes.FP4
     /// </summary>
-    /// <param name="config"><see cref="Quantize4BitConfig"/></param>"/>
+    /// <param name="config"><see cref="Quantize4BitConfig"/></param>
     public void Quantize4Bit(Quantize4BitConfig config);
 }
 
@@ -20,7 +20,7 @@ public interface IQuantizeModule
 /// </summary>
 public record Quantize4BitConfig
 {
-    public Quantize4BitConfig(string quantizedDType = "fp4", int blockSize = 1024)
+    public Quantize4BitConfig(string quantizedDType = "fp4", int blockSize = 64)
     {
         QuantizedDType = quantizedDType;
         BlockSize = blockSize;
