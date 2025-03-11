@@ -75,6 +75,7 @@
     <SemanticKernelVersion>1.15.0</SemanticKernelVersion>
     <TorchSharpVersion>0.105.0</TorchSharpVersion>
     <LibTorchVersion>2.5.1</LibTorchVersion>
+    <TorchSharpBitsAndBytesVersion>0.0.4</TorchSharpBitsAndBytesVersion>
     <!-- Build/infrastructure Dependencies -->
     <CodecovVersion>1.12.4</CodecovVersion>
     <CoverletCollectorVersion>6.0.2</CoverletCollectorVersion>

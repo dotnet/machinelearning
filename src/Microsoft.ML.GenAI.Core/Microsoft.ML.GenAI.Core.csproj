@@ -18,7 +18,7 @@
     <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="$(SemanticKernelVersion)" />
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
     <PackageReference Include="TorchSharp" Version="$(TorchSharpVersion)" />
-    <PackageReference Include="LittleLittleCloud.TorchSharp.BitsAndBytes" Version="0.0.4" />
+    <PackageReference Include="LittleLittleCloud.TorchSharp.BitsAndBytes" Version="$(TorchSharpBitsAndBytesVersion)" />
   </ItemGroup>
 
   <ItemGroup>

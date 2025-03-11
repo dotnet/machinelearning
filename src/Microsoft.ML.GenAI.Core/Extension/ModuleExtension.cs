@@ -90,7 +90,7 @@ public static class ModuleExtension
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="model"></param>
-    /// <param name="quantizedDType">Quantized data type, can be "fp4" or "nf4".</param>
+    /// <param name="quantizedDType">Quantized data type, can be "fp4" or "nf4". "fp4" means 4-bits floating point (1-bit sign, 2-bit exponent and 1-bit mantissa) and "nf4" means normalized 4-bits floating point, which uses a specialized non-uniform quantization aimed at neural network weight distributions (ranged from -1 to 1).</param>
     /// <param name="blockSize">Block size for quantization, can be [64, 128, 256, 512, 1024]. The larger the size, the faster the speed and the lower the precision.</param>
     public static void ToQuantize4BitModule<T>(
         this T model,
