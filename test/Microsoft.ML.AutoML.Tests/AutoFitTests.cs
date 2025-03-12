@@ -85,7 +85,7 @@ namespace Microsoft.ML.AutoML.Test
             var result = context.Auto()
                 .CreateBinaryClassificationExperiment(settings)
                 .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
-            result.BestRun.ValidationMetrics.Accuracy.Should().BeGreaterOrEqualTo(0.7);
+            result.BestRun.ValidationMetrics.Accuracy.Should().BeGreaterThanOrEqualTo(0.7);
             Assert.NotNull(result.BestRun.Estimator);
             Assert.NotNull(result.BestRun.Model);
             Assert.NotNull(result.BestRun.TrainerName);

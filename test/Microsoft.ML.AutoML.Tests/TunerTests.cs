@@ -280,7 +280,7 @@ namespace Microsoft.ML.AutoML.Test
 
                 // 10.5 is the best metric from random tuner
                 // and the other tuners should achieve better metric comparing with random tuner.
-                bestMetric.Should().BeGreaterOrEqualTo(10.5);
+                bestMetric.Should().BeGreaterThanOrEqualTo(10.5);
             }
         }
 
