@@ -32,7 +32,7 @@ public interface IMEAIChatTemplateBuilder
     /// <param name="options"></param>
     /// <param name="appendAssistantTag">true if append assistant tag at the end of prompt.</param>
     /// <returns></returns>
-    string BuildPrompt(IList<ChatMessage> messages, ChatOptions? options = null, bool appendAssistantTag = true);
+    string BuildPrompt(IEnumerable<ChatMessage> messages, ChatOptions? options = null, bool appendAssistantTag = true);
 }
 
 public interface IChatTemplateBuilder : IAutoGenChatTemplateBuilder, ISemanticKernelChatTemplateBuilder
