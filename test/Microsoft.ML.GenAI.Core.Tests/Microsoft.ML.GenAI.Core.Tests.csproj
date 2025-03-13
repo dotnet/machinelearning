@@ -17,7 +17,7 @@
   <ItemGroup>
     <PackageReference Include="ApprovalTests" Version="$(ApprovalTestsVersion)" />
     <PackageReference Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
-    <PackageReference Include="FluentAssertions" Version="$(FluentAssertionVersion)" />
+    <PackageReference Include="AwesomeAssertions" Version="$(AwesomeAssertionsVersion)" />
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
     <PackageReference Include="TorchSharp" Version="$(TorchSharpVersion)" />
     <PackageReference Include="Microsoft.ML.TestTokenizers" Version="$(MicrosoftMLTestTokenizersVersion)" />
