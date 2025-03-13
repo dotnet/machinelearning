@@ -34,7 +34,7 @@ internal class LlamaSample
         var stopWatch = System.Diagnostics.Stopwatch.StartNew();
         stopWatch.Start();
         var tokenizer = LlamaTokenizerHelper.FromPretrained(originalWeightFolder);
-        var model = LlamaForCausalLM.FromPretrained(weightFolder, configName, checkPointName: checkPointName, layersOnTargetDevice: 26, quantizeToInt8: true);
+        var model = LlamaForCausalLM.FromPretrained(weightFolder, configName, checkPointName: checkPointName, layersOnTargetDevice: -1, quantizeTo4Bit: true);
 
         var pipeline = new CausalLMPipeline<TiktokenTokenizer, LlamaForCausalLM>(tokenizer, model, device);
 

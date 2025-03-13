@@ -93,7 +93,7 @@ public class MistralForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOut
         }
         else if (quantizeToInt4)
         {
-            model.ToInt4QuantizeModule();
+            model.ToQuantize4BitModule();
         }
 
         var deviceMap = model.InferDeviceMapForEachLayer(
@@ -113,7 +113,7 @@ public class MistralForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOut
         }
         else if (quantizeToInt4)
         {
-            model.ToInt4QuantizeModule();
+            model.ToQuantize4BitModule();
         }
 
         model = model.ToDynamicLoadingModel(deviceMap, targetDevice);
