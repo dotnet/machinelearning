@@ -61,7 +61,10 @@ namespace Microsoft.ML.Trainers.LightGbm
                {nameof(CategoricalSmoothing),                 "cat_smooth" },
                {nameof(L2CategoricalRegularization),          "cat_l2" },
                {nameof(HandleMissingValue),                   "use_missing" },
-               {nameof(UseZeroAsMissingValue),                "zero_as_missing" }
+               {nameof(UseZeroAsMissingValue),                "zero_as_missing" },
+               {nameof(Deterministic),                        "deterministic"},
+               {nameof(ForceRowWise),                         "force_row_wise"},
+               {nameof(ForceColumnWise),                      "force_col_wise"},
             };
 
             internal string GetOptionName(string name)
@@ -236,6 +239,24 @@ namespace Microsoft.ML.Trainers.LightGbm
             [Argument(ArgumentType.AtMostOnce, HelpText = "Sets the random seed for LightGBM to use.")]
             public int? Seed;
 
+            /// <summary>
+            /// Setting this to true should ensure the stable results when using the same data and the same parameters and different num_threads.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use deterministic algorithm.")]
+            public bool Deterministic = false;
+
+            /// <summary>
+            /// Whether to force column-wise histogram building.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to force column-wise histogram building.")]
+            public bool ForceColumnWise = false;
+
+            /// <summary>
+            /// Whether to force row-wise histogram building.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to force row-wise histogram building.")]
+            public bool ForceRowWise = false;
+
             [Argument(ArgumentType.Multiple, HelpText = "Parallel LightGBM Learning Algorithm", ShortName = "parag")]
             internal ISupportParallel ParallelTrainer = new SingleTrainerFactory();
 
@@ -279,6 +300,9 @@ namespace Microsoft.ML.Trainers.LightGbm
                 res[GetOptionName(nameof(MaximumCategoricalSplitPointCount))] = MaximumCategoricalSplitPointCount;
                 res[GetOptionName(nameof(CategoricalSmoothing))] = CategoricalSmoothing;
                 res[GetOptionName(nameof(L2CategoricalRegularization))] = L2CategoricalRegularization;
+                res[GetOptionName(nameof(Deterministic))] = Deterministic;
+                res[GetOptionName(nameof(ForceColumnWise))] = ForceColumnWise;
+                res[GetOptionName(nameof(ForceRowWise))] = ForceRowWise;
 
                 return res;
             }

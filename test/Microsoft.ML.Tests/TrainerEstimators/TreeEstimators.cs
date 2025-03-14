@@ -66,6 +66,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 NumberOfLeaves = 10,
                 MinimumExampleCountPerLeaf = 2,
                 UnbalancedSets = false, // default value
+                Deterministic = true,
+                ForceRowWise = true
             });
 
             var pipeWithTrainer = pipe.Append(trainer);

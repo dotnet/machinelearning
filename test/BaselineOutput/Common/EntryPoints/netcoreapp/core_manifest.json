@@ -11892,6 +11892,33 @@
           "Default": null
         },
         {
+          "Name": "Deterministic",
+          "Type": "Bool",
+          "Desc": "Whether to use deterministic algorithm.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "ForceColumnWise",
+          "Type": "Bool",
+          "Desc": "Whether to force column-wise histogram building.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "ForceRowWise",
+          "Type": "Bool",
+          "Desc": "Whether to force row-wise histogram building.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
           "Name": "ParallelTrainer",
           "Type": {
             "Kind": "Component",
@@ -12409,6 +12436,33 @@
           "SortOrder": 150.0,
           "IsNullable": true,
           "Default": null
+        },
+        {
+          "Name": "Deterministic",
+          "Type": "Bool",
+          "Desc": "Whether to use deterministic algorithm.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "ForceColumnWise",
+          "Type": "Bool",
+          "Desc": "Whether to force column-wise histogram building.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "ForceRowWise",
+          "Type": "Bool",
+          "Desc": "Whether to force row-wise histogram building.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
         },
         {
           "Name": "ParallelTrainer",
@@ -12930,6 +12984,33 @@
           "Default": null
         },
         {
+          "Name": "Deterministic",
+          "Type": "Bool",
+          "Desc": "Whether to use deterministic algorithm.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "ForceColumnWise",
+          "Type": "Bool",
+          "Desc": "Whether to force column-wise histogram building.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "ForceRowWise",
+          "Type": "Bool",
+          "Desc": "Whether to force row-wise histogram building.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
           "Name": "ParallelTrainer",
           "Type": {
             "Kind": "Component",
@@ -13408,6 +13489,33 @@
           "SortOrder": 150.0,
           "IsNullable": true,
           "Default": null
+        },
+        {
+          "Name": "Deterministic",
+          "Type": "Bool",
+          "Desc": "Whether to use deterministic algorithm.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "ForceColumnWise",
+          "Type": "Bool",
+          "Desc": "Whether to force column-wise histogram building.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "ForceRowWise",
+          "Type": "Bool",
+          "Desc": "Whether to force row-wise histogram building.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
         },
         {
           "Name": "ParallelTrainer",
