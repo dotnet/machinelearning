@@ -87,9 +87,9 @@ internal class QuantizedLinear : GenAILinear, IQuantizeModule
         {
             // 8bit quantization
             using var dispose = torch.NewDisposeScope();
-            var weight = this.get_buffer("8bit_weight").to(ScalarType.Float32);
-            var zeroPoint = this.get_buffer("zeroPoint").to(ScalarType.Float32);
-            var scale = this.get_buffer("scale").to(ScalarType.Float32);
+            var weight = this.get_buffer("8bit_weight")!.to(ScalarType.Float32);
+            var zeroPoint = this.get_buffer("zeroPoint")!.to(ScalarType.Float32);
+            var scale = this.get_buffer("scale")!.to(ScalarType.Float32);
             var restoreWeight = (weight - zeroPoint.view(-1, 1)) / scale.view(-1, 1);
             // use float32
             var result = torch.matmul(input.to(ScalarType.Float32), restoreWeight.T);
@@ -106,17 +106,17 @@ internal class QuantizedLinear : GenAILinear, IQuantizeModule
         {
             using var dispose = torch.NewDisposeScope();
             var weight = this.get_buffer("4bit_weight");
-            var weightLower = weight % 16;
-            var weightUpper = weight / 16;
+            var weightLower = weight! % 16;
+            var weightUpper = weight! / 16;
             weight = torch.cat([weightUpper, weightLower], 0).to(ScalarType.Float32);
             weight = weight.view(this._outFeatures, this._inFeatures);
             weight -= 8;
             var zeroPoint = this.get_buffer("zeroPoint");
-            var zeroPointLower = zeroPoint % 16;
-            var zeroPointUpper = zeroPoint / 16;
+            var zeroPointLower = zeroPoint! % 16;
+            var zeroPointUpper = zeroPoint! / 16;
             zeroPoint = torch.cat([zeroPointUpper, zeroPointLower], 0).to(ScalarType.Float32);
             zeroPoint -= 8;
-            var scale = this.get_buffer("scale").to(ScalarType.Float32);
+            var scale = this.get_buffer("scale")!.to(ScalarType.Float32);
             var restoreWeight = (weight - zeroPoint.view(-1, 1)) / scale.view(-1, 1);
             // use float32
             var result = torch.matmul(input.to(ScalarType.Float32), restoreWeight.T);
