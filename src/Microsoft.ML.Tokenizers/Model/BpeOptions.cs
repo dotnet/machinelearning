@@ -73,7 +73,7 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets or sets a value indicating whether to handle the input text in byte level.
         /// if true, the input text will be converted to UTF-8 bytes before encoding it.
-        /// Additionally, some ASCII characters will be transformed to another characters (e.g Space character will be transformed to 'Ġ' character).
+        /// Additionally, some ASCII characters will be transformed to different characters (e.g Space character will be transformed to 'Ġ' character).
         /// </summary>
         public bool ByteLevel { get; set; }
 
