@@ -27,6 +27,14 @@ namespace Microsoft.ML.Tokenizers
         public SentencePieceUnigramModel(ModelProto modelProto, bool addBos, bool addEos, IReadOnlyDictionary<string, int>? specialTokens = null) : base(modelProto, addBos, addEos, specialTokens)
         {
             _vocab = new SortedDictionary<string, int>(OrdinalUtf8StringComparer.Instance);
+
+            if (modelProto.TrainerSpec.BosId >= modelProto.Pieces.Count ||
+                modelProto.TrainerSpec.EosId >= modelProto.Pieces.Count ||
+                modelProto.TrainerSpec.UnkId >= modelProto.Pieces.Count)
+            {
+                throw new ArgumentException("The BOS, EOS, or UNK token is not present in the vocabulary.");
+            }
+
             _vocabReverse = new (string Piece, float Score, ModelProto.Types.SentencePiece.Types.Type Type)[modelProto.Pieces.Count];
 
             _minScore = float.MaxValue;
@@ -83,64 +91,6 @@ namespace Microsoft.ML.Tokenizers
                 _vocab[modelProto.TrainerSpec.PadPiece] = modelProto.TrainerSpec.PadId;
                 _vocabReverse[modelProto.TrainerSpec.PadId] = (modelProto.TrainerSpec.PadPiece, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
             }
-        }
-
-        public SentencePieceUnigramModel(SentencePieceOptions options) : base(options)
-        {
-            _vocab = new SortedDictionary<string, int>(OrdinalUtf8StringComparer.Instance);
-            // _vocabReverse = new (string Piece, float Score, ModelProto.Types.SentencePiece.Types.Type Type)[];
-
-            // 250_000 using big number to avoid reallocation during the initialization.
-            List<(string Piece, float Score, ModelProto.Types.SentencePiece.Types.Type Type)> vocabReverse = new(250_000);
-
-            _minScore = float.MaxValue;
-            _maxScore = float.MinValue;
-
-            int id = 0;
-            foreach ((string Token, float Score) item in options.Vocabulary!)
-            {
-                _vocab.Add(item.Token, id++);
-                vocabReverse.Add((item.Token, item.Score, ModelProto.Types.SentencePiece.Types.Type.Normal));
-                _minScore = Math.Min(_minScore, item.Score);
-                _maxScore = Math.Max(_maxScore, item.Score);
-            }
-
-            _vocabReverse = vocabReverse.ToArray();
-
-            if (options.ByteFallback)
-            {
-                if (!_vocab.TryGetValue("<0x00>", out id))
-                {
-                    throw new ArgumentException("'ByteFallback' is enabled but the vocabulary must include a special token for each byte value (0-255) in the format <0xNN>, where NN represents the byte's hexadecimal value.");
-                }
-
-                ByteCodeToIdOffset = id;
-                OneByteUtf8EncodingMaxId = ByteCodeToIdOffset + 0x7F; // 0x7F is the maximum value of the one byte UTF-8 character.
-                MaxIdByteFallbackId = ByteCodeToIdOffset + 0xFF; // from <0x00> to <0xFF>.
-            }
-
-            _trie = new DoubleArrayTrie(_vocab);
-
-            _vocabReverse[BeginningOfSentenceId] = (BeginningOfSentenceToken, 0f, 0);
-            _vocabReverse[EndOfSentenceId] = (EndOfSentenceToken, 0f, 0);
-
-            if (!_vocab.TryGetValue(options.UnknownToken, out int unknownToken))
-            {
-                throw new ArgumentException($"The vocabulary must include the unknown token '{options.UnknownToken}'.");
-            }
-            UnknownId = unknownToken;
-
-            if (!_vocab.TryGetValue(options.BeginningOfSentenceToken, out int beginOfSentenceToken))
-            {
-                throw new ArgumentException($"The vocabulary must include the beginning of sentence token '{options.BeginningOfSentenceToken}'.");
-            }
-            BeginningOfSentenceId = beginOfSentenceToken;
-
-            if (!_vocab.TryGetValue(options.EndOfSentenceToken, out int endOfSentenceToken))
-            {
-                throw new ArgumentException($"The vocabulary must include the end of sentence token '{options.EndOfSentenceToken}'.");
-            }
-            EndOfSentenceId = endOfSentenceToken;
         }
 
         public override IReadOnlyDictionary<string, int> Vocabulary => new ReadOnlyDictionary<string, int>(_vocab);

@@ -30,16 +30,6 @@ namespace Microsoft.ML.Tokenizers
             };
         }
 
-        internal SentencePieceTokenizer(SentencePieceOptions options)
-        {
-            _model = options.ModelType switch
-            {
-                SentencePieceModelType.Bpe => new SentencePieceBpeModel(options),
-                SentencePieceModelType.Unigram => new SentencePieceUnigramModel(options),
-                _ => throw new ArgumentException($"The model type '{options.ModelType}' is not supported.", nameof(options.ModelType))
-            };
-        }
-
         /// <summary>
         /// The special tokens.
         /// </summary>
@@ -466,20 +456,6 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return new SentencePieceTokenizer(modelProto, addBeginOfSentence, addEndOfSentence, specialTokens);
-        }
-
-        /// <summary>
-        /// Creates an instance of SentencePieceTokenizer.
-        /// </summary>
-        /// <param name="options">The options to use for the sentence piece tokenizer.</param>
-        public static SentencePieceTokenizer Create(SentencePieceOptions options)
-        {
-            if (options is null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            return new SentencePieceTokenizer(options);
         }
     }
 }
