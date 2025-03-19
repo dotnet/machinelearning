@@ -4,6 +4,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -208,6 +209,27 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return targetIndex;
+        }
+
+        internal static void AppendToBytesArray(ReadOnlySpan<char> text, ref byte[] bytes, ref int bytesIndex)
+        {
+            IReadOnlyDictionary<char, char> unicodeToByte = ByteToUnicodeEncoding.Instance.UnicodeToByte;
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (unicodeToByte.TryGetValue(text[i], out char c))
+                {
+                    if (bytesIndex >= bytes.Length)
+                    {
+                        Helpers.ArrayPoolGrow<byte>(ref bytes, bytes.Length * 2);
+                    }
+
+                    bytes[bytesIndex++] = (byte)c;
+                    continue;
+                }
+
+                // rare cases
+                i += EncodeCodePointToUtf8(text, i, ref bytes, ref bytesIndex) - 1;
+            }
         }
 
         public static bool ConvertUtf8ToUtf16(ReadOnlySpan<byte> utf8Bytes, Span<char> utf16Chars, out int bytesConsumed, out int charsWritten)

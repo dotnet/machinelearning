@@ -31,6 +31,7 @@ namespace Microsoft.ML.Tokenizers
         private readonly Normalizer? _normalizer;
         private readonly Dictionary<StringSpanOrdinalKey, (int, string)>? _specialTokens;
         private readonly Dictionary<int, string>? _specialTokensReverse;
+        private const int BufferLength = 128;
 
         /// <summary>
         /// Gets the special tokens.
@@ -72,12 +73,12 @@ namespace Microsoft.ML.Tokenizers
         public string? ContinuingSubwordPrefix { get; }
 
         /// <summary>
-        /// An optional suffix to characterize and end-of-word sub-word
+        /// An optional suffix to characterize the end-of-word and sub-word
         /// </summary>
         public string? EndOfWordSuffix { get; }
 
         /// <summary>
-        /// Gets or sets whether allowing multiple unknown tokens get fused
+        /// Gets a value indicating whether to merge the sequence of the unknown tokens together.
         /// </summary>
         public bool FuseUnknownTokens { get; }
 
@@ -129,6 +130,66 @@ namespace Microsoft.ML.Tokenizers
             (Dictionary<StringSpanOrdinalKey, int>? vocab, Vec<(string, string)> merges) result = ReadModelDataAsync(vocabStream, mergesStream, useAsync: false).GetAwaiter().GetResult();
 
             return new BpeTokenizer(result.vocab, result.merges, preTokenizer, normalizer, specialTokens, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens);
+        }
+
+        public static BpeTokenizer Create(BpeOptions options)
+        {
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (options.Vocabulary is null)
+            {
+                throw new ArgumentNullException(nameof(options.Vocabulary), "The vocabulary cannot be null.");
+            }
+
+            Dictionary<StringSpanOrdinalKey, int> vocab = new Dictionary<StringSpanOrdinalKey, int>(1000);
+
+            foreach ((string token, int id) in options.Vocabulary)
+            {
+                vocab.Add(new StringSpanOrdinalKey(token), id);
+            }
+
+            if (vocab.Count == 0)
+            {
+                throw new InvalidOperationException("The vocabulary cannot be empty.");
+            }
+
+            Vec<(string, string)> merges = default;
+            if (options.Merges is not null)
+            {
+                merges = new Vec<(string, string)>(1000);
+
+                foreach (string merge in options.Merges)
+                {
+                    if (merge is null)
+                    {
+                        throw new InvalidOperationException("The merge entries cannot be null.");
+                    }
+
+                    int index = merge.IndexOf(' ');
+                    if (index < 0 || index == merge.Length - 1 || merge.IndexOf(' ', index + 1) >= 0)
+                    {
+                        throw new InvalidOperationException($"Invalid merger file format");
+                    }
+
+                    merges.Push((merge.Substring(0, index), merge.Substring(index + 1)));
+                }
+            }
+
+            return new BpeTokenizer(
+                            vocab, merges,
+                            options.PreTokenizer,
+                            options.Normalizer,
+                            options.SpecialTokens,
+                            options.UnknownToken,
+                            options.ContinuingSubwordPrefix,
+                            options.EndOfWordSuffix,
+                            options.FuseUnknownTokens,
+                            options.ByteLevel,
+                            options.BeginningOfSentenceToken,
+                            options.EndOfSentenceToken);
         }
 
         /// <summary>
@@ -226,6 +287,9 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="continuingSubwordPrefix">The prefix to attach to sub-word units that don’t represent a beginning of word.</param>
         /// <param name="endOfWordSuffix">The suffix to attach to sub-word units that represent an end of word.</param>
         /// <param name="fuseUnknownTokens">Indicate whether allowing multiple unknown tokens get fused.</param>
+        /// <param name="byteLevel">Indicate whether to handle the input text in byte level.</param>
+        /// <param name="beginningOfSentenceToken">The beginning of sentence token.</param>
+        /// <param name="endOfSentenceToken">The end of sentence token.</param>
         private BpeTokenizer(
                     Dictionary<StringSpanOrdinalKey, int>? vocab,
                     Vec<(string, string)> merges,
@@ -235,15 +299,42 @@ namespace Microsoft.ML.Tokenizers
                     string? unknownToken,
                     string? continuingSubwordPrefix,
                     string? endOfWordSuffix,
-                    bool fuseUnknownTokens)
+                    bool fuseUnknownTokens,
+                    bool byteLevel = false,
+                    string? beginningOfSentenceToken = null,
+                    string? endOfSentenceToken = null)
         {
             FuseUnknownTokens = fuseUnknownTokens;
             ContinuingSubwordPrefix = continuingSubwordPrefix;
             EndOfWordSuffix = endOfWordSuffix;
+            ByteLevel = byteLevel;
             _preTokenizer = preTokenizer ?? PreTokenizer.CreateWordOrNonWord(); // Default to WordOrNonWord pre-tokenizer
             _normalizer = normalizer;
 
             _vocab = vocab ?? new Dictionary<StringSpanOrdinalKey, int>();
+
+            if (beginningOfSentenceToken is not null)
+            {
+                if (!_vocab.TryGetValue(beginningOfSentenceToken, out int aId))
+                {
+                    throw new InvalidOperationException($"The beginning of sentence token '{beginningOfSentenceToken}' was not present in the vocabulary.");
+                }
+
+                BeginningOfSentenceId = aId;
+                BeginningOfSentenceToken = beginningOfSentenceToken;
+            }
+
+            if (endOfSentenceToken is not null)
+            {
+                if (!_vocab.TryGetValue(endOfSentenceToken, out int aId))
+                {
+                    throw new InvalidOperationException($"The end of sentence token '{endOfSentenceToken}' was not present in the vocabulary.");
+                }
+
+                EndOfSentenceId = aId;
+                EndOfSentenceToken = endOfSentenceToken;
+            }
+
             Cache = new StringSpanOrdinalKeyCache<Word>();
 
             VocabReverse = new();
@@ -295,6 +386,33 @@ namespace Microsoft.ML.Tokenizers
         }
 
         /// <summary>
+        /// Gets a value indicating whether to handle the input text in byte level.
+        /// if true, the input text will be converted to UTF-8 bytes before encoding it.
+        /// Additionally, some ASCII characters will be transformed to another characters (e.g Space character will be transformed to 'Ġ' character).
+        /// </summary>
+        public bool ByteLevel { get; }
+
+        /// <summary>
+        /// Gets the optional beginning of sentence token.
+        /// </summary>
+        internal string? BeginningOfSentenceToken { get; }
+
+        /// <summary>
+        /// The id of the beginning of sentence token.
+        /// </summary>
+        internal int BeginningOfSentenceId { get; }
+
+        /// <summary>
+        /// Gets the optional end of sentence token.
+        /// </summary>
+        internal string? EndOfSentenceToken { get; }
+
+        /// <summary>
+        /// The id of the end of sentence token.
+        /// </summary>
+        internal int EndOfSentenceId { get; }
+
+        /// <summary>
         /// Gets the PreTokenizer used by the Tokenizer.
         /// </summary>
         public override PreTokenizer? PreTokenizer => _preTokenizer;
@@ -329,6 +447,11 @@ namespace Microsoft.ML.Tokenizers
                                                                 out int charsConsumed);
 
             List<EncodedToken> tokens = new();
+            if (BeginningOfSentenceToken is not null)
+            {
+                tokens.Add(new EncodedToken(BeginningOfSentenceId, BeginningOfSentenceToken, new Range(0, 0)));
+            }
+
             PriorityQueue<Merge>? priorityQueue = null;
 
             if (splits is not null)
@@ -341,6 +464,11 @@ namespace Microsoft.ML.Tokenizers
             else
             {
                 EncodeWithCache(textSpanToEncode, tokens, 0, ref priorityQueue);
+            }
+
+            if (EndOfSentenceToken is not null)
+            {
+                tokens.Add(new EncodedToken(EndOfSentenceId, EndOfSentenceToken, new Range(charsConsumed, charsConsumed)));
             }
 
             return new EncodeResults<EncodedToken> { Tokens = tokens, NormalizedText = normalizedText, CharsConsumed = charsConsumed };
@@ -378,6 +506,12 @@ namespace Microsoft.ML.Tokenizers
                                                                 out _);
 
             List<int> ids = new();
+
+            if (BeginningOfSentenceToken is not null)
+            {
+                ids.Add(BeginningOfSentenceId);
+            }
+
             PriorityQueue<Merge>? priorityQueue = null;
 
             int charsConsumed = 0;
@@ -397,6 +531,11 @@ namespace Microsoft.ML.Tokenizers
             else
             {
                 EncodeToIdsWithCache(textSpanToEncode, ids, maxTokenCount, out charsConsumed, ref priorityQueue);
+            }
+
+            if (EndOfSentenceToken is not null && ids.Count < maxTokenCount)
+            {
+                ids.Add(EndOfSentenceId);
             }
 
             return new EncodeResults<int> { Tokens = ids, NormalizedText = normalizedText, CharsConsumed = charsConsumed };
@@ -434,7 +573,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 out _);
 
             PriorityQueue<Merge>? priorityQueue = null;
-            int count = 0;
+            int count = BeginningOfSentenceToken is null ? 0 : 1;
             int textLength = 0;
 
             if (splits is not null)
@@ -453,6 +592,11 @@ namespace Microsoft.ML.Tokenizers
             else
             {
                 count = EncodeToIdsWithCache(textSpanToEncode, null, maxTokenCount, out textLength, ref priorityQueue);
+            }
+
+            if (EndOfSentenceToken is not null && count < maxTokenCount)
+            {
+                count++;
             }
 
             return count;
@@ -511,7 +655,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 out _);
 
             PriorityQueue<Merge>? priorityQueue = null;
-            int count = 0;
+            int count = BeginningOfSentenceToken is null ? 0 : 1;
             if (splits is not null)
             {
                 foreach ((int Offset, int Length) split in splits)
@@ -528,6 +672,11 @@ namespace Microsoft.ML.Tokenizers
             else
             {
                 count = EncodeToIdsWithCache(textSpanToEncode, null, maxTokenCount, out charsConsumed, ref priorityQueue);
+            }
+
+            if (EndOfSentenceToken is not null && count < maxTokenCount)
+            {
+                count++;
             }
 
             return count;
@@ -562,7 +711,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (splits is not null)
             {
-                tokenCount = 0;
+                tokenCount = EndOfSentenceToken is null ? 0 : 1;
                 foreach ((int Offset, int Length) split in splits.Reverse())
                 {
                     tokenCount += EncodeToIdsFromEndWithCache(textSpanToEncode.Slice(split.Offset, split.Length), null, maxTokenCount - tokenCount, out int textIndex, ref priorityQueue);
@@ -571,10 +720,13 @@ namespace Microsoft.ML.Tokenizers
                         return split.Offset + textIndex;
                     }
                 }
+
+                tokenCount += tokenCount < maxTokenCount && BeginningOfSentenceToken is not null ? 1 : 0;
             }
             else
             {
-                tokenCount = EncodeToIdsFromEndWithCache(textSpanToEncode, null, maxTokenCount, out int charsConsumed, ref priorityQueue);
+                tokenCount = EncodeToIdsFromEndWithCache(textSpanToEncode, null, maxTokenCount - (EndOfSentenceToken is null ? 0 : 1), out int charsConsumed, ref priorityQueue);
+                tokenCount += tokenCount < maxTokenCount && BeginningOfSentenceToken is not null ? 1 : 0;
                 return charsConsumed;
             }
 
@@ -628,6 +780,11 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(ids));
             }
 
+            if (ByteLevel)
+            {
+                return DecodeByteLevel(ids, considerSpecialTokens);
+            }
+
             ValueStringBuilder sb = new ValueStringBuilder();
 
             bool decodeUnknownToken = _unknownTokenId.HasValue && considerSpecialTokens;
@@ -673,6 +830,48 @@ namespace Microsoft.ML.Tokenizers
             return sb.ToString();
         }
 
+        private string DecodeByteLevel(IEnumerable<int> ids, bool considerSpecialTokens)
+        {
+            int bytesIndex = 0;
+            byte[] bytes = ArrayPool<byte>.Shared.Rent(BufferLength << 1);
+
+            foreach (int id in ids)
+            {
+                if (_specialTokensReverse?.TryGetValue(id, out string? token) is true)
+                {
+                    if (!considerSpecialTokens)
+                    {
+                        continue;
+                    }
+
+                    Helpers.AppendToBytesArray(token.AsSpan(), ref bytes, ref bytesIndex);
+                    continue;
+                }
+
+                if (MapIdToToken(id) is string s)
+                {
+                    ReadOnlySpan<char> span = s.AsSpan();
+                    if (EndOfWordSuffix is not null && span.EndsWith(EndOfWordSuffix.AsSpan(), StringComparison.Ordinal))
+                    {
+                        span = span.Slice(0, span.Length - EndOfWordSuffix.Length);
+                    }
+
+                    if (ContinuingSubwordPrefix is not null && span.StartsWith(ContinuingSubwordPrefix.AsSpan(), StringComparison.Ordinal))
+                    {
+                        span = span.Slice(ContinuingSubwordPrefix.Length);
+                    }
+
+                    Helpers.AppendToBytesArray(span, ref bytes, ref bytesIndex);
+                }
+            }
+
+            string decodedString = Helpers.GetString(bytes.AsSpan(0, bytesIndex));
+
+            ArrayPool<byte>.Shared.Return(bytes);
+
+            return decodedString;
+        }
+
         /// <summary>
         /// Decode the given ids back to text and store the result in the <paramref name="destination"/> span.
         /// </summary>
@@ -698,6 +897,11 @@ namespace Microsoft.ML.Tokenizers
             if (ids is null)
             {
                 throw new ArgumentNullException(nameof(ids));
+            }
+
+            if (ByteLevel)
+            {
+                return DecodeByteLevel(ids, destination, considerSpecialTokens, out idsConsumed, out charsWritten);
             }
 
             idsConsumed = 0;
@@ -764,6 +968,124 @@ namespace Microsoft.ML.Tokenizers
                     buffer = buffer.Slice(sSpan.Length);
                 }
                 idsConsumed++;
+            }
+
+            return OperationStatus.Done;
+        }
+
+        private OperationStatus DecodeByteLevel(IEnumerable<int> ids, Span<char> destination, bool considerSpecialTokens, out int idsConsumed, out int charsWritten)
+        {
+            idsConsumed = 0;
+            charsWritten = 0;
+
+            // Enough buffer to carry one converted vocabulary to UTF-16 form
+            Span<char> vocabBuffer = stackalloc char[128];
+
+            // Enough buffer to carry one UTF-8 vocabulary
+            Span<byte> utf8bytes = stackalloc byte[256];
+
+            int incompleteUtf8BytesInBuffer = 0;
+            int incompleteUtf8BytesInBufferIndex = 0;
+            int utf16CharsInBuffer = 0;
+            int idsHangingCount = 0;
+
+            ByteToUnicodeEncoding byteToUnicodeEncoding = ByteToUnicodeEncoding.Instance;
+
+            Span<char> buffer = destination;
+
+            foreach (int id in ids)
+            {
+                if (_specialTokensReverse?.TryGetValue(id, out string? specialToken) is true)
+                {
+                    if (!considerSpecialTokens)
+                    {
+                        idsConsumed++;
+                        continue;
+                    }
+
+                    if (incompleteUtf8BytesInBuffer > 0)
+                    {
+                        return OperationStatus.InvalidData; // unexpected case
+                    }
+
+                    ReadOnlySpan<char> specialTokenSpan = specialToken.AsSpan();
+
+                    if (specialTokenSpan.Length > buffer.Length)
+                    {
+                        return OperationStatus.DestinationTooSmall;
+                    }
+
+                    specialTokenSpan.CopyTo(buffer);
+                    buffer = buffer.Slice(specialTokenSpan.Length);
+                    charsWritten += specialTokenSpan.Length;
+                    idsConsumed++;
+                    continue;
+                }
+
+                // vocabularies are stored in UTF-8 form with escaping the control characters.
+                // Need to convert the vocabulary to the original UTF-16 form.
+                if (MapIdToToken(id) is string s)
+                {
+                    ReadOnlySpan<char> span = s.AsSpan();
+                    if (EndOfWordSuffix is not null && span.EndsWith(EndOfWordSuffix.AsSpan(), StringComparison.Ordinal))
+                    {
+                        span = span.Slice(0, span.Length - EndOfWordSuffix.Length);
+                    }
+
+                    if (ContinuingSubwordPrefix is not null && span.StartsWith(ContinuingSubwordPrefix.AsSpan(), StringComparison.Ordinal))
+                    {
+                        span = span.Slice(ContinuingSubwordPrefix.Length);
+                    }
+
+                    Span<byte> current = utf8bytes.Slice(incompleteUtf8BytesInBufferIndex + incompleteUtf8BytesInBuffer);
+
+                    if (current.Length < span.Length)
+                    {
+                        return OperationStatus.InvalidData; // unexpected case
+                    }
+
+                    for (int i = 0; i < span.Length; i++)
+                    {
+                        current[i] = (byte)byteToUnicodeEncoding.UnicodeToByte[span[i]];
+                    }
+
+                    current = utf8bytes.Slice(incompleteUtf8BytesInBufferIndex, incompleteUtf8BytesInBuffer + span.Length);
+                    if (!Helpers.ConvertUtf8ToUtf16(current, vocabBuffer.Slice(utf16CharsInBuffer), out int utf8BytesConsumed, out int utf16CharsWritten))
+                    {
+                        return OperationStatus.InvalidData; // unexpected case of malformed utf8 sequence
+                    }
+
+                    if (current.Length == utf8BytesConsumed) // encoding is complete
+                    {
+                        int completeCharsWritten = utf16CharsInBuffer + utf16CharsWritten;
+                        if (completeCharsWritten > buffer.Length)
+                        {
+                            return OperationStatus.DestinationTooSmall;
+                        }
+
+                        vocabBuffer.Slice(0, completeCharsWritten).CopyTo(buffer);
+                        buffer = buffer.Slice(completeCharsWritten);
+                        charsWritten += completeCharsWritten;
+
+                        incompleteUtf8BytesInBuffer = 0;
+                        incompleteUtf8BytesInBufferIndex = 0;
+                        utf16CharsInBuffer = 0;
+                        idsConsumed += idsHangingCount + 1;
+                        idsHangingCount = 0;
+                    }
+                    else
+                    {
+                        // Incomplete utf8 sequence, complete it in the next iteration
+                        incompleteUtf8BytesInBuffer = current.Length - utf8BytesConsumed;
+                        incompleteUtf8BytesInBufferIndex += utf8BytesConsumed;
+                        utf16CharsInBuffer += utf16CharsWritten;
+                        idsHangingCount++;
+                    }
+
+                    continue;
+                }
+
+                return OperationStatus.InvalidData; // encountered unknown id
             }
 
             return OperationStatus.Done;
@@ -976,7 +1298,7 @@ namespace Microsoft.ML.Tokenizers
             return word;
         }
 
-        internal void WordToTokens(ref Word word, List<EncodedToken> tokens, int offset) => word.ToTokens(VocabReverse, tokens, offset);
+        internal void WordToTokens(ref Word word, List<EncodedToken> tokens, int offset, ReadOnlySpan<int> mapping) => word.ToTokens(VocabReverse, tokens, offset, mapping);
 
         internal void EncodeWithCache(ReadOnlySpan<char> text, List<EncodedToken> tokens, int offset, ref PriorityQueue<Merge>? priorityQueue)
         {
@@ -986,20 +1308,48 @@ namespace Microsoft.ML.Tokenizers
                 return;
             }
 
+            scoped ReadOnlySpan<char> textSpan = text;
+            scoped Span<char> token;
+            scoped Span<int> mapping = Span<int>.Empty;
+            char[]? tokenBuffer = null;
+            int[]? mappingBuffer = null;
+
+            if (ByteLevel)
+            {
+                int destinationMaxSize = Encoding.UTF8.GetMaxByteCount(text.Length);
+                if (destinationMaxSize > BufferLength)
+                {
+                    tokenBuffer = ArrayPool<char>.Shared.Rent(destinationMaxSize);
+                    token = tokenBuffer;
+
+                    mappingBuffer = ArrayPool<int>.Shared.Rent(destinationMaxSize);
+                    mapping = mappingBuffer;
+                }
+                else
+                {
+                    token = stackalloc char[destinationMaxSize];
+                    mapping = stackalloc int[destinationMaxSize];
+                }
+
+                int encodedLength = Helpers.EncodeToUtf8AndTransform(text, token, mapping);
+                textSpan = token.Slice(0, encodedLength);
+                mapping = mapping.Slice(0, encodedLength);
+            }
+
             Word word;
             if (Cache is not null)
             {
-                if (Cache.TryGetValue(text, out word))
+                if (Cache.TryGetValue(textSpan, out word))
                 {
-                    WordToTokens(ref word, tokens, offset);
+                    WordToTokens(ref word, tokens, offset, mapping);
                     return;
                 }
 
-                word = MergeWord(text, ref priorityQueue);
+                word = MergeWord(textSpan, ref priorityQueue);
 
-                if (text.Length <= MaxWordLengthToCache)
+                if (textSpan.Length <= MaxWordLengthToCache)
                 {
-                    Cache.Set(text.ToString(), word);
+                    Cache.Set(textSpan.ToString(), word);
                 }
             }
             else
@@ -1007,7 +1357,14 @@ namespace Microsoft.ML.Tokenizers
                 word = MergeWord(text, ref priorityQueue);
             }
 
-            WordToTokens(ref word, tokens, offset);
+            WordToTokens(ref word, tokens, offset, mapping);
+
+            if (tokenBuffer is not null)
+            {
+                ArrayPool<char>.Shared.Return(tokenBuffer);
+                Debug.Assert(mappingBuffer is not null);
+                ArrayPool<int>.Shared.Return(mappingBuffer);
+            }
         }
 
         internal int WordToIds(ref Word word, IList<int>? accumulatedIds, out int charsConsumed, int fullTextLength, int maxTokens)
@@ -1063,26 +1420,73 @@ namespace Microsoft.ML.Tokenizers
 
             Word word;
 
-            if (Cache is not null)
+            scoped ReadOnlySpan<char> textSpan = text;
+
+            scoped Span<char> token;
+            scoped Span<int> mapping = Span<int>.Empty;
+            char[]? tokenBuffer = null;
+            int[]? mappingBuffer = null;
+
+            if (ByteLevel)
             {
-                if (Cache.TryGetValue(text, out Word hit))
+                int destinationMaxSize = Encoding.UTF8.GetMaxByteCount(text.Length);
+                if (destinationMaxSize > BufferLength)
                 {
-                    return WordToIds(ref hit, accumulatedIds, out charsConsumed, text.Length, maxTokens);
+                    tokenBuffer = ArrayPool<char>.Shared.Rent(destinationMaxSize);
+                    token = tokenBuffer;
+
+                    mappingBuffer = ArrayPool<int>.Shared.Rent(destinationMaxSize);
+                    mapping = mappingBuffer;
+                }
+                else
+                {
+                    token = stackalloc char[destinationMaxSize];
+                    mapping = stackalloc int[destinationMaxSize];
                 }
 
-                word = MergeWord(text, ref priorityQueue);
+                int encodedLength = Helpers.EncodeToUtf8AndTransform(text, token, mapping);
+                textSpan = token.Slice(0, encodedLength);
+            }
 
-                if (text.Length <= MaxWordLengthToCache)
+            if (Cache is not null)
+            {
+                if (Cache.TryGetValue(textSpan, out Word hit))
                 {
-                    Cache.Set(text.ToString(), word);
+                    int res = WordToIds(ref hit, accumulatedIds, out charsConsumed, textSpan.Length, maxTokens);
+                    if (ByteLevel)
+                    {
+                        charsConsumed = charsConsumed >= textSpan.Length ? text.Length : mapping[charsConsumed];
+                    }
+
+                    return res;
+                }
+
+                word = MergeWord(textSpan, ref priorityQueue);
+
+                if (textSpan.Length <= MaxWordLengthToCache)
+                {
+                    Cache.Set(textSpan.ToString(), word);
                 }
             }
             else
             {
-                word = MergeWord(text, ref priorityQueue);
+                word = MergeWord(textSpan, ref priorityQueue);
             }
 
-            return WordToIds(ref word, accumulatedIds, out charsConsumed, text.Length, maxTokens);
+            int result = WordToIds(ref word, accumulatedIds, out charsConsumed, textSpan.Length, maxTokens);
+            if (ByteLevel)
+            {
+                charsConsumed = charsConsumed >= textSpan.Length ? text.Length : mapping[charsConsumed];
+            }
+
+            if (tokenBuffer is not null)
+            {
+                ArrayPool<char>.Shared.Return(tokenBuffer);
+                Debug.Assert(mappingBuffer is not null);
+                ArrayPool<int>.Shared.Return(mappingBuffer);
+            }
+
+            return result;
         }
 
         internal int EncodeToIdsFromEndWithCache(ReadOnlySpan<char> text, IList<int>? accumulatedIds, int maxTokens, out int textIndex, ref PriorityQueue<Merge>? priorityQueue)
@@ -1096,26 +1500,75 @@ namespace Microsoft.ML.Tokenizers
                 return 1;
             }
 
-            if (Cache is not null)
+            scoped ReadOnlySpan<char> textSpan = text;
+
+            scoped Span<char> token;
+            scoped Span<int> mapping = Span<int>.Empty;
+            char[]? tokenBuffer = null;
+            int[]? mappingBuffer = null;
+
+            if (ByteLevel)
             {
-                if (Cache.TryGetValue(text, out Word hit))
+                int destinationMaxSize = Encoding.UTF8.GetMaxByteCount(text.Length);
+                if (destinationMaxSize > BufferLength)
                 {
-                    return WordToIdsFromEnd(ref hit, accumulatedIds, out textIndex, text.Length, maxTokens);
+                    tokenBuffer = ArrayPool<char>.Shared.Rent(destinationMaxSize);
+                    token = tokenBuffer;
+
+                    mappingBuffer = ArrayPool<int>.Shared.Rent(destinationMaxSize);
+                    mapping = mappingBuffer;
+                }
+                else
+                {
+                    token = stackalloc char[destinationMaxSize];
+                    mapping = stackalloc int[destinationMaxSize];
                 }
 
-                word = MergeWord(text, ref priorityQueue);
+                int encodedLength = Helpers.EncodeToUtf8AndTransform(text, token, mapping);
+                textSpan = token.Slice(0, encodedLength);
+            }
 
-                if (text.Length <= MaxWordLengthToCache)
+            if (Cache is not null)
+            {
+                if (Cache.TryGetValue(textSpan, out Word hit))
                 {
-                    Cache.Set(text.ToString(), word);
+                    int res = WordToIdsFromEnd(ref hit, accumulatedIds, out textIndex, textSpan.Length, maxTokens);
+
+                    if (ByteLevel)
+                    {
+                        textIndex = textIndex >= textSpan.Length ? text.Length : mapping[textIndex];
+                    }
+
+                    return res;
+                }
+
+                word = MergeWord(textSpan, ref priorityQueue);
+
+                if (textSpan.Length <= MaxWordLengthToCache)
+                {
+                    Cache.Set(textSpan.ToString(), word);
                 }
             }
             else
             {
-                word = MergeWord(text, ref priorityQueue);
+                word = MergeWord(textSpan, ref priorityQueue);
             }
 
-            return WordToIdsFromEnd(ref word, accumulatedIds, out textIndex, text.Length, maxTokens);
+            int result = WordToIdsFromEnd(ref word, accumulatedIds, out textIndex, textSpan.Length, maxTokens);
+
+            if (ByteLevel)
+            {
+                textIndex = textIndex >= textSpan.Length ? text.Length : mapping[textIndex];
+            }
+
+            if (tokenBuffer is not null)
+            {
+                ArrayPool<char>.Shared.Return(tokenBuffer);
+                Debug.Assert(mappingBuffer is not null);
+                ArrayPool<int>.Shared.Return(mappingBuffer);
+            }
+
+            return result;
         }
     }
 }
