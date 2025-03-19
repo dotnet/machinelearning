@@ -979,7 +979,7 @@ namespace Microsoft.ML.Tokenizers
             charsWritten = 0;
 
             // Enough buffer to carry one converted vocabulary to UTF-16 form
-            Span<char> vocabBuffer = stackalloc char[256];
+            Span<char> vocabBuffer = stackalloc char[128];
 
             // Enough buffer to carry one UTF-8 vocabulary
             Span<byte> utf8bytes = stackalloc byte[256];
@@ -1309,9 +1309,8 @@ namespace Microsoft.ML.Tokenizers
             }
 
             scoped ReadOnlySpan<char> textSpan = text;
-
-            Span<char> token = stackalloc char[BufferLength];
-            Span<int> mapping = stackalloc int[BufferLength];
+            scoped Span<char> token;
+            scoped Span<int> mapping = Span<int>.Empty;
             char[]? tokenBuffer = null;
             int[]? mappingBuffer = null;
 
@@ -1326,14 +1325,15 @@ namespace Microsoft.ML.Tokenizers
                     mappingBuffer = ArrayPool<int>.Shared.Rent(destinationMaxSize);
                     mapping = mappingBuffer;
                 }
+                else
+                {
+                    token = stackalloc char[destinationMaxSize];
+                    mapping = stackalloc int[destinationMaxSize];
+                }
 
                 int encodedLength = Helpers.EncodeToUtf8AndTransform(text, token, mapping);
                 textSpan = token.Slice(0, encodedLength);
                 mapping = mapping.Slice(0, encodedLength);
-            }
-            else
-            {
-                mapping = Span<int>.Empty;
             }
 
             Word word;
@@ -1422,8 +1422,8 @@ namespace Microsoft.ML.Tokenizers
 
             scoped ReadOnlySpan<char> textSpan = text;
 
-            Span<char> token = stackalloc char[BufferLength];
-            Span<int> mapping = stackalloc int[BufferLength];
+            scoped Span<char> token;
+            scoped Span<int> mapping = Span<int>.Empty;
             char[]? tokenBuffer = null;
             int[]? mappingBuffer = null;
 
@@ -1437,6 +1437,11 @@ namespace Microsoft.ML.Tokenizers
 
                     mappingBuffer = ArrayPool<int>.Shared.Rent(destinationMaxSize);
                     mapping = mappingBuffer;
+                }
+                else
+                {
+                    token = stackalloc char[destinationMaxSize];
+                    mapping = stackalloc int[destinationMaxSize];
                 }
 
                 int encodedLength = Helpers.EncodeToUtf8AndTransform(text, token, mapping);
@@ -1497,8 +1502,8 @@ namespace Microsoft.ML.Tokenizers
 
             scoped ReadOnlySpan<char> textSpan = text;
 
-            Span<char> token = stackalloc char[BufferLength];
-            Span<int> mapping = stackalloc int[BufferLength];
+            scoped Span<char> token;
+            scoped Span<int> mapping = Span<int>.Empty;
             char[]? tokenBuffer = null;
             int[]? mappingBuffer = null;
 
@@ -1512,6 +1517,11 @@ namespace Microsoft.ML.Tokenizers
 
                     mappingBuffer = ArrayPool<int>.Shared.Rent(destinationMaxSize);
                     mapping = mappingBuffer;
+                }
+                else
+                {
+                    token = stackalloc char[destinationMaxSize];
+                    mapping = stackalloc int[destinationMaxSize];
                 }
 
                 int encodedLength = Helpers.EncodeToUtf8AndTransform(text, token, mapping);

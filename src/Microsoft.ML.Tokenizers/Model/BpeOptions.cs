@@ -28,7 +28,7 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets or sets the vocabulary to use.
         /// </summary>
-        public IEnumerable<(string Token, int Id)> Vocabulary { get; set; }
+        public IEnumerable<(string Token, int Id)> Vocabulary { get; }
 
         /// <summary>
         /// Gets or sets the list of the merge strings used to merge tokens during encoding.
