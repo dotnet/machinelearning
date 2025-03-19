@@ -695,7 +695,7 @@ namespace Microsoft.ML.Internal.Utilities
             Contracts.Assert(maxChunkSizeInElements > 0, "Unexpectedly large T.");
 
             // Rent a byte[] instead of a T[] to allow reuse of buffers across different types T.
-            byte[] rentedArray = ArrayPool<byte>.Shared.Rent(maxChunkSizeInElements * sizeof(T));
+            byte[] rentedArray = ArrayPool<byte>.Shared.Rent(maxChunkSizeInBytes);
             try
             {
                 while (!destination.IsEmpty)
