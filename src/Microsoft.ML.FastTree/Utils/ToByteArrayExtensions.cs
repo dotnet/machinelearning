@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.ML.Internal.Utilities;
 
@@ -47,13 +48,11 @@ namespace Microsoft.ML.Trainers.FastTree
             return sizeof(short);
         }
 
-        public static unsafe void ToByteArray(this short a, byte[] buffer, ref int position)
+        public static void ToByteArray(this short a, byte[] buffer, ref int position)
         {
-            fixed (byte* pBuffer = buffer)
-            {
-                short* pDest = (short*)(pBuffer + position);
-                *pDest = a;
-            }
+            // Per docs, MemoryMarshal.Write<...> is safe for T: = short.
+            // It writes machine-endian and handles unaligned byte buffers properly.
+            MemoryMarshal.Write(buffer.AsSpan(position), ref a);
             position += sizeof(short);
         }
 
@@ -71,13 +70,11 @@ namespace Microsoft.ML.Trainers.FastTree
             return sizeof(ushort);
         }
 
-        public static unsafe void ToByteArray(this ushort a, byte[] buffer, ref int position)
+        public static void ToByteArray(this ushort a, byte[] buffer, ref int position)
         {
-            fixed (byte* pBuffer = buffer)
-            {
-                ushort* pDest = (ushort*)(pBuffer + position);
-                *pDest = a;
-            }
+            // Per docs, MemoryMarshal.Write<...> is safe for T: = ushort.
+            // It writes machine-endian and handles unaligned byte buffers properly.
+            MemoryMarshal.Write(buffer.AsSpan(position), ref a);
             position += sizeof(ushort);
         }
 
@@ -95,24 +92,17 @@ namespace Microsoft.ML.Trainers.FastTree
             return sizeof(int);
         }
 
-        public static unsafe void ToByteArray(this int a, byte[] buffer, ref int position)
+        public static void ToByteArray(this int a, byte[] buffer, ref int position)
         {
-            fixed (byte* pBuffer = buffer)
-            {
-                int* pDest = (int*)(pBuffer + position);
-                *pDest = a;
-            }
+            // Per docs, MemoryMarshal.Write<...> is safe for T: = int.
+            // It writes machine-endian and handles unaligned byte buffers properly.
+            MemoryMarshal.Write(buffer.AsSpan(position), ref a);
             position += sizeof(int);
         }
 
-        public static unsafe int ToInt(this byte[] buffer, ref int position)
+        public static int ToInt(this byte[] buffer, ref int position)
         {
-            int a;
-            fixed (byte* pBuffer = buffer)
-            {
-                int* pIntBuffer = (int*)(pBuffer + position);
-                a = *pIntBuffer;
-            }
+            int a = BitConverter.ToInt32(buffer, position);
             position += sizeof(int);
             return a;
         }
@@ -124,24 +114,17 @@ namespace Microsoft.ML.Trainers.FastTree
             return sizeof(uint);
         }
 
-        public static unsafe void ToByteArray(this uint a, byte[] buffer, ref int position)
+        public static void ToByteArray(this uint a, byte[] buffer, ref int position)
         {
-            fixed (byte* pBuffer = buffer)
-            {
-                uint* pDest = (uint*)(pBuffer + position);
-                *pDest = a;
-            }
+            // Per docs, MemoryMarshal.Write<...> is safe for T: = uint.
+            // It writes machine-endian and handles unaligned byte buffers properly.
+            MemoryMarshal.Write(buffer.AsSpan(position), ref a);
             position += sizeof(uint);
         }
 
-        public static unsafe uint ToUInt(this byte[] buffer, ref int position)
+        public static uint ToUInt(this byte[] buffer, ref int position)
         {
-            uint a;
-            fixed (byte* pBuffer = buffer)
-            {
-                uint* pIntBuffer = (uint*)(pBuffer + position);
-                a = *pIntBuffer;
-            }
+            uint a = BitConverter.ToUInt32(buffer, position);
             position += sizeof(uint);
             return a;
         }
@@ -153,13 +136,11 @@ namespace Microsoft.ML.Trainers.FastTree
             return sizeof(long);
         }
 
-        public static unsafe void ToByteArray(this long a, byte[] buffer, ref int position)
+        public static void ToByteArray(this long a, byte[] buffer, ref int position)
         {
-            fixed (byte* pBuffer = buffer)
-            {
-                long* pDest = (long*)(pBuffer + position);
-                *pDest = a;
-            }
+            // Per docs, MemoryMarshal.Write<...> is safe for T: = long.
+            // It writes machine-endian and handles unaligned byte buffers properly.
+            MemoryMarshal.Write(buffer.AsSpan(position), ref a);
             position += sizeof(long);
         }
 
@@ -177,13 +158,11 @@ namespace Microsoft.ML.Trainers.FastTree
             return sizeof(ulong);
         }
 
-        public static unsafe void ToByteArray(this ulong a, byte[] buffer, ref int position)
+        public static void ToByteArray(this ulong a, byte[] buffer, ref int position)
         {
-            fixed (byte* pBuffer = buffer)
-            {
-                ulong* pDest = (ulong*)(pBuffer + position);
-                *pDest = a;
-            }
+            // Per docs, MemoryMarshal.Write<...> is safe for T: = ulong.
+            // It writes machine-endian and handles unaligned byte buffers properly.
+            MemoryMarshal.Write(buffer.AsSpan(position), ref a);
             position += sizeof(ulong);
         }
 
@@ -201,13 +180,11 @@ namespace Microsoft.ML.Trainers.FastTree
             return sizeof(float);
         }
 
-        public static unsafe void ToByteArray(this float a, byte[] buffer, ref int position)
+        public static void ToByteArray(this float a, byte[] buffer, ref int position)
         {
-            fixed (byte* pBuffer = buffer)
-            {
-                float* pDest = (float*)(pBuffer + position);
-                *pDest = a;
-            }
+            // Per docs, MemoryMarshal.Write<...> is safe for T: = float.
+            // It writes machine-endian and handles unaligned byte buffers properly.
+            MemoryMarshal.Write(buffer.AsSpan(position), ref a);
             position += sizeof(float);
         }
 
@@ -225,13 +202,11 @@ namespace Microsoft.ML.Trainers.FastTree
             return sizeof(double);
         }
 
-        public static unsafe void ToByteArray(this double a, byte[] buffer, ref int position)
+        public static void ToByteArray(this double a, byte[] buffer, ref int position)
         {
-            fixed (byte* pBuffer = buffer)
-            {
-                double* pDest = (double*)(pBuffer + position);
-                *pDest = a;
-            }
+            // Per docs, MemoryMarshal.Write<...> is safe for T: = double.
+            // It writes machine-endian and handles unaligned byte buffers properly.
+            MemoryMarshal.Write(buffer.AsSpan(position), ref a);
             position += sizeof(double);
         }
 
@@ -246,7 +221,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public static int SizeInBytes(this string a)
         {
-            return sizeof(int) + Encoding.Unicode.GetByteCount(a);
+            return checked(sizeof(int) + Encoding.Unicode.GetByteCount(a));
         }
 
         public static void ToByteArray(this string a, byte[] buffer, ref int position)
@@ -279,7 +254,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public static int SizeInBytes(this byte[] a)
         {
-            return sizeof(int) + Utils.Size(a) * sizeof(byte);
+            return checked(sizeof(int) + Utils.Size(a) * sizeof(byte));
         }
 
         public static void ToByteArray(this byte[] a, byte[] buffer, ref int position)
@@ -303,37 +278,31 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public static int SizeInBytes(this short[] a)
         {
-            return sizeof(int) + Utils.Size(a) * sizeof(short);
+            return checked(sizeof(int) + Utils.Size(a) * sizeof(short));
         }
 
-        public static unsafe void ToByteArray(this short[] a, byte[] buffer, ref int position)
+        public static void ToByteArray(this short[] a, byte[] buffer, ref int position)
         {
             int length = a.Length;
             length.ToByteArray(buffer, ref position);
 
-            fixed (byte* tmpBuffer = buffer)
-            fixed (short* pA = a)
-            {
-                short* pBuffer = (short*)(tmpBuffer + position);
-                for (int i = 0; i < length; ++i)
-                    pBuffer[i] = pA[i];
-            }
+            // MemoryMarshal.AsBytes<short> is type-safe but could fail if the source buffer is so long
+            // that its byte length can't be represented as an int32. In this case, we're ok with
+            // AsBytes throwing an exception early, since we know the length of our destination byte
+            // buffer is limited to an int32 length anyway.
+            MemoryMarshal.AsBytes(a.AsSpan()).CopyTo(buffer.AsSpan(position));
             position += length * sizeof(short);
         }
 
-        public static unsafe short[] ToShortArray(this byte[] buffer, ref int position)
+        public static short[] ToShortArray(this byte[] buffer, ref int position)
         {
-            int length = buffer.ToInt(ref position);
+            int length = buffer.ToInt(ref position); // reading trusted length from input stream
+            int byteLength = checked(length * sizeof(short)); // if this overflows, we couldn't have populated buffer anyway
             short[] a = new short[length];
 
-            fixed (byte* tmpBuffer = buffer)
-            fixed (short* pA = a)
-            {
-                short* pBuffer = (short*)(tmpBuffer + position);
-                for (int i = 0; i < length; ++i)
-                    pA[i] = pBuffer[i];
-            }
-            position += length * sizeof(short);
+            // MemoryMarshal.AsBytes<short> is type-safe. The checked block above prevents failure here.
+            buffer.AsSpan(position, byteLength).CopyTo(MemoryMarshal.AsBytes(a.AsSpan()));
+            position += byteLength;
 
             return a;
         }
@@ -342,37 +311,31 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public static int SizeInBytes(this ushort[] a)
         {
-            return sizeof(int) + Utils.Size(a) * sizeof(ushort);
+            return checked(sizeof(int) + Utils.Size(a) * sizeof(ushort));
         }
 
-        public static unsafe void ToByteArray(this ushort[] a, byte[] buffer, ref int position)
+        public static void ToByteArray(this ushort[] a, byte[] buffer, ref int position)
         {
             int length = a.Length;
             length.ToByteArray(buffer, ref position);
 
-            fixed (byte* tmpBuffer = buffer)
-            fixed (ushort* pA = a)
-            {
-                ushort* pBuffer = (ushort*)(tmpBuffer + position);
-                for (int i = 0; i < length; ++i)
-                    pBuffer[i] = pA[i];
-            }
+            // MemoryMarshal.AsBytes<ushort> is type-safe but could fail if the source buffer is so long
+            // that its byte length can't be represented as an int32. In this case, we're ok with
+            // AsBytes throwing an exception early, since we know the length of our destination byte
+            // buffer is limited to an int32 length anyway.
+            MemoryMarshal.AsBytes(a.AsSpan()).CopyTo(buffer.AsSpan(position));
             position += length * sizeof(ushort);
         }
 
-        public static unsafe ushort[] ToUShortArray(this byte[] buffer, ref int position)
+        public static ushort[] ToUShortArray(this byte[] buffer, ref int position)
         {
-            int length = buffer.ToInt(ref position);
+            int length = buffer.ToInt(ref position); // reading trusted length from input stream
+            int byteLength = checked(length * sizeof(ushort)); // if this overflows, we couldn't have populated buffer anyway
             ushort[] a = new ushort[length];
 
-            fixed (byte* tmpBuffer = buffer)
-            fixed (ushort* pA = a)
-            {
-                ushort* pBuffer = (ushort*)(tmpBuffer + position);
-                for (int i = 0; i < length; ++i)
-                    pA[i] = pBuffer[i];
-            }
-            position += length * sizeof(ushort);
+            // MemoryMarshal.AsBytes<ushort> is type-safe. The checked block above prevents failure here.
+            buffer.AsSpan(position, byteLength).CopyTo(MemoryMarshal.AsBytes(a.AsSpan()));
+            position += byteLength;
 
             return a;
         }
@@ -381,42 +344,36 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public static int SizeInBytes(this int[] array)
         {
-            return sizeof(int) + Utils.Size(array) * sizeof(int);
+            return checked(sizeof(int) + Utils.Size(array) * sizeof(int));
         }
 
-        public static unsafe void ToByteArray(this int[] a, byte[] buffer, ref int position)
+        public static void ToByteArray(this int[] a, byte[] buffer, ref int position)
         {
             int length = Utils.Size(a);
             length.ToByteArray(buffer, ref position);
 
-            fixed (byte* tmpBuffer = buffer)
-            fixed (int* pA = a)
-            {
-                int* pBuffer = (int*)(tmpBuffer + position);
-                for (int i = 0; i < length; ++i)
-                    pBuffer[i] = pA[i];
-            }
+            // MemoryMarshal.AsBytes<int> is type-safe but could fail if the source buffer is so long
+            // that its byte length can't be represented as an int32. In this case, we're ok with
+            // AsBytes throwing an exception early, since we know the length of our destination byte
+            // buffer is limited to an int32 length anyway.
+            MemoryMarshal.AsBytes(a.AsSpan()).CopyTo(buffer.AsSpan(position));
             position += length * sizeof(int);
         }
 
-        public static unsafe int[] ToIntArray(this byte[] buffer, ref int position)
+        public static int[] ToIntArray(this byte[] buffer, ref int position)
             => buffer.ToIntArray(ref position, buffer.ToInt(ref position));
 
-        public static unsafe int[] ToIntArray(this byte[] buffer, ref int position, int length)
+        public static int[] ToIntArray(this byte[] buffer, ref int position, int length)
         {
             if (length == 0)
                 return null;
 
+            int byteLength = checked(length * sizeof(int)); // if this overflows, we couldn't have populated buffer anyway
             int[] a = new int[length];
 
-            fixed (byte* tmpBuffer = buffer)
-            fixed (int* pA = a)
-            {
-                int* pBuffer = (int*)(tmpBuffer + position);
-                for (int i = 0; i < length; ++i)
-                    pA[i] = pBuffer[i];
-            }
-            position += length * sizeof(int);
+            // MemoryMarshal.AsBytes<int> is type-safe. The checked block above prevents failure here.
+            buffer.AsSpan(position, byteLength).CopyTo(MemoryMarshal.AsBytes(a.AsSpan()));
+            position += byteLength;
 
             return a;
         }
@@ -425,37 +382,31 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public static int SizeInBytes(this uint[] array)
         {
-            return sizeof(int) + Utils.Size(array) * sizeof(uint);
+            return checked(sizeof(int) + Utils.Size(array) * sizeof(uint));
         }
 
-        public static unsafe void ToByteArray(this uint[] a, byte[] buffer, ref int position)
+        public static void ToByteArray(this uint[] a, byte[] buffer, ref int position)
         {
             int length = a.Length;
             length.ToByteArray(buffer, ref position);
 
-            fixed (byte* tmpBuffer = buffer)
-            fixed (uint* pA = a)
-            {
-                uint* pBuffer = (uint*)(tmpBuffer + position);
-                for (int i = 0; i < length; ++i)
-                    pBuffer[i] = pA[i];
-            }
+            // MemoryMarshal.AsBytes<uint> is type-safe but could fail if the source buffer is so long
+            // that its byte length can't be represented as an int32. In this case, we're ok with
+            // AsBytes throwing an exception early, since we know the length of our destination byte
+            // buffer is limited to an int32 length anyway.
+            MemoryMarshal.AsBytes(a.AsSpan()).CopyTo(buffer.AsSpan(position));
             position += length * sizeof(uint);
         }
 
-        public static unsafe uint[] ToUIntArray(this byte[] buffer, ref int position)
+        public static uint[] ToUIntArray(this byte[] buffer, ref int position)
         {
-            int length = buffer.ToInt(ref position);
+            int length = buffer.ToInt(ref position); // reading trusted length from input stream
+            int byteLength = checked(length * sizeof(uint)); // if this overflows, we couldn't have populated buffer anyway
             uint[] a = new uint[length];
 
-            fixed (byte* tmpBuffer = buffer)
-            fixed (uint* pA = a)
-            {
-                uint* pBuffer = (uint*)(tmpBuffer + position);
-                for (int i = 0; i < length; ++i)
-                    pA[i] = pBuffer[i];
-            }
-            position += length * sizeof(uint);
+            // MemoryMarshal.AsBytes<uint> is type-safe. The checked block above prevents failure here.
+            buffer.AsSpan(position, byteLength).CopyTo(MemoryMarshal.AsBytes(a.AsSpan()));
+            position += byteLength;
 
             return a;
         }
@@ -464,37 +415,31 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public static int SizeInBytes(this long[] array)
         {
-            return sizeof(int) + Utils.Size(array) * sizeof(long);
+            return checked(sizeof(int) + Utils.Size(array) * sizeof(long));
         }
 
-        public static unsafe void ToByteArray(this long[] a, byte[] buffer, ref int position)
+        public static void ToByteArray(this long[] a, byte[] buffer, ref int position)
         {
             int length = a.Length;
             length.ToByteArray(buffer, ref position);
 
-            fixed (byte* tmpBuffer = buffer)
-            fixed (long* pA = a)
-            {
-                long* pBuffer = (long*)(tmpBuffer + position);
-                for (int i = 0; i < length; ++i)
-                    pBuffer[i] = pA[i];
-            }
+            // MemoryMarshal.AsBytes<long> is type-safe but could fail if the source buffer is so long
+            // that its byte length can't be represented as an int32. In this case, we're ok with
+            // AsBytes throwing an exception early, since we know the length of our destination byte
+            // buffer is limited to an int32 length anyway.
+            MemoryMarshal.AsBytes(a.AsSpan()).CopyTo(buffer.AsSpan(position));
             position += length * sizeof(long);
         }
 
-        public static unsafe long[] ToLongArray(this byte[] buffer, ref int position)
+        public static long[] ToLongArray(this byte[] buffer, ref int position)
         {
-            int length = buffer.ToInt(ref position);
+            int length = buffer.ToInt(ref position); // reading trusted length from input stream
+            int byteLength = checked(length * sizeof(long)); // if this overflows, we couldn't have populated buffer anyway
             long[] a = new long[length];
 
-            fixed (byte* tmpBuffer = buffer)
-            fixed (long* pA = a)
-            {
-                long* pBuffer = (long*)(tmpBuffer + position);
-                for (int i = 0; i < length; ++i)
-                    pA[i] = pBuffer[i];
-            }
-            position += length * sizeof(long);
+            // MemoryMarshal.AsBytes<long> is type-safe. The checked block above prevents failure here.
+            buffer.AsSpan(position, byteLength).CopyTo(MemoryMarshal.AsBytes(a.AsSpan()));
+            position += byteLength;
 
             return a;
         }
@@ -503,37 +448,31 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public static int SizeInBytes(this ulong[] array)
         {
-            return sizeof(int) + Utils.Size(array) * sizeof(ulong);
+            return checked(sizeof(int) + Utils.Size(array) * sizeof(ulong));
         }
 
-        public static unsafe void ToByteArray(this ulong[] a, byte[] buffer, ref int position)
+        public static void ToByteArray(this ulong[] a, byte[] buffer, ref int position)
         {
             int length = a.Length;
             length.ToByteArray(buffer, ref position);
 
-            fixed (byte* tmpBuffer = buffer)
-            fixed (ulong* pA = a)
-            {
-                ulong* pBuffer = (ulong*)(tmpBuffer + position);
-                for (int i = 0; i < length; ++i)
-                    pBuffer[i] = pA[i];
-            }
+            // MemoryMarshal.AsBytes<ulong> is type-safe but could fail if the source buffer is so long
+            // that its byte length can't be represented as an int32. In this case, we're ok with
+            // AsBytes throwing an exception early, since we know the length of our destination byte
+            // buffer is limited to an int32 length anyway.
+            MemoryMarshal.AsBytes(a.AsSpan()).CopyTo(buffer.AsSpan(position));
             position += length * sizeof(ulong);
         }
 
-        public static unsafe ulong[] ToULongArray(this byte[] buffer, ref int position)
+        public static ulong[] ToULongArray(this byte[] buffer, ref int position)
         {
-            int length = buffer.ToInt(ref position);
+            int length = buffer.ToInt(ref position); // reading trusted length from input stream
+            int byteLength = checked(length * sizeof(ulong)); // if this overflows, we couldn't have populated buffer anyway
             ulong[] a = new ulong[length];
 
-            fixed (byte* tmpBuffer = buffer)
-            fixed (ulong* pA = a)
-            {
-                ulong* pBuffer = (ulong*)(tmpBuffer + position);
-                for (int i = 0; i < length; ++i)
-                    pA[i] = pBuffer[i];
-            }
-            position += length * sizeof(ulong);
+            // MemoryMarshal.AsBytes<ulong> is type-safe. The checked block above prevents failure here.
+            buffer.AsSpan(position, byteLength).CopyTo(MemoryMarshal.AsBytes(a.AsSpan()));
+            position += byteLength;
 
             return a;
         }
@@ -542,37 +481,31 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public static int SizeInBytes(this float[] array)
         {
-            return sizeof(int) + Utils.Size(array) * sizeof(float);
+            return checked(sizeof(int) + Utils.Size(array) * sizeof(float));
         }
 
-        public static unsafe void ToByteArray(this float[] a, byte[] buffer, ref int position)
+        public static void ToByteArray(this float[] a, byte[] buffer, ref int position)
         {
             int length = a.Length;
             length.ToByteArray(buffer, ref position);
 
-            fixed (byte* tmpBuffer = buffer)
-            fixed (float* pA = a)
-            {
-                float* pBuffer = (float*)(tmpBuffer + position);
-                for (int i = 0; i < length; ++i)
-                    pBuffer[i] = pA[i];
-            }
+            // MemoryMarshal.AsBytes<float> is type-safe but could fail if the source buffer is so long
+            // that its byte length can't be represented as an int32. In this case, we're ok with
+            // AsBytes throwing an exception early, since we know the length of our destination byte
+            // buffer is limited to an int32 length anyway.
+            MemoryMarshal.AsBytes(a.AsSpan()).CopyTo(buffer.AsSpan(position));
             position += length * sizeof(float);
         }
 
-        public static unsafe float[] ToFloatArray(this byte[] buffer, ref int position)
+        public static float[] ToFloatArray(this byte[] buffer, ref int position)
         {
-            int length = buffer.ToInt(ref position);
+            int length = buffer.ToInt(ref position); // reading trusted length from input stream
+            int byteLength = checked(length * sizeof(float)); // if this overflows, we couldn't have populated buffer anyway
             float[] a = new float[length];
 
-            fixed (byte* tmpBuffer = buffer)
-            fixed (float* pA = a)
-            {
-                float* pBuffer = (float*)(tmpBuffer + position);
-                for (int i = 0; i < length; ++i)
-                    pA[i] = pBuffer[i];
-            }
-            position += length * sizeof(float);
+            // MemoryMarshal.AsBytes<float> is type-safe. The checked block above prevents failure here.
+            buffer.AsSpan(position, byteLength).CopyTo(MemoryMarshal.AsBytes(a.AsSpan()));
+            position += byteLength;
 
             return a;
         }
@@ -581,37 +514,31 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public static int SizeInBytes(this double[] array)
         {
-            return sizeof(int) + Utils.Size(array) * sizeof(double);
+            return checked(sizeof(int) + Utils.Size(array) * sizeof(double));
         }
 
-        public static unsafe void ToByteArray(this double[] a, byte[] buffer, ref int position)
+        public static void ToByteArray(this double[] a, byte[] buffer, ref int position)
         {
             int length = a.Length;
             length.ToByteArray(buffer, ref position);
 
-            fixed (byte* tmpBuffer = buffer)
-            fixed (double* pA = a)
-            {
-                double* pBuffer = (double*)(tmpBuffer + position);
-                for (int i = 0; i < length; ++i)
-                    pBuffer[i] = pA[i];
-            }
+            // MemoryMarshal.AsBytes<double> is type-safe but could fail if the source buffer is so long
+            // that its byte length can't be represented as an int32. In this case, we're ok with
+            // AsBytes throwing an exception early, since we know the length of our destination byte
+            // buffer is limited to an int32 length anyway.
+            MemoryMarshal.AsBytes(a.AsSpan()).CopyTo(buffer.AsSpan(position));
             position += length * sizeof(double);
         }
 
-        public static unsafe double[] ToDoubleArray(this byte[] buffer, ref int position)
+        public static double[] ToDoubleArray(this byte[] buffer, ref int position)
         {
-            int length = buffer.ToInt(ref position);
+            int length = buffer.ToInt(ref position); // reading trusted length from input stream
+            int byteLength = checked(length * sizeof(double)); // if this overflows, we couldn't have populated buffer anyway
             double[] a = new double[length];
 
-            fixed (byte* tmpBuffer = buffer)
-            fixed (double* pA = a)
-            {
-                double* pBuffer = (double*)(tmpBuffer + position);
-                for (int i = 0; i < length; ++i)
-                    pA[i] = pBuffer[i];
-            }
-            position += length * sizeof(double);
+            // MemoryMarshal.AsBytes<double> is type-safe. The checked block above prevents failure here.
+            buffer.AsSpan(position, byteLength).CopyTo(MemoryMarshal.AsBytes(a.AsSpan()));
+            position += byteLength;
 
             return a;
         }
@@ -622,7 +549,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             if (Utils.Size(array) == 0)
                 return sizeof(int);
-            return sizeof(int) + array.Sum(x => x.SizeInBytes());
+            return checked(sizeof(int) + array.Sum(x => x.SizeInBytes()));
         }
 
         public static void ToByteArray(this double[][] a, byte[] buffer, ref int position)
@@ -636,7 +563,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public static double[][] ToDoubleJaggedArray(this byte[] buffer, ref int position)
         {
-            int length = buffer.ToInt(ref position);
+            int length = buffer.ToInt(ref position); // reading trusted length from input stream
             double[][] a = new double[length][];
             for (int i = 0; i < a.Length; ++i)
             {
@@ -668,7 +595,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public static string[] ToStringArray(this byte[] buffer, ref int position)
         {
-            int length = buffer.ToInt(ref position);
+            int length = buffer.ToInt(ref position); // reading trusted length from input stream
             string[] a = new string[length];
             for (int i = 0; i < a.Length; ++i)
             {
