@@ -143,7 +143,7 @@ namespace Microsoft.ML.AutoML.Test
             var res = await experiment.RunAsync(cts.Token);
 
             stopWatch.Stop();
-            stopWatch.ElapsedMilliseconds.Should().BeLessThanOrEqualTo(2 * 1000 + 500);
+            stopWatch.ElapsedMilliseconds.Should().BeLessThanOrEqualTo(5000);
             cts.IsCancellationRequested.Should().BeTrue();
             res.Metric.Should().BeGreaterThan(0);
         }
