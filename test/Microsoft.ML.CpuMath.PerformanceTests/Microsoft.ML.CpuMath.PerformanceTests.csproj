@@ -29,7 +29,7 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Compile Remove="AvxPerformanceTests.cs"/>
     <Compile Remove="SsePerformanceTests.cs"/>
   </ItemGroup>
