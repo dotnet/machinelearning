@@ -179,7 +179,7 @@ jobs:
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals 1es-windows-2019-open
-    helixQueue: Windows.10.Amd64.Open
+    helixQueue: Windows.11.Amd64.Client.Open
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -201,7 +201,7 @@ jobs:
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals 1es-windows-2019-open
-    helixQueue: Windows.10.Amd64.Open
+    helixQueue: Windows.11.Amd64.Client.Open
 
 - template: /build/ci/job-template.yml
   parameters:
@@ -213,4 +213,4 @@ jobs:
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals 1es-windows-2019-open
-    helixQueue: Windows.10.Amd64.Open
+    helixQueue: Windows.11.Amd64.Client.Open
