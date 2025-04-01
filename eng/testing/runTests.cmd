@@ -14,16 +14,17 @@ pushd %EXECUTION_DIR%
 @echo on
 ${runCommand}
 @set _exit_code=%ERRORLEVEL%
-@echo off
+@echo on
 if exist testResults.xml (
   set HAS_TEST_RESULTS=1
 )
 popd
 echo ----- end %DATE% %TIME% ----- exit code %_exit_code% ----------------------------------------------------------
-echo ----- HAS_TEST_RESULTS %HAS_TEST_RESULTS%  HELIX_WORKITEM_PAYLOAD %HELIX_WORKITEM_PAYLOAD% ----------------------------------------------------------
 :: ========================= END Test Execution ===============================
 
 :: The tests either failed or crashed, copy output files
+echo --- HELIX_WORKITEM_UPLOAD_ROOT %HELIX_WORKITEM_UPLOAD_ROOT% ---------------------------------
+echo --- EXECUTION_DIR %EXECUTION_DIR% ---------------------------------
 if not %_exit_code%==0 (
     if not "%HELIX_WORKITEM_UPLOAD_ROOT%" == "" (
         powershell Compress-Archive %EXECUTION_DIR%\TestOutput %HELIX_WORKITEM_UPLOAD_ROOT%\TestOutput.zip
@@ -32,6 +33,7 @@ if not %_exit_code%==0 (
 
 :: The helix work item should not exit with non-zero if tests ran and produced results
 :: The xunit console runner returns 1 when tests fail
+echo --- HAS_TEST_RESULTS %HAS_TEST_RESULTS% ----- HELIX_WORKITEM_PAYLOAD %HELIX_WORKITEM_PAYLOAD% ---------------------------------
 if %_exit_code%==1 (
   if %HAS_TEST_RESULTS%==1 (
     if not "%HELIX_WORKITEM_PAYLOAD%"=="" (
