@@ -38,7 +38,7 @@
     <!-- Other product dependencies -->
     <ApacheArrowVersion>14.0.2</ApacheArrowVersion>
     <GoogleProtobufVersion>3.27.1</GoogleProtobufVersion>
-    <LightGBMVersion>3.3.5</LightGBMVersion>
+    <LightGBMVersion>4.6.0</LightGBMVersion>
     <MicrosoftBclHashCodeVersion>6.0.0</MicrosoftBclHashCodeVersion>
     <MicrosoftBclMemoryVersion>9.0.0</MicrosoftBclMemoryVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.3.4</MicrosoftCodeAnalysisAnalyzersVersion>
