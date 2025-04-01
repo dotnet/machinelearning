@@ -21,7 +21,7 @@ if exist testResults.xml (
 popd
 echo ----- end %DATE% %TIME% ----- exit code %_exit_code% ----------------------------------------------------------
 :: ========================= END Test Execution ===============================
-
+dir
 :: The tests either failed or crashed, copy output files
 echo --- HELIX_WORKITEM_UPLOAD_ROOT %HELIX_WORKITEM_UPLOAD_ROOT% ---------------------------------
 echo --- EXECUTION_DIR %EXECUTION_DIR% ---------------------------------
