@@ -27,7 +27,11 @@ echo --- HELIX_WORKITEM_UPLOAD_ROOT %HELIX_WORKITEM_UPLOAD_ROOT% ---------------
 echo --- EXECUTION_DIR %EXECUTION_DIR% ---------------------------------
 if not %_exit_code%==0 (
     if not "%HELIX_WORKITEM_UPLOAD_ROOT%" == "" (
-        powershell Compress-Archive %EXECUTION_DIR%\TestOutput %HELIX_WORKITEM_UPLOAD_ROOT%\TestOutput.zip
+      if exist "%EXECUTION_DIR%TestOutput\NUL" (
+        powershell Compress-Archive "%EXECUTION_DIR%TestOutput" "%HELIX_WORKITEM_UPLOAD_ROOT%\TestOutput.zip"
+      ) else (
+        echo No test output directory found to compress.
+      )
     )
 )
 
