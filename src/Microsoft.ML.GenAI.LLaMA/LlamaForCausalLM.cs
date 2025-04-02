@@ -120,12 +120,12 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
         string configName = "config.json",
         string checkPointName = "model.safetensors.index.json",
         bool quantizeToInt8 = false,
-        bool quantizeToInt4 = false,
+        bool quantizeTo4Bit = false,
         int layersOnTargetDevice = -1,
         ScalarType torchDtype = ScalarType.BFloat16,
         string targetDevice = "cuda")
     {
-        if (layersOnTargetDevice == -1 && quantizeToInt4 == false && quantizeToInt8 == false)
+        if (layersOnTargetDevice == -1 && quantizeTo4Bit == false && quantizeToInt8 == false)
         {
             return FromPretrained(modelFolder, configName, checkPointName, torchDtype, targetDevice);
         }
@@ -141,9 +141,9 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
         {
             model.ToInt8QuantizeModule();
         }
-        else if (quantizeToInt4)
+        else if (quantizeTo4Bit)
         {
-            model.ToInt4QuantizeModule();
+            model.ToQuantize4BitModule();
         }
 
         var deviceMap = model.InferDeviceMapForEachLayer(
@@ -161,9 +161,9 @@ public class LlamaForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutpu
         {
             model.ToInt8QuantizeModule();
         }
-        else if (quantizeToInt4)
+        else if (quantizeTo4Bit)
         {
-            model.ToInt4QuantizeModule();
+            model.ToQuantize4BitModule();
         }
 
         model = model.ToDynamicLoadingModel(deviceMap, targetDevice);

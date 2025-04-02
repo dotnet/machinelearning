@@ -95,7 +95,7 @@ public class Phi3ForCasualLM : nn.Module<CausalLMModelInput, CausalLMModelOutput
         }
         else if (quantizeToInt4)
         {
-            model.ToInt4QuantizeModule();
+            model.ToQuantize4BitModule();
         }
 
         var deviceMap = model.InferDeviceMapForEachLayer(
