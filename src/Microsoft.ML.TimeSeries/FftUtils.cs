@@ -248,7 +248,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
             finally
             {
-                if (descriptor != null)
+                if (descriptor != IntPtr.Zero)
                     FreeDescriptor(ref descriptor);
             }
         }
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
             finally
             {
-                if (descriptor != null)
+                if (descriptor != IntPtr.Zero)
                     FreeDescriptor(ref descriptor);
             }
 
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
             finally
             {
-                if (descriptor != null)
+                if (descriptor != IntPtr.Zero)
                     FreeDescriptor(ref descriptor);
             }
         }
@@ -396,7 +396,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
             finally
             {
-                if (descriptor != null)
+                if (descriptor != IntPtr.Zero)
                     FreeDescriptor(ref descriptor);
             }
 
