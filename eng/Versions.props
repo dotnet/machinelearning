@@ -107,8 +107,8 @@
   <PropertyGroup>
     <!-- Product dependencies -->
     <SystemBuffersVersion>4.6.1</SystemBuffersVersion>
-    <SystemMemoryVersion>4.6.2</SystemMemoryVersion>
-    <SystemRuntimeCompilerServicesUnsafeVersion>6.1.1</SystemRuntimeCompilerServicesUnsafeVersion>
+    <SystemMemoryVersion>4.6.3</SystemMemoryVersion>
+    <SystemRuntimeCompilerServicesUnsafeVersion>6.1.2</SystemRuntimeCompilerServicesUnsafeVersion>
     <!-- Test dependencies -->
     <SystemDataSqlClientVersion>4.9.0</SystemDataSqlClientVersion>
   </PropertyGroup>
