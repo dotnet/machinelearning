@@ -20,17 +20,14 @@
     <MicrosoftExtensionsOptionsVersion>8.0.2</MicrosoftExtensionsOptionsVersion>
     <NuGetVersion>6.9.1</NuGetVersion>
     <SkiaSharpVersion>2.88.8</SkiaSharpVersion>
-    <SystemBuffersVersion>4.6.0</SystemBuffersVersion>
     <SystemCodeDomVersion>8.0.0</SystemCodeDomVersion>
     <SystemCollectionsImmutableVersion>8.0.0</SystemCollectionsImmutableVersion>
     <SystemConfigurationConfigurationManagerVersion>6.0.1</SystemConfigurationConfigurationManagerVersion>
     <SystemFormatsAsn1Version>8.0.1</SystemFormatsAsn1Version>
     <SystemIOFileSystemAccessControl>5.0.0</SystemIOFileSystemAccessControl>
-    <SystemMemoryVersion>4.6.1</SystemMemoryVersion>
     <SystemNumericsTensorsVersion>9.0.0</SystemNumericsTensorsVersion>
     <SystemReflectionEmitLightweightVersion>4.7.0</SystemReflectionEmitLightweightVersion>
     <SystemReflectionEmitVersion>4.3.0</SystemReflectionEmitVersion>
-    <SystemRuntimeCompilerServicesUnsafeVersion>6.1.1</SystemRuntimeCompilerServicesUnsafeVersion>
     <SystemSecurityPrincipalWindows>5.0.0</SystemSecurityPrincipalWindows>
     <SystemTextEncodingsWebVersion>8.0.0</SystemTextEncodingsWebVersion>
     <SystemTextJsonVersion>8.0.5</SystemTextJsonVersion>
@@ -101,10 +98,18 @@
     <MicrosoftMLTestDatabasesVersion>0.0.6-test</MicrosoftMLTestDatabasesVersion>
     <MicrosoftMLTestModelsVersion>0.0.7-test</MicrosoftMLTestModelsVersion>
     <MicrosoftMLTestTokenizersVersion>2.0.0-beta.25161.1</MicrosoftMLTestTokenizersVersion>
-    <SystemDataSqlClientVersion>4.9.0</SystemDataSqlClientVersion>
     <SystemDataSQLiteCoreVersion>1.0.118</SystemDataSQLiteCoreVersion>
     <XunitCombinatorialVersion>1.6.24</XunitCombinatorialVersion>
     <!-- Opt-out repo features -->
     <UsingToolXliff>false</UsingToolXliff>
+  </PropertyGroup>
+  <!-- Manually updated dependencies coming from maintenance-packages -->
+  <PropertyGroup>
+    <!-- Product dependencies -->
+    <SystemBuffersVersion>4.6.1</SystemBuffersVersion>
+    <SystemMemoryVersion>4.6.3</SystemMemoryVersion>
+    <SystemRuntimeCompilerServicesUnsafeVersion>6.1.2</SystemRuntimeCompilerServicesUnsafeVersion>
+    <!-- Test dependencies -->
+    <SystemDataSqlClientVersion>4.9.0</SystemDataSqlClientVersion>
   </PropertyGroup>
 </Project>
