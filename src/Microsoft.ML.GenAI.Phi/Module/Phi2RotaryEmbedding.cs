@@ -36,7 +36,7 @@ internal class Phi2RotaryEmbedding : nn.Module<
     {
         // TODO
         // can be calculated once and cached
-        var invFreq = this.get_buffer("inv_freq").to(x.device);
+        var invFreq = this.get_buffer("inv_freq")!.to(x.device);
         var t = torch.arange(seqLen, dtype: invFreq.dtype, device: invFreq.device);
         var freqs = torch.outer(t, invFreq).to(torch.float32);
         var emb = torch.cat([freqs, freqs], dim: -1);
