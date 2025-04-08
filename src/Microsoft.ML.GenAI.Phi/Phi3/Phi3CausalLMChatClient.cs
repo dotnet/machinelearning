@@ -25,7 +25,7 @@ public class Phi3CausalLMChatClient : CausalLMPipelineChatClient<Tokenizer, Phi3
         : base(
             pipeline,
             templateBuilder ?? Phi3ChatTemplateBuilder.Instance,
-            metadata ?? new ChatClientMetadata(modelId: nameof(Phi3CausalLMChatClient)))
+            metadata ?? new ChatClientMetadata(defaultModelId: nameof(Phi3CausalLMChatClient)))
     {
     }
 

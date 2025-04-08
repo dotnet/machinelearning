@@ -28,7 +28,7 @@ public abstract class CausalLMPipelineChatClient<TTokenizer, TCausalLMModel> : I
         ChatClientMetadata? metadata = null)
     {
         var classNameWithType = $"{nameof(CausalLMPipelineChatClient<TTokenizer, TCausalLMModel>)}<{typeof(TTokenizer).Name}, {typeof(TCausalLMModel).Name}>";
-        _metadata = new ChatClientMetadata(providerName: classNameWithType, modelId: typeof(TCausalLMModel).Name);
+        _metadata = new ChatClientMetadata(providerName: classNameWithType, defaultModelId: typeof(TCausalLMModel).Name);
         _chatTemplateBuilder = chatTemplateBuilder;
         _pipeline = pipeline;
     }
