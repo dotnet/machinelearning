@@ -70,8 +70,8 @@
     <TorchSharpPyBridgeVersion>1.4.1</TorchSharpPyBridgeVersion>
     <AutoGenVersion>0.1.0</AutoGenVersion>
     <SemanticKernelVersion>1.15.0</SemanticKernelVersion>
-    <TorchSharpVersion>0.102.7</TorchSharpVersion>
-    <LibTorchVersion>2.2.1.1</LibTorchVersion>
+    <TorchSharpVersion>0.105.0</TorchSharpVersion>
+    <LibTorchVersion>2.5.1</LibTorchVersion>
     <!-- Build/infrastructure Dependencies -->
     <CodecovVersion>1.12.4</CodecovVersion>
     <CoverletCollectorVersion>6.0.2</CoverletCollectorVersion>
