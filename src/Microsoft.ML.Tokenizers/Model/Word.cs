@@ -289,15 +289,31 @@ namespace Microsoft.ML.Tokenizers
             return sb.ToString();
         }
 
-        public void ToTokens(SortedDictionary<int, string> vocabReverse, List<EncodedToken> tokens, int offset)
+        public void ToTokens(SortedDictionary<int, string> vocabReverse, List<EncodedToken> tokens, int offset, ReadOnlySpan<int> mapping)
         {
             int index = 0;
 
-            for (int i = 0; i < SymbolsCount; i++)
+            if (mapping.IsEmpty)
             {
-                int endIndex = index + _symbols[i].Len;
-                tokens.Add(new EncodedToken(_symbols[i].C, vocabReverse[_symbols[i].C], new Range(index + offset, index + offset + _symbols[i].Len)));
-                index += _symbols[i].Len;
+                for (int i = 0; i < SymbolsCount; i++)
+                {
+                    int endIndex = index + _symbols[i].Len;
+                    tokens.Add(new EncodedToken(_symbols[i].C, vocabReverse[_symbols[i].C], new Range(index + offset, index + offset + _symbols[i].Len)));
+                    index += _symbols[i].Len;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < SymbolsCount; i++)
+                {
+                    int endIndex = index + _symbols[i].Len;
+
+                    int mappedIndex = mapping[index];
+                    int mappedEndIndex = mapping[endIndex - 1] + 1;
+
+                    tokens.Add(new EncodedToken(_symbols[i].C, vocabReverse[_symbols[i].C], new Range(mappedIndex + offset, mappedEndIndex + offset)));
+                    index += _symbols[i].Len;
+                }
             }
         }
     }

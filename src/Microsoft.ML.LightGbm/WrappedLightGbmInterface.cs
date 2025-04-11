@@ -87,7 +87,8 @@ namespace Microsoft.ML.Trainers.LightGbm
             int numCol,
             int[] sampleNonZeroCntPerColumn,
             int numSampleRow,
-            int numTotalRow,
+            int numTotalLocalRow,
+            int numTotalDistributedRow,
             [MarshalAs(UnmanagedType.LPStr)] string parameters,
             out SafeDataSetHandle ret);
 

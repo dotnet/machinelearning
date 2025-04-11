@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.ML.Runtime;
@@ -14,8 +16,6 @@ namespace Microsoft.ML.Internal.Utilities
 {
     internal static partial class Utils
     {
-        private const int _bulkReadThresholdInBytes = 4096;
-
         public static void CloseEx(this Stream stream)
         {
             if (stream == null)
@@ -468,7 +468,7 @@ namespace Microsoft.ML.Internal.Utilities
         {
             Contracts.AssertValue(reader);
 
-            int size = reader.ReadInt32();
+            int size = reader.ReadInt32(); // reading trusted capacity value from data stream
             Contracts.CheckDecode(size >= 0);
             return ReadFloatArray(reader, size);
         }
@@ -482,22 +482,7 @@ namespace Microsoft.ML.Internal.Utilities
                 return null;
             var values = new float[size];
 
-            long bufferSizeInBytes = (long)size * sizeof(float);
-            if (bufferSizeInBytes < _bulkReadThresholdInBytes)
-            {
-                for (int i = 0; i < size; i++)
-                    values[i] = reader.ReadFloat();
-            }
-            else
-            {
-                unsafe
-                {
-                    fixed (void* dst = values)
-                    {
-                        ReadBytes(reader, dst, bufferSizeInBytes, bufferSizeInBytes);
-                    }
-                }
-            }
+            ReadBinaryDataIntoSpan(reader, values.AsSpan());
 
             return values;
         }
@@ -509,67 +494,24 @@ namespace Microsoft.ML.Internal.Utilities
             Contracts.Assert(0 <= start && start < array.Length);
             Contracts.Assert(0 < count && count <= array.Length - start);
 
-            long bufferReadLengthInBytes = (long)count * sizeof(float);
-            if (bufferReadLengthInBytes < _bulkReadThresholdInBytes)
-            {
-                for (int i = 0; i < count; i++)
-                    array[start + i] = reader.ReadFloat();
-            }
-            else
-            {
-                unsafe
-                {
-                    fixed (void* dst = array)
-                    {
-                        long bufferBeginOffsetInBytes = (long)start * sizeof(float);
-                        long bufferSizeInBytes = ((long)array.Length - start) * sizeof(float);
-                        ReadBytes(reader, (byte*)dst + bufferBeginOffsetInBytes, bufferSizeInBytes, bufferReadLengthInBytes);
-                    }
-                }
-            }
+            ReadBinaryDataIntoSpan(reader, array.AsSpan(start, count));
         }
 
         public static float[] ReadSingleArray(this BinaryReader reader)
         {
-            Contracts.AssertValue(reader);
-            int size = reader.ReadInt32();
-            Contracts.CheckDecode(size >= 0);
-            return ReadSingleArray(reader, size);
+            return reader.ReadFloatArray();
         }
 
         public static float[] ReadSingleArray(this BinaryReader reader, int size)
         {
-            Contracts.AssertValue(reader);
-            Contracts.Assert(size >= 0);
-            if (size == 0)
-                return null;
-            var values = new float[size];
-
-            long bufferSizeInBytes = (long)size * sizeof(float);
-            if (bufferSizeInBytes < _bulkReadThresholdInBytes)
-            {
-                for (int i = 0; i < size; i++)
-                    values[i] = reader.ReadSingle();
-            }
-            else
-            {
-                unsafe
-                {
-                    fixed (void* dst = values)
-                    {
-                        ReadBytes(reader, dst, bufferSizeInBytes, bufferSizeInBytes);
-                    }
-                }
-            }
-
-            return values;
+            return reader.ReadFloatArray(size);
         }
 
         public static double[] ReadDoubleArray(this BinaryReader reader)
         {
             Contracts.AssertValue(reader);
 
-            int size = reader.ReadInt32();
+            int size = reader.ReadInt32(); // reading trusted capacity value from data stream
             Contracts.CheckDecode(size >= 0);
             return ReadDoubleArray(reader, size);
         }
@@ -582,22 +524,7 @@ namespace Microsoft.ML.Internal.Utilities
                 return null;
             var values = new double[size];
 
-            long bufferSizeInBytes = (long)size * sizeof(double);
-            if (bufferSizeInBytes < _bulkReadThresholdInBytes)
-            {
-                for (int i = 0; i < size; i++)
-                    values[i] = reader.ReadDouble();
-            }
-            else
-            {
-                unsafe
-                {
-                    fixed (void* dst = values)
-                    {
-                        ReadBytes(reader, dst, bufferSizeInBytes, bufferSizeInBytes);
-                    }
-                }
-            }
+            ReadBinaryDataIntoSpan(reader, values.AsSpan());
 
             return values;
         }
@@ -606,7 +533,7 @@ namespace Microsoft.ML.Internal.Utilities
         {
             Contracts.AssertValue(reader);
 
-            int size = reader.ReadInt32();
+            int size = reader.ReadInt32(); // reading trusted capacity value from data stream
             Contracts.CheckDecode(size >= 0);
             return ReadIntArray(reader, size);
         }
@@ -620,22 +547,7 @@ namespace Microsoft.ML.Internal.Utilities
                 return null;
             var values = new int[size];
 
-            long bufferSizeInBytes = (long)size * sizeof(int);
-            if (bufferSizeInBytes < _bulkReadThresholdInBytes)
-            {
-                for (int i = 0; i < size; i++)
-                    values[i] = reader.ReadInt32();
-            }
-            else
-            {
-                unsafe
-                {
-                    fixed (void* dst = values)
-                    {
-                        ReadBytes(reader, dst, bufferSizeInBytes, bufferSizeInBytes);
-                    }
-                }
-            }
+            ReadBinaryDataIntoSpan(reader, values.AsSpan());
 
             return values;
         }
@@ -644,7 +556,7 @@ namespace Microsoft.ML.Internal.Utilities
         {
             Contracts.AssertValue(reader);
 
-            int size = reader.ReadInt32();
+            int size = reader.ReadInt32(); // reading trusted capacity value from data stream
             Contracts.CheckDecode(size >= 0);
             return ReadUIntArray(reader, size);
         }
@@ -658,22 +570,7 @@ namespace Microsoft.ML.Internal.Utilities
                 return null;
             var values = new uint[size];
 
-            long bufferSizeInBytes = (long)size * sizeof(uint);
-            if (bufferSizeInBytes < _bulkReadThresholdInBytes)
-            {
-                for (int i = 0; i < size; i++)
-                    values[i] = reader.ReadUInt32();
-            }
-            else
-            {
-                unsafe
-                {
-                    fixed (void* dst = values)
-                    {
-                        ReadBytes(reader, dst, bufferSizeInBytes, bufferSizeInBytes);
-                    }
-                }
-            }
+            ReadBinaryDataIntoSpan(reader, values.AsSpan());
 
             return values;
         }
@@ -682,7 +579,7 @@ namespace Microsoft.ML.Internal.Utilities
         {
             Contracts.AssertValue(reader);
 
-            int size = reader.ReadInt32();
+            int size = reader.ReadInt32(); // reading trusted capacity value from data stream
             Contracts.CheckDecode(size >= 0);
             return ReadLongArray(reader, size);
         }
@@ -696,22 +593,7 @@ namespace Microsoft.ML.Internal.Utilities
                 return null;
             var values = new long[size];
 
-            long bufferSizeInBytes = (long)size * sizeof(long);
-            if (bufferSizeInBytes < _bulkReadThresholdInBytes)
-            {
-                for (int i = 0; i < size; i++)
-                    values[i] = reader.ReadInt64();
-            }
-            else
-            {
-                unsafe
-                {
-                    fixed (void* dst = values)
-                    {
-                        ReadBytes(reader, dst, bufferSizeInBytes, bufferSizeInBytes);
-                    }
-                }
-            }
+            ReadBinaryDataIntoSpan(reader, values.AsSpan());
 
             return values;
         }
@@ -720,7 +602,7 @@ namespace Microsoft.ML.Internal.Utilities
         {
             Contracts.AssertValue(reader);
 
-            int size = reader.ReadInt32();
+            int size = reader.ReadInt32(); // reading trusted capacity value from data stream
             Contracts.CheckDecode(size >= 0);
             return ReadBoolArray(reader, size);
         }
@@ -734,28 +616,9 @@ namespace Microsoft.ML.Internal.Utilities
                 return null;
             var values = new bool[size];
 
-            long bufferSizeInBytes = (long)size * sizeof(bool);
-            if (bufferSizeInBytes < _bulkReadThresholdInBytes)
-            {
-                for (int i = 0; i < size; i++)
-                {
-                    byte b = reader.ReadByte();
-                    Contracts.CheckDecode(b <= 1);
-                    values[i] = b != 0;
-                }
-            }
-            else
-            {
-                unsafe
-                {
-                    fixed (void* dst = values)
-                    {
-                        ReadBytes(reader, dst, bufferSizeInBytes, bufferSizeInBytes);
-                        for (long i = 0; i < size; i++)
-                            Contracts.CheckDecode(*((byte*)dst + i) <= 1);
-                    }
-                }
-            }
+            // It is in general not safe to populate a bool[] with untrusted input.
+            // The call below assumes the input stream is trusted.
+            ReadBinaryDataIntoSpan(reader, values.AsSpan());
 
             return values;
         }
@@ -764,7 +627,7 @@ namespace Microsoft.ML.Internal.Utilities
         {
             Contracts.AssertValue(reader);
 
-            int size = reader.ReadInt32();
+            int size = reader.ReadInt32(); // reading trusted capacity value from data stream
             Contracts.CheckDecode(size >= 0);
             return ReadCharArray(reader, size);
         }
@@ -778,22 +641,7 @@ namespace Microsoft.ML.Internal.Utilities
                 return null;
             var values = new char[size];
 
-            long bufferSizeInBytes = (long)size * sizeof(char);
-            if (bufferSizeInBytes < _bulkReadThresholdInBytes)
-            {
-                for (int i = 0; i < size; i++)
-                    values[i] = (char)reader.ReadInt16();
-            }
-            else
-            {
-                unsafe
-                {
-                    fixed (void* dst = values)
-                    {
-                        ReadBytes(reader, dst, bufferSizeInBytes, bufferSizeInBytes);
-                    }
-                }
-            }
+            ReadBinaryDataIntoSpan(reader, values.AsSpan());
 
             return values;
         }
@@ -802,7 +650,7 @@ namespace Microsoft.ML.Internal.Utilities
         {
             Contracts.AssertValue(reader);
 
-            int size = reader.ReadInt32();
+            int size = reader.ReadInt32(); // reading trusted capacity value from data stream
             Contracts.CheckDecode(size >= 0);
             return ReadByteArray(reader, size);
         }
@@ -821,49 +669,59 @@ namespace Microsoft.ML.Internal.Utilities
 
         public static BitArray ReadBitArray(this BinaryReader reader)
         {
-            int numBits = reader.ReadInt32();
+            int numBits = reader.ReadInt32(); // reading trusted capacity value from data stream
             Contracts.CheckDecode(numBits >= 0);
             if (numBits == 0)
                 return null;
-            var numBytes = (numBits + 7) / 8;
+            var numBytes = (numBits + 7) / 8; // trusted capacity value expected not to integer overflow
             var bytes = reader.ReadByteArray(numBytes);
             var returnArray = new BitArray(bytes);
             returnArray.Length = numBits;
             return returnArray;
         }
 
-        public static unsafe void ReadBytes(this BinaryReader reader, void* destination, long destinationSizeInBytes, long bytesToRead, ref byte[] work)
+        private static unsafe void ReadBinaryDataIntoSpan<T>(BinaryReader reader, Span<T> destination) where T : unmanaged
         {
             Contracts.AssertValue(reader);
-            Contracts.Assert(bytesToRead >= 0);
-            Contracts.Assert(destinationSizeInBytes >= bytesToRead);
-            Contracts.Assert(destination != null);
-            Contracts.AssertValueOrNull(work);
+            Contracts.Assert(!destination.IsEmpty);
 
-            // Size our read buffer to 70KB to stay off the LOH.
-            const int blockSize = 70 * 1024;
-            int desiredWorkSize = (int)Math.Min(blockSize, bytesToRead);
-            EnsureSize(ref work, desiredWorkSize);
+            // There are two considerations here. First, we want to keep all temporary arrays (even pooled arrays)
+            // under some threshold size. Second, when we project the Span<T> to bytes, we need to do it in chunks,
+            // as trying to project the entire span at once will lead to integer overflow if the byte length
+            // exceeds int.MaxLength.
 
-            fixed (void* src = work)
+            const int maxChunkSizeInBytes = 70 * 1024;
+            int maxChunkSizeInElements = maxChunkSizeInBytes / sizeof(T);
+            Contracts.Assert(maxChunkSizeInElements > 0, "Unexpectedly large T.");
+
+            // Rent a byte[] instead of a T[] to allow reuse of buffers across different types T.
+            byte[] rentedArray = ArrayPool<byte>.Shared.Rent(maxChunkSizeInBytes);
+            try
             {
-                long offset = 0;
-                while (offset < bytesToRead)
+                while (!destination.IsEmpty)
                 {
-                    int toRead = (int)Math.Min(bytesToRead - offset, blockSize);
-                    int read = reader.Read(work, 0, toRead);
-                    Contracts.CheckDecode(read == toRead);
-                    Buffer.MemoryCopy(src, (byte*)destination + offset, destinationSizeInBytes - offset, read);
-                    offset += read;
-                }
-                Contracts.Assert(offset == bytesToRead);
-            }
-        }
+                    int numElementsToReadThisChunk = Math.Min(maxChunkSizeInElements, destination.Length);
+                    int rentedArrayOffset = 0;
+                    int numBytesRemainingToReadThisChunk = numElementsToReadThisChunk * sizeof(T); // n.b. not necessarily populating the entire rented array
 
-        public static unsafe void ReadBytes(this BinaryReader reader, void* destination, long destinationSizeInBytes, long bytesToRead)
-        {
-            byte[] work = null;
-            ReadBytes(reader, destination, destinationSizeInBytes, bytesToRead, ref work);
+                    do
+                    {
+                        int numBytesReadJustNow = reader.Read(rentedArray, rentedArrayOffset, numBytesRemainingToReadThisChunk);
+                        rentedArrayOffset += numBytesReadJustNow;
+                        numBytesRemainingToReadThisChunk -= numBytesReadJustNow;
+                    } while (numBytesRemainingToReadThisChunk > 0);
+
+                    // Copy the rented array to the destination span (projected as bytes).
+                    // This projection as bytes is safe as long as T is a primitive numeric type (integers, floats).
+                    // Avoid projecting the Span<byte> as a Span<T> to avoid potential alignment issues.
+                    rentedArray.AsSpan(0, numElementsToReadThisChunk * sizeof(T)).CopyTo(MemoryMarshal.AsBytes(destination.Slice(0, numElementsToReadThisChunk)));
+                    destination = destination.Slice(numElementsToReadThisChunk);
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(rentedArray);
+            }
         }
 
         /// <summary>

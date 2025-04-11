@@ -675,7 +675,7 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             var metrics = _mlContext.MulticlassClassification.Evaluate(predicted);
 
             Assert.Equal(0.99, metrics.MicroAccuracy, .01);
-            Assert.Equal(0.93, metrics.MacroAccuracy, 0.01);
+            Assert.Equal(0.99, metrics.MacroAccuracy, 0.01);
 
             var oneSample = GetOneMNISTExample();
 
@@ -900,7 +900,7 @@ namespace Microsoft.ML.TensorFlow.Scenarios
 
             // First group of checks
             Assert.Equal(0.99, metrics.MicroAccuracy, .01);
-            Assert.Equal(.93, metrics.MacroAccuracy, 0.01);
+            Assert.Equal(.99, metrics.MacroAccuracy, 0.01);
 
             // An in-memory example. Its label is predicted below.
             var oneSample = GetOneMNISTExample();

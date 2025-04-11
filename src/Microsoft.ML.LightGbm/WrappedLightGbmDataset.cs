@@ -67,7 +67,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 {
                     // Create container. Examples will pushed in later.
                     LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.DatasetCreateFromSampledColumn(
-                        (IntPtr)ptrValues, (IntPtr)ptrIndices, numCol, sampleNonZeroCntPerColumn, numSampleRow, numTotalRow,
+                        (IntPtr)ptrValues, (IntPtr)ptrIndices, numCol, sampleNonZeroCntPerColumn, numSampleRow, numTotalRow, 0,
                         param, out _handle));
                 }
             }

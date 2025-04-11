@@ -1263,7 +1263,7 @@ namespace Microsoft.ML.Tokenizers
                     {
                         if (considerSpecialTokens)
                         {
-                            AppendToBytesArray(BeginningOfSentenceToken!.AsSpan(), ref bytes, ref bytesIndex);
+                            Helpers.AppendToBytesArray(BeginningOfSentenceToken!.AsSpan(), ref bytes, ref bytesIndex);
                         }
                         continue;
                     }
@@ -1272,7 +1272,7 @@ namespace Microsoft.ML.Tokenizers
                     {
                         if (considerSpecialTokens)
                         {
-                            AppendToBytesArray(EndOfSentenceToken!.AsSpan(), ref bytes, ref bytesIndex);
+                            Helpers.AppendToBytesArray(EndOfSentenceToken!.AsSpan(), ref bytes, ref bytesIndex);
                         }
                         continue;
                     }
@@ -1281,7 +1281,7 @@ namespace Microsoft.ML.Tokenizers
                     {
                         if (considerSpecialTokens)
                         {
-                            AppendToBytesArray(UnknownToken!.AsSpan(), ref bytes, ref bytesIndex);
+                            Helpers.AppendToBytesArray(UnknownToken!.AsSpan(), ref bytes, ref bytesIndex);
                         }
                         continue;
                     }
@@ -1306,7 +1306,7 @@ namespace Microsoft.ML.Tokenizers
                     {
                         ReadOnlySpan<char> span = firstToken && hasPrefixSpace && s.Length > 0 && s[0] == _transformedSpace ? s.AsSpan(1) : s.AsSpan();
                         firstToken = false;
-                        AppendToBytesArray(span, ref bytes, ref bytesIndex);
+                        Helpers.AppendToBytesArray(span, ref bytes, ref bytesIndex);
                     }
                 }
 
@@ -1562,27 +1562,6 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return null;
-        }
-
-        private void AppendToBytesArray(ReadOnlySpan<char> text, ref byte[] bytes, ref int bytesIndex)
-        {
-            IReadOnlyDictionary<char, char> unicodeToByte = ByteToUnicodeEncoding.Instance.UnicodeToByte;
-            for (int i = 0; i < text.Length; i++)
-            {
-                if (unicodeToByte.TryGetValue(text[i], out char c))
-                {
-                    if (bytesIndex >= bytes.Length)
-                    {
-                        Helpers.ArrayPoolGrow<byte>(ref bytes, bytes.Length * 2);
-                    }
-
-                    bytes[bytesIndex++] = (byte)c;
-                    continue;
-                }
-
-                // rare cases
-                i += Helpers.EncodeCodePointToUtf8(text, i, ref bytes, ref bytesIndex) - 1;
-            }
         }
 
         //

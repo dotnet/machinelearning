@@ -18,41 +18,27 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         // Normalizes the vector to have size of 1
-        public static unsafe void NormalizeVectorSize(double[] vector)
+        public static void NormalizeVectorSize(double[] vector)
         {
             double size = GetVectorSize(vector);
-            int length = vector.Length;
-            unsafe
+            for (int i = 0; i < vector.Length; i++)
             {
-                fixed (double* pVector = vector)
-                {
-                    for (int i = 0; i < length; i++)
-                    {
-                        pVector[i] /= size;
-                    }
-                }
+                vector[i] /= size;
             }
         }
 
         // Center vector to have mean = 0
-        public static unsafe void CenterVector(double[] vector)
+        public static void CenterVector(double[] vector)
         {
             double mean = GetMean(vector);
-            int length = vector.Length;
-            unsafe
+            for (int i = 0; i < vector.Length; i++)
             {
-                fixed (double* pVector = vector)
-                {
-                    for (int i = 0; i < length; i++)
-                    {
-                        pVector[i] = (pVector[i] - mean);
-                    }
-                }
+                vector[i] -= mean;
             }
         }
 
         // Normalizes the vector to have mean = 0 and std = 1
-        public static unsafe void NormalizeVector(double[] vector)
+        public static void NormalizeVector(double[] vector)
         {
             double mean = GetMean(vector);
             double std = GetStandardDeviation(vector, mean);
@@ -60,27 +46,20 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         // Normalizes the vector to have mean = 0 and std = 1
-        public static unsafe void NormalizeVector(double[] vector, double mean, double std)
+        public static void NormalizeVector(double[] vector, double mean, double std)
         {
-            int length = vector.Length;
-            unsafe
+            for (int i = 0; i < vector.Length; i++)
             {
-                fixed (double* pVector = vector)
-                {
-                    for (int i = 0; i < length; i++)
-                    {
-                        pVector[i] = (pVector[i] - mean) / std;
-                    }
-                }
+                vector[i] = (vector[i] - mean) / std;
             }
         }
 
-        public static unsafe double GetDotProduct(double[] vector1, double[] vector2)
+        public static double GetDotProduct(double[] vector1, double[] vector2)
         {
             return GetDotProduct(vector1, vector2, vector1.Length);
         }
 
-        public static unsafe double GetDotProduct(float[] vector1, float[] vector2)
+        public static double GetDotProduct(float[] vector1, float[] vector2)
         {
             return GetDotProduct(vector1, vector2, vector1.Length);
         }
@@ -119,38 +98,24 @@ namespace Microsoft.ML.Trainers.FastTree
             return product;
         }
 
-        public static unsafe double GetMean(double[] vector)
+        public static double GetMean(double[] vector)
         {
             double sum = 0;
-            int length = vector.Length;
-            unsafe
+            for (int i = 0; i < vector.Length; i++)
             {
-                fixed (double* pVector = vector)
-                {
-                    for (int i = 0; i < length; i++)
-                    {
-                        sum += pVector[i];
-                    }
-                }
+                sum += vector[i];
             }
-            return sum / length;
+            return sum / vector.Length;
         }
 
-        public static unsafe double GetMean(float[] vector)
+        public static double GetMean(float[] vector)
         {
             double sum = 0;
-            int length = vector.Length;
-            unsafe
+            for (int i = 0; i < vector.Length; i++)
             {
-                fixed (float* pVector = vector)
-                {
-                    for (int i = 0; i < length; i++)
-                    {
-                        sum += pVector[i];
-                    }
-                }
+                sum += vector[i];
             }
-            return sum / length;
+            return sum / vector.Length;
         }
 
         public static double GetStandardDeviation(double[] vector)
@@ -158,42 +123,28 @@ namespace Microsoft.ML.Trainers.FastTree
             return GetStandardDeviation(vector, GetMean(vector));
         }
 
-        public static unsafe double GetStandardDeviation(double[] vector, double mean)
+        public static double GetStandardDeviation(double[] vector, double mean)
         {
             double sum = 0;
-            int length = vector.Length;
             double tmp;
-            unsafe
+            for (int i = 0; i < vector.Length; i++)
             {
-                fixed (double* pVector = vector)
-                {
-                    for (int i = 0; i < length; i++)
-                    {
-                        tmp = pVector[i] - mean;
-                        sum += tmp * tmp;
-                    }
-                }
+                tmp = vector[i] - mean;
+                sum += tmp * tmp;
             }
-            return Math.Sqrt(sum / length);
+            return Math.Sqrt(sum / vector.Length);
         }
 
-        public static unsafe int GetIndexOfMax(double[] vector)
+        public static int GetIndexOfMax(double[] vector)
         {
-            int length = vector.Length;
             double max = vector[0];
             int maxIdx = 0;
-            unsafe
+            for (int i = 1; i < vector.Length; i++)
             {
-                fixed (double* pVector = vector)
+                if (vector[i] > max)
                 {
-                    for (int i = 1; i < length; i++)
-                    {
-                        if (pVector[i] > max)
-                        {
-                            max = pVector[i];
-                            maxIdx = i;
-                        }
-                    }
+                    max = vector[i];
+                    maxIdx = i;
                 }
             }
             return maxIdx;
@@ -253,50 +204,29 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         // Mutiplies the second vector from the first one (vector1[i] /= val)
-        public static unsafe void MutiplyInPlace(double[] vector, double val)
+        public static void MutiplyInPlace(double[] vector, double val)
         {
-            int length = vector.Length;
-            unsafe
+            for (int i = 0; i < vector.Length; i++)
             {
-                fixed (double* pVector = vector)
-                {
-                    for (int i = 0; i < length; i++)
-                    {
-                        pVector[i] *= val;
-                    }
-                }
+                vector[i] *= val;
             }
         }
 
         // Divides the second vector from the first one (vector1[i] /= val)
-        public static unsafe void DivideInPlace(double[] vector, double val)
+        public static void DivideInPlace(double[] vector, double val)
         {
-            int length = vector.Length;
-            unsafe
+            for (int i = 0; i < vector.Length; i++)
             {
-                fixed (double* pVector = vector)
-                {
-                    for (int i = 0; i < length; i++)
-                    {
-                        pVector[i] /= val;
-                    }
-                }
+                vector[i] /= val;
             }
         }
 
         // Divides the second vector from the first one (vector1[i] /= val)
-        public static unsafe void DivideInPlace(float[] vector, float val)
+        public static void DivideInPlace(float[] vector, float val)
         {
-            int length = vector.Length;
-            unsafe
+            for (int i = 0; i < vector.Length; i++)
             {
-                fixed (float* pVector = vector)
-                {
-                    for (int i = 0; i < length; i++)
-                    {
-                        pVector[i] /= val;
-                    }
-                }
+                vector[i] /= val;
             }
         }
 
