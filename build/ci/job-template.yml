@@ -67,7 +67,7 @@ jobs:
     steps:
     # Extra MacOS step required to install OS-specific dependencies
     - ${{ if and(contains(parameters.pool.vmImage, 'macOS'), not(contains(parameters.name, 'cross')))  }}:
-      - script: export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=TRUE && brew install cmake && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
+      - script: export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=TRUE && brew install cmake@3.5 && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
         displayName: Install MacOS build dependencies
     # Extra Apple MacOS step required to install OS-specific dependencies
     - ${{ if and(contains(parameters.pool.vmImage, 'macOS'), contains(parameters.name, 'cross'))  }}:
