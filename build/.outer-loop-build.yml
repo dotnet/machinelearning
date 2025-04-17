@@ -86,19 +86,19 @@ jobs:
 
 - template: /build/ci/job-template.yml
   parameters:
-    name: Windows_x64_NetFx461
+    name: Windows_x64_NetFx48
     buildScript: build.cmd
     customMatrixes:
       Debug_Build:
         _configuration: Debug
         _config_short: DFX
         _includeBenchmarkData: false
-        _targetFramework: net462
+        _targetFramework: net48
       Release_Build:
         _configuration: Release
         _config_short: RFX
         _includeBenchmarkData: false
-        _targetFramework: net462
+        _targetFramework: net48
     pool:
       vmImage: windows-2019
 
