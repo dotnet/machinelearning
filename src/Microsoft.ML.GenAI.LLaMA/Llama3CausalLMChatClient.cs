@@ -20,7 +20,7 @@ public class Llama3CausalLMChatClient : CausalLMPipelineChatClient<Tokenizer, Ll
         : base(
             pipeline,
             chatTemplateBuilder ?? Llama3_1ChatTemplateBuilder.Instance,
-            metadata ?? new ChatClientMetadata(modelId: nameof(Llama3CausalLMChatClient)))
+            metadata ?? new ChatClientMetadata(defaultModelId: nameof(Llama3CausalLMChatClient)))
     {
     }
 
