@@ -76,7 +76,7 @@ The main types provided by this library are:
 
 ## Additional Documentation
 
-* [Conceptual documentation](TODO)
+* [Conceptual documentation](https://learn.microsoft.com/dotnet/ai/conceptual/understanding-tokens)
 * [API documentation](https://learn.microsoft.com/en-us/dotnet/api/microsoft.ml.tokenizers)
 
 ## Related Packages
