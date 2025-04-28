@@ -57,7 +57,7 @@
     <!-- TargetFramework of the xunit.runner.dll to use when running the tests -->
     <XUnitRuntimeTargetFramework>netcoreapp2.0</XUnitRuntimeTargetFramework>
     <!-- PackageVersion of xunit.runner.console to use -->
-    <XUnitRunnerVersion>2.4.2</XUnitRunnerVersion>
+    <XUnitRunnerVersion>$(XUnitVersion)</XUnitRunnerVersion>
     <!-- Additional command line arguments to pass to xunit.console.exe -->
   </PropertyGroup>
 
@@ -158,15 +158,15 @@
       Files="@(WindowsFiles);@(OsxFiles)" />
 
     <ItemGroup>
-      <RunCommand Condition="!$(TestTargetFramework.EndsWith('net462'))" Include="%(ProjectsWithTargetFramework.Filename)">
+      <RunCommand Condition="!$(TestTargetFramework.EndsWith('net48'))" Include="%(ProjectsWithTargetFramework.Filename)">
         <Command>dotnet exec --roll-forward Major --runtimeconfig %(ProjectsWithTargetFramework.Filename).runtimeconfig.json --depsfile %(ProjectsWithTargetFramework.Filename).deps.json $(HelixCorrelationPayloadPath)/xunit-runner/tools/netcoreapp2.0/xunit.console.dll %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
         <!-- FileName is reserved so have to go with something else -->
         <Filen>%(ProjectsWithTargetFramework.Filename)</Filen>
         <TargetFrameworks>%(ProjectsWithTargetFramework.TargetFrameworks)</TargetFrameworks>
         <OutputPath>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\$(RunTestScript)</OutputPath>
       </RunCommand>
-      <RunCommand Condition="$(TestTargetFramework.EndsWith('net462')) And %(ProjectsWithTargetFramework.TargetFrameworks) != 'net8.0'"  Include="%(ProjectsWithTargetFramework.Filename)">
-        <Command>$(HelixCorrelationPayloadPath)/xunit-runner/tools/net462/xunit.console.exe %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
+      <RunCommand Condition="$(TestTargetFramework.EndsWith('net48')) And %(ProjectsWithTargetFramework.TargetFrameworks) != 'net8.0'"  Include="%(ProjectsWithTargetFramework.Filename)">
+        <Command>$(HelixCorrelationPayloadPath)/xunit-runner/tools/net48/xunit.console.exe %(ProjectsWithTargetFramework.Filename).dll -notrait Category=SkipInCI -xml testResults.xml</Command>
               <!-- FileName is reserved so have to go with something else -->
         <Filen>%(ProjectsWithTargetFramework.Filename)</Filen>
         <TargetFrameworks>%(ProjectsWithTargetFramework.TargetFrameworks)</TargetFrameworks>
@@ -181,7 +181,7 @@
     <ItemGroup>
       <HelixWorkItem Condition="$(TestTargetFramework) == %(ProjectsWithTargetFramework.TargetFrameworks)" Include="%(ProjectsWithTargetFramework.Filename)">
         <PayloadDirectory>$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\</PayloadDirectory>
-        <PayloadDirectory Condition="%(ProjectsWithTargetFramework.TargetFrameworks) == 'net462'">$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\win-x64</PayloadDirectory>
+        <PayloadDirectory Condition="%(ProjectsWithTargetFramework.TargetFrameworks) == 'net48'">$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)\win-x64</PayloadDirectory>
         <Command  Condition="'$(OS)' != 'Windows_NT'">./$(RunTestScript)</Command>
         <Command  Condition="'$(OS)' == 'Windows_NT'">call $(RunTestScript)</Command>
         <Timeout>01:00:00</Timeout>

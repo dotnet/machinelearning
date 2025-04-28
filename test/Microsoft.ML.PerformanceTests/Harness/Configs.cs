@@ -39,7 +39,7 @@ namespace Microsoft.ML.PerformanceTests
         private IToolchain CreateToolchain()
         {
 #if NETFRAMEWORK
-            var tfm = "net462";
+            var tfm = "net48";
             var csProj = CsProjClassicNetToolchain.From(tfm);
 #else
             var frameworkName = new FrameworkName(AppContext.TargetFrameworkName);
