@@ -1046,6 +1046,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 { "gpt-4o", ModelEncoding.O200kBase },
                                                                 { "o1", ModelEncoding.O200kBase },
                                                                 { "o3", ModelEncoding.O200kBase },
+                                                                { "o4-mini", ModelEncoding.O200kBase },
                                                                 { "gpt-4.1", ModelEncoding.O200kBase },
                                                                 { "gpt-4", ModelEncoding.Cl100kBase },
                                                                 { "gpt-3.5-turbo", ModelEncoding.Cl100kBase },
