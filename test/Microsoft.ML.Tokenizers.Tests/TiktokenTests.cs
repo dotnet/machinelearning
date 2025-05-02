@@ -401,6 +401,8 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("o3")]
         [InlineData("o3-")]
         [InlineData("o3-mini")]
+        [InlineData("gpt-4.1")]
+        [InlineData("gpt-4.1-mini")]
         [InlineData("gpt-4o")]
         [InlineData("gpt-4o-")]
         [InlineData("gpt-4")]
@@ -502,6 +504,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [InlineData("gpt-4")]
+        [InlineData("gpt-4.1")]
         [InlineData("gpt-4o")]
         [InlineData("o1")]
         [InlineData("o3")]
