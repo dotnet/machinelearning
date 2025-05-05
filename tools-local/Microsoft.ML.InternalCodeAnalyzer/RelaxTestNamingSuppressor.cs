@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.ML.InternalCodeAnalyzer
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("MicrosoftCodeAnalysisCorrectness", "RS1038:Compiler extensions should be implemented in assemblies with compiler-provided references", Justification = "<Pending>")]
     public sealed class RelaxTestNamingSuppressor : DiagnosticSuppressor
     {
         private const string Id = "MSML_RelaxTestNaming";
@@ -28,7 +29,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 return;
             }
 
-            var knownTestAttributes = new ConcurrentDictionary<INamedTypeSymbol, bool>();
+            var knownTestAttributes = new ConcurrentDictionary<INamedTypeSymbol, bool>(SymbolEqualityComparer.Default);
 
             foreach (var diagnostic in context.ReportedDiagnostics)
             {

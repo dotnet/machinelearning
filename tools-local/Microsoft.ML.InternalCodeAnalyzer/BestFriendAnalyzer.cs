@@ -12,15 +12,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.ML.InternalCodeAnalyzer
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("MicrosoftCodeAnalysisCorrectness", "RS1038:Compiler extensions should be implemented in assemblies with compiler-provided references", Justification = "<Pending>")]
     public sealed class BestFriendAnalyzer : DiagnosticAnalyzer
     {
         private const string Category = "Access";
         internal const string DiagnosticId = "MSML_NoBestFriendInternal";
 
-        private const string Title = "Cross-assembly internal access requires referenced item to have " + AttributeName + " attribute.";
+        private const string Title = "Cross-assembly internal access requires referenced item to have " + AttributeName + " attribute";
         private const string Format = "Access of '{0}' is a cross assembly internal " +
             "reference, and the declaring assembly wants these accesses to be on something " +
-            "with the attribute " + AttributeName + ".";
+            "with the attribute " + AttributeName;
         private const string Description =
             "The identifier indicated is defined as an internal member of an assembly that has the " +
             AssemblyAttributeName + " assembly-level attribute set. Even with friend access to that " +
@@ -60,7 +61,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 return;
 
             var myAssembly = comp.Assembly;
-            var assemblyHasAttrMap = new Dictionary<IAssemblySymbol, bool>();
+            var assemblyHasAttrMap = new Dictionary<IAssemblySymbol, bool>(SymbolEqualityComparer.Default);
 
             int count = 0;
             foreach (var node in model.SyntaxTree.GetRoot().DescendantNodes(n => !n.IsKind(SyntaxKind.UsingDirective)))
@@ -78,7 +79,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 if (symbol == null)
                     continue;
                 var symbolAssembly = symbol.ContainingAssembly;
-                if (Equals(symbolAssembly, myAssembly))
+                if (SymbolEqualityComparer.Default.Equals(symbolAssembly, myAssembly))
                     continue;
                 switch (symbol.DeclaredAccessibility)
                 {
@@ -96,12 +97,12 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                     // It's the first of seeing the assembly containing symbol. A key-value pair is added into assemblyHasAttrMap to
                     // indicate if that assembly includes an attribute WantsToBeBestFriends. If an assembly has WantsToBeBestFriends then
                     // its associated value would be true.
-                    assemblyWantsBestFriends = symbolAssembly.GetAttributes().Any(a => Equals(a.AttributeClass, wantsToBeBestFriendsAttributeType));
+                    assemblyWantsBestFriends = symbolAssembly.GetAttributes().Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, wantsToBeBestFriendsAttributeType));
                     assemblyHasAttrMap[symbolAssembly] = assemblyWantsBestFriends;
                 }
                 if (!assemblyWantsBestFriends)
                     continue;
-                if (symbol.GetAttributes().Any(a => Equals(a.AttributeClass, bestFriendAttributeType)))
+                if (symbol.GetAttributes().Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, bestFriendAttributeType)))
                 {
                     // You're not just a friend, you're my best friend!
                     continue;

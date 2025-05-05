@@ -11,13 +11,14 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.ML.InternalCodeAnalyzer
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("MicrosoftCodeAnalysisCorrectness", "RS1038:Compiler extensions should be implemented in assemblies with compiler-provided references", Justification = "<Pending>")]
     public sealed class BaseTestClassAnalyzer : DiagnosticAnalyzer
     {
         private const string Category = "Test";
         internal const string DiagnosticId = "MSML_ExtendBaseTestClass";
 
         private const string Title = "Test classes should be derived from BaseTestClass or FunctionalTestBaseClass";
-        private const string Format = "Test class '{0}' should extend BaseTestClass or FunctionalTestBaseClass.";
+        private const string Format = "Test class '{0}' should extend BaseTestClass or FunctionalTestBaseClass";
         private const string Description =
             "Test classes should be derived from BaseTestClass or FunctionalTestBaseClass.";
 
@@ -52,7 +53,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             private readonly INamedTypeSymbol _factAttribute;
             private readonly INamedTypeSymbol _baseTestClass;
             private readonly INamedTypeSymbol _ITbaseTestClass;
-            private readonly ConcurrentDictionary<INamedTypeSymbol, bool> _knownTestAttributes = new ConcurrentDictionary<INamedTypeSymbol, bool>();
+            private readonly ConcurrentDictionary<INamedTypeSymbol, bool> _knownTestAttributes = new ConcurrentDictionary<INamedTypeSymbol, bool>(SymbolEqualityComparer.Default);
 
             public AnalyzerImpl(Compilation compilation, INamedTypeSymbol factAttribute)
             {
@@ -89,8 +90,8 @@ namespace Microsoft.ML.InternalCodeAnalyzer
 
                 for (var current = namedType; current is object; current = current.BaseType)
                 {
-                    if (Equals(current, _baseTestClass) ||
-                        Equals(current, _ITbaseTestClass))
+                    if (SymbolEqualityComparer.Default.Equals(current, _baseTestClass) ||
+                        SymbolEqualityComparer.Default.Equals(current, _ITbaseTestClass))
                         return true;
                 }
 
