@@ -25,6 +25,7 @@
     <SystemConfigurationConfigurationManagerVersion>9.0.4</SystemConfigurationConfigurationManagerVersion>
     <SystemFormatsAsn1Version>9.0.4</SystemFormatsAsn1Version>
     <SystemIOFileSystemAccessControl>5.0.0</SystemIOFileSystemAccessControl>
+    <SystemIOPipelinesVersion>9.0.4</SystemIOPipelinesVersion>
     <SystemNumericsTensorsVersion>9.0.4</SystemNumericsTensorsVersion>
     <SystemReflectionEmitLightweightVersion>4.7.0</SystemReflectionEmitLightweightVersion>
     <SystemReflectionEmitVersion>4.7.0</SystemReflectionEmitVersion>
