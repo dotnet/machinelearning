@@ -8,7 +8,7 @@
       1591: Documentation warnings
       NU5100: Warning that gets triggered because a .dll is not placed under lib folder on package. This is by design as we want AutoML Interactive to be under interactive-extensions folder.
        -->
-    <NoWarn>$(NoWarn);1591;NU5100s</NoWarn>
+    <NoWarn>$(NoWarn);1591;NU5100</NoWarn>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddAutoMLInteractiveToInteractiveExtensionsFolder</TargetsForTfmSpecificContentInPackage>
 
     <!-- Remove once we have resolved the TorchSharp issue. -->
