@@ -38,6 +38,10 @@ namespace Microsoft.ML.Data
             public readonly int ScoreColumnIndex;
             // The type of the derived column.
             public readonly DataViewType PredColType;
+            /// <summary>
+            /// The name of the column that contains the predicted labels.
+            /// This field is used in the scoring process to store or reference the predicted label column.
+            /// </summary>
             public readonly string PredictedLabelColumnName;
             // The ScoreColumnKind metadata value for all score columns.
             public readonly string ScoreColumnKind;
