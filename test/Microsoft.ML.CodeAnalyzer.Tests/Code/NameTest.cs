@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
@@ -14,6 +15,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
     public sealed class NameTest
     {
         [Fact]
+        [Obsolete]
         public async Task PrivateFieldName()
         {
             var expected = new DiagnosticResult[] {
@@ -54,6 +56,7 @@ namespace TestNamespace
 }";
 
         [Fact]
+        [Obsolete]
         public async Task MoreNameTests()
         {
             var expected = new DiagnosticResult[] {
@@ -129,6 +132,7 @@ namespace foo.bar.Biz
     struct marco { public int polo; }
 }";
         [Fact]
+        [Obsolete]
         public async Task ExternName()
         {
             const string source = @"

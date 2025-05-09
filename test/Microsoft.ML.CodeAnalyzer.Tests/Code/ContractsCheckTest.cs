@@ -22,6 +22,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
         private readonly Lazy<string> _sourceFriend = TestUtils.LazySource("BestFriendAttribute.cs");
 
         [Fact]
+        [Obsolete]
         public async Task ContractsCheck()
         {
             const int basis = 11;
@@ -95,6 +96,7 @@ namespace TestNamespace
         private readonly Lazy<string> _sourceDefArgAttr = TestUtils.LazySource("DefaultArgumentAttribute.cs");
 
         [Fact]
+        [Obsolete]
         public async Task ContractsCheckFix()
         {
             var test = new VerifyCS.Test

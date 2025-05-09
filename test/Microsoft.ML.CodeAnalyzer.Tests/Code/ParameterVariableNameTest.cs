@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
@@ -14,6 +15,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
     public sealed class ParameterVariableNameTest
     {
         [Fact]
+        [Obsolete]
         public async Task ParameterVariableName()
         {
             const string test = @"
