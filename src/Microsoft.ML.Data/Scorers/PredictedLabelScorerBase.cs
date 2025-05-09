@@ -38,6 +38,11 @@ namespace Microsoft.ML.Data
             public readonly int ScoreColumnIndex;
             // The type of the derived column.
             public readonly DataViewType PredColType;
+            /// <summary>
+            /// The name of the column that contains the predicted labels.
+            /// This field is used in the scoring process to store or reference the predicted label column.
+            /// </summary>
+            public readonly string PredictedLabelColumnName;
             // The ScoreColumnKind metadata value for all score columns.
             public readonly string ScoreColumnKind;
 
@@ -54,6 +59,7 @@ namespace Microsoft.ML.Data
                 ScoreColumnIndex = scoreColIndex;
                 ScoreColumnKind = scoreColumnKind;
                 PredColType = predColType;
+                PredictedLabelColumnName = predictedLabelColumnName;
 
                 _getScoreColumnKind = GetScoreColumnKind;
                 _getScoreValueKind = GetScoreValueKind;
@@ -113,7 +119,7 @@ namespace Microsoft.ML.Data
                 bool tmp = rowMapper.OutputSchema.TryGetColumnIndex(scoreCol, out mapperScoreColumn);
                 env.Check(tmp, "Mapper doesn't have expected score column");
 
-                return new BindingsImpl(input, rowMapper, Suffix, ScoreColumnKind, true, mapperScoreColumn, PredColType);
+                return new BindingsImpl(input, rowMapper, Suffix, ScoreColumnKind, true, mapperScoreColumn, PredColType, PredictedLabelColumnName);
             }
 
             public static BindingsImpl Create(ModelLoadContext ctx, DataViewSchema input,
