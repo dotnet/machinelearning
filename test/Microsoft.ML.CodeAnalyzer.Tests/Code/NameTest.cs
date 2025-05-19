@@ -149,12 +149,10 @@ namespace TestNamespace
 }
 ";
 
-#pragma warning disable CS0612 // Type or member is obsolete
             var expected = new DiagnosticResult[] {
                 VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(7, 11).WithArguments("CLASS"),
                 VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(13, 21).WithArguments("masterBlaster"),
             };
-#pragma warning restore CS0612 // Type or member is obsolete
 
             await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }

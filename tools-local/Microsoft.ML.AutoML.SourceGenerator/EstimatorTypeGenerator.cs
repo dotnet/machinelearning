@@ -15,7 +15,6 @@ using Microsoft.ML.AutoML.SourceGenerator.Template;
 namespace Microsoft.ML.AutoML.SourceGenerator
 {
     [Generator]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("MicrosoftCodeAnalysisCompatibility", "RS1042:Implementations of this interface are not allowed", Justification = "<Pending>")]
     public sealed class EstimatorTypeGenerator : ISourceGenerator
     {
         private const string className = "EstimatorType";
