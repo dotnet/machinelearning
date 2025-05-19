@@ -15,7 +15,6 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
     public sealed class TypeParamNameTest
     {
         [Fact]
-        [Obsolete]
         public async Task TypeParamName()
         {
             const string test = @"

@@ -15,7 +15,6 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
     public sealed class NameTest
     {
         [Fact]
-        [Obsolete]
         public async Task PrivateFieldName()
         {
             var expected = new DiagnosticResult[] {
@@ -56,7 +55,6 @@ namespace TestNamespace
 }";
 
         [Fact]
-        [Obsolete]
         public async Task MoreNameTests()
         {
             var expected = new DiagnosticResult[] {
@@ -132,7 +130,6 @@ namespace foo.bar.Biz
     struct marco { public int polo; }
 }";
         [Fact]
-        [Obsolete]
         public async Task ExternName()
         {
             const string source = @"
@@ -152,10 +149,12 @@ namespace TestNamespace
 }
 ";
 
+#pragma warning disable CS0612 // Type or member is obsolete
             var expected = new DiagnosticResult[] {
                 VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(7, 11).WithArguments("CLASS"),
                 VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(13, 21).WithArguments("masterBlaster"),
             };
+#pragma warning restore CS0612 // Type or member is obsolete
 
             await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }

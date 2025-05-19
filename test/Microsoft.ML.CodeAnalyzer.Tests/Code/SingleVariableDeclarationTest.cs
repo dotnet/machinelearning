@@ -15,7 +15,6 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
     public sealed class SingleVariableDeclarationTest
     {
         [Fact]
-        [Obsolete]
         public async Task SingleVariableDeclaration()
         {
             const string test = @"

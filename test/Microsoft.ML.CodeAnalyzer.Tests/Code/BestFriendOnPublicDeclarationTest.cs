@@ -19,7 +19,6 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
         private readonly Lazy<string> _sourceDeclaration = TestUtils.LazySource("BestFriendOnPublicDeclaration.cs");
 
         [Fact]
-        [Obsolete]
         public async Task BestFriendOnPublicDeclaration()
         {
             var expected = new DiagnosticResult[] {

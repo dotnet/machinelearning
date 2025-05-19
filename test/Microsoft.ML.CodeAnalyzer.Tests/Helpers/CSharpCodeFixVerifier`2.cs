@@ -17,17 +17,16 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
-        [System.Obsolete]
         public static DiagnosticResult Diagnostic()
+#pragma warning disable CS0618 // Type or member is obsolete
                 => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic();
 
-        [System.Obsolete]
         public static DiagnosticResult Diagnostic(string diagnosticId)
             => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic(diagnosticId);
 
-        [System.Obsolete]
         public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
             => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic(descriptor);
+#pragma warning restore CS0618 // Type or member is obsolete
 
         public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
         {

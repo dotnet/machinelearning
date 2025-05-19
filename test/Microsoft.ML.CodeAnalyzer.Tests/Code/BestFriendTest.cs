@@ -28,7 +28,6 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
         private readonly Lazy<string> _sourceUser = TestUtils.LazySource("BestFriendUser.cs");
 
         [Fact]
-        [Obsolete]
         public async Task BestFriend()
         {
             // The setup to this one is a bit more involved than many of the analyzer tests,

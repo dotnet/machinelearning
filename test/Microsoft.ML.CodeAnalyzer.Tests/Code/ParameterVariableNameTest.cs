@@ -15,7 +15,6 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
     public sealed class ParameterVariableNameTest
     {
         [Fact]
-        [Obsolete]
         public async Task ParameterVariableName()
         {
             const string test = @"

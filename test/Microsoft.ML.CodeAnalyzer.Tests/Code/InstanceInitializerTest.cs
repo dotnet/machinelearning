@@ -15,7 +15,6 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
     public sealed class InstanceInitializerTest
     {
         [Fact(Skip = "The analyzer behind this test will be removed in a future PR. Disabling for now to allow version updates.")]
-        [Obsolete]
         public async Task InstanceInitializer()
         {
             const string test = @"
