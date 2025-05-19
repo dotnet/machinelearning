@@ -100,9 +100,6 @@ public async Task TestMethodAsync() { }
             }.RunAsync();
         }
 
-        [SuppressMessage("MicrosoftCodeAnalysisCorrectness", "RS1041:Compiler extensions should be implemented in assemblies targeting netstandard2.0", Justification = "<Pending>")]
-        [SuppressMessage("MicrosoftCodeAnalysisCorrectness", "RS1038:Compiler extensions should be implemented in assemblies with compiler-provided references", Justification = "<Pending>")]
-        [SuppressMessage("MicrosoftCodeAnalysisCorrectness", "RS1036:Specify analyzer banned API enforcement setting", Justification = "<Pending>")]
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         public class WarnForMissingAsyncSuffix : DiagnosticAnalyzer
         {

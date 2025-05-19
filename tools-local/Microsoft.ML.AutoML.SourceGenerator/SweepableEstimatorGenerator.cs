@@ -12,7 +12,6 @@ using SweepableEstimatorT = Microsoft.ML.AutoML.SourceGenerator.Template.Sweepab
 namespace Microsoft.ML.AutoML.SourceGenerator
 {
     [Generator]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("MicrosoftCodeAnalysisCompatibility", "RS1042:Implementations of this interface are not allowed", Justification = "<Pending>")]
     public sealed class SweepableEstimatorGenerator : ISourceGenerator
     {
         private const string SweepableEstimatorAttributeDisplayName = Constant.CodeGeneratorNameSpace + "." + "SweepableEstimatorAttribute";

@@ -6,6 +6,8 @@
     <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <!-- Suppress RS1042 - https://github.com/dotnet/machinelearning/issues/7468 -->
+    <NoWarn>$(NoWarn);RS1042</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

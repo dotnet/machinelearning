@@ -22,7 +22,6 @@ namespace Microsoft.ML.InternalCodeAnalyzer
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("MicrosoftCodeAnalysisCorrectness", "RS1038:Compiler extensions should be implemented in assemblies with compiler-provided references", Justification = "<Pending>")]
     public sealed class NameAnalyzer : DiagnosticAnalyzer
     {
         internal const string Category = "Naming";

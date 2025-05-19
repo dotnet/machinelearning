@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <!-- Disable these warnings, this is not a shipping analyzer -->
+    <NoWarn>$(NoWarn);RS1036;RS1038</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
