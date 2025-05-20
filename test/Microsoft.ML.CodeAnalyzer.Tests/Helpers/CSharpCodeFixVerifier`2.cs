@@ -18,6 +18,7 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
         where TCodeFix : CodeFixProvider, new()
     {
         public static DiagnosticResult Diagnostic()
+#pragma warning disable CS0618 // Type or member is obsolete
                 => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic();
 
         public static DiagnosticResult Diagnostic(string diagnosticId)
@@ -25,6 +26,7 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
 
         public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
             => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic(descriptor);
+#pragma warning restore CS0618 // Type or member is obsolete
 
         public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
         {
@@ -55,7 +57,9 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
             await test.RunAsync();
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         internal class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
+#pragma warning restore CS0618 // Type or member is obsolete
         {
             public Test()
             {
