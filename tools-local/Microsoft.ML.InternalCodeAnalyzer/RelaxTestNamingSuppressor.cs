@@ -28,7 +28,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 return;
             }
 
-            var knownTestAttributes = new ConcurrentDictionary<INamedTypeSymbol, bool>();
+            var knownTestAttributes = new ConcurrentDictionary<INamedTypeSymbol, bool>(SymbolEqualityComparer.Default);
 
             foreach (var diagnostic in context.ReportedDiagnostics)
             {

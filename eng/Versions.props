@@ -12,40 +12,43 @@
     <PreReleaseVersionLabel>preview</PreReleaseVersionLabel>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <!-- .NET Runtime product dependencies -->
-    <MicrosoftBclAsyncInterfacesVersion>8.0.0</MicrosoftBclAsyncInterfacesVersion>
-    <MicrosoftExtensionsDependencyInjectionVersion>8.0.0</MicrosoftExtensionsDependencyInjectionVersion>
-    <MicrosoftExtensionsDependencyInjectionAbstractionsVersion>8.0.1</MicrosoftExtensionsDependencyInjectionAbstractionsVersion>
-    <MicrosoftExtensionsLoggingVersion>8.0.0</MicrosoftExtensionsLoggingVersion>
-    <MicrosoftExtensionsObjectPoolVersion>8.0.7</MicrosoftExtensionsObjectPoolVersion>
-    <MicrosoftExtensionsOptionsVersion>8.0.2</MicrosoftExtensionsOptionsVersion>
+    <MicrosoftBclAsyncInterfacesVersion>9.0.4</MicrosoftBclAsyncInterfacesVersion>
+    <MicrosoftExtensionsDependencyInjectionVersion>9.0.4</MicrosoftExtensionsDependencyInjectionVersion>
+    <MicrosoftExtensionsDependencyInjectionAbstractionsVersion>9.0.4</MicrosoftExtensionsDependencyInjectionAbstractionsVersion>
+    <MicrosoftExtensionsLoggingVersion>9.0.4</MicrosoftExtensionsLoggingVersion>
+    <MicrosoftExtensionsObjectPoolVersion>9.0.4</MicrosoftExtensionsObjectPoolVersion>
+    <MicrosoftExtensionsOptionsVersion>9.0.4</MicrosoftExtensionsOptionsVersion>
     <NuGetVersion>6.9.1</NuGetVersion>
     <SkiaSharpVersion>2.88.8</SkiaSharpVersion>
-    <SystemCodeDomVersion>8.0.0</SystemCodeDomVersion>
-    <SystemCollectionsImmutableVersion>8.0.0</SystemCollectionsImmutableVersion>
-    <SystemConfigurationConfigurationManagerVersion>6.0.1</SystemConfigurationConfigurationManagerVersion>
-    <SystemFormatsAsn1Version>8.0.1</SystemFormatsAsn1Version>
+    <SystemCodeDomVersion>9.0.4</SystemCodeDomVersion>
+    <SystemCollectionsImmutableVersion>9.0.4</SystemCollectionsImmutableVersion>
+    <SystemConfigurationConfigurationManagerVersion>9.0.4</SystemConfigurationConfigurationManagerVersion>
+    <SystemFormatsAsn1Version>9.0.4</SystemFormatsAsn1Version>
     <SystemIOFileSystemAccessControl>5.0.0</SystemIOFileSystemAccessControl>
-    <SystemNumericsTensorsVersion>9.0.0</SystemNumericsTensorsVersion>
+    <SystemIOPipelinesVersion>9.0.4</SystemIOPipelinesVersion>
+    <SystemNumericsTensorsVersion>9.0.4</SystemNumericsTensorsVersion>
     <SystemReflectionEmitLightweightVersion>4.7.0</SystemReflectionEmitLightweightVersion>
-    <SystemReflectionEmitVersion>4.3.0</SystemReflectionEmitVersion>
+    <SystemReflectionEmitVersion>4.7.0</SystemReflectionEmitVersion>
     <SystemSecurityPrincipalWindows>5.0.0</SystemSecurityPrincipalWindows>
-    <SystemTextEncodingsWebVersion>8.0.0</SystemTextEncodingsWebVersion>
-    <SystemTextJsonVersion>8.0.5</SystemTextJsonVersion>
-    <SystemThreadingChannelsVersion>8.0.0</SystemThreadingChannelsVersion>
+    <SystemTextEncodingsWebVersion>9.0.4</SystemTextEncodingsWebVersion>
+    <SystemTextJsonVersion>9.0.4</SystemTextJsonVersion>
+    <SystemThreadingChannelsVersion>9.0.4</SystemThreadingChannelsVersion>
     <!-- Other product dependencies -->
     <ApacheArrowVersion>14.0.2</ApacheArrowVersion>
-    <GoogleProtobufVersion>3.27.1</GoogleProtobufVersion>
+    <GoogleProtobufVersion>3.30.2</GoogleProtobufVersion>
     <LightGBMVersion>4.6.0</LightGBMVersion>
+    <JsonSchemaNetGenerationVersion>5.0.1</JsonSchemaNetGenerationVersion>
+    <JsonSchemaNetVersion>7.3.4</JsonSchemaNetVersion>
     <MicrosoftBclHashCodeVersion>6.0.0</MicrosoftBclHashCodeVersion>
-    <MicrosoftBclMemoryVersion>9.0.0</MicrosoftBclMemoryVersion>
-    <MicrosoftCodeAnalysisAnalyzersVersion>3.3.4</MicrosoftCodeAnalysisAnalyzersVersion>
-    <MicrosoftCodeAnalysisCSharpVersion>4.9.2</MicrosoftCodeAnalysisCSharpVersion>
-    <MicrosoftDotNetInteractiveVersion>1.0.0-beta.24375.2</MicrosoftDotNetInteractiveVersion>
-    <MicrosoftMLOnnxRuntimeVersion>1.18.1</MicrosoftMLOnnxRuntimeVersion>
+    <MicrosoftBclMemoryVersion>9.0.4</MicrosoftBclMemoryVersion>
+    <MicrosoftCodeAnalysisAnalyzersVersion>3.11.0</MicrosoftCodeAnalysisAnalyzersVersion>
+    <MicrosoftCodeAnalysisCSharpVersion>4.13.0</MicrosoftCodeAnalysisCSharpVersion>
+    <MicrosoftDotNetInteractiveVersion>1.0.0-beta.25177.1</MicrosoftDotNetInteractiveVersion>
+    <MicrosoftMLOnnxRuntimeVersion>1.20.0</MicrosoftMLOnnxRuntimeVersion>
     <MlNetMklDepsVersion>0.0.0.12</MlNetMklDepsVersion>
-    <MicrosoftExtensionsAIVersion>9.4.3-preview.1.25230.7</MicrosoftExtensionsAIVersion>
+    <MicrosoftExtensionsAIVersion>9.5.0</MicrosoftExtensionsAIVersion>
     <!-- runtime.native.System.Data.SqlClient.sni is not updated by dependency flow as it is not produced live anymore. -->
-    <RuntimeNativeSystemDataSqlClientSniVersion>4.4.0</RuntimeNativeSystemDataSqlClientSniVersion>
+    <RuntimeNativeSystemDataSqlClientSniVersion>4.7.0</RuntimeNativeSystemDataSqlClientSniVersion>
     <!--
 @("inteltbb.devel", "win", "2021.7.1.15305")
     -->
@@ -58,8 +61,8 @@
     <OneTbbPkgVersion Condition="$([MSBuild]::IsOSPlatform('osx'))">2021.7.1.14939</OneTbbPkgVersion>
     <OneDalMajorBinaryVersion>1</OneDalMajorBinaryVersion>
     <OneDalMinorBinaryVersion>1</OneDalMinorBinaryVersion>
-    <MSTestTestAdapterVersion>3.7.0</MSTestTestAdapterVersion>
-    <MSTestTestFrameworkVersion>3.7.0</MSTestTestFrameworkVersion>
+    <MSTestTestAdapterVersion>3.8.3</MSTestTestAdapterVersion>
+    <MSTestTestFrameworkVersion>3.8.3</MSTestTestFrameworkVersion>
     <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
     <ParquetDotNetVersion>2.1.3</ParquetDotNetVersion>
     <PlotlyNETCSharpVersion>0.11.1</PlotlyNETCSharpVersion>
@@ -68,31 +71,32 @@
     <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
     <TensorFlowVersion>2.3.1</TensorFlowVersion>
     <TorchSharpPyBridgeVersion>1.4.1</TorchSharpPyBridgeVersion>
-    <AutoGenVersion>0.1.0</AutoGenVersion>
-    <SemanticKernelVersion>1.15.0</SemanticKernelVersion>
+    <AutoGenVersion>0.2.3</AutoGenVersion>
+    <SemanticKernelVersion>1.48.0</SemanticKernelVersion>
     <TorchSharpVersion>0.102.7</TorchSharpVersion>
     <LibTorchVersion>2.2.1.1</LibTorchVersion>
     <!-- Build/infrastructure Dependencies -->
     <CodecovVersion>1.12.4</CodecovVersion>
-    <CoverletCollectorVersion>6.0.2</CoverletCollectorVersion>
+    <CoverletCollectorVersion>6.0.4</CoverletCollectorVersion>
     <CoverletMsbuildVersion>6.0.0</CoverletMsbuildVersion>
-    <MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>3.3.1</MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>
+    <MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>4.13.0</MicrosoftCodeAnalysisCSharpInternalAnalyzerVersion>
     <MicrosoftCSharpVersion>4.7.0</MicrosoftCSharpVersion>
     <ReportGeneratorVersion>4.3.6</ReportGeneratorVersion>
-    <SystemCompositionVersion>8.0.0</SystemCompositionVersion>
+
+    <SystemCompositionVersion>9.0.4</SystemCompositionVersion>
     <!-- Test-only Dependencies -->
     <ApprovalTestsVersion>6.0.0</ApprovalTestsVersion>
     <MoqVersion>4.20.70</MoqVersion>
     <BenchmarkDotNetVersion>0.13.12</BenchmarkDotNetVersion>
-    <DotNetRuntime60Version>6.0.26</DotNetRuntime60Version>
-    <DotNetRuntime80Version>8.0.1</DotNetRuntime80Version>
-    <AwesomeAssertionsVersion>8.0.2</AwesomeAssertionsVersion>
-    <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.23431.1</MicrosoftCodeAnalysisTestingVersion>
+    <DotNetRuntime60Version>6.0.36</DotNetRuntime60Version>
+    <DotNetRuntime80Version>8.0.16</DotNetRuntime80Version>
+    <AwesomeAssertionsVersion>8.1.0</AwesomeAssertionsVersion>
+    <MicrosoftCodeAnalysisTestingVersion>1.1.2</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftDotNetBuildTasksTemplatingVersion>9.0.0-beta.24212.4</MicrosoftDotNetBuildTasksTemplatingVersion>
     <MicrosoftDotNetPlatformAbstractionsVersion>5.0.0-preview.5.20278.1</MicrosoftDotNetPlatformAbstractionsVersion>
     <MicrosoftDotNetRemoteExecutorVersion>8.0.0-beta.24525.2</MicrosoftDotNetRemoteExecutorVersion>
     <MicrosoftDotNetXUnitExtensionsVersion>10.0.0-beta.25268.1</MicrosoftDotNetXUnitExtensionsVersion>
-    <MicrosoftExtensionsDependencyModelVersion>8.0.2</MicrosoftExtensionsDependencyModelVersion>
+    <MicrosoftExtensionsDependencyModelVersion>9.0.4</MicrosoftExtensionsDependencyModelVersion>
     <MicrosoftMLOnnxTestModelsVersion>0.0.6-test</MicrosoftMLOnnxTestModelsVersion>
     <MicrosoftMLTensorFlowTestModelsVersion>0.0.13-test</MicrosoftMLTensorFlowTestModelsVersion>
     <MicrosoftMLTestDatabasesVersion>0.0.6-test</MicrosoftMLTestDatabasesVersion>

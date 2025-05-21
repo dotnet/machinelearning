@@ -16,8 +16,8 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         private const string Category = "Access";
         internal const string DiagnosticId = "MSML_BestFriendOnPublicDeclaration";
 
-        private const string Title = "Public declarations should not have " + AttributeName + " attribute.";
-        private const string Format = "The " + AttributeName + " should not be applied to publicly visible members.";
+        private const string Title = "Public declarations should not have " + AttributeName + " attribute";
+        private const string Format = "The " + AttributeName + " should not be applied to publicly visible members";
 
         private const string Description =
             "The " + AttributeName + " attribute is not valid on public identifiers.";
@@ -59,7 +59,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             if (context.Symbol.DeclaredAccessibility != Accessibility.Public)
                 return;
 
-            var attribute = context.Symbol.GetAttributes().FirstOrDefault(a => Equals(a.AttributeClass, attributeType));
+            var attribute = context.Symbol.GetAttributes().FirstOrDefault(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, attributeType));
             if (attribute == null)
                 return;
 
