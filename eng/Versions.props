@@ -67,9 +67,9 @@
     <ParquetDotNetVersion>2.1.3</ParquetDotNetVersion>
     <PlotlyNETCSharpVersion>0.11.1</PlotlyNETCSharpVersion>
     <SharpZipLibVersion>1.4.2</SharpZipLibVersion>
-    <TensorflowDotNETVersion>0.20.1</TensorflowDotNETVersion>
+    <TensorflowDotNETVersion>0.70.2</TensorflowDotNETVersion>
     <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
-    <TensorFlowVersion>2.3.1</TensorFlowVersion>
+    <TensorFlowVersion>2.7.0</TensorFlowVersion>
     <TorchSharpPyBridgeVersion>1.4.1</TorchSharpPyBridgeVersion>
     <AutoGenVersion>0.2.3</AutoGenVersion>
     <SemanticKernelVersion>1.48.0</SemanticKernelVersion>

@@ -26,6 +26,7 @@ using Tensorflow;
 using Tensorflow.Summaries;
 using static Microsoft.ML.Data.TextLoader;
 using static Microsoft.ML.TensorFlow.TensorFlowUtils;
+using static Microsoft.ML.Vision.StringTensorFactory;
 using static Tensorflow.Binding;
 using Column = Microsoft.ML.Data.TextLoader.Column;
 
@@ -763,23 +764,7 @@ namespace Microsoft.ML.Vision
 
         private static Tensor EncodeByteAsString(VBuffer<byte> buffer)
         {
-            int length = buffer.Length;
-            var size = c_api.TF_StringEncodedSize((ulong)length);
-            var handle = c_api.TF_AllocateTensor(TF_DataType.TF_STRING, Array.Empty<long>(), 0, ((ulong)size + 8));
-
-            IntPtr tensor = c_api.TF_TensorData(handle);
-            Marshal.WriteInt64(tensor, 0);
-
-            var status = new Status();
-            unsafe
-            {
-                fixed (byte* src = buffer.GetValues())
-                    c_api.TF_StringEncode(src, (ulong)length, (byte*)(tensor + sizeof(Int64)), size, status.Handle);
-            }
-
-            status.Check(true);
-            status.Dispose();
-            return new Tensor(handle);
+            return StringTensorFactory.CreateStringTensor(buffer.DenseValues().ToArray());
         }
 
         internal sealed class ImageProcessor
@@ -976,8 +961,8 @@ namespace Microsoft.ML.Vision
                 metrics.Train = new TrainMetrics();
                 float accuracy = 0;
                 float crossentropy = 0;
-                var labelTensorShape = _labelTensor.TensorShape.dims.Select(x => (long)x).ToArray();
-                var featureTensorShape = _bottleneckInput.TensorShape.dims.Select(x => (long)x).ToArray();
+                var labelTensorShape = _labelTensor.shape.dims.Select(x => (long)x).ToArray();
+                var featureTensorShape = _bottleneckInput.shape.dims.Select(x => (long)x).ToArray();
                 byte[] buffer = new byte[sizeof(int)];
                 trainSetFeatureReader.ReadExactly(buffer, 0, 4);
                 int trainingExamples = BitConverter.ToInt32(buffer, 0);
@@ -1119,12 +1104,12 @@ namespace Microsoft.ML.Vision
                 {
                     // Add learning rate as a placeholder only when learning rate scheduling is used.
                     metrics.Train.LearningRate = learningRateScheduler.GetLearningRate(trainState);
-                    runner.AddInput(new Tensor(metrics.Train.LearningRate, TF_DataType.TF_FLOAT), 2);
+                    runner.AddInput(new Tensor(metrics.Train.LearningRate), 2);
                 }
 
-                var outputTensors = runner.AddInput(new Tensor(featureBufferPtr, featureTensorShape, TF_DataType.TF_FLOAT, featuresFileBytesRead), 0)
-                                    .AddInput(new Tensor(labelBufferPtr, labelTensorShape, TF_DataType.TF_INT64, labelFileBytesRead), 1)
-                                    .Run();
+                var outputTensors = runner.AddInput(new Tensor(featureBufferPtr, featureTensorShape, TF_DataType.TF_FLOAT), 0)
+                    .AddInput(new Tensor(labelBufferPtr, labelTensorShape, TF_DataType.TF_INT64), 1)
+                    .Run();
 
                 metrics.Train.BatchProcessedCount += 1;
                 metricsAggregator(outputTensors, metrics);
@@ -1186,7 +1171,7 @@ namespace Microsoft.ML.Vision
             {
                 tf_with(tf.name_scope("correct_prediction"), delegate
                 {
-                    _prediction = tf.argmax(resultTensor, 1);
+                    _prediction = tf.math.argmax(resultTensor, 1);
                     correctPrediction = tf.equal(_prediction, groundTruthTensor);
                 });
 
@@ -1240,7 +1225,7 @@ namespace Microsoft.ML.Vision
             string scoreColumnName, Tensor bottleneckTensor, bool isTraining, bool useLearningRateScheduler,
             float learningRate)
         {
-            var bottleneckTensorDims = bottleneckTensor.TensorShape.dims;
+            var bottleneckTensorDims = CastLongArrayToIntArray(bottleneckTensor.shape.dims);
             var (batch_size, bottleneck_tensor_size) = (bottleneckTensorDims[0], bottleneckTensorDims[1]);
             tf_with(tf.name_scope("input"), scope =>
             {
@@ -1254,7 +1239,7 @@ namespace Microsoft.ML.Vision
                         _learningRateInput = tf.placeholder(tf.float32, null, name: "learningRateInputPlaceholder");
 
                 }
-                _labelTensor = tf.placeholder(tf.int64, new TensorShape(batch_size), name: labelColumn);
+                _labelTensor = tf.placeholder(tf.int64, new Shape(batch_size), name: labelColumn);
             });
 
             string layerName = "final_retrain_ops";
@@ -1274,7 +1259,7 @@ namespace Microsoft.ML.Vision
                 ResourceVariable layerBiases = null;
                 tf_with(tf.name_scope("biases"), delegate
                 {
-                    TensorShape shape = new TensorShape(classCount);
+                    Shape shape = new Shape(classCount);
                     layerBiases = tf.Variable(tf.zeros(shape), name: "final_biases");
                     VariableSummaries(layerBiases);
                 });
@@ -1311,6 +1296,27 @@ namespace Microsoft.ML.Vision
             });
 
             return (_trainStep, crossEntropyMean, _labelTensor, _softMaxTensor);
+        }
+
+        private static int[] CastLongArrayToIntArray(long[] source)
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+
+            int[] result = new int[source.Length];
+
+            for (int i = 0; i < source.Length; i++)
+            {
+                long value = source[i];
+                if (value > int.MaxValue || value < int.MinValue)
+                {
+                    throw new OverflowException($"Value at index {i} ({value}) cannot be safely cast to int.");
+                }
+
+                result[i] = (int)value;
+            }
+
+            return result;
         }
 
         private void AddTransferLearningLayer(string labelColumn,
@@ -1514,10 +1520,94 @@ namespace Microsoft.ML.Vision
 
             if (_session != null && _session != IntPtr.Zero)
             {
-                _session.close();
+                _session.Dispose();
             }
 
             _isDisposed = true;
         }
     }
+
+#pragma warning disable MSML_GeneralName
+#pragma warning disable MSML_ParameterLocalVarName
+#pragma warning disable IDE0055
+    public class StringTensorFactory
+    {
+        // Define TF_TString struct
+        [StructLayout(LayoutKind.Sequential)]
+        struct TF_TString
+        {
+            public IntPtr data;
+            public UIntPtr length;
+            public UIntPtr capacity;
+            public int memory_type;
+        }
+
+        // Import TF_TString methods from TensorFlow C API
+        [DllImport("tensorflow", CallingConvention = CallingConvention.Cdecl)]
+        private static extern unsafe void TF_StringInit(TF_TString* tstring);
+
+        [DllImport("tensorflow", CallingConvention = CallingConvention.Cdecl)]
+        private static extern unsafe void TF_StringCopy(TF_TString* dst, byte* src, UIntPtr size);
+
+        [DllImport("tensorflow", CallingConvention = CallingConvention.Cdecl)]
+        private static extern unsafe void TF_StringDealloc(TF_TString* tstring);
+
+        private static readonly TF_Deallocator _deallocatorInstance = new StringTensorFactory.TF_Deallocator(Deallocator);
+
+        // Delegate for TensorFlow deallocator
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void TF_Deallocator(IntPtr data, UIntPtr length, IntPtr arg);
+
+        // Deallocator function
+        public static void Deallocator(IntPtr data, UIntPtr length, IntPtr arg)
+        {
+            unsafe
+            {
+                TF_StringDealloc((TF_TString*)data);
+            }
+            Marshal.FreeHGlobal(data);
+        }
+
+        public static Tensor CreateStringTensor(byte[] data)
+        {
+            int sizeOfTString = Marshal.SizeOf<TF_TString>();
+
+            // Allocate memory for TF_TString
+            IntPtr tstringPtr = Marshal.AllocHGlobal(sizeOfTString);
+            unsafe
+            {
+                TF_TString* tstring = (TF_TString*)tstringPtr;
+                TF_StringInit(tstring);
+
+                fixed (byte* src = data)
+                {
+                    TF_StringCopy(tstring, src, (UIntPtr)data.Length);
+                }
+            }
+
+            // Create a scalar tensor (rank 0, so no shape dims)
+            Tensor tensor = new Tensor(new SafeTensorHandle(TF_NewTensor(
+                TF_DataType.TF_STRING,
+                Array.Empty<long>(),
+                0,
+                tstringPtr, 
+                (UIntPtr)sizeOfTString,
+                _deallocatorInstance,
+                IntPtr.Zero
+            )));
+
+            return tensor;
+        }
+
+        [DllImport("tensorflow", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr TF_NewTensor(
+            TF_DataType dtype,
+            long[] dims, int num_dims,
+            IntPtr data, UIntPtr len,
+            TF_Deallocator deallocator,
+            IntPtr deallocator_arg);
+    }
+#pragma warning restore MSML_GeneralName
+#pragma warning restore MSML_ParameterLocalVarName
+#pragma warning restore IDE0055
 }
