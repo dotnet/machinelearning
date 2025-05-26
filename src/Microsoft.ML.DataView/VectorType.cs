@@ -81,7 +81,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(dimensions.All(d => d >= 0), nameof(dimensions));
 
             ItemType = itemType;
-            Dimensions = CastLongArrayToIntArray(dimensions).ToImmutableArray();
+            Dimensions = ArrayUtils.CastLongArrayToIntArray(dimensions).ToImmutableArray();
             Size = ComputeSize(Dimensions);
         }
 
@@ -115,27 +115,6 @@ namespace Microsoft.ML.Data
             for (int i = 0; i < dims.Length; ++i)
                 size = checked(size * dims[i]);
             return size;
-        }
-
-        private static int[] CastLongArrayToIntArray(long[] source)
-        {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
-
-            int[] result = new int[source.Length];
-
-            for (int i = 0; i < source.Length; i++)
-            {
-                long value = source[i];
-                if (value > int.MaxValue || value < int.MinValue)
-                {
-                    throw new OverflowException($"Value at index {i} ({value}) cannot be safely cast from long to int.");
-                }
-
-                result[i] = (int)value;
-            }
-
-            return result;
         }
 
         /// <summary>

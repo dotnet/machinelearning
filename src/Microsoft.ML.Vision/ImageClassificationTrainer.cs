@@ -25,6 +25,7 @@ using Microsoft.ML.Vision;
 using Tensorflow;
 using Tensorflow.Summaries;
 using static Microsoft.ML.Data.TextLoader;
+using static Microsoft.ML.Internal.Utilities.ArrayUtils;
 using static Microsoft.ML.TensorFlow.TensorFlowUtils;
 using static Microsoft.ML.Vision.StringTensorFactory;
 using static Tensorflow.Binding;
@@ -1296,27 +1297,6 @@ namespace Microsoft.ML.Vision
             });
 
             return (_trainStep, crossEntropyMean, _labelTensor, _softMaxTensor);
-        }
-
-        private static int[] CastLongArrayToIntArray(long[] source)
-        {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
-
-            int[] result = new int[source.Length];
-
-            for (int i = 0; i < source.Length; i++)
-            {
-                long value = source[i];
-                if (value > int.MaxValue || value < int.MinValue)
-                {
-                    throw new OverflowException($"Value at index {i} ({value}) cannot be safely cast to int.");
-                }
-
-                result[i] = (int)value;
-            }
-
-            return result;
         }
 
         private void AddTransferLearningLayer(string labelColumn,
