@@ -55,7 +55,7 @@ namespace Microsoft.ML.Transforms.Text
     /// * [TF, IDF or TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf)
     /// * [L-p vector normalization](xref: Microsoft.ML.Transforms.LpNormNormalizingTransformer)
     ///
-    /// By default the features are made of (word/character) n-grams/skip-grams, and the number of features are equal to the vocabulary size found by analyzing the data.
+    /// By default the features are made of (word/character) n-grams/skip-grams, and the number of features is equal to the vocabulary size found by analyzing the data.
     /// To output an additional column with the tokens generated, use [OutputTokensColumnName](xref:Microsoft.ML.Transforms.Text.TextFeaturizingEstimator.Options.OutputTokensColumnName).
     /// The number of features can also be specified by selecting the maximum number of n-gram to keep in the <xref:Microsoft.ML.Transforms.Text.TextFeaturizingEstimator.Options>, where the estimator can be further tuned.
     ///
