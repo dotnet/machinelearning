@@ -39,8 +39,8 @@ namespace Microsoft.ML.Transforms
     /// <param name="env">The host environment that provides services and logging capabilities.</param>
     /// <param name="mapAction">The action that maps source columns to destination columns.</param>
     /// <param name="contractName">The name of the action that will be saved to the model.</param>
-    /// <param name="inputSchemaDefinition">Additional parameters that define the schema mapping between <typeparamref name="TSrc"/> and input data.</param>
-    /// <param name="outputSchemaDefinition">Additional parameters that define the schema mapping between <typeparamref name="TDst"/> and output data.</param>
+    /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data.</param>
+    /// <param name="outputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TDst"/> and output data.</param>
         internal CustomMappingTransformer(IHostEnvironment env, Action<TSrc, TDst> mapAction, string contractName,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
         {
