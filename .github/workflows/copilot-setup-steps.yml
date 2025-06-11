@@ -16,6 +16,8 @@ jobs:
     # If you do not check out your code, Copilot will do this for you.
     steps:
       - uses: actions/checkout@v4.2.2
+        with:
+          submodules: recursive
 
       - name: Install Dependencies
         run: |
