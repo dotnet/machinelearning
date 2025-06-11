@@ -99,11 +99,14 @@
     <PackageVersion Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" />
 
     <!-- Build/infrastructure dependencies -->
+    <PackageVersion Include="Codecov" Version="$(CodecovVersion)" />
     <PackageVersion Include="Drop.App" Version="$(DropAppVersion)" />
+    <PackageVersion Include="Microsoft.DotNet.Build.Tasks.Templating" Version="$(MicrosoftDotNetBuildTasksTemplatingVersion)" />
     <PackageVersion Include="Microsoft.DotNet.IBCMerge" Version="$(MicrosoftDotNetIBCMergeVersion)" />
     <PackageVersion Include="Microsoft.ManifestTool.CrossPlatform" Version="$(MicrosoftManifestToolCrossPlatformVersion)" />
     <PackageVersion Include="Microsoft.VisualStudioEng.MicroBuild.Core" Version="$(MicrosoftVisualStudioEngMicroBuildCoreVersion)" />
     <PackageVersion Include="Microsoft.VisualStudioEng.MicroBuild.Plugins.SwixBuild" Version="$(MicrosoftVisualStudioEngMicroBuildPluginsSwixBuildVersion)" />
+    <PackageVersion Include="ReportGenerator" Version="$(ReportGeneratorVersion)" />
 
     <!-- Special cases - packages with specific versions not using properties -->
     <PackageVersion Include="MathNet.Numerics.Signed" Version="5.0.0" />
