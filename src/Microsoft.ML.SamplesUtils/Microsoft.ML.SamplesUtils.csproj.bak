@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageDescription>Sample utils for Microsoft.ML.Samples</PackageDescription>
+
+    <!--The nuget we publish is named SampleUtils, so this is necessary.
+    Still, the namespace expected inside the nuget is named SamplesUtils,
+    So the project itself and its code is not to be renamed SampleUtils.-->
+    <PackageId>Microsoft.ML.SampleUtils</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpZipLib" Version="$(SharpZipLibVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
+
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

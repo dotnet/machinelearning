@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
+    <IsPackable>true</IsPackable>
+    <PackageDescription>Microsoft.ML.CpuMath contains optimized math routines for ML.NET.</PackageDescription>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>$(DefineConstants);CPUMATH_INFRASTRUCTURE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Microsoft.ML.Core\Utilities\Contracts.cs" />
+    <Compile Include="..\Microsoft.ML.Core\BestFriendAttribute.cs" />
+    <Compile Include="..\Microsoft.ML.Core\PublicKey.cs" />
+    <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
+    <None Include="**/*.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <Compile Remove="CpuMathUtils.netstandard.cs" />
+    <Compile Remove="FactorizationMachine/FactorizationMachineInterface.netstandard.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <Compile Remove="CpuMathUtils.netcoreapp.cs" />
+    <Compile Remove="SseIntrinsics.cs" />
+    <Compile Remove="AvxIntrinsics.cs" />
+    <Compile Remove="FactorizationMachine/FactorizationMachineInterface.netcoreapp.cs" />
+    <Compile Remove="FactorizationMachine/AvxIntrinsics.cs" />
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="build\**\*" Pack="true" PackagePath="build" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Numerics.Tensors" Version="$(SystemNumericsTensorsVersion)" />
+  </ItemGroup>
+
+</Project>

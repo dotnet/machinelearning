@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Microsoft.ML.Model.Onnx</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageDescription>ML.NET component for exporting ONNX Models</PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
+
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Data.Analysis\Microsoft.Data.Analysis.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
+    <!-- SearchSpace is part of AutoML -->
+    <ProjectReference Include="..\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
+    <!-- Core and Data are part of Microsoft.ML -->
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" PrivateAssets="all" />
+
+
+  </ItemGroup>
+
+</Project>

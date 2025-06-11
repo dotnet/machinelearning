@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+      <!-- Remove once we have resolved the TorchSharp issue. -->
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ApprovalTests" Version="$(ApprovalTestsVersion)" />
+    <PackageReference Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.CodeGenerator\Microsoft.ML.CodeGenerator.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ContentWithTargetPath Include="ApprovalTests\**\*.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>%(Filename).txt</TargetPath>
+    </ContentWithTargetPath>
+  </ItemGroup>
+
+  <ItemGroup>
+    <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+  </ItemGroup>
+
+</Project>

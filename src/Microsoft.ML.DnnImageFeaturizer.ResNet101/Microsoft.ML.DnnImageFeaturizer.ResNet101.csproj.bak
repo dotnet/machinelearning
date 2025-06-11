@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageDescription>ML.NET component for pretrained ResNet101 image featurization</PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.csproj" />
+
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.ML.DnnImageFeaturizer.ModelRedist\Microsoft.ML.DnnImageFeaturizer.ModelRedist.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="$(ModelDownloadPath)ResNet101Onnx\ResNet101.onnx" PackagePath="tools\DnnImageModels\ResNet101Onnx\ResNet101.onnx" />
+    <Content Include="$(ModelDownloadPath)ResNetPrepOnnx\ResNetPreprocess.onnx" PackagePath="tools\DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx" />
+    <Content Include="$(RepoRoot)eng\pkg\DnnImageFeaturizer.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
+  </ItemGroup>
+
+</Project>

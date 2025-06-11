@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>MML</AssemblyName>
+    <StartupObject>Microsoft.ML.Tools.Console.Console</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.FastTree\Microsoft.ML.FastTree.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Maml\Microsoft.ML.Maml.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.PCA\Microsoft.ML.PCA.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.ResultProcessor\Microsoft.ML.ResultProcessor.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Sweeper\Microsoft.ML.Sweeper.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
+
+    <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="MatrixFactorizationNative" />
+    <NativeAssemblyReference Include="LdaNative" />
+    <NativeAssemblyReference Include="SymSgdNative"/>
+    <NativeAssemblyReference Include="MklImports"/>
+    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md"/>
+  </ItemGroup>
+
+</Project>

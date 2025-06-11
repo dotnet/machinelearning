@@ -1,0 +1,14 @@
+<Project>
+
+  <Import Project="..\Directory.Build.targets" />
+
+  <PropertyGroup>
+    <!-- This needs to be in Directory.Build.targets or the default value for AllowedReferenceRelatedFileExtensions will not be applied.
+         This is required in order to have following extension files in the output folder of the projects referencing other projects. -->
+    <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.runtimeconfig.json;.runtimeconfig.dev.json;.deps.json</AllowedReferenceRelatedFileExtensions>
+  </PropertyGroup>
+
+  <!-- Coverlet publish causes problems with dependenies -->
+  <Target Name="CopyCoverletDataCollectorFiles" AfterTargets="ComputeFilesToPublish"/>
+
+</Project>

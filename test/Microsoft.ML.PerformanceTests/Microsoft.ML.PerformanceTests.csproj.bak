@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <IsUnitTestProject>false</IsUnitTestProject>
+    <IsPerformanceTestProject>true</IsPerformanceTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="BenchmarkDotNet.Artifacts\**" />
+    <EmbeddedResource Remove="BenchmarkDotNet.Artifacts\**" />
+    <None Remove="BenchmarkDotNet.Artifacts\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="$(BenchmarkDotNetVersion)" />
+    <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsVersion)" />
+    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Vision\Microsoft.ML.Vision.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" />
+    <ProjectReference Include="..\..\test\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
+    <ProjectReference Include="..\..\test\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+  </ItemGroup>
+
+</Project>

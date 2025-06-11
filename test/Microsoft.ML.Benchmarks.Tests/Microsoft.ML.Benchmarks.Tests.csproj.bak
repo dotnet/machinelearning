@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.PerformanceTests\Microsoft.ML.PerformanceTests.csproj" />
+
+    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+  </ItemGroup>
+
+</Project>

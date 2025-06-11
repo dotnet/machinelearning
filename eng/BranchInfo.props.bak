@@ -1,0 +1,42 @@
+<Project>
+  <PropertyGroup>
+    <StableProjects>
+      Microsoft.Extensions.ML;
+      Microsoft.ML.DataView;
+      Microsoft.ML.CpuMath;
+      Microsoft.ML;
+      Microsoft.ML.Core;
+      Microsoft.ML.Data;
+      Microsoft.ML.KMeansClustering;
+      Microsoft.ML.PCA;
+      Microsoft.ML.StandardTrainers;
+      Microsoft.ML.Transforms;
+      Microsoft.ML.FastTree;
+      Microsoft.ML.ImageAnalytics;
+      Microsoft.ML.LightGbm;
+      Microsoft.ML.Mkl.Components;
+      Microsoft.ML.Mkl.Redist;
+      Microsoft.ML.TimeSeries;
+      Microsoft.ML.TensorFlow;
+      Microsoft.ML.OnnxTransformer;
+      Microsoft.ML.Vision;
+    </StableProjects>
+    <_NormalizedStableProjectName Condition="'$(MSBuildProjectName.Contains(.symbols))' == 'true'">$(MSBuildProjectName.Substring(0, $(MSBuildProjectName.IndexOf(.symbols))))</_NormalizedStableProjectName>
+    <_NormalizedStableProjectName Condition="'$(_NormalizedStableProjectName)' == ''">$(MSBuildProjectName)</_NormalizedStableProjectName>
+
+    <IsStableProject Condition="'$(UseStableVersionForNativeAssets)' == 'true'">true</IsStableProject>
+    <IsStableProject Condition="'$(StableProjects.IndexOf($(_NormalizedStableProjectName), StringComparison.OrdinalIgnoreCase))' != '-1'">true</IsStableProject>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsStableProject)' == 'true'">
+    <MajorVersion>5</MajorVersion>
+    <MinorVersion>0</MinorVersion>
+    <PatchVersion>0</PatchVersion>
+    <!-- Set baseline version for stable packages to check for API Compat -->
+    <PackageValidationBaselineVersion>$([MSBuild]::Subtract($(MajorVersion), 1)).0.0</PackageValidationBaselineVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsStableProject)' != 'true'">
+    <MajorVersion>0</MajorVersion>
+    <MinorVersion>23</MinorVersion>
+    <PatchVersion>0</PatchVersion>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,997 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <SignAssembly>false</SignAssembly>
+    <!--This ensures that we can never make the mistake of adding this as a friend assembly. Please don't remove.-->
+    <PublicSign>false</PublicSign>
+    <RootNamespace>Samples</RootNamespace>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Dynamic\Transforms\CountTargetEncoding.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.Vision\Microsoft.ML.Vision.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.PCA\Microsoft.ML.PCA.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.SamplesUtils\Microsoft.ML.SamplesUtils.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.FastTree\Microsoft.ML.FastTree.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.DnnImageFeaturizer.ResNet18\Microsoft.ML.DnnImageFeaturizer.ResNet18.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+
+    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Include="MatrixFactorizationNative" />
+    <NativeAssemblyReference Include="LdaNative" />
+    <NativeAssemblyReference Include="SymSgdNative" />
+    <NativeAssemblyReference Include="MklProxyNative" />
+    <None Include="Dynamic\Trainers\BinaryClassification\FastForest.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastForest.tt</DependentUpon>
+    </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\FastForestWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastForestWithOptions.tt</DependentUpon>
+    </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\FastTree.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTree.tt</DependentUpon>
+    </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\FastTreeWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
+    </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\FieldAwareFactorizationMachine.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FieldAwareFactorizationMachine.tt</DependentUpon>
+    </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\FieldAwareFactorizationMachineWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FieldAwareFactorizationMachineWithOptions.tt</DependentUpon>
+    </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegression.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsLogisticRegression.tt</DependentUpon>
+    </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegressionWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsLogisticRegressionWithOptions.tt</DependentUpon>
+    </None>
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Dynamic\DataOperations\DataViewEnumerable.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>DataViewEnumerable.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\DataOperations\FilterRowsByColumn.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FilterRowsByColumn.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\DataOperations\ShuffleRows.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ShuffleRows.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\DataOperations\SkipRows.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SkipRows.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\DataOperations\TakeRows.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>TakeRows.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\AveragedPerceptron.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>AveragedPerceptron.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\AveragedPerceptronWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>AveragedPerceptronWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\FastForest.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastForest.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\FastForestWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastForestWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\FastTree.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTree.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\FastTreeWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\FieldAwareFactorizationMachine.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FieldAwareFactorizationMachine.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\FactorizationMachine.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FactorizationMachine.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\FieldAwareFactorizationMachineWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FieldAwareFactorizationMachineWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegressionWithOptions.tt">
+      <LastGenOutput>LbfgsLogisticRegressionWithOptions.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegression.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LbfgsLogisticRegression.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LdSvm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LdSvm.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LdSvmWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LdSvmWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LightGbm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbm.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LightGbmWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbmWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LinearSvm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LinearSvm.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LinearSvmWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LinearSvmWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\PriorTrainer.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PriorTrainer.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SdcaLogisticRegression.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaLogisticRegression.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SdcaLogisticRegressionWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaLogisticRegressionWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SdcaNonCalibrated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaNonCalibrated.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SdcaNonCalibratedWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaNonCalibratedWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SgdCalibrated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SgdCalibrated.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SgdCalibratedWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SgdCalibratedWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SgdNonCalibrated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SgdNonCalibrated.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SgdNonCalibratedWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SgdNonCalibratedWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SymbolicSgdLogisticRegression.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SymbolicSgdLogisticRegression.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SymbolicSgdLogisticRegressionWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SymbolicSgdLogisticRegressionWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\LbfgsMaximumEntropy.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LbfgsMaximumEntropy.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\LbfgsMaximumEntropyWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LbfgsMaximumEntropyWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\LightGbm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbm.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\LightGbmWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbmWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LightGbm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbm.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LightGbmWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbmWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LinearSvm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LinearSvm.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LinearSvmWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LinearSvmWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\PriorTrainer.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PriorTrainer.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SdcaLogisticRegression.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaLogisticRegression.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SdcaLogisticRegressionWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaLogisticRegressionWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SdcaNonCalibrated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaNonCalibrated.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SdcaNonCalibratedWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaNonCalibratedWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SgdCalibrated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SgdCalibrated.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SgdCalibratedWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SgdCalibratedWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SgdNonCalibrated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SgdNonCalibrated.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SgdNonCalibratedWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SgdNonCalibratedWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SymbolicSgdLogisticRegression.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SymbolicSgdLogisticRegression.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SymbolicSgdLogisticRegressionWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SymbolicSgdLogisticRegressionWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Clustering\KMeans.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>KMeans.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Clustering\KMeansWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>KMeansWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\NaiveBayes.tt">
+      <LastGenOutput>NaiveBayes.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\LbfgsMaximumEntropy.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LbfgsMaximumEntropy.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\LbfgsMaximumEntropyWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LbfgsMaximumEntropyWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\LightGbm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbm.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\LightGbmWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbmWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\NaiveBayes.tt">
+      <LastGenOutput>NaiveBayes.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\PairwiseCoupling.tt">
+      <LastGenOutput>PairwiseCoupling.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\OneVersusAll.tt">
+      <LastGenOutput>OneVersusAll.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Dynamic\Trainers\Recommendation\MatrixFactorization.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>MatrixFactorization.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Recommendation\MatrixFactorizationWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>MatrixFactorizationWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\FastForest.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastForest.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\FastForestWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastForestWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\SdcaMaximumEntropy.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaMaximumEntropy.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\SdcaMaximumEntropyWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaMaximumEntropyWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\SdcaNonCalibrated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaNonCalibrated.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\SdcaNonCalibratedWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaNonCalibratedWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\FastTree.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTree.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\FastTreeTweedie.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeTweedie.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\FastTreeTweedieWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeTweedieWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\FastTreeWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\SdcaMaximumEntropy.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaMaximumEntropy.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\SdcaMaximumEntropyWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaMaximumEntropyWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\SdcaNonCalibrated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaNonCalibrated.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\SdcaNonCalibratedWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaNonCalibratedWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Ranking\FastTree.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTree.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Ranking\FastTreeWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Ranking\LightGbm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbm.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Ranking\LightGbmWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbmWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\LightGbm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbm.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\LightGbmWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbmWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\OnlineGradientDescent.tt">
+      <LastGenOutput>OnlineGradientDescent.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\OnlineGradientDescentWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>OnlineGradientDescentWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\LbfgsPoissonRegression.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LbfgsPoissonRegression.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\LbfgsPoissonRegressionWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LbfgsPoissonRegressionWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\Gam.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Gam.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\GamWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>GamWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\OrdinaryLeastSquares.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>OrdinaryLeastSquares.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\OrdinaryLeastSquaresWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>OrdinaryLeastSquaresWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\Sdca.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Sdca.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\SdcaWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Transforms\TreeFeaturization\FastForestBinaryFeaturizationWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastForestBinaryFeaturizationWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Transforms\TreeFeaturization\FastForestRegressionFeaturizationWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastForestRegressionFeaturizationWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Transforms\TreeFeaturization\FastTreeBinaryFeaturizationWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeBinaryFeaturizationWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Transforms\TreeFeaturization\FastTreeRankingFeaturizationWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeRankingFeaturizationWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Transforms\TreeFeaturization\FastTreeRegressionFeaturizationWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeRegressionFeaturizationWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Transforms\TreeFeaturization\FastTreeTweedieFeaturizationWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeTweedieFeaturizationWithOptions.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Dynamic\DataOperations\DataViewEnumerable.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DataViewEnumerable.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\DataOperations\FilterRowsByColumn.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FilterRowsByColumn.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\DataOperations\ShuffleRows.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ShuffleRows.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\DataOperations\SkipRows.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SkipRows.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\DataOperations\TakeRows.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TakeRows.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\AveragedPerceptron.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AveragedPerceptron.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\AveragedPerceptronWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AveragedPerceptronWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\FastForest.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastForest.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\FastForestWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastForestWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\FastTree.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTree.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\FastTreeWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\FieldAwareFactorizationMachine.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FieldAwareFactorizationMachine.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\FactorizationMachine.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FactorizationMachine.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\FieldAwareFactorizationMachineWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FieldAwareFactorizationMachineWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegression.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsLogisticRegression.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegressionWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsLogisticRegressionWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LdSvm.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LdSvm.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LdSvmWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LdSvmWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LightGbm.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LightGbm.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LightGbmWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LightGbmWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LinearSvm.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LinearSvm.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LinearSvmWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LinearSvmWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\PriorTrainer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PriorTrainer.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SdcaLogisticRegression.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaLogisticRegression.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SdcaLogisticRegressionWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaLogisticRegressionWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SdcaNonCalibrated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaNonCalibrated.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SdcaNonCalibratedWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaNonCalibratedWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SgdCalibrated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SgdCalibrated.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SgdCalibratedWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SgdCalibratedWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SgdNonCalibrated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SgdNonCalibrated.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SgdNonCalibratedWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SgdNonCalibratedWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SymbolicSgdLogisticRegression.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SymbolicSgdLogisticRegression.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SymbolicSgdLogisticRegressionWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SymbolicSgdLogisticRegressionWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\LbfgsMaximumEntropy.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsMaximumEntropy.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\LbfgsMaximumEntropyWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsMaximumEntropyWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\LightGbm.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LightGbm.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\LightGbmWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LightGbmWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LinearSvm.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LinearSvm.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LinearSvmWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LinearSvmWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\PriorTrainer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PriorTrainer.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SdcaLogisticRegression.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaLogisticRegression.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SdcaLogisticRegressionWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaLogisticRegressionWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SdcaNonCalibrated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaNonCalibrated.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SdcaNonCalibratedWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaNonCalibratedWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SgdCalibrated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SgdCalibrated.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SgdCalibratedWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SgdCalibratedWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SgdNonCalibrated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SgdNonCalibrated.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SgdNonCalibratedWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SgdNonCalibratedWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SymbolicSgdLogisticRegression.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SymbolicSgdLogisticRegression.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SymbolicSgdLogisticRegressionWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SymbolicSgdLogisticRegressionWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Clustering\KMeans.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>KMeans.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Clustering\KMeansWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>KMeansWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\LbfgsMaximumEntropy.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsMaximumEntropy.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\LbfgsMaximumEntropyWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsMaximumEntropyWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\PairwiseCoupling.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PairwiseCoupling.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\OneVersusAll.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OneVersusAll.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Recommendation\MatrixFactorization.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MatrixFactorization.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Recommendation\MatrixFactorizationWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MatrixFactorizationWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\SdcaMaximumEntropy.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaMaximumEntropy.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\SdcaMaximumEntropyWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaMaximumEntropyWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\SdcaNonCalibrated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaNonCalibrated.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\SdcaNonCalibratedWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaNonCalibratedWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\NaiveBayes.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NaiveBayes.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Ranking\FastTree.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTree.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Ranking\FastTreeWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Ranking\LightGbm.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LightGbm.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Ranking\LightGbmWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LightGbmWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\FastForest.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastForest.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\FastForestWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastForestWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\FastTree.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTree.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\FastTreeTweedie.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeTweedie.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\FastTreeTweedieWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeTweedieWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\FastTreeWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\LightGbm.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LightGbm.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\LightGbmWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LightGbmWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\SdcaMaximumEntropy.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaMaximumEntropy.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\SdcaMaximumEntropyWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaMaximumEntropyWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\SdcaNonCalibrated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaNonCalibrated.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\SdcaNonCalibratedWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaNonCalibratedWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\NaiveBayes.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NaiveBayes.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\OnlineGradientDescent.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OnlineGradientDescent.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\OnlineGradientDescentWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OnlineGradientDescentWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\LbfgsPoissonRegression.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsPoissonRegression.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\LbfgsPoissonRegressionWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsPoissonRegressionWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\Gam.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Gam.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\GamWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>GamWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\OrdinaryLeastSquares.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OrdinaryLeastSquares.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\OrdinaryLeastSquaresWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OrdinaryLeastSquaresWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\Sdca.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Sdca.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\SdcaWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Transforms\TreeFeaturization\FastForestBinaryFeaturizationWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastForestBinaryFeaturizationWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Transforms\TreeFeaturization\FastForestRegressionFeaturizationWithOptions.cs">
+      <DependentUpon>FastForestRegressionFeaturizationWithOptions.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Dynamic\Transforms\TreeFeaturization\FastTreeBinaryFeaturizationWithOptions.cs">
+      <DependentUpon>FastTreeBinaryFeaturizationWithOptions.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Dynamic\Transforms\TreeFeaturization\FastTreeRankingFeaturizationWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeRankingFeaturizationWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Transforms\TreeFeaturization\FastTreeRegressionFeaturizationWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeRegressionFeaturizationWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Transforms\TreeFeaturization\FastTreeTweedieFeaturizationWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeTweedieFeaturizationWithOptions.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JsonSchema.Net" Version="$(JsonSchemaNetVersion)" />
+    <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
+    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimeVersion)" />
+  </ItemGroup>
+
+    <ItemGroup>
+    <Content Include="$(ModelDownloadPath)\ResNet18Onnx\ResNet18.onnx">
+      <Link>DnnImageModels\ResNet18Onnx\ResNet18.onnx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+    <ItemGroup>
+    <Content Include="$(ModelDownloadPath)\ResNetPrepOnnx\ResNetPreprocess.onnx">
+      <Link>DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

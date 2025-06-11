@@ -1,0 +1,74 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <SignAssembly>false</SignAssembly>
+    <!--This ensures that we can never make the mistake of adding this as a friend assembly. Please don't remove.-->
+    <PublicSign>false</PublicSign>
+    <RootNamespace>Samples</RootNamespace>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Microsoft.ML.Samples\Dynamic\Trainers\MulticlassClassification\ImageClassification\*.cs">
+      <Link>Dynamic\ImageClassification\%(FileName)</Link>
+    </Compile>
+    <Compile Include="..\Microsoft.ML.Samples\Dynamic\TensorFlow\*.cs">
+      <Link>Dynamic\TensorFlow\%(FileName)</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.Vision\Microsoft.ML.Vision.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.DnnImageFeaturizer.ModelRedist\Microsoft.ML.DnnImageFeaturizer.ModelRedist.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.SamplesUtils\Microsoft.ML.SamplesUtils.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
+
+    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Include="MatrixFactorizationNative" />
+    <NativeAssemblyReference Include="LdaNative" />
+    <NativeAssemblyReference Include="SymSgdNative" />
+    <NativeAssemblyReference Include="MklProxyNative" />
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(OS)' == 'Windows_NT'">
+    <PackageReference Include="SciSharp.TensorFlow.Redist-Windows-GPU" Version="$(TensorFlowVersion)" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(OS)' == 'Unix'">
+    <PackageReference Include="SciSharp.TensorFlow.Redist-Linux-GPU" Version="$(TensorFlowVersion)" />
+  </ItemGroup>
+
+    <ItemGroup>
+    <Content Include="$(ModelDownloadPath)\ResNet18Onnx\ResNet18.onnx">
+      <Link>DnnImageModels\ResNet18Onnx\ResNet18.onnx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+    <ItemGroup>
+    <Content Include="$(ModelDownloadPath)\ResNetPrepOnnx\ResNetPreprocess.onnx">
+      <Link>DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Dynamic\" />
+    </ItemGroup>
+
+</Project>

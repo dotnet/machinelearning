@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn)</NoWarn>
+
+    <!-- Remove once we have resolved the TorchSharp issue. -->
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.DotNet.Interactive" Version="$(MicrosoftDotNetInteractiveVersion)" />
+    <PackageReference Include="Microsoft.DotNet.Interactive.Formatting" Version="$(MicrosoftDotNetInteractiveVersion)" />
+    <PackageReference Include="Plotly.NET.CSharp" Version="$(PlotlyNETCSharpVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj" />
+    <ProjectReference Include="..\Microsoft.Data.Analysis\Microsoft.Data.Analysis.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
+  </ItemGroup>
+
+</Project>

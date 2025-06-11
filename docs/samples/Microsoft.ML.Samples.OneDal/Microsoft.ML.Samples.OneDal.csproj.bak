@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <!--This ensures that we can never make the mistake of adding this as a friend assembly. Please don't remove.-->
+    <PublicSign>false</PublicSign>
+  </PropertyGroup>
+
+<!--
+  <ItemGroup>
+    <Reference Include="Microsoft.ML">
+      <HintPath>../machinelearning/artifacts/bin/Microsoft.ML/Debug/netstandard2.0/Microsoft.ML.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.Core">
+      <HintPath>../machinelearning/artifacts/bin/Microsoft.ML/Debug/netstandard2.0/Microsoft.ML.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.Data">
+      <HintPath>../machinelearning/artifacts/bin/Microsoft.ML/Debug/netstandard2.0/Microsoft.ML.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.Mkl.Components">
+      <HintPath>../machinelearning/artifacts/bin/Microsoft.ML.Mkl.Components/Debug/netstandard2.0/Microsoft.ML.Mkl.Components.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.DataView">
+      <HintPath>../machinelearning/artifacts/bin/Microsoft.ML/Debug/netstandard2.0/Microsoft.ML.DataView.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.Transforms">
+      <HintPath>../machinelearning/artifacts/bin/Microsoft.ML.Transforms/Debug/netstandard2.0/Microsoft.ML.Transforms.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.StandardTrainers">
+      <HintPath>../machinelearning/artifacts/bin/Microsoft.ML/Debug/netstandard2.0/Microsoft.ML.StandardTrainers.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.FastTree">
+      <HintPath>../machinelearning/artifacts/bin/Microsoft.ML.FastTree/Debug/netstandard2.0/Microsoft.ML.FastTree.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.OneDal">
+      <HintPath>../machinelearning/artifacts/bin/Microsoft.ML.OneDal/Debug/netstandard2.0/Microsoft.ML.OneDal.dll</HintPath>
+    </Reference>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1"/>
+  </ItemGroup>
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.FastTree\Microsoft.ML.FastTree.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.OneDal\Microsoft.ML.OneDal.csproj" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
+  </ItemGroup>
+
+</Project>

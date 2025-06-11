@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
+    <SignAssembly>false</SignAssembly>
+    <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
+    <PublicSign>false</PublicSign>
+    <IsPackable>false</IsPackable>
+    <!-- NU1605 is because the dependencies are automatically updated via a script at runtime -->
+    <NoWarn>$(NoWarn);NU1605</NoWarn>
+  </PropertyGroup>
+
+  <Import Project="..\NightlyBuildDependency.props" />
+
+  <ItemGroup>
+    <Compile Include="..\Microsoft.ML.IntegrationTests\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Include="MatrixFactorizationNative" />
+    <NativeAssemblyReference Include="LdaNative" />
+    <NativeAssemblyReference Include="SymSgdNative" />
+    <NativeAssemblyReference Include="MklProxyNative" />
+    <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' == 'x64'" Include="OneDalNative" />
+    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimeVersion)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+  </ItemGroup>
+
+</Project>

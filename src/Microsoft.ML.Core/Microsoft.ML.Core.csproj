@@ -10,8 +10,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.DataView\Microsoft.ML.DataView.csproj" />
     
-    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
-    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+    <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.Memory" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,144 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageDescription>ML.NET Code Generator</PackageDescription>
+    <NoWarn>$(NoWarn)</NoWarn>
+
+    <!-- Remove once we have resolved the TorchSharp issue. -->
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Templates\Azure\ConsoleApp\**" />
+    <EmbeddedResource Remove="Templates\Azure\ConsoleApp\**" />
+    <None Remove="Templates\Azure\ConsoleApp\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" PrivateAssets="all" />
+
+    <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" PrivateAssets="all" />
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Templates\Azure\Console\AzureModelBuilder.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>AzureModelBuilder.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Azure\Model\AzureObjectDetectionModelOutputClass.tt">
+      <LastGenOutput>AzureObjectDetectionModelOutputClass.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+    </None>
+    <None Update="Templates\Azure\Model\AzureImageModelOutputClass.tt">
+      <LastGenOutput>AzureImageModelOutputClass.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+    </None>
+    <None Update="Templates\Console\Annotation.ttinclude">
+    </None>
+    <None Update="Templates\Console\ConsumeModel.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>ConsumeModel.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Console\ModelBuilder.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>ModelBuilder.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Console\ModelInputClass.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>ModelInputClass.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Console\ModelOutputClass.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>ModelOutputClass.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Console\ModelProject.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>ModelProject.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Console\PredictProgram.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>PredictProgram.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Console\PredictProject.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>PredictProject.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Templates\Azure\Console\AzureModelBuilder.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureModelBuilder.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Azure\Model\AzureImageModelOutputClass - Copy.cs">
+      <DependentUpon>AzureImageModelOutputClass.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Templates\Azure\Model\AzureImageModelOutputClass.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureImageModelOutputClass.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Azure\Model\OnnxModelOutputClass - Copy.cs">
+      <DependentUpon>OnnxModelOutputClass.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Templates\Azure\Model\AzureObjectDetectionModelOutputClass.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AzureObjectDetectionModelOutputClass.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Console\ConsumeModel.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ConsumeModel.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Console\ModelBuilder.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ModelBuilder.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Console\ModelInputClass.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ModelInputClass.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Console\ModelOutputClass.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ModelOutputClass.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Console\ModelProject.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ModelProject.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Console\PredictProgram.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PredictProgram.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Console\PredictProject.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PredictProject.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

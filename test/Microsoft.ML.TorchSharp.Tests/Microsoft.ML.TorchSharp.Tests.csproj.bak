@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Microsoft.ML.TorchSharp.Tests</AssemblyName>
+    <StrongNameKeyId>Test</StrongNameKeyId>
+
+    <!-- Remove once we have resolved the TorchSharp issue. -->
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+
+  <!-- Import the test signing certificate -->
+  <Import Project="../Cert.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.TorchSharp\Microsoft.ML.TorchSharp.csproj" Condition="'$(TargetArchitecture)' == 'x64'" />
+    <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.Data.Analysis\Microsoft.Data.Analysis.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetArchitecture)' != 'x64'">
+    <Compile Remove="TextClassificationTests.cs" />
+    <Compile Remove="ObjectDetectionTests.cs" />
+    <Compile Remove="NerTests.cs" />
+    <Compile Remove="QATests.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
+    <PackageReference Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$(TargetArchitecture)' == 'x64'" />
+    <!--<PackageReference Include="TorchSharp-cuda-windows" Version="$(TorchSharpVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />-->
+    <PackageReference Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux')) AND '$(TargetArchitecture)' == 'x64'" />
+    <PackageReference Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX')) AND '$(TargetArchitecture)' == 'x64'" />
+
+    <PackageReference Include="MathNet.Numerics.Signed" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <NativeAssemblyReference Include="MklProxyNative" />
+    <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+  </ItemGroup>
+
+</Project>

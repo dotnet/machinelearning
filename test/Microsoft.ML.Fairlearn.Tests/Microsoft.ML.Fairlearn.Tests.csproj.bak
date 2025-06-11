@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    <NoWarn>$(NoWarn);MSML_ParameterLocalVarName;MSML_PrivateFieldName;MSML_ExtendBaseTestClass;MSML_GeneralName</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ApprovalTests" Version="$(ApprovalTestsVersion)" />
+    <PackageReference Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
+    <PackageReference Include="AwesomeAssertions" Version="$(AwesomeAssertionsVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.Fairlearn\Microsoft.ML.Fairlearn.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="ApprovalTests\*.approved.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <NativeAssemblyReference Include="MklProxyNative" />
+    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="SymSgdNative" />
+    <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Include="LdaNative" />
+    <NativeAssemblyReference Include="MatrixFactorizationNative" />
+    <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+  </ItemGroup>
+
+
+</Project>

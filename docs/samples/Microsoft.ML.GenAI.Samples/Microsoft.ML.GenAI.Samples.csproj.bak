@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.GenAI.Core\Microsoft.ML.GenAI.Core.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.GenAI.LLaMA\Microsoft.ML.GenAI.LLaMA.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.GenAI.Mistral\Microsoft.ML.GenAI.Mistral.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.GenAI.Phi\Microsoft.ML.GenAI.Phi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TorchSharp-cuda-windows" Version="0.102.5" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="$(SemanticKernelVersion)" />
+    <PackageReference Include="AutoGen.SourceGenerator" Version="$(AutoGenVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingVersion)" />
+    <PackageReference Include="JsonSchema.Net.Generation" Version="$(JsonSchemaNetGenerationVersion)" />
+  </ItemGroup>
+
+</Project>

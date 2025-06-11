@@ -14,12 +14,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
-    <PackageReference Include="TorchSharp" Version="$(TorchSharpVersion)" />
-    <PackageReference Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows'))" PrivateAssets="all" />
-    <PackageReference Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux'))" PrivateAssets="all" />
-    <PackageReference Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX'))" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Bcl.Memory" Version="$(MicrosoftBclMemoryVersion)" />
+    <PackageReference Include="System.Memory" />
+    <PackageReference Include="TorchSharp" />
+    <PackageReference Include="libtorch-cpu-win-x64" Condition="$([MSBuild]::IsOSPlatform('Windows'))" PrivateAssets="all" />
+    <PackageReference Include="libtorch-cpu-linux-x64" Condition="$([MSBuild]::IsOSPlatform('Linux'))" PrivateAssets="all" />
+    <PackageReference Include="libtorch-cpu-osx-x64" Condition="$([MSBuild]::IsOSPlatform('OSX'))" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Bcl.Memory" />
   </ItemGroup>
 
   <ItemGroup>

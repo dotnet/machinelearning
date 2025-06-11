@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
+    <SignAssembly>false</SignAssembly>
+    <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
+    <PublicSign>false</PublicSign>
+    <ReferenceTypeForTestFramework>Project</ReferenceTypeForTestFramework>
+
+    <IsUnitTestProject>false</IsUnitTestProject>
+    <IsIntegrationTestProject>true</IsIntegrationTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.OneDal\Microsoft.ML.OneDal.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.SamplesUtils\Microsoft.ML.SamplesUtils.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.PCA\Microsoft.ML.PCA.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.TestFrameworkCommon\Microsoft.ML.TestFrameworkCommon.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Include="MatrixFactorizationNative" />
+    <NativeAssemblyReference Include="LdaNative" />
+    <NativeAssemblyReference Include="SymSgdNative" />
+    <NativeAssemblyReference Include="MklProxyNative" />
+    <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(TargetArchitecture)' == 'x64'" Include="OneDalNative" />
+    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimeVersion)" />
+  </ItemGroup>
+
+</Project>

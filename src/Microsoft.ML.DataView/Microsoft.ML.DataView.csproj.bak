@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageDescription>Contains the IDataView system which is a set of interfaces and components that provide efficient, compositional processing of schematized data for machine learning and advanced analytics applications.</PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Microsoft.ML.Core\Utilities\ArrayUtils.cs" />
+  </ItemGroup>
+
+</Project>

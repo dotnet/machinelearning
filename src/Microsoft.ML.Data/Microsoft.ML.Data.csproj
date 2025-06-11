@@ -7,10 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
-    <PackageReference Include="System.Threading.Channels" Version="$(SystemThreadingChannelsVersion)" />
-    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="$(SystemReflectionEmitLightweightVersion)" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.Threading.Channels" />
+    <PackageReference Include="System.Reflection.Emit.Lightweight" />
   </ItemGroup>
 
   <ItemGroup>

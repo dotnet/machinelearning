@@ -1,0 +1,63 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Remove once we have resolved the TorchSharp issue. -->
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.Data.Analysis\Microsoft.Data.Analysis.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.DnnImageFeaturizer.ModelRedist\Microsoft.ML.DnnImageFeaturizer.ModelRedist.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Fairlearn\Microsoft.ML.Fairlearn.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ApprovalTests" Version="$(ApprovalTestsVersion)" />
+    <PackageReference Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
+    <PackageReference Include="AwesomeAssertions" Version="$(AwesomeAssertionsVersion)" />
+    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimeVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="ApprovalTests\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <NativeAssemblyReference Include="MklProxyNative" />
+    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="SymSgdNative" />
+    <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Include="LdaNative" />
+    <NativeAssemblyReference Include="MatrixFactorizationNative" />
+    <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Content Include="$(ModelDownloadPath)\ResNetPrepOnnx\ResNetPreprocess.onnx">
+      <Link>DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(ModelDownloadPath)\ResNet18Onnx\ResNet18.onnx">
+      <Link>DnnImageModels\ResNet18Onnx\ResNet18.onnx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

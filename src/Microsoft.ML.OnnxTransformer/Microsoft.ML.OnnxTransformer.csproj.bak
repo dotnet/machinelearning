@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsPackable>true</IsPackable>
+    <PackageDescription>ML.NET component for Microsoft.ML.OnnxRuntime.Managed library</PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
+
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" PrivateAssets="all" />
+    <!-- Include all assets https://github.com/microsoft/LightGBM/issues/6344 -->
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="$(MicrosoftMLOnnxRuntimeVersion)" PrivateAssets="None" />
+    <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Microsoft.ML.OnnxConverter\OnnxMl.cs">
+      <Link>OnnxMl.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+</Project>

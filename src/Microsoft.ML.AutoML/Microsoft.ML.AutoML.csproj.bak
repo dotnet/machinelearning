@@ -1,0 +1,74 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageDescription>ML.NET AutoML: Optimizes an ML pipeline for your dataset, by automatically locating the best feature engineering, model, and hyperparameters</PackageDescription>
+    <!--
+      1591: Documentation warnings
+      NU5100: Warning that gets triggered because a .dll is not placed under lib folder on package. This is by design as we want AutoML Interactive to be under interactive-extensions folder.
+       -->
+    <NoWarn>$(NoWarn);1591;NU5100</NoWarn>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddAutoMLInteractiveToInteractiveExtensionsFolder</TargetsForTfmSpecificContentInPackage>
+
+    <!-- Remove once we have resolved the TorchSharp issue. -->
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+  </PropertyGroup>
+
+  <!-- The following properties are set to package AutoML Interactive with the AutoML nuget package. If AutoML Interactive undergoes TFM or dependency changes, we need to update the TargetFramework passed in below-->
+  <Target Name="AddAutoMLInteractiveToInteractiveExtensionsFolder">
+    <MSBuild Projects="./../Microsoft.ML.AutoML.Interactive/Microsoft.ML.AutoML.Interactive.csproj" Targets="_GetBuildOutputFilesWithTfm" Properties="TargetFramework=net8.0">
+      <!-- Manually hardcoding the TargetFramework to net8.0 as that is the one that AutoML Interactive targets -->
+      <Output TaskParameter="TargetOutputs" ItemName="_ItemsToIncludeForInteractive" />
+    </MSBuild>
+
+    <ItemGroup>
+      <_ItemsToIncludeForInteractive Update="@(_ItemsToIncludeForInteractive)" PackagePath="interactive-extensions/dotnet" />
+      <TfmSpecificPackageFile Include="@(_ItemsToIncludeForInteractive)" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\tools-local\Microsoft.ML.AutoML.SourceGenerator\Microsoft.ML.AutoML.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.DnnImageFeaturizer.AlexNet\Microsoft.ML.DnnImageFeaturizer.AlexNet.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.DnnImageFeaturizer.ResNet101\Microsoft.ML.DnnImageFeaturizer.ResNet101.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.DnnImageFeaturizer.ResNet18\Microsoft.ML.DnnImageFeaturizer.ResNet18.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.DnnImageFeaturizer.ResNet50\Microsoft.ML.DnnImageFeaturizer.ResNet50.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.SearchSpace\Microsoft.ML.SearchSpace.csproj" Pack="true" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.TorchSharp\Microsoft.ML.TorchSharp.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Vision\Microsoft.ML.Vision.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsDependencyInjectionVersion)" />
+    <PackageReference Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <AdditionalFiles Include="CodeGen\*search_space.json" />
+    <AdditionalFiles Include="CodeGen\code_gen_flag.json" />
+    <AdditionalFiles Include="CodeGen\*-estimators.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="CodeGen\normalize_text_search_space.json" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="Tuner\Portfolios.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

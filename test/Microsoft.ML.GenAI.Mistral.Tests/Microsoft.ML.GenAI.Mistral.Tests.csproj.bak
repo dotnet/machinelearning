@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <NoWarn>$(NoWarn);MSML_ExtendBaseTestClass</NoWarn>
+    <Nullable>enable</Nullable>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.GenAI.Core\Microsoft.ML.GenAI.Core.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.GenAI.Mistral\Microsoft.ML.GenAI.Mistral.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ApprovalTests" Version="$(ApprovalTestsVersion)" />
+    <PackageReference Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
+    <PackageReference Include="AwesomeAssertions" Version="$(AwesomeAssertionsVersion)" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="$(SemanticKernelVersion)" />
+    <PackageReference Include="Moq" Version="$(MoqVersion)" />
+    <PackageReference Include="Microsoft.ML.TestTokenizers" Version="$(MicrosoftMLTestTokenizersVersion)" />
+    <PackageReference Include="TorchSharp" Version="$(TorchSharpVersion)" />
+  </ItemGroup>
+
+
+  <ItemGroup Condition="'$(TargetArchitecture)' != 'x64'">
+    <Compile Remove="Mistral_7B_Instruct_V0_3Tests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Approvals\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+
+  <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
+    <PackageReference Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$(TargetArchitecture)' == 'x64'" />
+    <PackageReference Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux')) AND '$(TargetArchitecture)' == 'x64'" />
+    <PackageReference Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX')) AND '$(TargetArchitecture)' == 'x64'" />
+  </ItemGroup>
+
+</Project>

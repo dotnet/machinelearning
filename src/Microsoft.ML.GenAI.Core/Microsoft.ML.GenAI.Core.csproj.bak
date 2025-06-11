@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <IsPackable>true</IsPackable>
+    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoGen.Core" Version="$(AutoGenVersion)" />
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="$(MicrosoftExtensionsAIVersion)" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="$(SemanticKernelVersion)" />
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+    <PackageReference Include="TorchSharp" Version="$(TorchSharpVersion)" />
+    <PackageReference Include="JsonSchema.Net.Generation" Version="$(JsonSchemaNetGenerationVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Tokenizers\Microsoft.ML.Tokenizers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.ML.GenAI.Phi" />
+    <InternalsVisibleTo Include="Microsoft.ML.GenAI.Phi.Tests" />
+    <InternalsVisibleTo Include="Microsoft.ML.GenAI.LLaMA" />
+    <InternalsVisibleTo Include="Microsoft.ML.GenAI.LLaMA.Tests" />
+    <InternalsVisibleTo Include="Microsoft.ML.GenAI.Mistral" />
+    <InternalsVisibleTo Include="Microsoft.ML.GenAI.Mistral.Tests" />
+    <InternalsVisibleTo Include="Microsoft.ML.GenAI.Core.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,54 @@
+<Project>
+  <PropertyGroup>  
+    <PackageReadmeFile Condition="'$(PackageReadmeFile)' == '' and Exists('PACKAGE.md')">PACKAGE.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="$(RepositoryEngineeringDir)pkg\mlnetlogo.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(PackageReadmeFile)' != ''">
+    <None Include="$(PackageReadmeFile)" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(IncludeMLNetNotices)' != 'false'">
+    <Content Include="$(RepoRoot)THIRD-PARTY-NOTICES.TXT" Pack="true" PackagePath="" />
+    <Content Include="$(RepoRoot)LICENSE" Pack="true" PackagePath=""/>
+  </ItemGroup>
+  
+  <PropertyGroup>    
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);IncludeAdditionalFilesInPackage;</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <Target Name="_IncludeProjectReferencesWithPackAttributeInPackage"
+          Condition="'@(ProjectReference)' != '' and @(ProjectReference->AnyHaveMetadataValue('Pack', 'true'))"
+          DependsOnTargets="BuildOnlySettings;ResolveReferences">
+    <ItemGroup>
+      <!-- Implements workaround for https://github.com/NuGet/Home/issues/3891 -->
+      <!-- Add ReferenceCopyLocalPaths for ProjectReferences which are flagged as Pack="true" into the package. -->
+      <_projectReferenceCopyLocalPaths Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference')->WithMetadataValue('Pack', 'true'))" />
+      <TfmSpecificPackageFile Include="@(_projectReferenceCopyLocalPaths)"
+                              PackagePath="$([MSBuild]::ValueOrDefault('%(ReferenceCopyLocalPaths.PackagePath)', '$(BuildOutputTargetFolder)\$(TargetFramework)\'))" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_IncludeRuntimeSpecificAssetsInPackage">
+    <ItemGroup>    
+      <!-- Add runtime specific assets to the package. -->
+      <_runtimeFiles Include="$(PackageAssetsPath)$(PackageId)\runtimes\**\*%(NativeAssemblyReference.Identity)*" />
+      <TfmSpecificPackageFile Include="%(_runtimeFiles.Identity)" PackagePath="runtimes/%(_runtimeFiles.RecursiveDir)" TargetFramework="" />
+    </ItemGroup>    
+  </Target>
+
+  <Target Name="IncludeAdditionalFilesInPackage" DependsOnTargets="_IncludeProjectReferencesWithPackAttributeInPackage;_IncludeRuntimeSpecificAssetsInPackage">
+    <ItemGroup>
+      <!-- PDBs must be specified as TfmSpecificDebugSymbolsFile with a *rooted* TargetPath instead of PackagePath. -->
+      <TfmSpecificDebugSymbolsFile Include="@(TfmSpecificPackageFile->WithMetadataValue('Extension', '.pdb'))"
+                                   TargetPath="/%(TfmSpecificPackageFile.PackagePath)%(Filename)%(Extension)"
+                                   TargetFramework="$(TargetFramework)" />
+      <!-- Remove symbols from the file list. -->
+      <TfmSpecificPackageFile Remove="@(TfmSpecificPackageFile->WithMetadataValue('Extension', '.pdb'))" />
+    </ItemGroup>    
+  </Target>
+
+</Project>

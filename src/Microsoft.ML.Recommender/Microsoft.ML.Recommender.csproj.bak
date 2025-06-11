@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsPackable>true</IsPackable>
+    <PackageDescription>LIBMF, the core computation library for matrix factorization in ML.NET</PackageDescription>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(RepoRoot)eng\pkg\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
+    <Content Include="$(RepoRoot)src\Native\MatrixFactorizationNative\libmf\COPYRIGHT" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>

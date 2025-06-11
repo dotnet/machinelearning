@@ -1,0 +1,31 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+  NuGet packages.config doesn't support native assemblies automatically,
+  so copy the native assemblies to the output directory.
+  -->
+  <ItemGroup Condition="Exists('packages.config') OR
+                        Exists('$(MSBuildProjectName).packages.config') OR
+                        Exists('packages.$(MSBuildProjectName).config')">
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\runtimes\win-x64\nativeassets\netstandard2.0\*.dll"
+             Condition="'$(PlatformTarget)' == 'x64'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+      <Link>%(Filename)%(Extension)</Link>
+    </Content>
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\runtimes\win-x86\nativeassets\netstandard2.0\*.dll"
+             Condition="'$(PlatformTarget)' == 'x86'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+      <Link>%(Filename)%(Extension)</Link>
+    </Content>
+
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\runtimes\win-arm64\nativeassets\netstandard2.0\*.dll"
+             Condition="'$(PlatformTarget)' == 'arm64'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+      <Link>%(Filename)%(Extension)</Link>
+    </Content> 
+  </ItemGroup>
+
+</Project>

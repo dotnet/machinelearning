@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!-- Enable central package management -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <!-- Package versions -->
+  <ItemGroup>
+    <!-- Product dependencies -->
+    <PackageVersion Include="Apache.Arrow" Version="$(ApacheArrowVersion)" />
+    <PackageVersion Include="Google.Protobuf" Version="$(GoogleProtobufVersion)" />
+    <PackageVersion Include="JsonSchema.Net" Version="$(JsonSchemaNetVersion)" />
+    <PackageVersion Include="JsonSchema.Net.Generation" Version="$(JsonSchemaNetGenerationVersion)" />
+    <PackageVersion Include="LightGBM" Version="$(LightGBMVersion)" />
+    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="$(MicrosoftBclAsyncInterfacesVersion)" />
+    <PackageVersion Include="Microsoft.Bcl.HashCode" Version="$(MicrosoftBclHashCodeVersion)" />
+    <PackageVersion Include="Microsoft.Bcl.Memory" Version="$(MicrosoftBclMemoryVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
+    <PackageVersion Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
+    <PackageVersion Include="Microsoft.DotNet.Interactive" Version="$(MicrosoftDotNetInteractiveVersion)" />
+    <PackageVersion Include="Microsoft.DotNet.Interactive.Formatting" Version="$(MicrosoftDotNetInteractiveVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="$(MicrosoftExtensionsAIVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsDependencyInjectionVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftExtensionsDependencyInjectionAbstractionsVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="$(MicrosoftExtensionsObjectPoolVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptionsVersion)" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimeVersion)" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntime.Managed" Version="$(MicrosoftMLOnnxRuntimeVersion)" />
+    <PackageVersion Include="Microsoft.SemanticKernel" Version="$(SemanticKernelVersion)" />
+    <PackageVersion Include="Microsoft.SemanticKernel.Abstractions" Version="$(SemanticKernelVersion)" />
+    <PackageVersion Include="MlNetMklDeps" Version="$(MlNetMklDepsVersion)" />
+    <PackageVersion Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageVersion Include="NuGet.Packaging.Core" Version="$(NuGetVersion)" />
+    <PackageVersion Include="NuGet.Resolver" Version="$(NuGetVersion)" />
+    <PackageVersion Include="Parquet.Net" Version="$(ParquetDotNetVersion)" />
+    <PackageVersion Include="Plotly.NET.CSharp" Version="$(PlotlyNETCSharpVersion)" />
+    <PackageVersion Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
+    <PackageVersion Include="SciSharp.TensorFlow.Redist-Linux-GPU" Version="$(TensorFlowVersion)" />
+    <PackageVersion Include="SciSharp.TensorFlow.Redist-Windows-GPU" Version="$(TensorFlowVersion)" />
+    <PackageVersion Include="SharpZipLib" Version="$(SharpZipLibVersion)" />
+    <PackageVersion Include="SkiaSharp" Version="$(SkiaSharpVersion)" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="$(SkiaSharpVersion)" />
+    <PackageVersion Include="System.Buffers" Version="$(SystemBuffersVersion)" />
+    <PackageVersion Include="System.CodeDom" Version="$(SystemCodeDomVersion)" />
+    <PackageVersion Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageVersion Include="System.Composition" Version="$(SystemCompositionVersion)" />
+    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" />
+    <PackageVersion Include="System.Formats.Asn1" Version="$(SystemFormatsAsn1Version)" />
+    <PackageVersion Include="System.IO.FileSystem.AccessControl" Version="$(SystemIOFileSystemAccessControl)" />
+    <PackageVersion Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
+    <PackageVersion Include="System.Memory" Version="$(SystemMemoryVersion)" />
+    <PackageVersion Include="System.Numerics.Tensors" Version="$(SystemNumericsTensorsVersion)" />
+    <PackageVersion Include="System.Reflection.Emit" Version="$(SystemReflectionEmitVersion)" />
+    <PackageVersion Include="System.Reflection.Emit.Lightweight" Version="$(SystemReflectionEmitLightweightVersion)" />
+    <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
+    <PackageVersion Include="System.Security.Principal.Windows" Version="$(SystemSecurityPrincipalWindows)" />
+    <PackageVersion Include="System.Text.Encodings.Web" Version="$(SystemTextEncodingsWebVersion)" />
+    <PackageVersion Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
+    <PackageVersion Include="System.Threading.Channels" Version="$(SystemThreadingChannelsVersion)" />
+    <PackageVersion Include="TensorFlow.NET" Version="$(TensorflowDotNETVersion)" />
+    <PackageVersion Include="TorchSharp" Version="$(TorchSharpVersion)" />
+    <PackageVersion Include="TorchSharp.PyBridge" Version="$(TorchSharpPyBridgeVersion)" />
+    <PackageVersion Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" />
+    <PackageVersion Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" />
+    <PackageVersion Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" />
+
+    <!-- Test-only dependencies -->
+    <PackageVersion Include="ApprovalTests" Version="$(ApprovalTestsVersion)" />
+    <PackageVersion Include="AutoGen.Core" Version="$(AutoGenVersion)" />
+    <PackageVersion Include="AutoGen.SourceGenerator" Version="$(AutoGenVersion)" />
+    <PackageVersion Include="AwesomeAssertions" Version="$(AwesomeAssertionsVersion)" />
+    <PackageVersion Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />
+    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="$(BenchmarkDotNetVersion)" />
+    <PackageVersion Include="coverlet.collector" Version="$(CoverletCollectorVersion)" />
+    <PackageVersion Include="coverlet.msbuild" Version="$(CoverletMsbuildVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.DotNet.PlatformAbstractions" Version="$(MicrosoftDotNetPlatformAbstractionsVersion)" />
+    <PackageVersion Include="Microsoft.DotNet.RemoteExecutor" Version="$(MicrosoftDotNetRemoteExecutorVersion)" />
+    <PackageVersion Include="Microsoft.DotNet.XUnitExtensions" Version="$(MicrosoftDotNetXUnitExtensionsVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="$(MicrosoftExtensionsDependencyModelVersion)" />
+    <PackageVersion Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
+    <PackageVersion Include="Microsoft.ML.TensorFlow.TestModels" Version="$(MicrosoftMLTensorFlowTestModelsVersion)" />
+    <PackageVersion Include="Microsoft.ML.TestDatabases" Version="$(MicrosoftMLTestDatabasesVersion)" />
+    <PackageVersion Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsVersion)" />
+    <PackageVersion Include="Microsoft.ML.TestTokenizers" Version="$(MicrosoftMLTestTokenizersVersion)" />
+    <PackageVersion Include="Moq" Version="$(MoqVersion)" />
+    <PackageVersion Include="MSTest.TestAdapter" Version="$(MSTestTestAdapterVersion)" />
+    <PackageVersion Include="MSTest.TestFramework" Version="$(MSTestTestFrameworkVersion)" />
+    <PackageVersion Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
+    <PackageVersion Include="System.Data.SQLite.Core" Version="$(SystemDataSQLiteCoreVersion)" />
+    <PackageVersion Include="System.Data.SQLite" Version="$(SystemDataSQLiteCoreVersion)" />
+    <PackageVersion Include="runtime.native.System.Data.SqlClient.sni" Version="$(RuntimeNativeSystemDataSqlClientSniVersion)" />
+    <PackageVersion Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" />
+
+    <!-- Build/infrastructure dependencies -->
+    <PackageVersion Include="Drop.App" Version="$(DropAppVersion)" />
+    <PackageVersion Include="Microsoft.DotNet.IBCMerge" Version="$(MicrosoftDotNetIBCMergeVersion)" />
+    <PackageVersion Include="Microsoft.ManifestTool.CrossPlatform" Version="$(MicrosoftManifestToolCrossPlatformVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudioEng.MicroBuild.Core" Version="$(MicrosoftVisualStudioEngMicroBuildCoreVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudioEng.MicroBuild.Plugins.SwixBuild" Version="$(MicrosoftVisualStudioEngMicroBuildPluginsSwixBuildVersion)" />
+
+    <!-- Special cases - packages with specific versions not using properties -->
+    <PackageVersion Include="MathNet.Numerics.Signed" Version="5.0.0" />
+    <PackageVersion Include="TorchSharp-cuda-windows" Version="0.102.5" />
+  </ItemGroup>
+
+  <!-- Handle packages with conflicting versions -->
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'Microsoft.ML.Samples.OneDal'">
+    <!-- This project uses an older version of Newtonsoft.Json -->
+    <PackageVersion Update="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+</Project>

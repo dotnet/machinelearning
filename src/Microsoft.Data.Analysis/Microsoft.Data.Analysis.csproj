@@ -46,17 +46,17 @@
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="System.Numerics.Tensors" Version="$(SystemNumericsTensorsVersion)" />
+    <PackageReference Include="System.Numerics.Tensors" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'">
-    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
-    <PackageReference Include="System.Buffers" Version="$(SystemBuffersVersion)" />
+    <PackageReference Include="System.Memory" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" />
+    <PackageReference Include="System.Buffers" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Apache.Arrow" Version="$(ApacheArrowVersion)" />
+    <PackageReference Include="Apache.Arrow" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+  
+  <Import Condition="'$(IsPackable)' == 'true'" Project="$(RepositoryEngineeringDir)Packaging.targets"  />
+
+  <ItemGroup Condition="'$(IsUnitTestProject)' == 'true'">
+    <PackageReference Include="coverlet.msbuild" Version="$(CoverletMsbuildVersion)" PrivateAssets="all" />
+  </ItemGroup>
+
+  <Target Name="SetCopyProperties">
+    <PropertyGroup>
+      <LibPrefix Condition="'$(OS)' != 'Windows_NT'">lib</LibPrefix>
+      <LibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</LibExtension>
+      <LibExtension Condition="'$(OS)' != 'Windows_NT'">.so</LibExtension>
+      <LibExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib</LibExtension>
+
+      <BinDir Condition="'$(BinDir)'==''">$([MSBuild]::NormalizeDirectory('$(RepoRoot)', 'artifacts', 'bin'))</BinDir>
+      <NativeOutputPath>$(BinDir)Native\$(TargetArchitecture).$(Configuration)\</NativeOutputPath>
+
+      <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
+      <PlatformConfig>$(Platform).$(Configuration)</PlatformConfig>
+      <OutputPath Condition="'$(OutputPath)'==''">$(BinDir)$(MSBuildProjectName)\Debug</OutputPath>
+	  </PropertyGroup>
+
+		<ItemGroup>
+      <NativeAssemblyReference>
+        <FullAssemblyPath>$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReference.Identity)$(LibExtension)</FullAssemblyPath>
+      </NativeAssemblyReference>
+		</ItemGroup>
+
+    <ItemGroup Condition="'$(TargetArchitecture)' == 'arm64' Or '$(TargetArchitecture)' == 'arm'">
+      <NativeAssemblyReference Remove="MklImports"/>
+      <NativeAssemblyReference Remove="CpuMathNative"/>
+      <NativeAssemblyReference Remove="FastTreeNative"/>
+      <NativeAssemblyReference Remove="SymSgdNative"/>
+      <NativeAssemblyReference Remove="MklProxyNative"/>
+      <NativeAssemblyReference Remove="libiomp5md"/>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="CopyNativeAssembliesPublish" AfterTargets="Publish" DependsOnTargets="SetCopyProperties">
+    <Copy SourceFiles = "@(NativeAssemblyReference->'%(FullAssemblyPath)')"
+			DestinationFolder="$(OutDir)\publish"
+			OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+			Retries="$(CopyRetryCount)"
+			RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+			UseHardlinksIfPossible="$(CreateHardLinksForPublishFilesIfPossible)"
+			UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)">
+		    <Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
+		</Copy>
+  </Target>
+
+  <Target Name="CopyNativeAssembiles" AfterTargets="CopyFilesToOutputDirectory" DependsOnTargets="SetCopyProperties">
+
+		<Copy SourceFiles = "@(NativeAssemblyReference->'%(FullAssemblyPath)')"
+			DestinationFolder="$(OutDir)"
+			OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+			Retries="$(CopyRetryCount)"
+			RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+			UseHardlinksIfPossible="$(CreateHardLinksForPublishFilesIfPossible)"
+			UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)">
+		    <Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
+		</Copy>
+  </Target>
+
+  <PropertyGroup Condition="'$(Coverage)' == 'true'">
+    <!-- https://github.com/tonerdo/coverlet/issues/363 -->
+    <DeterministicSourcePaths>false</DeterministicSourcePaths>
+
+    <!-- https://github.com/tonerdo/coverlet/issues/618 -->
+    <IncludeTestAssembly>true</IncludeTestAssembly>
+
+    <CollectCoverage>true</CollectCoverage>
+    <SingleHit>true</SingleHit>
+    <!-- don't copy nuget files from packages into the output directory -->
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <!-- ensure the runtime has the information it needs to locate the files not copied from nuget package cache -->
+    <GenerateRuntimeConfigDevFile>true</GenerateRuntimeConfigDevFile>
+    <CoverletOutputFormat>opencover</CoverletOutputFormat>
+    <CoverletOutput>$(BaseOutputPath)$(PlatformConfig)\coverage\coverage.opencover.xml</CoverletOutput>
+    <Include></Include>
+    <Exclude></Exclude>
+    <ExcludeByAttribute>ExcludeFromCodeCoverage</ExcludeByAttribute>
+    <ExcludeByFile></ExcludeByFile>
+  </PropertyGroup>
+
+  <Target Name="OuterInstrumentModulesNoBuild" BeforeTargets="RunTests" Condition="'$(IsUnitTestProject)' == 'true' AND '$(TargetFramework)' == ''">
+    <MSBuild
+      Projects="$(MSBuildProjectFullPath)"
+      Targets="InnerInstrumentModulesNoBuild"
+      Properties="TargetFramework=%(_TargetFramework.Identity)" />
+  </Target>
+
+  <Target Name="OuterGenerateCoverageResult" BeforeTargets="Test" Condition="'$(IsUnitTestProject)' == 'true' AND '$(TargetFramework)' == ''">
+    <MSBuild
+      Projects="$(MSBuildProjectFullPath)"
+      Targets="InnerGenerateCoverageResult"
+      Properties="TargetFramework=%(_TargetFramework.Identity)" />
+  </Target>
+
+  <Target Name="InnerInstrumentModulesNoBuild"
+          BeforeTargets="RunTests"
+          DependsOnTargets="InstrumentModules"
+          Condition="'$(IsUnitTestProject)' == 'true' AND '$(TargetFramework)' != '' AND '$(CollectCoverage)' == 'true'" />
+
+  <Target Name="InnerGenerateCoverageResult"
+          BeforeTargets="Test"
+          DependsOnTargets="GenerateCoverageResult"
+          Condition="'$(IsUnitTestProject)' == 'true' AND '$(TargetFramework)' != '' AND '$(CollectCoverage)' == 'true'" />
+</Project>

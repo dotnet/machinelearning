@@ -1,0 +1,10 @@
+<Project>
+  <ItemGroup>
+    <BenchmarkFile Include="digits.csv" />
+    <!-- these files are not used in Benchmark CI so skip downloading to save extra 800 MB disk space -->
+    <!-- <BenchmarkFile Include="MSLRWeb10KTest240kRows.tsv" />
+    <BenchmarkFile Include="MSLRWeb10KTrain720kRows.tsv" />
+    <BenchmarkFile Include="MSLRWeb10KValidate240kRows.tsv" />
+    <BenchmarkFile Include="WikiDetoxAnnotated160kRows.tsv" /> -->
+  </ItemGroup>
+</Project>

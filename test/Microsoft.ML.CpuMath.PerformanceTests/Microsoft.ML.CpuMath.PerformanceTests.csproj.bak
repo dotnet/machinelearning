@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <!--
+    work around https://github.com/dotnet/sdk/issues/3044
+    The netfx configuration will set the RuntimeIdentifier, but this causes restore issues on 3.0.
+    Blanking out RuntimeIdenifier (which isn't needed here) works around the issue.
+    -->
+    <RuntimeIdentifier></RuntimeIdentifier>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsUnitTestProject>false</IsUnitTestProject>
+    <IsPerformanceTestProject>true</IsPerformanceTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="BenchmarkDotNet.Artifacts\**" />
+    <EmbeddedResource Remove="BenchmarkDotNet.Artifacts\**" />
+    <None Remove="BenchmarkDotNet.Artifacts\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <Compile Remove="AvxPerformanceTests.cs"/>
+    <Compile Remove="SsePerformanceTests.cs"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <NativeAssemblyReference Include="CpuMathNative" />
+  </ItemGroup>
+
+</Project>
