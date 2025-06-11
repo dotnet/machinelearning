@@ -1,3 +1,0 @@
-<Project>
-  <Import Project="../Microsoft.ML.Tokenizers/Directory.Build.props" />
-</Project>
