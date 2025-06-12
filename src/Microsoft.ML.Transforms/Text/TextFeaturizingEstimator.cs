@@ -32,8 +32,8 @@ namespace Microsoft.ML.Transforms.Text
     public interface IStopWordsRemoverOptions { }
 
     /// <summary>
-    ///  An estimator that turns a collection of text documents into numerical feature vectors.
-    ///  The feature vectors are normalized counts of word and/or character n-grams (based on the options supplied).
+    ///  Represents an estimator that turns a collection of text documents into numerical feature vectors.
+    ///  The feature vectors are normalized counts of word or character n-grams (based on the options supplied).
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -51,15 +51,15 @@ namespace Microsoft.ML.Transforms.Text
     /// * [Tokenization](https://en.wikipedia.org/wiki/Lexical_analysis#Tokenization)
     /// * [Text normalization](https://en.wikipedia.org/wiki/Text_normalization)
     /// * [Predefined and custom stopwords removal](https://en.wikipedia.org/wiki/Stop_words)
-    /// * [Word-based or character-based Ngram extraction and SkipGram extraction (through the advanced [options](xref:Microsoft.ML.Transforms.TextFeaturizingEstimator.Options.WordFeatureExtractor))](https://en.wikipedia.org/wiki/N-gram)
+    /// * [Word-based or character-based Ngram extraction and SkipGram extraction](https://en.wikipedia.org/wiki/N-gram)
     /// * [TF, IDF or TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf)
     /// * [L-p vector normalization](xref: Microsoft.ML.Transforms.LpNormNormalizingTransformer)
     ///
-    /// By default the features are made of (word/character) n-grams/skip-grams​ and the number of features are equal to the vocabulary size found by analyzing the data.
+    /// By default the features are made of (word/character) n-grams/skip-grams, and the number of features is equal to the vocabulary size found by analyzing the data.
     /// To output an additional column with the tokens generated, use [OutputTokensColumnName](xref:Microsoft.ML.Transforms.Text.TextFeaturizingEstimator.Options.OutputTokensColumnName).
     /// The number of features can also be specified by selecting the maximum number of n-gram to keep in the <xref:Microsoft.ML.Transforms.Text.TextFeaturizingEstimator.Options>, where the estimator can be further tuned.
     ///
-    /// Check the See Also section for links to usage examples.
+    /// For links to usage examples, see <see cref="TextCatalog.FeaturizeText(TransformsCatalog.TextTransforms, string, Options, string[])"/> and <see cref="TextCatalog.FeaturizeText(TransformsCatalog.TextTransforms, string, string)"/>.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="TextCatalog.FeaturizeText(TransformsCatalog.TextTransforms, string, Options, string[])"/>
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Transforms.Text
     public sealed class TextFeaturizingEstimator : IEstimator<ITransformer>
     {
         /// <summary>
-        /// Text language. This enumeration is serialized.
+        /// Specifies text languages. This enumeration is serialized.
         /// </summary>
         public enum Language
         {
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Text vector normalizer kind.
+        /// Specifies the kinds of text vector normalizers.
         /// </summary>
         public enum NormFunction
         {
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Advanced options for the <see cref="TextFeaturizingEstimator"/>.
+        /// Provides advanced options for the <see cref="TextFeaturizingEstimator"/>.
         /// </summary>
         public sealed class Options : TransformInputBase
         {
@@ -140,18 +140,20 @@ namespace Microsoft.ML.Transforms.Text
             private IStopWordsRemoverOptions _stopWordsRemoverOptions;
 
             /// <summary>
-            /// Option to set type of stop word remover to use.
+            /// Gets or sets the type of stop word remover to use.
+            /// </summary>
+            /// <remarks>
             /// The following options are available
             /// <list type="bullet">
             ///     <item>
-            ///         <description>The <see cref="StopWordsRemovingEstimator.Options"/> removes the language specific list of stop words from the input.</description>
+            ///         <description>The <see cref="StopWordsRemovingEstimator.Options"/> removes the language-specific list of stop words from the input.</description>
             ///     </item>
             ///     <item>
-            ///        <description>The <see cref="CustomStopWordsRemovingEstimator.Options"/> uses user provided list of stop words.</description>
+            ///        <description>The <see cref="CustomStopWordsRemovingEstimator.Options"/> uses a user-provided list of stop words.</description>
             ///     </item>
             /// </list>
             /// Setting this to 'null' does not remove stop words from the input.
-            /// </summary>
+            /// </remarks>
             public IStopWordsRemoverOptions StopWordsRemoverOptions
             {
                 get { return _stopWordsRemoverOptions; }
@@ -208,15 +210,17 @@ namespace Microsoft.ML.Transforms.Text
             private WordBagEstimator.Options _wordFeatureExtractor;
 
             /// <summary>
-            /// Norm of the output vector. It will be normalized to one.
+            /// Gets the norm of the output vector. It will be normalized to one.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Normalize vectors (rows) individually by rescaling them to unit norm.", Name = "VectorNormalizer", ShortName = "norm", SortOrder = 13)]
             public NormFunction Norm = NormFunction.L2;
 
             /// <summary>
-            /// Ngram feature extractor to use for words (WordBag/WordHashBag).
-            /// Set to <see langword="null" /> to turn off n-gram generation for words.
+            /// Gets or sets the n-gram feature extractor to use for words (WordBag/WordHashBag).
             /// </summary>
+            /// <value>
+            /// Set to <see langword="null" /> to turn off n-gram generation for words.
+            /// </value>
             public WordBagEstimator.Options WordFeatureExtractor
             {
                 get { return _wordFeatureExtractor; }
@@ -247,9 +251,11 @@ namespace Microsoft.ML.Transforms.Text
             private WordBagEstimator.Options _charFeatureExtractor;
 
             /// <summary>
-            /// Ngram feature extractor to use for characters (WordBag/WordHashBag).
-            /// Set to <see langword="null" /> to turn off n-gram generation for characters.
+            /// Gets or sets the n-gram feature extractor to use for characters (WordBag/WordHashBag).
             /// </summary>
+            /// <value>
+            /// Set to <see langword="null" /> to turn off n-gram generation for characters.
+            /// </value>
             public WordBagEstimator.Options CharFeatureExtractor
             {
                 get { return _charFeatureExtractor; }
@@ -625,9 +631,11 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
-        /// Used for schema propagation and verification in a pipeline.
+        /// Returns the <see cref="SchemaShape"/> of the schema that will be produced by the transformer.
         /// </summary>
+        /// <remarks>
+        /// This method is used for schema propagation and verification in a pipeline.
+        /// </remarks>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));

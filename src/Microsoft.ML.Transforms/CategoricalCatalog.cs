@@ -51,7 +51,7 @@ namespace Microsoft.ML
                 new[] { new OneHotEncodingEstimator.ColumnOptions(outputColumnName, inputColumnName, outputKind, maximumNumberOfKeys, keyOrdinality) }, keyData);
 
         /// <summary>
-        /// Create a <see cref="OneHotEncodingEstimator"/>, which converts one or more input text columns specified in <paramref name="columns"/>
+        /// Creates a <see cref="OneHotEncodingEstimator"/>, which converts one or more input text columns specified in <paramref name="columns"/>
         /// into as many columns of one-hot encoded vectors.
         /// </summary>
         /// <remarks>If multiple columns are passed to the estimator, all of the columns will be processed in a single pass over the data.
