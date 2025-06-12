@@ -11,8 +11,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
     <PackageReference Include="System.CodeDom" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="System.Text.Encodings.Web" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="System.Text.Json" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
 
