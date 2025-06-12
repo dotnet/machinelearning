@@ -2,15 +2,15 @@
   <ItemGroup>
     <!-- Versions below are just placeholder, will be updated during nighly build pipeline to latest package version
     -->
-    <PackageReference Include="Microsoft.ML" Version="4.0.0-preview.24378.1" />
-    <PackageReference Include="Microsoft.ML.Ensemble" Version="0.22.0-preview.24378.1" />
-    <PackageReference Include="Microsoft.ML.EntryPoints" Version="0.22.0-preview.24378.1" />
-    <PackageReference Include="Microsoft.ML.FastTree" Version="4.0.0-preview.24378.1" />
-    <PackageReference Include="Microsoft.ML.LightGbm" Version="4.0.0-preview.24378.1" />
-    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="4.0.0-preview.24378.1" />
-    <PackageReference Include="Microsoft.ML.OnnxConverter" Version="0.22.0-preview.24378.1" />
-    <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="4.0.0-preview.24378.1" />
-    <PackageReference Include="Microsoft.ML.Parquet" Version="0.22.0-preview.24378.1" />
-    <PackageReference Include="Microsoft.ML.Recommender" Version="0.22.0-preview.24378.1" />
+    <PackageReference Include="Microsoft.ML" />
+    <PackageReference Include="Microsoft.ML.Ensemble" />
+    <PackageReference Include="Microsoft.ML.EntryPoints" />
+    <PackageReference Include="Microsoft.ML.FastTree" />
+    <PackageReference Include="Microsoft.ML.LightGbm" />
+    <PackageReference Include="Microsoft.ML.Mkl.Components" />
+    <PackageReference Include="Microsoft.ML.OnnxConverter" />
+    <PackageReference Include="Microsoft.ML.OnnxTransformer" />
+    <PackageReference Include="Microsoft.ML.Parquet" />
+    <PackageReference Include="Microsoft.ML.Recommender" />
   </ItemGroup>
 </Project>

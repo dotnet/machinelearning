@@ -12,8 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="TorchSharp.PyBridge" Version="$(TorchSharpPyBridgeVersion)" />
-    <PackageReference Include="TorchSharp" Version="$(TorchSharpVersion)" />
+    <PackageReference Include="TorchSharp.PyBridge" />
+    <PackageReference Include="TorchSharp" />
   </ItemGroup>
 
   <ItemGroup>
