@@ -12,7 +12,6 @@
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" />
 
     <!-- SkiaSharp reference Windows, UWP, and MacOS native dependencies packages. No need to explicity reference it here. -->
-    <PackageReference Include="SkiaSharp" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
   </ItemGroup>
 

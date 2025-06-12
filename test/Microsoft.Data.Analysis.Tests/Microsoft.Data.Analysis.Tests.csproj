@@ -51,7 +51,6 @@
     <ItemGroup>
       <PackageReference Include="System.Data.SqlClient" />
       <PackageReference Include="System.Data.SQLite" />
-      <PackageReference Include="System.Data.SQLite.Core" PrivateAssets="none" />
       <PackageReference Include="System.Configuration.ConfigurationManager" />
     </ItemGroup>
 

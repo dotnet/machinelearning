@@ -15,7 +15,6 @@
     <PackageReference Include="TorchSharp.PyBridge" />
     <PackageReference Include="TorchSharp" />
     <PackageReference Include="JsonSchema.Net.Generation" />
-    <PackageReference Include="JsonSchema.Net" />
   </ItemGroup>
 
   <ItemGroup>

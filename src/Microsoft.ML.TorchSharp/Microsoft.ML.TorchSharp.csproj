@@ -14,7 +14,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Memory" />
     <PackageReference Include="TorchSharp" />
     <PackageReference Include="libtorch-cpu-win-x64" Condition="$([MSBuild]::IsOSPlatform('Windows'))" PrivateAssets="all" />
     <PackageReference Include="libtorch-cpu-linux-x64" Condition="$([MSBuild]::IsOSPlatform('Linux'))" PrivateAssets="all" />

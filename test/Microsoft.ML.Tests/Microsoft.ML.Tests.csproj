@@ -54,7 +54,6 @@
     <PackageReference Include="Microsoft.ML.OnnxRuntime" />
     <PackageReference Include="AwesomeAssertions" />
     <PackageReference Include="System.Data.SQLite.Core" />
-    <PackageReference Include="runtime.native.System.Data.SqlClient.sni" />
   </ItemGroup>
 
   <ItemGroup>

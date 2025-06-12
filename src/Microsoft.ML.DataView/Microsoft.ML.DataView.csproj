@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="System.Memory" />
   </ItemGroup>
 
   <ItemGroup>

@@ -28,7 +28,6 @@
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" />
     <PackageReference Include="System.CodeDom" />
-    <PackageReference Include="System.Memory" />
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Threading.Channels" />
   </ItemGroup>

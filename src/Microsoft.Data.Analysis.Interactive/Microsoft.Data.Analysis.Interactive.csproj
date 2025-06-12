@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.Interactive" />
-    <PackageReference Include="Microsoft.DotNet.Interactive.Formatting" />
   </ItemGroup>
 
   <ItemGroup>

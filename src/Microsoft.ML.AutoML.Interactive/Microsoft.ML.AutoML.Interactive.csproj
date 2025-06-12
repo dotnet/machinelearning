@@ -12,9 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.Interactive" />
-    <PackageReference Include="Microsoft.DotNet.Interactive.Formatting" />
     <PackageReference Include="Plotly.NET.CSharp" />
-    <PackageReference Include="Microsoft.CodeAnalysis" />
   </ItemGroup>
 
   <ItemGroup>

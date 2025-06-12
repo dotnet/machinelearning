@@ -10,9 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.IO.FileSystem.AccessControl" />
-    <PackageReference Include="System.Security.Principal.Windows" />
     <PackageReference Include="TensorFlow.NET" />
-    <PackageReference Include="Google.Protobuf" />
   </ItemGroup>
 
   <ItemGroup>

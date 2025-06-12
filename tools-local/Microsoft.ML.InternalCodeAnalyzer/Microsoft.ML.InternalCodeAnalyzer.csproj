@@ -9,7 +9,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Microsoft.CSharp" />
-    <PackageReference Include="System.Composition" />
     <PackageReference Include="System.Formats.Asn1" />
   </ItemGroup>
 
