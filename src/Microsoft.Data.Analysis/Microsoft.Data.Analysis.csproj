@@ -49,8 +49,6 @@
     <PackageReference Include="System.Numerics.Tensors" />
   </ItemGroup>
 
-
-
   <ItemGroup>
     <PackageReference Include="Apache.Arrow" />
   </ItemGroup>
