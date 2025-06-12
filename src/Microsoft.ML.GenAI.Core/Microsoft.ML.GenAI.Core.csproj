@@ -17,7 +17,6 @@
     <PackageReference Include="Microsoft.SemanticKernel.Abstractions" />
     <PackageReference Include="System.Memory" />
     <PackageReference Include="TorchSharp" />
-    <PackageReference Include="JsonSchema.Net.Generation" />
   </ItemGroup>
 
   <ItemGroup>
