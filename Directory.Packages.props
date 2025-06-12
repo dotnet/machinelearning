@@ -71,6 +71,9 @@
     <PackageVersion Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" />
     <PackageVersion Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" />
 
+    <!-- Use the version specified by the SDK when building F# projects -->
+    <PackageVersion Include="FSharp.Core" Condition="'$(MSBuildProjectExtension)' == '.fsproj'" Version="$(FSCorePackageVersion)" />
+
     <!-- Test-only dependencies -->
     <PackageVersion Include="ApprovalTests" Version="$(ApprovalTestsVersion)" />
     <PackageVersion Include="AutoGen.Core" Version="$(AutoGenVersion)" />
