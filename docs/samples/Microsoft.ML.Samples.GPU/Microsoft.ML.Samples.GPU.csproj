@@ -46,14 +46,17 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
   </ItemGroup>
+  <!-- Tensorflow GPU packages are not available with matching 2.7.0 version -->
+  <!-- 
   <ItemGroup Condition=" '$(OS)' == 'Windows_NT'">
     <PackageReference Include="SciSharp.TensorFlow.Redist-Windows-GPU" Version="$(TensorFlowVersion)" />
   </ItemGroup>
   <ItemGroup Condition=" '$(OS)' == 'Unix'">
     <PackageReference Include="SciSharp.TensorFlow.Redist-Linux-GPU" Version="$(TensorFlowVersion)" />
   </ItemGroup>
+  -->
 
-    <ItemGroup>
+  <ItemGroup>
     <Content Include="$(ModelDownloadPath)\ResNet18Onnx\ResNet18.onnx">
       <Link>DnnImageModels\ResNet18Onnx\ResNet18.onnx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
