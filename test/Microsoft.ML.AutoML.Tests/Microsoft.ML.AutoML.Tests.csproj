@@ -21,11 +21,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ApprovalTests" Version="$(ApprovalTestsVersion)" />
-    <PackageReference Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
-    <PackageReference Include="AwesomeAssertions" Version="$(AwesomeAssertionsVersion)" />
-    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimeVersion)" />
+    <PackageReference Include="ApprovalTests" />
+    <PackageReference Include="System.Data.SqlClient" />
+    <PackageReference Include="AwesomeAssertions" />
+    <PackageReference Include="SciSharp.TensorFlow.Redist" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" />
   </ItemGroup>
 
   <ItemGroup>

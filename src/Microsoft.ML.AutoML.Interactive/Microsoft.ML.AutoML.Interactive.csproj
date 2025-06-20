@@ -11,10 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.DotNet.Interactive" Version="$(MicrosoftDotNetInteractiveVersion)" />
-    <PackageReference Include="Microsoft.DotNet.Interactive.Formatting" Version="$(MicrosoftDotNetInteractiveVersion)" />
-    <PackageReference Include="Plotly.NET.CSharp" Version="$(PlotlyNETCSharpVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
+    <PackageReference Include="Microsoft.DotNet.Interactive" />
+    <PackageReference Include="Plotly.NET.CSharp" />
   </ItemGroup>
 
   <ItemGroup>

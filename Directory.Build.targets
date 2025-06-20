@@ -5,7 +5,7 @@
   <Import Condition="'$(IsPackable)' == 'true'" Project="$(RepositoryEngineeringDir)Packaging.targets"  />
 
   <ItemGroup Condition="'$(IsUnitTestProject)' == 'true'">
-    <PackageReference Include="coverlet.msbuild" Version="$(CoverletMsbuildVersion)" PrivateAssets="all" />
+    <PackageReference Include="coverlet.msbuild" PrivateAssets="all" />
   </ItemGroup>
 
   <Target Name="SetCopyProperties">
