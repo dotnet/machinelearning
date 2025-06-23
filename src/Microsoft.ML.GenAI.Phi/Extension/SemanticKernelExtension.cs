@@ -15,7 +15,7 @@ public static class SemanticKernelExtension
 {
     public static IKernelBuilder AddGenAIChatCompletion(
         this IKernelBuilder builder,
-        ICausalLMPipeline<Tokenizer, Phi3ForCasualLM> pipeline)
+        ICausalLMPipeline<Tokenizer, Phi3ForCausalLM> pipeline)
     {
         builder.Services.AddSingleton<IChatCompletionService>(new Phi3CausalLMChatCompletionService(pipeline));
 
@@ -24,7 +24,7 @@ public static class SemanticKernelExtension
 
     public static IKernelBuilder AddGenAITextGeneration(
         this IKernelBuilder builder,
-        ICausalLMPipeline<Tokenizer, Phi3ForCasualLM> pipeline)
+        ICausalLMPipeline<Tokenizer, Phi3ForCausalLM> pipeline)
     {
         builder.Services.AddSingleton<ITextGenerationService>(new Phi3CausalLMTextGenerationService(pipeline));
 

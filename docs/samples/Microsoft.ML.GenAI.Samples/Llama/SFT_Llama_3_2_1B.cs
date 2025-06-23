@@ -25,7 +25,7 @@ internal class SFT_Llama_3_2_1B
         using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 
         // create logger
-        var logger = loggerFactory.CreateLogger<CasualLMSupervisedFineTuningTrainer>();
+        var logger = loggerFactory.CreateLogger<CausalLMSupervisedFineTuningTrainer>();
 
         var device = "cuda";
 
@@ -46,10 +46,10 @@ internal class SFT_Llama_3_2_1B
         var input = CreateDataset(dataset, pipeline.TypedTokenizer, Llama3_1ChatTemplateBuilder.Instance);
 
         // create trainer
-        var sftTrainer = new CasualLMSupervisedFineTuningTrainer(pipeline, logger: logger);
+        var sftTrainer = new CausalLMSupervisedFineTuningTrainer(pipeline, logger: logger);
 
         // Train the model
-        var option = new CasualLMSupervisedFineTuningTrainer.Option
+        var option = new CausalLMSupervisedFineTuningTrainer.Option
         {
             BatchSize = 1,
             Device = device,

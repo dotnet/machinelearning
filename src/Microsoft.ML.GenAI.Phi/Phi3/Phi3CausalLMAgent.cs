@@ -17,12 +17,12 @@ namespace Microsoft.ML.GenAI.Phi;
 public class Phi3Agent : IStreamingAgent
 {
     private const char Newline = '\n';
-    private readonly ICausalLMPipeline<Tokenizer, Phi3ForCasualLM> _pipeline;
+    private readonly ICausalLMPipeline<Tokenizer, Phi3ForCausalLM> _pipeline;
     private readonly string? _systemMessage;
     private readonly IAutoGenChatTemplateBuilder _templateBuilder;
 
     public Phi3Agent(
-        ICausalLMPipeline<Tokenizer, Phi3ForCasualLM> pipeline,
+        ICausalLMPipeline<Tokenizer, Phi3ForCausalLM> pipeline,
         string name,
         string? systemMessage = "you are a helpful assistant",
         IAutoGenChatTemplateBuilder? templateBuilder = null)

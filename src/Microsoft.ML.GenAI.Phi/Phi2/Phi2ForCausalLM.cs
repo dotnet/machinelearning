@@ -14,15 +14,15 @@ using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Phi;
 
-public class Phi2ForCasualLM : nn.Module<CausalLMModelInput, CausalLMModelOutput>
+public class Phi2ForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutput>
 {
 #pragma warning disable MSML_PrivateFieldName // Private field name not in: _camelCase format
     private readonly Phi2Model model;
     private readonly GenAILinear lm_head;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
 
-    public Phi2ForCasualLM(Phi2Config config)
-        : base(nameof(Phi2ForCasualLM))
+    public Phi2ForCausalLM(Phi2Config config)
+        : base(nameof(Phi2ForCausalLM))
     {
         this.model = new Phi2Model(config);
         this.lm_head = new GenAILinear(config.HiddenSize, config.VocabSize, dtype: config.Dtype);
@@ -47,7 +47,7 @@ public class Phi2ForCasualLM : nn.Module<CausalLMModelInput, CausalLMModelOutput
         return new CausalLMModelOutput(lastHiddenState: hiddenState, logits: lmLogits);
     }
 
-    public static Phi2ForCasualLM FromPretrained(
+    public static Phi2ForCausalLM FromPretrained(
         string modelFolder,
         string configName = "config.json",
         string checkPointName = "model.safetensors.index.json",
@@ -58,7 +58,7 @@ public class Phi2ForCasualLM : nn.Module<CausalLMModelInput, CausalLMModelOutput
         var config = Path.Join(modelFolder, configName);
         var modelConfig = JsonSerializer.Deserialize<Phi2Config>(File.ReadAllText(config)) ?? throw new ArgumentNullException(nameof(config));
         modelConfig.Dtype = torchDtype;
-        var wrapper = new Phi2ForCasualLM(modelConfig);
+        var wrapper = new Phi2ForCausalLM(modelConfig);
         var loadedParameters = new Dictionary<string, bool>();
         wrapper.load_checkpoint(path: modelFolder, checkpointName: checkPointName, strict: true, loadedParameters: loadedParameters, useTqdm: useTqdm);
         wrapper = wrapper.to(device);

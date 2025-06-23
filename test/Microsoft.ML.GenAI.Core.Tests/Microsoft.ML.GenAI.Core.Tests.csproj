@@ -26,7 +26,7 @@
 
   <ItemGroup Condition="'$(TargetArchitecture)' != 'x64'">
     <Compile Remove="QuantizedLinearTests.cs" />
-    <Compile Remove="CasualLMDatasetTest.cs" />
+    <Compile Remove="CausalLMDatasetTest.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">

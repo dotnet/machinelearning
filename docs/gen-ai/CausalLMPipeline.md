@@ -20,11 +20,11 @@ public abstract class CausalLMPipeline
         bool echo = false); // echo the input token ids in the output token ids
 }
 
-public CasualLMPipeline<TTokenizer, TCausalLM> : CausalLMPipeline
+public CausalLMPipeline<TTokenizer, TCausalLM> : CausalLMPipeline
     where TTokenizer : ITokenizer
     where TCausalLM : nn.Module<CausalLanguageModelInput, CausalLanguageModelOutput>
 {
-    public CausalLMPipeline<LLama2Tokenizer, Phi3ForCasualLM> Create(LLama2Tokenizer tokenizer, Phi3ForCasualLM model);
+    public CausalLMPipeline<LLama2Tokenizer, Phi3ForCausalLM> Create(LLama2Tokenizer tokenizer, Phi3ForCausalLM model);
 
 }
 ```
@@ -105,7 +105,7 @@ The extension `Generate` method provides a even-easier way to generate text with
 
 ```C#
 public static string Generate(
-    this CasualLMPipeline pipeline,
+    this CausalLMPipeline pipeline,
     string prompt,
     int maxLen = 128,
     float temperature = 0.7f,

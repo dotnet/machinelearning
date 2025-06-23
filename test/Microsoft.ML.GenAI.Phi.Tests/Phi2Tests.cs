@@ -30,7 +30,7 @@ public class Phi2Tests
     [UseApprovalSubdirectory("Approvals")]
     public void LoadSafeTensorShapeTest()
     {
-        var model = new Phi2ForCasualLM(Phi2Config.Phi2);
+        var model = new Phi2ForCausalLM(Phi2Config.Phi2);
         var stateDictStr = model.PeekShape();
         Approvals.Verify(stateDictStr);
     }
