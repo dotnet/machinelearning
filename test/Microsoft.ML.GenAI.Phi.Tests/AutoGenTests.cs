@@ -16,7 +16,7 @@ public class AutoGenTests
     [Fact]
     public async Task ItGenerateTextReply()
     {
-        var pipeline = Mock.Of<ICausalLMPipeline<Tokenizer, Phi3ForCasualLM>>();
+        var pipeline = Mock.Of<ICausalLMPipeline<Tokenizer, Phi3ForCausalLM>>();
         // mock generate api
         Mock.Get(pipeline).Setup(p => p.Generate(
             It.IsAny<string>(), // prompt

@@ -32,7 +32,7 @@ public class Phi3Tests
     [UseApprovalSubdirectory("Approvals")]
     public void Phi3Mini4KShapeTest()
     {
-        var model = new Phi3ForCasualLM(Phi3Config.Phi3Mini4kInstruct);
+        var model = new Phi3ForCausalLM(Phi3Config.Phi3Mini4kInstruct);
         var stateDictStr = model.PeekShape();
         Approvals.Verify(stateDictStr);
     }
@@ -42,7 +42,7 @@ public class Phi3Tests
     [UseApprovalSubdirectory("Approvals")]
     public void Phi3Mini4KInt8QuantizeShapeTest()
     {
-        var model = new Phi3ForCasualLM(Phi3Config.Phi3Mini4kInstruct);
+        var model = new Phi3ForCausalLM(Phi3Config.Phi3Mini4kInstruct);
         model.ToInt8QuantizeModule();
         var size = model.GetSizeInBytes();
         var stateDictStr = model.PeekShape();
@@ -56,7 +56,7 @@ public class Phi3Tests
     [UseApprovalSubdirectory("Approvals")]
     public void Phi3Mini4KInt4QuantizeShapeTest()
     {
-        var model = new Phi3ForCasualLM(Phi3Config.Phi3Mini4kInstruct);
+        var model = new Phi3ForCausalLM(Phi3Config.Phi3Mini4kInstruct);
         model.ToInt4QuantizeModule();
         var size = model.GetSizeInBytes();
         var stateDictStr = model.PeekShape();
@@ -70,7 +70,7 @@ public class Phi3Tests
     [UseApprovalSubdirectory("Approvals")]
     public void Phi3Medium4KShapeTest()
     {
-        var model = new Phi3ForCasualLM(Phi3Config.Phi3Medium4kInstruct);
+        var model = new Phi3ForCausalLM(Phi3Config.Phi3Medium4kInstruct);
         var stateDictStr = model.PeekShape();
         Approvals.Verify(stateDictStr);
     }
@@ -81,7 +81,7 @@ public class Phi3Tests
     [UseApprovalSubdirectory("Approvals")]
     public void Phi3Medium128KShapeTest()
     {
-        var model = new Phi3ForCasualLM(Phi3Config.Phi3Medium128kInstruct);
+        var model = new Phi3ForCausalLM(Phi3Config.Phi3Medium128kInstruct);
         var stateDictStr = model.PeekShape();
         Approvals.Verify(stateDictStr);
     }
@@ -91,7 +91,7 @@ public class Phi3Tests
     [UseApprovalSubdirectory("Approvals")]
     public void Phi3Mini128KShapeTest()
     {
-        var model = new Phi3ForCasualLM(Phi3Config.Phi3Mini128kInstruct);
+        var model = new Phi3ForCausalLM(Phi3Config.Phi3Mini128kInstruct);
         var stateDictStr = model.PeekShape();
         Approvals.Verify(stateDictStr);
     }
@@ -101,7 +101,7 @@ public class Phi3Tests
     [UseApprovalSubdirectory("Approvals")]
     public void Phi3Mini128KLayerSizeTest()
     {
-        var model = new Phi3ForCasualLM(Phi3Config.Phi3Mini128kInstruct);
+        var model = new Phi3ForCausalLM(Phi3Config.Phi3Mini128kInstruct);
         var size = model.GetSizeForEachDynamicLayerInBytes();
         // convert size to MB
         var sizeInMB = size.ToDictionary(x => x.Key, x => x.Value / 1024 / 1024);

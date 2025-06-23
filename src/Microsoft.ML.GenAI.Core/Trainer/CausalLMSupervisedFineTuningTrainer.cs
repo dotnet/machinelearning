@@ -13,12 +13,12 @@ using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Core.Trainer;
 
-public class CasualLMSupervisedFineTuningTrainer
+public class CausalLMSupervisedFineTuningTrainer
 {
-    private readonly ILogger<CasualLMSupervisedFineTuningTrainer>? _logger;
+    private readonly ILogger<CausalLMSupervisedFineTuningTrainer>? _logger;
     private readonly ICausalLMPipeline _pipeline;
 
-    public CasualLMSupervisedFineTuningTrainer(ICausalLMPipeline pipeline, ILogger<CasualLMSupervisedFineTuningTrainer>? logger = null)
+    public CausalLMSupervisedFineTuningTrainer(ICausalLMPipeline pipeline, ILogger<CausalLMSupervisedFineTuningTrainer>? logger = null)
     {
         _logger = logger;
         _pipeline = pipeline;

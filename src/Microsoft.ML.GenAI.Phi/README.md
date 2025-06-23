@@ -25,7 +25,7 @@ git clone https://huggingface.co/microsoft/Phi-3-mini-4k-instruct
 var weightFolder = "/path/to/Phi-3-mini-4k-instruct";
 var configName = "config.json";
 var config = JsonSerializier.Deserialize<Phi3Config>(File.ReadAllText(Path.Combine(weightFolder, configName)));
-var model = new Phi3ForCasualLM(config);
+var model = new Phi3ForCausalLM(config);
 
 // load tokenizer
 var tokenizerModelName = "tokenizer.model";

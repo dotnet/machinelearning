@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.ML.GenAI.Core.Tests;
 
-public class CasualLMDatasetTest
+public class CausalLMDatasetTest
 {
     private static Tokenizer CreateLlamaTokenizer()
     {

@@ -14,12 +14,12 @@ namespace Microsoft.ML.GenAI.Phi;
 
 public class Phi3CausalLMChatCompletionService : IChatCompletionService
 {
-    private readonly ICausalLMPipeline<Tokenizer, Phi3ForCasualLM> _pipeline;
+    private readonly ICausalLMPipeline<Tokenizer, Phi3ForCausalLM> _pipeline;
     private readonly Phi3CausalLMTextGenerationService _textGenerationService;
     private readonly ISemanticKernelChatTemplateBuilder _templateBuilder;
 
     public Phi3CausalLMChatCompletionService(
-        ICausalLMPipeline<Tokenizer, Phi3ForCasualLM> pipeline,
+        ICausalLMPipeline<Tokenizer, Phi3ForCausalLM> pipeline,
         ISemanticKernelChatTemplateBuilder? templateBuilder = null)
     {
         _pipeline = pipeline;

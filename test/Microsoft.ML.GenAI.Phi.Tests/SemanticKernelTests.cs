@@ -19,7 +19,7 @@ public class SemanticKernelTests
     [Fact]
     public async Task ItAddPhi3CausalLMChatCompletionServiceTestAsync()
     {
-        var pipeline = Mock.Of<ICausalLMPipeline<Tokenizer, Phi3ForCasualLM>>();
+        var pipeline = Mock.Of<ICausalLMPipeline<Tokenizer, Phi3ForCausalLM>>();
         // mock generate api
         Mock.Get(pipeline).Setup(p => p.Generate(
             It.IsAny<string>(), // prompt
@@ -55,7 +55,7 @@ public class SemanticKernelTests
     [Fact]
     public async Task ItAddPhi3CausalLMTextGenerationServiceTestAsync()
     {
-        var pipeline = Mock.Of<ICausalLMPipeline<Tokenizer, Phi3ForCasualLM>>();
+        var pipeline = Mock.Of<ICausalLMPipeline<Tokenizer, Phi3ForCausalLM>>();
         // mock generate api
         Mock.Get(pipeline).Setup(p => p.Generate(
             It.IsAny<string>(), // prompt
