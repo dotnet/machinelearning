@@ -35,9 +35,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsVersion)" />
-    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
-    <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" Version="$(MicrosoftMLTensorFlowTestModelsVersion)" />
+    <PackageReference Include="Microsoft.ML.TestModels" />
+    <PackageReference Include="SciSharp.TensorFlow.Redist" />
+    <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" />
   </ItemGroup>
 
   <ItemGroup>
