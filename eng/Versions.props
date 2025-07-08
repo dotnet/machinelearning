@@ -90,7 +90,6 @@
     <BenchmarkDotNetVersion>0.13.12</BenchmarkDotNetVersion>
     <DotNetRuntime60Version>6.0.36</DotNetRuntime60Version>
     <DotNetRuntime80Version>8.0.16</DotNetRuntime80Version>
-	<DotNetRuntime90Version>9.0.5</DotNetRuntime90Version>
     <AwesomeAssertionsVersion>8.1.0</AwesomeAssertionsVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.2</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftDotNetBuildTasksTemplatingVersion>9.0.0-beta.24212.4</MicrosoftDotNetBuildTasksTemplatingVersion>
