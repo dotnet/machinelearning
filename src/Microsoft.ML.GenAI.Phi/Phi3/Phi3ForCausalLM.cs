@@ -18,7 +18,7 @@ using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Phi;
 
-public class Phi3ForCasualLM : nn.Module<CausalLMModelInput, CausalLMModelOutput>
+public class Phi3ForCausalLM : nn.Module<CausalLMModelInput, CausalLMModelOutput>
 {
     private readonly Phi3Config _config;
 
@@ -27,8 +27,8 @@ public class Phi3ForCasualLM : nn.Module<CausalLMModelInput, CausalLMModelOutput
     private readonly GenAILinear lm_head;
 #pragma warning restore MSML_PrivateFieldName // Private field name not in: _camelCase format
 
-    public Phi3ForCasualLM(Phi3Config config)
-        : base(nameof(Phi3ForCasualLM))
+    public Phi3ForCausalLM(Phi3Config config)
+        : base(nameof(Phi3ForCausalLM))
     {
         this._config = config;
         this.model = new Phi3Model(config);
@@ -49,7 +49,7 @@ public class Phi3ForCasualLM : nn.Module<CausalLMModelInput, CausalLMModelOutput
         return outputs;
     }
 
-    public static Phi3ForCasualLM FromPretrained(
+    public static Phi3ForCausalLM FromPretrained(
         string modelFolder,
         string configName = "config.json",
         string checkPointName = "model.safetensors.index.json",
@@ -59,7 +59,7 @@ public class Phi3ForCasualLM : nn.Module<CausalLMModelInput, CausalLMModelOutput
         var config = Path.Join(modelFolder, configName);
         var modelConfig = JsonSerializer.Deserialize<Phi3Config>(File.ReadAllText(config)) ?? throw new ArgumentNullException(nameof(config));
         modelConfig.DType = torchDtype;
-        var phi = new Phi3ForCasualLM(modelConfig);
+        var phi = new Phi3ForCausalLM(modelConfig);
         phi.LoadSafeTensors(modelFolder, checkPointName);
         phi = phi.to(device);
         phi.eval();
@@ -67,7 +67,7 @@ public class Phi3ForCasualLM : nn.Module<CausalLMModelInput, CausalLMModelOutput
         return phi;
     }
 
-    public static Phi3ForCasualLM FromPretrained(
+    public static Phi3ForCausalLM FromPretrained(
         string modelFolder,
         string configName = "config.json",
         string checkPointName = "model.safetensors.index.json",
@@ -87,7 +87,7 @@ public class Phi3ForCasualLM : nn.Module<CausalLMModelInput, CausalLMModelOutput
         var config = Path.Join(modelFolder, configName);
         var modelConfig = JsonSerializer.Deserialize<Phi3Config>(File.ReadAllText(config)) ?? throw new ArgumentNullException(nameof(config));
         modelConfig.DType = torchDtype;
-        var model = new Phi3ForCasualLM(modelConfig);
+        var model = new Phi3ForCausalLM(modelConfig);
 
         if (quantizeToInt8)
         {
@@ -105,7 +105,7 @@ public class Phi3ForCasualLM : nn.Module<CausalLMModelInput, CausalLMModelOutput
             ]);
 
         torch.set_default_device("cpu");
-        model = new Phi3ForCasualLM(modelConfig);
+        model = new Phi3ForCausalLM(modelConfig);
 
         model.LoadSafeTensors(modelFolder, checkPointName);
 

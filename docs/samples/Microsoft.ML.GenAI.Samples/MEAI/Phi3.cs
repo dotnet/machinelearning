@@ -27,8 +27,8 @@ internal class Phi3
         torch.set_default_dtype(defaultType);
         var tokenizerPath = Path.Combine(weightFolder, "tokenizer.model");
         var tokenizer = Phi3TokenizerHelper.FromPretrained(tokenizerPath);
-        var model = Phi3ForCasualLM.FromPretrained(weightFolder, "config.json", layersOnTargetDevice: -1, quantizeToInt8: true);
-        var pipeline = new CausalLMPipeline<LlamaTokenizer, Phi3ForCasualLM>(tokenizer, model, device);
+        var model = Phi3ForCausalLM.FromPretrained(weightFolder, "config.json", layersOnTargetDevice: -1, quantizeToInt8: true);
+        var pipeline = new CausalLMPipeline<LlamaTokenizer, Phi3ForCausalLM>(tokenizer, model, device);
         var client = new Phi3CausalLMChatClient(pipeline);
 
         var task = """

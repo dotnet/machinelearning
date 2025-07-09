@@ -13,12 +13,12 @@ namespace Microsoft.ML.GenAI.Core;
 
 public class AttentionMaskConverter
 {
-    private readonly bool _isCasual;
+    private readonly bool _isCausal;
     private readonly int? _slidingWindow;
 
     public AttentionMaskConverter(bool isCausal, int? slidingWindow)
     {
-        this._isCasual = isCausal;
+        this._isCausal = isCausal;
         this._slidingWindow = slidingWindow;
     }
 
@@ -42,8 +42,8 @@ public class AttentionMaskConverter
 
         // create causal mask
         // [bsz, seq_len] -> [bsz, 1, tgt_seq_len, src_seq_len]
-        Tensor? casual4dMask = null;
-        if ((inputShape[^1] > 1 || this._slidingWindow is not null) && this._isCasual)
+        Tensor? causal4dMask = null;
+        if ((inputShape[^1] > 1 || this._slidingWindow is not null) && this._isCausal)
         {
             if (keyValueLength is null)
             {
@@ -51,7 +51,7 @@ public class AttentionMaskConverter
             }
 
             var pastKeyValuesLength = keyValueLength.Value - queryLength;
-            casual4dMask = MakeCasualMask(inputShape, dType, attentionMask2d.device, pastKeyValuesLength, this._slidingWindow);
+            causal4dMask = MakeCausalMask(inputShape, dType, attentionMask2d.device, pastKeyValuesLength, this._slidingWindow);
         }
         else if (this._slidingWindow is not null)
         {
@@ -59,25 +59,25 @@ public class AttentionMaskConverter
         }
 
         var expandedAttnMask = ExpandMask(attentionMask2d, dType, queryLength).to(attentionMask2d.device);
-        if (casual4dMask is not null)
+        if (causal4dMask is not null)
         {
             var min = torch.finfo(dType).min;
-            expandedAttnMask = casual4dMask.masked_fill(expandedAttnMask.to(ScalarType.Bool), min);
+            expandedAttnMask = causal4dMask.masked_fill(expandedAttnMask.to(ScalarType.Bool), min);
         }
 
         return expandedAttnMask;
     }
 
-    public Tensor? ToCasual4D(
+    public Tensor? ToCausal4D(
         int batchSize,
         int queryLength,
         int keyValueLength,
         ScalarType dType,
         Device device)
     {
-        if (!_isCasual)
+        if (!_isCausal)
         {
-            throw new ArgumentException("This is not a casual mask");
+            throw new ArgumentException("This is not a causal mask");
         }
 
         long[] inputShape = [batchSize, queryLength];
@@ -88,13 +88,13 @@ public class AttentionMaskConverter
         Tensor? causal4DMask = null;
         if (queryLength > 1 || this._slidingWindow is int)
         {
-            causal4DMask = MakeCasualMask(inputShape, dType, device, pastKeyValueLength, this._slidingWindow);
+            causal4DMask = MakeCausalMask(inputShape, dType, device, pastKeyValueLength, this._slidingWindow);
         }
 
         return causal4DMask;
     }
 
-    public static Tensor MakeCasualMask(
+    public static Tensor MakeCausalMask(
         long[] inputIdsShape,
         ScalarType dType,
         Device device,
@@ -158,7 +158,7 @@ public class AttentionMaskConverter
             return converter.To4D(attentionMask, (int)inputShape[1], dType, keyValueLength);
         }
 
-        return converter.ToCasual4D(batchSize, queryLength, keyValueLength, dType, device);
+        return converter.ToCausal4D(batchSize, queryLength, keyValueLength, dType, device);
     }
 
     public static Tensor ExpandMask(
