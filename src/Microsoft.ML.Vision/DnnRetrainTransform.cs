@@ -603,11 +603,11 @@ namespace Microsoft.ML.Transforms
 
         internal static Shape GetTensorShape(TF_Output output, Graph graph, Status status = null)
         {
-            if (graph == IntPtr.Zero)
+            if (((SafeGraphHandle)graph).IsInvalid)
                 throw new ObjectDisposedException(nameof(graph));
 
             var cstatus = status == null ? new Status() : status;
-            var n = c_api.TF_GraphGetTensorNumDims(graph, output, cstatus.Handle);
+            var n = c_api.TF_GraphGetTensorNumDims(graph, output, cstatus);
 
             cstatus.Check();
 
@@ -615,7 +615,7 @@ namespace Microsoft.ML.Transforms
                 return new Shape(new int[0]);
 
             var dims = new long[n];
-            c_api.TF_GraphGetTensorShape(graph, output, dims, dims.Length, cstatus.Handle);
+            c_api.TF_GraphGetTensorShape(graph, output, dims, dims.Length, cstatus);
             cstatus.Check();
             return new Shape(dims.Select(x => (int)x).ToArray());
         }
@@ -736,11 +736,16 @@ namespace Microsoft.ML.Transforms
             // that the Session is closed before deleting our temporary directory.
             try
             {
-                if (_session != null && _session != IntPtr.Zero)
+                SafeGraphHandle graphHandle = _session?.graph;
+                SafeSessionHandle sessionHandle = _session;
+                if (sessionHandle != null && !sessionHandle.IsInvalid)
                 {
-                    if (_session.graph != null)
-                        _session.graph.Dispose();
-                    _session.Dispose();
+                    sessionHandle.Dispose();
+                }
+
+                if (graphHandle != null && !graphHandle.IsInvalid)
+                {
+                    graphHandle.Dispose();
                 }
             }
             finally

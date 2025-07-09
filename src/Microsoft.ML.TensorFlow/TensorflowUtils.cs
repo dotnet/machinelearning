@@ -588,7 +588,7 @@ namespace Microsoft.ML.TensorFlow
             /// <returns>An array of tensors fetched from the requested outputs.</returns>
             public Tensor[] Run()
             {
-                if (_session == IntPtr.Zero)
+                if (((SafeSessionHandle)_session).IsInvalid)
                     throw new ObjectDisposedException(nameof(_session));
 
                 unsafe
@@ -597,7 +597,7 @@ namespace Microsoft.ML.TensorFlow
                     {
                         c_api.TF_SessionRun(_session, null, _inputs, _inputValues,
                              _inputs.Length, _outputs, _outputValues, _outputValues.Length, _operations,
-                            _operations.Length, IntPtr.Zero, _status.Handle);
+                            _operations.Length, IntPtr.Zero, _status);
                     }
                     catch (Exception ex)
                     {
@@ -633,7 +633,7 @@ namespace Microsoft.ML.TensorFlow
                         tensor.Dispose();
                 }
 
-                _status.Dispose();
+                ((SafeStatusHandle)_status).Dispose();
             }
         }
 
