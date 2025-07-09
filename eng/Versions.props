@@ -72,6 +72,8 @@
     <TensorflowDotNETVersion>0.100.2</TensorflowDotNETVersion>
     <TensorFlowMajorVersion>2</TensorFlowMajorVersion>
     <TensorFlowVersion>2.16.0</TensorFlowVersion>
+    <TensorFlowWindowsGpuVersion>2.10.3</TensorFlowWindowsGpuVersion>
+    <TensorFlowLinuxGpuVersion>2.11.1</TensorFlowLinuxGpuVersion>
     <TorchSharpPyBridgeVersion>1.4.1</TorchSharpPyBridgeVersion>
     <AutoGenVersion>0.2.3</AutoGenVersion>
     <SemanticKernelVersion>1.48.0</SemanticKernelVersion>
