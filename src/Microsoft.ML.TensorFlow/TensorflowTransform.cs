@@ -361,11 +361,11 @@ namespace Microsoft.ML.Transforms
 
         internal static Shape GetTensorShape(TF_Output output, Graph graph, Status status = null)
         {
-            if (((SafeGraphHandle)graph).IsInvalid)
+            if (graph == IntPtr.Zero)
                 throw new ObjectDisposedException(nameof(graph));
 
             var cstatus = status == null ? new Status() : status;
-            var n = c_api.TF_GraphGetTensorNumDims(graph, output, cstatus);
+            var n = c_api.TF_GraphGetTensorNumDims(graph, output, cstatus.Handle);
 
             cstatus.Check();
 
@@ -373,7 +373,7 @@ namespace Microsoft.ML.Transforms
                 return new Shape(new int[0]);
 
             var dims = new long[n];
-            c_api.TF_GraphGetTensorShape(graph, output, dims, dims.Length, cstatus);
+            c_api.TF_GraphGetTensorShape(graph, output, dims, dims.Length, cstatus.Handle);
             cstatus.Check();
             return new Shape(dims.Select(x => (int)x).ToArray());
         }
@@ -453,10 +453,8 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.WriteBoolByte(_treatOutputAsBatched);
             if (isFrozen)
             {
-                var status = new Status();
-                var buffer = Session.graph.ToGraphDef(status);
-                using ((SafeStatusHandle)status)
-                using ((SafeBufferHandle)buffer)
+                using (var status = new Status())
+                using (var buffer = Session.graph.ToGraphDef(status))
                 {
                     ctx.SaveBinaryStream("TFModel", w =>
                     {
@@ -512,17 +510,14 @@ namespace Microsoft.ML.Transforms
 
             try
             {
-                SafeGraphHandle graphHandle = Session?.graph;
-                SafeSessionHandle sessionHandle = Session;
-
-                if (graphHandle != null && !graphHandle.IsClosed)
+                if (Session?.graph != IntPtr.Zero)
                 {
-                    graphHandle.Dispose();
+                    Session.graph.Dispose();
                 }
 
-                if (sessionHandle != null && !sessionHandle.IsClosed)
+                if (Session != null && Session != IntPtr.Zero)
                 {
-                    sessionHandle.Dispose();
+                    Session.Dispose();
                 }
             }
             finally

@@ -1196,11 +1196,11 @@ namespace Microsoft.ML.Vision
 
             string frozenModelPath = _checkpointPath + ".pb";
             File.WriteAllBytes(_checkpointPath + ".pb", outputGraphDef.ToByteArray());
-            ((SafeGraphHandle)_session.graph).Dispose();
+            _session.graph.Dispose();
             _session.Dispose();
             _session = LoadTFSessionByModelFilePath(Host, frozenModelPath, false);
 
-            ((SafeGraphHandle)sess.graph).Dispose();
+            sess.graph.Dispose();
             sess.Dispose();
         }
 
@@ -1436,10 +1436,8 @@ namespace Microsoft.ML.Vision
             ctx.Writer.Write(_imagePreprocessorTensorOutput);
             ctx.Writer.Write(_graphInputTensor);
             ctx.Writer.Write(_graphOutputTensor);
-            var status = new Status();
-            var buffer = _session.graph.ToGraphDef(status);
-            using ((SafeStatusHandle)status)
-            using ((SafeBufferHandle)buffer)
+            using (var status = new Status())
+            using (var buffer = _session.graph.ToGraphDef(status))
             {
                 ctx.SaveBinaryStream("TFModel", w =>
                 {
@@ -1495,17 +1493,14 @@ namespace Microsoft.ML.Vision
             if (_isDisposed)
                 return;
 
-            SafeGraphHandle graphHandle = _session?.graph;
-            SafeSessionHandle sessionHandle = _session;
-
-            if (graphHandle != null && !graphHandle.IsClosed)
+            if (_session?.graph != IntPtr.Zero)
             {
-                graphHandle.Dispose();
+                _session.graph.Dispose();
             }
 
-            if (sessionHandle != null && !sessionHandle.IsClosed)
+            if (_session != null && _session != IntPtr.Zero)
             {
-                sessionHandle.Dispose();
+                _session.Dispose();
             }
 
             _isDisposed = true;
