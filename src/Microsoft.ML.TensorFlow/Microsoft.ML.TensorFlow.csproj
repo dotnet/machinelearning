@@ -6,8 +6,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsPackable>true</IsPackable>
     <PackageDescription>Microsoft.ML.TensorFlow contains ML.NET integration of TensorFlow.</PackageDescription>
-    <!-- Suppress strong-name signing warning for Tensorflow.Binding, however this breaks .NETFramework consumption https://github.com/SciSharp/TensorFlow.NET/issues/1296 -->
-    <NoWarn>$(NoWarn);CS8002</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
