@@ -11,13 +11,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisCSharpVersion)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" PrivateAssets="all" />
-    <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomVersion)" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(MicrosoftBclAsyncInterfacesVersion)" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="$(SystemTextEncodingsWebVersion)" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <PackageReference Include="System.CodeDom" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="System.Text.Encodings.Web" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="System.Text.Json" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
 
   <Target Name="GetDependencyTargetPaths">

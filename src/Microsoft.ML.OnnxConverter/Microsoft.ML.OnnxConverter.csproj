@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufVersion)" />
+    <PackageReference Include="Google.Protobuf" />
   </ItemGroup>
 
   <ItemGroup>

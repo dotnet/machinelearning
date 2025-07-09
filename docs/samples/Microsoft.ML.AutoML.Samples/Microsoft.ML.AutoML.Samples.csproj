@@ -21,7 +21,7 @@
     <NativeAssemblyReference Include="FastTreeNative" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
+    <PackageReference Include="SciSharp.TensorFlow.Redist" />
   </ItemGroup>
 
 </Project>

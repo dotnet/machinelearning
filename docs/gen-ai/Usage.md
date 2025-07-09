@@ -7,9 +7,9 @@ This document shows how to use the causal language model API for text generation
 ```C#
 var pathToPhi3 = "path/to/phi3";
 var tokenizer = LLama2Tokenizer.FromPretrained(pathToPhi3);
-var phi3CausalModel = Phi3ForCasualLM.FromPretrained(pathToPhi3);
+var phi3CausalModel = Phi3ForCausalLM.FromPretrained(pathToPhi3);
 
-CausalLMPipeline<LLama2Tokenizer, Phi3ForCasualLM> pipeline = new CausalLMPipeline(tokenizer, phi3CausalModel);
+CausalLMPipeline<LLama2Tokenizer, Phi3ForCausalLM> pipeline = new CausalLMPipeline(tokenizer, phi3CausalModel);
 
 var prompt = "<|user|>Once upon a time<|end|><assistant>";
 var output = pipeline.Generate(
@@ -24,8 +24,8 @@ In most cases, developers would like to consume the model in a uniformed way. In
 ```C#
 var pathToPhi3 = "path/to/phi3";
 var tokenizer = LLama2Tokenizer.FromPretrained(pathToPhi3);
-var phi3CausalModel = Phi3ForCasualLM.FromPretrained(pathToPhi3);
-CausalLMPipeline<LLama2Tokenizer, Phi3ForCasualLM> pipeline = new CausalLMPipeline(tokenizer, phi3CausalModel);
+var phi3CausalModel = Phi3ForCausalLM.FromPretrained(pathToPhi3);
+CausalLMPipeline<LLama2Tokenizer, Phi3ForCausalLM> pipeline = new CausalLMPipeline(tokenizer, phi3CausalModel);
 var kernel = Kernel.CreateBuilder()
     // the type of the tokenizer and the model are explicitly specified
     // here for clarity, but the compiler can infer them
@@ -33,7 +33,7 @@ var kernel = Kernel.CreateBuilder()
     // The reason why we don't want to allow developers to pass an arbitrary CausalLMPipeline is because
     // - the model and the tokenizer must be compatible
     // - the chat template must be compatible with the model. e.g. In `AddPhi3AsChatCompletionService`, the chat template is fixed to "<|user|>{prompt}<|end|><assistant>"
-    .AddPhi3AsChatCompletionService<LLama2Tokenizer, Phi3ForCasualLM>(pipeline)
+    .AddPhi3AsChatCompletionService<LLama2Tokenizer, Phi3ForCausalLM>(pipeline)
     .Build();
 ```
 
@@ -42,7 +42,7 @@ Similarly, developers would also like to consume the language model like agent.
 ```C#
 var pathToPhi3 = "path/to/phi3";
 var tokenizer = LLama2Tokenizer.FromPretrained(pathToPhi3);
-var phi3CausalModel = Phi3ForCasualLM.FromPretrained(pathToPhi3);
+var phi3CausalModel = Phi3ForCausalLM.FromPretrained(pathToPhi3);
 var pipeline = new CausalLMPipeline(tokenizer, phi3CausalModel);
 var agent = new Phi3MiniAgent(pipeline, name: "assistant");
 
@@ -59,7 +59,7 @@ If the model is deployed as a service, developers can consume the model similar 
 // server.cs
 var pathToPhi3 = "path/to/phi3";
 var tokenizer = LLama2Tokenizer.FromPretrained(pathToPhi3);
-var phi3CausalModel = Phi3ForCasualLM.FromPretrained(pathToPhi3);
+var phi3CausalModel = Phi3ForCausalLM.FromPretrained(pathToPhi3);
 var pipeline = new CausalLMPipeline(tokenizer, phi3CausalModel);
 var agent = new Phi3MiniAgent(pipeline, name: "assistant");
 

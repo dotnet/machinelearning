@@ -29,12 +29,12 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
-    <PackageReference Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$(TargetArchitecture)' == 'x64'" />
-    <!--<PackageReference Include="TorchSharp-cuda-windows" Version="$(TorchSharpVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />-->
-    <PackageReference Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux')) AND '$(TargetArchitecture)' == 'x64'" />
-    <PackageReference Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX')) AND '$(TargetArchitecture)' == 'x64'" />
+    <PackageReference Include="libtorch-cpu-win-x64" Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$(TargetArchitecture)' == 'x64'" />
+    <!--<PackageReference Include="TorchSharp-cuda-windows" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />-->
+    <PackageReference Include="libtorch-cpu-linux-x64" Condition="$([MSBuild]::IsOSPlatform('Linux')) AND '$(TargetArchitecture)' == 'x64'" />
+    <PackageReference Include="libtorch-cpu-osx-x64" Condition="$([MSBuild]::IsOSPlatform('OSX')) AND '$(TargetArchitecture)' == 'x64'" />
 
-    <PackageReference Include="MathNet.Numerics.Signed" Version="5.0.0" />
+    <PackageReference Include="MathNet.Numerics.Signed" />
   </ItemGroup>
 
   <ItemGroup>

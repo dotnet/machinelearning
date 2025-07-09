@@ -66,8 +66,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.DotNet.RemoteExecutor" Version="$(MicrosoftDotNetRemoteExecutorVersion)" />
-    <PackageReference Include="Microsoft.ML.TestTokenizers" Version="$(MicrosoftMLTestTokenizersVersion)" />
+    <PackageReference Include="Microsoft.DotNet.RemoteExecutor" />
+    <PackageReference Include="Microsoft.ML.TestTokenizers" />
   </ItemGroup>
 
 </Project>

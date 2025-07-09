@@ -30,4 +30,8 @@
     <NativeAssemblyReference Include="CpuMathNative" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" />
+  </ItemGroup>
+
 </Project>

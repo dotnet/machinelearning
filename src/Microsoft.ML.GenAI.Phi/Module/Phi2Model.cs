@@ -80,7 +80,7 @@ internal class Phi2Model : nn.Module<
         // use 4d attention mask
         if (attentionMask is not null)
         {
-            attentionMask = this.Prepare4DCasualAttentionMask(attentionMask, seqLen, pastKeyValueLength, inputEmbeddings.dtype);
+            attentionMask = this.Prepare4DCausalAttentionMask(attentionMask, seqLen, pastKeyValueLength, inputEmbeddings.dtype);
         }
 
         var hiddenStates = inputEmbeddings;
@@ -100,7 +100,7 @@ internal class Phi2Model : nn.Module<
         return (hiddenStates, null, null);
     }
 
-    private Tensor Prepare4DCasualAttentionMask(
+    private Tensor Prepare4DCausalAttentionMask(
         Tensor attentionMask,
         int queryLength,
         int pastKeyValueLength,
@@ -110,11 +110,11 @@ internal class Phi2Model : nn.Module<
         var seqLen = attentionMask.shape[1];
         Contract.Assert(seqLen == queryLength, "seqLen must be equal to queryLength");
         var targetLength = queryLength + pastKeyValueLength;
-        var casual4DMask = this.MakeCasualAttentionMask(batchSize, queryLength, pastKeyValueLength, attentionMask.device, dtype);
+        var causal4DMask = this.MakeCausalAttentionMask(batchSize, queryLength, pastKeyValueLength, attentionMask.device, dtype);
         var expandedMask = this.ExpandMask(attentionMask, dtype, queryLength).to(attentionMask.device);
 
-        casual4DMask.masked_fill_(expandedMask.to_type(ScalarType.Bool), torch.finfo(dtype).min);
-        return casual4DMask;
+        causal4DMask.masked_fill_(expandedMask.to_type(ScalarType.Bool), torch.finfo(dtype).min);
+        return causal4DMask;
     }
 
     private Tensor ExpandMask(
@@ -132,7 +132,7 @@ internal class Phi2Model : nn.Module<
 
         return invertedMask.masked_fill(invertedMask.to_type(ScalarType.Bool), torch.finfo(dtype).min);
     }
-    private Tensor MakeCasualAttentionMask(
+    private Tensor MakeCausalAttentionMask(
         int batchSize,
         int targetLen,
         int pastKeyValueLength,

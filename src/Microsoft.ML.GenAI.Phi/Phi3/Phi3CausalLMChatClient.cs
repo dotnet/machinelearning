@@ -14,12 +14,12 @@ using Microsoft.ML.Tokenizers;
 
 namespace Microsoft.ML.GenAI.Phi;
 
-public class Phi3CausalLMChatClient : CausalLMPipelineChatClient<Tokenizer, Phi3ForCasualLM>
+public class Phi3CausalLMChatClient : CausalLMPipelineChatClient<Tokenizer, Phi3ForCausalLM>
 {
     private readonly string _eotToken = "<|end|>";
 
     public Phi3CausalLMChatClient(
-        ICausalLMPipeline<Tokenizer, Phi3ForCasualLM> pipeline,
+        ICausalLMPipeline<Tokenizer, Phi3ForCausalLM> pipeline,
         IMEAIChatTemplateBuilder? templateBuilder = null,
         ChatClientMetadata? metadata = null)
         : base(

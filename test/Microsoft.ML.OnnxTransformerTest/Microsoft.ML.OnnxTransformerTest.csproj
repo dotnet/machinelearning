@@ -15,8 +15,8 @@
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimeVersion)" />
+    <PackageReference Include="Microsoft.ML.Onnx.TestModels" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,9 +7,9 @@
     <NoWarn>$(NoWarn);RS1036;RS1038;RS1041</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
-    <PackageReference Include="NuGet.Resolver" Version="$(NuGetVersion)" />
-    <PackageReference Include="NuGet.Packaging.Core" Version="$(NuGetVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" />
+    <PackageReference Include="NuGet.Resolver" />
+    <PackageReference Include="NuGet.Packaging.Core" />
   </ItemGroup>
 
   <ItemGroup>

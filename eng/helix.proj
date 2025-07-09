@@ -91,7 +91,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.DotNet.Build.Tasks.Templating" Version="$(MicrosoftDotNetBuildTasksTemplatingVersion)" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.DotNet.Build.Tasks.Templating" PrivateAssets="All" />
   </ItemGroup>
 
   <Target Name="CreateHelixWorkItems" BeforeTargets="BeforeTest">
