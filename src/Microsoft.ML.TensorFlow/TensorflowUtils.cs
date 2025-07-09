@@ -78,7 +78,7 @@ namespace Microsoft.ML.TensorFlow
                 }
 
                 // Construct the final ML.NET type of a Tensorflow variable.
-                var dimensions = op.output.shape.dims;
+                var dimensions = op.output.shape.dims?.Select(x => checked((int)x))?.ToArray();
 
                 if (dimensions == null)
                 {

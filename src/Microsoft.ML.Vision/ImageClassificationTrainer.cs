@@ -25,9 +25,7 @@ using Microsoft.ML.Vision;
 using Tensorflow;
 using Tensorflow.Summaries;
 using static Microsoft.ML.Data.TextLoader;
-using static Microsoft.ML.Internal.Utilities.ArrayUtils;
 using static Microsoft.ML.TensorFlow.TensorFlowUtils;
-using static Microsoft.ML.Vision.StringTensorFactory;
 using static Tensorflow.Binding;
 using Column = Microsoft.ML.Data.TextLoader.Column;
 
@@ -1226,7 +1224,7 @@ namespace Microsoft.ML.Vision
             string scoreColumnName, Tensor bottleneckTensor, bool isTraining, bool useLearningRateScheduler,
             float learningRate)
         {
-            var bottleneckTensorDims = CastLongArrayToIntArray(bottleneckTensor.shape.dims);
+            var bottleneckTensorDims = bottleneckTensor.shape.dims.Select(x => checked((int)x)).ToArray();
             var (batch_size, bottleneck_tensor_size) = (bottleneckTensorDims[0], bottleneckTensorDims[1]);
             tf_with(tf.name_scope("input"), scope =>
             {

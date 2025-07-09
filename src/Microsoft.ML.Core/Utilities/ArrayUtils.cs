@@ -100,26 +100,5 @@ namespace Microsoft.ML.Internal.Utilities
             resized = true;
             return newSize;
         }
-
-        public static int[] CastLongArrayToIntArray(long[] source)
-        {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
-
-            int[] result = new int[source.Length];
-
-            for (int i = 0; i < source.Length; i++)
-            {
-                long value = source[i];
-                if (value > int.MaxValue || value < int.MinValue)
-                {
-                    throw new OverflowException($"Value at index {i} ({value}) cannot be safely cast to int.");
-                }
-
-                result[i] = (int)value;
-            }
-
-            return result;
-        }
     }
 }

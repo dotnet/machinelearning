@@ -74,24 +74,6 @@ namespace Microsoft.ML.Data
         /// <param name="dimensions">The dimensions. Note that, like <see cref="Dimensions"/>, must be non-empty, with all
         /// non-negative values. Also, because <see cref="Size"/> is the product of <see cref="Dimensions"/>, the result of
         /// multiplying all these values together must not overflow <see cref="int"/>.</param>
-        public VectorDataViewType(PrimitiveDataViewType itemType, params long[] dimensions)
-            : base(GetRawType(itemType))
-        {
-            Contracts.CheckParam(ArrayUtils.Size(dimensions) > 0, nameof(dimensions));
-            Contracts.CheckParam(dimensions.All(d => d >= 0), nameof(dimensions));
-
-            ItemType = itemType;
-            Dimensions = ArrayUtils.CastLongArrayToIntArray(dimensions).ToImmutableArray();
-            Size = ComputeSize(Dimensions);
-        }
-
-        /// <summary>
-        /// Constructs a potentially multi-dimensional vector type.
-        /// </summary>
-        /// <param name="itemType">The type of the items contained in the vector.</param>
-        /// <param name="dimensions">The dimensions. Note that, like <see cref="Dimensions"/>, must be non-empty, with all
-        /// non-negative values. Also, because <see cref="Size"/> is the product of <see cref="Dimensions"/>, the result of
-        /// multiplying all these values together must not overflow <see cref="int"/>.</param>
         public VectorDataViewType(PrimitiveDataViewType itemType, ImmutableArray<int> dimensions)
             : base(GetRawType(itemType))
         {

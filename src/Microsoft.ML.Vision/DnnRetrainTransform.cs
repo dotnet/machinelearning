@@ -644,12 +644,12 @@ namespace Microsoft.ML.Transforms
                 // i.e. the first dimension (if unknown) is assumed to be batch dimension.
                 // If there are other dimension that are unknown the transformer will return a variable length vector.
                 // This is the work around in absence of reshape transformer.
-                long[] dims = shape.ndim > 0 ? shape.dims.Skip(shape.dims[0] == -1 ? 1 : 0).ToArray() : new long[] { 0 };
+                int[] dims = shape.ndim > 0 ? shape.dims.Skip(shape.dims[0] == -1 ? 1 : 0).Select(x => checked((int)x)).ToArray() : new int[] { 0 };
                 for (int j = 0; j < dims.Length; j++)
                     dims[j] = dims[j] == -1 ? 0 : dims[j];
                 if (dims == null || dims.Length == 0)
                 {
-                    dims = new long[] { 1 };
+                    dims = new int[] { 1 };
                     outputTypes[i] = Tf2MlNetType(tfOutputType);
                 }
                 else
