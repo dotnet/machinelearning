@@ -60,15 +60,15 @@
     </Content>
   </ItemGroup>
 
-    <ItemGroup>
+ <ItemGroup>
     <Content Include="$(ModelDownloadPath)\ResNetPrepOnnx\ResNetPreprocess.onnx">
       <Link>DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Dynamic\" />
-    </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Dynamic\" />
+  </ItemGroup>
 
 </Project>
