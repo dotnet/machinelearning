@@ -42,8 +42,8 @@
     <PackageVersion Include="Parquet.Net" Version="$(ParquetDotNetVersion)" />
     <PackageVersion Include="Plotly.NET.CSharp" Version="$(PlotlyNETCSharpVersion)" />
     <PackageVersion Include="SciSharp.TensorFlow.Redist" Version="$(TensorFlowVersion)" />
-    <PackageVersion Include="SciSharp.TensorFlow.Redist-Linux-GPU" Version="$(TensorFlowVersion)" />
-    <PackageVersion Include="SciSharp.TensorFlow.Redist-Windows-GPU" Version="$(TensorFlowVersion)" />
+    <PackageVersion Include="SciSharp.TensorFlow.Redist-Linux-GPU" Version="$(TensorFlowLinuxGpuVersion)" />
+    <PackageVersion Include="SciSharp.TensorFlow.Redist-Windows-GPU" Version="$(TensorFlowWindowsGpuVersion)" />
     <PackageVersion Include="SharpZipLib" Version="$(SharpZipLibVersion)" />
     <PackageVersion Include="SkiaSharp" Version="$(SkiaSharpVersion)" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="$(SkiaSharpVersion)" />
