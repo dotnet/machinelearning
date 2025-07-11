@@ -285,8 +285,8 @@ namespace Microsoft.ML.Tests
 
             MLContext context = new MLContext(seed: 1);
 
-            TensorFlowModel model1 = context.Model.LoadTensorFlowModel(modelFile1);
-            TensorFlowModel model2 = context.Model.LoadTensorFlowModel(modelFile2);
+            using TensorFlowModel model1 = context.Model.LoadTensorFlowModel(modelFile1);
+            using TensorFlowModel model2 = context.Model.LoadTensorFlowModel(modelFile2);
 
             model1.ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" });
             model2.ScoreTensorFlowModel("Output", "Input");
