@@ -208,7 +208,8 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Model.LoadTensorFlowModel(modelLocation, false).ScoreTensorFlowModel("Output", "Input"));
 
             TestEstimatorCore(pipe, data);
-            var schema = pipe.Fit(data).Transform(data).Schema;
+            using var pipelineModel = pipe.Fit(data);
+            var schema = pipelineModel.Transform(data).Schema;
 
             // The dimensions of the output with treatOutputAsBatched set to false should be * 10
             // as the first dimension of -1 is treated as an unknown dimension.
@@ -222,7 +223,8 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input"));
 
             TestEstimatorCore(pipe, data);
-            schema = pipe.Fit(data).Transform(data).Schema;
+            using var pipelineModelBatched = pipe.Fit(data);
+            schema = pipelineModelBatched.Transform(data).Schema;
 
             // The dimensions of the output with treatOutputAsBatched set to true should be 10
             // as the first dimension of -1 is treated as the batch dimension.
