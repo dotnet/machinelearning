@@ -402,7 +402,7 @@ namespace Microsoft.ML.Transforms
                 // i.e. the first dimension (if unknown) is assumed to be batch dimension.
                 // If there are other dimension that are unknown the transformer will return a variable length vector.
                 // This is the work around in absence of reshape transformer.
-                var idims = shape.dims?.Select(x => checked((int)x))?.ToArray();
+                var idims = shape.dims.Select(x => checked((int)x)).ToArray();
 
                 int[] dims = idims;
                 if (treatOutputAsBatched)
