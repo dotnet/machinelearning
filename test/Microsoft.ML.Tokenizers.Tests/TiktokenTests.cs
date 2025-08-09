@@ -36,6 +36,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         public static Tokenizer P50kEdit { get; } = TiktokenTokenizer.CreateForModel("text-davinci-edit-001");
         public static Tokenizer GPT4o { get; } = TiktokenTokenizer.CreateForModel("gpt-4o");
         public static Tokenizer Phi4 { get; } = TiktokenTokenizer.CreateForModel("phi-4");
+        public static TiktokenTokenizer GptOss { get; } = TiktokenTokenizer.CreateForModel("gpt-oss-20b");
 
         [Fact]
         public async Task TestTokenizerCreation()
@@ -282,40 +283,43 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
-        public void TestEncodeGpt4o()
+        public void TestEncodeO200kBaseEncoding()
         {
-            string text = ReadAndSanitizeFile("./Data/lib.rs.txt");
-            IReadOnlyList<int> encoded = GPT4o.EncodeToIds(text);
-            int idsCount = GPT4o.CountTokens(text);
-
-            Assert.Equal(5609, encoded.Count);
-            Assert.Equal(encoded.Count, idsCount);
-
-            using (Stream stream = File.OpenRead("./Data/tokens_gpt4o.json"))
+            foreach (TiktokenTokenizer tokenizer in new[] { GPT4o, GptOss })
             {
-                int[]? expected = JsonSerializer.Deserialize<int[]>(stream) as int[];
-                Assert.Equal(expected!, encoded);
+                string text = ReadAndSanitizeFile("./Data/lib.rs.txt");
+                IReadOnlyList<int> encoded = tokenizer.EncodeToIds(text);
+                int idsCount = tokenizer.CountTokens(text);
+
+                Assert.Equal(5609, encoded.Count);
+                Assert.Equal(encoded.Count, idsCount);
+
+                using (Stream stream = File.OpenRead("./Data/tokens_gpt4o.json"))
+                {
+                    int[]? expected = JsonSerializer.Deserialize<int[]>(stream) as int[];
+                    Assert.Equal(expected!, encoded);
+                }
+
+                Assert.Equal(text, tokenizer.Decode(encoded));
+                TestDecodingWithSpan(tokenizer, encoded.ToArray(), text);
+
+                text = "<|endoftext|>Hello ⭐ World<|endofprompt|>";
+
+                encoded = tokenizer.EncodeToIds(text);
+                idsCount = tokenizer.CountTokens(text);
+                Assert.Equal(new List<int>() { 199999, 13225, 161181, 5922, 200018 }, encoded);
+                Assert.Equal(text, tokenizer.Decode(encoded));
+                TestDecodingWithSpan(tokenizer, encoded.ToArray(), text);
+
+                IReadOnlyList<EncodedToken> result = tokenizer.EncodeToTokens(text, out string? normalizedText);
+
+                Assert.Equal(encoded, result.Select(token => token.Id).ToArray());
+                Assert.Equal(encoded.Count, idsCount);
+                Assert.Equal(new string[] { "<|endoftext|>", "Hello", " ⭐", " World", "<|endofprompt|>" }, result.Select(token => token.Value).ToArray());
+                Assert.Equal(new List<(int, int)> { (0, 13), (13, 5), (18, 2), (20, 6), (26, 15) }, result.Select(token => (token.Offset.Start.Value, token.Offset.End.Value - token.Offset.Start.Value)).ToArray());
+
+                TokenizerTests.TestTokenLimits(tokenizer);
             }
-
-            Assert.Equal(text, GPT4o.Decode(encoded));
-            TestDecodingWithSpan((GPT4o as TiktokenTokenizer)!, encoded.ToArray(), text);
-
-            text = "<|endoftext|>Hello ⭐ World<|endofprompt|>";
-
-            encoded = GPT4o.EncodeToIds(text);
-            idsCount = GPT4o.CountTokens(text);
-            Assert.Equal(new List<int>() { 199999, 13225, 161181, 5922, 200018 }, encoded);
-            Assert.Equal(text, GPT4o.Decode(encoded));
-            TestDecodingWithSpan((GPT4o as TiktokenTokenizer)!, encoded.ToArray(), text);
-
-            IReadOnlyList<EncodedToken> result = GPT4o.EncodeToTokens(text, out string? normalizedText);
-
-            Assert.Equal(encoded, result.Select(token => token.Id).ToArray());
-            Assert.Equal(encoded.Count, idsCount);
-            Assert.Equal(new string[] { "<|endoftext|>", "Hello", " ⭐", " World", "<|endofprompt|>" }, result.Select(token => token.Value).ToArray());
-            Assert.Equal(new List<(int, int)> { (0, 13), (13, 5), (18, 2), (20, 6), (26, 15) }, result.Select(token => (token.Offset.Start.Value, token.Offset.End.Value - token.Offset.Start.Value)).ToArray());
-
-            TokenizerTests.TestTokenLimits(GPT4o);
         }
 
         [Fact]
@@ -398,16 +402,20 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("o1")]
         [InlineData("o1-")]
         [InlineData("o1-mini")]
+        [InlineData("o4-mini-")]
         [InlineData("o3")]
         [InlineData("o3-")]
         [InlineData("o3-mini")]
         [InlineData("o4-mini")]
         [InlineData("gpt-4.1")]
         [InlineData("gpt-4.1-mini")]
+        [InlineData("gpt-4.5-")]
         [InlineData("gpt-4o")]
         [InlineData("gpt-4o-")]
+        [InlineData("chatgpt-4o-")]
         [InlineData("gpt-4")]
         [InlineData("gpt-4-")]
+        [InlineData("gpt-3.5")]
         [InlineData("gpt-3.5-")]
         [InlineData("gpt-3.5-turbo")]
         [InlineData("gpt-3.5-turbo-")]
@@ -424,8 +432,10 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("text-babbage-001")]
         [InlineData("text-ada-001")]
         [InlineData("davinci")]
+        [InlineData("davinci-002")]
         [InlineData("curie")]
         [InlineData("babbage")]
+        [InlineData("babbage-002")]
         [InlineData("ada")]
         [InlineData("code-davinci-002")]
         [InlineData("code-davinci-001")]
@@ -449,7 +459,16 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("code-search-babbage-code-001")]
         [InlineData("code-search-ada-code-001")]
         [InlineData("gpt2")]
+        [InlineData("gpt-2")]
         [InlineData("phi-4")]
+        [InlineData("gpt-oss-")]
+        [InlineData("gpt-oss-120b")]
+        [InlineData("gpt-oss-20b")]
+        [InlineData("ft:gpt-4o")]
+        [InlineData("ft:gpt-4")]
+        [InlineData("ft:gpt-3.5-turbo")]
+        [InlineData("ft:davinci-002")]
+        [InlineData("ft:babbage-002")]
         public void TestAllSupportedModelNames(string modelName)
         {
             Tokenizer tokenizer = TiktokenTokenizer.CreateForModel(modelName);
@@ -463,6 +482,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("p50k_edit")]
         [InlineData("cl100k_base")]
         [InlineData("o200k_base")]
+        [InlineData("o200k_harmony")]
         public void TestAllSupportedEncodingNames(string encodingName)
         {
             Tokenizer tokenizer = TiktokenTokenizer.CreateForEncoding(encodingName);
@@ -476,6 +496,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 "p50k_edit" => "text-davinci-edit-001",
                 "cl100k_base" => "gpt-4",
                 "o200k_base" => "gpt-4o",
+                "o200k_harmony" => "gpt-oss-120b",
                 _ => throw new ArgumentException("Invalid encoding name"),
             };
 
@@ -502,6 +523,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Throws<ArgumentException>(() => TiktokenTokenizer.CreateForEncoding("p50k_edit_"));
             Assert.Throws<ArgumentException>(() => TiktokenTokenizer.CreateForEncoding("cl100k_base_"));
             Assert.Throws<ArgumentException>(() => TiktokenTokenizer.CreateForEncoding("o200k_base_"));
+            Assert.Throws<ArgumentException>(() => TiktokenTokenizer.CreateForEncoding("o200k_harmony_"));
         }
 
         [InlineData("gpt-4")]
@@ -514,6 +536,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("text-curie-001")]
         [InlineData("text-davinci-edit-001")]
         [InlineData("phi-4")]
+        [InlineData("gpt-oss-20b")]
         [ConditionalTheory(typeof(RemoteExecutor), nameof(RemoteExecutor.IsSupported))]
         public void TestCreationUsingModel(string modelName)
         {
@@ -755,6 +778,53 @@ namespace Microsoft.ML.Tokenizers.Tests
             IReadOnlyList<int> encoded = Phi4.EncodeToIds(text);
             Assert.Equal(new List<int>() { 100264, 9906, 100266, 4435, 100265, 100349 }, encoded);
             Assert.Equal(text, Phi4.Decode(encoded));
+        }
+
+        [Fact]
+        public void TestOss()
+        {
+            Assert.Equal(
+                new Dictionary<string, int>
+                {
+                    { "<|startoftext|>",     199998 },
+                    { "<|endoftext|>",       199999 },
+                    { "<|reserved_200000|>", 200000 },
+                    { "<|reserved_200001|>", 200001 },
+                    { "<|return|>",          200002 },
+                    { "<|constrain|>",       200003 },
+                    { "<|reserved_200004|>", 200004 },
+                    { "<|channel|>",         200005 },
+                    { "<|start|>",           200006 },
+                    { "<|end|>",             200007 },
+                    { "<|message|>",         200008 },
+                    { "<|reserved_200009|>", 200009 },
+                    { "<|reserved_200010|>", 200010 },
+                    { "<|reserved_200011|>", 200011 },
+                    { "<|call|>",            200012 },
+                    { "<|reserved_200013|>", 200013 },
+                    { "<|reserved_200014|>", 200014 },
+                    { "<|reserved_200015|>", 200015 },
+                    { "<|reserved_200016|>", 200016 },
+                    { "<|reserved_200017|>", 200017 },
+                    { "<|endofprompt|>",     200018 },
+                }, GptOss.SpecialTokens);
+
+            string text = "<|startoftext|><|start|><|message|>Hello World<|end|><|endoftext|>";
+
+            IReadOnlyList<int> ids = GptOss.EncodeToIds(text);
+
+            Assert.Equal(
+                new List<int> { 199998, 200006, 200008, 13225, 5922, 200007, 199999 },
+                ids);
+            Assert.Equal(text, GptOss.Decode(ids));
+
+            Assert.Equal(new string[] { "<|startoftext|>", "<|start|>", "<|message|>", "Hello", " World", "<|end|>", "<|endoftext|>" },
+                GptOss.EncodeToTokens(text, out _).Select(t => t.Value).ToArray());
+
+            Assert.Equal(new List<(int, int)> { (0, 15), (15, 24), (24, 35), (35, 40), (40, 46), (46, 53), (53, 66) },
+                GptOss.EncodeToTokens(text, out _).Select(t => (t.Offset.Start.Value, t.Offset.End.Value)).ToList());
+
+            Assert.Equal(ids, GptOss.EncodeToTokens(text, out _).Select(t => t.Id).ToList());
         }
 
         // We are not exposing the Encoder, Decoder, or Vocabulary so far. For now, use reflection to test it.
