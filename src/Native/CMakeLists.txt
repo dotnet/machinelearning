@@ -262,14 +262,25 @@ if(NOT ${ARCHITECTURE} MATCHES "arm.*")
     add_subdirectory(SymSgdNative)
   endif()
 
+# Build OneDalNative only when explicitly configured with oneDAL headers & libs.
+# This avoids failing builds on platforms (e.g., macOS) where a oneDAL "devel"
+# package is not available via NuGet and no ONEDAL_* paths are provided.
 if(${ARCHITECTURE} MATCHES "[xX].*64")
-  add_subdirectory(OneDalNative)
+  if(DEFINED ONEDAL_DEVEL_PATH AND DEFINED ONEDAL_REDIST_PATH)
+    if(EXISTS "${ONEDAL_DEVEL_PATH}/include/daal.h")
+      add_subdirectory(OneDalNative)
+    else()
+      message(STATUS "Skipping OneDalNative: ${ONEDAL_DEVEL_PATH}/include/daal.h not found")
+    endif()
+  else()
+    message(STATUS "Skipping OneDalNative: ONEDAL_DEVEL_PATH/ONEDAL_REDIST_PATH not set")
+  endif()
 else()
   if (DEFINED ONEDAL_DEVEL_PATH)
-    message("Path to OneDal library defined [${ONEDAL_DEVEL_PATH}] but it is not being built on this arch.")
+    message(STATUS "Path to oneDAL defined [${ONEDAL_DEVEL_PATH}] but not built on this arch.")
   endif()
   if (DEFINED MKL_LIB_PATH)
-    message("Path to Intel MKL library defined [${MKL_LIB_PATH}] but it is not being built on this arch.")
+    message(STATUS "Path to Intel MKL defined [${MKL_LIB_PATH}] but not built on this arch.")
   endif()
 endif()
 
