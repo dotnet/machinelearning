@@ -119,8 +119,12 @@
       <RunTestScript Condition="'$(OS)' != 'Windows_NT'">runTests.sh</RunTestScript>
       <RunTestScript Condition="'$(OS)' == 'Windows_NT'">.\runTests.cmd</RunTestScript>
 
-      <MacFilesToCopy>/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
-      <MacFilesToCopy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('arm64'))">/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
+      <!-- Detect Homebrew prefix and build list of files to copy. Modern libomp ships libomp.dylib only. -->
+      <BrewPrefix>/usr/local</BrewPrefix>
+      <BrewPrefix Condition="Exists('/opt/homebrew/opt/libomp/lib/libomp.dylib')">/opt/homebrew</BrewPrefix>
+      <MacFilesToCopy>$(BrewPrefix)/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
+      <!-- Only add libiomp5 if present (older libomp bottles) -->
+      <MacFilesToCopy Condition="Exists('$(BrewPrefix)/opt/libomp/lib/libiomp5.dylib')">$(BrewPrefix)/opt/libomp/lib/libiomp5.dylib;$(MacFilesToCopy)</MacFilesToCopy>
     </PropertyGroup>
 
     <!-- Copy libiomp5.dylib and libomp.dylib to the publish folders for OSX-->
