@@ -215,4 +215,26 @@
     </ItemGroup>
 
   </Target>
+
+  <!-- Intel macOS: ensure @loader_path/libiomp5.dylib (and libomp.dylib) exist next to MklImports -->
+  <PropertyGroup Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx')) and !$(HelixTargetQueues.ToLowerInvariant().Contains('arm'))">
+    <HelixPreCommands>
+      $(HelixPreCommands);
+      export KMP_DUPLICATE_LIB_OK=TRUE
+      OMP_PREFIX="$(brew --prefix libomp 2>/dev/null || echo /usr/local/opt/libomp)"
+      IOMP_PREFIX="$(brew --prefix intel-oneapi-openmp 2>/dev/null || true)"
+      SRC=""
+      if [ -f "$OMP_PREFIX/lib/libomp.dylib" ]; then SRC="$OMP_PREFIX/lib/libomp.dylib"; fi
+      if [ -z "$SRC" ] && [ -n "$IOMP_PREFIX" ] && [ -f "$IOMP_PREFIX/lib/libiomp5.dylib" ]; then SRC="$IOMP_PREFIX/lib/libiomp5.dylib"; fi
+      if [ -z "$SRC" ] && [ -f "/usr/local/lib/libomp.dylib" ]; then SRC="/usr/local/lib/libomp.dylib"; fi
+      if [ -z "$SRC" ] && [ -f "/usr/local/lib/libiomp5.dylib" ]; then SRC="/usr/local/lib/libiomp5.dylib"; fi
+      for d in "$HELIX_WORKITEM_ROOT" "$HELIX_CORRELATION_PAYLOAD"; do
+        if [ -n "$SRC" ]; then
+          if [ ! -f "$d/libiomp5.dylib" ]; then ln -s "$SRC" "$d/libiomp5.dylib"; fi
+          if [ ! -f "$d/libomp.dylib" ]; then ln -s "$SRC" "$d/libomp.dylib"; fi
+        fi
+      done
+      export DYLD_LIBRARY_PATH="$HELIX_WORKITEM_ROOT:$HELIX_CORRELATION_PAYLOAD:$OMP_PREFIX/lib:${IOMP_PREFIX}/lib:${DYLD_LIBRARY_PATH}"
+    </HelixPreCommands>
+  </PropertyGroup>
 </Project>
