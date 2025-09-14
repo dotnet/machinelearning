@@ -72,9 +72,6 @@ jobs:
           brew install -f --overwrite python@3.13
           brew install libomp
           brew link libomp --force
-          # MKL on Intel macOS needs Intel OpenMP (libiomp5.dylib)
-          brew tap intel/oneapi || true
-          brew install intel-oneapi-openmp || true
         displayName: Install MacOS build dependencies
         # Note: Homebrew 4.6+ rejects installing formulae from raw paths.
         # Using libomp from homebrew/core matches the cross_arm64 setup.
