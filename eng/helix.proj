@@ -104,15 +104,6 @@
 
     <PropertyGroup>
       <HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD;export MICROSOFTML_RESOURCE_PATH=$HELIX_WORKITEM_ROOT;sudo chmod -R 777 $HELIX_WORKITEM_ROOT;sudo chown -R $USER $HELIX_WORKITEM_ROOT</HelixPreCommands>
-      <!-- Create libiomp5.dylib symlink for MKL at test runtime on OSX x64 -->
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx')) and Exists('$(BrewPrefix)/opt/libomp/lib/libomp.dylib') and !$(HelixTargetQueues.ToLowerInvariant().Contains('arm'))">
-        $(HelixPreCommands);
-        for d in "$HELIX_WORKITEM_ROOT" "$HELIX_CORRELATION_PAYLOAD"; do
-          if [ -f "$d/libomp.dylib" ] &amp;&amp; [ ! -f "$d/libiomp5.dylib" ]; then ln -s "$d/libomp.dylib" "$d/libiomp5.dylib"; fi
-        done
-        export DYLD_LIBRARY_PATH="$HELIX_WORKITEM_ROOT:$HELIX_CORRELATION_PAYLOAD:${DYLD_LIBRARY_PATH}"
-      </HelixPreCommands>
-
       <HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=%HELIX_CORRELATION_PAYLOAD%;set MICROSOFTML_RESOURCE_PATH=%HELIX_WORKITEM_ROOT%</HelixPreCommands>
 
       <HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export PATH=$HELIX_CORRELATION_PAYLOAD/$(DotNetCliDestination):$PATH</HelixPreCommands>
@@ -139,15 +130,6 @@
     </PropertyGroup>
 
     <!-- Copy libiomp5.dylib and libomp.dylib to the publish folders for OSX-->
-    <!-- Also copy libomp/libiomp5 into the BIN (non-publish) test output for OSX x64 Helix -->
-    <Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx')) and Exists('$(BrewPrefix)/opt/libomp/lib/libomp.dylib') and !$(HelixTargetQueues.ToLowerInvariant().Contains('arm'))"
-      SourceFiles = "$(MacFilesToCopy)"
-      Retries="10"
-      OverwriteReadOnlyFiles="true"
-      RetryDelayMilliseconds="10"
-      DestinationFolder="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)">
-    </Copy>
-
     <Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
       SourceFiles = "$(MacFilesToCopy)"
       Retries="10"
@@ -216,25 +198,34 @@
 
   </Target>
 
-  <!-- Intel macOS: ensure @loader_path/libiomp5.dylib (and libomp.dylib) exist next to MklImports -->
-  <PropertyGroup Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx')) and !$(HelixTargetQueues.ToLowerInvariant().Contains('arm'))">
-    <HelixPreCommands>
-      $(HelixPreCommands);
+  <!-- Intel macOS x64: create libiomp5.dylib/libomp.dylib symlinks next to payload so @loader_path resolves -->
+  <PropertyGroup Condition="'$(TargetArchitecture)' == 'x64' and $([System.String]::Copy('$(HelixTargetQueues)').ToLowerInvariant().Contains('osx'))">
+    <HelixPreCommands>$(HelixPreCommands);
+<![CDATA[
+      # allow duplicate OpenMP runtimes (observed on Helix images)
       export KMP_DUPLICATE_LIB_OK=TRUE
-      OMP_PREFIX="$(brew --prefix libomp 2>/dev/null || echo /usr/local/opt/libomp)"
-      IOMP_PREFIX="$(brew --prefix intel-oneapi-openmp 2>/dev/null || true)"
+
+      # Find OpenMP runtime via Homebrew (prefer libomp; fall back to intel-oneapi-openmp or common locations)
+      OMP_PREFIX="`brew --prefix libomp 2>/dev/null || echo /usr/local/opt/libomp`"
+      IOMP_PREFIX="`brew --prefix intel-oneapi-openmp 2>/dev/null || true`"
+
       SRC=""
       if [ -f "$OMP_PREFIX/lib/libomp.dylib" ]; then SRC="$OMP_PREFIX/lib/libomp.dylib"; fi
       if [ -z "$SRC" ] && [ -n "$IOMP_PREFIX" ] && [ -f "$IOMP_PREFIX/lib/libiomp5.dylib" ]; then SRC="$IOMP_PREFIX/lib/libiomp5.dylib"; fi
       if [ -z "$SRC" ] && [ -f "/usr/local/lib/libomp.dylib" ]; then SRC="/usr/local/lib/libomp.dylib"; fi
       if [ -z "$SRC" ] && [ -f "/usr/local/lib/libiomp5.dylib" ]; then SRC="/usr/local/lib/libiomp5.dylib"; fi
+
+      # Place symlinks in both the workitem root and correlation payload (dyld @loader_path lookup)
       for d in "$HELIX_WORKITEM_ROOT" "$HELIX_CORRELATION_PAYLOAD"; do
         if [ -n "$SRC" ]; then
-          if [ ! -f "$d/libiomp5.dylib" ]; then ln -s "$SRC" "$d/libiomp5.dylib"; fi
-          if [ ! -f "$d/libomp.dylib" ]; then ln -s "$SRC" "$d/libomp.dylib"; fi
+          [ -f "$d/libiomp5.dylib" ] || ln -s "$SRC" "$d/libiomp5.dylib"
+          [ -f "$d/libomp.dylib"   ] || ln -s "$SRC" "$d/libomp.dylib"
         fi
       done
+
+      # Fallback search path
       export DYLD_LIBRARY_PATH="$HELIX_WORKITEM_ROOT:$HELIX_CORRELATION_PAYLOAD:$OMP_PREFIX/lib:${IOMP_PREFIX}/lib:${DYLD_LIBRARY_PATH}"
+]]>
     </HelixPreCommands>
   </PropertyGroup>
 </Project>
