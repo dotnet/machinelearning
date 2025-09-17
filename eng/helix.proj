@@ -104,23 +104,12 @@
 
     <PropertyGroup>
       <HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export ML_TEST_DATADIR=$HELIX_CORRELATION_PAYLOAD;export MICROSOFTML_RESOURCE_PATH=$HELIX_WORKITEM_ROOT;sudo chmod -R 777 $HELIX_WORKITEM_ROOT;sudo chown -R $USER $HELIX_WORKITEM_ROOT</HelixPreCommands>
-      <!-- Create libiomp5.dylib symlink for MKL at test runtime on OSX x64 -->
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx')) and Exists('$(BrewPrefix)/opt/libomp/lib/libomp.dylib') and !$(HelixTargetQueues.ToLowerInvariant().Contains('arm'))">
-        $(HelixPreCommands);
-        for d in "$HELIX_WORKITEM_ROOT" "$HELIX_CORRELATION_PAYLOAD"; do
-          if [ -f "$d/libomp.dylib" ] &amp;&amp; [ ! -f "$d/libiomp5.dylib" ]; then ln -s "$d/libomp.dylib" "$d/libiomp5.dylib"; fi
-        done
-        export DYLD_LIBRARY_PATH="$HELIX_WORKITEM_ROOT:$HELIX_CORRELATION_PAYLOAD:${DYLD_LIBRARY_PATH}"
-      </HelixPreCommands>
-
       <HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set ML_TEST_DATADIR=%HELIX_CORRELATION_PAYLOAD%;set MICROSOFTML_RESOURCE_PATH=%HELIX_WORKITEM_ROOT%</HelixPreCommands>
 
       <HelixPreCommands Condition="$(IsPosixShell)">$(HelixPreCommands);export PATH=$HELIX_CORRELATION_PAYLOAD/$(DotNetCliDestination):$PATH</HelixPreCommands>
       <HelixPreCommands Condition="!$(IsPosixShell)">$(HelixPreCommands);set PATH=%HELIX_CORRELATION_PAYLOAD%\$(DotNetCliDestination)%3B%PATH%</HelixPreCommands> 
 
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);ls /usr/lib;ls $HELIX_WORKITEM_ROOT;export KMP_DUPLICATE_LIB_OK=TRUE;export DYLD_LIBRARY_PATH=$HELIX_WORKITEM_ROOT:$HELIX_WORKITEM_ROOT/runtimes/osx-x64/native:/usr/local/opt/libomp/lib:/usr/local/opt/mono-libgdiplus/lib:/opt/homebrew/opt/mono-libgdiplus/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH};otool -L $HELIX_WORKITEM_ROOT/runtimes/osx-x64/native/lib_lightgbm.dylib || true</HelixPreCommands>
-      <!-- Intel OpenMP is required by MKL on osx-x64 -->
-      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx')) and !$(HelixTargetQueues.ToLowerInvariant().Contains('arm64'))">$(HelixPreCommands); if command -v brew &gt;/dev/null 2&gt;&amp;1; then brew tap intel/oneapi || true; brew install -q intel-oneapi-openmp || true; fi; IOMP=`brew --prefix intel-oneapi-openmp 2&gt;/dev/null || true`; if [ -n "$IOMP" ] &amp;&amp; [ -f "$IOMP/lib/libiomp5.dylib" ]; then for d in "$HELIX_WORKITEM_ROOT" "$HELIX_WORKITEM_ROOT/runtimes/osx-x64/native" "$HELIX_WORKITEM_ROOT/runtimes/osx/native"; do [ -d "$d" ] &amp;&amp; cp "$IOMP/lib/libiomp5.dylib" "$d/"; done; fi; for f in `find "$HELIX_WORKITEM_ROOT" -maxdepth 3 -name 'libMkl*.dylib' -or -name 'libMklImports.dylib' -or -name 'libMklProxyNative.dylib' 2&gt;/dev/null`; do install_name_tool -change "@rpath/libiomp5.dylib" "@loader_path/libiomp5.dylib" "$f" || true; install_name_tool -change "/usr/local/lib/libiomp5.dylib" "@loader_path/libiomp5.dylib" "$f" || true; install_name_tool -change "libiomp5.dylib" "@loader_path/libiomp5.dylib" "$f" || true; done</HelixPreCommands>
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);export LD_LIBRARY_PATH=/opt/homebrew/opt/mono-libgdiplus/lib;ls /usr/lib;ls $HELIX_WORKITEM_ROOT;export KMP_DUPLICATE_LIB_OK=TRUE;otool -L $HELIX_WORKITEM_ROOT/runtimes/osx-x64/native/lib_lightgbm.dylib</HelixPreCommands>
 
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('armarch'))">$(HelixPreCommands);sudo apt update;sudo apt-get install libomp-dev libomp5 -y</HelixPreCommands>
 
@@ -130,24 +119,14 @@
       <RunTestScript Condition="'$(OS)' != 'Windows_NT'">runTests.sh</RunTestScript>
       <RunTestScript Condition="'$(OS)' == 'Windows_NT'">.\runTests.cmd</RunTestScript>
 
-      <!-- Detect Homebrew prefix and build list of files to copy. Modern libomp ships libomp.dylib only. -->
-      <BrewPrefix>/usr/local</BrewPrefix>
-      <BrewPrefix Condition="Exists('/opt/homebrew/opt/libomp/lib/libomp.dylib')">/opt/homebrew</BrewPrefix>
-      <MacFilesToCopy>$(BrewPrefix)/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
-      <!-- Only add libiomp5 if present (older libomp bottles) -->
-      <MacFilesToCopy Condition="Exists('$(BrewPrefix)/opt/libomp/lib/libiomp5.dylib')">$(BrewPrefix)/opt/libomp/lib/libiomp5.dylib;$(MacFilesToCopy)</MacFilesToCopy>
+      <HomebrewPrefix Condition="'$(BuildArchitecture)' == 'x64'">/usr/local</HomebrewPrefix>
+      <HomebrewPrefix Condition="'$(BuildArchitecture)' != 'x64'">/opt/homebrew</HomebrewPrefix>
+
+      <!-- Only ship LLVM OpenMP -->
+      <MacFilesToCopy>$(HomebrewPrefix)/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
     </PropertyGroup>
 
     <!-- Copy libiomp5.dylib and libomp.dylib to the publish folders for OSX-->
-    <!-- Also copy libomp/libiomp5 into the BIN (non-publish) test output for OSX x64 Helix -->
-    <Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx')) and Exists('$(BrewPrefix)/opt/libomp/lib/libomp.dylib') and !$(HelixTargetQueues.ToLowerInvariant().Contains('arm'))"
-      SourceFiles = "$(MacFilesToCopy)"
-      Retries="10"
-      OverwriteReadOnlyFiles="true"
-      RetryDelayMilliseconds="10"
-      DestinationFolder="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)">
-    </Copy>
-
     <Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
       SourceFiles = "$(MacFilesToCopy)"
       Retries="10"
@@ -216,24 +195,26 @@
 
   </Target>
 
-  <!-- Intel macOS x64: add symlinks so @loader_path/libiomp5.dylib resolves; no CDATA, XML-escaped '&' -->
-  <PropertyGroup Condition="'$(TargetArchitecture)' == 'x64'">
-    <HelixPreCommands>$(HelixPreCommands);
-      export KMP_DUPLICATE_LIB_OK=TRUE
-      OMP_PREFIX="`brew --prefix libomp 2>/dev/null || echo /usr/local/opt/libomp`"
-      IOMP_PREFIX="`brew --prefix intel-oneapi-openmp 2>/dev/null || true`"
-      SRC=""
-      if [ -f "$OMP_PREFIX/lib/libomp.dylib" ]; then SRC="$OMP_PREFIX/lib/libomp.dylib"; fi
-      if [ -z "$SRC" ] &amp;&amp; [ -n "$IOMP_PREFIX" ] &amp;&amp; [ -f "$IOMP_PREFIX/lib/libiomp5.dylib" ]; then SRC="$IOMP_PREFIX/lib/libiomp5.dylib"; fi
-      if [ -z "$SRC" ] &amp;&amp; [ -f "/usr/local/lib/libomp.dylib" ]; then SRC="/usr/local/lib/libomp.dylib"; fi
-      if [ -z "$SRC" ] &amp;&amp; [ -f "/usr/local/lib/libiomp5.dylib" ]; then SRC="/usr/local/lib/libiomp5.dylib"; fi
-      for d in "$HELIX_WORKITEM_ROOT" "$HELIX_CORRELATION_PAYLOAD"; do
-        if [ -n "$SRC" ]; then
-          [ -f "$d/libiomp5.dylib" ] || ln -s "$SRC" "$d/libiomp5.dylib"
-          [ -f "$d/libomp.dylib" ]   || ln -s "$SRC" "$d/libomp.dylib"
-        fi
-      done
-      export DYLD_LIBRARY_PATH="$HELIX_WORKITEM_ROOT:$HELIX_CORRELATION_PAYLOAD:$OMP_PREFIX/lib:${IOMP_PREFIX}/lib:${DYLD_LIBRARY_PATH}"
+  <PropertyGroup>
+    <!-- Ensure we export DYLD (macOS ignores LD_LIBRARY_PATH) and point to payload/native dirs.
+        Also remove any stray libiomp5 to avoid dual-OpenMP crashes. -->
+    <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx')) and $(IsPosixShell)">
+      $(HelixPreCommands);
+      if [[ "$(uname -m)" == "x86_64" ]]; then HB="/usr/local"; else HB="/opt/homebrew"; fi;
+      export DYLD_LIBRARY_PATH="$HB/opt/mono-libgdiplus/lib:$HELIX_WORKITEM_ROOT:$HELIX_WORKITEM_ROOT/runtimes/osx-x64/native${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}";
+      rm -f "$HELIX_WORKITEM_ROOT/libiomp5.dylib" "$HELIX_WORKITEM_ROOT/runtimes/osx-x64/native/libiomp5.dylib" || true
     </HelixPreCommands>
   </PropertyGroup>
+
+  <Target Name="FixOsxOpenMP" Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">
+    <!-- Retarget any native libs that reference Intel's libiomp5.dylib to LLVM's libomp.dylib -->
+    <ItemGroup>
+      <OsxNativeLib Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\libMklProxyNative.dylib" />
+      <OsxNativeLib Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\libOneDalNative.dylib" />
+      <OsxNativeLib Include="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\libMklImports.dylib" />
+    </ItemGroup>
+    <Exec
+      Condition="Exists('%(OsxNativeLib.Identity)')"
+      Command="install_name_tool -change @rpath/libiomp5.dylib @rpath/libomp.dylib &quot;%(OsxNativeLib.Identity)&quot;" />
+  </Target>
 </Project>
