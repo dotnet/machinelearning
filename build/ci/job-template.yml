@@ -67,8 +67,13 @@ jobs:
     steps:
     # Extra MacOS step required to install OS-specific dependencies
     - ${{ if and(contains(parameters.pool.vmImage, 'macOS'), not(contains(parameters.name, 'cross')))  }}:
-      - script: export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=TRUE && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
+      - script: |
+          brew update
+          brew install libomp
+          brew link libomp --force
         displayName: Install MacOS build dependencies
+        # Note: Homebrew 4.6+ rejects installing formulae from raw paths.
+        # Using libomp from homebrew/core matches the cross_arm64 setup.
     # Extra Apple MacOS step required to install OS-specific dependencies
     - ${{ if and(contains(parameters.pool.vmImage, 'macOS'), contains(parameters.name, 'cross'))  }}:
       - script: brew update && brew install -f --overwrite python@3.13 && brew install libomp && brew link libomp --force
