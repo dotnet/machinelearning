@@ -143,9 +143,9 @@ extends:
             ArtifactName: pkgassets
         steps:
         - script: |
-          brew update
-          brew install libomp
-          brew link libomp --force
+            brew update
+            brew install libomp
+            brew link libomp --force
           displayName: Install build dependencies
         # Only build native assets to avoid conflicts.
         - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
