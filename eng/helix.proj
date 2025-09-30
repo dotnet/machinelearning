@@ -122,12 +122,7 @@
       <RunTestScript Condition="'$(OS)' != 'Windows_NT'">runTests.sh</RunTestScript>
       <RunTestScript Condition="'$(OS)' == 'Windows_NT'">.\runTests.cmd</RunTestScript>
 
-      <!-- ORIGINAL default: tried to copy both files -->
-      <MacFilesToCopy>/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
-      <MacFilesToCopy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('arm64'))">/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
-
-      <!-- macOS x64 ONLY override: copy only libomp.dylib (avoid failing when libiomp5 doesn't exist) -->
-      <MacFilesToCopy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx')) and '$(BuildArchitecture)'=='x64'">/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
+      <MacFilesToCopy>/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
     </PropertyGroup>
 
     <!-- Copy OpenMP runtime(s) to the publish folders for OSX -->
