@@ -510,7 +510,7 @@ namespace Microsoft.Data.Analysis
             {
                 for (var i = 0; i < x.Length; i++)
                 {
-                    destination[i] = (x[i] == y);
+                    destination[i] = (x[i] >= y);
                 }
             }
 

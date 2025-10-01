@@ -44,31 +44,36 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
+    <PackageReference Include="Microsoft.ML.Onnx.TestModels" />
   </ItemGroup>
   <ItemGroup Condition=" '$(OS)' == 'Windows_NT'">
-    <PackageReference Include="SciSharp.TensorFlow.Redist-Windows-GPU" Version="$(TensorFlowVersion)" />
+    <PackageReference Include="SciSharp.TensorFlow.Redist-Windows-GPU" />
   </ItemGroup>
   <ItemGroup Condition=" '$(OS)' == 'Unix'">
-    <PackageReference Include="SciSharp.TensorFlow.Redist-Linux-GPU" Version="$(TensorFlowVersion)" />
+    <PackageReference Include="SciSharp.TensorFlow.Redist-Linux-GPU" />
   </ItemGroup>
 
-    <ItemGroup>
+  <!-- workaround https://github.com/SciSharp/TensorFlow.NET/issues/1297 -->
+  <Target Name="_EnsureObjFolder" BeforeTargets="FileRestitch">
+    <MakeDir Directories="obj" />
+  </Target>
+  
+  <ItemGroup>
     <Content Include="$(ModelDownloadPath)\ResNet18Onnx\ResNet18.onnx">
       <Link>DnnImageModels\ResNet18Onnx\ResNet18.onnx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
-    <ItemGroup>
+ <ItemGroup>
     <Content Include="$(ModelDownloadPath)\ResNetPrepOnnx\ResNetPreprocess.onnx">
       <Link>DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Dynamic\" />
-    </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Dynamic\" />
+  </ItemGroup>
 
 </Project>

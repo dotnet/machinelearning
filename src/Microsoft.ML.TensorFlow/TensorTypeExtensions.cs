@@ -25,7 +25,7 @@ namespace Microsoft.ML.TensorFlow
                 return;
             }
 
-            if (typeof(T).as_dtype() != tensor.dtype)
+            if (typeof(T).as_tf_dtype() != tensor.dtype)
                 throw new NotSupportedException();
 
             unsafe
@@ -37,7 +37,7 @@ namespace Microsoft.ML.TensorFlow
 
         public static void CopyTo<T>(this Tensor tensor, Span<T> values) where T : unmanaged
         {
-            if (typeof(T).as_dtype() != tensor.dtype)
+            if (typeof(T).as_tf_dtype() != tensor.dtype)
                 throw new NotSupportedException();
 
             unsafe

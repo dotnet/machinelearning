@@ -13,6 +13,7 @@ namespace Microsoft.ML.AutoML.CodeGen
             var option = new FastForestBinaryTrainer.Options()
             {
                 NumberOfTrees = param.NumberOfTrees,
+                NumberOfLeaves = param.NumberOfLeaves,
                 LabelColumnName = param.LabelColumnName,
                 FeatureColumnName = param.FeatureColumnName,
                 ExampleWeightColumnName = param.ExampleWeightColumnName,
@@ -31,6 +32,7 @@ namespace Microsoft.ML.AutoML.CodeGen
             var option = new FastForestRegressionTrainer.Options()
             {
                 NumberOfTrees = param.NumberOfTrees,
+                NumberOfLeaves = param.NumberOfLeaves,
                 FeatureFraction = param.FeatureFraction,
                 LabelColumnName = param.LabelColumnName,
                 FeatureColumnName = param.FeatureColumnName,

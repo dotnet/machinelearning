@@ -10,6 +10,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+namespace Microsoft.ML.Tokenizers;
+
 /// <summary>
 /// CompositePreTokenizer is a pre-tokenizer that applies multiple pre-tokenizers in sequence.
 /// </summary>

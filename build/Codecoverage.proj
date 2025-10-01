@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Codecov" Version="$(CodecovVersion)" GeneratePathProperty="true" />
-    <PackageReference Include="ReportGenerator" Version="$(ReportGeneratorVersion)" GeneratePathProperty="true" />
+    <PackageReference Include="Codecov" GeneratePathProperty="true" />
+    <PackageReference Include="ReportGenerator" GeneratePathProperty="true" />
   </ItemGroup>
 
   <Target Name="Codecov">

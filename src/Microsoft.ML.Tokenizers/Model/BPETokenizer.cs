@@ -132,6 +132,11 @@ namespace Microsoft.ML.Tokenizers
             return new BpeTokenizer(result.vocab, result.merges, preTokenizer, normalizer, specialTokens, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens);
         }
 
+        /// <summary>
+        /// Create a new Bpe tokenizer object to use for text encoding.
+        /// </summary>
+        /// <param name="options">The options used to create the Bpe tokenizer.</param>
+        /// <returns>The Bpe tokenizer object.</returns>
         public static BpeTokenizer Create(BpeOptions options)
         {
             if (options is null)
@@ -146,9 +151,9 @@ namespace Microsoft.ML.Tokenizers
 
             Dictionary<StringSpanOrdinalKey, int> vocab = new Dictionary<StringSpanOrdinalKey, int>(1000);
 
-            foreach ((string token, int id) in options.Vocabulary)
+            foreach (KeyValuePair<string, int> kvp in options.Vocabulary)
             {
-                vocab.Add(new StringSpanOrdinalKey(token), id);
+                vocab.Add(new StringSpanOrdinalKey(kvp.Key), kvp.Value);
             }
 
             if (vocab.Count == 0)
@@ -395,7 +400,7 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the optional beginning of sentence token.
         /// </summary>
-        internal string? BeginningOfSentenceToken { get; }
+        public string? BeginningOfSentenceToken { get; }
 
         /// <summary>
         /// The id of the beginning of sentence token.

@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tokenizers
     //
     // Succinct bit vector.
     //
-    public class BitVector
+    internal class BitVector
     {
         private const int UnitSize = sizeof(uint) * 8;
         private readonly List<uint> _units = new();
@@ -279,7 +279,7 @@ namespace Microsoft.ML.Tokenizers
     // Directed Acyclic Word Graph (DAWG) builder.
     //
 
-    public class DawgBuilder
+    internal class DawgBuilder
     {
         private const int InitialTableSize = 1 << 10;
 
