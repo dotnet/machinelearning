@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 
 namespace Microsoft.ML.Tokenizers
 {
@@ -15,7 +17,9 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Initializes a new instance of the <see cref="BpeOptions"/> class.
         /// </summary>
-        public BpeOptions(IEnumerable<(string Token, int Id)> vocabulary)
+        /// <param name="vocabulary">The vocabulary to use.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="vocabulary"/> is null.</exception>
+        public BpeOptions(IEnumerable<KeyValuePair<string, int>> vocabulary)
         {
             if (vocabulary == null)
             {
@@ -24,11 +28,74 @@ namespace Microsoft.ML.Tokenizers
 
             Vocabulary = vocabulary;
         }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BpeOptions"/> class.
+        /// </summary>
+        /// <param name="vocabFile">The path to the vocabulary file.</param>
+        /// <param name="mergesFile">The path to the merges file.</param>
+        public BpeOptions(string vocabFile, string? mergesFile = null)
+        {
+            if (vocabFile is null)
+            {
+                throw new ArgumentNullException(nameof(vocabFile));
+            }
+
+            if (!File.Exists(vocabFile))
+            {
+                throw new ArgumentException($"Could not find the vocabulary file '{vocabFile}'.");
+            }
+
+            using Stream vocabStream = File.OpenRead(vocabFile);
+            Dictionary<string, int>? dictionary = JsonSerializer.Deserialize<Dictionary<string, int>>(vocabStream);
+
+            if (dictionary is null)
+            {
+                throw new InvalidOperationException($"The content of the vocabulary file '{vocabFile}' is not valid.");
+            }
+
+            Vocabulary = dictionary;
+
+            if (mergesFile is not null)
+            {
+                if (!File.Exists(mergesFile))
+                {
+                    throw new ArgumentException($"Could not find the Merges file '{mergesFile}'.");
+                }
+
+                using Stream mergesStream = File.OpenRead(mergesFile);
+                using StreamReader reader = new(mergesStream);
+
+                List<string> merges = new();
+
+                int lineNumber = 0;
+                string? line;
+
+                while ((line = reader.ReadLine()) is not null)
+                {
+                    lineNumber++;
+                    if (line.StartsWith("#version", StringComparison.Ordinal) || line.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    // validate the merges format
+                    int index = line.IndexOf(' ');
+                    if (index < 0 || index == line.Length - 1 || line.IndexOf(' ', index + 1) >= 0)
+                    {
+                        throw new InvalidOperationException($"Invalid merger file format at line: {lineNumber}");
+                    }
+
+                    merges.Add(line);
+                }
+
+                Merges = merges;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the vocabulary to use.
         /// </summary>
-        public IEnumerable<(string Token, int Id)> Vocabulary { get; }
+        public IEnumerable<KeyValuePair<string, int>> Vocabulary { get; }
 
         /// <summary>
         /// Gets or sets the list of the merge strings used to merge tokens during encoding.
@@ -38,7 +105,7 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets or sets the optional special tokens to use.
         /// </summary>
-        public Dictionary<string, int>? SpecialTokens { get; set; }
+        public IReadOnlyDictionary<string, int>? SpecialTokens { get; set; }
 
         /// <summary>
         /// Gets or sets the optional normalizer to normalize the input text before encoding it.

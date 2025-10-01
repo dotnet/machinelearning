@@ -257,6 +257,19 @@ namespace Microsoft.ML.Tokenizers.Tests
                                     continuingSubwordPrefix: continuingSubwordPrefix, endOfWordSuffix: endOfWordSuffix, fuseUnknownTokens: fuseUnknownToken);
 
                 SimpleWithUnknownTokenTest(bpe, sentence, offsets, ids, expectedTokens, decodedTokens, decodedTokensWithoutUnknownToken);
+
+                BpeOptions bpeOptions = new BpeOptions(vocabFile, mergesFile)
+                {
+                    PreTokenizer = PreTokenizer.CreateWordOrNonWord(),
+                    Normalizer = null,
+                    UnknownToken = unknownToken,
+                    ContinuingSubwordPrefix = continuingSubwordPrefix,
+                    EndOfWordSuffix = endOfWordSuffix,
+                    FuseUnknownTokens = fuseUnknownToken
+                };
+
+                bpe = BpeTokenizer.Create(bpeOptions);
+                SimpleWithUnknownTokenTest(bpe, sentence, offsets, ids, expectedTokens, decodedTokens, decodedTokensWithoutUnknownToken);
             }
             finally
             {
@@ -267,7 +280,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 }
             }
 
-            BpeOptions bpeOptions = new BpeOptions(vocab.Select(kvp => (kvp.Key, kvp.Value)))
+            BpeOptions bpeOptions1 = new BpeOptions(vocab)
             {
                 Merges = merges?.Select(kvp => $"{kvp.Item1} {kvp.Item2}"),
                 PreTokenizer = PreTokenizer.CreateWordOrNonWord(),
@@ -278,7 +291,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 FuseUnknownTokens = fuseUnknownToken
             };
 
-            BpeTokenizer bpe1 = BpeTokenizer.Create(bpeOptions);
+            BpeTokenizer bpe1 = BpeTokenizer.Create(bpeOptions1);
             SimpleWithUnknownTokenTest(bpe1, sentence, offsets, ids, expectedTokens, decodedTokens, decodedTokensWithoutUnknownToken);
         }
 
@@ -387,7 +400,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             Dictionary<string, int>? dictionary = JsonSerializer.Deserialize<Dictionary<string, int>>(jsonString);
 
             bpe = BpeTokenizer.Create(
-                new BpeOptions(dictionary!.Select(kvp => (kvp.Key, kvp.Value)))
+                new BpeOptions(dictionary!)
                 {
                     Merges = File.ReadAllLines(mergesFile).Skip(1).ToArray() // Skip the first line which is the header "#version".
                 });
@@ -928,11 +941,11 @@ namespace Microsoft.ML.Tokenizers.Tests
             return BpeTokenizer.Create(bpeOptions);
         }
 
-        private static IEnumerable<(string Token, int Id)> GetVocabulary(JsonElement vocabElement)
+        private static IEnumerable<KeyValuePair<string, int>> GetVocabulary(JsonElement vocabElement)
         {
             foreach (JsonProperty token in vocabElement.EnumerateObject())
             {
-                yield return (token.Name, token.Value.GetInt32());
+                yield return new KeyValuePair<string, int>(token.Name, token.Value.GetInt32());
             }
         }
 
