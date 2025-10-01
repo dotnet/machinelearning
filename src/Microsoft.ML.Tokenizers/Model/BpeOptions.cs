@@ -28,6 +28,7 @@ namespace Microsoft.ML.Tokenizers
 
             Vocabulary = vocabulary;
         }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BpeOptions"/> class.
         /// </summary>
