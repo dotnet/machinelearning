@@ -142,7 +142,10 @@ extends:
             PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
             ArtifactName: pkgassets
         steps:
-        - script: export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 &&  rm '/usr/local/bin/2to3-3.11' && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
+        - script: |
+            brew update
+            brew install libomp
+            brew link libomp --force
           displayName: Install build dependencies
         # Only build native assets to avoid conflicts.
         - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
