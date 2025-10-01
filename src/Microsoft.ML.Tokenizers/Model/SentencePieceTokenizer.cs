@@ -436,7 +436,7 @@ namespace Microsoft.ML.Tokenizers
         /// https://github.com/google/sentencepiece/blob/master/src/sentencepiece_model.proto.
         /// </summary>
         /// <param name="modelStream">The stream containing the SentencePiece Bpe or Unigram model.</param>
-        /// <param name="addBeginOfSentence">Indicate emitting the beginning of sentence token during the encoding.</param>
+        /// <param name="addBeginningOfSentence">Indicate emitting the beginning of sentence token during the encoding.</param>
         /// <param name="addEndOfSentence">Indicate emitting the end of sentence token during the encoding.</param>
         /// <param name="specialTokens">The additional tokens to add to the vocabulary.</param>
         /// <remarks>
@@ -444,7 +444,7 @@ namespace Microsoft.ML.Tokenizers
         /// </remarks>
         public static SentencePieceTokenizer Create(
             Stream modelStream,
-            bool addBeginOfSentence = true,
+            bool addBeginningOfSentence = true,
             bool addEndOfSentence = false,
             IReadOnlyDictionary<string, int>? specialTokens = null)
         {
@@ -455,7 +455,7 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException(nameof(modelProto));
             }
 
-            return new SentencePieceTokenizer(modelProto, addBeginOfSentence, addEndOfSentence, specialTokens);
+            return new SentencePieceTokenizer(modelProto, addBeginningOfSentence, addEndOfSentence, specialTokens);
         }
     }
 }
