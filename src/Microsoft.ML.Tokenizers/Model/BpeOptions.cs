@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 if (!File.Exists(mergesFile))
                 {
-                    throw new ArgumentException($"Could not find the Merges file '{mergesFile}'.");
+                    throw new ArgumentException($"Could not find the merges file '{mergesFile}'.");
                 }
 
                 using Stream mergesStream = File.OpenRead(mergesFile);
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Tokenizers
                     int index = line.IndexOf(' ');
                     if (index < 0 || index == line.Length - 1 || line.IndexOf(' ', index + 1) >= 0)
                     {
-                        throw new InvalidOperationException($"Invalid merger file format at line: {lineNumber}");
+                        throw new InvalidOperationException($"Invalid merge file format at line: {lineNumber}");
                     }
 
                     merges.Add(line);
