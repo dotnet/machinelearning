@@ -32,8 +32,8 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Initializes a new instance of the <see cref="BpeOptions"/> class.
         /// </summary>
-        /// <param name="vocabFile">The path to the vocabulary file.</param>
-        /// <param name="mergesFile">The path to the merges file.</param>
+        /// <param name="vocabFile">The JSON file path containing the dictionary of string keys and their ids.</param>
+        /// <param name="mergesFile">The file path containing the tokens's pairs list.</param>
         public BpeOptions(string vocabFile, string? mergesFile = null)
         {
             if (vocabFile is null)
