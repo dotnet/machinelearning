@@ -308,29 +308,57 @@ namespace Microsoft.ML.Internal.Utilities
         /// <param name="url"> The provided url to check </param>
         public bool IsRedirectToDefaultPage(string url)
         {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+                return false;
+
+            if (uri.IsFile)
+                return false;
+
+            using var handler = new HttpClientHandler { AllowAutoRedirect = false };
+            using var httpClient = new HttpClient(handler);
+
+            static bool IsRedirectToDefault(HttpResponseMessage response)
+            {
+                if (response.StatusCode == HttpStatusCode.Redirect && response.Headers.Location is Uri location)
+                {
+                    return string.Equals(location.AbsoluteUri, "https://www.microsoft.com/?ref=aka", StringComparison.OrdinalIgnoreCase);
+                }
+
+                return false;
+            }
+
+            using var headRequest = new HttpRequestMessage(HttpMethod.Head, uri);
+
+            static HttpResponseMessage Send(HttpClient client, HttpRequestMessage request)
+            {
+                return client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, CancellationToken.None).GetAwaiter().GetResult();
+            }
+
             try
             {
-                var request = WebRequest.Create(url);
-                // FileWebRequests cannot be redirected to default aka.ms webpage
-                if (request.GetType() == typeof(FileWebRequest))
-                    return false;
-                HttpWebRequest httpWebRequest = (HttpWebRequest)request;
-                httpWebRequest.AllowAutoRedirect = false;
-                HttpWebResponse httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                using var headResponse = Send(httpClient, headRequest);
+                if (headResponse.StatusCode == HttpStatusCode.MethodNotAllowed || headResponse.StatusCode == HttpStatusCode.NotImplemented)
+                {
+                    using var getRequest = new HttpRequestMessage(HttpMethod.Get, uri);
+                    using var getResponse = Send(httpClient, getRequest);
+                    return IsRedirectToDefault(getResponse);
+                }
+
+                return IsRedirectToDefault(headResponse);
             }
-            catch (WebException e)
+            catch (HttpRequestException)
             {
-                HttpWebResponse webResponse = (HttpWebResponse)e.Response;
-                // Redirects to default url
-                if (webResponse.StatusCode == HttpStatusCode.Redirect && webResponse.Headers["Location"] == "https://www.microsoft.com/?ref=aka")
-                    return true;
-                // Redirects to another url
-                else if (webResponse.StatusCode == HttpStatusCode.MovedPermanently)
+                try
+                {
+                    using var getRequest = new HttpRequestMessage(HttpMethod.Get, uri);
+                    using var getResponse = Send(httpClient, getRequest);
+                    return IsRedirectToDefault(getResponse);
+                }
+                catch (HttpRequestException)
+                {
                     return false;
-                else
-                    return false;
+                }
             }
-            return false;
         }
 
         public static ResourceDownloadResults GetErrorMessage(out string errorMessage, params ResourceDownloadResults[] result)

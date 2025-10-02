@@ -14,7 +14,10 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
 {
     internal static class AdditionalMetadataReferences
     {
-#if NETCOREAPP
+#if NET8_0_OR_GREATER
+        internal static readonly ReferenceAssemblies DefaultReferenceAssemblies = ReferenceAssemblies.Net.Net80
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("System.Memory", "4.5.1")));
+#elif NETCOREAPP
         internal static readonly ReferenceAssemblies DefaultReferenceAssemblies = ReferenceAssemblies.Default
             .AddPackages(ImmutableArray.Create(new PackageIdentity("System.Memory", "4.5.1")));
 #else
