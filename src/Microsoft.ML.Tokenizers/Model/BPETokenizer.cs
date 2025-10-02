@@ -320,7 +320,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (beginningOfSentenceToken is not null)
             {
-                if (!_vocab.TryGetValue(beginningOfSentenceToken, out int aId))
+                if (!_vocab.TryGetValue(beginningOfSentenceToken, out int aId) && (specialTokens is null || !specialTokens.TryGetValue(beginningOfSentenceToken, out aId)))
                 {
                     throw new InvalidOperationException($"The beginning of sentence token '{beginningOfSentenceToken}' was not present in the vocabulary.");
                 }
@@ -331,7 +331,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (endOfSentenceToken is not null)
             {
-                if (!_vocab.TryGetValue(endOfSentenceToken, out int aId))
+                if (!_vocab.TryGetValue(endOfSentenceToken, out int aId) && (specialTokens is null || !specialTokens.TryGetValue(endOfSentenceToken, out aId)))
                 {
                     throw new InvalidOperationException($"The end of sentence token '{endOfSentenceToken}' was not present in the vocabulary.");
                 }
@@ -792,31 +792,30 @@ namespace Microsoft.ML.Tokenizers
 
             ValueStringBuilder sb = new ValueStringBuilder();
 
-            bool decodeUnknownToken = _unknownTokenId.HasValue && considerSpecialTokens;
-
-            if (decodeUnknownToken)
+            foreach (int id in ids)
             {
-                foreach (int id in ids)
+                if (_specialTokensReverse?.TryGetValue(id, out string? token) is true)
                 {
-                    if (MapIdToToken(id) is string s)
+                    if (considerSpecialTokens)
                     {
-                        sb.Append(s);
+                        sb.Append(token);
                     }
+                    continue;
                 }
-            }
-            else
-            {
-                foreach (int id in ids)
-                {
-                    if (id == _unknownTokenId)
-                    {
-                        continue;
-                    }
 
-                    if (MapIdToToken(id) is string s)
+                if (id == _unknownTokenId)
+                {
+                    if (considerSpecialTokens)
                     {
-                        sb.Append(s);
+                        Debug.Assert(UnknownToken is not null);
+                        sb.Append(UnknownToken);
                     }
+                    continue;
+                }
+
+                if (MapIdToToken(id) is string s)
+                {
+                    sb.Append(s);
                 }
             }
 
