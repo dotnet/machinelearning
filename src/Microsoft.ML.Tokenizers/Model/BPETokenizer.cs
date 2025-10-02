@@ -320,7 +320,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (beginningOfSentenceToken is not null)
             {
-                if (!_vocab.TryGetValue(beginningOfSentenceToken, out int aId) && (specialTokens is null || !specialTokens.TryGetValue(beginningOfSentenceToken, out aId)))
+                if (_vocab.TryGetValue(beginningOfSentenceToken, out int aId) is false && specialTokens?.TryGetValue(beginningOfSentenceToken, out aId) is false)
                 {
                     throw new InvalidOperationException($"The beginning of sentence token '{beginningOfSentenceToken}' was not present in the vocabulary.");
                 }
@@ -331,7 +331,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (endOfSentenceToken is not null)
             {
-                if (!_vocab.TryGetValue(endOfSentenceToken, out int aId) && (specialTokens is null || !specialTokens.TryGetValue(endOfSentenceToken, out aId)))
+                if (_vocab.TryGetValue(endOfSentenceToken, out int aId) is false && specialTokens?.TryGetValue(endOfSentenceToken, out aId) is false)
                 {
                     throw new InvalidOperationException($"The end of sentence token '{endOfSentenceToken}' was not present in the vocabulary.");
                 }
