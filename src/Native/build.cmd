@@ -3,10 +3,12 @@ setlocal
 
 :: Store current script directory before %~dp0 gets affected by another process later.
 set __currentScriptDir=%~dp0
+set "__currentScriptDir=%__currentScriptDir:~0,-1%"
+
 
 :SetupArgs
 :: Initialize the args that will be passed to cmake
-set __rootDir=%__currentScriptDir%..\..
+set __rootDir=%__currentScriptDir%\..\..
 set __artifactsDir=%__rootDir%\artifacts
 set __binDir=%__artifactsDir%\bin
 set __objDir=%__artifactsDir%\obj
@@ -51,7 +53,9 @@ set "VSCMD_START_DIR=%__currentScriptDir%"
 call "%_VSCOMNTOOLS%\VsDevCmd.bat"
 
 :RunVCVars
-if "%VisualStudioVersion%"=="17.0" (
+if "%VisualStudioVersion%"=="18.0" (
+    goto :VS2026
+) else if "%VisualStudioVersion%"=="17.0" (
     goto :VS2022
 ) else if "%VisualStudioVersion%"=="16.0" (
     goto :VS2019
@@ -66,6 +70,14 @@ if "%VisualStudioVersion%"=="17.0" (
 echo Error: Visual Studio 2015, 2017, 2019, or 2022 required
 echo        Please see https://github.com/dotnet/machinelearning/tree/main/Documentation for build instructions.
 exit /b 1
+
+:VS2026
+:: Setup vars for VS2026
+set __PlatformToolset=v145
+set __VSVersion=18 2026
+:: Set the environment for the native build
+call "%VS180COMNTOOLS%..\..\VC\Auxiliary\Build\vcvarsall.bat" %__VCBuildArch%
+goto :SetupDirs
 
 :VS2022
 :: Setup vars for VS2022
