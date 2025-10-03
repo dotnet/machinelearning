@@ -667,7 +667,7 @@ namespace Microsoft.ML
 
             if (model is ITransformerChainAccessor chain)
             {
-                foreach (var transformer in chain.Transformers.Reverse())
+                foreach (var transformer in ((IEnumerable<ITransformer>)chain.Transformers).Reverse())
                 {
                     if (transformer is ISingleFeaturePredictionTransformer singlePredictionTransformer)
                     {

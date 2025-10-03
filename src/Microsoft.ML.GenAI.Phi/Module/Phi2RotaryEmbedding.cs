@@ -6,6 +6,7 @@ using TorchSharp;
 using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Phi.Module;
+
 internal class Phi2RotaryEmbedding : nn.Module<
     Tensor, // input
     int, // seq_len

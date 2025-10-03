@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Phi;
+
 public class Phi3Config
 {
     public Phi3Config()

@@ -14,6 +14,7 @@ using static TorchSharp.torch;
 using static TorchSharp.torch.nn;
 
 namespace Microsoft.ML.GenAI.Core;
+
 public static class Utils
 {
     public static Tensor ApplyRotaryEmbeddings(Tensor input, Tensor freqsComplex)
