@@ -48,6 +48,7 @@
   <PropertyGroup  Condition="'$(OS)' == 'Windows_NT'">
     <GenerateNativeVersionInfo>true</GenerateNativeVersionInfo>
     <NativeVersionFile>$(IntermediateOutputPath)_version.h</NativeVersionFile>
+    <NativeSourceLinkFile>$(IntermediateOutputPath)native.sourcelink.json</NativeSourceLinkFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
@@ -120,7 +121,7 @@
 
   <Target Name="BuildNativeWindows"
           Condition="'$(OS)' == 'Windows_NT'"
-          DependsOnTargets="GenerateNativeVersionFile">
+          DependsOnTargets="GenerateNativeVersionFile;GenerateNativeSourcelinkFile">
 
     <PropertyGroup>
       <BuildArgs>$(Configuration) $(TargetArchitecture) --mkllibpath $(NuGetPackageRoot)mlnetmkldeps\$(MlNetMklDepsVersion)\runtimes\$(PackageRid)\native</BuildArgs>
@@ -246,6 +247,15 @@
     <Copy SourceFiles="@(NativePackageAsset)"
           DestinationFolder="$(PackageAssetsPath)%(NativePackageAsset.RelativePath)" />
 
+  </Target>
+
+  <Target Name="GenerateNativeSourcelinkFile"
+          DependsOnTargets="GenerateSourceLinkFile"
+          Condition="'$(DisableSourceLink)' != 'true' and '$(OS)' == 'Windows_NT'"
+          Inputs="$(SourceLink)"
+          Outputs="$(NativeSourceLinkFile)">
+    <Error Condition="'$(SourceLink)' == ''" Text="Please set SourceLink to forward appropriate information for sourcelink."/>
+    <Copy SourceFiles="$(SourceLink)" DestinationFiles="$(NativeSourceLinkFile)" />
   </Target>
 
   <Target Name="Pack" />

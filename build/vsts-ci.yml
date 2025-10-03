@@ -56,6 +56,8 @@ extends:
         enabled: true
       tsa:
         enabled: true
+    settings:
+      networkIsolationPolicy: Permissive,CFSClean
     pool:
       name: $(DncEngInternalBuildPool)
       image: $(WindowsImage)
