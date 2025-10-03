@@ -123,10 +123,14 @@ internal abstract class Repository : IDisposable
         string tempPath = ectx is IHostEnvironmentInternal iHostInternal ?
             iHostInternal.TempFilePath :
             Path.GetTempPath();
-        int dirNumber = 0;
-        string mlNetTempDir = null!;
-        while (Directory.Exists(mlNetTempDir = Path.Combine(Path.GetFullPath(tempPath), $"ml_dotnet{dirNumber++}"))) ;
-        var path = Path.Combine(mlNetTempDir, Path.GetRandomFileName());
+
+        // Find a unique directory, the directory under Temp and must be unique to this process
+        string path = null;
+        while(path is null || Directory.Exists(path))
+        {
+            path = Path.Combine(Path.GetFullPath(tempPath), $"ml_dotnet_{Path.GetRandomFileName()}");
+        }
+        
         Directory.CreateDirectory(path);
         return path;
     }
