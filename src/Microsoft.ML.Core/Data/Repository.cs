@@ -126,7 +126,7 @@ internal abstract class Repository : IDisposable
 
         // Find a unique directory, the directory under Temp and must be unique to this process
         string path = null;
-        while(path is null || Directory.Exists(path))
+        while (path is null || Directory.Exists(path))
         {
             path = Path.Combine(Path.GetFullPath(tempPath), $"ml_dotnet_{Path.GetRandomFileName()}");
         }
