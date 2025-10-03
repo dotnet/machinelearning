@@ -128,9 +128,9 @@ internal abstract class Repository : IDisposable
         string path = null;
         while (path is null || Directory.Exists(path))
         {
-            path = Path.Combine(Path.GetFullPath(tempPath), $"ml_dotnet_{Path.GetRandomFileName()}");
+            path = Path.Combine(Path.GetFullPath(tempPath), $"ml_dotnet_{Path.GetFileNameWithoutExtension(Path.GetRandomFileName())}");
         }
-        
+
         Directory.CreateDirectory(path);
         return path;
     }
