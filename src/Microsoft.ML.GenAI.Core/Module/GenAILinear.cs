@@ -6,6 +6,7 @@ using TorchSharp;
 using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Core;
+
 internal class GenAILinear : nn.Module<Tensor, Tensor>
 {
 #pragma warning disable MSML_GeneralName // This name should be PascalCased
