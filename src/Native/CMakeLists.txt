@@ -13,6 +13,9 @@ set(RESOURCES)
 # Include 'bin/obj' dir since it contains _version.h
 include_directories("$ENV{__IntermediatesDir}")
 
+# Define path to native source link file
+set(NATIVE_SOURCELINK_FILE_PATH "$ENV{__IntermediatesDir}/native.sourcelink.json")
+
 if(WIN32)
     add_definitions(-DWIN32)
     add_definitions(-D_WIN32=1)
@@ -22,11 +25,9 @@ if(WIN32)
     endif()
     add_compile_options($<$<CONFIG:Debug>:-DDEBUG>)
     add_compile_options($<$<CONFIG:Release>:-DNDEBUG>)
-    add_compile_options($<$<CONFIG:RelWithDebInfo>:-DNDEBUG>)
     add_compile_options($<$<CONFIG:Debug>:/Od>)
     add_compile_options($<$<CONFIG:Debug>:/MTd>) # /MT will static link the VC runtime library, so it doesn't need to be installed on the target machine
     add_compile_options($<$<CONFIG:Release>:/MT>)
-    add_compile_options($<$<CONFIG:RelWithDebInfo>:/MT>)
     add_compile_options(/guard:cf)
     add_compile_options(/Zo) # make optimized builds debugging easier. /Zo is the newer documented flag.
     add_compile_options(/nologo) # Suppress Startup Banner
@@ -41,6 +42,11 @@ if(WIN32)
     add_compile_options(/Zc:inline)
     add_compile_options(/fp:precise)
     add_compile_options(/EHsc)
+    add_compile_options(/Brepro)
+    add_compile_options(/d1nodatetime)
+    add_compile_options(/experimental:deterministic)
+    add_compile_options(/GL)
+    add_compile_options(/d2CastGuardFailureMode:fastfail)
 
     # From here below are warnings required to be explicitly enabled.
     add_compile_options(/w34242)
@@ -62,8 +68,14 @@ if(WIN32)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DEBUG /PDBCOMPRESS")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:1572864")
 
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /guard:cf")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /guard:cf")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /guard:cf /Brepro")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /guard:cf /Brepro")
+
+    # Enable native source link if the source link file exists
+    if(EXISTS ${NATIVE_SOURCELINK_FILE_PATH})
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /sourcelink:${NATIVE_SOURCELINK_FILE_PATH}")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /sourcelink:${NATIVE_SOURCELINK_FILE_PATH}")
+    endif(EXISTS ${NATIVE_SOURCELINK_FILE_PATH})
 
     # Debug build specific flags
     set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "/NOVCFEATURE")
@@ -71,18 +83,12 @@ if(WIN32)
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:vcompd.lib /DEFAULTLIB:vcomp.lib")
 
     # Release build specific flags
-    set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
-    set(CMAKE_STATIC_LINKER_FLAGS_RELEASE "${CMAKE_STATIC_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
-    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
+    set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF /LTCG")
+    set(CMAKE_STATIC_LINKER_FLAGS_RELEASE "${CMAKE_STATIC_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF /LTCG")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF /LTCG")
     set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /NODEFAULTLIB:libucrt.lib /DEFAULTLIB:ucrt.lib")
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /NODEFAULTLIB:libucrt.lib /DEFAULTLIB:ucrt.lib")
 
-    # RelWithDebInfo specific flags
-    set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO} /DEBUG /OPT:REF /OPT:ICF")
-    set(CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO} /DEBUG /OPT:REF /OPT:ICF")
-    set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} /DEBUG /OPT:REF /OPT:ICF")
-    set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO} /NODEFAULTLIB:libucrt.lib /DEFAULTLIB:ucrt.lib")
-    set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} /NODEFAULTLIB:libucrt.lib /DEFAULTLIB:ucrt.lib")
     list(APPEND RESOURCES $ENV{__IntermediatesDir}/NativeVersion.rc)
 else()
     add_compile_options(-Wno-unused-local-typedef)
