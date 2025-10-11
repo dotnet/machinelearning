@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
+using Microsoft.ML;
 
 namespace Microsoft.ML.Runtime;
 
@@ -115,6 +116,11 @@ internal interface IHostEnvironmentInternal : IHostEnvironment
     T GetOptionOrDefault<T>(string name);
 
     bool RemoveOption(string name);
+
+    /// <summary>
+    /// Global random source underpinning this environment.
+    /// </summary>
+    IRandomSource RandomSource { get; }
 }
 
 /// <summary>
@@ -129,6 +135,11 @@ public interface IHost : IHostEnvironment
     /// generators are NOT thread safe.
     /// </summary>
     Random Rand { get; }
+
+    /// <summary>
+    /// The random source backing <see cref="Rand"/>.
+    /// </summary>
+    IRandomSource RandomSource { get; }
 }
 
 /// <summary>

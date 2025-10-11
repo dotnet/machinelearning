@@ -162,7 +162,11 @@ namespace Microsoft.ML
             }
         }
 
+#if NET8_0_OR_GREATER
+        public override float NextSingle()
+#else
         public float NextSingle()
+#endif
         {
             NextState();
             return GetSingle();

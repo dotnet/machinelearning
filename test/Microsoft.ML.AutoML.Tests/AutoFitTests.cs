@@ -527,8 +527,9 @@ namespace Microsoft.ML.AutoML.Test
             // STEP 2: Run AutoML experiment
             try
             {
+                // Use a slightly larger time budget to reduce flakiness on slower hosts
                 ExperimentResult<RegressionMetrics> experimentResult = mlContext.Auto()
-                    .CreateRecommendationExperiment(5)
+                    .CreateRecommendationExperiment(new RecommendationExperimentSettings { MaxExperimentTimeInSeconds = 10 })
                     .Execute(trainDataView, testDataView,
                         new ColumnInformation()
                         {
