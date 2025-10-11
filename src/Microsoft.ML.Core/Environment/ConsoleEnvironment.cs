@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -6,6 +6,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Microsoft.ML;
+
 
 namespace Microsoft.ML.Runtime;
 
@@ -359,14 +361,16 @@ internal sealed class ConsoleEnvironment : HostEnvironmentBase<ConsoleEnvironmen
     /// </summary>
     /// <param name="seed">Random seed. Set to <c>null</c> for a non-deterministic environment.</param>
     /// <param name="verbose">Set to <c>true</c> for fully verbose logging.</param>
+    /// <param name="randomSource">Optional random source backing this environment.</param>
     /// <param name="sensitivity">Allowed message sensitivity.</param>
     /// <param name="outWriter">Text writer to print normal messages to.</param>
     /// <param name="errWriter">Text writer to print error messages to.</param>
     /// <param name="testWriter">Optional TextWriter to write messages if the host is a test environment.</param>
     public ConsoleEnvironment(int? seed = null, bool verbose = false,
+        IRandomSource randomSource = null,
         MessageSensitivity sensitivity = MessageSensitivity.All,
         TextWriter outWriter = null, TextWriter errWriter = null, TextWriter testWriter = null)
-        : base(seed, verbose, nameof(ConsoleEnvironment))
+        : base(seed, verbose, randomSource, nameof(ConsoleEnvironment))
     {
         Contracts.CheckValueOrNull(outWriter);
         Contracts.CheckValueOrNull(errWriter);
@@ -391,13 +395,14 @@ internal sealed class ConsoleEnvironment : HostEnvironmentBase<ConsoleEnvironmen
         Root._consoleWriter.PrintMessage(src, msg);
     }
 
-    protected override IHost RegisterCore(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose)
+    protected override IHost RegisterCore(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, Random rand, IRandomSource randomSource, bool verbose)
     {
         Contracts.AssertValue(rand);
+        Contracts.AssertValue(randomSource);
         Contracts.AssertValueOrNull(parentFullName);
         Contracts.AssertNonEmpty(shortName);
         Contracts.Assert(source == this || source is Host);
-        return new Host(source, shortName, parentFullName, rand, verbose);
+        return new Host(source, shortName, parentFullName, rand, randomSource, verbose);
     }
 
     protected override IChannel CreateCommChannel(ChannelProviderBase parent, string name)
@@ -462,8 +467,8 @@ internal sealed class ConsoleEnvironment : HostEnvironmentBase<ConsoleEnvironmen
 
     private sealed class Host : HostBase
     {
-        public Host(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose)
-            : base(source, shortName, parentFullName, rand, verbose)
+        public Host(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, Random rand, IRandomSource randomSource, bool verbose)
+            : base(source, shortName, parentFullName, rand, randomSource, verbose)
         {
             IsCanceled = source.IsCanceled;
         }
@@ -484,9 +489,11 @@ internal sealed class ConsoleEnvironment : HostEnvironmentBase<ConsoleEnvironmen
             return new Pipe<TMessage>(parent, name, GetDispatchDelegate<TMessage>());
         }
 
-        protected override IHost RegisterCore(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose)
+        protected override IHost RegisterCore(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, Random rand, IRandomSource randomSource, bool verbose)
         {
-            return new Host(source, shortName, parentFullName, rand, verbose);
+            return new Host(source, shortName, parentFullName, rand, randomSource, verbose);
         }
     }
 }
+
+

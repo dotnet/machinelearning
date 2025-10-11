@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
@@ -22,6 +23,7 @@ namespace Microsoft.ML
     {
         // REVIEW: consider making LocalEnvironment and MLContext the same class instead of encapsulation.
         private readonly LocalEnvironment _env;
+        private readonly IRandomSource _randomSource;
 
         /// <summary>
         /// Gets the trainers and tasks specific to binary classification problems.
@@ -114,6 +116,8 @@ namespace Microsoft.ML
             set { _env.GpuDeviceId = value; }
         }
 
+        internal IRandomSource RandomSource => _randomSource;
+
         /// <summary>
         /// Create the ML context.
         /// </summary>
@@ -143,8 +147,14 @@ namespace Microsoft.ML
         /// So, the predictions from a loaded model don't depend on the seed value.
         /// </remarks>
         public MLContext(int? seed = null)
+            : this(seed, rng: null)
         {
-            _env = new LocalEnvironment(seed);
+        }
+
+        public MLContext(int? seed, IRandomSource rng = null)
+        {
+            _env = rng is null ? new LocalEnvironment(seed) : new LocalEnvironment(seed, rng);
+            _randomSource = _env.RandomSource;
             _env.AddListener(ProcessMessage);
 
             BinaryClassification = new BinaryClassificationCatalog(_env);
@@ -176,6 +186,7 @@ namespace Microsoft.ML
         IPipe<TMessage> IChannelProvider.StartPipe<TMessage>(string name) => _env.StartPipe<TMessage>(name);
         IProgressChannel IProgressChannelProvider.StartProgressChannel(string name) => _env.StartProgressChannel(name);
         int? IHostEnvironmentInternal.Seed => _env.Seed;
+        IRandomSource IHostEnvironmentInternal.RandomSource => _randomSource;
 
         [BestFriend]
         internal void CancelExecution() => ((ICancelable)_env).CancelExecution();

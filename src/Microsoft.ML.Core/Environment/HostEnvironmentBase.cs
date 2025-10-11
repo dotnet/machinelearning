@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -6,6 +6,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.ML;
+using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime;
 
@@ -121,8 +123,8 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
 
         public Random Rand => _rand;
 
-        public HostBase(HostEnvironmentBase<TEnv> source, string shortName, string parentFullName, Random rand, bool verbose)
-            : base(source, rand, verbose, shortName, parentFullName)
+        public HostBase(HostEnvironmentBase<TEnv> source, string shortName, string parentFullName, Random rand, IRandomSource randomSource, bool verbose)
+            : base(source, rand, randomSource ?? new RandomSourceAdapter(rand), verbose, shortName, parentFullName)
         {
             Depth = source.Depth + 1;
         }
@@ -140,7 +142,8 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
             {
                 _children.RemoveAll(r => r.TryGetTarget(out IHost _) == false);
                 Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
-                host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
+                IRandomSource randomSource = new RandomSourceAdapter(rand);
+                host = RegisterCore(this, name, Master?.FullName, rand, randomSource, verbose ?? Verbose);
                 if (!IsCanceled)
                     _children.Add(new WeakReference<IHost>(host));
             }
@@ -338,6 +341,8 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
     protected Dictionary<string, object> Options { get; } = [];
 #pragma warning restore MSML_NoInstanceInitializers
 
+    public IRandomSource RandomSource => _randomSource;
+
     protected readonly TEnv Root;
     // This is non-null iff this environment was a fork of another. Disposing a fork
     // doesn't free temp files. That is handled when the master is disposed.
@@ -348,6 +353,7 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
 
     // The random number generator for this host.
     private readonly Random _rand;
+    private readonly IRandomSource _randomSource;
 
     public int? Seed { get; }
 
@@ -369,11 +375,22 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
     /// The main constructor.
     /// </summary>
     protected HostEnvironmentBase(int? seed, bool verbose,
+        IRandomSource randomSource = null,
         string shortName = null, string parentFullName = null)
         : base(shortName, parentFullName, verbose)
     {
         Seed = seed;
-        _rand = RandomUtils.Create(Seed);
+        if (randomSource is null)
+        {
+            var baseRandom = RandomUtils.Create(Seed);
+            _rand = baseRandom;
+            _randomSource = new RandomSourceAdapter(baseRandom);
+        }
+        else
+        {
+            _randomSource = randomSource;
+            _rand = randomSource as Random ?? new RandomFromRandomSource(randomSource);
+        }
         ListenerDict = new ConcurrentDictionary<Type, Dispatcher>();
         ProgressTracker = new ProgressReporting.ProgressTracker(this);
         _cancelLock = new object();
@@ -385,13 +402,14 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
     /// <summary>
     /// This constructor is for forking.
     /// </summary>
-    protected HostEnvironmentBase(HostEnvironmentBase<TEnv> source, Random rand, bool verbose,
+    protected HostEnvironmentBase(HostEnvironmentBase<TEnv> source, Random rand, IRandomSource randomSource, bool verbose,
         string shortName = null, string parentFullName = null)
         : base(shortName, parentFullName, verbose)
     {
         Contracts.CheckValue(source, nameof(source));
         Contracts.CheckValueOrNull(rand);
-        _rand = rand ?? RandomUtils.Create();
+        _randomSource = randomSource ?? (rand != null ? new RandomSourceAdapter(rand) : new RandomSourceAdapter(RandomUtils.Create()));
+        _rand = rand ?? (_randomSource as Random ?? new RandomFromRandomSource(_randomSource));
         _cancelLock = new object();
 
         // This fork shares some stuff with the master.
@@ -419,7 +437,8 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
         {
             _children.RemoveAll(r => r.TryGetTarget(out IHost _) == false);
             Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
-            host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
+            IRandomSource randomSource = new RandomSourceAdapter(rand);
+            host = RegisterCore(this, name, Master?.FullName, rand, randomSource, verbose ?? Verbose);
 
             // Need to manually copy over the parameters
             //((IHostEnvironmentInternal)host).Seed = this.Seed;
@@ -433,7 +452,7 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
     }
 
     protected abstract IHost RegisterCore(HostEnvironmentBase<TEnv> source, string shortName,
-        string parentFullName, Random rand, bool verbose);
+        string parentFullName, Random rand, IRandomSource randomSource, bool verbose);
 
     public IProgressChannel StartProgressChannel(string name)
     {
@@ -659,3 +678,8 @@ internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEn
         return Options.Remove(name);
     }
 }
+
+
+
+
+
