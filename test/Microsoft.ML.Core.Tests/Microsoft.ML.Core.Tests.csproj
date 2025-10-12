@@ -31,7 +31,6 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.Tests\Microsoft.ML.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>
