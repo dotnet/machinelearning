@@ -25,7 +25,8 @@
     <StrongNameKeyId>Open</StrongNameKeyId>
 
     <!-- temporarily suppress NETSDK 1206 until we can update OnnxRuntime to fix https://github.com/dotnet/machinelearning/issues/6916 -->
-    <NoWarn>$(NoWarn);NETSDK1206;NU5104</NoWarn>
+    <!-- suppress NETSDK1138, we need to keep net6.0 in servicing -->
+    <NoWarn>$(NoWarn);NETSDK1206;NU5104;NETSDK1138</NoWarn>
   </PropertyGroup>
 
     <PropertyGroup>
