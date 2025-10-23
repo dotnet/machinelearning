@@ -70,7 +70,7 @@ jobs:
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals build.Ubuntu.2204.amd64.open
-    helixQueue: Ubuntu.2204.ArmArch.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-helix-arm32v7
+    helixQueue: Ubuntu.2204.ArmArch.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-helix-arm32v7
 
 - template: /build/ci/job-template.yml
   parameters:

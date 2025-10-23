@@ -7,6 +7,7 @@ using TorchSharp.Modules;
 using static TorchSharp.torch;
 
 namespace Microsoft.ML.GenAI.Phi.Module;
+
 public class Phi2DecoderLayer : nn.Module<
     Tensor, // hidden_states
     Tensor, // position_ids

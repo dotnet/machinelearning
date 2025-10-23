@@ -106,16 +106,18 @@
 
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))">$(HelixPreCommands);export LD_LIBRARY_PATH=/opt/homebrew/opt/mono-libgdiplus/lib;ls /usr/lib;ls $HELIX_WORKITEM_ROOT;export KMP_DUPLICATE_LIB_OK=TRUE;export DYLD_PRINT_LIBRARIES=1;otool -L $HELIX_WORKITEM_ROOT/runtimes/osx-x64/native/lib_lightgbm.dylib</HelixPreCommands>
 
+      <!-- macOS x64 only: add DYLD paths so the local libomp/libiomp5 in the work item is discoverable -->
+      <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx')) and '$(BuildArchitecture)'=='x64'">$(HelixPreCommands);export DYLD_LIBRARY_PATH=$HELIX_WORKITEM_ROOT:$DYLD_LIBRARY_PATH;export DYLD_FALLBACK_LIBRARY_PATH=$HELIX_WORKITEM_ROOT:$DYLD_FALLBACK_LIBRARY_PATH</HelixPreCommands>
+
       <HelixPreCommands Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('armarch'))">$(HelixPreCommands);sudo apt update;sudo apt-get install libomp-dev libomp5 -y</HelixPreCommands>
 
       <HelixCorrelationPayloadPath Condition="$(IsPosixShell)">$HELIX_CORRELATION_PAYLOAD</HelixCorrelationPayloadPath>
       <HelixCorrelationPayloadPath Condition="!$(IsPosixShell)">%HELIX_CORRELATION_PAYLOAD%</HelixCorrelationPayloadPath>
 
-      <MacFilesToCopy>/usr/local/opt/libomp/lib/libiomp5.dylib;/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
-      <MacFilesToCopy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('arm64'))">/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
+      <MacFilesToCopy>/usr/local/opt/libomp/lib/libomp.dylib;</MacFilesToCopy>
     </PropertyGroup>
 
-    <!-- Copy libiomp5.dylib and libomp.dylib to the publish folders for OSX-->
+    <!-- Copy OpenMP runtime(s) to the publish folders for OSX -->
     <Copy Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx'))"
       SourceFiles = "$(MacFilesToCopy)"
       Retries="10"
@@ -124,6 +126,7 @@
       DestinationFolder="$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)">
     </Copy>
 
+    <!-- Fix up install names where we know about libomp.dylib usage -->
     <Exec Condition="Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\libSymSgdNative.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
     Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; $(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/libSymSgdNative.dylib" />
     
@@ -132,6 +135,10 @@
     
     <Exec Condition="Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\runtimes\osx-x64\native\libonnxruntime.dylib') AND $(HelixTargetQueues.ToLowerInvariant().Contains('osx'))" 
     Command="install_name_tool -change &quot;/usr/local/opt/libomp/lib/libomp.dylib&quot; &quot;@loader_path/libomp.dylib&quot; $(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/runtimes/osx-x64/native/libonnxruntime.dylib" />
+
+    <!-- macOS x64 ONLY: if libiomp5.dylib isn't present in the publish folder, duplicate libomp.dylib as libiomp5.dylib -->
+    <Exec Condition="$(HelixTargetQueues.ToLowerInvariant().Contains('osx')) and '$(BuildArchitecture)'=='x64' and Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\libomp.dylib') and !Exists('$(BUILD_SOURCESDIRECTORY)\artifacts\bin\%(ProjectsWithTargetFramework.Filename)\$(BuildConfig)\%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)\libiomp5.dylib')"
+      Command="cp &quot;$(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/libomp.dylib&quot; &quot;$(BUILD_SOURCESDIRECTORY)/artifacts/bin/%(ProjectsWithTargetFramework.Filename)/$(BuildConfig)/%(ProjectsWithTargetFramework.TargetFrameworks)$(PublishFolder)/libiomp5.dylib&quot;" />
 
     <!-- Remove the native libraries for other OS to save on payload size -->
     <ItemGroup>

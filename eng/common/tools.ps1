@@ -42,7 +42,7 @@
 [bool]$useInstalledDotNetCli = if (Test-Path variable:useInstalledDotNetCli) { $useInstalledDotNetCli } else { $true }
 
 # Enable repos to use a particular version of the on-line dotnet-install scripts.
-#    default URL: https://dotnet.microsoft.com/download/dotnet/scripts/v1/dotnet-install.ps1
+#    default URL: https://builds.dotnet.microsoft.com/dotnet/scripts/v1/dotnet-install.ps1
 [string]$dotnetInstallScriptVersion = if (Test-Path variable:dotnetInstallScriptVersion) { $dotnetInstallScriptVersion } else { 'v1' }
 
 # True to use global NuGet cache instead of restoring packages to repository-local directory.
@@ -262,7 +262,7 @@ function GetDotNetInstallScript([string] $dotnetRoot) {
   if (!(Test-Path $installScript)) {
     Create-Directory $dotnetRoot
     $ProgressPreference = 'SilentlyContinue' # Don't display the console progress UI - it's a huge perf hit
-    $uri = "https://dotnet.microsoft.com/download/dotnet/scripts/$dotnetInstallScriptVersion/dotnet-install.ps1"
+    $uri = "https://builds.dotnet.microsoft.com/dotnet/scripts/$dotnetInstallScriptVersion/dotnet-install.ps1"
 
     Retry({
       Write-Host "GET $uri"
@@ -416,7 +416,7 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
 
   # Locate Visual Studio installation or download x-copy msbuild.
   $vsInfo = LocateVisualStudio $vsRequirements
-  if ($vsInfo -ne $null) {
+  if ($vsInfo -ne $null -and $env:ForceUseXCopyMSBuild -eq $null) {
     # Ensure vsInstallDir has a trailing slash
     $vsInstallDir = Join-Path $vsInfo.installationPath "\"
     $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]

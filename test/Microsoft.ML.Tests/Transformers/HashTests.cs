@@ -143,7 +143,7 @@ namespace Microsoft.ML.Tests.Transformers
                 var outRow = mapper.GetRow(inRow, col);
 
                 return outRow.GetGetter<TType>(col);
-            };
+            }
 
             // First do an unordered hash.
             var info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: bits);

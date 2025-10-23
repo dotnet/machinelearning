@@ -28,7 +28,7 @@ variables:
 - name: LinuxImage
   value: 1es-ubuntu-2204
 - name: WindowsImage
-  value: 1es-windows-2019
+  value: 1es-windows-2022
 - name: MacImage
   value: macOS-13
 - ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
@@ -142,7 +142,10 @@ extends:
             PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
             ArtifactName: pkgassets
         steps:
-        - script: export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 &&  rm '/usr/local/bin/2to3-3.11' && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
+        - script: |
+            brew update
+            brew install libomp
+            brew link libomp --force
           displayName: Install build dependencies
         # Only build native assets to avoid conflicts.
         - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=x64 /p:CopyPackageAssets=true
@@ -161,12 +164,10 @@ extends:
             PathtoPublish: $(Build.SourcesDirectory)/artifacts/pkgassets
             ArtifactName: pkgassets
         steps:
-        # Work around MacOS Homebrew image/environment bug: https://github.com/actions/virtual-environments/issues/2322#issuecomment-749211076
-        - script: |
-            rm -rf /usr/local/bin/2to3
-          displayName: MacOS Homebrew bug Workaround
-          continueOnError: true
-        - script: brew update && brew install -f --overwrite python@3.13 && brew install libomp && brew link libomp --force
+        - script:  |
+            brew update
+            brew install libomp
+            brew link libomp --force
           displayName: Install build dependencies
         # Only build native assets to avoid conflicts.
         - script: ./build.sh -projects $(Build.SourcesDirectory)/src/Native/Native.proj -configuration $(BuildConfig) /p:TargetArchitecture=arm64 /p:CopyPackageAssets=true
