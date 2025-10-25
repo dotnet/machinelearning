@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
@@ -46,8 +47,9 @@ namespace Microsoft.ML.Data
         /// Create an ML.NET <see cref="IHostEnvironment"/> for local execution.
         /// </summary>
         /// <param name="seed">Random seed. Set to <c>null</c> for a non-deterministic environment.</param>
-        public LocalEnvironment(int? seed = null)
-            : base(seed, verbose: false)
+        /// <param name="randomSource">Optional random source backing this environment.</param>
+        public LocalEnvironment(int? seed = null, IRandomSource randomSource = null)
+            : base(seed, verbose: false, randomSource)
         {
         }
 
@@ -63,13 +65,14 @@ namespace Microsoft.ML.Data
         public void RemoveListener(Action<IMessageSource, ChannelMessage> listener)
             => RemoveListener<ChannelMessage>(listener);
 
-        protected override IHost RegisterCore(HostEnvironmentBase<LocalEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose)
+        protected override IHost RegisterCore(HostEnvironmentBase<LocalEnvironment> source, string shortName, string parentFullName, Random rand, IRandomSource randomSource, bool verbose)
         {
             Contracts.AssertValue(rand);
+            Contracts.AssertValue(randomSource);
             Contracts.AssertValueOrNull(parentFullName);
             Contracts.AssertNonEmpty(shortName);
             Contracts.Assert(source == this || source is Host);
-            return new Host(source, shortName, parentFullName, rand, verbose);
+            return new Host(source, shortName, parentFullName, rand, randomSource, verbose);
         }
 
         protected override IChannel CreateCommChannel(ChannelProviderBase parent, string name)
@@ -90,8 +93,8 @@ namespace Microsoft.ML.Data
 
         private sealed class Host : HostBase
         {
-            public Host(HostEnvironmentBase<LocalEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose)
-                : base(source, shortName, parentFullName, rand, verbose)
+            public Host(HostEnvironmentBase<LocalEnvironment> source, string shortName, string parentFullName, Random rand, IRandomSource randomSource, bool verbose)
+                : base(source, shortName, parentFullName, rand, randomSource, verbose)
             {
                 IsCanceled = source.IsCanceled;
             }
@@ -112,9 +115,9 @@ namespace Microsoft.ML.Data
                 return new Pipe<TMessage>(parent, name, GetDispatchDelegate<TMessage>());
             }
 
-            protected override IHost RegisterCore(HostEnvironmentBase<LocalEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose)
+            protected override IHost RegisterCore(HostEnvironmentBase<LocalEnvironment> source, string shortName, string parentFullName, Random rand, IRandomSource randomSource, bool verbose)
             {
-                return new Host(source, shortName, parentFullName, rand, verbose);
+                return new Host(source, shortName, parentFullName, rand, randomSource, verbose);
             }
         }
     }
