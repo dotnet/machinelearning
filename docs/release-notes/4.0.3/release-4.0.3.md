@@ -9,7 +9,7 @@
     Get-ChildItem "$env:TEMP" -Directory -Filter "ml_dotnet*" | Remove-Item -Recurse -Force
     ```
 
-    Using bash
+    Using Bash:
     ```bash
     find "$TEMP" -type d -name "ml_dotnet*" -exec rm -rf {} +
     ```
