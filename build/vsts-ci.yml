@@ -143,7 +143,7 @@ extends:
             ArtifactName: pkgassets
         steps:
         - script: |
-            brew update
+            $(Build.SourcesDirectory)/eng/common/native/install-dependencies.sh osx
             brew install libomp
             brew link libomp --force
           displayName: Install build dependencies
@@ -165,7 +165,7 @@ extends:
             ArtifactName: pkgassets
         steps:
         - script:  |
-            brew update
+            $(Build.SourcesDirectory)/eng/common/native/install-dependencies.sh osx
             brew install libomp
             brew link libomp --force
           displayName: Install build dependencies
