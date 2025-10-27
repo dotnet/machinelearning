@@ -68,7 +68,7 @@ jobs:
     # Extra MacOS step required to install OS-specific dependencies
     - ${{ if contains(parameters.pool.vmImage, 'macOS')  }}:
       - script: |
-          brew update
+          $(Build.SourcesDirectory)/eng/common/native/install-dependencies.sh osx
           brew install libomp
           brew link libomp --force
         displayName: Install MacOS build dependencies
