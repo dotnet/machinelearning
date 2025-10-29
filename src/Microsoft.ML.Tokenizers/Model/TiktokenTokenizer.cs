@@ -1013,6 +1013,15 @@ namespace Microsoft.ML.Tokenizers
         private const string IMStart = "<|im_start|>";
         private const string IMEnd = "<|im_end|>";
         private const string IMSep = "<|im_sep|>";
+        private const string StartOfText = "<|startoftext|>";
+        private const string Return = "<|return|>";
+        private const string Constrain = "<|constrain|>";
+        private const string Channel = "<|channel|>";
+        private const string Start = "<|start|>";
+        private const string End = "<|end|>";
+        private const string Message = "<|message|>";
+        private const string Call = "<|call|>";
+        private const string ReservedPrefix = "<|reserved_";
 
         private enum ModelEncoding
         {
@@ -1022,40 +1031,69 @@ namespace Microsoft.ML.Tokenizers
             P50kEdit,
             R50kBase,
             GPT2,
-            O200kBase
+            O200kBase,
+            O200kHarmony
         }
 
         private const string Phi4ModelName = "phi-4";
 
         private static readonly (string Prefix, ModelEncoding Encoding)[] _modelPrefixToEncoding =
                                                             [
-                                                                // chat
                                                                 ( "o1-", ModelEncoding.O200kBase ),       // e.g. o1-mini
                                                                 ( "o3-", ModelEncoding.O200kBase ),       // e.g. o3-mini
+                                                                ( "o4-mini-", ModelEncoding.O200kBase ),  // e.g. o4-mini
+
+                                                                // chat
+                                                                ( "gpt-5-", ModelEncoding.O200kBase),
                                                                 ( "gpt-4.1-", ModelEncoding.O200kBase),   // e.g., gpt-4.1-mini
+                                                                ( "gpt-4.5-", ModelEncoding.O200kBase),   // e.g., gpt-4.5
                                                                 ( "gpt-4o-", ModelEncoding.O200kBase),    // e.g., gpt-4o-2024-05-13
+                                                                ( "chatgpt-4o-", ModelEncoding.O200kBase),
                                                                 ( "gpt-4-", ModelEncoding.Cl100kBase),    // e.g., gpt-4-0314, etc., plus gpt-4-32k
                                                                 ( "gpt-3.5-", ModelEncoding.Cl100kBase),  // e.g, gpt-3.5-turbo-0301, -0401, etc.
-                                                                ( "gpt-35-", ModelEncoding.Cl100kBase )   // Azure deployment name
+                                                                ( "gpt-35-", ModelEncoding.Cl100kBase ),  // Azure deployment name
+                                                                ( "gpt-oss-", ModelEncoding.O200kHarmony ),
+
+                                                                // fine-tuned
+                                                                ( "ft:gpt-4o", ModelEncoding.O200kBase ),
+                                                                ( "ft:gpt-4", ModelEncoding.Cl100kBase ),
+                                                                ( "ft:gpt-3.5-turbo", ModelEncoding.Cl100kBase ),
+                                                                ( "ft:davinci-002", ModelEncoding.Cl100kBase ),
+                                                                ( "ft:babbage-002", ModelEncoding.Cl100kBase ),
                                                             ];
 
         private static readonly Dictionary<string, ModelEncoding> _modelToEncoding =
                                                             new Dictionary<string, ModelEncoding>(StringComparer.OrdinalIgnoreCase)
                                                             {
-                                                                // chat
-                                                                { "gpt-4o", ModelEncoding.O200kBase },
+                                                                // reasoning
                                                                 { "o1", ModelEncoding.O200kBase },
                                                                 { "o3", ModelEncoding.O200kBase },
                                                                 { "o4-mini", ModelEncoding.O200kBase },
+
+                                                                // chat
+                                                                { "gpt-5", ModelEncoding.O200kBase },
                                                                 { "gpt-4.1", ModelEncoding.O200kBase },
+                                                                { "gpt-4o", ModelEncoding.O200kBase },
                                                                 { "gpt-4", ModelEncoding.Cl100kBase },
                                                                 { "gpt-3.5-turbo", ModelEncoding.Cl100kBase },
+                                                                { "gpt-3.5", ModelEncoding.Cl100kBase },
                                                                 { "gpt-3.5-turbo-16k", ModelEncoding.Cl100kBase },
                                                                 { "gpt-35", ModelEncoding.Cl100kBase },           // Azure deployment name
                                                                 { "gpt-35-turbo", ModelEncoding.Cl100kBase },     // Azure deployment name
                                                                 { "gpt-35-turbo-16k", ModelEncoding.Cl100kBase }, // Azure deployment name
 
-                                                                // text
+                                                                // Base
+                                                                { "davinci-002", ModelEncoding.Cl100kBase },
+                                                                { "babbage-002", ModelEncoding.Cl100kBase },
+
+                                                                // embeddings
+                                                                // https://platform.openai.com/docs/guides/embeddings/what-are-embeddings
+                                                                { "text-embedding-ada-002", ModelEncoding.Cl100kBase },
+                                                                { "text-embedding-3-small", ModelEncoding.Cl100kBase },
+                                                                { "text-embedding-3-large", ModelEncoding.Cl100kBase },
+
+                                                                // DEPRECATED MODELS
+                                                                // text (DEPRECATED)
                                                                 { "text-davinci-003", ModelEncoding.P50kBase },
                                                                 { "text-davinci-002", ModelEncoding.P50kBase },
                                                                 { "text-davinci-001", ModelEncoding.R50kBase },
@@ -1067,7 +1105,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 { "babbage", ModelEncoding.R50kBase },
                                                                 { "ada", ModelEncoding.R50kBase },
 
-                                                                // code
+                                                                // code (DEPRECATED)
                                                                 { "code-davinci-002", ModelEncoding.P50kBase },
                                                                 { "code-davinci-001", ModelEncoding.P50kBase },
                                                                 { "code-cushman-002", ModelEncoding.P50kBase },
@@ -1075,17 +1113,12 @@ namespace Microsoft.ML.Tokenizers
                                                                 { "davinci-codex", ModelEncoding.P50kBase },
                                                                 { "cushman-codex", ModelEncoding.P50kBase },
 
-                                                                // edit
+                                                                // edit (DEPRECATED)
                                                                 { "text-davinci-edit-001", ModelEncoding.P50kEdit },
                                                                 { "code-davinci-edit-001", ModelEncoding.P50kEdit },
 
-                                                                // embeddings
-                                                                // https://platform.openai.com/docs/guides/embeddings/what-are-embeddings
-                                                                { "text-embedding-ada-002", ModelEncoding.Cl100kBase },
-                                                                { "text-embedding-3-small", ModelEncoding.Cl100kBase },
-                                                                { "text-embedding-3-large", ModelEncoding.Cl100kBase },
 
-                                                                // old embeddings
+                                                                // old embeddings (DEPRECATED)
                                                                 { "text-similarity-davinci-001", ModelEncoding.R50kBase },
                                                                 { "text-similarity-curie-001", ModelEncoding.R50kBase },
                                                                 { "text-similarity-babbage-001", ModelEncoding.R50kBase },
@@ -1099,6 +1132,7 @@ namespace Microsoft.ML.Tokenizers
 
                                                                 // open source
                                                                 { "gpt2", ModelEncoding.GPT2 },
+                                                                { "gpt-2", ModelEncoding.GPT2 },
 
                                                                 // phi-4
                                                                 { Phi4ModelName, ModelEncoding.Cl100kBase },
@@ -1125,6 +1159,32 @@ namespace Microsoft.ML.Tokenizers
 
             return encoder;
         }
+
+        private static Dictionary<string, int> CreateHarmonyEncodingSpecialTokens() =>
+            new Dictionary<string, int>
+            {
+                { StartOfText,                  199998 },
+                { EndOfText,                    199999 },
+                { $"{ReservedPrefix}200000|>",  200000 },
+                { $"{ReservedPrefix}200001|>",  200001 },
+                { Return,                       200002 },
+                { Constrain,                    200003 },
+                { $"{ReservedPrefix}200004|>",  200004 },
+                { Channel,                      200005 },
+                { Start,                        200006 },
+                { End,                          200007 },
+                { Message,                      200008 },
+                { $"{ReservedPrefix}200009|>",  200009 },
+                { $"{ReservedPrefix}200010|>",  200010 },
+                { $"{ReservedPrefix}200011|>",  200011 },
+                { Call,                         200012 },
+                { $"{ReservedPrefix}200013|>",  200013 },
+                { $"{ReservedPrefix}200014|>",  200014 },
+                { $"{ReservedPrefix}200015|>",  200015 },
+                { $"{ReservedPrefix}200016|>",  200016 },
+                { $"{ReservedPrefix}200017|>",  200017 },
+                { EndOfPrompt,                  200018 },
+            };
 
         private static (Dictionary<string, int> SpecialTokens, Regex Regex, string VocabFile, Type? DataType, string PackageName) GetTiktokenConfigurations(string modelName) => GetTiktokenConfigurations(GetModelEncoding(modelName), modelName);
 
@@ -1157,6 +1217,9 @@ namespace Microsoft.ML.Tokenizers
                 case ModelEncoding.R50kBase:
                     return (new Dictionary<string, int> { { EndOfText, 50256 } }, P50kBaseRegex(), R50RanksFile, Type.GetType(R50kBaseTypeName), R50kBasePackageName);
 
+                case ModelEncoding.O200kHarmony:
+                    return (CreateHarmonyEncodingSpecialTokens(), O200kBaseRegex(), O200kBaseFile, Type.GetType(O200kBaseTypeName), O200kBasePackageName);
+
                 default:
                     throw new NotSupportedException($"The model '{modelName ?? modelEncoding.ToString()}' is not supported.");
             }
@@ -1179,6 +1242,7 @@ namespace Microsoft.ML.Tokenizers
         internal const string P50kEditEncodingName = "p50k_edit";
         internal const string R50kBaseEncodingName = "r50k_base";
         internal const string O200kBaseEncodingName = "o200k_base";
+        internal const string O200kHarmonyEncodingName = "o200k_harmony";
 
         internal const string Cl100kBasePackageName = "Microsoft.ML.Tokenizers.Data.Cl100kBase";
         internal const string Gpt2PackageName = "Microsoft.ML.Tokenizers.Data.Gpt2";
@@ -1473,6 +1537,10 @@ namespace Microsoft.ML.Tokenizers
             else if (encodingName.Equals(O200kBaseEncodingName, StringComparison.OrdinalIgnoreCase))
             {
                 modelEncoding = ModelEncoding.O200kBase;
+            }
+            else if (encodingName.Equals(O200kHarmonyEncodingName, StringComparison.OrdinalIgnoreCase))
+            {
+                modelEncoding = ModelEncoding.O200kHarmony;
             }
             else if (encodingName.Equals(P50kBaseEncodingName, StringComparison.OrdinalIgnoreCase))
             {

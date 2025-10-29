@@ -132,6 +132,11 @@ namespace Microsoft.ML.Tokenizers
             return new BpeTokenizer(result.vocab, result.merges, preTokenizer, normalizer, specialTokens, unknownToken, continuingSubwordPrefix, endOfWordSuffix, fuseUnknownTokens);
         }
 
+        /// <summary>
+        /// Create a new Bpe tokenizer object to use for text encoding.
+        /// </summary>
+        /// <param name="options">The options used to create the Bpe tokenizer.</param>
+        /// <returns>The Bpe tokenizer object.</returns>
         public static BpeTokenizer Create(BpeOptions options)
         {
             if (options is null)
@@ -146,9 +151,9 @@ namespace Microsoft.ML.Tokenizers
 
             Dictionary<StringSpanOrdinalKey, int> vocab = new Dictionary<StringSpanOrdinalKey, int>(1000);
 
-            foreach ((string token, int id) in options.Vocabulary)
+            foreach (KeyValuePair<string, int> kvp in options.Vocabulary)
             {
-                vocab.Add(new StringSpanOrdinalKey(token), id);
+                vocab.Add(new StringSpanOrdinalKey(kvp.Key), kvp.Value);
             }
 
             if (vocab.Count == 0)
@@ -315,7 +320,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (beginningOfSentenceToken is not null)
             {
-                if (!_vocab.TryGetValue(beginningOfSentenceToken, out int aId))
+                if (_vocab.TryGetValue(beginningOfSentenceToken, out int aId) is false && specialTokens?.TryGetValue(beginningOfSentenceToken, out aId) is false)
                 {
                     throw new InvalidOperationException($"The beginning of sentence token '{beginningOfSentenceToken}' was not present in the vocabulary.");
                 }
@@ -326,7 +331,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (endOfSentenceToken is not null)
             {
-                if (!_vocab.TryGetValue(endOfSentenceToken, out int aId))
+                if (_vocab.TryGetValue(endOfSentenceToken, out int aId) is false && specialTokens?.TryGetValue(endOfSentenceToken, out aId) is false)
                 {
                     throw new InvalidOperationException($"The end of sentence token '{endOfSentenceToken}' was not present in the vocabulary.");
                 }
@@ -395,7 +400,7 @@ namespace Microsoft.ML.Tokenizers
         /// <summary>
         /// Gets the optional beginning of sentence token.
         /// </summary>
-        internal string? BeginningOfSentenceToken { get; }
+        public string? BeginningOfSentenceToken { get; }
 
         /// <summary>
         /// The id of the beginning of sentence token.
@@ -787,31 +792,30 @@ namespace Microsoft.ML.Tokenizers
 
             ValueStringBuilder sb = new ValueStringBuilder();
 
-            bool decodeUnknownToken = _unknownTokenId.HasValue && considerSpecialTokens;
-
-            if (decodeUnknownToken)
+            foreach (int id in ids)
             {
-                foreach (int id in ids)
+                if (_specialTokensReverse?.TryGetValue(id, out string? token) is true)
                 {
-                    if (MapIdToToken(id) is string s)
+                    if (considerSpecialTokens)
                     {
-                        sb.Append(s);
+                        sb.Append(token);
                     }
+                    continue;
                 }
-            }
-            else
-            {
-                foreach (int id in ids)
-                {
-                    if (id == _unknownTokenId)
-                    {
-                        continue;
-                    }
 
-                    if (MapIdToToken(id) is string s)
+                if (id == _unknownTokenId)
+                {
+                    if (considerSpecialTokens)
                     {
-                        sb.Append(s);
+                        Debug.Assert(UnknownToken is not null);
+                        sb.Append(UnknownToken);
                     }
+                    continue;
+                }
+
+                if (MapIdToToken(id) is string s)
+                {
+                    sb.Append(s);
                 }
             }
 

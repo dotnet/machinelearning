@@ -31,7 +31,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
     {
         private const string PrivateTitle = "Fix name";
 
-        private static ImmutableArray<string> _fixable = ImmutableArray.Create(
+        private static readonly ImmutableArray<string> _fixable = ImmutableArray.Create(
             NameAnalyzer.PrivateFieldName.Id, NameAnalyzer.GeneralName.Id,
             ParameterVariableNameAnalyzer.Id, TypeParamNameAnalyzer.Id);
 
@@ -111,7 +111,8 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             // Produce a new solution that has all references to that type renamed, including the declaration.
             var originalSolution = document.Project.Solution;
             var optionSet = originalSolution.Workspace.Options;
-            var newSolution = await Renamer.RenameSymbolAsync(document.Project.Solution, typeSymbol, newName, optionSet, cancellationToken).ConfigureAwait(false);
+            SymbolRenameOptions renameOptions = new SymbolRenameOptions();
+            var newSolution = await Renamer.RenameSymbolAsync(document.Project.Solution, typeSymbol, renameOptions, newName, cancellationToken).ConfigureAwait(false);
 
             // Return the new solution with the now-uppercase type name.
             return newSolution;

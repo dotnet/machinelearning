@@ -47,14 +47,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
-    <PackageReference Include="Microsoft.ML.TestDatabases" Version="$(MicrosoftMLTestDatabasesVersion)" />
-    <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsVersion)" />
-    <PackageReference Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimeVersion)" />
-    <PackageReference Include="AwesomeAssertions" Version="$(AwesomeAssertionsVersion)" />
-    <PackageReference Include="System.Data.SQLite.Core" Version="$(SystemDataSQLiteCoreVersion)" />
-    <PackageReference Include="runtime.native.System.Data.SqlClient.sni" Version="$(RuntimeNativeSystemDataSqlClientSniVersion)" />
+    <PackageReference Include="Microsoft.ML.Onnx.TestModels" />
+    <PackageReference Include="Microsoft.ML.TestDatabases" />
+    <PackageReference Include="Microsoft.ML.TestModels" />
+    <PackageReference Include="System.Data.SqlClient" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" />
+    <PackageReference Include="AwesomeAssertions" />
+    <PackageReference Include="System.Data.SQLite.Core" />
   </ItemGroup>
 
   <ItemGroup>

@@ -49,10 +49,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
-      <PackageReference Include="System.Data.SQLite" Version="$(SystemDataSQLiteCoreVersion)" />
-      <PackageReference Include="System.Data.SQLite.Core" Version="$(SystemDataSQLiteCoreVersion)" PrivateAssets="none" />
-      <PackageReference Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" />
+      <PackageReference Include="System.Data.SqlClient" />
+      <PackageReference Include="System.Data.SQLite" />
+      <PackageReference Include="System.Configuration.ConfigurationManager" />
     </ItemGroup>
 
 </Project>

@@ -66,13 +66,12 @@ jobs:
 
     steps:
     # Extra MacOS step required to install OS-specific dependencies
-    - ${{ if and(contains(parameters.pool.vmImage, 'macOS'), not(contains(parameters.name, 'cross')))  }}:
-      - script: export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=TRUE && brew install $(Build.SourcesDirectory)/build/libomp.rb --build-from-source --formula
+    - ${{ if contains(parameters.pool.vmImage, 'macOS')  }}:
+      - script: |
+          $(Build.SourcesDirectory)/eng/common/native/install-dependencies.sh osx
+          brew install libomp
+          brew link libomp --force
         displayName: Install MacOS build dependencies
-    # Extra Apple MacOS step required to install OS-specific dependencies
-    - ${{ if and(contains(parameters.pool.vmImage, 'macOS'), contains(parameters.name, 'cross'))  }}:
-      - script: brew update && brew install -f --overwrite python@3.13 && brew install libomp && brew link libomp --force
-        displayName: Install MacOS ARM build dependencies
     - ${{ if and( eq(parameters.nightlyBuild, 'true'), eq(parameters.pool.vmImage, 'ubuntu-18.04')) }}:
       - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(nightlyBuildRunPath):$LD_LIBRARY_PATH"
         displayName: Set LD_LIBRARY_PATH for Ubuntu and CentOS to locate Native shared library in current running path

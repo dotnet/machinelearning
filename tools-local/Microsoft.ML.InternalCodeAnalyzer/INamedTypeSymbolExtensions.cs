@@ -23,7 +23,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             Debug.Assert(factAttribute is object);
             for (var current = namedType; current is object; current = current.BaseType)
             {
-                if (Equals(current, factAttribute))
+                if (SymbolEqualityComparer.Default.Equals(current, factAttribute))
                     return true;
             }
 

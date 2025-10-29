@@ -555,7 +555,7 @@ namespace Microsoft.ML.Internal.Utilities
         // the energy for (row, col), we only use energies for (row-1, colPrev) where colPrev <= col.
         // Thus a single row of values is sufficient.
         // REVIEW: Consider storing energies in reverse order to match the common access pattern.
-        // REVEIW: What should we use for the energy type?
+        // REVIEW: What should we use for the energy type?
         private EnergyType[] _energies;
         private EnergyType[] _energiesBest;
 

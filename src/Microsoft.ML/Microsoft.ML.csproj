@@ -25,12 +25,11 @@
     <ProjectReference Include="../Microsoft.ML.StandardTrainers/Microsoft.ML.StandardTrainers.csproj" Pack="true" PrivateAssets="all" />
     <ProjectReference Include="../Microsoft.ML.Transforms/Microsoft.ML.Transforms.csproj" Pack="true" PrivateAssets="all" />
     <NativeAssemblyReference Include="LdaNative" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="$(SystemReflectionEmitLightweightVersion)" />
-    <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomVersion)" />
-    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
-    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
-    <PackageReference Include="System.Threading.Channels" Version="$(SystemThreadingChannelsVersion)" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="System.Reflection.Emit.Lightweight" />
+    <PackageReference Include="System.CodeDom" />
+    <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.Threading.Channels" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(RepoRoot)eng\pkg\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />

@@ -15,13 +15,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ApprovalTests" Version="$(ApprovalTestsVersion)" />
-    <PackageReference Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
-    <PackageReference Include="AwesomeAssertions" Version="$(AwesomeAssertionsVersion)" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="$(SemanticKernelVersion)" />
-    <PackageReference Include="Moq" Version="$(MoqVersion)" />
-    <PackageReference Include="Microsoft.ML.TestTokenizers" Version="$(MicrosoftMLTestTokenizersVersion)" />
-    <PackageReference Include="TorchSharp" Version="$(TorchSharpVersion)" />
+    <PackageReference Include="ApprovalTests" />
+    <PackageReference Include="System.Data.SqlClient" />
+    <PackageReference Include="AwesomeAssertions" />
+    <PackageReference Include="Microsoft.SemanticKernel" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="Microsoft.ML.TestTokenizers" />
+    <PackageReference Include="TorchSharp" />
+    <PackageReference Include="JsonSchema.Net.Generation" />
   </ItemGroup>
 
 
@@ -38,9 +39,9 @@
 
 
   <ItemGroup Condition="'$(TargetArchitecture)' == 'x64'">
-    <PackageReference Include="libtorch-cpu-win-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$(TargetArchitecture)' == 'x64'" />
-    <PackageReference Include="libtorch-cpu-linux-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux')) AND '$(TargetArchitecture)' == 'x64'" />
-    <PackageReference Include="libtorch-cpu-osx-x64" Version="$(LibTorchVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX')) AND '$(TargetArchitecture)' == 'x64'" />
+    <PackageReference Include="libtorch-cpu-win-x64" Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$(TargetArchitecture)' == 'x64'" />
+    <PackageReference Include="libtorch-cpu-linux-x64" Condition="$([MSBuild]::IsOSPlatform('Linux')) AND '$(TargetArchitecture)' == 'x64'" />
+    <PackageReference Include="libtorch-cpu-osx-x64" Condition="$([MSBuild]::IsOSPlatform('OSX')) AND '$(TargetArchitecture)' == 'x64'" />
   </ItemGroup>
 
 </Project>

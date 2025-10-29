@@ -63,7 +63,7 @@ namespace Microsoft.ML.AutoML
                 BinaryClassificationMetric.PositivePrecision => metric.PositivePrecision,
                 BinaryClassificationMetric.NegativePrecision => metric.NegativePrecision,
                 BinaryClassificationMetric.NegativeRecall => metric.NegativeRecall,
-                BinaryClassificationMetric.PositiveRecall => metric.PositivePrecision,
+                BinaryClassificationMetric.PositiveRecall => metric.PositiveRecall,
                 BinaryClassificationMetric.F1Score => metric.F1Score,
                 _ => throw new NotImplementedException(),
             };

@@ -12,8 +12,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="TorchSharp.PyBridge" Version="$(TorchSharpPyBridgeVersion)" />
-    <PackageReference Include="TorchSharp" Version="$(TorchSharpVersion)" />
+    <PackageReference Include="TorchSharp.PyBridge" />
+    <PackageReference Include="TorchSharp" />
+    <PackageReference Include="JsonSchema.Net.Generation" />
   </ItemGroup>
 
   <ItemGroup>

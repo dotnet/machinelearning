@@ -18,6 +18,7 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.Vision;
+using Tensorflow;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.DataOperationsCatalog;
@@ -1187,7 +1188,9 @@ namespace Microsoft.ML.TensorFlow.Scenarios
             predictFunction.Dispose();
 
             // Reload the model and check the output schema consistency
+#pragma warning disable IDE0055
             DataViewSchema loadedInputschema;
+#pragma warning restore IDE0055
             var testTransformer = _mlContext.Model.Load(mlModelLocation, out loadedInputschema);
             var testOutputSchema = transformer.GetOutputSchema(data.Schema);
             Assert.True(TestCommon.CheckSameSchemas(outputSchema, testOutputSchema));
@@ -2055,7 +2058,7 @@ namespace Microsoft.ML.TensorFlow.Scenarios
                 new TextLoader.Column("name", DataKind.String, 1)
             });
 
-            Tensorflow.TensorShape[] tfInputShape;
+            Tensorflow.Shape[] tfInputShape;
 
             using (var tfModel = _mlContext.Model.LoadTensorFlowModel(modelLocation))
             {
@@ -2070,8 +2073,8 @@ namespace Microsoft.ML.TensorFlow.Scenarios
                 transformer.Dispose();
             }
 
-            Assert.Equal(imageHeight, tfInputShape.ElementAt(0)[1].dims[0]);
-            Assert.Equal(imageWidth, tfInputShape.ElementAt(0)[2].dims[0]);
+            Assert.Equal(imageHeight, tfInputShape.ElementAt(0)[Slice.Index(1)].dims[0]);
+            Assert.Equal(imageWidth, tfInputShape.ElementAt(0)[Slice.Index(2)].dims[0]);
         }
     }
 }

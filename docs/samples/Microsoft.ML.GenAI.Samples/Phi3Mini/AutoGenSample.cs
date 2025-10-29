@@ -29,8 +29,8 @@ public class AutoGenSample
         var weightFolder = @"C:\Users\xiaoyuz\source\repos\Phi-3-mini-4k-instruct";
         var tokenizerPath = Path.Combine(weightFolder, "tokenizer.model");
         var tokenizer = Phi3TokenizerHelper.FromPretrained(tokenizerPath);
-        var model = Phi3ForCasualLM.FromPretrained(weightFolder, "config.json", layersOnTargetDevice: -1, quantizeToInt8: true);
-        var pipeline = new CausalLMPipeline<LlamaTokenizer, Phi3ForCasualLM>(tokenizer, model, device);
+        var model = Phi3ForCausalLM.FromPretrained(weightFolder, "config.json", layersOnTargetDevice: -1, quantizeToInt8: true);
+        var pipeline = new CausalLMPipeline<LlamaTokenizer, Phi3ForCausalLM>(tokenizer, model, device);
         var question = @"write a C# program to calculate the factorial of a number";
 
         // agent

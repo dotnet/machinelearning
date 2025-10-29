@@ -257,6 +257,19 @@ namespace Microsoft.ML.Tokenizers.Tests
                                     continuingSubwordPrefix: continuingSubwordPrefix, endOfWordSuffix: endOfWordSuffix, fuseUnknownTokens: fuseUnknownToken);
 
                 SimpleWithUnknownTokenTest(bpe, sentence, offsets, ids, expectedTokens, decodedTokens, decodedTokensWithoutUnknownToken);
+
+                BpeOptions bpeOptions = new BpeOptions(vocabFile, mergesFile)
+                {
+                    PreTokenizer = PreTokenizer.CreateWordOrNonWord(),
+                    Normalizer = null,
+                    UnknownToken = unknownToken,
+                    ContinuingSubwordPrefix = continuingSubwordPrefix,
+                    EndOfWordSuffix = endOfWordSuffix,
+                    FuseUnknownTokens = fuseUnknownToken
+                };
+
+                bpe = BpeTokenizer.Create(bpeOptions);
+                SimpleWithUnknownTokenTest(bpe, sentence, offsets, ids, expectedTokens, decodedTokens, decodedTokensWithoutUnknownToken);
             }
             finally
             {
@@ -267,7 +280,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 }
             }
 
-            BpeOptions bpeOptions = new BpeOptions(vocab.Select(kvp => (kvp.Key, kvp.Value)))
+            BpeOptions bpeOptions1 = new BpeOptions(vocab)
             {
                 Merges = merges?.Select(kvp => $"{kvp.Item1} {kvp.Item2}"),
                 PreTokenizer = PreTokenizer.CreateWordOrNonWord(),
@@ -278,7 +291,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 FuseUnknownTokens = fuseUnknownToken
             };
 
-            BpeTokenizer bpe1 = BpeTokenizer.Create(bpeOptions);
+            BpeTokenizer bpe1 = BpeTokenizer.Create(bpeOptions1);
             SimpleWithUnknownTokenTest(bpe1, sentence, offsets, ids, expectedTokens, decodedTokens, decodedTokensWithoutUnknownToken);
         }
 
@@ -387,7 +400,7 @@ namespace Microsoft.ML.Tokenizers.Tests
             Dictionary<string, int>? dictionary = JsonSerializer.Deserialize<Dictionary<string, int>>(jsonString);
 
             bpe = BpeTokenizer.Create(
-                new BpeOptions(dictionary!.Select(kvp => (kvp.Key, kvp.Value)))
+                new BpeOptions(dictionary!)
                 {
                     Merges = File.ReadAllLines(mergesFile).Skip(1).ToArray() // Skip the first line which is the header "#version".
                 });
@@ -872,6 +885,66 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(text, tokenizer.Decode(ids, considerSpecialTokens: false));
         }
 
+        [Fact]
+        public void TestTokenizerWithSpecialTokens()
+        {
+            // "https://huggingface.co/openai-community/gpt2/raw/main/vocab.json";
+            // "https://huggingface.co/openai-community/gpt2/raw/main/merges.txt";
+
+            BpeOptions options = new BpeOptions(Path.Combine(@"Gpt-2", "vocab.json"), Path.Combine(@"Gpt-2", "merges.txt"))
+            {
+                UnknownToken = "unk",
+
+                SpecialTokens = new Dictionary<string, int> // SpecialTokens not part of the original vocab.json
+                {
+                    { "<|sos|>", 50257 },
+                    { "<|eos|>", 50258 }
+                },
+                BeginningOfSentenceToken = "<|sos|>",
+                EndOfSentenceToken = "<|eos|>"
+            };
+
+            BpeTokenizer bpeTokenizer = BpeTokenizer.Create(options);
+            Assert.True(bpeTokenizer.Vocabulary.TryGetValue(options.UnknownToken, out int unkId));
+
+            string text = "Hello world!\uD800";
+
+            var ids = bpeTokenizer.EncodeToIds(text, considerPreTokenization: false);
+            Assert.Equal([50257, 15496, 2954, 6894, 0, 2954, 50258], ids); // space and u+D800 couldn't be encoded and produced unk tokens
+            Assert.Equal(unkId, ids[ids.Count - 2]);
+            Assert.Equal(options.SpecialTokens["<|sos|>"], ids[0]);
+            Assert.Equal(options.SpecialTokens["<|eos|>"], ids[^1]);
+
+            var tokens = bpeTokenizer.EncodeToTokens(text, out _, considerPreTokenization: false).Select(t => t.Value).ToArray();
+            Assert.Equal(["<|sos|>", "Hello", "unk", "world", "!", "unk", "<|eos|>"], tokens);
+
+            Assert.Equal("<|sos|>Hellounkworld!unk<|eos|>", bpeTokenizer.Decode(ids));
+            Assert.Equal("Helloworld!", bpeTokenizer.Decode(ids, considerSpecialTokens: false));
+
+            BpeOptions options1 = new BpeOptions(options.Vocabulary)
+            {
+                // Null UnknownToken means no unknown token support
+                Merges = options.Merges,
+                SpecialTokens = options.SpecialTokens,
+                BeginningOfSentenceToken = options.BeginningOfSentenceToken,
+                EndOfSentenceToken = options.EndOfSentenceToken
+            };
+
+            bpeTokenizer = BpeTokenizer.Create(options1);
+            ids = bpeTokenizer.EncodeToIds(text, considerPreTokenization: false);
+
+            // Because Unknown is not supported in this encoding, the encoding will produce different encoding results
+            Assert.Equal([50257, 39, 5037, 1764, 0, 50258], ids);
+            Assert.Equal(options.SpecialTokens["<|sos|>"], ids[0]);
+            Assert.Equal(options.SpecialTokens["<|eos|>"], ids[^1]);
+
+            tokens = bpeTokenizer.EncodeToTokens(text, out _, considerPreTokenization: false).Select(t => t.Value).ToArray();
+            Assert.Equal(["<|sos|>", "H", "ellow", "orld", "!", "<|eos|>"], tokens);
+
+            Assert.Equal("<|sos|>Helloworld!<|eos|>", bpeTokenizer.Decode(ids));
+            Assert.Equal("Helloworld!", bpeTokenizer.Decode(ids, considerSpecialTokens: false));
+        }
+
         private static BpeTokenizer CreateBpeTokenizerFromJson()
         {
             // @"https://huggingface.co/deepseek-ai/DeepSeek-R1/resolve/main/tokenizer.json?download=true"
@@ -928,11 +1001,11 @@ namespace Microsoft.ML.Tokenizers.Tests
             return BpeTokenizer.Create(bpeOptions);
         }
 
-        private static IEnumerable<(string Token, int Id)> GetVocabulary(JsonElement vocabElement)
+        private static IEnumerable<KeyValuePair<string, int>> GetVocabulary(JsonElement vocabElement)
         {
             foreach (JsonProperty token in vocabElement.EnumerateObject())
             {
-                yield return (token.Name, token.Value.GetInt32());
+                yield return new KeyValuePair<string, int>(token.Name, token.Value.GetInt32());
             }
         }
 
