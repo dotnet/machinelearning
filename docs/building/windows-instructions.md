@@ -85,7 +85,7 @@ The following are the minimum requirements:
 
 ##### Visual Studio 2019 - Cross compilation for ARM
 
-If you want to cross compile for arm you will also need from the 'Individual components' section:
+If you want to cross compile for ARM you will also need from the 'Individual components' section:
   * MSVC v142 - VS 2019 C++ ARM build tools
   * MSVC v142 - VS 2019 C++ ARM64 build tools
 
