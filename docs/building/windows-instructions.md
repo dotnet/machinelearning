@@ -9,7 +9,7 @@ You can build ML.NET either via the command line or by using Visual Studio.
 2. **[CMake](https://cmake.org/)** must be installed from [the CMake download page](https://cmake.org/download/#latest) and added to your path. 
    * For Visual Studio 2019: CMake 3.14 or higher is required.
    * For Visual Studio 2022: CMake 3.21 or higher is required.
-   * **Important**: CMake 4.0 and later versions are currently not compatible with this project due to breaking changes in path handling. Please use CMake 3.x versions (e.g., 3.29 or earlier).
+   * CMake 4.0 and later versions are supported.
 
 ### Visual Studio Installation
 
@@ -151,7 +151,7 @@ For more information on running ML.NET benchmarks, please visit the [benchmarkin
 ### CMake Version Compatibility
 * CMake 3.14 or higher is required for Visual Studio 2019.
 * CMake 3.21 or higher is required for Visual Studio 2022.
-* **CMake 4.0 and later versions are not currently compatible** with this project. If you encounter "path not found" errors or other build failures, ensure you are using CMake 3.x (e.g., 3.29 or earlier).
+* CMake 4.0 and later versions are supported.
 
 ### Build Process
 You need to run `build` from the root of the repo first prior to opening the solution file and building in Visual Studio.
