@@ -127,6 +127,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--build-id=sha1")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--build-id=sha1")
     add_compile_options(-fstack-protector-strong)
+    
+    # Support 16 KB page sizes for Android
+    if(ANDROID)
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size=16384")
+        set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,-z,max-page-size=16384")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,max-page-size=16384")
+    endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_compile_options(-fstack-protector)
 endif()
