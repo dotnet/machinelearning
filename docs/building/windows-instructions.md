@@ -5,13 +5,59 @@ You can build ML.NET either via the command line or by using Visual Studio.
 
 ## Required Software
 
-1. **[Visual Studio 2019 Version 16.4+](https://www.visualstudio.com/downloads/) (Community, Professional, Enterprise)** The Community version is completely free. The below build instructions were verified for VS 16.4.
-2. **[CMake](https://cmake.org/)** must be installed from [the CMake download page](https://cmake.org/download/#latest) and added to your path. If you want to use Visual Studio 2022, you need to be using at least CMake 3.21.
+1. **[Visual Studio 2019 Version 16.4+](https://www.visualstudio.com/downloads/) or [Visual Studio 2022](https://www.visualstudio.com/downloads/) (Community, Professional, Enterprise)** The Community version is completely free. The below build instructions were verified for VS 16.4 and higher.
+2. **[CMake](https://cmake.org/)** must be installed from [the CMake download page](https://cmake.org/download/#latest) and added to your path. 
+   * For Visual Studio 2019: CMake 3.14 or higher is required.
+   * For Visual Studio 2022: CMake 3.21 or higher is required.
+   * **Important**: CMake 4.0 and later versions are currently not compatible with this project due to breaking changes in path handling. Please use CMake 3.x versions (e.g., 3.29 or earlier).
 
-### Visual Studio 2019 Installation
+### Visual Studio Installation
+
+#### Visual Studio 2022 Installation
+Visual Studio 2022 is supported and requires additional components for native code compilation.
+
+##### Visual Studio 2022 - 'Workloads' based install
+
+The following are the minimum requirements:
+  * .NET desktop development
+    * All Required Components
+    * .NET Framework 4-4.6 Development Tools
+  * Desktop development with C++
+    * All Required Components
+    * MSVC v143 - VS 2022 C++ x64/x86 build tools (Latest)
+    * MSVC v143 - VS 2022 C++ x64/x86 Spectre-mitigated libs (Latest)
+    * Windows 11 SDK (or Windows 10 SDK)
+  * .NET Core cross-platform development
+    * All Required Components
+
+##### Visual Studio 2022 - 'Individual components' based install
+
+The following are the minimum requirements:
+  * C# and Visual Basic Roslyn Compilers
+  * .NET 6.0 SDK or later
+  * Static Analysis Tools
+  * .NET Portable Library Targeting Pack
+  * Visual Studio C++ Core Features
+  * MSVC v143 - VS 2022 C++ x64/x86 build tools (Latest)
+  * MSVC v143 - VS 2022 C++ x64/x86 Spectre-mitigated libs (Latest)
+  * MSBuild
+  * .NET Framework 4.6 Targeting Pack
+  * Windows Universal CRT SDK
+
+**Note**: The Spectre-mitigated libraries are required for building native components with Visual Studio 2022. These can be found in the "Individual components" section of the Visual Studio Installer under "Compilers, build tools, and runtimes".
+
+##### Visual Studio 2022 - Cross compilation for ARM
+
+If you want to cross compile for ARM you will also need from the 'Individual components' section:
+  * MSVC v143 - VS 2022 C++ ARM build tools (Latest)
+  * MSVC v143 - VS 2022 C++ ARM64 build tools (Latest)
+  * MSVC v143 - VS 2022 C++ ARM Spectre-mitigated libs (Latest)
+  * MSVC v143 - VS 2022 C++ ARM64 Spectre-mitigated libs (Latest)
+
+#### Visual Studio 2019 Installation
 We have successfully verified the below build instructions for Visual Studio version 16.4 and higher.
 
-#### Visual Studio 2019 - 'Workloads' based install
+##### Visual Studio 2019 - 'Workloads' based install
 
 The following are the minimum requirements:
   * .NET desktop development
@@ -24,7 +70,7 @@ The following are the minimum requirements:
   * .NET Core cross-platform development
     * All Required Components
 
-#### Visual Studio 2019 - 'Individual components' based install
+##### Visual Studio 2019 - 'Individual components' based install
 
 The following are the minimum requirements:
   * C# and Visual Basic Roslyn Compilers
@@ -37,7 +83,7 @@ The following are the minimum requirements:
   * .NET Framework 4.6 Targeting Pack
   * Windows Universal CRT SDK
 
-#### Visual Studio 2019 - Cross compilation for ARM
+##### Visual Studio 2019 - Cross compilation for ARM
 
 If you want to cross compile for arm you will also need from the 'Individual components' section:
   * MSVC v142 - VS 2019 C++ ARM build tools
@@ -47,7 +93,7 @@ If you want to cross compile for arm you will also need from the 'Individual com
 
 In order to fetch dependencies which come through Git submodules the following command needs to be run before building: `git submodule update --init`.
 
-### Building From Visual Studio 2019
+### Building From Visual Studio
 
 First, set up the required tools, from a (non-admin) Command Prompt window:
 
@@ -57,7 +103,7 @@ After successfully running the command, the project can be built directly from t
 
 ### Building From the Command Line
 
-You can use the Developer Command Prompt, Powershell or work in any regular cmd. The Developer Command Prompt will have a name like "Developer Command Prompt for VS 2019" or similar in your start menu.
+You can use the Developer Command Prompt, Powershell or work in any regular cmd. The Developer Command Prompt will have a name like "Developer Command Prompt for VS 2019" or "Developer Command Prompt for VS 2022" depending on your Visual Studio version.
 
 From a (non-admin) Command Prompt window:
 
@@ -69,7 +115,7 @@ From a (non-admin) Command Prompt window:
 
 ### Cross compiling for ARM
 
-You can use the Developer Command Prompt, Powershell or work in any regular cmd. The Developer Command Prompt will have a name like "Developer Command Prompt for VS 2019" or similar in your start menu.
+You can use the Developer Command Prompt, Powershell or work in any regular cmd. The Developer Command Prompt will have a name like "Developer Command Prompt for VS 2019" or "Developer Command Prompt for VS 2022" depending on your Visual Studio version.
 
 From a (non-admin) Command Prompt window based on what you want to target:
 
@@ -102,6 +148,10 @@ For more information on running ML.NET benchmarks, please visit the [benchmarkin
 
 ## Known Issues
 
-CMake 3.14 or higher is required for Visual Studio 2019.
+### CMake Version Compatibility
+* CMake 3.14 or higher is required for Visual Studio 2019.
+* CMake 3.21 or higher is required for Visual Studio 2022.
+* **CMake 4.0 and later versions are not currently compatible** with this project. If you encounter "path not found" errors or other build failures, ensure you are using CMake 3.x (e.g., 3.29 or earlier).
 
+### Build Process
 You need to run `build` from the root of the repo first prior to opening the solution file and building in Visual Studio.
