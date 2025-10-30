@@ -48,86 +48,123 @@ Other packages:
 
 ## Package Dependencies Diagram
 
-The following diagram shows the relationships between ML.NET packages and their external dependencies based on the actual project references:
+The following diagram shows the relationships between ML.NET packages and their external dependencies:
 
 ```mermaid
 graph TD
-    %% Core packages
-    DataView["Microsoft.ML.DataView"]
-    Core["Microsoft.ML"]
-    Extensions["Microsoft.Extensions.ML"]
-    CpuMath["Microsoft.ML.CpuMath"]
+    %% Core packages - arranged vertically at top
+    subgraph CorePackages["🔧 Core ML.NET Packages"]
+        direction TB
+        DataView["Microsoft.ML.DataView"]
+        Core["Microsoft.ML"]
+        Extensions["Microsoft.Extensions.ML"]
+        CpuMath["Microsoft.ML.CpuMath"]
+    end
     
-    %% ML algorithm packages
-    AutoML["Microsoft.ML.AutoML"]
-    CodeGen["Microsoft.ML.CodeGenerator"]
-    FastTree["Microsoft.ML.FastTree"]
-    LightGBM["Microsoft.ML.LightGBM"]
-    Recommender["Microsoft.ML.Recommender"]
-    TimeSeries["Microsoft.ML.TimeSeries"]
-    TorchSharp["Microsoft.ML.TorchSharp"]
+    %% AutoML packages
+    subgraph AutoMLPackages["🤖 AutoML Packages"]
+        direction TB
+        AutoML["Microsoft.ML.AutoML"]
+        CodeGen["Microsoft.ML.CodeGenerator"]
+        Ensemble["Microsoft.ML.Ensemble"]
+        EntryPoints["Microsoft.ML.EntryPoints"]
+        FairLearn["Microsoft.ML.FairLearn"]
+    end
+    
+    %% Algorithm packages
+    subgraph AlgorithmPackages["⚙️ ML Algorithm Packages"]
+        direction TB
+        FastTree["Microsoft.ML.FastTree"]
+        LightGBM["Microsoft.ML.LightGBM"]
+        Recommender["Microsoft.ML.Recommender"]
+        TimeSeries["Microsoft.ML.TimeSeries"]
+        TorchSharp["Microsoft.ML.TorchSharp"]
+    end
     
     %% Image and vision packages
-    ImageAnalytics["Microsoft.ML.ImageAnalytics"]
-    DnnFeaturizerAlexNet["Microsoft.ML.DnnImageFeaturizer.AlexNet"]
-    DnnFeaturizerResNet18["Microsoft.ML.DnnImageFeaturizer.ResNet18"]
-    DnnFeaturizerResNet50["Microsoft.ML.DnnImageFeaturizer.ResNet50"]
-    DnnFeaturizerResNet101["Microsoft.ML.DnnImageFeaturizer.ResNet101"]
-    DnnFeaturizerModelRedist["Microsoft.ML.DnnImageFeaturizer.ModelRedist"]
-    Vision["Microsoft.ML.Vision"]
+    subgraph ImagePackages["🖼️ Image & Vision Packages"]
+        direction TB
+        ImageAnalytics["Microsoft.ML.ImageAnalytics"]
+        Vision["Microsoft.ML.Vision"]
+        DnnFeaturizerAlexNet["Microsoft.ML.DnnImageFeaturizer.AlexNet"]
+        DnnFeaturizerResNet18["Microsoft.ML.DnnImageFeaturizer.ResNet18"]
+        DnnFeaturizerResNet50["Microsoft.ML.DnnImageFeaturizer.ResNet50"]
+        DnnFeaturizerResNet101["Microsoft.ML.DnnImageFeaturizer.ResNet101"]
+        DnnFeaturizerModelRedist["Microsoft.ML.DnnImageFeaturizer.ModelRedist"]
+    end
     
-    %% ONNX packages
-    OnnxConverter["Microsoft.ML.OnnxConverter"]
-    OnnxTransformer["Microsoft.ML.OnnxTransformer"]
-    
-    %% TensorFlow packages
-    TensorFlow["Microsoft.ML.TensorFlow"]
+    %% ONNX and TensorFlow packages
+    subgraph FrameworkPackages["🔗 Framework Integration Packages"]
+        direction TB
+        OnnxConverter["Microsoft.ML.OnnxConverter"]
+        OnnxTransformer["Microsoft.ML.OnnxTransformer"]
+        TensorFlow["Microsoft.ML.TensorFlow"]
+    end
     
     %% Intel MKL packages
-    MKLComponents["Microsoft.ML.MKL.Components"]
-    MKLRedist["Microsoft.ML.MKL.Redist"]
-    OneDal["Microsoft.ML.OneDal"]
+    subgraph IntelPackages["⚡ Intel MKL Packages"]
+        direction TB
+        MKLComponents["Microsoft.ML.MKL.Components"]
+        MKLRedist["Microsoft.ML.MKL.Redist"]
+        OneDal["Microsoft.ML.OneDal"]
+    end
     
-    %% Other ML.NET packages
-    Ensemble["Microsoft.ML.Ensemble"]
-    EntryPoints["Microsoft.ML.EntryPoints"]
-    Experimental["Microsoft.ML.Experimental"]
-    FairLearn["Microsoft.ML.FairLearn"]
-    Parquet["Microsoft.ML.Parquet"]
+    %% AI/GenAI packages
+    subgraph AIPackages["🧠 AI & GenAI Packages"]
+        direction TB
+        GenAICore["Microsoft.ML.GenAI.Core"]
+        GenAILLaMA["Microsoft.ML.GenAI.LLaMA"]
+        GenAIMistral["Microsoft.ML.GenAI.Mistral"]
+        GenAIPhi["Microsoft.ML.GenAI.Phi"]
+        AutoGenCore["AutoGen.Core"]
+        MSExtensionsAI["Microsoft.Extensions.AI.Abstractions"]
+        SemanticKernel["Microsoft.SemanticKernel.Abstractions"]
+    end
     
-    %% Data Analysis and GenAI packages
-    DataAnalysis["Microsoft.Data.Analysis"]
-    GenAICore["Microsoft.ML.GenAI.Core"]
-    GenAILLaMA["Microsoft.ML.GenAI.LLaMA"]
-    GenAIMistral["Microsoft.ML.GenAI.Mistral"]
-    GenAIPhi["Microsoft.ML.GenAI.Phi"]
-    Tokenizers["Microsoft.ML.Tokenizers"]
-    TokenizersGpt2["Microsoft.ML.Tokenizers.Data.Gpt2"]
-    TokenizersR50k["Microsoft.ML.Tokenizers.Data.R50kBase"]
-    TokenizersP50k["Microsoft.ML.Tokenizers.Data.P50kBase"]
-    TokenizersO200k["Microsoft.ML.Tokenizers.Data.O200kBase"]
-    TokenizersCl100k["Microsoft.ML.Tokenizers.Data.Cl100kBase"]
-    SampleUtils["Microsoft.ML.SampleUtils"]
+    %% Tokenizer packages
+    subgraph TokenizerPackages["📝 Tokenizer Packages"]
+        direction TB
+        Tokenizers["Microsoft.ML.Tokenizers"]
+        TokenizersGpt2["Microsoft.ML.Tokenizers.Data.Gpt2"]
+        TokenizersR50k["Microsoft.ML.Tokenizers.Data.R50kBase"]
+        TokenizersP50k["Microsoft.ML.Tokenizers.Data.P50kBase"]
+        TokenizersO200k["Microsoft.ML.Tokenizers.Data.O200kBase"]
+        TokenizersCl100k["Microsoft.ML.Tokenizers.Data.Cl100kBase"]
+    end
     
-    %% External dependencies
-    SkiaSharp["SkiaSharp"]
-    LightGBMNative["LightGBM"]
-    OnnxRuntime["Microsoft.ML.OnnxRuntime"]
-    TensorFlowNET["TensorFlow.NET"]
-    TorchSharpLib["TorchSharp"]
-    ApacheArrow["Apache.Arrow"]
-    ParquetNet["Parquet.Net"]
-    GoogleProtobuf["Google.Protobuf"]
-    AutoGenCore["AutoGen.Core"]
-    MSExtensionsAI["Microsoft.Extensions.AI.Abstractions"]
-    SemanticKernel["Microsoft.SemanticKernel.Abstractions"]
+    %% Data packages
+    subgraph DataPackages["📊 Data Packages"]
+        direction TB
+        Parquet["Microsoft.ML.Parquet"]
+        DataAnalysis["Microsoft.Data.Analysis"]
+    end
     
-    %% Core dependencies - based on Microsoft.ML.csproj
+    %% Other packages
+    subgraph OtherPackages["🔧 Other Packages"]
+        direction TB
+        Experimental["Microsoft.ML.Experimental"]
+        SampleUtils["Microsoft.ML.SampleUtils"]
+    end
+    
+    %% External dependencies - arranged vertically at bottom
+    subgraph ExternalDeps["🌐 External Dependencies"]
+        direction TB
+        SkiaSharp["SkiaSharp"]
+        LightGBMNative["LightGBM"]
+        OnnxRuntime["Microsoft.ML.OnnxRuntime"]
+        TensorFlowNET["TensorFlow.NET"]
+        TorchSharpLib["TorchSharp"]
+        ApacheArrow["Apache.Arrow"]
+        ParquetNet["Parquet.Net"]
+        GoogleProtobuf["Google.Protobuf"]
+    end
+    
+    %% Core dependencies
     Core --> DataView
     Core --> CpuMath
     Extensions --> Core
     
-    %% AutoML dependencies - much more extensive than initially shown
+    %% AutoML dependencies
     AutoML --> Core
     AutoML --> CpuMath
     AutoML --> DnnFeaturizerAlexNet
@@ -144,7 +181,7 @@ graph TD
     AutoML --> Recommender
     CodeGen --> AutoML
     
-    %% Algorithm package dependencies - based on actual .csproj files
+    %% Algorithm dependencies
     FastTree --> Core
     LightGBM --> Core
     LightGBM --> FastTree
@@ -163,13 +200,11 @@ graph TD
     Vision --> Core
     Vision --> TensorFlow
     
-    %% ONNX dependencies
+    %% Framework dependencies
     OnnxConverter --> Core
     OnnxTransformer --> Core
     OnnxTransformer --> OnnxRuntime
     OnnxTransformer --> GoogleProtobuf
-    
-    %% TensorFlow dependencies
     TensorFlow --> Core
     TensorFlow --> ImageAnalytics
     TensorFlow --> TensorFlowNET
@@ -188,9 +223,6 @@ graph TD
     FairLearn --> AutoML
     Parquet --> Core
     Parquet --> ParquetNet
-    Vision --> TensorFlow
-    
-    %% Data Analysis dependencies
     DataAnalysis --> ApacheArrow
     
     %% GenAI dependencies
@@ -221,11 +253,12 @@ graph TD
     TokenizersO200k --> Tokenizers
     TokenizersCl100k --> Tokenizers
     
-    %% Styling for external dependencies
-    classDef external fill:#ffebcd,stroke:#d2691e,stroke-width:2px
-    classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    classDef algorithm fill:#f0f8e6,stroke:#228b22,stroke-width:2px
-    classDef bundled fill:#ffefd5,stroke:#ff8c00,stroke-width:2px
+    %% Styling for readability and larger text
+    classDef external fill:#ffebcd,stroke:#d2691e,stroke-width:4px,font-size:18px,font-weight:bold
+    classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:4px,font-size:18px,font-weight:bold
+    classDef algorithm fill:#f0f8e6,stroke:#228b22,stroke-width:4px,font-size:18px,font-weight:bold
+    classDef bundled fill:#ffefd5,stroke:#ff8c00,stroke-width:4px,font-size:18px,font-weight:bold
+    classDef subgraphStyle fill:#f9f9f9,stroke:#333,stroke-width:3px,font-size:20px,font-weight:bold
     
     class SkiaSharp,LightGBMNative,OnnxRuntime,TensorFlowNET,TorchSharpLib,ApacheArrow,ParquetNet,GoogleProtobuf,AutoGenCore,MSExtensionsAI,SemanticKernel external
     class DataView,Core,Extensions core
