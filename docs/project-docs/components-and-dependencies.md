@@ -51,6 +51,7 @@ Other packages:
 The following diagram shows the relationships between ML.NET packages and their external dependencies:
 
 ```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'fontSize':'18px'}, 'flowchart': {'useMaxWidth': false, 'htmlLabels': true, 'curve': 'linear'}, 'securityLevel': 'loose'}}%%
 graph TD
     %% Core packages - arranged vertically at top
     subgraph CorePackages["🔧 Core ML.NET Packages"]
