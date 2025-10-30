@@ -195,7 +195,10 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             var symbolInfo = context.SemanticModel.GetSymbolInfo(invocation);
             if (!(symbolInfo.Symbol is IMethodSymbol methodSymbol))
                 return;
-            var containingSymbolName = methodSymbol.ContainingSymbol.ToString();
+            var containingType = methodSymbol.ContainingType;
+            if (containingType == null)
+                return;
+            var containingSymbolName = containingType.ToDisplayString();
             // The "internal" version is one used by some projects that want to benefit from Contracts,
             // but for some reason cannot reference MLCore.
             // Contract functions defined Microsoft.ML.Internal.CpuMath.Core are introduced for breaking the dependencies

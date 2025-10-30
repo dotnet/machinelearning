@@ -251,56 +251,87 @@ namespace Microsoft.ML.Internal.Utilities
             if (File.Exists(path))
                 return null;
 
-            var mutex = new Mutex(false, "Resource" + fileName);
-            mutex.WaitOne();
-            if (File.Exists(path))
-            {
-                mutex.ReleaseMutex();
-                return null;
-            }
-
-            Guid guid = Guid.NewGuid();
-            string tempPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path), "temp-resource-" + guid.ToString()));
+            // Serialize access across processes/threads to avoid racing on the same file.
+            // Use a name derived from the absolute target path to avoid clashes across different directories.
+            string mutexName = GetSafeMutexName(path);
+            using var mutex = new Mutex(false, mutexName);
+            bool lockTaken = false;
+            string tempPath = null;
             try
             {
-                int blockSize = 4096;
-
-                var response = await httpClient.GetAsync(uri, ct).ConfigureAwait(false);
-                using (var fh = env.CreateOutputFile(tempPath))
-                using (var ws = fh.CreateWriteStream())
+                try
                 {
-                    response.EnsureSuccessStatusCode();
-                    IEnumerable<string> headers;
-                    var hasHeader = response.Headers.TryGetValues("content-length", out headers);
-                    if (uri.Host == "aka.ms" && IsRedirectToDefaultPage(uri.AbsoluteUri))
-                        throw new NotSupportedException($"The provided url ({uri}) redirects to the default url ({DefaultUrl})");
-                    if (!hasHeader || !long.TryParse(headers.First(), out var size))
-                        size = 10000000;
-
-                    var stream = await response.EnsureSuccessStatusCode().Content.ReadAsStreamAsync().ConfigureAwait(false);
-
-                    await stream.CopyToAsync(ws, blockSize, ct);
-
-                    if (ct.IsCancellationRequested)
-                    {
-                        ch.Error($"{fileName}: Download timed out");
-                        return ch.Except("Download timed out");
-                    }
+                    lockTaken = mutex.WaitOne();
                 }
-                File.Move(tempPath, path);
-                ch.Info($"{fileName}: Download complete");
-                return null;
-            }
-            catch (WebException e)
-            {
-                ch.Error($"{fileName}: Could not download. HttpClient returned the following error: {e.Message}");
-                return e;
+                catch (AbandonedMutexException)
+                {
+                    // The previous owner terminated without releasing. We now own the mutex; proceed safely.
+                    lockTaken = true;
+                }
+
+                // Another process may have completed the download while we were waiting.
+                if (File.Exists(path))
+                {
+                    return null;
+                }
+
+                Guid guid = Guid.NewGuid();
+                tempPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path), "temp-resource-" + guid.ToString()));
+                try
+                {
+                    int blockSize = 4096;
+
+                    var response = await httpClient.GetAsync(uri, ct).ConfigureAwait(false);
+                    using (var fh = env.CreateOutputFile(tempPath))
+                    using (var ws = fh.CreateWriteStream())
+                    {
+                        response.EnsureSuccessStatusCode();
+                        IEnumerable<string> headers;
+                        var hasHeader = response.Headers.TryGetValues("content-length", out headers);
+                        if (uri.Host == "aka.ms" && IsRedirectToDefaultPage(uri.AbsoluteUri))
+                            throw new NotSupportedException($"The provided url ({uri}) redirects to the default url ({DefaultUrl})");
+                        if (!hasHeader || !long.TryParse(headers.First(), out var size))
+                            size = 10000000;
+
+                        var stream = await response.EnsureSuccessStatusCode().Content.ReadAsStreamAsync().ConfigureAwait(false);
+
+                        await stream.CopyToAsync(ws, blockSize, ct);
+
+                        if (ct.IsCancellationRequested)
+                        {
+                            ch.Error($"{fileName}: Download timed out");
+                            return ch.Except("Download timed out");
+                        }
+                    }
+                    File.Move(tempPath, path);
+                    ch.Info($"{fileName}: Download complete");
+                    return null;
+                }
+                catch (WebException e)
+                {
+                    ch.Error($"{fileName}: Could not download. HttpClient returned the following error: {e.Message}");
+                    return e;
+                }
             }
             finally
             {
-                TryDelete(ch, tempPath, warn: false);
-                mutex.ReleaseMutex();
+                if (!string.IsNullOrEmpty(tempPath))
+                    TryDelete(ch, tempPath, warn: false);
+                if (lockTaken)
+                {
+                    try { mutex.ReleaseMutex(); } catch { /* ignore if not owned */ }
+                }
             }
+        }
+
+        private static string GetSafeMutexName(string path)
+        {
+            // Named system mutexes have platform-specific constraints; keep it simple and portable.
+            // Derive a unique, stable identifier from the absolute path and sanitize invalid characters.
+            string name = path ?? string.Empty;
+            name = name.Replace('\\', '_').Replace('/', '_').Replace(':', '_');
+            // Prefix to avoid collisions with other applications.
+            return $"MLNET_Resource_{name}";
         }
 
         /// <summary>This method checks whether or not the provided aka.ms url redirects to
@@ -308,29 +339,57 @@ namespace Microsoft.ML.Internal.Utilities
         /// <param name="url"> The provided url to check </param>
         public bool IsRedirectToDefaultPage(string url)
         {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+                return false;
+
+            if (uri.IsFile)
+                return false;
+
+            using var handler = new HttpClientHandler { AllowAutoRedirect = false };
+            using var httpClient = new HttpClient(handler);
+
+            static bool IsRedirectToDefault(HttpResponseMessage response)
+            {
+                if (response.StatusCode == HttpStatusCode.Redirect && response.Headers.Location is Uri location)
+                {
+                    return string.Equals(location.AbsoluteUri, "https://www.microsoft.com/?ref=aka", StringComparison.OrdinalIgnoreCase);
+                }
+
+                return false;
+            }
+
+            using var headRequest = new HttpRequestMessage(HttpMethod.Head, uri);
+
+            static HttpResponseMessage Send(HttpClient client, HttpRequestMessage request)
+            {
+                return client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, CancellationToken.None).GetAwaiter().GetResult();
+            }
+
             try
             {
-                var request = WebRequest.Create(url);
-                // FileWebRequests cannot be redirected to default aka.ms webpage
-                if (request.GetType() == typeof(FileWebRequest))
-                    return false;
-                HttpWebRequest httpWebRequest = (HttpWebRequest)request;
-                httpWebRequest.AllowAutoRedirect = false;
-                HttpWebResponse httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                using var headResponse = Send(httpClient, headRequest);
+                if (headResponse.StatusCode == HttpStatusCode.MethodNotAllowed || headResponse.StatusCode == HttpStatusCode.NotImplemented)
+                {
+                    using var getRequest = new HttpRequestMessage(HttpMethod.Get, uri);
+                    using var getResponse = Send(httpClient, getRequest);
+                    return IsRedirectToDefault(getResponse);
+                }
+
+                return IsRedirectToDefault(headResponse);
             }
-            catch (WebException e)
+            catch (HttpRequestException)
             {
-                HttpWebResponse webResponse = (HttpWebResponse)e.Response;
-                // Redirects to default url
-                if (webResponse.StatusCode == HttpStatusCode.Redirect && webResponse.Headers["Location"] == "https://www.microsoft.com/?ref=aka")
-                    return true;
-                // Redirects to another url
-                else if (webResponse.StatusCode == HttpStatusCode.MovedPermanently)
+                try
+                {
+                    using var getRequest = new HttpRequestMessage(HttpMethod.Get, uri);
+                    using var getResponse = Send(httpClient, getRequest);
+                    return IsRedirectToDefault(getResponse);
+                }
+                catch (HttpRequestException)
+                {
                     return false;
-                else
-                    return false;
+                }
             }
-            return false;
         }
 
         public static ResourceDownloadResults GetErrorMessage(out string errorMessage, params ResourceDownloadResults[] result)
