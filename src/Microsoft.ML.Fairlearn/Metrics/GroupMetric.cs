@@ -12,7 +12,7 @@ namespace Microsoft.ML.Fairlearn
     internal interface IGroupMetric
     {
         /// <summary>
-        /// calculate metric all over group. It returns a dictionary which key is metric name
+        /// calculate metric all over group. It returns a dictionary where key is metric name
         /// and value is metric value
         /// </summary>
         Dictionary<string, double> Overall();
