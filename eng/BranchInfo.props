@@ -30,13 +30,13 @@
   <PropertyGroup Condition="'$(IsStableProject)' == 'true'">
     <MajorVersion>4</MajorVersion>
     <MinorVersion>0</MinorVersion>
-    <PatchVersion>3</PatchVersion>
+    <PatchVersion>4</PatchVersion>
     <!-- Set baseline version for stable packages to check for API Compat -->
     <PackageValidationBaselineVersion>$(MajorVersion).$(MinorVersion).$([MSBuild]::Subtract($(PatchVersion), 1))</PackageValidationBaselineVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsStableProject)' != 'true'">
     <MajorVersion>0</MajorVersion>
     <MinorVersion>22</MinorVersion>
-    <PatchVersion>3</PatchVersion>
+    <PatchVersion>4</PatchVersion>
   </PropertyGroup>
 </Project>
