@@ -23,7 +23,7 @@ done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 RootRepo="$DIR/../.."
 
-__build_arch=
+__build_arch=x64
 __strip_argument=
 __configuration=Debug
 __rootBinPath="$RootRepo/artifacts/bin"
