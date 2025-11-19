@@ -110,9 +110,10 @@ if (CMAKE_C_COMPILER MATCHES "-?[0-9]+(\\.[0-9]+)?$")
   set(CLR_CMAKE_COMPILER_FILE_NAME_VERSION "${CMAKE_MATCH_0}")
 endif()
 
-# Set the architecture we are compiling for on APPLE. This lets you cross target from x86_64 -> arm64.
+# Set the architecture and target version we are compiling for on APPLE. This lets you cross target from x86_64 to arm64 and vice versa.
 if(APPLE)
-    set(CMAKE_OSX_ARCHITECTURES ${ARCHITECTURE})
+    set(CMAKE_OSX_ARCHITECTURES ${ARCHITECTURE})    
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "13.0")
 endif()
 
 # Older CMake doesn't support CMAKE_CXX_STANDARD and GCC/Clang need a switch to enable C++ 11
