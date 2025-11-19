@@ -112,7 +112,7 @@ endif()
 
 # Set the architecture and target version we are compiling for on APPLE. This lets you cross target from x86_64 to arm64 and vice versa.
 if(APPLE)
-    set(CMAKE_OSX_ARCHITECTURES ${ARCHITECTURE})    
+    set(CMAKE_OSX_ARCHITECTURES ${ARCHITECTURE})
     set(CMAKE_OSX_DEPLOYMENT_TARGET "13.0")
 endif()
 
