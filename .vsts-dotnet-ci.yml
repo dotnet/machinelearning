@@ -123,7 +123,7 @@ jobs:
     buildScript: ./build.sh
     innerLoop: true
     pool:
-      vmImage: macOS-13
+      vmImage: macOS-15
     helixQueue: OSX.13.Amd64.Open
 
 - template: /build/ci/job-template.yml
@@ -144,7 +144,7 @@ jobs:
         _targetFramework: net8.0
     innerLoop: true
     pool:
-      vmImage: macOS-13
+      vmImage: macOS-15
     helixQueue: OSX.13.Arm64.Open
 
 - template: /build/ci/job-template.yml
