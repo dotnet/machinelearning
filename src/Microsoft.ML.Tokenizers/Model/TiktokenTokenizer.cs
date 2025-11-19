@@ -1044,13 +1044,14 @@ namespace Microsoft.ML.Tokenizers
                                                                 ( "o4-mini-", ModelEncoding.O200kBase ),  // e.g. o4-mini
 
                                                                 // chat
-                                                                ( "gpt-5-", ModelEncoding.O200kBase),
-                                                                ( "gpt-4.1-", ModelEncoding.O200kBase),   // e.g., gpt-4.1-mini
-                                                                ( "gpt-4.5-", ModelEncoding.O200kBase),   // e.g., gpt-4.5
-                                                                ( "gpt-4o-", ModelEncoding.O200kBase),    // e.g., gpt-4o-2024-05-13
-                                                                ( "chatgpt-4o-", ModelEncoding.O200kBase),
-                                                                ( "gpt-4-", ModelEncoding.Cl100kBase),    // e.g., gpt-4-0314, etc., plus gpt-4-32k
-                                                                ( "gpt-3.5-", ModelEncoding.Cl100kBase),  // e.g, gpt-3.5-turbo-0301, -0401, etc.
+                                                                ( "gpt-5.1-", ModelEncoding.O200kBase ),
+                                                                ( "gpt-5-", ModelEncoding.O200kBase ),
+                                                                ( "gpt-4.1-", ModelEncoding.O200kBase ),   // e.g., gpt-4.1-mini
+                                                                ( "gpt-4.5-", ModelEncoding.O200kBase ),   // e.g., gpt-4.5
+                                                                ( "gpt-4o-", ModelEncoding.O200kBase ),    // e.g., gpt-4o-2024-05-13
+                                                                ( "chatgpt-4o-", ModelEncoding.O200kBase ),
+                                                                ( "gpt-4-", ModelEncoding.Cl100kBase ),    // e.g., gpt-4-0314, etc., plus gpt-4-32k
+                                                                ( "gpt-3.5-", ModelEncoding.Cl100kBase ),  // e.g, gpt-3.5-turbo-0301, -0401, etc.
                                                                 ( "gpt-35-", ModelEncoding.Cl100kBase ),  // Azure deployment name
                                                                 ( "gpt-oss-", ModelEncoding.O200kHarmony ),
 
@@ -1071,6 +1072,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 { "o4-mini", ModelEncoding.O200kBase },
 
                                                                 // chat
+                                                                { "gpt-5.1", ModelEncoding.O200kBase },
                                                                 { "gpt-5", ModelEncoding.O200kBase },
                                                                 { "gpt-4.1", ModelEncoding.O200kBase },
                                                                 { "gpt-4o", ModelEncoding.O200kBase },

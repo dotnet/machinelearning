@@ -36,6 +36,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         public static Tokenizer P50kEdit { get; } = TiktokenTokenizer.CreateForModel("text-davinci-edit-001");
         public static Tokenizer GPT4o { get; } = TiktokenTokenizer.CreateForModel("gpt-4o");
         public static Tokenizer GPT5 { get; } = TiktokenTokenizer.CreateForModel("gpt-5");
+        public static Tokenizer GPT5_1 { get; } = TiktokenTokenizer.CreateForModel("gpt-5.1");
         public static Tokenizer Phi4 { get; } = TiktokenTokenizer.CreateForModel("phi-4");
         public static TiktokenTokenizer GptOss { get; } = TiktokenTokenizer.CreateForModel("gpt-oss-20b");
 
@@ -286,7 +287,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [Fact]
         public void TestEncodeO200kBaseEncoding()
         {
-            foreach (TiktokenTokenizer tokenizer in new[] { GPT4o, GptOss, GPT5 })
+            foreach (TiktokenTokenizer tokenizer in new[] { GPT4o, GptOss, GPT5, GPT5_1 })
             {
                 string text = ReadAndSanitizeFile("./Data/lib.rs.txt");
                 IReadOnlyList<int> encoded = tokenizer.EncodeToIds(text);
@@ -415,6 +416,8 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("gpt-4o-")]
         [InlineData("gpt-5")]
         [InlineData("gpt-5-chat")]
+        [InlineData("gpt-5.1")]
+        [InlineData("gpt-5.1-mini")]
         [InlineData("chatgpt-4o-")]
         [InlineData("gpt-4")]
         [InlineData("gpt-4-")]
@@ -533,6 +536,7 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("gpt-4.1")]
         [InlineData("gpt-4o")]
         [InlineData("gpt-5")]
+        [InlineData("gpt-5.1")]
         [InlineData("o1")]
         [InlineData("o3")]
         [InlineData("o4-mini")]
