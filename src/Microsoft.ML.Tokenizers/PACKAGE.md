@@ -30,12 +30,12 @@ string source = "Text tokenization is the process of splitting a string into a l
 Console.WriteLine($"Tokens: {tokenizer.CountTokens(source)}");
 // prints: Tokens: 16
 
-var trimIndex = tokenizer.GetIndexByTokenCountFromEnd(source, 5, out string processedText, out _);
-Console.WriteLine($"5 tokens from end: {processedText.Substring(trimIndex)}");
+var trimIndex = tokenizer.GetIndexByTokenCountFromEnd(source, 5, out string normalizedText, out _);
+Console.WriteLine($"5 tokens from end: {source.Substring(trimIndex)}");
 // prints: 5 tokens from end:  a list of tokens.
 
-trimIndex = tokenizer.GetIndexByTokenCount(source, 5, out processedText, out _);
-Console.WriteLine($"5 tokens from start: {processedText.Substring(0, trimIndex)}");
+trimIndex = tokenizer.GetIndexByTokenCount(source, 5, out normalizedText, out _);
+Console.WriteLine($"5 tokens from start: {source.Substring(0, trimIndex)}");
 // prints: 5 tokens from start: Text tokenization is the
 
 IReadOnlyList<int> ids = tokenizer.EncodeToIds(source);
