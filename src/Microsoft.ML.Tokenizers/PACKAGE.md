@@ -31,11 +31,11 @@ Console.WriteLine($"Tokens: {tokenizer.CountTokens(source)}");
 // prints: Tokens: 16
 
 var trimIndex = tokenizer.GetIndexByTokenCountFromEnd(source, 5, out string normalizedText, out _);
-Console.WriteLine($"5 tokens from end: {source.Substring(trimIndex)}");
+Console.WriteLine($"5 tokens from end: {(normalizedText ?? source).Substring(trimIndex)}");
 // prints: 5 tokens from end:  a list of tokens.
 
 trimIndex = tokenizer.GetIndexByTokenCount(source, 5, out normalizedText, out _);
-Console.WriteLine($"5 tokens from start: {source.Substring(0, trimIndex)}");
+Console.WriteLine($"5 tokens from start: {(normalizedText ?? source).Substring(0, trimIndex)}");
 // prints: 5 tokens from start: Text tokenization is the
 
 IReadOnlyList<int> ids = tokenizer.EncodeToIds(source);
