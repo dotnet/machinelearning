@@ -1044,6 +1044,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 ( "o4-mini-", ModelEncoding.O200kBase ),  // e.g. o4-mini
 
                                                                 // chat
+                                                                ( "gpt-5.2-", ModelEncoding.O200kBase ),
                                                                 ( "gpt-5.1-", ModelEncoding.O200kBase ),
                                                                 ( "gpt-5-", ModelEncoding.O200kBase ),
                                                                 ( "gpt-4.1-", ModelEncoding.O200kBase ),   // e.g., gpt-4.1-mini
@@ -1072,6 +1073,7 @@ namespace Microsoft.ML.Tokenizers
                                                                 { "o4-mini", ModelEncoding.O200kBase },
 
                                                                 // chat
+                                                                { "gpt-5.2", ModelEncoding.O200kBase },
                                                                 { "gpt-5.1", ModelEncoding.O200kBase },
                                                                 { "gpt-5", ModelEncoding.O200kBase },
                                                                 { "gpt-4.1", ModelEncoding.O200kBase },
