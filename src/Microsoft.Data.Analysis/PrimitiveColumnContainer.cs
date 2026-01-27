@@ -460,6 +460,11 @@ namespace Microsoft.Data.Analysis
         public PrimitiveColumnContainer<T> Clone<U>(PrimitiveColumnContainer<U> mapIndices, Type type, bool invertMapIndices = false)
             where U : unmanaged
         {
+            if (Buffers.Count == 0)
+            {
+                return new PrimitiveColumnContainer<T>(mapIndices.Length);
+            }
+
             ReadOnlySpan<T> thisSpan = Buffers[0].ReadOnlySpan;
             ReadOnlySpan<byte> thisNullBitMapSpan = NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;

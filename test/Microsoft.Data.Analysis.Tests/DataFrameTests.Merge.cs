@@ -714,6 +714,256 @@ namespace Microsoft.Data.Analysis.Tests
             MatchRowsOnMergedDataFrame(merge, left, right, 1, 1, 0);
         }
 
+        public static IEnumerable<object[]> GenerateData_TestMerge_EmptyDataFrames()
+        {
+            yield return new object[]
+                {
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index"),
+                        new Int32DataFrameColumn("L1"),
+                        new Int32DataFrameColumn("L2"),
+                        new StringDataFrameColumn("L3")
+                        ),
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }),
+                        new Int32DataFrameColumn("R1", new[] { 0, 1, 1 }),
+                        new Int32DataFrameColumn("R2", new[] { 1, 1, 2 }),
+                        new StringDataFrameColumn("R3", new[] { "Z", "Y", "B" })
+                        ),
+                    new string[]{ "L1" },
+                    new string[]{ "R1" },
+                    JoinAlgorithm.Left,
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index_left"),
+                        new Int32DataFrameColumn("L1"),
+                        new Int32DataFrameColumn("L2"),
+                        new StringDataFrameColumn("L3"),
+                        new Int32DataFrameColumn("Index_right"),
+                        new Int32DataFrameColumn("R1"),
+                        new Int32DataFrameColumn("R2"),
+                        new StringDataFrameColumn("R3")
+                        ),
+                };
+            yield return new object[]
+                {
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index"),
+                        new Int32DataFrameColumn("L1"),
+                        new Int32DataFrameColumn("L2"),
+                        new StringDataFrameColumn("L3")
+                        ),
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index"),
+                        new Int32DataFrameColumn("R1"),
+                        new Int32DataFrameColumn("R2"),
+                        new StringDataFrameColumn("R3")
+                        ),
+                    new string[]{ "L1" },
+                    new string[]{ "R1" },
+                    JoinAlgorithm.Inner,
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index_left"),
+                        new Int32DataFrameColumn("L1"),
+                        new Int32DataFrameColumn("L2"),
+                        new StringDataFrameColumn("L3"),
+                        new Int32DataFrameColumn("Index_right"),
+                        new Int32DataFrameColumn("R1"),
+                        new Int32DataFrameColumn("R2"),
+                        new StringDataFrameColumn("R3")
+                        ),
+                };
+            yield return new object[]
+                {
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index"),
+                        new Int32DataFrameColumn("L1"),
+                        new Int32DataFrameColumn("L2"),
+                        new StringDataFrameColumn("L3")
+                        ),
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index"),
+                        new Int32DataFrameColumn("R1"),
+                        new Int32DataFrameColumn("R2"),
+                        new StringDataFrameColumn("R3")
+                        ),
+                    new string[]{ "L1" },
+                    new string[]{ "R1" },
+                    JoinAlgorithm.Left,
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index_left"),
+                        new Int32DataFrameColumn("L1"),
+                        new Int32DataFrameColumn("L2"),
+                        new StringDataFrameColumn("L3"),
+                        new Int32DataFrameColumn("Index_right"),
+                        new Int32DataFrameColumn("R1"),
+                        new Int32DataFrameColumn("R2"),
+                        new StringDataFrameColumn("R3")
+                        ),
+                };
+            yield return new object[]
+                {
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index"),
+                        new Int32DataFrameColumn("L1"),
+                        new Int32DataFrameColumn("L2"),
+                        new StringDataFrameColumn("L3")
+                        ),
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index"),
+                        new Int32DataFrameColumn("R1"),
+                        new Int32DataFrameColumn("R2"),
+                        new StringDataFrameColumn("R3")
+                        ),
+                    new string[]{ "L1" },
+                    new string[]{ "R1" },
+                    JoinAlgorithm.Right,
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index_left"),
+                        new Int32DataFrameColumn("L1"),
+                        new Int32DataFrameColumn("L2"),
+                        new StringDataFrameColumn("L3"),
+                        new Int32DataFrameColumn("Index_right"),
+                        new Int32DataFrameColumn("R1"),
+                        new Int32DataFrameColumn("R2"),
+                        new StringDataFrameColumn("R3")
+                        ),
+                };
+            yield return new object[]
+                {
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index"),
+                        new Int32DataFrameColumn("L1"),
+                        new Int32DataFrameColumn("L2"),
+                        new StringDataFrameColumn("L3")
+                        ),
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index"),
+                        new Int32DataFrameColumn("R1"),
+                        new Int32DataFrameColumn("R2"),
+                        new StringDataFrameColumn("R3")
+                        ),
+                    new string[]{ "L1" },
+                    new string[]{ "R1" },
+                    JoinAlgorithm.FullOuter,
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index_left"),
+                        new Int32DataFrameColumn("L1"),
+                        new Int32DataFrameColumn("L2"),
+                        new StringDataFrameColumn("L3"),
+                        new Int32DataFrameColumn("Index_right"),
+                        new Int32DataFrameColumn("R1"),
+                        new Int32DataFrameColumn("R2"),
+                        new StringDataFrameColumn("R3")
+                        ),
+                };
+        }
+
+        [Theory]
+        [MemberData(nameof(GenerateData_TestMerge_EmptyDataFrames))]
+        public void TestMerge_EmptyDataFrames(DataFrame left, DataFrame right, string[] leftColumns, string[] rightColumns, JoinAlgorithm joinAlgorithm, DataFrame expectedOutput)
+        {
+            DataFrame actualOutput = left.Merge(right, leftColumns, rightColumns, joinAlgorithm: joinAlgorithm);
+
+            DataFrameAssert.Equal(expectedOutput, actualOutput);
+        }
+
+        public static IEnumerable<object[]> GenerateData_TestMerge_OuterJoinsPreserveUnmatched()
+        {
+            yield return new object[]
+                {
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }),
+                        new Int32DataFrameColumn("L1", new[] { 1, 2, 3 }),
+                        new Int32DataFrameColumn("L2", new[] { 1, 2, 1 }),
+                        new StringDataFrameColumn("L3", new[] { "A", "B", "C" })
+                        ),
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }),
+                        new Int32DataFrameColumn("R1", new[] { 10, 11, 11 }),
+                        new Int32DataFrameColumn("R2", new[] { 1, 1, 2 }),
+                        new StringDataFrameColumn("R3", new[] { "Z", "Y", "B" })
+                        ),
+                    new string[]{ "L1" },
+                    new string[]{ "R1" },
+                    JoinAlgorithm.Left,
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index_left", new[] { 0, 1, 2 }),
+                        new Int32DataFrameColumn("L1", new[] { 1, 2, 3 }),
+                        new Int32DataFrameColumn("L2", new[] { 1, 2, 1 }),
+                        new StringDataFrameColumn("L3", new[] { "A", "B", "C" }),
+                        new Int32DataFrameColumn("Index_right", new int?[] { null, null, null }),
+                        new Int32DataFrameColumn("R1", new int?[] { null, null, null }),
+                        new Int32DataFrameColumn("R2", new int?[] { null, null, null }),
+                        new StringDataFrameColumn("R3", new string[] { null, null, null })
+                        ),
+                };
+            yield return new object[]
+                {
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }),
+                        new Int32DataFrameColumn("L1", new[] { 1, 2, 3 }),
+                        new Int32DataFrameColumn("L2", new[] { 1, 2, 1 }),
+                        new StringDataFrameColumn("L3", new[] { "A", "B", "C" })
+                        ),
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index"),
+                        new Int32DataFrameColumn("R1"),
+                        new Int32DataFrameColumn("R2"),
+                        new StringDataFrameColumn("R3")
+                        ),
+                    new string[]{ "L1" },
+                    new string[]{ "R1" },
+                    JoinAlgorithm.Left,
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index_left", new[] { 0, 1, 2 }),
+                        new Int32DataFrameColumn("L1", new[] { 1, 2, 3 }),
+                        new Int32DataFrameColumn("L2", new[] { 1, 2, 1 }),
+                        new StringDataFrameColumn("L3", new[] { "A", "B", "C" }),
+                        new Int32DataFrameColumn("Index_right", new int?[] { null, null, null }),
+                        new Int32DataFrameColumn("R1", new int?[] { null, null, null }),
+                        new Int32DataFrameColumn("R2", new int?[] { null, null, null }),
+                        new StringDataFrameColumn("R3", new string[] { null, null, null })
+                        ),
+                };
+            yield return new object[]
+                {
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index"),
+                        new Int32DataFrameColumn("L1"),
+                        new Int32DataFrameColumn("L2"),
+                        new StringDataFrameColumn("L3")
+                        ),
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index", new[] { 0, 1, 2 }),
+                        new Int32DataFrameColumn("R1", new[] { 1, 2, 3 }),
+                        new Int32DataFrameColumn("R2", new[] { 1, 2, 1 }),
+                        new StringDataFrameColumn("R3", new[] { "A", "B", "C" })
+                        ),
+                    new string[]{ "L1" },
+                    new string[]{ "R1" },
+                    JoinAlgorithm.Right,
+                    new DataFrame(
+                        new Int32DataFrameColumn("Index_left", new int?[] { null, null, null }),
+                        new Int32DataFrameColumn("L1", new int?[] { null, null, null }),
+                        new Int32DataFrameColumn("L2", new int?[] { null, null, null }),
+                        new StringDataFrameColumn("L3", new string[] { null, null, null }),
+                        new Int32DataFrameColumn("Index_right", new[] { 0, 1, 2 }),
+                        new Int32DataFrameColumn("R1", new[] { 1, 2, 3 }),
+                        new Int32DataFrameColumn("R2", new[] { 1, 2, 1 }),
+                        new StringDataFrameColumn("R3", new[] { "A", "B", "C" })
+                        ),
+                };
+        }
+
+        [Theory]
+        [MemberData(nameof(GenerateData_TestMerge_OuterJoinsPreserveUnmatched))]
+        public void TestMerge_OuterJoinsPreserveUnmatched(DataFrame left, DataFrame right, string[] leftColumns, string[] rightColumns, JoinAlgorithm joinAlgorithm, DataFrame expectedOutput)
+        {
+            DataFrame actualOutput = left.Merge(right, leftColumns, rightColumns, joinAlgorithm: joinAlgorithm);
+
+            DataFrameAssert.Equal(expectedOutput, actualOutput);
+        }
+
         [Fact]
         //Issue 6127
         public void TestMerge_CorrectColumnTypes()
