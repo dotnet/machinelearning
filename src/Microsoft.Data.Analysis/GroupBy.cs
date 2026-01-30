@@ -22,6 +22,12 @@ namespace Microsoft.Data.Analysis
         public abstract DataFrame Count(params string[] columnNames);
 
         /// <summary>
+        /// Compute the number of distinct non-null values in each group 
+        /// </summary>
+        /// <returns></returns>
+        public abstract DataFrame CountDistinct(params string[] columnNames);
+
+        /// <summary>
         /// Return the first value in each group
         /// </summary>
         /// <returns></returns>
@@ -160,6 +166,54 @@ namespace Microsoft.Data.Analysis
                 {
                     if (column[row] != null)
                         count++;
+                }
+                DataFrameColumn retColumn;
+                if (firstGroup)
+                {
+                    retColumn = new PrimitiveDataFrameColumn<long>(column.Name);
+                    ret.Columns.Insert(ret.Columns.Count, retColumn);
+                }
+                else
+                {
+                    // Assuming non duplicate column names
+                    retColumn = ret.Columns[column.Name];
+                }
+                retColumn.Resize(rowIndex + 1);
+                retColumn[rowIndex] = count;
+            });
+
+            EnumerateColumnsWithRows(groupByColumnDelegate, columnDelegate, columnNames);
+            ret.SetTableRowCount(firstColumn.Length);
+
+            return ret;
+        }
+
+        public override DataFrame CountDistinct(params string[] columnNames)
+        {
+            DataFrame ret = new DataFrame();
+            PrimitiveDataFrameColumn<long> empty = new PrimitiveDataFrameColumn<long>("Empty");
+            DataFrameColumn firstColumn = _dataFrame.Columns[_groupByColumnIndex].Clone(empty);
+            ret.Columns.Insert(ret.Columns.Count, firstColumn);
+            GroupByColumnDelegate groupByColumnDelegate = new GroupByColumnDelegate((long rowIndex, TKey key) =>
+            {
+                firstColumn.Resize(rowIndex + 1);
+                firstColumn[rowIndex] = key;
+            });
+            ColumnDelegate columnDelegate = new ColumnDelegate((int columnIndex, long rowIndex, ICollection<long> rowEnumerable, TKey key, bool firstGroup) =>
+            {
+                if (columnIndex == _groupByColumnIndex)
+                    return;
+                DataFrameColumn column = _dataFrame.Columns[columnIndex];
+                long count = 0;
+                HashSet<object> seenValues = [];
+                foreach (long row in rowEnumerable)
+                {
+                    var rowValue = column[row];
+                    if (rowValue != null && !seenValues.Contains(rowValue))
+                    {
+                        seenValues.Add(rowValue);
+                        count++;
+                    }
                 }
                 DataFrameColumn retColumn;
                 if (firstGroup)

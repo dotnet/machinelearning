@@ -429,6 +429,44 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(2, firstDecimalColumn.Rows.Count);
             Assert.Equal((decimal)0, firstDecimalColumn.Columns["Decimal"][0]);
             Assert.Equal((decimal)1, firstDecimalColumn.Columns["Decimal"][1]);
+
+            var dfWithDuplicates = new DataFrame(
+                    new Int32DataFrameColumn("Group", [1, 1, 1, 1, 1, 2, 2, 2, 2, 2]),
+                    new Int32DataFrameColumn("Int", [1, 2, 3, 4, null, 1, 1, 2, 3, 4]),
+                    new DoubleDataFrameColumn("Double", [1, 2, 3, 4, null, 1, 1, 2, 3, 4]),
+                    new StringDataFrameColumn("String", ["1", "2", "3", "4", null, "1", "1", "2", "3", "4"]),
+                    new DateTimeDataFrameColumn("DateTime", [
+                        new DateTime(2026, 1, 1, 0, 0, 0),
+                        new DateTime(2026, 1, 1, 0, 0, 1),
+                        new DateTime(2026, 1, 1, 0, 0, 2),
+                        new DateTime(2026, 1, 1, 0, 0, 3),
+                        null,
+                        new DateTime(2026, 1, 1, 0, 0, 0),
+                        new DateTime(2026, 1, 1, 0, 0, 0),
+                        new DateTime(2026, 1, 1, 0, 0, 1),
+                        new DateTime(2026, 1, 1, 0, 0, 2),
+                        new DateTime(2026, 1, 1, 0, 0, 3)
+                        ])
+                );
+
+            DataFrame countDistinct = dfWithDuplicates.GroupBy("Group").CountDistinct();
+            Assert.Equal(5, countDistinct.Columns.Count);
+            Assert.Equal(2, countDistinct.Rows.Count);
+
+            foreach (var columnName in countDistinct.Columns.Select(c => c.Name))
+            {
+                if (columnName == "Group")
+                {
+                    continue;
+                }
+
+                var column = (PrimitiveDataFrameColumn<long>)countDistinct[columnName];
+
+                for (int row = 0; row < countDistinct.Rows.Count; row++)
+                {
+                    Assert.Equal(4, column[row]);
+                }
+            }
         }
 
         [Fact]
