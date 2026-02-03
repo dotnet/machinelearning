@@ -9,6 +9,9 @@ using System.Linq;
 
 namespace Microsoft.Data.Analysis
 {
+    /// <summary>
+    /// A record to identify the row that is being aggregated that can be used to decide whether or not to include it in the aggregation.
+    /// </summary>
     public record GroupByPredicateInput
     {
         /// <summary>
