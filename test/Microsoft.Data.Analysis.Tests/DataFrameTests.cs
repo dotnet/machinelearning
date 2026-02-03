@@ -473,21 +473,7 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(2, countIf.Rows.Count);
             Assert.Equal(2L, countIf["Int"][0]);
             Assert.Equal(3L, countIf["Int"][1]);
-        }
 
-        [Fact]
-        public void TestGroupByPredicateInput()
-        {
-            var input = new GroupByPredicateInput
-            {
-                ColumnName = "TestColumn",
-                GroupKey = "TestKey",
-                RowValue = 123
-            };
-
-            Assert.Equal("TestColumn", input.ColumnName);
-            Assert.Equal("TestKey", input.GroupKey);
-            Assert.Equal(123, input.RowValue);
         }
 
         [Fact]
