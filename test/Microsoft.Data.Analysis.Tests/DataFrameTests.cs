@@ -468,12 +468,11 @@ namespace Microsoft.Data.Analysis.Tests
                 }
             }
 
-            DataFrame countIf = dfWithDuplicates.GroupBy("Group").CountIf(input => input.RowValue is int and < 3, "Int");
+            DataFrame countIf = dfWithDuplicates.GroupBy("Group").CountIf((GroupByPredicateInput input) => input.RowValue is int and < 3, "Int");
             Assert.Equal(2, countIf.Columns.Count);
             Assert.Equal(2, countIf.Rows.Count);
             Assert.Equal(2L, countIf["Int"][0]);
             Assert.Equal(3L, countIf["Int"][1]);
-
         }
 
         [Fact]
