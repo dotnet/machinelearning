@@ -460,12 +460,18 @@ namespace Microsoft.Data.Analysis
         public PrimitiveColumnContainer<T> Clone<U>(PrimitiveColumnContainer<U> mapIndices, Type type, bool invertMapIndices = false)
             where U : unmanaged
         {
+            PrimitiveColumnContainer<T> ret = new PrimitiveColumnContainer<T>(mapIndices.Length);
+
+            if (Buffers.Count == 0)
+            {
+                return ret;
+            }
+
             ReadOnlySpan<T> thisSpan = Buffers[0].ReadOnlySpan;
             ReadOnlySpan<byte> thisNullBitMapSpan = NullBitMapBuffers[0].ReadOnlySpan;
             long minRange = 0;
             long maxRange = DataFrameBuffer<T>.MaxCapacity;
             long maxCapacity = maxRange;
-            PrimitiveColumnContainer<T> ret = new PrimitiveColumnContainer<T>(mapIndices.Length);
             for (int b = 0; b < mapIndices.Buffers.Count; b++)
             {
                 int index = b;
