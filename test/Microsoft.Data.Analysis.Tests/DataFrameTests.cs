@@ -1392,5 +1392,124 @@ namespace Microsoft.Data.Analysis.Tests
             Assert.Equal(2, filteredNullDf.Columns["index"][0]);
             Assert.Equal(5, filteredNullDf.Columns["index"][1]);
         }
+
+        public static IEnumerable<object[]> GenerateDataFrameMeltData()
+        {
+            yield return new object[]
+            {
+                new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2 }),
+                new DoubleDataFrameColumn("A", new double?[] { 10, 20 }),
+                new DoubleDataFrameColumn("B", new double?[] { 30, 40 })
+                ),
+                new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 1, 2 }),
+                new StringDataFrameColumn("Variable", new string[] { "A", "A", "B", "B" }),
+                new DoubleDataFrameColumn("Value", new double?[] { 10, 20, 30, 40 })
+                ),
+                new List<string> { "id" },
+                new List<string> { "A", "B" },
+                "Variable",
+                "Value",
+                true,
+            };
+            yield return new object[]
+            {
+                new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2 }),
+                new DoubleDataFrameColumn("A", new double?[] { 10, 20 }),
+                new DoubleDataFrameColumn("B", new double?[] { 30, 40 })
+                ),
+                new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 1, 2 }),
+                new StringDataFrameColumn("Variable", new string[] { "A", "A", "B", "B" }),
+                new DoubleDataFrameColumn("Value", new double?[] { 10, 20, 30, 40 })
+                ),
+                new List<string> { "id" },
+                null,
+                "Variable",
+                "Value",
+                true,
+            };
+            yield return new object[]
+            {
+                new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 3, 4 }),
+                new DoubleDataFrameColumn("A", new double?[] { 10, 20, null, 30 }),
+                new DoubleDataFrameColumn("B", new double?[] { 30, 40, 50, null })
+                ),
+                new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 3, 4, 1, 2, 3, 4 }),
+                new StringDataFrameColumn("Variable", new string[] { "A", "A", "A", "A", "B", "B", "B", "B" }),
+                new DoubleDataFrameColumn("Value", new double?[] { 10, 20, null, 30, 30, 40, 50, null })
+                ),
+                new List<string> { "id" },
+                null,
+                "Variable",
+                "Value",
+                false,
+            };
+            yield return new object[]
+            {
+                new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 3, 4 }),
+                new DoubleDataFrameColumn("A", new double?[] { 10, 20, null, 30 }),
+                new DoubleDataFrameColumn("B", new double?[] { 30, 40, 50, null })
+                ),
+                new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 4, 1, 2, 3 }),
+                new StringDataFrameColumn("Variable", new string[] { "A", "A", "A", "B", "B", "B" }),
+                new DoubleDataFrameColumn("Value", new double?[] { 10, 20, 30, 30, 40, 50 })
+                ),
+                new List<string> { "id" },
+                null,
+                "Variable",
+                "Value",
+                true,
+            };
+            yield return new object[]
+            {
+                new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 3, 4 }),
+                new DoubleDataFrameColumn("A", new double?[] { 10, 20, null, 30 }),
+                new StringDataFrameColumn("B", new string[] { "30", "40", "50", null })
+                ),
+                new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 3, 4, 1, 2, 3, 4 }),
+                new StringDataFrameColumn("Variable", new string[] { "A", "A", "A", "A", "B", "B", "B", "B" }),
+                new StringDataFrameColumn("Value", new string[] { "10", "20", null, "30", "30", "40", "50", null })
+                ),
+                new List<string> { "id" },
+                null,
+                "Variable",
+                "Value",
+                false,
+            };
+        }
+
+        [Theory]
+        [MemberData(nameof(GenerateDataFrameMeltData))]
+        public void TestMelt(DataFrame inputDataFrame, DataFrame outputDataFrame, IEnumerable<string> idColumns, IEnumerable<string> valueColumns, string variableName, string valueName, bool dropNulls)
+        {
+            DataFrameAssert.Equal(outputDataFrame, inputDataFrame.Melt(idColumns, valueColumns, variableName, valueName, dropNulls));
+        }
+
+        [Fact]
+        public void TestMelt_InvalidData()
+        {
+            DataFrame df = new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 3, 4 }),
+                new DoubleDataFrameColumn("A", new double?[] { 10, 20, null, 30 }),
+                new DoubleDataFrameColumn("B", new double?[] { 30, 40, 50, null })
+                );
+
+            Assert.Throws<ArgumentException>(() => df.Melt(new string[0], new string[] { "id", "A", "B" }));
+
+            Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A", "B" }, new string[0]));
+
+            Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A" }, new string[] { "A", "B" }));
+
+            Assert.Throws<InvalidOperationException>(() => df.Melt(new string[] { "id", "A", "B" }));
+        }
     }
 }
