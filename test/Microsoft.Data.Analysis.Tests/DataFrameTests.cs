@@ -1594,9 +1594,11 @@ namespace Microsoft.Data.Analysis.Tests
                 );
 
             // No id columns
+            Assert.Throws<ArgumentException>(() => df.Melt(null, new string[] { "id", "A", "B" }));
             Assert.Throws<ArgumentException>(() => df.Melt(new string[0], new string[] { "id", "A", "B" }));
 
             // No value columns
+            Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A", "B" }, null));
             Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A", "B" }, new string[0]));
 
             // Id column is also value column
