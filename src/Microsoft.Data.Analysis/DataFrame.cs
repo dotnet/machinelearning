@@ -733,6 +733,7 @@ namespace Microsoft.Data.Analysis
         /// </example>
         public DataFrame Melt(IEnumerable<string> idColumns, IEnumerable<string> valueColumns = null, string variableName = "variable", string valueName = "value", bool dropNulls = false)
         {
+
             var idColumnList = idColumns.ToList();
             var valueColumnList = valueColumns?.ToList()
                 ?? _columnCollection
@@ -740,7 +741,25 @@ namespace Microsoft.Data.Analysis
                     .Select(c => c.Name)
                     .ToList();
 
-            ValidateMeltParameters(idColumnList, valueColumnList, valueColumns, nameof(idColumns), nameof(valueColumns));
+            if (idColumnList.Count == 0)
+            {
+                throw new ArgumentException("Must provide at least 1 ID column", nameof(idColumns));
+            }
+
+            if (valueColumns != null && valueColumnList.Count == 0)
+            {
+                throw new ArgumentException("Must provide at least 1 value column when specifying value columns manually", nameof(valueColumns));
+            }
+
+            if (valueColumns != null && valueColumnList.Any(v => idColumnList.Contains(v)))
+            {
+                throw new ArgumentException("Columns cannot exist in both idColumns and valueColumns", nameof(valueColumns));
+            }
+
+            if (valueColumns == null && valueColumnList.Count == 0)
+            {
+                throw new InvalidOperationException("There are no columns in the DataFrame to use as value columns after excluding the ID columns");
+            }
 
             long totalOutputRows = CalculateTotalOutputRows(valueColumnList, dropNulls);
 
@@ -754,29 +773,6 @@ namespace Microsoft.Data.Analysis
             outputCols.Add(valueColumn);
 
             return new DataFrame(outputCols);
-        }
-
-        private void ValidateMeltParameters(List<string> idColumnList, List<string> valueColumnList, IEnumerable<string> valueColumns, string idColumnsName, string valueColumnsName)
-        {
-            if (idColumnList.Count == 0)
-            {
-                throw new ArgumentException("Must provide at least 1 ID column", idColumnsName);
-            }
-
-            if (valueColumns != null && valueColumnList.Count == 0)
-            {
-                throw new ArgumentException("Must provide at least 1 value column when specifying value columns manually", valueColumnsName);
-            }
-
-            if (valueColumns != null && valueColumnList.Any(v => idColumnList.Contains(v)))
-            {
-                throw new ArgumentException("Columns cannot exist in both idColumns and valueColumns", valueColumnsName);
-            }
-
-            if (valueColumns == null && valueColumnList.Count == 0)
-            {
-                throw new InvalidOperationException("There are no columns in the DataFrame to use as value columns after excluding the ID columns");
-            }
         }
 
         private long CalculateTotalOutputRows(List<string> valueColumnList, bool dropNulls)
