@@ -685,8 +685,8 @@ namespace Microsoft.Data.Analysis
         /// </param>
         /// <param name="valueName">
         /// Name for the new column that will contain the values from the unpivoted columns. Defaults to "value".
-        /// If value columns have different types, this column will be of type string; otherwise, it will
-        /// match the type of the value columns.
+        /// If value columns contain different types, this column will be of type string; otherwise, it will
+        /// match the type of the first value column.
         /// </param>
         /// <param name="dropNulls">
         /// If true, rows where the value is null or empty string will be excluded from the result.
@@ -823,7 +823,7 @@ namespace Microsoft.Data.Analysis
         private DataFrameColumn CreateValueColumn(List<string> valueColumnList, string valueName, long size)
         {
             var valueTypes = valueColumnList
-                .Select(name => _columnCollection[name].GetType())
+                .Select(name => _columnCollection[name].DataType)
                 .Distinct()
                 .Count();
 

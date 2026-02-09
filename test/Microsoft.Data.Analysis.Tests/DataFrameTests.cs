@@ -1539,6 +1539,42 @@ namespace Microsoft.Data.Analysis.Tests
                 "Value",
                 true,
             };
+            yield return new object[]
+            {
+                new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 3, 4 }),
+                new DoubleDataFrameColumn("A", new double?[] { 10, 20, null, 30 }),
+                new PrimitiveDataFrameColumn<double>("B", new double?[] { 30, 40, 50, null })
+                ),
+                new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 4, 1, 2, 3 }),
+                new StringDataFrameColumn("Variable", new string[] { "A", "A", "A", "B", "B", "B" }),
+                new DoubleDataFrameColumn("Value", new double?[] { 10, 20, 30, 30, 40, 50 })
+                ),
+                new List<string> { "id" },
+                null,
+                "Variable",
+                "Value",
+                true,
+            };
+            yield return new object[]
+            {
+                new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 3, 4 }),
+                new PrimitiveDataFrameColumn<double>("A", new double?[] { 10, 20, null, 30 }),
+                new DoubleDataFrameColumn("B", new double?[] { 30, 40, 50, null })
+                ),
+                new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 4, 1, 2, 3 }),
+                new StringDataFrameColumn("Variable", new string[] { "A", "A", "A", "B", "B", "B" }),
+                new PrimitiveDataFrameColumn<double>("Value", new double?[] { 10, 20, 30, 30, 40, 50 })
+                ),
+                new List<string> { "id" },
+                null,
+                "Variable",
+                "Value",
+                true,
+            };
         }
 
         [Theory]
