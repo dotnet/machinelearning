@@ -733,6 +733,15 @@ namespace Microsoft.Data.Analysis
         /// </example>
         public DataFrame Melt(IEnumerable<string> idColumns, IEnumerable<string> valueColumns = null, string variableName = "variable", string valueName = "value", bool dropNulls = false)
         {
+            if (string.IsNullOrWhiteSpace(variableName))
+            {
+                throw new ArgumentException("Parameter must not be null, empty, or whitespace", nameof(variableName));
+            }
+
+            if (string.IsNullOrWhiteSpace(valueName))
+            {
+                throw new ArgumentException("Parameter must not be null, empty, or whitespace", nameof(valueName));
+            }
 
             var idColumnList = idColumns?.ToList() ?? new List<string>();
             var valueColumnList = valueColumns?.ToList()
