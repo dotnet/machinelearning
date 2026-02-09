@@ -873,12 +873,20 @@ namespace Microsoft.Data.Analysis
         {
             bool mixedTypes = valueColumn is StringDataFrameColumn;
             long currentRow = 0;
+            long rowCount = _rowCollection.Count;
+            int idColumnCount = idColumnList.Count;
+
+            var idColumns = new DataFrameColumn[idColumnCount];
+            for (int i = 0; i < idColumnCount; i++)
+            {
+                idColumns[i] = _columnCollection[idColumnList[i]];
+            }
 
             foreach (var valueColumnName in valueColumnList)
             {
                 var sourceValueColumn = _columnCollection[valueColumnName];
 
-                for (long sourceRow = 0; sourceRow < _rowCollection.Count; sourceRow++)
+                for (long sourceRow = 0; sourceRow < rowCount; sourceRow++)
                 {
                     var value = sourceValueColumn[sourceRow];
 
@@ -887,14 +895,13 @@ namespace Microsoft.Data.Analysis
                         continue;
                     }
 
-                    for (int i = 0; i < idColumnList.Count; i++)
+                    for (int i = 0; i < idColumnCount; i++)
                     {
-                        outputIdCols[i][currentRow] = _columnCollection[idColumnList[i]][sourceRow];
+                        outputIdCols[i][currentRow] = idColumns[i][sourceRow];
                     }
 
                     variableColumn[currentRow] = valueColumnName;
                     valueColumn[currentRow] = mixedTypes ? value?.ToString() : value;
-
                     currentRow++;
                 }
             }
