@@ -744,9 +744,17 @@ namespace Microsoft.Data.Analysis
             }
 
             var idColumnList = idColumns?.ToList() ?? new List<string>();
+
+            HashSet<string> idColumnSet = null;
+
+            if (valueColumns is null)
+            {
+                idColumnSet = [.. idColumnList];
+            }
+
             var valueColumnList = valueColumns?.ToList()
                 ?? _columnCollection
-                    .Where(c => !idColumnList.Contains(c.Name))
+                    .Where(c => !idColumnSet.Contains(c.Name))
                     .Select(c => c.Name)
                     .ToList();
 
