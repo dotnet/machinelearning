@@ -770,7 +770,7 @@ namespace Microsoft.Data.Analysis
 
             if (valueColumns != null && valueColumnList.Any(v => idColumnList.Contains(v)))
             {
-                throw new ArgumentException("Columns cannot exist in both idColumns and valueColumns");
+                throw new ArgumentException("Columns cannot exist in both idColumns and valueColumns", nameof(valueColumns));
             }
 
             if (valueColumns == null && valueColumnList.Count == 0)
