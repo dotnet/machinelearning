@@ -734,7 +734,7 @@ namespace Microsoft.Data.Analysis
         public DataFrame Melt(IEnumerable<string> idColumns, IEnumerable<string> valueColumns = null, string variableName = "variable", string valueName = "value", bool dropNulls = false)
         {
 
-            var idColumnList = idColumns.ToList();
+            var idColumnList = idColumns?.ToList() ?? new List<string>();
             var valueColumnList = valueColumns?.ToList()
                 ?? _columnCollection
                     .Where(c => !idColumnList.Contains(c.Name))
