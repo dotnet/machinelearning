@@ -1593,12 +1593,32 @@ namespace Microsoft.Data.Analysis.Tests
                 new DoubleDataFrameColumn("B", new double?[] { 30, 40, 50, null })
                 );
 
+            // No id columns
             Assert.Throws<ArgumentException>(() => df.Melt(new string[0], new string[] { "id", "A", "B" }));
 
+            // No value columns
             Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A", "B" }, new string[0]));
 
+            // Id column is also value column
             Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A" }, new string[] { "A", "B" }));
 
+            // Value name is null, empty, or whitespace
+            Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A" }, new string[] { "B" }, valueName: null));
+            Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A" }, new string[] { "B" }, valueName: ""));
+            Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A" }, new string[] { "B" }, valueName: " \r\n\t"));
+
+            // Variable name is null, empty, or whitespace
+            Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A" }, new string[] { "B" }, variableName: null));
+            Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A" }, new string[] { "B" }, variableName: ""));
+            Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A" }, new string[] { "B" }, variableName: " \r\n\t"));
+
+            // Value name matches an existing column name in the DataFrame
+            Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A" }, new string[] { "B" }, valueName: "B"));
+
+            // Variable name matches an existing column name in the DataFrame
+            Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A" }, new string[] { "B" }, variableName: "B"));
+
+            // There are no columns in the DataFrame to use as value columns after excluding the ID columns
             Assert.Throws<InvalidOperationException>(() => df.Melt(new string[] { "id", "A", "B" }));
         }
     }
