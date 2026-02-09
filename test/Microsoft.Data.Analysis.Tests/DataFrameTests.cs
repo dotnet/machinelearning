@@ -1470,20 +1470,38 @@ namespace Microsoft.Data.Analysis.Tests
             yield return new object[]
             {
                 new DataFrame(
-                new Int32DataFrameColumn("id", new int?[] { 1, 2, 3, 4 }),
-                new DoubleDataFrameColumn("A", new double?[] { 10, 20, null, 30 }),
-                new StringDataFrameColumn("B", new string[] { "30", "40", "50", null })
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 3, 4, 5 }),
+                new DoubleDataFrameColumn("A", new double?[] { 10, 20, null, 30, 40 }),
+                new StringDataFrameColumn("B", new string[] { "30", "40", "50", null, "" })
                 ),
                 new DataFrame(
-                new Int32DataFrameColumn("id", new int?[] { 1, 2, 3, 4, 1, 2, 3, 4 }),
-                new StringDataFrameColumn("Variable", new string[] { "A", "A", "A", "A", "B", "B", "B", "B" }),
-                new StringDataFrameColumn("Value", new string[] { "10", "20", null, "30", "30", "40", "50", null })
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 3, 4, 5, 1, 2, 3, 4, 5 }),
+                new StringDataFrameColumn("Variable", new string[] { "A", "A", "A", "A", "A", "B", "B", "B", "B", "B" }),
+                new StringDataFrameColumn("Value", new string[] { "10", "20", null, "30", "40", "30", "40", "50", null, "" })
                 ),
                 new List<string> { "id" },
                 null,
                 "Variable",
                 "Value",
                 false,
+            };
+            yield return new object[]
+            {
+                new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 3, 4, 5 }),
+                new DoubleDataFrameColumn("A", new double?[] { 10, 20, null, 30, 40 }),
+                new StringDataFrameColumn("B", new string[] { "30", "40", "50", null, "" })
+                ),
+                new DataFrame(
+                new Int32DataFrameColumn("id", new int?[] { 1, 2, 4, 5, 1, 2, 3 }),
+                new StringDataFrameColumn("Variable", new string[] { "A", "A", "A", "A", "B", "B", "B" }),
+                new StringDataFrameColumn("Value", new string[] { "10", "20", "30", "40", "30", "40", "50" })
+                ),
+                new List<string> { "id" },
+                null,
+                "Variable",
+                "Value",
+                true,
             };
         }
 
