@@ -770,6 +770,18 @@ namespace Microsoft.Data.Analysis
                 throw new InvalidOperationException("There are no columns in the DataFrame to use as value columns after excluding the ID columns");
             }
 
+            IEnumerable<string> existingColumnNames = _columnCollection.Select(c => c.Name);
+
+            if (existingColumnNames.Contains(variableName))
+            {
+                throw new ArgumentException($"Variable name '{variableName}' matches an existing column name", nameof(variableName));
+            }
+
+            if (existingColumnNames.Contains(valueName))
+            {
+                throw new ArgumentException($"Value name '{valueName}' matches an existing column name", nameof(valueName));
+            }
+
             long totalOutputRows = CalculateTotalOutputRows(valueColumnList, dropNulls);
 
             var outputCols = InitializeIdColumns(idColumnList, totalOutputRows);
