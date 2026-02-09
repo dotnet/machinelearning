@@ -740,7 +740,7 @@ namespace Microsoft.Data.Analysis
                     .Select(c => c.Name)
                     .ToList();
 
-            ValidateMeltParameters(idColumnList, valueColumnList, valueColumns);
+            ValidateMeltParameters(idColumnList, valueColumnList, valueColumns, nameof(idColumns), nameof(valueColumns));
 
             long totalOutputRows = CalculateTotalOutputRows(valueColumnList, dropNulls);
 
@@ -756,21 +756,21 @@ namespace Microsoft.Data.Analysis
             return new DataFrame(outputCols);
         }
 
-        private void ValidateMeltParameters(List<string> idColumnList, List<string> valueColumnList, IEnumerable<string> valueColumns)
+        private void ValidateMeltParameters(List<string> idColumnList, List<string> valueColumnList, IEnumerable<string> valueColumns, string idColumnsName, string valueColumnsName)
         {
             if (idColumnList.Count == 0)
             {
-                throw new ArgumentException("Must provide at least 1 ID column", "idColumns");
+                throw new ArgumentException("Must provide at least 1 ID column", idColumnsName);
             }
 
             if (valueColumns != null && valueColumnList.Count == 0)
             {
-                throw new ArgumentException("Must provide at least 1 value column when specifying value columns manually", nameof(valueColumns));
+                throw new ArgumentException("Must provide at least 1 value column when specifying value columns manually", valueColumnsName);
             }
 
             if (valueColumns != null && valueColumnList.Any(v => idColumnList.Contains(v)))
             {
-                throw new ArgumentException("Columns cannot exist in both idColumns and valueColumns", nameof(valueColumns));
+                throw new ArgumentException("Columns cannot exist in both idColumns and valueColumns", valueColumnsName);
             }
 
             if (valueColumns == null && valueColumnList.Count == 0)
