@@ -1566,13 +1566,13 @@ namespace Microsoft.Data.Analysis.Tests
                 ),
                 new DataFrame(
                 new Int32DataFrameColumn("id", new int?[] { 1, 2, 4, 1, 2, 3 }),
-                new StringDataFrameColumn("Variable", new string[] { "A", "A", "A", "B", "B", "B" }),
-                new PrimitiveDataFrameColumn<double>("Value", new double?[] { 10, 20, 30, 30, 40, 50 })
+                new StringDataFrameColumn("TestVar", new string[] { "A", "A", "A", "B", "B", "B" }),
+                new PrimitiveDataFrameColumn<double>("TestVal", new double?[] { 10, 20, 30, 30, 40, 50 })
                 ),
                 new List<string> { "id" },
                 null,
-                "Variable",
-                "Value",
+                "TestVar",
+                "TestVal",
                 true,
             };
         }
@@ -1621,6 +1621,12 @@ namespace Microsoft.Data.Analysis.Tests
 
             // There are no columns in the DataFrame to use as value columns after excluding the ID columns
             Assert.Throws<InvalidOperationException>(() => df.Melt(new string[] { "id", "A", "B" }));
+
+            // Test default values for variableName, valueName, and dropNulls parameters
+            DataFrame melted = df.Melt(new string[] { "id" }, new string[] { "A" });
+            Assert.True(melted.Columns.IndexOf("variable") >= 0);
+            Assert.True(melted.Columns.IndexOf("value") >= 0);
+            Assert.Equal(4, melted.Rows.Count);
         }
     }
 }
