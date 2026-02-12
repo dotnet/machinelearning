@@ -896,20 +896,27 @@ namespace Microsoft.ML.Tokenizers.Tests
             // Verify that large and small inputs with same content produce identical tokens
             // This ensures the heap-based algorithm produces the same results as the original
 
-            string input = new string('z', length);
-            IReadOnlyList<int> ids = GPT4.EncodeToIds(input);
+            // Test with repeated character
+            string inputRepeated = new string('z', length);
+            IReadOnlyList<int> idsRepeated = GPT4.EncodeToIds(inputRepeated);
 
             // Verify round-trip
-            string decoded = GPT4.Decode(ids);
-            Assert.Equal(input, decoded);
+            string decodedRepeated = GPT4.Decode(idsRepeated);
+            Assert.Equal(inputRepeated, decodedRepeated);
+
+            // Test with mixed content (more realistic scenario)
+            string inputMixed = string.Join(" ", Enumerable.Repeat("Hello World! Test123", length / 20 + 1)).Substring(0, length);
+            IReadOnlyList<int> idsMixed = GPT4.EncodeToIds(inputMixed);
+            string decodedMixed = GPT4.Decode(idsMixed);
+            Assert.Equal(inputMixed, decodedMixed);
 
             // Verify with EncodingToTokens as well
-            IReadOnlyList<EncodedToken> tokens = GPT4.EncodeToTokens(input, out string? normalizedText);
+            IReadOnlyList<EncodedToken> tokens = GPT4.EncodeToTokens(inputRepeated, out string? normalizedText);
             Assert.Null(normalizedText); // No normalization expected
 
             // Reconstruct from tokens
             var reconstructed = string.Concat(tokens.Select(t => t.Value));
-            Assert.Equal(input, reconstructed);
+            Assert.Equal(inputRepeated, reconstructed);
         }
 
         [Fact]

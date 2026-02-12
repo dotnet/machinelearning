@@ -166,7 +166,7 @@ namespace Microsoft.ML.Tokenizers
                 CurRank = int.MaxValue
             };
 
-            var heap = new PriorityQueue<MergeEntry>(mergingBytes.Length);
+            var heap = new PriorityQueue<MergeEntry>(mergingBytes.Length - 1);
 
             for (int i = 0; i < mergingBytes.Length - 1; i++)
             {
