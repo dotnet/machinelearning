@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-
-using Xunit;
 using System.Buffers;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Xunit;
 
 namespace Microsoft.ML.Tokenizers.Tests
 {
