@@ -170,10 +170,7 @@ namespace Microsoft.ML.Tokenizers
                 CurRank = int.MaxValue
             };
 
-            // Initial capacity: in the worst case, every adjacent pair is a valid merge candidate.
-            // In practice, many pairs won't be in the vocabulary, so this over-allocates slightly,
-            // but List resizing is cheap and this avoids multiple reallocations during initialization.
-            var heap = new PriorityQueue<MergeEntry>(mergingBytes.Length - 1);
+            var heap = new PriorityQueue<MergeEntry>(0);
 
             for (int i = 0; i < mergingBytes.Length - 1; i++)
             {
