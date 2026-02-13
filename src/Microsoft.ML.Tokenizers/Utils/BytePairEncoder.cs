@@ -243,7 +243,10 @@ namespace Microsoft.ML.Tokenizers
                 state[rightStart].NextRank = int.MaxValue;
             }
 
-            var resultList = new List<(int Id, int TokenIndex, int TokenLength)>();
+            // Use ArrayPool for the result buffer to avoid List<T> overhead.
+            // The maximum number of tokens is mergingBytes.Length (no merges).
+            var resultPoolArray = ArrayPool<(int Id, int TokenIndex, int TokenLength)>.Shared.Rent(mergingBytes.Length);
+            int resultCount = 0;
             int currentIndex = 0;
 
             while (currentIndex < state.Length)
@@ -272,14 +275,16 @@ namespace Microsoft.ML.Tokenizers
                     ? state[currentIndex].CurRank
                     : ranks[mergingBytes.SliceStartEnd(startIndex, endIndex)];
 
-                resultList.Add((tokenId, mappedStartIndex, indexMappingSpan[finalEndIndex] - mappedStartIndex));
+                resultPoolArray[resultCount++] = (tokenId, mappedStartIndex, indexMappingSpan[finalEndIndex] - mappedStartIndex);
 
                 currentIndex = state[currentIndex].End;
             }
 
             ArrayPool<State>.Shared.Return(statePoolArray);
 
-            return resultList.ToArray();
+            var result = resultPoolArray.AsSpan(0, resultCount).ToArray();
+            ArrayPool<(int Id, int TokenIndex, int TokenLength)>.Shared.Return(resultPoolArray);
+            return result;
         }
 
         private static ReadOnlyMemory<byte> SliceStartEnd(this ReadOnlyMemory<byte> memory, int start, int end) => memory.Slice(start, end - start);
