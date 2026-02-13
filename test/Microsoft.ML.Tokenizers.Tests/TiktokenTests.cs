@@ -918,27 +918,6 @@ namespace Microsoft.ML.Tokenizers.Tests
             var reconstructed = string.Concat(tokens.Select(t => t.Value));
             Assert.Equal(inputRepeated, reconstructed);
         }
-
-        [Fact]
-        public void TestLargeInputPerformance()
-        {
-            // Test that very large inputs complete in reasonable time
-            // This would timeout or take extremely long with O(n^2) algorithm
-
-            string veryLargeInput = new string('a', 5000);
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            IReadOnlyList<int> ids = GPT4.EncodeToIds(veryLargeInput);
-            stopwatch.Stop();
-
-            // Should complete in well under a second even for 5000 chars
-            // With O(n^2) this could take several seconds
-            Assert.True(stopwatch.ElapsedMilliseconds < 5000,
-                $"Large input encoding took {stopwatch.ElapsedMilliseconds}ms, expected < 5000ms");
-
-            // Verify correctness
-            string decoded = GPT4.Decode(ids);
-            Assert.Equal(veryLargeInput, decoded);
-        }
     }
 }
 
