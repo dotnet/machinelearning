@@ -155,12 +155,9 @@ namespace Microsoft.ML.Tokenizers
 
         private static (int Id, int TokenIndex, int TokenLength)[] BytePairEncodeLarge(ReadOnlyMemory<byte> mergingBytes, IReadOnlyDictionary<ReadOnlyMemory<byte>, int> ranks, ReadOnlySpan<int> indexMappingSpan)
         {
-            State[]? statePoolArray = null;
             int stateLength = mergingBytes.Length;
-            Span<State> state = stateLength <= 256 ?
-                stackalloc State[256] :
-                (statePoolArray = ArrayPool<State>.Shared.Rent(stateLength));
-            state = state.Slice(0, stateLength);
+            State[] statePoolArray = ArrayPool<State>.Shared.Rent(stateLength);
+            Span<State> state = statePoolArray.AsSpan(0, stateLength);
 
             state[0] = new State
             {
@@ -280,10 +277,7 @@ namespace Microsoft.ML.Tokenizers
                 currentIndex = state[currentIndex].End;
             }
 
-            if (statePoolArray is not null)
-            {
-                ArrayPool<State>.Shared.Return(statePoolArray);
-            }
+            ArrayPool<State>.Shared.Return(statePoolArray);
 
             return resultList.ToArray();
         }
