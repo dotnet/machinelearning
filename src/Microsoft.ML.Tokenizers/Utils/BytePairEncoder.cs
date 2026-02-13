@@ -270,15 +270,9 @@ namespace Microsoft.ML.Tokenizers
                     }
                 }
 
-                int tokenId;
-                if (state[currentIndex].CurRank != int.MaxValue)
-                {
-                    tokenId = state[currentIndex].CurRank;
-                }
-                else
-                {
-                    tokenId = ranks[mergingBytes.SliceStartEnd(startIndex, endIndex)];
-                }
+                int tokenId = state[currentIndex].CurRank != int.MaxValue
+                    ? state[currentIndex].CurRank
+                    : ranks[mergingBytes.SliceStartEnd(startIndex, endIndex)];
 
                 resultList.Add((tokenId, mappedStartIndex, indexMappingSpan[finalEndIndex] - mappedStartIndex));
 
