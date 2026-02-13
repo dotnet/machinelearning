@@ -141,14 +141,12 @@ namespace Microsoft.ML.Tokenizers
 
             public int CompareTo(MergeEntry other)
             {
-                // Min-heap by rank (lower rank = higher priority)
-                // If ranks are equal, prefer lower start index
-                int rankComparison = other.Rank.CompareTo(Rank);
+                int rankComparison = Rank.CompareTo(other.Rank);
                 if (rankComparison != 0)
                 {
                     return rankComparison;
                 }
-                return other.Start.CompareTo(Start);
+                return Start.CompareTo(other.Start);
             }
         }
 

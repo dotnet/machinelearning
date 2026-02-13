@@ -852,8 +852,8 @@ namespace Microsoft.ML.Tokenizers.Tests
         [Fact]
         public void TestLargeInputOptimization()
         {
-            // Test that large inputs (>128 bytes) are handled correctly and produce same results as small input path
-            // This tests the heap-based algorithm added for performance
+            // Verify that large inputs (>128 bytes) and boundary cases round-trip correctly via the public API.
+            // This exercises the large-input optimization path but does not directly compare it to the small-input path.
 
             // Test with repeated characters - this is the adversarial case that caused O(n^2) behavior
             string largeRepeatedInput = new string('a', 1000);
@@ -893,8 +893,8 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData(2000)]
         public void TestLargeInputConsistency(int length)
         {
-            // Verify that large and small inputs with same content produce identical tokens
-            // This ensures the heap-based algorithm produces the same results as the original
+            // Verify that large inputs are handled correctly by the public API and round-trip successfully.
+            // These tests focus on observable behavior (round-tripping and reconstruction), not on comparing internal code paths.
 
             // Test with repeated character
             string inputRepeated = new string('z', length);
