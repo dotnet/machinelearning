@@ -195,7 +195,6 @@ namespace Microsoft.ML.Tokenizers
             }
 
             // Local function to add a potential merge to the heap.
-            // Captures: mergingBytes, ranks from outer scope.
             void PotentialMerge(Span<State> stateSpan, PriorityQueue<MergeEntry> heapQueue, int start, int nextEndItem)
             {
                 stateSpan[start].NextEnd = nextEndItem;
