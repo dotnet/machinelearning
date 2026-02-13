@@ -131,6 +131,9 @@ namespace Microsoft.ML.Tokenizers
             public int End;
             public int NextEnd;
             public int NextRank;
+            // Note: In the Tiktoken tokenizer, the rank is also the token Id.
+            // This field is used to cache the rank/Id after a merge so we don't need to re-look it up.
+            // Using this code with a different tokenizer where rank != token Id would produce wrong results.
             public int CurRank;
         }
 
