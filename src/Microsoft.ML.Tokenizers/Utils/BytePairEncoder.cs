@@ -20,6 +20,10 @@ namespace Microsoft.ML.Tokenizers
                 return [(ranks[mergingBytes], 0, 1)];
             }
 
+            // For large inputs, use heap-based algorithm to avoid O(n²) behavior.
+            // Threshold of 128 chosen empirically: linear scan is cache-friendly for small inputs,
+            // while heap overhead (O(log n) per operation) becomes worthwhile for larger inputs.
+            // Based on upstream tiktoken using 100, adjusted upward for C#'s efficient span operations.
             if (mergingBytes.Length > 128)
             {
                 return BytePairEncodeLarge(mergingBytes, ranks, indexMappingSpan);
@@ -166,6 +170,9 @@ namespace Microsoft.ML.Tokenizers
                 CurRank = int.MaxValue
             };
 
+            // Initial capacity: in the worst case, every adjacent pair is a valid merge candidate.
+            // In practice, many pairs won't be in the vocabulary, so this over-allocates slightly,
+            // but List resizing is cheap and this avoids multiple reallocations during initialization.
             var heap = new PriorityQueue<MergeEntry>(mergingBytes.Length - 1);
 
             for (int i = 0; i < mergingBytes.Length - 1; i++)
