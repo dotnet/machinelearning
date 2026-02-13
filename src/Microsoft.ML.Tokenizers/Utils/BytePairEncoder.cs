@@ -170,7 +170,7 @@ namespace Microsoft.ML.Tokenizers
                 CurRank = int.MaxValue
             };
 
-            var heap = new PriorityQueue<MergeEntry>();
+            var heap = new PriorityQueue<MergeEntry>(0);
 
             for (int i = 0; i < mergingBytes.Length - 1; i++)
             {
