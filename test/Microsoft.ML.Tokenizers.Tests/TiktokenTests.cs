@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.DotNet.RemoteExecutor;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -13,6 +12,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.DotNet.RemoteExecutor;
 using Xunit;
 
 namespace Microsoft.ML.Tokenizers.Tests
@@ -852,6 +852,76 @@ namespace Microsoft.ML.Tokenizers.Tests
 
         private static IReadOnlyDictionary<string, int>? GetVocabulary(TiktokenTokenizer tiktoken)
             => typeof(TiktokenTokenizer).GetProperty("Vocabulary", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(tiktoken) as IReadOnlyDictionary<string, int>;
+
+        [Fact]
+        public void TestLargeInputOptimization()
+        {
+            // Verify that large inputs (>128 bytes) and boundary cases round-trip correctly via the public API.
+            // This exercises the large-input optimization path but does not directly compare it to the small-input path.
+
+            // Test with repeated characters - this is the adversarial case that caused O(n^2) behavior
+            string largeRepeatedInput = new string('a', 1000);
+            IReadOnlyList<int> ids = GPT4.EncodeToIds(largeRepeatedInput);
+            string decoded = GPT4.Decode(ids);
+            Assert.Equal(largeRepeatedInput, decoded);
+
+            // Test with a more realistic large input
+            string largeMixedInput = string.Join(" ", Enumerable.Repeat("Hello World! This is a test.", 50));
+            IReadOnlyList<int> mixedIds = GPT4.EncodeToIds(largeMixedInput);
+            string mixedDecoded = GPT4.Decode(mixedIds);
+            Assert.Equal(largeMixedInput, mixedDecoded);
+
+            // Test boundary case - exactly at threshold (128)
+            string boundaryInput = new string('x', 128);
+            IReadOnlyList<int> boundaryIds = GPT4.EncodeToIds(boundaryInput);
+            string boundaryDecoded = GPT4.Decode(boundaryIds);
+            Assert.Equal(boundaryInput, boundaryDecoded);
+
+            // Test just below threshold (127)
+            string belowThresholdInput = new string('x', 127);
+            IReadOnlyList<int> belowIds = GPT4.EncodeToIds(belowThresholdInput);
+            string belowDecoded = GPT4.Decode(belowIds);
+            Assert.Equal(belowThresholdInput, belowDecoded);
+
+            // Test just above threshold (129)
+            string aboveThresholdInput = new string('x', 129);
+            IReadOnlyList<int> aboveIds = GPT4.EncodeToIds(aboveThresholdInput);
+            string aboveDecoded = GPT4.Decode(aboveIds);
+            Assert.Equal(aboveThresholdInput, aboveDecoded);
+        }
+
+        [Theory]
+        [InlineData(200)]
+        [InlineData(500)]
+        [InlineData(1000)]
+        [InlineData(2000)]
+        public void TestLargeInputConsistency(int length)
+        {
+            // Verify that large inputs are handled correctly by the public API and round-trip successfully.
+            // These tests focus on observable behavior (round-tripping and reconstruction), not on comparing internal code paths.
+
+            // Test with repeated character
+            string inputRepeated = new string('z', length);
+            IReadOnlyList<int> idsRepeated = GPT4.EncodeToIds(inputRepeated);
+
+            // Verify round-trip
+            string decodedRepeated = GPT4.Decode(idsRepeated);
+            Assert.Equal(inputRepeated, decodedRepeated);
+
+            // Test with mixed content (more realistic scenario)
+            string inputMixed = string.Join(" ", Enumerable.Repeat("Hello World! Test123", length / 20 + 1)).Substring(0, length);
+            IReadOnlyList<int> idsMixed = GPT4.EncodeToIds(inputMixed);
+            string decodedMixed = GPT4.Decode(idsMixed);
+            Assert.Equal(inputMixed, decodedMixed);
+
+            // Verify with EncodingToTokens as well
+            IReadOnlyList<EncodedToken> tokens = GPT4.EncodeToTokens(inputRepeated, out string? normalizedText);
+            Assert.Null(normalizedText); // No normalization expected
+
+            // Reconstruct from tokens
+            var reconstructed = string.Concat(tokens.Select(t => t.Value));
+            Assert.Equal(inputRepeated, reconstructed);
+        }
     }
 }
 

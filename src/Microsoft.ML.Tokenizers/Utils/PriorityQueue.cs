@@ -12,6 +12,10 @@ namespace Microsoft.ML.Tokenizers
     {
         private readonly List<T> _data;
 
+        public PriorityQueue() : this(0)
+        {
+        }
+
         public PriorityQueue(int capacity)
         {
             _data = new List<T>(capacity);
