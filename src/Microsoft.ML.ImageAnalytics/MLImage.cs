@@ -334,8 +334,9 @@ namespace Microsoft.ML.Data
             SKRect destRect = new SKRect(destX, destY, destX + destWidth, destY + destHeight);
 
             using SKCanvas canvas = new SKCanvas(destBitmap);
+            using SKImage image = SKImage.FromBitmap(_image);
 
-            canvas.DrawBitmap(_image, srcRect, destRect);
+            canvas.DrawImage(image, srcRect, destRect, new SKSamplingOptions(SKCubicResampler.Mitchell));
 
             return destBitmap;
         }
@@ -390,8 +391,9 @@ namespace Microsoft.ML.Data
             SKRect destRect = new SKRect(destX, destY, destX + destWidth, destY + destHeight);
 
             using SKCanvas canvas = new SKCanvas(dst);
+            using SKImage image = SKImage.FromBitmap(_image);
 
-            canvas.DrawBitmap(_image, srcRect, destRect);
+            canvas.DrawImage(image, srcRect, destRect, new SKSamplingOptions(SKCubicResampler.Mitchell));
 
             return dst;
         }
