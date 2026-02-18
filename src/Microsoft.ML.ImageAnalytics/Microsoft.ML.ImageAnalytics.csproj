@@ -11,6 +11,8 @@
     <PackageReference Include="System.Buffers" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" />
 
+    <PackageReference Include="SkiaSharp" />
+
     <!-- SkiaSharp reference Windows, UWP, and MacOS native dependencies packages. No need to explicity reference it here. -->
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
   </ItemGroup>
