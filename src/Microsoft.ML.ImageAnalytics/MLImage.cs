@@ -155,14 +155,14 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Gets the image pixel data.
         /// </summary>
-        public ReadOnlySpan<byte> Pixels
+        public unsafe ReadOnlySpan<byte> Pixels
         {
             get
             {
                 ThrowInvalidOperationExceptionIfDisposed();
                 Debug.Assert(_image.Info.BytesPerPixel == 4);
 
-                return _image.GetPixelSpan();
+                return new ReadOnlySpan<byte>(_image.GetPixels().ToPointer(), _image.ByteCount);
             }
         }
 
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Data
             return new MLImage(image);
         }
 
-        private SKBitmap ResizeFull(int width, int height) => _image.Resize(new SKSizeI(width, height), SKFilterQuality.None);
+        private SKBitmap ResizeFull(int width, int height) => _image.Resize(new SKSizeI(width, height), new SKSamplingOptions(SKFilterMode.Nearest));
 
         private SKBitmap ResizeWithPadding(int width, int height)
         {
@@ -334,9 +334,9 @@ namespace Microsoft.ML.Data
             SKRect destRect = new SKRect(destX, destY, destX + destWidth, destY + destHeight);
 
             using SKCanvas canvas = new SKCanvas(destBitmap);
-            using SKPaint paint = new SKPaint() { FilterQuality = SKFilterQuality.High };
+            using SKImage image = SKImage.FromBitmap(_image);
 
-            canvas.DrawBitmap(_image, srcRect, destRect, paint);
+            canvas.DrawImage(image, srcRect, destRect, new SKSamplingOptions(SKCubicResampler.Mitchell));
 
             return destBitmap;
         }
@@ -391,9 +391,9 @@ namespace Microsoft.ML.Data
             SKRect destRect = new SKRect(destX, destY, destX + destWidth, destY + destHeight);
 
             using SKCanvas canvas = new SKCanvas(dst);
-            using SKPaint paint = new SKPaint() { FilterQuality = SKFilterQuality.High };
+            using SKImage image = SKImage.FromBitmap(_image);
 
-            canvas.DrawBitmap(_image, srcRect, destRect, paint);
+            canvas.DrawImage(image, srcRect, destRect, new SKSamplingOptions(SKCubicResampler.Mitchell));
 
             return dst;
         }
@@ -415,7 +415,6 @@ namespace Microsoft.ML.Data
             using SKPaint paint = new SKPaint()
             {
                 ColorFilter = _grayscaleColorMatrix,
-                FilterQuality = SKFilterQuality.High
             };
 
             SKBitmap destBitmap = new SKBitmap(_image.Width, _image.Height, isOpaque: true);
