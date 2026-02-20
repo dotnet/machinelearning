@@ -10,20 +10,58 @@ using System.Linq;
 namespace Microsoft.Data.Analysis
 {
     /// <summary>
+    /// A record to identify the row that is being aggregated that can be used to decide whether or not to include it in the aggregation.
+    /// </summary>
+    public record GroupByPredicateInput
+    {
+        /// <summary>
+        /// The name of the column that is being aggregated
+        /// </summary>
+        public string ColumnName { get; set; }
+
+        /// <summary>
+        /// The value from the GroupBy column that this group is grouped on
+        /// </summary>
+        public object GroupKey { get; set; }
+
+        /// <summary>
+        /// The value of this row within the column that is being aggregated
+        /// </summary>
+        public object RowValue { get; set; }
+    }
+
+    /// <summary>
     /// A GroupBy class that is typically the result of a DataFrame.GroupBy call.
     /// It holds information to perform typical aggregation ops on it.
     /// </summary>
     public abstract class GroupBy
     {
         /// <summary>
-        /// Compute the number of non-null values in each group 
+        /// Compute the number of non-null values in each group
         /// </summary>
+        /// <param name="columnNames">The columns within which to compute the number of non-null values in each group. A default value includes all columns.</param>
         /// <returns></returns>
         public abstract DataFrame Count(params string[] columnNames);
 
         /// <summary>
+        /// Compute the number of values in each group that match a custom predicate
+        /// </summary>
+        /// <param name="predicate">A function that takes in the column name, group key, and row value and returns true to include that row in the group count or false to exclude it.</param>
+        /// <param name="columnNames">The columns within which to compute the number of values in each group that match the predicate. A default value includes all columns.</param>
+        /// <returns></returns>
+        public abstract DataFrame CountIf(Func<GroupByPredicateInput, bool> predicate, params string[] columnNames);
+
+        /// <summary>
+        /// Compute the number of distinct non-null values in each group 
+        /// </summary>
+        /// <param name="columnNames">The columns within which to compute the number of distinct non-null values in each group. A default value includes all columns.</param>
+        /// <returns></returns>
+        public abstract DataFrame CountDistinct(params string[] columnNames);
+
+        /// <summary>
         /// Return the first value in each group
         /// </summary>
+        /// <param name="columnNames">Names of the columns to aggregate</param>
         /// <returns></returns>
         public abstract DataFrame First(params string[] columnNames);
 
@@ -141,6 +179,11 @@ namespace Microsoft.Data.Analysis
 
         public override DataFrame Count(params string[] columnNames)
         {
+            return CountIf(input => input.RowValue != null, columnNames);
+        }
+
+        public override DataFrame CountIf(Func<GroupByPredicateInput, bool> predicate, params string[] columnNames)
+        {
             DataFrame ret = new DataFrame();
             PrimitiveDataFrameColumn<long> empty = new PrimitiveDataFrameColumn<long>("Empty");
             DataFrameColumn firstColumn = _dataFrame.Columns[_groupByColumnIndex].Clone(empty);
@@ -156,10 +199,19 @@ namespace Microsoft.Data.Analysis
                     return;
                 DataFrameColumn column = _dataFrame.Columns[columnIndex];
                 long count = 0;
+                var groupByPredicateInput = new GroupByPredicateInput
+                {
+                    ColumnName = column.Name,
+                    GroupKey = firstColumn[rowIndex]
+                };
                 foreach (long row in rowEnumerable)
                 {
-                    if (column[row] != null)
+                    groupByPredicateInput.RowValue = column[row];
+
+                    if (predicate(groupByPredicateInput))
+                    {
                         count++;
+                    }
                 }
                 DataFrameColumn retColumn;
                 if (firstGroup)
@@ -180,6 +232,26 @@ namespace Microsoft.Data.Analysis
             ret.SetTableRowCount(firstColumn.Length);
 
             return ret;
+        }
+
+        public override DataFrame CountDistinct(params string[] columnNames)
+        {
+            HashSet<GroupByPredicateInput> seenValues = [];
+
+            return CountIf(
+                input =>
+                {
+                    if (input.RowValue == null || seenValues.Contains(input))
+                    {
+                        return false;
+                    }
+
+                    seenValues.Add(input);
+
+                    return true;
+                },
+                columnNames
+                );
         }
 
         public override DataFrame First(params string[] columnNames)
