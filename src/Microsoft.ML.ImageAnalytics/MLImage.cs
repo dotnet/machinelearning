@@ -162,7 +162,11 @@ namespace Microsoft.ML.Data
                 ThrowInvalidOperationExceptionIfDisposed();
                 Debug.Assert(_image.Info.BytesPerPixel == 4);
 
-                return new ReadOnlySpan<byte>(_image.GetPixels().ToPointer(), _image.ByteCount);
+                var pixelsPtr = _image.GetPixels();
+                if (pixelsPtr == IntPtr.Zero || _image.ByteCount <= 0)
+                    throw new InvalidOperationException("Pixel data is unavailable.");
+
+                return new ReadOnlySpan<byte>(pixelsPtr.ToPointer(), _image.ByteCount);
             }
         }
 
