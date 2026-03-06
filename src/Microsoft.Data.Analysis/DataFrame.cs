@@ -668,6 +668,246 @@ namespace Microsoft.Data.Analysis
         }
 
         /// <summary>
+        /// Transforms the DataFrame from wide format to long format by unpivoting specified columns.
+        /// This operation takes multiple value columns and "melts" them into two columns: one containing
+        /// the original column names (variable) and one containing the values.
+        /// </summary>
+        /// <param name="idColumns">
+        /// Column names to use as identifier variables. These columns will be repeated in the output
+        /// for each value column. Must contain at least one column name.
+        /// </param>
+        /// <param name="valueColumns">
+        /// Column names to unpivot into the variable and value columns. If null, all columns not
+        /// specified in <paramref name="idColumns"/> will be used as value columns.
+        /// </param>
+        /// <param name="variableName">
+        /// Name for the new column that will contain the original value column names. Defaults to "variable".
+        /// </param>
+        /// <param name="valueName">
+        /// Name for the new column that will contain the values from the unpivoted columns. Defaults to "value".
+        /// If value columns contain different types, this column will be of type string; otherwise, it will
+        /// match the type of the first value column.
+        /// </param>
+        /// <param name="dropNulls">
+        /// If true, rows where the value is null or empty string will be excluded from the result.
+        /// Defaults to false.
+        /// </param>
+        /// <returns>
+        /// A new DataFrame in long format with columns for each ID column, plus the variable and value columns.
+        /// The number of rows will be approximately (number of original rows × number of value columns),
+        /// or fewer if <paramref name="dropNulls"/> is true.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// Thrown when <paramref name="idColumns"/> is empty, when <paramref name="valueColumns"/> is specified
+        /// but empty, or when any column appears in both <paramref name="idColumns"/> and <paramref name="valueColumns"/>.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when <paramref name="valueColumns"/> is null and there are no columns available to use as
+        /// value columns after excluding the ID columns.
+        /// </exception>
+        /// <example>
+        /// <code>
+        /// // Original DataFrame:
+        /// // | ID | Name  | 2020 | 2021 | 2022 |
+        /// // |----|-------|------|------|------|
+        /// // | 1  | Alice | 100  | 110  | 120  |
+        /// // | 2  | Bob   | 200  | 210  | 220  |
+        /// 
+        /// var melted = df.Melt(
+        ///     idColumns: new[] { "ID", "Name" },
+        ///     valueColumns: new[] { "2020", "2021", "2022" },
+        ///     variableName: "Year",
+        ///     valueName: "Sales"
+        /// );
+        /// 
+        /// // Result:
+        /// // | ID | Name  | Year | Sales |
+        /// // |----|-------|------|-------|
+        /// // | 1  | Alice | 2020 | 100   |
+        /// // | 1  | Alice | 2021 | 110   |
+        /// // | 1  | Alice | 2022 | 120   |
+        /// // | 2  | Bob   | 2020 | 200   |
+        /// // | 2  | Bob   | 2021 | 210   |
+        /// // | 2  | Bob   | 2022 | 220   |
+        /// </code>
+        /// </example>
+        public DataFrame Melt(IEnumerable<string> idColumns, IEnumerable<string> valueColumns = null, string variableName = "variable", string valueName = "value", bool dropNulls = false)
+        {
+            if (string.IsNullOrWhiteSpace(variableName))
+            {
+                throw new ArgumentException("Parameter must not be null, empty, or whitespace", nameof(variableName));
+            }
+
+            if (string.IsNullOrWhiteSpace(valueName))
+            {
+                throw new ArgumentException("Parameter must not be null, empty, or whitespace", nameof(valueName));
+            }
+
+            var idColumnList = idColumns?.ToList() ?? new List<string>();
+
+            HashSet<string> idColumnSet = null;
+
+            if (valueColumns is null)
+            {
+                idColumnSet = [.. idColumnList];
+            }
+
+            var valueColumnList = valueColumns?.ToList()
+                ?? _columnCollection
+                    .Where(c => !idColumnSet.Contains(c.Name))
+                    .Select(c => c.Name)
+                    .ToList();
+
+            if (idColumnList.Count == 0)
+            {
+                throw new ArgumentException("Must provide at least 1 ID column", nameof(idColumns));
+            }
+
+            if (valueColumns != null && valueColumnList.Count == 0)
+            {
+                throw new ArgumentException("Must provide at least 1 value column when specifying value columns manually", nameof(valueColumns));
+            }
+
+            if (valueColumns != null && valueColumnList.Any(v => idColumnList.Contains(v)))
+            {
+                throw new ArgumentException("Columns cannot exist in both idColumns and valueColumns", nameof(valueColumns));
+            }
+
+            if (valueColumns == null && valueColumnList.Count == 0)
+            {
+                throw new InvalidOperationException("There are no columns in the DataFrame to use as value columns after excluding the ID columns");
+            }
+
+            IEnumerable<string> existingColumnNames = _columnCollection.Select(c => c.Name);
+
+            if (existingColumnNames.Contains(variableName))
+            {
+                throw new ArgumentException($"Variable name '{variableName}' matches an existing column name", nameof(variableName));
+            }
+
+            if (existingColumnNames.Contains(valueName))
+            {
+                throw new ArgumentException($"Value name '{valueName}' matches an existing column name", nameof(valueName));
+            }
+
+            long totalOutputRows = CalculateTotalOutputRows(valueColumnList, dropNulls);
+
+            var outputCols = InitializeIdColumns(idColumnList, totalOutputRows);
+            var variableColumn = new StringDataFrameColumn(variableName, totalOutputRows);
+            var valueColumn = CreateValueColumn(valueColumnList, valueName, totalOutputRows);
+
+            FillMeltedData(idColumnList, valueColumnList, outputCols, variableColumn, valueColumn, dropNulls);
+
+            outputCols.Add(variableColumn);
+            outputCols.Add(valueColumn);
+
+            return new DataFrame(outputCols);
+        }
+
+        private long CalculateTotalOutputRows(List<string> valueColumnList, bool dropNulls)
+        {
+            if (!dropNulls)
+            {
+                return _rowCollection.Count * valueColumnList.Count;
+            }
+
+            long total = 0;
+
+            foreach (var columnName in valueColumnList)
+            {
+                var column = _columnCollection[columnName];
+
+                foreach (var item in column)
+                {
+                    if (item is not null and not "")
+                    {
+                        total++;
+                    }
+                }
+            }
+
+            return total;
+        }
+
+        private List<DataFrameColumn> InitializeIdColumns(List<string> idColumnList, long size)
+        {
+            PrimitiveDataFrameColumn<long> empty = new PrimitiveDataFrameColumn<long>("Empty");
+            var outputCols = new List<DataFrameColumn>(idColumnList.Count);
+
+            foreach (var idColumnName in idColumnList)
+            {
+                var sourceColumn = _columnCollection[idColumnName];
+                var newColumn = sourceColumn.Clone(empty);
+                newColumn.Resize(size);
+                outputCols.Add(newColumn);
+            }
+
+            return outputCols;
+        }
+
+        private DataFrameColumn CreateValueColumn(List<string> valueColumnList, string valueName, long size)
+        {
+            var valueTypes = valueColumnList
+                .Select(name => _columnCollection[name].DataType)
+                .Distinct()
+                .Count();
+
+            DataFrameColumn valueColumn;
+
+            if (valueTypes > 1)
+            {
+                valueColumn = new StringDataFrameColumn(valueName, size);
+            }
+            else
+            {
+                PrimitiveDataFrameColumn<long> empty = new PrimitiveDataFrameColumn<long>("Empty");
+                valueColumn = _columnCollection[valueColumnList[0]].Clone(empty);
+                valueColumn.SetName(valueName);
+                valueColumn.Resize(size);
+            }
+
+            return valueColumn;
+        }
+
+        private void FillMeltedData(List<string> idColumnList, List<string> valueColumnList, List<DataFrameColumn> outputIdCols, StringDataFrameColumn variableColumn, DataFrameColumn valueColumn, bool dropNulls)
+        {
+            bool mixedTypes = valueColumn is StringDataFrameColumn;
+            long currentRow = 0;
+            long rowCount = _rowCollection.Count;
+            int idColumnCount = idColumnList.Count;
+
+            var idColumns = new DataFrameColumn[idColumnCount];
+            for (int i = 0; i < idColumnCount; i++)
+            {
+                idColumns[i] = _columnCollection[idColumnList[i]];
+            }
+
+            foreach (var valueColumnName in valueColumnList)
+            {
+                var sourceValueColumn = _columnCollection[valueColumnName];
+
+                for (long sourceRow = 0; sourceRow < rowCount; sourceRow++)
+                {
+                    var value = sourceValueColumn[sourceRow];
+
+                    if (dropNulls && (value is null or ""))
+                    {
+                        continue;
+                    }
+
+                    for (int i = 0; i < idColumnCount; i++)
+                    {
+                        outputIdCols[i][currentRow] = idColumns[i][sourceRow];
+                    }
+
+                    variableColumn[currentRow] = valueColumnName;
+                    valueColumn[currentRow] = mixedTypes ? value?.ToString() : value;
+                    currentRow++;
+                }
+            }
+        }
+
+        /// <summary>
         /// Invalidates any cached data after a column has changed.
         /// </summary>
         private void OnColumnsChanged()
