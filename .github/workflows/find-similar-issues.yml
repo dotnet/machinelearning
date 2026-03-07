@@ -1,0 +1,92 @@
+name: "Find Similar Issues with AI"
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+  models: read
+
+jobs:
+  find-similar-issues:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues'
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - run: npm init -y && npm install @octokit/rest
+
+      - name: Find and post similar issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          node << 'SCRIPT'
+          const { Octokit } = require("@octokit/rest");
+          const fs = require('fs');
+          const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+          const endpoint = "https://models.inference.ai.azure.com";
+          const model = "gpt-4o-mini";
+          const token = process.env.GITHUB_TOKEN;
+          const issueNum = parseInt(process.env.ISSUE_NUMBER);
+          const title = process.env.ISSUE_TITLE;
+          const body = process.env.ISSUE_BODY || '';
+          const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
+
+          function extractWords(text) {
+            const stop = new Set(['the','and','for','with','this','that','from','have','not','are','was','will','can','when','what','how','use','does','issue','error','work']);
+            return [...new Set(text.replace(/```[\s\S]*?```/g,'').replace(/https?:\/\/\S+/g,'').replace(/[^a-z0-9\s]/gi,' ').toLowerCase().split(/\s+/).filter(w=>w.length>3&&!stop.has(w)))];
+          }
+          function jaccard(a,b) { const i=a.filter(w=>b.includes(w)); const u=[...new Set([...a,...b])]; return u.length?i.length/u.length:0; }
+
+          (async()=>{
+            const issues=[];
+            for(let p=1;p<=10;p++){
+              const r=await octokit.issues.listForRepo({owner,repo,state:'all',per_page:100,page:p,sort:'updated',direction:'desc'});
+              if(!r.data.length)break;
+              issues.push(...r.data.filter(i=>i.number!==issueNum&&!i.pull_request));
+            }
+            const words=extractWords(`${title}\n${body}`);
+            const candidates=issues.map(i=>({issue:i,score:jaccard(words,extractWords(`${i.title}\n${i.body||''}`))}))
+              .filter(c=>c.score>0.1).sort((a,b)=>b.score-a.score).slice(0,30);
+
+            const results=[];
+            for(const{issue}of candidates){
+              try{
+                const r=await fetch(`${endpoint}/chat/completions`,{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
+                  body:JSON.stringify({model,temperature:0.3,max_tokens:150,messages:[
+                    {role:"system",content:'Analyze GitHub issue similarity. Return JSON only: {"score":0.0,"reason":"brief"}'},
+                    {role:"user",content:`Current:\nTitle: ${title}\nBody: ${body}\n\nCompare:\nTitle: ${issue.title}\nBody: ${issue.body||'None'}`}
+                  ]})});
+                const d=await r.json();
+                if(!d.choices?.[0])continue;
+                const parsed=JSON.parse(d.choices[0].message.content.trim().replace(/^```json?\s*/gm,'').replace(/```$/gm,''));
+                if(parsed.score>=0.6) results.push({number:issue.number,title:issue.title,state:issue.state,url:issue.html_url,score:parsed.score,reason:parsed.reason,labels:issue.labels.map(l=>l.name)});
+                await new Promise(r=>setTimeout(r,100));
+              }catch(e){console.error(`#${issue.number}:`,e.message)}
+            }
+            results.sort((a,b)=>b.score-a.score);
+            const top=results.slice(0,5);
+
+            let comment='';
+            if(top.length){
+              comment=`## 🔍 Similar Issues Found\n\n`;
+              top.forEach((s,i)=>{
+                comment+=`<details><summary><strong>${i+1}. <a href="${s.url}">#${s.number}</a>: ${s.title}</strong> (${Math.round(s.score*100)}%)</summary>\n\n`;
+                comment+=`**State:** ${s.state==='open'?'🟢 Open':'🔴 Closed'}  \n**Labels:** ${s.labels.slice(0,5).map(l=>'`'+l+'`').join(', ')||'None'}\n`;
+                if(s.reason) comment+=`**Why:** ${s.reason}\n`;
+                comment+=`</details>\n\n`;
+              });
+              comment+=`---\n*AI-powered similar issue detection*`;
+            } else {
+              comment=`## 🔍 No similar issues found with high confidence.\n\n---\n*AI-powered similar issue detection*`;
+            }
+            await octokit.issues.createComment({owner,repo,issue_number:issueNum,body:comment});
+          })();
+          SCRIPT
