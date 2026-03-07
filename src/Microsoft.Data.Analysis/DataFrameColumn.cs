@@ -466,7 +466,7 @@ namespace Microsoft.Data.Analysis
         protected delegate ValueTuple<T, int> GetValueAndBufferSortIndexAtBuffer<T>(int bufferIndex, int valueIndex);
         protected delegate int GetBufferLengthAtIndex(int bufferIndex);
 
-        protected static void PopulateColumnSortIndicesWithHeap<T>(SortedDictionary<T, List<ValueTuple<int, int>>> heapOfValueAndListOfTupleOfSortAndBufferIndex,
+        protected static void PopulateColumnSortIndicesWithHeap<T>(SortedDictionary<T, LinkedList<ValueTuple<int, int>>> heapOfValueAndListOfTupleOfSortAndBufferIndex,
                                                             PrimitiveDataFrameColumn<long> columnSortIndices,
                                                             PrimitiveDataFrameColumn<long> columnNullIndices,
                                                             bool putNullValuesLast,
@@ -481,19 +481,20 @@ namespace Microsoft.Data.Analysis
 
             while (heapOfValueAndListOfTupleOfSortAndBufferIndex.Count > 0)
             {
-                KeyValuePair<T, List<ValueTuple<int, int>>> minElement = heapOfValueAndListOfTupleOfSortAndBufferIndex.ElementAt(0);
-                List<ValueTuple<int, int>> tuplesOfSortAndBufferIndex = minElement.Value;
+                KeyValuePair<T, LinkedList<ValueTuple<int, int>>> minElement = heapOfValueAndListOfTupleOfSortAndBufferIndex.ElementAt(0);
+                LinkedList<ValueTuple<int, int>> tuplesOfSortAndBufferIndex = minElement.Value;
                 (int sortIndex, int bufferIndex) sortAndBufferIndex;
                 if (tuplesOfSortAndBufferIndex.Count == 1)
                 {
                     heapOfValueAndListOfTupleOfSortAndBufferIndex.Remove(minElement.Key);
-                    sortAndBufferIndex = tuplesOfSortAndBufferIndex[0];
+                    sortAndBufferIndex = tuplesOfSortAndBufferIndex.First.Value;
                 }
                 else
                 {
-                    // Take from front (FIFO) to preserve stable order across buffers
-                    sortAndBufferIndex = tuplesOfSortAndBufferIndex[0];
-                    tuplesOfSortAndBufferIndex.RemoveAt(0);
+                    // Take from front (FIFO) to preserve stable order across buffers.
+                    // LinkedList.RemoveFirst() is O(1), unlike List.RemoveAt(0) which is O(n).
+                    sortAndBufferIndex = tuplesOfSortAndBufferIndex.First.Value;
+                    tuplesOfSortAndBufferIndex.RemoveFirst();
                 }
                 int sortIndex = sortAndBufferIndex.sortIndex;
                 int bufferIndex = sortAndBufferIndex.bufferIndex;
@@ -508,13 +509,18 @@ namespace Microsoft.Data.Analysis
                     T nextValue = nextValueAndBufferSortIndex.value;
                     if (nextValue != null)
                     {
-                        if (heapOfValueAndListOfTupleOfSortAndBufferIndex.TryGetValue(nextValue, out List<ValueTuple<int, int>> existingList))
+                        if (heapOfValueAndListOfTupleOfSortAndBufferIndex.TryGetValue(nextValue, out LinkedList<ValueTuple<int, int>> existingList))
                         {
-                            existingList.Add((nextValueAndBufferSortIndex.bufferSortIndex, bufferIndex));
+                            // Insert at front: the current buffer was just popped from the front,
+                            // so its next element must come before entries from higher-indexed buffers
+                            // to preserve stable order across buffers.
+                            existingList.AddFirst((nextValueAndBufferSortIndex.bufferSortIndex, bufferIndex));
                         }
                         else
                         {
-                            heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(nextValue, new List<ValueTuple<int, int>>() { (nextValueAndBufferSortIndex.bufferSortIndex, bufferIndex) });
+                            var newList = new LinkedList<ValueTuple<int, int>>();
+                            newList.AddFirst((nextValueAndBufferSortIndex.bufferSortIndex, bufferIndex));
+                            heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(nextValue, newList);
                         }
                     }
                 }

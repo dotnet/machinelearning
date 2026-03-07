@@ -236,7 +236,7 @@ namespace Microsoft.Data.Analysis
                 return (value, startIndex);
             }
 
-            SortedDictionary<string, List<ValueTuple<int, int>>> heapOfValueAndListOfTupleOfSortAndBufferIndex = new SortedDictionary<string, List<ValueTuple<int, int>>>(sortComparer);
+            SortedDictionary<string, LinkedList<ValueTuple<int, int>>> heapOfValueAndListOfTupleOfSortAndBufferIndex = new SortedDictionary<string, LinkedList<ValueTuple<int, int>>>(sortComparer);
             List<List<string>> buffers = _stringBuffers;
             for (int i = 0; i < buffers.Count; i++)
             {
@@ -249,11 +249,13 @@ namespace Microsoft.Data.Analysis
                 }
                 if (heapOfValueAndListOfTupleOfSortAndBufferIndex.ContainsKey(valueAndBufferSortIndex.Item1))
                 {
-                    heapOfValueAndListOfTupleOfSortAndBufferIndex[valueAndBufferSortIndex.Item1].Add((valueAndBufferSortIndex.Item2, i));
+                    heapOfValueAndListOfTupleOfSortAndBufferIndex[valueAndBufferSortIndex.Item1].AddLast((valueAndBufferSortIndex.Item2, i));
                 }
                 else
                 {
-                    heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(valueAndBufferSortIndex.Item1, new List<ValueTuple<int, int>>() { (valueAndBufferSortIndex.Item2, i) });
+                    var list = new LinkedList<ValueTuple<int, int>>();
+                    list.AddLast((valueAndBufferSortIndex.Item2, i));
+                    heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(valueAndBufferSortIndex.Item1, list);
                 }
             }
             var columnSortIndices = new Int64DataFrameColumn("SortIndices", Length);

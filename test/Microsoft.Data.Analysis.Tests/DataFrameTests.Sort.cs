@@ -251,7 +251,7 @@ namespace Microsoft.Data.Analysis.Tests
         }
 
         [Fact]
-        public void TestOrderBy_StableSort_LargeDataset()
+        public void TestOrderBy_StableSort_ManyDuplicates()
         {
             // Regression test for a previously unstable OrderBy implementation that
             // used quicksort on larger partitions. Uses many duplicate keys to hit

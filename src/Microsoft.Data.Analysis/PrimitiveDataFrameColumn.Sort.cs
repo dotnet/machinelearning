@@ -79,7 +79,7 @@ namespace Microsoft.Data.Analysis
                 return (value, startIndex);
             }
 
-            SortedDictionary<T, List<ValueTuple<int, int>>> heapOfValueAndListOfTupleOfSortAndBufferIndex = new SortedDictionary<T, List<ValueTuple<int, int>>>(sortComparer);
+            SortedDictionary<T, LinkedList<ValueTuple<int, int>>> heapOfValueAndListOfTupleOfSortAndBufferIndex = new SortedDictionary<T, LinkedList<ValueTuple<int, int>>>(sortComparer);
             IList<ReadOnlyDataFrameBuffer<T>> buffers = _columnContainer.Buffers;
             for (int i = 0; i < buffers.Count; i++)
             {
@@ -92,11 +92,13 @@ namespace Microsoft.Data.Analysis
                 ValueTuple<T, int> valueAndBufferIndex = GetFirstNonNullValueAndBufferIndexStartingAtIndex(i, 0);
                 if (heapOfValueAndListOfTupleOfSortAndBufferIndex.ContainsKey(valueAndBufferIndex.Item1))
                 {
-                    heapOfValueAndListOfTupleOfSortAndBufferIndex[valueAndBufferIndex.Item1].Add((valueAndBufferIndex.Item2, i));
+                    heapOfValueAndListOfTupleOfSortAndBufferIndex[valueAndBufferIndex.Item1].AddLast((valueAndBufferIndex.Item2, i));
                 }
                 else
                 {
-                    heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(valueAndBufferIndex.Item1, new List<ValueTuple<int, int>>() { (valueAndBufferIndex.Item2, i) });
+                    var list = new LinkedList<ValueTuple<int, int>>();
+                    list.AddLast((valueAndBufferIndex.Item2, i));
+                    heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(valueAndBufferIndex.Item1, list);
                 }
             }
             Int64DataFrameColumn columnSortIndices = new Int64DataFrameColumn("SortIndices", Length);
