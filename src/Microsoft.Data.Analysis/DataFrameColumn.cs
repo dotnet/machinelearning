@@ -511,15 +511,20 @@ namespace Microsoft.Data.Analysis
                     {
                         if (heapOfValueAndListOfTupleOfSortAndBufferIndex.TryGetValue(nextValue, out LinkedList<ValueTuple<int, int>> existingList))
                         {
-                            // Insert at front: the current buffer was just popped from the front,
-                            // so its next element must come before entries from higher-indexed buffers
-                            // to preserve stable order across buffers.
-                            existingList.AddFirst((nextValueAndBufferSortIndex.bufferSortIndex, bufferIndex));
+                            // Insert in buffer-index order to preserve stability across buffers.
+                            // Lower buffer indices represent earlier original rows and must come first.
+                            var node = existingList.First;
+                            while (node != null && node.Value.Item2 < bufferIndex)
+                                node = node.Next;
+                            if (node == null)
+                                existingList.AddLast((nextValueAndBufferSortIndex.bufferSortIndex, bufferIndex));
+                            else
+                                existingList.AddBefore(node, (nextValueAndBufferSortIndex.bufferSortIndex, bufferIndex));
                         }
                         else
                         {
                             var newList = new LinkedList<ValueTuple<int, int>>();
-                            newList.AddFirst((nextValueAndBufferSortIndex.bufferSortIndex, bufferIndex));
+                            newList.AddLast((nextValueAndBufferSortIndex.bufferSortIndex, bufferIndex));
                             heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(nextValue, newList);
                         }
                     }
