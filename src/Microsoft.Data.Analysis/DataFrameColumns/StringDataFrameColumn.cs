@@ -205,6 +205,7 @@ namespace Microsoft.Data.Analysis
         protected internal override PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending, bool putNullValuesLast)
         {
             var comparer = Comparer<string>.Default;
+            IComparer<string> sortComparer = ascending ? comparer : Comparer<string>.Create((a, b) => comparer.Compare(b, a));
 
             List<int[]> bufferSortIndices = new List<int[]>(_stringBuffers.Count);
             var columnNullIndices = new Int64DataFrameColumn("NullIndices", NullCount);
@@ -221,9 +222,7 @@ namespace Microsoft.Data.Analysis
                         nullIndicesSlot++;
                     }
                 }
-                // TODO: Refactor the sort routine to also work with IList?
-                string[] array = buffer.ToArray();
-                IntrospectiveSort(array, array.Length, sortIndices, comparer);
+                MergeSortIndices(buffer, buffer.Count, sortIndices, sortComparer);
                 bufferSortIndices.Add(sortIndices);
             }
             // Simple merge sort to build the full column's sort indices
@@ -237,7 +236,7 @@ namespace Microsoft.Data.Analysis
                 return (value, startIndex);
             }
 
-            SortedDictionary<string, List<ValueTuple<int, int>>> heapOfValueAndListOfTupleOfSortAndBufferIndex = new SortedDictionary<string, List<ValueTuple<int, int>>>(comparer);
+            SortedDictionary<string, List<ValueTuple<int, int>>> heapOfValueAndListOfTupleOfSortAndBufferIndex = new SortedDictionary<string, List<ValueTuple<int, int>>>(sortComparer);
             List<List<string>> buffers = _stringBuffers;
             for (int i = 0; i < buffers.Count; i++)
             {
@@ -266,7 +265,6 @@ namespace Microsoft.Data.Analysis
             PopulateColumnSortIndicesWithHeap(heapOfValueAndListOfTupleOfSortAndBufferIndex,
                 columnSortIndices,
                 columnNullIndices,
-                ascending,
                 putNullValuesLast,
                 getBufferSortIndex,
                 getValueAtBuffer,

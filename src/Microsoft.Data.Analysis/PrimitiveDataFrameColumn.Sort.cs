@@ -21,6 +21,7 @@ namespace Microsoft.Data.Analysis
         protected internal override PrimitiveDataFrameColumn<long> GetSortIndices(bool ascending = true, bool putNullValuesLast = true)
         {
             var comparer = Comparer<T>.Default;
+            IComparer<T> sortComparer = ascending ? comparer : Comparer<T>.Create((a, b) => comparer.Compare(b, a));
 
             List<List<int>> bufferSortIndices = new List<List<int>>(_columnContainer.Buffers.Count);
             var columnNullIndices = new Int64DataFrameColumn("NullIndices", NullCount);
@@ -35,8 +36,8 @@ namespace Microsoft.Data.Analysis
                 {
                     sortIndices[i] = i;
                 }
-                IntrospectiveSort(buffer.ReadOnlySpan, buffer.Length, sortIndices, comparer);
-                // Bug fix: QuickSort is not stable. When PrimitiveDataFrameColumn has null values and default values, they move around
+                MergeSortIndices(buffer.ReadOnlySpan, buffer.Length, sortIndices, sortComparer);
+                // Stable sort preserves relative order of equal elements and null/default values
                 List<int> nonNullSortIndices = new List<int>();
                 for (int i = 0; i < sortIndices.Length; i++)
                 {
@@ -78,7 +79,7 @@ namespace Microsoft.Data.Analysis
                 return (value, startIndex);
             }
 
-            SortedDictionary<T, List<ValueTuple<int, int>>> heapOfValueAndListOfTupleOfSortAndBufferIndex = new SortedDictionary<T, List<ValueTuple<int, int>>>(comparer);
+            SortedDictionary<T, List<ValueTuple<int, int>>> heapOfValueAndListOfTupleOfSortAndBufferIndex = new SortedDictionary<T, List<ValueTuple<int, int>>>(sortComparer);
             IList<ReadOnlyDataFrameBuffer<T>> buffers = _columnContainer.Buffers;
             for (int i = 0; i < buffers.Count; i++)
             {
@@ -107,7 +108,6 @@ namespace Microsoft.Data.Analysis
             PopulateColumnSortIndicesWithHeap(heapOfValueAndListOfTupleOfSortAndBufferIndex,
                 columnSortIndices,
                 columnNullIndices,
-                ascending,
                 putNullValuesLast,
                 getBufferSortIndex,
                 getValueAndBufferSortIndexAtBuffer,

@@ -469,16 +469,15 @@ namespace Microsoft.Data.Analysis
         protected static void PopulateColumnSortIndicesWithHeap<T>(SortedDictionary<T, List<ValueTuple<int, int>>> heapOfValueAndListOfTupleOfSortAndBufferIndex,
                                                             PrimitiveDataFrameColumn<long> columnSortIndices,
                                                             PrimitiveDataFrameColumn<long> columnNullIndices,
-                                                            bool ascending,
                                                             bool putNullValuesLast,
                                                             GetBufferSortIndex getBufferSortIndex,
                                                             GetValueAndBufferSortIndexAtBuffer<T> getValueAndBufferSortIndexAtBuffer,
                                                             GetBufferLengthAtIndex getBufferLengthAtIndex)
         {
-            long i = ascending ? columnNullIndices.Length : columnSortIndices.Length - 1;
-
-            if (putNullValuesLast)
-                i -= columnNullIndices.Length;
+            // Always write left-to-right. For descending order, callers pass a SortedDictionary
+            // with a reversed comparer so that ElementAt(0) yields the largest value first.
+            // This ensures stable sorting: equal elements preserve their original relative order.
+            long i = putNullValuesLast ? 0 : columnNullIndices.Length;
 
             while (heapOfValueAndListOfTupleOfSortAndBufferIndex.Count > 0)
             {
@@ -492,14 +491,15 @@ namespace Microsoft.Data.Analysis
                 }
                 else
                 {
-                    sortAndBufferIndex = tuplesOfSortAndBufferIndex[tuplesOfSortAndBufferIndex.Count - 1];
-                    tuplesOfSortAndBufferIndex.RemoveAt(tuplesOfSortAndBufferIndex.Count - 1);
+                    // Take from front (FIFO) to preserve stable order across buffers
+                    sortAndBufferIndex = tuplesOfSortAndBufferIndex[0];
+                    tuplesOfSortAndBufferIndex.RemoveAt(0);
                 }
                 int sortIndex = sortAndBufferIndex.sortIndex;
                 int bufferIndex = sortAndBufferIndex.bufferIndex;
                 long bufferSortIndex = getBufferSortIndex(bufferIndex, sortIndex);
 
-                columnSortIndices[ascending ? i++ : i--] = bufferSortIndex;
+                columnSortIndices[i++] = bufferSortIndex;
 
                 if (sortIndex + 1 < getBufferLengthAtIndex(bufferIndex))
                 {
@@ -508,7 +508,14 @@ namespace Microsoft.Data.Analysis
                     T nextValue = nextValueAndBufferSortIndex.value;
                     if (nextValue != null)
                     {
-                        heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(nextValue, new List<ValueTuple<int, int>>() { (nextValueAndBufferSortIndex.bufferSortIndex, bufferIndex) });
+                        if (heapOfValueAndListOfTupleOfSortAndBufferIndex.TryGetValue(nextValue, out List<ValueTuple<int, int>> existingList))
+                        {
+                            existingList.Add((nextValueAndBufferSortIndex.bufferSortIndex, bufferIndex));
+                        }
+                        else
+                        {
+                            heapOfValueAndListOfTupleOfSortAndBufferIndex.Add(nextValue, new List<ValueTuple<int, int>>() { (nextValueAndBufferSortIndex.bufferSortIndex, bufferIndex) });
+                        }
                     }
                 }
             }
@@ -756,6 +763,164 @@ namespace Microsoft.Data.Analysis
                 int temp = sortIndices[i];
                 sortIndices[i] = sortIndices[j];
                 sortIndices[j] = temp;
+            }
+        }
+
+        /// <summary>
+        /// Stable merge sort that reorders <paramref name="sortIndices"/> so that
+        /// the values in <paramref name="span"/> are visited in sorted order.
+        /// </summary>
+        protected static void MergeSortIndices<TKey>(
+            ReadOnlySpan<TKey> span,
+            int length,
+            Span<int> sortIndices,
+            IComparer<TKey> comparer)
+        {
+            if (length <= 1)
+                return;
+
+            int[] auxiliary = System.Buffers.ArrayPool<int>.Shared.Rent(length);
+            try
+            {
+                MergeSortIndicesRecursive(span, sortIndices, auxiliary, 0, length - 1, comparer);
+            }
+            finally
+            {
+                System.Buffers.ArrayPool<int>.Shared.Return(auxiliary);
+            }
+        }
+
+        /// <summary>
+        /// Stable merge sort overload that accepts an <see cref="IList{TKey}"/> instead of a span,
+        /// avoiding the need to copy to an array first.
+        /// </summary>
+        protected static void MergeSortIndices<TKey>(
+            IList<TKey> list,
+            int length,
+            Span<int> sortIndices,
+            IComparer<TKey> comparer)
+        {
+            if (length <= 1)
+                return;
+
+            int[] auxiliary = System.Buffers.ArrayPool<int>.Shared.Rent(length);
+            try
+            {
+                MergeSortIndicesRecursive(list, sortIndices, auxiliary, 0, length - 1, comparer);
+            }
+            finally
+            {
+                System.Buffers.ArrayPool<int>.Shared.Return(auxiliary);
+            }
+        }
+
+        private static void MergeSortIndicesRecursive<TKey>(
+            ReadOnlySpan<TKey> span,
+            Span<int> sortIndices,
+            int[] auxiliary,
+            int lo,
+            int hi,
+            IComparer<TKey> comparer)
+        {
+            if (lo >= hi)
+                return;
+
+            int mid = lo + (hi - lo) / 2;
+            MergeSortIndicesRecursive(span, sortIndices, auxiliary, lo, mid, comparer);
+            MergeSortIndicesRecursive(span, sortIndices, auxiliary, mid + 1, hi, comparer);
+            Merge(span, sortIndices, auxiliary, lo, mid, hi, comparer);
+        }
+
+        private static void MergeSortIndicesRecursive<TKey>(
+            IList<TKey> list,
+            Span<int> sortIndices,
+            int[] auxiliary,
+            int lo,
+            int hi,
+            IComparer<TKey> comparer)
+        {
+            if (lo >= hi)
+                return;
+
+            int mid = lo + (hi - lo) / 2;
+            MergeSortIndicesRecursive(list, sortIndices, auxiliary, lo, mid, comparer);
+            MergeSortIndicesRecursive(list, sortIndices, auxiliary, mid + 1, hi, comparer);
+            MergeList(list, sortIndices, auxiliary, lo, mid, hi, comparer);
+        }
+
+        private static void Merge<TKey>(
+            ReadOnlySpan<TKey> span,
+            Span<int> sortIndices,
+            int[] auxiliary,
+            int lo,
+            int mid,
+            int hi,
+            IComparer<TKey> comparer)
+        {
+            for (int k = lo; k <= hi; k++)
+            {
+                auxiliary[k] = sortIndices[k];
+            }
+
+            int i = lo;
+            int j = mid + 1;
+
+            for (int k = lo; k <= hi; k++)
+            {
+                if (i > mid)
+                {
+                    sortIndices[k] = auxiliary[j++];
+                }
+                else if (j > hi)
+                {
+                    sortIndices[k] = auxiliary[i++];
+                }
+                else if (comparer.Compare(span[auxiliary[i]], span[auxiliary[j]]) <= 0)
+                {
+                    sortIndices[k] = auxiliary[i++];
+                }
+                else
+                {
+                    sortIndices[k] = auxiliary[j++];
+                }
+            }
+        }
+
+        private static void MergeList<TKey>(
+            IList<TKey> list,
+            Span<int> sortIndices,
+            int[] auxiliary,
+            int lo,
+            int mid,
+            int hi,
+            IComparer<TKey> comparer)
+        {
+            for (int k = lo; k <= hi; k++)
+            {
+                auxiliary[k] = sortIndices[k];
+            }
+
+            int i = lo;
+            int j = mid + 1;
+
+            for (int k = lo; k <= hi; k++)
+            {
+                if (i > mid)
+                {
+                    sortIndices[k] = auxiliary[j++];
+                }
+                else if (j > hi)
+                {
+                    sortIndices[k] = auxiliary[i++];
+                }
+                else if (comparer.Compare(list[auxiliary[i]], list[auxiliary[j]]) <= 0)
+                {
+                    sortIndices[k] = auxiliary[i++];
+                }
+                else
+                {
+                    sortIndices[k] = auxiliary[j++];
+                }
             }
         }
     }
