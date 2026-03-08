@@ -287,10 +287,142 @@ namespace Microsoft.Data.Analysis.Tests
                 prevKey = key;
                 prevId = id;
             }
-            // Note: multi-buffer stability (columns with >536M int elements) cannot be
-            // practically tested here. The per-buffer sort is stable (merge sort), and
-            // the cross-buffer merge uses a SortedDictionary-based k-way merge. If future
-            // changes reduce buffer capacity, consider adding a multi-buffer stability test.
+        }
+
+        [Fact]
+        public void TestOrderBy_StableSort_MultipleStringBuffers()
+        {
+            // Force small buffer capacity to exercise the multi-buffer merge path
+            // in PopulateColumnSortIndicesWithHeap (normally requires >268M string elements).
+            int originalMaxCapacity = StringDataFrameColumn.MaxCapacity;
+            try
+            {
+                StringDataFrameColumn.MaxCapacity = 3;
+
+                // 6 elements → 2 buffers of 3.
+                // Buffer 0: ["b", "a", "b"]  Buffer 1: ["a", "b", "a"]
+                var keyCol = new StringDataFrameColumn("Key", 0);
+                var idCol = new Int32DataFrameColumn("ID", 0);
+                string[] keys = { "b", "a", "b", "a", "b", "a" };
+                for (int i = 0; i < keys.Length; i++)
+                {
+                    keyCol.Append(keys[i]);
+                    idCol.Append(i);
+                }
+
+                var df = new DataFrame(keyCol, idCol);
+                DataFrame sorted = df.OrderBy("Key");
+
+                // "a" rows preserve original order: ID=1, ID=3, ID=5
+                Assert.Equal("a", sorted.Columns["Key"][0]);
+                Assert.Equal(1, sorted.Columns["ID"][0]);
+                Assert.Equal("a", sorted.Columns["Key"][1]);
+                Assert.Equal(3, sorted.Columns["ID"][1]);
+                Assert.Equal("a", sorted.Columns["Key"][2]);
+                Assert.Equal(5, sorted.Columns["ID"][2]);
+
+                // "b" rows preserve original order: ID=0, ID=2, ID=4
+                Assert.Equal("b", sorted.Columns["Key"][3]);
+                Assert.Equal(0, sorted.Columns["ID"][3]);
+                Assert.Equal("b", sorted.Columns["Key"][4]);
+                Assert.Equal(2, sorted.Columns["ID"][4]);
+                Assert.Equal("b", sorted.Columns["Key"][5]);
+                Assert.Equal(4, sorted.Columns["ID"][5]);
+            }
+            finally
+            {
+                StringDataFrameColumn.MaxCapacity = originalMaxCapacity;
+            }
+        }
+
+        [Fact]
+        public void TestOrderBy_StableSort_MultipleBuffers_InterleavedKeys()
+        {
+            // Exercises the interleaved-key scenario across buffers:
+            // a higher-indexed buffer reaches a key after a lower-indexed buffer already queued it.
+            // This was a bug identified in review round 2 (GPT-5.2 + Gemini).
+            int originalMaxCapacity = StringDataFrameColumn.MaxCapacity;
+            try
+            {
+                StringDataFrameColumn.MaxCapacity = 2;
+
+                // 4 elements → 2 buffers of 2.
+                // Buffer 0: ["z", "a"]  Buffer 1: ["a", "z"]
+                // After per-buffer sort: Buffer 0: ["a","z"], Buffer 1: ["a","z"]
+                // Heap init: {"a" → [Buf0, Buf1], "z" → [...]}
+                // Pop "a"(Buf0), then "a"(Buf1) — Buf0 rows must come first.
+                // Then pop "z"(Buf0) vs "z"(Buf1) — again Buf0 first.
+                var keyCol = new StringDataFrameColumn("Key", 0);
+                var idCol = new Int32DataFrameColumn("ID", 0);
+                string[] keys = { "z", "a", "a", "z" };
+                for (int i = 0; i < keys.Length; i++)
+                {
+                    keyCol.Append(keys[i]);
+                    idCol.Append(i);
+                }
+
+                var df = new DataFrame(keyCol, idCol);
+                DataFrame sorted = df.OrderBy("Key");
+
+                // "a" rows: ID=1 (buf0) before ID=2 (buf1)
+                Assert.Equal("a", sorted.Columns["Key"][0]);
+                Assert.Equal(1, sorted.Columns["ID"][0]);
+                Assert.Equal("a", sorted.Columns["Key"][1]);
+                Assert.Equal(2, sorted.Columns["ID"][1]);
+
+                // "z" rows: ID=0 (buf0) before ID=3 (buf1)
+                Assert.Equal("z", sorted.Columns["Key"][2]);
+                Assert.Equal(0, sorted.Columns["ID"][2]);
+                Assert.Equal("z", sorted.Columns["Key"][3]);
+                Assert.Equal(3, sorted.Columns["ID"][3]);
+            }
+            finally
+            {
+                StringDataFrameColumn.MaxCapacity = originalMaxCapacity;
+            }
+        }
+
+        [Fact]
+        public void TestOrderByDescending_StableSort_MultipleBuffers()
+        {
+            // Multi-buffer descending stability test: reversed comparer + left-to-right write.
+            int originalMaxCapacity = StringDataFrameColumn.MaxCapacity;
+            try
+            {
+                StringDataFrameColumn.MaxCapacity = 3;
+
+                var keyCol = new StringDataFrameColumn("Key", 0);
+                var idCol = new Int32DataFrameColumn("ID", 0);
+                string[] keys = { "a", "b", "a", "b", "a", "b" };
+                for (int i = 0; i < keys.Length; i++)
+                {
+                    keyCol.Append(keys[i]);
+                    idCol.Append(i);
+                }
+
+                var df = new DataFrame(keyCol, idCol);
+                DataFrame sorted = df.OrderByDescending("Key");
+
+                // Descending: "b" rows first, preserving original order: ID=1, ID=3, ID=5
+                Assert.Equal("b", sorted.Columns["Key"][0]);
+                Assert.Equal(1, sorted.Columns["ID"][0]);
+                Assert.Equal("b", sorted.Columns["Key"][1]);
+                Assert.Equal(3, sorted.Columns["ID"][1]);
+                Assert.Equal("b", sorted.Columns["Key"][2]);
+                Assert.Equal(5, sorted.Columns["ID"][2]);
+
+                // Then "a" rows: ID=0, ID=2, ID=4
+                Assert.Equal("a", sorted.Columns["Key"][3]);
+                Assert.Equal(0, sorted.Columns["ID"][3]);
+                Assert.Equal("a", sorted.Columns["Key"][4]);
+                Assert.Equal(2, sorted.Columns["ID"][4]);
+                Assert.Equal("a", sorted.Columns["Key"][5]);
+                Assert.Equal(4, sorted.Columns["ID"][5]);
+            }
+            finally
+            {
+                StringDataFrameColumn.MaxCapacity = originalMaxCapacity;
+            }
         }
     }
 }
