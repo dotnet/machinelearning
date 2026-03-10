@@ -17,6 +17,7 @@ tools:
 safe-outputs:
   update-issue:
     max: 1
+    target: "*"
   hide-comment:
     max: 50
 ---

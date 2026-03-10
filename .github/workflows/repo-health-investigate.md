@@ -34,6 +34,7 @@ tools:
 safe-outputs:
   add-comment:
     max: 1
+    target: "*"
 ---
 
 # Repo Health — Investigate Finding
