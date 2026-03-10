@@ -22,8 +22,10 @@ safe-outputs:
     max: 1
   update-issue:
     max: 1
+    target: "*"
   add-comment:
     max: 1
+    target: "*"
   dispatch-workflow:
     max: 5
     workflows: ["repo-health-investigate"]
