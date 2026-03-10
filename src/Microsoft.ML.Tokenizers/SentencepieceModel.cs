@@ -89,7 +89,22 @@ namespace Sentencepiece
                 throw new InvalidDataException("Unexpected end of data while reading float.");
             }
 
-            float value = BitConverter.ToSingle(data, pos);
+            float value;
+            if (BitConverter.IsLittleEndian)
+            {
+                value = BitConverter.ToSingle(data, pos);
+            }
+            else
+            {
+                // Protobuf fixed32 is always little-endian; reverse bytes on big-endian platforms.
+                byte[] buffer = new byte[4];
+                buffer[0] = data[pos + 3];
+                buffer[1] = data[pos + 2];
+                buffer[2] = data[pos + 1];
+                buffer[3] = data[pos];
+                value = BitConverter.ToSingle(buffer, 0);
+            }
+
             pos += 4;
             return value;
         }
@@ -148,13 +163,13 @@ namespace Sentencepiece
     /// <summary>Lightweight replacement for Google.Protobuf.ByteString with a Span property.</summary>
     internal readonly struct SentencePieceByteString(byte[] data, int offset, int length)
     {
-        internal ReadOnlySpan<byte> Span => data.AsSpan(offset, length);
+        internal ReadOnlySpan<byte> Span => data is null ? ReadOnlySpan<byte>.Empty : data.AsSpan(offset, length);
     }
 
     /// <summary>ModelProto  (top-level message; field numbers match sentencepiece_model.proto)</summary>
     internal sealed class ModelProto
     {
-        internal static ModelProtoParser Parser = new();
+        internal static readonly ModelProtoParser Parser = new();
 
         internal List<Types.SentencePiece> Pieces { get; } = new();
         internal TrainerSpec TrainerSpec { get; private set; } = new();
@@ -171,6 +186,16 @@ namespace Sentencepiece
                 int fieldNumber = tag >> 3;
                 int wireType = tag & 7;
 
+                // The 'when wireType == 2' guards serve double duty: they match the expected wire
+                // type for these message fields AND provide forward-compatibility — if a future proto
+                // version changes a field's type, or if extension fields reuse these numbers with a
+                // different wire type, the mismatch falls through to the default skip case.
+                //
+                // For non-repeated message fields (TrainerSpec, NormalizerSpec), seeing the same field
+                // number twice replaces the prior value (last wins). This differs from the standard
+                // protobuf library which merges repeated occurrences of non-repeated message fields.
+                // SentencePiece model files contain each field at most once, so the difference is moot
+                // in practice.
                 switch (fieldNumber)
                 {
                     case 1 when wireType == 2: // repeated SentencePiece pieces = 1
@@ -267,7 +292,28 @@ namespace Sentencepiece
                 throw new ArgumentNullException(nameof(stream));
             }
 
-            MemoryStream ms = new();
+            // Fast-path: if the input is already a MemoryStream with an accessible buffer,
+            // parse directly from its underlying array without copying.
+            if (stream is MemoryStream memoryStream &&
+                memoryStream.TryGetBuffer(out ArraySegment<byte> segment))
+            {
+                int start = segment.Offset + (int)memoryStream.Position;
+                int end = segment.Offset + (int)memoryStream.Length;
+                return ModelProto.Parse(segment.Array!, start, end);
+            }
+
+            // Fallback: copy remaining data into a new MemoryStream, pre-sizing when possible.
+            MemoryStream ms;
+            if (stream.CanSeek)
+            {
+                long remaining = stream.Length - stream.Position;
+                ms = remaining > 0 && remaining <= int.MaxValue ? new MemoryStream((int)remaining) : new MemoryStream();
+            }
+            else
+            {
+                ms = new MemoryStream();
+            }
+
             stream.CopyTo(ms);
             return ModelProto.Parse(ms.GetBuffer(), 0, (int)ms.Length);
         }
