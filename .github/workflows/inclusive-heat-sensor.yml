@@ -15,7 +15,6 @@ permissions:
 jobs:
   detect-heat:
     uses: jonathanpeppers/inclusive-heat-sensor/.github/workflows/comments.yml@v0.1.2
-    secrets: inherit
     with:
       minimizeComment: true
       offensiveThreshold: 9
