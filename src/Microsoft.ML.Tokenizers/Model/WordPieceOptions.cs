@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -11,7 +11,6 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     public class WordPieceOptions
     {
-#pragma warning disable MSML_NoInstanceInitializers
         internal const int DefaultMaxInputCharsPerWord = 100;
         internal const string DefaultContinuingSubwordPrefix = "##";
 
@@ -44,6 +43,5 @@ namespace Microsoft.ML.Tokenizers
         /// Gets or set the maximum number of characters to consider for a single word.
         /// </summary>
         public int MaxInputCharsPerWord { get; set; } = DefaultMaxInputCharsPerWord;
-#pragma warning restore MSML_NoInstanceInitializers
     }
 }
