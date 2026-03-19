@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 
 namespace Microsoft.Data.Analysis
 {
@@ -796,6 +797,22 @@ namespace Microsoft.Data.Analysis
             if (string.Equals(variableName, valueName))
             {
                 throw new ArgumentException(string.Format(Strings.VariableNameAndValueNameMustBeDifferent, nameof(variableName), nameof(valueName)), nameof(valueName));
+            }
+
+            foreach (var columnName in idColumnList)
+            {
+                if (_columnCollection.IndexOf(columnName) < 0)
+                {
+                    throw new ArgumentException(string.Format(Strings.InvalidColumnName, columnName), nameof(idColumns));
+                }
+            }
+
+            foreach (var columnName in valueColumnList)
+            {
+                if (_columnCollection.IndexOf(columnName) < 0)
+                {
+                    throw new ArgumentException(string.Format(Strings.InvalidColumnName, columnName), nameof(valueColumns));
+                }
             }
 
             long totalOutputRows = CalculateTotalOutputRows(valueColumnList, dropNulls);

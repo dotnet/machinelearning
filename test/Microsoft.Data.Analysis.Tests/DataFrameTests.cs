@@ -1625,6 +1625,12 @@ namespace Microsoft.Data.Analysis.Tests
             // There are no columns in the DataFrame to use as value columns after excluding the ID columns
             Assert.Throws<InvalidOperationException>(() => df.Melt(new string[] { "id", "A", "B" }));
 
+            // Id column specified does not exist in the DataFrame
+            Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "NonExistentColumn" }, new string[] { "A", "B" }));
+
+            // Value column specified does not exist in the DataFrame
+            Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A" }, new string[] { "NonExistentColumn" }));
+
             // Test default values for variableName, valueName, and dropNulls parameters
             DataFrame melted = df.Melt(new string[] { "id" }, new string[] { "A" });
             Assert.True(melted.Columns.IndexOf("variable") >= 0);
