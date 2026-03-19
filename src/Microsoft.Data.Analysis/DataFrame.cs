@@ -896,7 +896,7 @@ namespace Microsoft.Data.Analysis
 
         private void FillMeltedData(List<string> idColumnList, List<string> valueColumnList, List<DataFrameColumn> outputIdCols, StringDataFrameColumn variableColumn, DataFrameColumn valueColumn, bool dropNulls)
         {
-            bool mixedTypes = valueColumn is StringDataFrameColumn;
+            bool convertToString = valueColumn is StringDataFrameColumn;
             long currentRow = 0;
             long rowCount = _rowCollection.Count;
             int idColumnCount = idColumnList.Count;
@@ -926,7 +926,7 @@ namespace Microsoft.Data.Analysis
                     }
 
                     variableColumn[currentRow] = valueColumnName;
-                    valueColumn[currentRow] = mixedTypes ? value?.ToString() : value;
+                    valueColumn[currentRow] = convertToString ? value?.ToString() : value;
                     currentRow++;
                 }
             }
