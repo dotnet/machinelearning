@@ -783,14 +783,12 @@ namespace Microsoft.Data.Analysis
                 throw new InvalidOperationException(Strings.NoValueColumnsRemaining);
             }
 
-            IEnumerable<string> existingColumnNames = _columnCollection.Select(c => c.Name);
-
-            if (existingColumnNames.Contains(variableName))
+            if (_columnCollection.IndexOf(variableName) >= 0)
             {
                 throw new ArgumentException(string.Format(Strings.VariableNameAlreadyExists, variableName), nameof(variableName));
             }
 
-            if (existingColumnNames.Contains(valueName))
+            if (_columnCollection.IndexOf(valueName) >= 0)
             {
                 throw new ArgumentException(string.Format(Strings.ValueNameAlreadyExists, valueName), nameof(valueName));
             }
