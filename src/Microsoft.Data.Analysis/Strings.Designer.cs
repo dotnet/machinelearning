@@ -19,7 +19,7 @@ namespace Microsoft.Data {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Strings {
@@ -156,6 +156,15 @@ namespace Microsoft.Data {
         internal static string DuplicateColumnName {
             get {
                 return ResourceManager.GetString("DuplicateColumnName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Columns cannot exist in both idColumns and valueColumns.
+        /// </summary>
+        internal static string DuplicateColumnsInIdAndValueLists {
+            get {
+                return ResourceManager.GetString("DuplicateColumnsInIdAndValueLists", resourceCulture);
             }
         }
         
@@ -367,6 +376,24 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Must provide at least 1 ID column.
+        /// </summary>
+        internal static string MissingIdColumns {
+            get {
+                return ResourceManager.GetString("MissingIdColumns", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Must provide at least 1 value column when specifying value columns manually.
+        /// </summary>
+        internal static string MissingValueColumns {
+            get {
+                return ResourceManager.GetString("MissingValueColumns", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected value to be of type {0}, {1} or {2}.
         /// </summary>
         internal static string MultipleMismatchedValueType {
@@ -390,6 +417,15 @@ namespace Microsoft.Data {
         internal static string NotSupportedColumnType {
             get {
                 return ResourceManager.GetString("NotSupportedColumnType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There are no columns in the DataFrame to use as value columns after excluding the ID columns.
+        /// </summary>
+        internal static string NoValueColumnsRemaining {
+            get {
+                return ResourceManager.GetString("NoValueColumnsRemaining", resourceCulture);
             }
         }
         
@@ -421,6 +457,15 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameter must not be null, empty, or whitespace.
+        /// </summary>
+        internal static string ParameterMustNotBeNullOrWhitespace {
+            get {
+                return ResourceManager.GetString("ParameterMustNotBeNullOrWhitespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} must be greater than 0.
         /// </summary>
         internal static string PositiveNumberOfCharacters {
@@ -444,6 +489,24 @@ namespace Microsoft.Data {
         internal static string StreamDoesntSupportReading {
             get {
                 return ResourceManager.GetString("StreamDoesntSupportReading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value name &apos;{0}&apos; matches an existing column name.
+        /// </summary>
+        internal static string ValueNameAlreadyExists {
+            get {
+                return ResourceManager.GetString("ValueNameAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable name &apos;{0}&apos; matches an existing column name.
+        /// </summary>
+        internal static string VariableNameAlreadyExists {
+            get {
+                return ResourceManager.GetString("VariableNameAlreadyExists", resourceCulture);
             }
         }
         

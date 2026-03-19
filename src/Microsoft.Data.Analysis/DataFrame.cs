@@ -735,12 +735,12 @@ namespace Microsoft.Data.Analysis
         {
             if (string.IsNullOrWhiteSpace(variableName))
             {
-                throw new ArgumentException("Parameter must not be null, empty, or whitespace", nameof(variableName));
+                throw new ArgumentException(Strings.ParameterMustNotBeNullOrWhitespace, nameof(variableName));
             }
 
             if (string.IsNullOrWhiteSpace(valueName))
             {
-                throw new ArgumentException("Parameter must not be null, empty, or whitespace", nameof(valueName));
+                throw new ArgumentException(Strings.ParameterMustNotBeNullOrWhitespace, nameof(valueName));
             }
 
             var idColumnList = idColumns?.ToList() ?? new List<string>();
@@ -760,34 +760,34 @@ namespace Microsoft.Data.Analysis
 
             if (idColumnList.Count == 0)
             {
-                throw new ArgumentException("Must provide at least 1 ID column", nameof(idColumns));
+                throw new ArgumentException(Strings.MissingIdColumns, nameof(idColumns));
             }
 
             if (valueColumns != null && valueColumnList.Count == 0)
             {
-                throw new ArgumentException("Must provide at least 1 value column when specifying value columns manually", nameof(valueColumns));
+                throw new ArgumentException(Strings.MissingValueColumns, nameof(valueColumns));
             }
 
             if (valueColumns != null && valueColumnList.Any(v => idColumnList.Contains(v)))
             {
-                throw new ArgumentException("Columns cannot exist in both idColumns and valueColumns", nameof(valueColumns));
+                throw new ArgumentException(Strings.DuplicateColumnsInIdAndValueLists, nameof(valueColumns));
             }
 
             if (valueColumns == null && valueColumnList.Count == 0)
             {
-                throw new InvalidOperationException("There are no columns in the DataFrame to use as value columns after excluding the ID columns");
+                throw new InvalidOperationException(Strings.NoValueColumnsRemaining);
             }
 
             IEnumerable<string> existingColumnNames = _columnCollection.Select(c => c.Name);
 
             if (existingColumnNames.Contains(variableName))
             {
-                throw new ArgumentException($"Variable name '{variableName}' matches an existing column name", nameof(variableName));
+                throw new ArgumentException(string.Format(Strings.VariableNameAlreadyExists, variableName), nameof(variableName));
             }
 
             if (existingColumnNames.Contains(valueName))
             {
-                throw new ArgumentException($"Value name '{valueName}' matches an existing column name", nameof(valueName));
+                throw new ArgumentException(string.Format(Strings.ValueNameAlreadyExists, valueName), nameof(valueName));
             }
 
             long totalOutputRows = CalculateTotalOutputRows(valueColumnList, dropNulls);
