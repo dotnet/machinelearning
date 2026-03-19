@@ -1575,6 +1575,26 @@ namespace Microsoft.Data.Analysis.Tests
                 "TestVal",
                 true,
             };
+            yield return new object[]
+            {
+                new DataFrame(
+                new Int32DataFrameColumn("id1", new int?[] { 1, 2 }),
+                new Int32DataFrameColumn("id2", new int?[] { 3, 4 }),
+                new DoubleDataFrameColumn("A", new double?[] { 10, 20 }),
+                new DoubleDataFrameColumn("B", new double?[] { 30, 40 })
+                ),
+                new DataFrame(
+                new Int32DataFrameColumn("id1", new int?[] { 1, 2, 1, 2 }),
+                new Int32DataFrameColumn("id2", new int?[] { 3, 4, 3, 4 }),
+                new StringDataFrameColumn("Variable", new string[] { "A", "A", "B", "B" }),
+                new DoubleDataFrameColumn("Value", new double?[] { 10, 20, 30, 40 })
+                ),
+                new List<string> { "id1", "id2" },
+                new List<string> { "A", "B" },
+                "Variable",
+                "Value",
+                true,
+            };
         }
 
         [Theory]
