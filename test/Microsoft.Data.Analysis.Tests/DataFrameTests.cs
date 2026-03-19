@@ -1619,6 +1619,9 @@ namespace Microsoft.Data.Analysis.Tests
             // Variable name matches an existing column name in the DataFrame
             Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A" }, new string[] { "B" }, variableName: "B"));
 
+            // Value name matches variable name
+            Assert.Throws<ArgumentException>(() => df.Melt(new string[] { "id", "A" }, new string[] { "B" }, variableName: "TestName", valueName: "TestName"));
+
             // There are no columns in the DataFrame to use as value columns after excluding the ID columns
             Assert.Throws<InvalidOperationException>(() => df.Melt(new string[] { "id", "A", "B" }));
 

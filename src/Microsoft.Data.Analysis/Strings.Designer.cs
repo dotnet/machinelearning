@@ -511,6 +511,15 @@ namespace Microsoft.Data {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} and {1} must be different.
+        /// </summary>
+        internal static string VariableNameAndValueNameMustBeDifferent {
+            get {
+                return ResourceManager.GetString("VariableNameAndValueNameMustBeDifferent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Specified vector subtype {0} is not supported..
         /// </summary>
         internal static string VectorSubTypeNotSupported {

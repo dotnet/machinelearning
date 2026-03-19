@@ -793,6 +793,11 @@ namespace Microsoft.Data.Analysis
                 throw new ArgumentException(string.Format(Strings.ValueNameAlreadyExists, valueName), nameof(valueName));
             }
 
+            if (string.Equals(variableName, valueName))
+            {
+                throw new ArgumentException(string.Format(Strings.VariableNameAndValueNameMustBeDifferent, nameof(variableName), nameof(valueName)), nameof(valueName));
+            }
+
             long totalOutputRows = CalculateTotalOutputRows(valueColumnList, dropNulls);
 
             var outputCols = InitializeIdColumns(idColumnList, totalOutputRows);

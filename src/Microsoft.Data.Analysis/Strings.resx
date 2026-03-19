@@ -271,4 +271,7 @@
     <value>Specified vector subtype {0} is not supported.</value>
     <comment>{0} vectory subtype</comment>
   </data>
+  <data name="VariableNameAndValueNameMustBeDifferent" xml:space="preserve">
+    <value>{0} and {1} must be different</value>
+  </data>
 </root>
