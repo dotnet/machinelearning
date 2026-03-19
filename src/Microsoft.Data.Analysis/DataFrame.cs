@@ -732,6 +732,11 @@ namespace Microsoft.Data.Analysis
         /// // | 2  | Bob   | 2022 | 220   |
         /// </code>
         /// </example>
+        /// <remarks>
+        /// Note: The output rows are ordered by value column (all rows for the first value column,
+        /// then all rows for the second, etc.), which differs from pandas.melt() which orders by
+        /// source row.
+        /// </remarks>
         public DataFrame Melt(IEnumerable<string> idColumns, IEnumerable<string> valueColumns = null, string variableName = "variable", string valueName = "value", bool dropNulls = false)
         {
             if (string.IsNullOrWhiteSpace(variableName))
