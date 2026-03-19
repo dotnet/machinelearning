@@ -743,6 +743,11 @@ namespace Microsoft.Data.Analysis
                 throw new ArgumentException(Strings.ParameterMustNotBeNullOrWhitespace, nameof(valueName));
             }
 
+            if (idColumns == null)
+            {
+                throw new ArgumentNullException(nameof(idColumns));
+            }
+
             var idColumnList = idColumns?.ToList() ?? new List<string>();
 
             HashSet<string> idColumnSet = null;
