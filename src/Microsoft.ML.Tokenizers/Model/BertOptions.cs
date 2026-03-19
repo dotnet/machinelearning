@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -9,7 +9,6 @@ namespace Microsoft.ML.Tokenizers
     /// </summary>
     public sealed class BertOptions : WordPieceOptions
     {
-#pragma warning disable MSML_NoInstanceInitializers
         /// <summary>
         /// Gets or sets a value indicating whether to lower case the input before tokenization.
         /// </summary>
@@ -66,7 +65,5 @@ namespace Microsoft.ML.Tokenizers
         /// Gets or sets a value indicating whether to remove non-spacing marks.
         /// </summary>
         public bool RemoveNonSpacingMarks { get; set; }
-
-#pragma warning restore MSML_NoInstanceInitializers
     }
 }

@@ -913,5 +913,11 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(textWithSpecialTokens.Length, charactersWritten);
             Assert.Equal(textWithSpecialTokens, destinationBuffer.AsSpan(0, charactersWritten).ToString());
         }
+
+        [Fact]
+        public void CreateWithNullStreamThrows()
+        {
+            Assert.ThrowsAny<ArgumentException>(() => LlamaTokenizer.Create(null!));
+        }
     }
 }
