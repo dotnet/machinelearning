@@ -690,7 +690,7 @@ namespace Microsoft.Data.Analysis
         /// match the type of the first value column.
         /// </param>
         /// <param name="dropNulls">
-        /// If true, rows where the value is null or empty string will be excluded from the result.
+        /// If true, rows where the value is null will be excluded from the result.
         /// Defaults to false.
         /// </param>
         /// <returns>
@@ -844,7 +844,7 @@ namespace Microsoft.Data.Analysis
 
                 foreach (var item in column)
                 {
-                    if (item is not null and not "")
+                    if (item != null)
                     {
                         total++;
                     }
@@ -915,7 +915,7 @@ namespace Microsoft.Data.Analysis
                 {
                     var value = sourceValueColumn[sourceRow];
 
-                    if (dropNulls && (value is null or ""))
+                    if (dropNulls && (value == null))
                     {
                         continue;
                     }
