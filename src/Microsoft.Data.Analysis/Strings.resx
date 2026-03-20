@@ -150,6 +150,9 @@
   <data name="DuplicateColumnName" xml:space="preserve">
     <value>DataFrame already contains a column called {0}</value>
   </data>
+  <data name="DuplicateColumnsInIdAndValueLists" xml:space="preserve">
+    <value>Columns cannot exist in both idColumns and valueColumns</value>
+  </data>
   <data name="EmptyDelimiters" xml:space="preserve">
     <value>Delimiters is empty.</value>
   </data>
@@ -219,6 +222,12 @@
   <data name="MismatchedValueType" xml:space="preserve">
     <value>Expected value to be of type {0}</value>
   </data>
+  <data name="MissingIdColumns" xml:space="preserve">
+    <value>Must provide at least 1 ID column</value>
+  </data>
+  <data name="MissingValueColumns" xml:space="preserve">
+    <value>Must provide at least 1 value column when specifying value columns manually</value>
+  </data>
   <data name="MultipleMismatchedValueType" xml:space="preserve">
     <value>Expected value to be of type {0}, {1} or {2}</value>
   </data>
@@ -228,11 +237,17 @@
   <data name="NotSupportedColumnType" xml:space="preserve">
     <value>{0} is not a supported column type.</value>
   </data>
+  <data name="NoValueColumnsRemaining" xml:space="preserve">
+    <value>There are no columns in the DataFrame to use as value columns after excluding the ID columns</value>
+  </data>
   <data name="NullDelimiters" xml:space="preserve">
     <value>Delimiters is null.</value>
   </data>
   <data name="NullFieldWidths" xml:space="preserve">
     <value>FieldWidths is null.</value>
+  </data>
+  <data name="ParameterMustNotBeNullOrWhitespace" xml:space="preserve">
+    <value>Parameter must not be null, empty, or whitespace</value>
   </data>
   <data name="NumericColumnType" xml:space="preserve">
     <value>numeric column</value>
@@ -246,8 +261,17 @@
   <data name="StreamDoesntSupportReading" xml:space="preserve">
     <value>Stream doesn't support reading</value>
   </data>
+  <data name="ValueNameAlreadyExists" xml:space="preserve">
+    <value>Value name '{0}' matches an existing column name</value>
+  </data>
+  <data name="VariableNameAlreadyExists" xml:space="preserve">
+    <value>Variable name '{0}' matches an existing column name</value>
+  </data>
   <data name="VectorSubTypeNotSupported" xml:space="preserve">
     <value>Specified vector subtype {0} is not supported.</value>
     <comment>{0} vectory subtype</comment>
+  </data>
+  <data name="VariableNameAndValueNameMustBeDifferent" xml:space="preserve">
+    <value>{0} and {1} must be different</value>
   </data>
 </root>
