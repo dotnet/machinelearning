@@ -19,7 +19,7 @@
     <MicrosoftExtensionsObjectPoolVersion>9.0.4</MicrosoftExtensionsObjectPoolVersion>
     <MicrosoftExtensionsOptionsVersion>9.0.4</MicrosoftExtensionsOptionsVersion>
     <NuGetVersion>6.9.1</NuGetVersion>
-    <SkiaSharpVersion>2.88.8</SkiaSharpVersion>
+    <SkiaSharpVersion>3.119.2</SkiaSharpVersion>
     <SystemCodeDomVersion>9.0.4</SystemCodeDomVersion>
     <SystemCollectionsImmutableVersion>9.0.4</SystemCollectionsImmutableVersion>
     <SystemConfigurationConfigurationManagerVersion>9.0.4</SystemConfigurationConfigurationManagerVersion>
