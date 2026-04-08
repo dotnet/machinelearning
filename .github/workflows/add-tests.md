@@ -12,25 +12,13 @@ permissions:
   pull-requests: read
 
 imports:
-  - .github/agents/code-testing-generator.agent.md
+  - shared/repo-build-setup.md
 
 tools:
   github:
     toolsets: [pull_requests, repos]
   edit:
   bash: ["dotnet", "git", "find", "ls", "cat", "grep", "head", "tail", "wc", "mkdir"]
-
-steps:
-  - name: Install native dependencies
-    run: |
-      sudo ./eng/common/native/install-dependencies.sh
-      sudo apt-get install -qq -y libomp-dev
-
-  - name: Build
-    run: ./build.sh
-
-  - name: Put dotnet on the path
-    run: echo "PATH=$PWD/.dotnet:$PATH" >> $GITHUB_ENV
 
 safe-outputs:
   create-pull-request:
@@ -73,7 +61,7 @@ Analyze the pull request diff to identify source files that were added or modifi
 
 ### Step 3: Generate Tests
 
-Use the `code-testing-agent` skill (from the dotnet-test package) to generate tests:
+Use the `code-testing-generator` agent (defined at `.github/agents/code-testing-generator.agent.md`) to generate tests:
 
 1. Follow the Research → Plan → Implement pipeline from the skill
 2. **Scope**: Only generate tests for code modified in this PR — do not attempt full-repo coverage
