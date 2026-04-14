@@ -130,12 +130,46 @@ namespace Microsoft.ML.Trainers.LightGbm
             };
 
             /// <summary>
+            /// The type of regression objective to use.
+            /// </summary>
+            public enum RegressionObjective
+            {
+                /// <summary>
+                /// Standard L2 (least squares) regression.
+                /// </summary>
+                Regression,
+                /// <summary>
+                /// Quantile regression. Use <see cref="Alpha"/> to set the target quantile.
+                /// </summary>
+                Quantile
+            }
+
+            /// <summary>
             /// Determines what evaluation metric to use.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Evaluation metrics.",
                 ShortName = "em")]
             public EvaluateMetricType EvaluationMetric = EvaluateMetricType.RootMeanSquaredError;
+
+            /// <summary>
+            /// The regression objective type. Use <see cref="RegressionObjective.Quantile"/> with
+            /// <see cref="Alpha"/> for quantile regression.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce,
+                HelpText = "Regression objective type. Use 'Quantile' for quantile regression.",
+                ShortName = "obj")]
+            public RegressionObjective Objective = RegressionObjective.Regression;
+
+            /// <summary>
+            /// The quantile to predict when <see cref="Objective"/> is <see cref="RegressionObjective.Quantile"/>.
+            /// Must be in the open interval (0, 1). For example, 0.05 for the 5th percentile or
+            /// 0.95 for the 95th percentile.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce,
+                HelpText = "The alpha (quantile) value for quantile regression. Must be in (0, 1).",
+                ShortName = "qa")]
+            public double Alpha = 0.5;
 
             static Options()
             {
@@ -240,7 +274,19 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
-            GbmOptions["objective"] = "regression";
+            var regressionOptions = (Options)LightGbmTrainerOptions;
+
+            if (regressionOptions.Objective == Options.RegressionObjective.Quantile)
+            {
+                Contracts.CheckUserArg(regressionOptions.Alpha > 0 && regressionOptions.Alpha < 1,
+                    nameof(Options.Alpha), "Alpha for quantile regression must be in the open interval (0, 1).");
+                GbmOptions["objective"] = "quantile";
+                GbmOptions["alpha"] = regressionOptions.Alpha;
+            }
+            else
+            {
+                GbmOptions["objective"] = "regression";
+            }
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
