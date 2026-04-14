@@ -142,7 +142,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 /// Quantile regression. Use <see cref="Alpha"/> to set the target quantile.
                 /// </summary>
                 Quantile
-            }
+            };
 
             /// <summary>
             /// Determines what evaluation metric to use.
@@ -179,6 +179,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 NameMapping.Add(nameof(EvaluateMetricType.MeanAbsoluteError), "mae");
                 NameMapping.Add(nameof(EvaluateMetricType.RootMeanSquaredError), "rmse");
                 NameMapping.Add(nameof(EvaluateMetricType.MeanSquaredError), "mse");
+                NameMapping.Add(nameof(Objective), "_regression_objective");
             }
 
             internal override Dictionary<string, object> ToDictionary(IHost host)

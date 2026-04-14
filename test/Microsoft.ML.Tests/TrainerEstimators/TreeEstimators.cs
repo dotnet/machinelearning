@@ -262,6 +262,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             TestEstimatorCore(trainer, dataView);
             var model = trainer.Fit(dataView, dataView);
+
+            var gbmParameters = trainer.GetGbmParameters();
+            Assert.True(gbmParameters.ContainsKey("objective"));
+            Assert.Equal("quantile", gbmParameters["objective"]);
+            Assert.True(gbmParameters.ContainsKey("alpha"));
+            Assert.Equal(0.5, gbmParameters["alpha"]);
+
             Done();
         }
 
@@ -281,6 +288,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Alpha = 0.05,
                 NumberOfIterations = 50,
                 NumberOfLeaves = 10,
+                Seed = 42,
+                Deterministic = true,
             });
 
             // Train model for the 95th percentile
@@ -290,6 +299,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Alpha = 0.95,
                 NumberOfIterations = 50,
                 NumberOfLeaves = 10,
+                Seed = 42,
+                Deterministic = true,
             });
 
             var modelLow = trainerLow.Fit(dataView);
@@ -304,11 +315,18 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.Equal(scoresLow.Length, scoresHigh.Length);
             Assert.True(scoresLow.Length > 0);
 
-            // On average, the 95th percentile predictions should exceed the 5th percentile predictions.
-            var avgLow = scoresLow.Average();
-            var avgHigh = scoresHigh.Average();
-            Assert.True(avgHigh > avgLow,
-                $"Expected average 95th percentile ({avgHigh}) > average 5th percentile ({avgLow})");
+            // The 95th percentile predictions should generally be at least as large as the
+            // 5th percentile predictions. Allow a small numerical tolerance and a limited
+            // number of crossings since the models are trained independently.
+            const float tolerance = 1e-4f;
+            var orderedCount = Enumerable.Range(0, scoresLow.Length)
+                .Count(i => scoresHigh[i] + tolerance >= scoresLow[i]);
+            var orderedRatio = (float)orderedCount / scoresLow.Length;
+
+            Assert.True(orderedRatio >= 0.90f,
+                $"Expected the 95th percentile prediction to be >= the 5th percentile prediction for most rows, " +
+                $"but only {orderedCount} of {scoresLow.Length} rows satisfied the condition " +
+                $"({orderedRatio:P2}, tolerance={tolerance}).");
 
             Done();
         }
@@ -327,7 +345,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Objective = LightGbmRegressionTrainer.Options.RegressionObjective.Quantile,
                 Alpha = 0.0,
             });
-            Assert.ThrowsAny<Exception>(() => trainerZero.Fit(dataView));
+            Assert.Throws<ArgumentOutOfRangeException>(() => trainerZero.Fit(dataView));
 
             // Alpha = 1 should fail
             var trainerOne = ML.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
@@ -335,7 +353,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Objective = LightGbmRegressionTrainer.Options.RegressionObjective.Quantile,
                 Alpha = 1.0,
             });
-            Assert.ThrowsAny<Exception>(() => trainerOne.Fit(dataView));
+            Assert.Throws<ArgumentOutOfRangeException>(() => trainerOne.Fit(dataView));
 
             // Alpha = -0.1 should fail
             var trainerNeg = ML.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
@@ -343,7 +361,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Objective = LightGbmRegressionTrainer.Options.RegressionObjective.Quantile,
                 Alpha = -0.1,
             });
-            Assert.ThrowsAny<Exception>(() => trainerNeg.Fit(dataView));
+            Assert.Throws<ArgumentOutOfRangeException>(() => trainerNeg.Fit(dataView));
 
             Done();
         }
