@@ -52,6 +52,9 @@ fi
 # Configures warning treatment in msbuild.
 warn_as_error=${warn_as_error:-true}
 
+# Specifies semi-colon delimited list of warning codes that should not be treated as errors.
+warn_not_as_error=${warn_not_as_error:-''}
+
 # True to attempt using .NET Core already that meets requirements specified in global.json
 # installed on the machine instead of downloading one.
 use_installed_dotnet_cli=${use_installed_dotnet_cli:-true}
@@ -145,7 +148,11 @@ function InitializeDotNetCli {
   if [[ $global_json_has_runtimes == false && -n "${DOTNET_INSTALL_DIR:-}" && -d "$DOTNET_INSTALL_DIR/sdk/$dotnet_sdk_version" ]]; then
     dotnet_root="$DOTNET_INSTALL_DIR"
   else
-    dotnet_root="${repo_root}.dotnet"
+    if [[ -n "${DOTNET_GLOBAL_INSTALL_DIR:-}" ]]; then
+      dotnet_root="$DOTNET_GLOBAL_INSTALL_DIR"
+    else
+      dotnet_root="${repo_root}.dotnet"
+    fi
 
     export DOTNET_INSTALL_DIR="$dotnet_root"
 
@@ -530,7 +537,12 @@ function MSBuild-Core {
     mt_switch="-mt"
   fi
 
-  RunBuildTool "$_InitializeBuildToolCommand" /m /nologo /clp:Summary /v:$verbosity /nr:$node_reuse $warnaserror_switch $mt_switch /p:TreatWarningsAsErrors=$warn_as_error /p:ContinuousIntegrationBuild=$ci "$@"
+  local warnnotaserror_switch=""
+  if [[ -n "$warn_not_as_error" && "$warn_as_error" == true ]]; then
+    warnnotaserror_switch="/warnnotaserror:$warn_not_as_error /p:AdditionalWarningsNotAsErrors=$warn_not_as_error"
+  fi
+
+  RunBuildTool "$_InitializeBuildToolCommand" /m /nologo /clp:Summary /v:$verbosity /nr:$node_reuse $warnaserror_switch $mt_switch $warnnotaserror_switch /p:TreatWarningsAsErrors=$warn_as_error /p:ContinuousIntegrationBuild=$ci "$@"
 }
 
 function GetDarc {
