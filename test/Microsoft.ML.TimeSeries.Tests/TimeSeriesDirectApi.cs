@@ -772,6 +772,64 @@ namespace Microsoft.ML.Tests
 
         }
 
+        private sealed class PhoneCallsData
+        {
+            [LoadColumn(0)]
+            public string timestamp;
+
+            [LoadColumn(1)]
+            public double value;
+        }
+
+        private sealed class PhoneCallsPrediction
+        {
+            [VectorType(7)]
+            public double[] Prediction { get; set; }
+        }
+
+        [NativeDependencyFact("MklImports")]
+        public void TestSrCnnAnomalyDetectorPhoneCalls()
+        {
+            var mlContext = new MLContext(1);
+
+            var dataPath = GetDataPath("Timeseries", "phone-calls.csv");
+
+            IDataView dataView = mlContext.Data.LoadFromTextFile<PhoneCallsData>(path: dataPath, hasHeader: true, separatorChar: ',');
+
+            int period = mlContext.AnomalyDetection.DetectSeasonality(dataView, nameof(PhoneCallsData.value));
+            Assert.Equal(7, period);
+
+            var options = new SrCnnEntireAnomalyDetectorOptions()
+            {
+                Threshold = 0.3,
+                Sensitivity = 87.0,
+                DetectMode = SrCnnDetectMode.AnomalyAndMargin,
+                Period = period,
+            };
+
+            var outputDataView = mlContext.AnomalyDetection.DetectEntireAnomalyBySrCnn(dataView, nameof(PhoneCallsPrediction.Prediction), nameof(PhoneCallsData.value), options);
+
+            var predictions = mlContext.Data.CreateEnumerable<PhoneCallsPrediction>(
+                outputDataView, reuseRowObject: false);
+
+            var anomalyIndices = new HashSet<int> { 28, 44, 56, 70 };
+
+            int k = 0;
+            foreach (var prediction in predictions)
+            {
+                if (anomalyIndices.Contains(k))
+                {
+                    Assert.Equal(1, prediction.Prediction[0]);
+                }
+                else
+                {
+                    Assert.Equal(0, prediction.Prediction[0]);
+                }
+
+                ++k;
+            }
+        }
+
         [NativeDependencyTheory("MklImports"), CombinatorialData]
         public void TestSrCnnAnomalyDetectorWithSeasonalAnomalyData(
             [CombinatorialValues(SrCnnDeseasonalityMode.Stl, SrCnnDeseasonalityMode.Mean, SrCnnDeseasonalityMode.Median)] SrCnnDeseasonalityMode mode
