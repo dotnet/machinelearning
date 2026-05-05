@@ -774,11 +774,13 @@ namespace Microsoft.ML.Tests
 
         private sealed class PhoneCallsData
         {
+#pragma warning disable CS0649
             [LoadColumn(0)]
             public string timestamp;
 
             [LoadColumn(1)]
             public double value;
+#pragma warning restore CS0649
         }
 
         private sealed class PhoneCallsPrediction
