@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -23,8 +23,7 @@ namespace Microsoft.ML
         /// The name/type of input columns must exactly match name/type of the ONNX model inputs.
         /// The name/type of the produced output columns will match name/type of the ONNX model outputs.
         /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
-        /// 
-        /// Only apply models from trusted sources. Applying models from untrusted sources is a security risk.
+        /// <para>Only apply models from trusted sources. Applying models from untrusted sources is a security risk.</para>
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
@@ -53,8 +52,7 @@ namespace Microsoft.ML
         /// The name/type of input columns must exactly match name/type of the ONNX model inputs.
         /// The name/type of the produced output columns will match name/type of the ONNX model outputs.
         /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
-        /// 
-        /// Only apply models from trusted sources. Applying models from untrusted sources is a security risk.
+        /// <para>Only apply models from trusted sources. Applying models from untrusted sources is a security risk.</para>
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelBytes">The <see cref="System.IO.Stream"/> containing the model bytes.</param>
@@ -83,8 +81,7 @@ namespace Microsoft.ML
         /// The name/type of input columns must exactly match name/type of the ONNX model inputs.
         /// The name/type of the produced output columns will match name/type of the ONNX model outputs.
         /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
-        /// 
-        /// Only apply models from trusted sources. Applying models from untrusted sources is a security risk.
+        /// <para>Only apply models from trusted sources. Applying models from untrusted sources is a security risk.</para>
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
@@ -121,8 +118,7 @@ namespace Microsoft.ML
         /// The name/type of input columns must exactly match name/type of the ONNX model inputs.
         /// The name/type of the produced output columns will match name/type of the ONNX model outputs.
         /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
-        /// 
-        /// Only apply models from trusted sources. Applying models from untrusted sources is a security risk.
+        /// <para>Only apply models from trusted sources. Applying models from untrusted sources is a security risk.</para>
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelBytes">The <see cref="System.IO.Stream"/> containing the model bytes.</param>
@@ -162,8 +158,7 @@ namespace Microsoft.ML
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         /// <remarks>
         /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
-        /// 
-        /// Only apply models from trusted sources. Applying models from untrusted sources is a security risk.
+        /// <para>Only apply models from trusted sources. Applying models from untrusted sources is a security risk.</para>
         /// </remarks>
         /// <example>
         /// <format type="text/markdown">
@@ -196,8 +191,7 @@ namespace Microsoft.ML
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         /// <remarks>
         /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
-        /// 
-        /// Only apply models from trusted sources. Applying models from untrusted sources is a security risk.
+        /// <para>Only apply models from trusted sources. Applying models from untrusted sources is a security risk.</para>
         /// </remarks>
         /// <example>
         /// <format type="text/markdown">
@@ -224,8 +218,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <remarks>
         /// If the options.GpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
-        /// 
-        /// Only apply models from trusted sources. Applying models from untrusted sources is a security risk.
+        /// <para>Only apply models from trusted sources. Applying models from untrusted sources is a security risk.</para>
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="options">Options for the <see cref="OnnxScoringEstimator"/>.</param>
@@ -253,8 +246,7 @@ namespace Microsoft.ML
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         /// <remarks>
         /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
-        /// 
-        /// Only apply models from trusted sources. Applying models from untrusted sources is a security risk.
+        /// <para>Only apply models from trusted sources. Applying models from untrusted sources is a security risk.</para>
         /// </remarks>
         /// <example>
         /// <format type="text/markdown">
@@ -293,8 +285,7 @@ namespace Microsoft.ML
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         /// <remarks>
         /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
-        /// 
-        /// Only apply models from trusted sources. Applying models from untrusted sources is a security risk.
+        /// <para>Only apply models from trusted sources. Applying models from untrusted sources is a security risk.</para>
         /// </remarks>
         /// <example>
         /// <format type="text/markdown">
@@ -329,8 +320,7 @@ namespace Microsoft.ML
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         /// <remarks>
         /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
-        /// 
-        /// Only apply models from trusted sources. Applying models from untrusted sources is a security risk.
+        /// <para>Only apply models from trusted sources. Applying models from untrusted sources is a security risk.</para>
         /// </remarks>
         public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
             string[] outputColumnNames,
@@ -356,8 +346,7 @@ namespace Microsoft.ML
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         /// <remarks>
         /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
-        /// 
-        /// Only apply models from trusted sources. Applying models from untrusted sources is a security risk.
+        /// <para>Only apply models from trusted sources. Applying models from untrusted sources is a security risk.</para>
         /// </remarks>
         public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
             string[] outputColumnNames,
@@ -387,8 +376,7 @@ namespace Microsoft.ML
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         /// <remarks>
         /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
-        /// 
-        /// Only apply models from trusted sources. Applying models from untrusted sources is a security risk.
+        /// <para>Only apply models from trusted sources. Applying models from untrusted sources is a security risk.</para>
         /// </remarks>
         public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
             string[] outputColumnNames,
@@ -419,8 +407,7 @@ namespace Microsoft.ML
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         /// <remarks>
         /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
-        /// 
-        /// Only apply models from trusted sources. Applying models from untrusted sources is a security risk.
+        /// <para>Only apply models from trusted sources. Applying models from untrusted sources is a security risk.</para>
         /// </remarks>
         public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
             string[] outputColumnNames,
@@ -452,8 +439,7 @@ namespace Microsoft.ML
         /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
         /// <remarks>
         /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
-        /// 
-        /// Only apply models from trusted sources. Applying models from untrusted sources is a security risk.
+        /// <para>Only apply models from trusted sources. Applying models from untrusted sources is a security risk.</para>
         /// </remarks>
         public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
             string[] outputColumnNames,
@@ -486,8 +472,7 @@ namespace Microsoft.ML
         /// <param name="recursionLimit">Optional, specifies the Protobuf CodedInputStream recursion limit. Default value is 100.</param>
         /// <remarks>
         /// If the gpuDeviceId value is <see langword="null" /> the <see cref="P:MLContext.GpuDeviceId"/> value will be used if it is not <see langword="null" />.
-        /// 
-        /// Only apply models from trusted sources. Applying models from untrusted sources is a security risk.
+        /// <para>Only apply models from trusted sources. Applying models from untrusted sources is a security risk.</para>
         /// </remarks>
         public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
             string[] outputColumnNames,
