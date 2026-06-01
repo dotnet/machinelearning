@@ -38,7 +38,7 @@ safe-outputs:
     max: 30
   add-comment:
     target: "*"
-    max: 30
+    max: 50
     hide-older-comments: false
   close-issue:
     max: 15
@@ -49,18 +49,19 @@ safe-outputs:
 Sweep open issues labeled `need info`. For each issue, decide one of:
 - **reply received** -> remove `need info`.
 - **silent 14d** -> post the nudge comment.
-- **silent 30d** -> post the close comment, then close as `not planned`.
+- **silent 30d AND previously nudged by this workflow** -> post the close comment, then close as `not planned`.
 - **noop** otherwise.
 
 ## Hard rules
 
 1. **Only `need info`-labeled open issues.** Never touch other labels.
 2. **Fixed wording.** Use the exact comment text below; do not paraphrase. Do not personalize.
-3. **Caps per run: 30 nudges, 15 closes, 30 label removals.** On any cap, stop that action and continue the others.
+3. **Caps per run: 30 nudges, 15 closes, 30 label removals. Total comment budget = 50 (nudges + closes).** On any cap, stop that action and continue the others.
 4. **Idempotency.** Every comment includes `<!-- needs-info-sweeper:<event> -->` where `<event>` is `nudge` or `close`. Skip a comment if the most recent bot comment on the issue carries the same marker.
 5. **Reason `not planned` when closing.**
 6. **Skip protected labels: `bug`, `Known Build Error`, `blocking-clean-ci`, `needs-author-action`.** These deserve different treatment.
 7. **Skip issues whose `need info` label was applied less than 14 days ago.** The clock starts at the label event.
+8. **Never close without prior nudge from this workflow.** If `age >= 30d` but no prior bot comment carries `<!-- needs-info-sweeper:nudge -->`, downgrade to a nudge (post the nudge comment, do NOT close). Closure requires the issue to have been nudged at least 14 days earlier by this workflow.
 
 ## Process
 
@@ -78,9 +79,13 @@ For each open issue with label `need info`:
    ```
    If yes (and at least one is not a bot or the labeler): remove `need info`, stop.
 3. **Age check.** `age = now - label_applied_at`.
-4. If `14d <= age < 30d` AND no prior bot comment carries `<!-- needs-info-sweeper:nudge -->`: post the nudge comment.
-5. If `age >= 30d`: post the close comment, then close as `not planned`.
-6. Otherwise: skip.
+4. **Locate last bot marker.** Find the most recent bot comment carrying `<!-- needs-info-sweeper:nudge -->`; record its `created_at` as `nudged_at` (or null if absent).
+5. If `14d <= age < 30d` AND `nudged_at` is null: post the nudge comment.
+6. If `age >= 30d`:
+   - If `nudged_at` is null: post the nudge comment (rule 8 downgrade). Do not close.
+   - If `nudged_at` is non-null AND `(now - nudged_at) >= 14d`: post the close comment, then close as `not planned`.
+   - If `nudged_at` is non-null AND `(now - nudged_at) < 14d`: skip (give the nudge time to land).
+7. Otherwise: skip.
 
 ## Fixed wording
 

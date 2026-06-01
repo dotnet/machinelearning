@@ -56,7 +56,8 @@ Review PR #${{ github.event.pull_request.number }} and post one comment using th
 3. **High signal only.** No comments on style, formatting, line length, naming taste, or `var` vs explicit types. Only: bugs, missing null/empty checks, numerical-algorithm correctness, IDataView contract violations, ONNX/tokenizer round-trip risk, breaking public API, unmanaged resource leaks, threading, missing tests for new behavior.
 4. **Never claim certainty without proof.** Cite `file:line` and quote the offending code.
 5. **`noop` if no Critical findings, fewer than 2 suggestions, and tests look adequate.**
-6. **Public API.** Any new `public` member without a corresponding update to the API baselines (under `eng/api-baselines/` or `eng/PublicAPI/`) is a Critical finding.
+6. **Scope filter is mandatory.** Only files matching a row in the Scope table are eligible for findings. Files outside the Scope table (samples, docs, eng/common, generated `.tt` outputs, build infra outside the listed paths) get `noop` regardless of what's in them.
+7. **Breaking public API.** Any change to an existing `public` member's signature, return type, or visibility, OR a public type removal, is a Critical finding. Cite the file and the old vs new shape. New `public` additions are a Suggestion (call out the API review impact); they are not Critical.
 
 ## Scope
 

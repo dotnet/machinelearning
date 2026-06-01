@@ -38,7 +38,6 @@ safe-outputs:
     report-as-issue: false
   create-issue:
     title-prefix: "[ci-scan] "
-    labels: [agentic-workflows]
     allowed-labels: ["Known Build Error", "blocking-clean-ci", "Build"]
     max: 3
   add-comment:
