@@ -1,0 +1,119 @@
+---
+description: |
+  3 times per week. Sweeps open issues labeled `need info`. Removes the
+  label when the original requester (or maintainer) has replied since the
+  label was applied. Nudges silent issues at 14 days. Closes silent
+  issues as `not planned` at 30 days. Fixed wording, capped output.
+
+on:
+  schedule: every 2d
+  workflow_dispatch:
+  roles: [admin, maintain, write]
+
+if: github.repository == 'dotnet/machinelearning'
+
+timeout-minutes: 30
+
+permissions: read-all
+
+concurrency:
+  group: needs-info-sweeper
+  cancel-in-progress: false
+
+network:
+  allowed:
+    - defaults
+    - github
+
+tools:
+  github:
+    toolsets: [repos, issues, search]
+  bash: ["git", "find", "ls", "cat", "grep", "head", "tail", "wc", "jq", "tee", "sed", "awk", "tr", "cut", "sort", "uniq", "xargs", "echo", "date", "test"]
+
+safe-outputs:
+  noop:
+    report-as-issue: false
+  remove-labels:
+    allowed: ["need info"]
+    max: 30
+  add-comment:
+    target: "*"
+    max: 30
+    hide-older-comments: false
+  close-issue:
+    max: 15
+---
+
+# Needs-Info Sweeper (machinelearning)
+
+Sweep open issues labeled `need info`. For each issue, decide one of:
+- **reply received** -> remove `need info`.
+- **silent 14d** -> post the nudge comment.
+- **silent 30d** -> post the close comment, then close as `not planned`.
+- **noop** otherwise.
+
+## Hard rules
+
+1. **Only `need info`-labeled open issues.** Never touch other labels.
+2. **Fixed wording.** Use the exact comment text below; do not paraphrase. Do not personalize.
+3. **Caps per run: 30 nudges, 15 closes, 30 label removals.** On any cap, stop that action and continue the others.
+4. **Idempotency.** Every comment includes `<!-- needs-info-sweeper:<event> -->` where `<event>` is `nudge` or `close`. Skip a comment if the most recent bot comment on the issue carries the same marker.
+5. **Reason `not planned` when closing.**
+6. **Skip protected labels: `bug`, `Known Build Error`, `blocking-clean-ci`, `needs-author-action`.** These deserve different treatment.
+7. **Skip issues whose `need info` label was applied less than 14 days ago.** The clock starts at the label event.
+
+## Process
+
+For each open issue with label `need info`:
+
+1. Determine `label_applied_at`:
+   ```bash
+   gh api "/repos/dotnet/machinelearning/issues/<N>/timeline" --paginate \
+     --jq '[.[] | select(.event == "labeled" and .label.name == "need info")] | last | .created_at'
+   ```
+2. **Reply check.** Was there a comment from anyone other than the labeler since `label_applied_at`?
+   ```bash
+   gh api "/repos/dotnet/machinelearning/issues/<N>/comments" --paginate \
+     --jq '[.[] | select(.created_at > "<label_applied_at>") | .user.login] | unique'
+   ```
+   If yes (and at least one is not a bot or the labeler): remove `need info`, stop.
+3. **Age check.** `age = now - label_applied_at`.
+4. If `14d <= age < 30d` AND no prior bot comment carries `<!-- needs-info-sweeper:nudge -->`: post the nudge comment.
+5. If `age >= 30d`: post the close comment, then close as `not planned`.
+6. Otherwise: skip.
+
+## Fixed wording
+
+**Nudge (day 14):**
+
+```
+<!-- needs-info-sweeper:nudge -->
+Friendly nudge. Please share the missing details (minimal repro, environment, exact error) so we can investigate. We'll close this in 14 days if there's no response.
+
+Posted by [`needs-info-sweeper`](https://github.com/dotnet/machinelearning/blob/main/.github/workflows/needs-info-sweeper.agent.md).
+```
+
+**Close (day 30):**
+
+```
+<!-- needs-info-sweeper:close -->
+Closing for inactivity. Reopen with the requested details and we will take another look.
+
+Posted by [`needs-info-sweeper`](https://github.com/dotnet/machinelearning/blob/main/.github/workflows/needs-info-sweeper.agent.md).
+```
+
+## Tally
+
+Append per-issue outcome to `/tmp/gh-aw/agent/sweep.txt`:
+
+```
+<issue#>  <outcome>
+```
+
+Outcomes: `reply-received`, `nudged`, `closed`, `skipped:<reason>`.
+
+At end of run, print this table to the agent log:
+
+```
+| total-need-info | reply-received | nudged | closed | skipped |
+```
