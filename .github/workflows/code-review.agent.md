@@ -31,7 +31,7 @@ network:
 tools:
   github:
     toolsets: [repos, pull_requests]
-  bash: ["git", "find", "ls", "cat", "grep", "head", "tail", "wc", "jq", "tee", "sed", "awk", "tr", "cut", "sort", "uniq", "xargs", "echo", "test", "mkdir", "basename", "dirname"]
+  bash: ["git", "find", "ls", "cat", "grep", "head", "tail", "wc", "jq", "tee", "sed", "awk", "tr", "cut", "sort", "uniq", "xargs", "echo", "test", "mkdir", "basename", "dirname", "gh"]
 
 checkout:
   fetch-depth: 50
