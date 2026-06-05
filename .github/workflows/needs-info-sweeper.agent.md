@@ -84,7 +84,7 @@ For each open issue with label `need info`:
 5. If `14d <= age < 30d` AND `nudged_at` is null: post the nudge comment.
 6. If `age >= 30d`:
    - If `nudged_at` is null: post the nudge comment (rule 8 downgrade). Do not close.
-   - If `nudged_at` is non-null AND `(now - nudged_at) >= 14d`: post the close comment, then close as `not planned`.
+   - If `nudged_at` is non-null AND `(now - nudged_at) >= 14d`: post the close comment, then close the issue (the safe-output close-reason cannot be set; see the note below).
    - If `nudged_at` is non-null AND `(now - nudged_at) < 14d`: skip (give the nudge time to land).
 7. Otherwise: skip.
 
