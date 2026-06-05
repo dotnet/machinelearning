@@ -112,7 +112,7 @@ You evaluate the [`ci-scan`](ci-scan.agent.md) workflow for `dotnet/machinelearn
    - **Signature occurrence count is honest** — the "Occurrences in last 10 builds" figure is consistent with the cited build.
    - **Follow-up gate respected** — the issue cites a real failing build and was not filed for a signature already absent from the follow-up build.
 
-   For a sample of in-scope issues, cross-check the match substring against the cited failing log (the AzDO/Helix URL in the body) and flag PASS-line collisions or paraphrased signatures.
+   For a sample of in-scope issues, cross-check the `## Build Analysis match (literal substring)` block against the `## Failing line (raw)` block embedded in the same issue body (both are fetched via the integrity-gated `github` MCP tool) and flag mismatches or paraphrased signatures. Do NOT fetch the AzDO/Helix logs directly — this workflow's network allowlist is GitHub-only by design.
 
 5. Translate each failure mode into a targeted edit to `.github/workflows/ci-scan.agent.md`. Prefer rule-shaped edits (tighten a Hard rule, extend the Step 3 classification, narrow the Step 5 dedup, add a Bad/Good example) over wholesale rewrites. Read the file first and reuse its existing voice and section structure.
 
@@ -152,7 +152,7 @@ You evaluate the [`ci-scan`](ci-scan.agent.md) workflow for `dotnet/machinelearn
 
    The `/runs` endpoint does NOT accept `order=asc`; paginate and pick `min(created_at)`. Fall back to the workflow's `.created_at` only if no runs exist yet.
 
-   Collect the full universe of `[ci-scan]` issues (open + closed) since `window_start` via `gh search issues 'repo:dotnet/machinelearning is:issue in:title "[ci-scan]" created:>=<window_start>' --json number,title,state,stateReason,labels,closedAt,author`. That metadata is sufficient for the counts below; only fetch bodies/comments through the integrity-gated `github` MCP when you need text (rejection-keyword detection).
+   Collect the full universe of `[ci-scan]` issues (open + closed) since `window_start` via `gh issue list -R dotnet/machinelearning --state all --search 'in:title "[ci-scan]" created:>=<window_start>' --json number,title,state,stateReason,labels,createdAt,closedAt,author`. (`gh issue list` is required here: `gh search issues` does not support the `stateReason` field.) That metadata is sufficient for the counts below; only fetch bodies/comments through the integrity-gated `github` MCP when you need text (rejection-keyword detection).
 
    Compute these KPIs (keep it small — raw counts, one quality ratio, a fixed set of signals; do not add time-to-KBE, Wilson scoring, or coverage ratios):
 
