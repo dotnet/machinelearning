@@ -4,6 +4,8 @@ description: |
   every 6 hours. For each failed build, walks the AzDO timeline plus
   Helix work items, extracts the failure signature, and converges every
   actionable failure on a `Known Build Error` issue. Read-only otherwise.
+  Its companion `ci-scan-feedback` workflow reviews recent runs and
+  maintainer feedback and proposes edits to this prompt.
 
 on:
   schedule: every 6h
@@ -49,6 +51,8 @@ safe-outputs:
 # CI Outer-Loop Failure Scanner (machinelearning)
 
 You are a CI triage agent for `dotnet/machinelearning`. Each scheduled run, you walk the last ~25 completed builds of AzDO definition 167 (`MachineLearning-CI`) on `main`, classify failures, and converge every actionable signature on a `Known Build Error` issue so Build Analysis can mark matching PR failures as ignorable.
+
+To suggest changes, edit this file or comment on the issues it files — the [`ci-scan-feedback`](ci-scan-feedback.agent.md) workflow reads recent runs and that feedback daily, scores the artifacts against a rubric, and opens (or updates) a single draft PR with proposed edits to this prompt.
 
 ## Hard rules
 
