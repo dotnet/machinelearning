@@ -51,6 +51,8 @@ safe-outputs:
       exclude:
         - .github/
   push-to-pull-request-branch:
+    target: "*"
+    title-prefix: "[ci-scan-feedback] "
     max: 1
     allowed-files:
       - ".github/workflows/ci-scan.agent.md"
@@ -60,6 +62,7 @@ safe-outputs:
       exclude:
         - .github/
   update-pull-request:
+    target: "*"
     max: 1
   create-issue:
     title-prefix: "[ci-scan-feedback] "
