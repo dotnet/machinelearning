@@ -26,6 +26,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelLocation">Location of the TensorFlow model.</param>
+        /// <remarks>Only load models from trusted sources. Loading models from untrusted sources is a security risk.</remarks>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -52,6 +53,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelLocation">Location of the TensorFlow model.</param>
         /// <param name="treatOutputAsBatched">If the first dimension of the output is unknown, should it be treated as batched or not.</param>
+        /// <remarks>Only load models from trusted sources. Loading models from untrusted sources is a security risk.</remarks>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
