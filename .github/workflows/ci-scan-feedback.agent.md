@@ -63,6 +63,7 @@ safe-outputs:
         - .github/
   update-pull-request:
     target: "*"
+    title: false
     max: 1
   create-issue:
     title-prefix: "[ci-scan-feedback] "
