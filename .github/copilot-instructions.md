@@ -173,7 +173,6 @@ GitHub Actions in `.github/workflows/`:
 |----------|---------|---------|
 | `copilot-setup-steps.yml` | Manual | Remote Copilot Coding Agent build environment |
 | `find-similar-issues.yml` | Issue opened | AI-powered duplicate detection for new issues |
-| `inclusive-heat-sensor.yml` | Comments | Detect heated language in issue/PR comments |
 
 ### Prompts
 
