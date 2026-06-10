@@ -1,6 +1,6 @@
 # Runs on PRs where the main pipelines are skipped (build-excluded paths),
 # so Build Analysis receives a build.completed event and reports green
-# instead of hanging (dotnet/arcade-services#6311).
+# instead of hanging.
 trigger: none
 pr:
   autoCancel: true
