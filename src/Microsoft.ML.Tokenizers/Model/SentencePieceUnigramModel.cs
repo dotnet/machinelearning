@@ -93,6 +93,144 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
+        // Constructor that builds a Unigram model directly from a list of (piece, score) pairs.
+        // BOS, EOS, and PAD tokens are identified by their names ("<s>", "</s>", "<pad>") in the vocab;
+        // if not found by name, SentencePiece-conventional positions (1, 2, none) are used as fallbacks.
+        internal SentencePieceUnigramModel(
+            IReadOnlyList<(string Piece, float Score)> pieces,
+            int unkId,
+            bool addBos,
+            bool addEos,
+            ReadOnlySpan<byte> precompiledCharsmap,
+            bool addDummyPrefix,
+            bool escapeWhiteSpaces,
+            bool treatWhitespaceAsSuffix,
+            bool removeExtraWhitespaces,
+            IReadOnlyDictionary<string, int>? specialTokens)
+            : this(pieces, unkId, addBos, addEos, precompiledCharsmap, addDummyPrefix, escapeWhiteSpaces,
+                   treatWhitespaceAsSuffix, removeExtraWhitespaces, specialTokens,
+                   FindSpecialTokenId(pieces, "<s>", 1),
+                   FindSpecialTokenId(pieces, "</s>", 2),
+                   FindSpecialTokenId(pieces, "<pad>", -1))
+        {
+        }
+
+        private SentencePieceUnigramModel(
+            IReadOnlyList<(string Piece, float Score)> pieces,
+            int unkId,
+            bool addBos,
+            bool addEos,
+            ReadOnlySpan<byte> precompiledCharsmap,
+            bool addDummyPrefix,
+            bool escapeWhiteSpaces,
+            bool treatWhitespaceAsSuffix,
+            bool removeExtraWhitespaces,
+            IReadOnlyDictionary<string, int>? specialTokens,
+            int bosId, int eosId, int padId)
+            : base(addBos, addEos,
+                   bosId >= 0 && bosId < GetPieceCount(pieces) ? pieces[bosId].Piece : "<s>", bosId,
+                   eosId >= 0 && eosId < GetPieceCount(pieces) ? pieces[eosId].Piece : "</s>", eosId,
+                   GetPieceAtIndex(pieces, unkId), unkId,
+                   addDummyPrefix, escapeWhiteSpaces, treatWhitespaceAsSuffix, byteFallback: false,
+                   precompiledCharsmap, removeExtraWhitespaces, specialTokens)
+        {
+            Debug.Assert(pieces is not null);
+
+            _vocab = new SortedDictionary<string, int>(OrdinalUtf8StringComparer.Instance);
+            _vocabReverse = new (string Piece, float Score, ModelProto.Types.SentencePiece.Types.Type Type)[pieces!.Count];
+            _minScore = float.MaxValue;
+            _maxScore = float.MinValue;
+
+            for (int i = 0; i < pieces.Count; i++)
+            {
+                var (piece, score) = pieces[i];
+                if (i == unkId)
+                {
+                    _vocabReverse[i] = (piece, score, ModelProto.Types.SentencePiece.Types.Type.Unknown);
+                }
+                else if (i == bosId || i == eosId || (padId >= 0 && i == padId))
+                {
+                    _vocabReverse[i] = (piece, score, ModelProto.Types.SentencePiece.Types.Type.Control);
+                }
+                else
+                {
+                    _vocabReverse[i] = (piece, score, ModelProto.Types.SentencePiece.Types.Type.Normal);
+                    _vocab.Add(piece, i);
+                    _minScore = Math.Min(_minScore, score);
+                    _maxScore = Math.Max(_maxScore, score);
+                }
+            }
+
+            ByteCodeToIdOffset = _vocab.TryGetValue("<0x00>", out int id) ? id : MaxByteId;
+            OneByteUtf8EncodingMaxId = ByteCodeToIdOffset + 0x7F;
+            MaxIdByteFallbackId = ByteCodeToIdOffset + 0xFF;
+
+            _trie = new DoubleArrayTrie(_vocab);
+
+            // Add special tokens to vocab after trie is built.
+            string unkToken = pieces[unkId].Piece;
+            _vocab[unkToken] = unkId;
+            _vocabReverse[unkId] = (unkToken, 0f, ModelProto.Types.SentencePiece.Types.Type.Unknown);
+
+            if (bosId >= 0 && bosId < pieces.Count)
+            {
+                string bos = pieces[bosId].Piece;
+                _vocab[bos] = bosId;
+                _vocabReverse[bosId] = (bos, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
+            }
+
+            if (eosId >= 0 && eosId < pieces.Count)
+            {
+                string eos = pieces[eosId].Piece;
+                _vocab[eos] = eosId;
+                _vocabReverse[eosId] = (eos, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
+            }
+
+            if (padId >= 0 && padId < pieces.Count)
+            {
+                string pad = pieces[padId].Piece;
+                _vocab[pad] = padId;
+                _vocabReverse[padId] = (pad, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
+            }
+        }
+
+        private static int GetPieceCount(IReadOnlyList<(string Piece, float Score)>? pieces)
+            => pieces?.Count ?? 0;
+
+        private static string GetPieceAtIndex(IReadOnlyList<(string Piece, float Score)>? pieces, int index)
+        {
+            if (pieces is null)
+            {
+                throw new ArgumentNullException("vocab");
+            }
+
+            if ((uint)index >= (uint)pieces.Count)
+            {
+                throw new ArgumentOutOfRangeException("unkId", "unkId must be a valid index in the vocabulary.");
+            }
+
+            return pieces[index].Piece;
+        }
+
+        // Finds a special token by name; falls back to defaultId if not found (returns -1 if defaultId is out of range).
+        private static int FindSpecialTokenId(IReadOnlyList<(string Piece, float Score)>? pieces, string tokenName, int defaultId)
+        {
+            if (pieces is null)
+            {
+                return defaultId;
+            }
+
+            for (int i = 0; i < pieces.Count; i++)
+            {
+                if (pieces[i].Piece == tokenName)
+                {
+                    return i;
+                }
+            }
+
+            return defaultId >= 0 && defaultId < pieces.Count ? defaultId : -1;
+        }
+
         public override IReadOnlyDictionary<string, int> Vocabulary => new ReadOnlyDictionary<string, int>(_vocab);
 
         public int MaxIdByteFallbackId { get; }

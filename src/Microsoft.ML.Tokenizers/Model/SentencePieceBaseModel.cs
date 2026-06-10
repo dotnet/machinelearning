@@ -59,6 +59,50 @@ namespace Microsoft.ML.Tokenizers
                                 specialTokens);
         }
 
+        internal SentencePieceBaseModel(
+            bool addBos, bool addEos,
+            string bosToken, int bosId,
+            string eosToken, int eosId,
+            string unkToken, int unkId,
+            bool addDummyPrefix, bool escapeWhiteSpaces,
+            bool treatWhitespaceAsSuffix, bool byteFallback,
+            ReadOnlySpan<byte> precompiledCharsmap, bool removeExtraWhitespaces,
+            IReadOnlyDictionary<string, int>? specialTokens)
+        {
+            AddBeginningOfSentence = addBos;
+            AddEndOfSentence = addEos;
+            BeginningOfSentenceToken = bosToken;
+            BeginningOfSentenceId = Math.Max(0, bosId);
+            EndOfSentenceToken = eosToken;
+            EndOfSentenceId = Math.Max(0, eosId);
+            UnknownToken = unkToken;
+            UnknownId = Math.Max(0, unkId);
+            AddDummyPrefix = addDummyPrefix;
+            EscapeWhiteSpaces = escapeWhiteSpaces;
+            TreatWhitespaceAsSuffix = treatWhitespaceAsSuffix;
+            ByteFallback = byteFallback;
+            SpecialTokens = specialTokens;
+
+            if (specialTokens is not null && specialTokens.Count > 0)
+            {
+                InternalSpecialTokens = new Dictionary<StringSpanOrdinalKey, int>();
+                SpecialTokensReverse = new Dictionary<int, string>();
+
+                foreach (var item in specialTokens)
+                {
+                    InternalSpecialTokens.Add(new StringSpanOrdinalKey(item.Key), item.Value);
+                    SpecialTokensReverse.Add(item.Value, item.Key);
+                }
+
+                SpecialTokensRegex = new Regex(string.Join("|", specialTokens.Keys.Select(s => Regex.Escape(s))), RegexOptions.Compiled);
+            }
+
+            Normalizer = new SentencePieceNormalizer(
+                                precompiledCharsmap, removeExtraWhitespaces,
+                                addDummyPrefix, escapeWhiteSpaces,
+                                treatWhitespaceAsSuffix, specialTokens);
+        }
+
         internal Regex? SpecialTokensRegex { get; }
 
         internal Dictionary<StringSpanOrdinalKey, int>? InternalSpecialTokens { get; }

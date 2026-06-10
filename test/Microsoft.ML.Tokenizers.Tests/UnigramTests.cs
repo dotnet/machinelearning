@@ -562,5 +562,108 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal("</s>", _unigramTokenizer.EndOfSentenceToken);
             Assert.Equal(2, _unigramTokenizer.EndOfSentenceId);
         }
+
+        [Fact]
+        public void CreateFromVocabTest()
+        {
+            // Build a minimal synthetic Unigram vocab: <unk>=0, <s>=1, </s>=2, then normal tokens
+            var vocab = new List<(string Piece, float Score)>
+            {
+                ("<unk>", 0f),
+                ("<s>",   0f),
+                ("</s>",  0f),
+                ("▁Hello", -1f),
+                (",",      -2f),
+                ("▁world", -3f),
+                ("!",      -4f),
+            };
+
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.Create(
+                vocab, unkId: 0, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            Assert.Equal("<unk>", tokenizer.UnknownToken);
+            Assert.Equal(0, tokenizer.UnknownId);
+            Assert.Equal("<s>", tokenizer.BeginningOfSentenceToken);
+            Assert.Equal(1, tokenizer.BeginningOfSentenceId);
+            Assert.Equal("</s>", tokenizer.EndOfSentenceToken);
+            Assert.Equal(2, tokenizer.EndOfSentenceId);
+
+            IReadOnlyList<int> ids = tokenizer.EncodeToIds("Hello, world!", addBeginningOfSentence: false, addEndOfSentence: false);
+            Assert.Equal(new[] { 3, 4, 5, 6 }, ids);
+
+            string decoded = tokenizer.Decode(ids, considerSpecialTokens: false);
+            Assert.Equal("Hello, world!", decoded);
+        }
+
+        [Fact]
+        public void CreateFromVocabNullTest()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+                SentencePieceTokenizer.Create((IEnumerable<(string Piece, float Score)>)null!, unkId: 0));
+        }
+
+        [Fact]
+        public void CreateFromVocabInvalidUnkIdTest()
+        {
+            var vocab = new List<(string Piece, float Score)> { ("a", 0f) };
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                SentencePieceTokenizer.Create(vocab, unkId: 5));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonTest()
+        {
+            using Stream jsonStream = File.OpenRead(Path.Combine("Paraphrase-multilingual-MiniLM-L12-v2", "tokenizer.json"));
+            SentencePieceTokenizer jsonTokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(
+                jsonStream, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            // The tokenizer.json vocab has <s>=0, <pad>=1, </s>=2, <unk>=3, then normal tokens
+            // (shifted +1 relative to .model which has <unk>=0, <s>=1, </s>=2)
+            Assert.Equal("<unk>", jsonTokenizer.UnknownToken);
+            Assert.Equal(3, jsonTokenizer.UnknownId);
+            Assert.Equal("<s>", jsonTokenizer.BeginningOfSentenceToken);
+            Assert.Equal(0, jsonTokenizer.BeginningOfSentenceId);
+            Assert.Equal("</s>", jsonTokenizer.EndOfSentenceToken);
+            Assert.Equal(2, jsonTokenizer.EndOfSentenceId);
+
+            // Pieces produced should match the .model tokenizer; IDs are shifted by +1
+            IReadOnlyList<EncodedToken> jsonTokens = jsonTokenizer.EncodeToTokens("Hello, world!", out _, addBeginningOfSentence: false, addEndOfSentence: false);
+            IReadOnlyList<EncodedToken> modelTokens = _unigramTokenizer.EncodeToTokens("Hello, world!", out _, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            Assert.Equal(modelTokens.Count, jsonTokens.Count);
+            for (int i = 0; i < modelTokens.Count; i++)
+            {
+                Assert.Equal(modelTokens[i].Value, jsonTokens[i].Value);
+                // JSON IDs are offset by 1 from the .model IDs for normal tokens
+                Assert.Equal(modelTokens[i].Id + 1, jsonTokens[i].Id);
+            }
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNullStreamTest()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(null!));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNormalizationTest()
+        {
+            // Verify that the JSON tokenizer applies the precompiled charsmap normalization
+            // (same normalization as the .model tokenizer)
+            using Stream jsonStream = File.OpenRead(Path.Combine("Paraphrase-multilingual-MiniLM-L12-v2", "tokenizer.json"));
+            SentencePieceTokenizer jsonTokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(
+                jsonStream, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            // "㍻" normalizes to "平成" via the precompiled charsmap (NFKC normalization)
+            IReadOnlyList<int> jsonIds = jsonTokenizer.EncodeToIds("㍻", addBeginningOfSentence: false, addEndOfSentence: false);
+            IReadOnlyList<int> modelIds = _unigramTokenizer.EncodeToIds("㍻", addBeginningOfSentence: false, addEndOfSentence: false);
+
+            Assert.Equal(modelIds.Count, jsonIds.Count);
+            for (int i = 0; i < modelIds.Count; i++)
+            {
+                Assert.Equal(modelIds[i] + 1, jsonIds[i]);
+            }
+        }
     }
 }
