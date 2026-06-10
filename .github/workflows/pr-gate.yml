@@ -9,10 +9,56 @@ on:
 
 permissions:
   contents: read
+  checks: write
+  pull-requests: read
 
 jobs:
   pr-gate:
     runs-on: ubuntu-latest
     steps:
-      - name: Always succeed
-        run: echo "PR Gate passed."
+      - name: Satisfy Build Analysis for build-excluded PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // AzDO MachineLearning-CI / MachineLearning-CodeCoverage exclude these
+            // paths from PR build validation. When every changed file is excluded,
+            // no AzDO build runs, so the Arcade "Build Analysis" check never receives
+            // a build.completed event and hangs in_progress, blocking merge
+            // (dotnet/arcade-services#6311).
+            const isExcluded = (f) =>
+              f.endsWith('.md') ||
+              f.startsWith('.github/') ||
+              f.startsWith('docs/') ||
+              f === 'LICENSE' ||
+              f === 'THIRD-PARTY-NOTICES.TXT';
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+
+            const buildExcluded = files.length > 0 && files.every((f) => isExcluded(f.filename));
+            core.info(`Changed files: ${files.length}, build-excluded: ${buildExcluded}`);
+
+            if (!buildExcluded) {
+              core.info('PR touches build-relevant files; leaving Build Analysis to the official build.');
+              return;
+            }
+
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'Build Analysis',
+              head_sha: context.payload.pull_request.head.sha,
+              status: 'completed',
+              conclusion: 'success',
+              output: {
+                title: 'Build Analysis satisfied by PR Gate',
+                summary: 'All changed files are excluded from AzDO PR build validation, ' +
+                  'so no build runs and the official Build Analysis would hang indefinitely ' +
+                  '(dotnet/arcade-services#6311). PR Gate marks this required check complete.',
+              },
+            });
+            core.info('Posted successful Build Analysis check run.');
