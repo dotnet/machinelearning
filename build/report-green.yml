@@ -1,11 +1,7 @@
-# This CI job only runs on PRs where all other jobs are skipped.
-# This allows Build Analysis to report green. Without this, no jobs would run,
-# causing Build Analysis to hang indefinitely because it never receives an
-# AzDO build.completed event (dotnet/arcade-services#6311).
-
-# Only run this on PRs
+# Runs on PRs where the main pipelines are skipped (build-excluded paths),
+# so Build Analysis receives a build.completed event and reports green
+# instead of hanging (dotnet/arcade-services#6311).
 trigger: none
-# Run for all relevant branches, only on paths that no-op the other pipelines.
 pr:
   autoCancel: true
   branches:
@@ -21,12 +17,10 @@ pr:
     - LICENSE
     - THIRD-PARTY-NOTICES.TXT
 
-# ABG - Always Be Green
 jobs:
   - job: Report_Green
     pool: server
     steps:
-    # This is a documentation-only change. Use a no-op task to exit successfully.
     - task: Delay@1
       inputs:
         delayForMinutes: '0'
