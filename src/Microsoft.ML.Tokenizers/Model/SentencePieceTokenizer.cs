@@ -640,22 +640,36 @@ namespace Microsoft.ML.Tokenizers
                         return Convert.FromBase64String(base64);
                     }
                 }
+                return null;
             }
             else if (string.Equals(type, "Sequence", StringComparison.OrdinalIgnoreCase) &&
                      normalizer.TryGetProperty("normalizers", out JsonElement normalizersEl) &&
                      normalizersEl.ValueKind == JsonValueKind.Array)
             {
+                byte[]? result = null;
                 foreach (JsonElement inner in normalizersEl.EnumerateArray())
                 {
-                    byte[]? result = ExtractPrecompiledCharsMap(inner);
-                    if (result is not null)
+                    if (!inner.TryGetProperty("type", out JsonElement innerTypeEl))
                     {
-                        return result;
+                        continue;
+                    }
+
+                    string? innerType = innerTypeEl.GetString();
+                    if (string.Equals(innerType, "Precompiled", StringComparison.OrdinalIgnoreCase))
+                    {
+                        result = ExtractPrecompiledCharsMap(inner);
+                    }
+                    else
+                    {
+                        throw new NotSupportedException($"Normalizer type '{innerType}' in Sequence is not supported. Only 'Precompiled' normalizer is supported.");
                     }
                 }
+                return result;
             }
-
-            return null;
+            else
+            {
+                throw new NotSupportedException($"Normalizer type '{type}' is not supported. Only 'Precompiled' and 'Sequence' normalizers are supported.");
+            }
         }
 
         private static void ExtractMetaspaceSettings(JsonElement preTokenizer, ref bool addDummyPrefix, ref bool escapeWhiteSpaces, ref bool treatWhitespaceAsSuffix)
@@ -682,7 +696,11 @@ namespace Microsoft.ML.Tokenizers
                 if (preTokenizer.TryGetProperty("prepend_scheme", out JsonElement prependSchemeEl))
                 {
                     string? scheme = prependSchemeEl.GetString();
-                    treatWhitespaceAsSuffix = string.Equals(scheme, "last", StringComparison.OrdinalIgnoreCase);
+                    // "never" suppresses the dummy prefix; "always"/"first" keep the default (true)
+                    if (string.Equals(scheme, "never", StringComparison.OrdinalIgnoreCase))
+                    {
+                        addDummyPrefix = false;
+                    }
                 }
             }
             else if (string.Equals(type, "Sequence", StringComparison.OrdinalIgnoreCase) &&

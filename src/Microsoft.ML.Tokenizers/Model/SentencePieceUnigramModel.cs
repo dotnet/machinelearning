@@ -95,7 +95,7 @@ namespace Microsoft.ML.Tokenizers
 
         // Constructor that builds a Unigram model directly from a list of (piece, score) pairs.
         // BOS, EOS, and PAD tokens are identified by their names ("<s>", "</s>", "<pad>") in the vocab;
-        // if not found by name, SentencePiece-conventional positions (1, 2, none) are used as fallbacks.
+        // if not found by name, they are treated as absent (id = -1) to avoid misidentifying real pieces.
         internal SentencePieceUnigramModel(
             IReadOnlyList<(string Piece, float Score)> pieces,
             int unkId,
@@ -109,9 +109,9 @@ namespace Microsoft.ML.Tokenizers
             IReadOnlyDictionary<string, int>? specialTokens)
             : this(pieces, unkId, addBos, addEos, precompiledCharsmap, addDummyPrefix, escapeWhiteSpaces,
                    treatWhitespaceAsSuffix, removeExtraWhitespaces, specialTokens,
-                   FindSpecialTokenId(pieces, "<s>", 1),
-                   FindSpecialTokenId(pieces, "</s>", 2),
-                   FindSpecialTokenId(pieces, "<pad>", -1))
+                   FindSpecialTokenId(pieces, "<s>"),
+                   FindSpecialTokenId(pieces, "</s>"),
+                   FindSpecialTokenId(pieces, "<pad>"))
         {
         }
 
@@ -212,12 +212,12 @@ namespace Microsoft.ML.Tokenizers
             return pieces[index].Piece;
         }
 
-        // Finds a special token by name; falls back to defaultId if not found (returns -1 if defaultId is out of range).
-        private static int FindSpecialTokenId(IReadOnlyList<(string Piece, float Score)>? pieces, string tokenName, int defaultId)
+        // Finds a special token by name; returns -1 if not found.
+        private static int FindSpecialTokenId(IReadOnlyList<(string Piece, float Score)>? pieces, string tokenName)
         {
             if (pieces is null)
             {
-                return defaultId;
+                return -1;
             }
 
             for (int i = 0; i < pieces.Count; i++)
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Tokenizers
                 }
             }
 
-            return defaultId >= 0 && defaultId < pieces.Count ? defaultId : -1;
+            return -1;
         }
 
         public override IReadOnlyDictionary<string, int> Vocabulary => new ReadOnlyDictionary<string, int>(_vocab);
