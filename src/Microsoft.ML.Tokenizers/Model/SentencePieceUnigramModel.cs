@@ -109,7 +109,7 @@ namespace Microsoft.ML.Tokenizers
             IReadOnlyDictionary<string, int>? specialTokens)
             : this(pieces, unkId, addBos, addEos, precompiledCharsmap, addDummyPrefix, escapeWhiteSpaces,
                    treatWhitespaceAsSuffix, removeExtraWhitespaces, specialTokens,
-                   FindSpecialTokenId(pieces, "<s>"),
+                   FindSpecialTokenId(ValidateVocab(pieces, unkId), "<s>"),
                    FindSpecialTokenId(pieces, "</s>"),
                    FindSpecialTokenId(pieces, "<pad>"))
         {
@@ -128,8 +128,8 @@ namespace Microsoft.ML.Tokenizers
             IReadOnlyDictionary<string, int>? specialTokens,
             int bosId, int eosId, int padId)
             : base(addBos, addEos,
-                   bosId >= 0 && bosId < GetPieceCount(pieces) ? pieces[bosId].Piece : "<s>", bosId,
-                   eosId >= 0 && eosId < GetPieceCount(pieces) ? pieces[eosId].Piece : "</s>", eosId,
+                   bosId >= 0 && bosId < GetPieceCount(pieces) ? pieces[bosId].Piece : "<s>", CheckSpecialId(addBos, bosId, "addBeginningOfSentence"),
+                   eosId >= 0 && eosId < GetPieceCount(pieces) ? pieces[eosId].Piece : "</s>", CheckSpecialId(addEos, eosId, "addEndOfSentence"),
                    GetPieceAtIndex(pieces, unkId), unkId,
                    addDummyPrefix, escapeWhiteSpaces, treatWhitespaceAsSuffix, byteFallback: false,
                    precompiledCharsmap, removeExtraWhitespaces, specialTokens)
@@ -212,6 +212,23 @@ namespace Microsoft.ML.Tokenizers
             return pieces[index].Piece;
         }
 
+        // Validates pieces is not null and unkId is in range; returns pieces unchanged.
+        private static IReadOnlyList<(string Piece, float Score)> ValidateVocab(
+            IReadOnlyList<(string Piece, float Score)>? pieces, int unkId)
+        {
+            if (pieces is null)
+            {
+                throw new ArgumentNullException("vocab");
+            }
+
+            if ((uint)unkId >= (uint)pieces.Count)
+            {
+                throw new ArgumentOutOfRangeException("unkId", "unkId must be a valid index in the vocabulary.");
+            }
+
+            return pieces;
+        }
+
         // Finds a special token by name; returns -1 if not found.
         private static int FindSpecialTokenId(IReadOnlyList<(string Piece, float Score)>? pieces, string tokenName)
         {
@@ -229,6 +246,15 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return -1;
+        }
+
+        private static int CheckSpecialId(bool required, int id, string paramName)
+        {
+            if (required && id < 0)
+            {
+                throw new ArgumentException($"The vocabulary does not contain the required special token.", paramName);
+            }
+            return id;
         }
 
         public override IReadOnlyDictionary<string, int> Vocabulary => new ReadOnlyDictionary<string, int>(_vocab);

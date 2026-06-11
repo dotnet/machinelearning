@@ -601,7 +601,8 @@ namespace Microsoft.ML.Tokenizers
             byte[]? precompiledCharsMap = null;
             bool addDummyPrefix = true;
             bool removeExtraWhitespaces = true;
-            if (root.TryGetProperty("normalizer", out JsonElement normalizerElement))
+            if (root.TryGetProperty("normalizer", out JsonElement normalizerElement) &&
+                normalizerElement.ValueKind == JsonValueKind.Object)
             {
                 precompiledCharsMap = ExtractPrecompiledCharsMap(normalizerElement);
             }
@@ -649,19 +650,15 @@ namespace Microsoft.ML.Tokenizers
                 byte[]? result = null;
                 foreach (JsonElement inner in normalizersEl.EnumerateArray())
                 {
-                    if (!inner.TryGetProperty("type", out JsonElement innerTypeEl))
+                    if (inner.ValueKind != JsonValueKind.Object)
                     {
                         continue;
                     }
 
-                    string? innerType = innerTypeEl.GetString();
-                    if (string.Equals(innerType, "Precompiled", StringComparison.OrdinalIgnoreCase))
+                    byte[]? innerResult = ExtractPrecompiledCharsMap(inner);
+                    if (innerResult is not null)
                     {
-                        result = ExtractPrecompiledCharsMap(inner);
-                    }
-                    else
-                    {
-                        throw new NotSupportedException($"Normalizer type '{innerType}' in Sequence is not supported. Only 'Precompiled' normalizer is supported.");
+                        result = innerResult;
                     }
                 }
                 return result;

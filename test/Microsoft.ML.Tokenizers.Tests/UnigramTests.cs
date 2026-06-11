@@ -665,5 +665,89 @@ namespace Microsoft.ML.Tokenizers.Tests
                 Assert.Equal(modelIds[i] + 1, jsonIds[i]);
             }
         }
+
+        [Fact]
+        public void CreateFromVocabNoSpecialTokensTest()
+        {
+            // Vocab without <s>/<pad>/</s> — resembles bge-m3/potion layout.
+            // Verify that real pieces (e.g. ",") are not marked Control and remain encodable.
+            var vocab = new List<(string Piece, float Score)>
+            {
+                ("[PAD]", 0f),   // 0
+                ("[UNK]", 0f),   // 1
+                (",",     -1f),  // 2
+                ("▁Hello", -2f), // 3
+                ("▁world", -3f), // 4
+                ("!",     -4f),  // 5
+            };
+
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.Create(
+                vocab, unkId: 1, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            // "," must be in the vocabulary and encodable (not silently dropped as Control)
+            IReadOnlyList<int> ids = tokenizer.EncodeToIds("Hello, world!", addBeginningOfSentence: false, addEndOfSentence: false);
+            Assert.Contains(2, ids); // id 2 is ","
+        }
+
+        [Fact]
+        public void CreateFromVocabBosRequiredButAbsentTest()
+        {
+            // Vocab without <s>: addBeginningOfSentence:true should throw rather than emit index 0.
+            var vocab = new List<(string Piece, float Score)>
+            {
+                ("[UNK]", 0f),
+                ("▁Hello", -1f),
+            };
+
+            Assert.Throws<ArgumentException>(() =>
+                SentencePieceTokenizer.Create(vocab, unkId: 0, addBeginningOfSentence: true));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonUnsupportedNormalizerTest()
+        {
+            // A Sequence normalizer containing a non-Precompiled step should throw NotSupportedException.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  },
+                  "normalizer": {
+                    "type": "Sequence",
+                    "normalizers": [
+                      { "type": "Precompiled", "precompiled_charsmap": "" },
+                      { "type": "Replace", "pattern": " ", "content": "_" }
+                    ]
+                  }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<NotSupportedException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNullNormalizerTest()
+        {
+            // A null normalizer value in JSON should not throw.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  },
+                  "normalizer": null
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(
+                stream, addBeginningOfSentence: false);
+            Assert.NotNull(tokenizer);
+        }
     }
 }
