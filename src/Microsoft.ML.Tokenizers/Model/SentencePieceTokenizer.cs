@@ -482,13 +482,15 @@ namespace Microsoft.ML.Tokenizers
         /// <param name="addDummyPrefix">Whether to prepend the dummy whitespace prefix character (U+2581) at the start of the input.</param>
         /// <param name="escapeWhiteSpaces">Whether to replace spaces with the dummy whitespace character (U+2581) during normalization.</param>
         /// <param name="treatWhitespaceAsSuffix">Whether to emit the U+2581 character at the end of the last token rather than the beginning of the first token.</param>
+        /// <param name="byteFallback">Whether unknown characters are decomposed into UTF-8 byte pieces (<c>&lt;0x00&gt;</c>..<c>&lt;0xFF&gt;</c>) instead of the unknown token.</param>
         /// <param name="specialTokens">Additional special tokens to recognize, supplied as a mapping of token string to token ID.</param>
         /// <returns>A new <see cref="SentencePieceTokenizer"/> instance.</returns>
         /// <remarks>
         /// The beginning-of-sentence and end-of-sentence token IDs are auto-detected by looking for pieces
-        /// named <c>&lt;s&gt;</c> and <c>&lt;/s&gt;</c> in <paramref name="vocab"/>. If not found, positions 1 and 2
-        /// are used as fallbacks (the SentencePiece convention). Similarly, a <c>&lt;pad&gt;</c> piece is
-        /// detected automatically if present.
+        /// named <c>&lt;s&gt;</c> and <c>&lt;/s&gt;</c> in <paramref name="vocab"/>. If a piece is not found it is
+        /// treated as absent; requesting <paramref name="addBeginningOfSentence"/> or <paramref name="addEndOfSentence"/>
+        /// when the corresponding piece is absent throws an <see cref="ArgumentException"/>. A <c>&lt;pad&gt;</c> piece
+        /// is likewise detected automatically when present.
         /// <para>
         /// When creating the tokenizer, ensure that the vocabulary is sourced from a trusted provider.
         /// </para>
@@ -502,6 +504,7 @@ namespace Microsoft.ML.Tokenizers
             bool addDummyPrefix = true,
             bool escapeWhiteSpaces = true,
             bool treatWhitespaceAsSuffix = false,
+            bool byteFallback = false,
             IReadOnlyDictionary<string, int>? specialTokens = null)
         {
             if (vocab is null)
@@ -515,7 +518,7 @@ namespace Microsoft.ML.Tokenizers
             SentencePieceUnigramModel model = new SentencePieceUnigramModel(
                 pieces, unkId, addBeginningOfSentence, addEndOfSentence,
                 precompiledCharsMap, addDummyPrefix, escapeWhiteSpaces,
-                treatWhitespaceAsSuffix, removeExtraWhitespaces: true, specialTokens);
+                treatWhitespaceAsSuffix, removeExtraWhitespaces: true, byteFallback, specialTokens);
 
             return new SentencePieceTokenizer(model);
         }
@@ -534,9 +537,17 @@ namespace Microsoft.ML.Tokenizers
         /// <list type="bullet">
         ///   <item><description><c>model.vocab</c> — array of <c>[piece, score]</c> pairs (required).</description></item>
         ///   <item><description><c>model.unk_id</c> — index of the unknown token (required).</description></item>
+        ///   <item><description><c>model.byte_fallback</c> — whether unknown characters fall back to UTF-8 byte pieces.</description></item>
+        ///   <item><description><c>added_tokens</c> — special tokens (those with <c>"special": true</c>) and their IDs.</description></item>
         ///   <item><description><c>normalizer.precompiled_charsmap</c> (base64) — normalization map; also searched inside a <c>Sequence</c> normalizer.</description></item>
         ///   <item><description><c>pre_tokenizer</c> of type <c>Metaspace</c> — <c>add_prefix_space</c> and <c>replacement</c>; also searched inside a <c>Sequence</c> pre-tokenizer.</description></item>
+        ///   <item><description><c>post_processor</c> (<c>TemplateProcessing</c>, <c>RobertaProcessing</c>, <c>BertProcessing</c>, or a <c>Sequence</c> of these) — the special tokens that wrap a single sequence, gated by <paramref name="addBeginningOfSentence"/> (prefix) and <paramref name="addEndOfSentence"/> (suffix).</description></item>
         /// </list>
+        /// <para>
+        /// <c>remove_extra_whitespaces</c> has no direct representation in <c>tokenizer.json</c> and is assumed to be
+        /// <see langword="true"/>. Pair-sequence templates and per-token <c>type_id</c>s are not applied. Templates that
+        /// place a special token in the middle of the sequence are rejected with <see cref="NotSupportedException"/>.
+        /// </para>
         /// <para>
         /// When creating the tokenizer, ensure that the JSON stream is sourced from a trusted provider.
         /// </para>
@@ -561,8 +572,17 @@ namespace Microsoft.ML.Tokenizers
                 throw new InvalidDataException("The tokenizer.json does not contain a 'model' property.");
             }
 
-            if (modelElement.TryGetProperty("type", out JsonElement modelTypeElement) &&
-                !string.Equals(modelTypeElement.GetString(), "Unigram", StringComparison.OrdinalIgnoreCase))
+            if (modelElement.ValueKind != JsonValueKind.Object)
+            {
+                throw new InvalidDataException("The tokenizer.json 'model' property must be a JSON object.");
+            }
+
+            if (!modelElement.TryGetProperty("type", out JsonElement modelTypeElement))
+            {
+                throw new InvalidDataException("The tokenizer.json model does not contain a 'type' property; this factory only supports 'Unigram' models.");
+            }
+
+            if (!string.Equals(modelTypeElement.GetString(), "Unigram", StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidDataException($"Expected model type 'Unigram' but found '{modelTypeElement.GetString()}'.");
             }
@@ -573,6 +593,9 @@ namespace Microsoft.ML.Tokenizers
             }
 
             int unkId = unkIdElement.GetInt32();
+
+            bool byteFallback = modelElement.TryGetProperty("byte_fallback", out JsonElement byteFallbackElement) &&
+                                byteFallbackElement.ValueKind == JsonValueKind.True;
 
             if (!modelElement.TryGetProperty("vocab", out JsonElement vocabElement) ||
                 vocabElement.ValueKind != JsonValueKind.Array)
@@ -600,27 +623,284 @@ namespace Microsoft.ML.Tokenizers
             // Extract normalizer settings
             byte[]? precompiledCharsMap = null;
             bool addDummyPrefix = true;
-            bool removeExtraWhitespaces = true;
+            // HF tokenizer.json has no remove_extra_whitespaces flag; SpmConverter encodes that behavior as
+            // explicit normalizer steps (a right-Strip plus a Replace collapsing runs of spaces). Deduce it from
+            // those steps, defaulting to false when absent to match the HF fast-tokenizer runtime.
+            bool removeExtraWhitespaces = false;
             if (root.TryGetProperty("normalizer", out JsonElement normalizerElement) &&
                 normalizerElement.ValueKind == JsonValueKind.Object)
             {
                 precompiledCharsMap = ExtractPrecompiledCharsMap(normalizerElement);
+                removeExtraWhitespaces = NormalizerCollapsesWhitespace(normalizerElement);
             }
 
             // Extract pre_tokenizer settings
             bool escapeWhiteSpaces = true;
             bool treatWhitespaceAsSuffix = false;
-            if (root.TryGetProperty("pre_tokenizer", out JsonElement preTokenizerElement))
+            if (root.TryGetProperty("pre_tokenizer", out JsonElement preTokenizerElement) &&
+                preTokenizerElement.ValueKind == JsonValueKind.Object)
             {
                 ExtractMetaspaceSettings(preTokenizerElement, ref addDummyPrefix, ref escapeWhiteSpaces, ref treatWhitespaceAsSuffix);
             }
 
+            // Merge the special tokens declared in added_tokens (authoritative source for their IDs) with any
+            // caller-supplied special tokens; the caller's entries win on conflict.
+            Dictionary<string, int> mergedSpecialTokens = ParseAddedTokens(root);
+            if (specialTokens is not null)
+            {
+                foreach (var kvp in specialTokens)
+                {
+                    mergedSpecialTokens[kvp.Key] = kvp.Value;
+                }
+            }
+
+            // Resolve the prefix/suffix special-token wrapping from the post_processor (if present), falling back
+            // to the SentencePiece-conventional <s>/</s> names otherwise.
+            ResolvePostProcessorAffixes(root, vocab, mergedSpecialTokens,
+                out List<(int Id, string Token)> prefixTokens, out List<(int Id, string Token)> suffixTokens);
+
+            // Ensure every wrapping token is registered as a special token so it is classified Control and round-trips on decode.
+            foreach (var (id, token) in prefixTokens)
+            {
+                mergedSpecialTokens[token] = id;
+            }
+            foreach (var (id, token) in suffixTokens)
+            {
+                mergedSpecialTokens[token] = id;
+            }
+
+            int padId = mergedSpecialTokens.TryGetValue("<pad>", out int p) ? p : FindPieceId(vocab, "<pad>");
+
             SentencePieceUnigramModel model = new SentencePieceUnigramModel(
                 vocab, unkId, addBeginningOfSentence, addEndOfSentence,
                 precompiledCharsMap is not null ? precompiledCharsMap.AsSpan() : default,
-                addDummyPrefix, escapeWhiteSpaces, treatWhitespaceAsSuffix, removeExtraWhitespaces, specialTokens);
+                addDummyPrefix, escapeWhiteSpaces, treatWhitespaceAsSuffix, removeExtraWhitespaces, byteFallback,
+                mergedSpecialTokens.Count > 0 ? mergedSpecialTokens : null,
+                prefixTokens, suffixTokens, padId);
 
             return new SentencePieceTokenizer(model);
+        }
+
+        // Reads the special tokens (those marked "special": true) from the top-level added_tokens array.
+        private static Dictionary<string, int> ParseAddedTokens(JsonElement root)
+        {
+            Dictionary<string, int> result = new Dictionary<string, int>();
+            if (!root.TryGetProperty("added_tokens", out JsonElement addedTokens) || addedTokens.ValueKind != JsonValueKind.Array)
+            {
+                return result;
+            }
+
+            foreach (JsonElement entry in addedTokens.EnumerateArray())
+            {
+                if (entry.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                if (!entry.TryGetProperty("special", out JsonElement specialElement) || specialElement.ValueKind != JsonValueKind.True)
+                {
+                    continue;
+                }
+
+                if (entry.TryGetProperty("content", out JsonElement contentElement) &&
+                    entry.TryGetProperty("id", out JsonElement idElement) &&
+                    contentElement.GetString() is string content)
+                {
+                    result[content] = idElement.GetInt32();
+                }
+            }
+
+            return result;
+        }
+
+        // Resolves the ordered prefix/suffix special tokens that wrap an encoded sequence, from the post_processor.
+        private static void ResolvePostProcessorAffixes(
+            JsonElement root,
+            IReadOnlyList<(string Piece, float Score)> vocab,
+            IReadOnlyDictionary<string, int> specialTokens,
+            out List<(int Id, string Token)> prefixTokens,
+            out List<(int Id, string Token)> suffixTokens)
+        {
+            prefixTokens = new List<(int Id, string Token)>();
+            suffixTokens = new List<(int Id, string Token)>();
+
+            if (root.TryGetProperty("post_processor", out JsonElement postProcessor) &&
+                postProcessor.ValueKind == JsonValueKind.Object)
+            {
+                ProcessPostProcessor(postProcessor, vocab, specialTokens, prefixTokens, suffixTokens);
+                return;
+            }
+
+            // No post_processor: fall back to the SentencePiece-conventional names.
+            AddAffixToken(prefixTokens, "<s>", vocab, specialTokens, required: false);
+            AddAffixToken(suffixTokens, "</s>", vocab, specialTokens, required: false);
+        }
+
+        private static void ProcessPostProcessor(
+            JsonElement postProcessor,
+            IReadOnlyList<(string Piece, float Score)> vocab,
+            IReadOnlyDictionary<string, int> specialTokens,
+            List<(int Id, string Token)> prefixTokens,
+            List<(int Id, string Token)> suffixTokens)
+        {
+            string? type = postProcessor.TryGetProperty("type", out JsonElement typeEl) ? typeEl.GetString() : null;
+
+            switch (type)
+            {
+                case "TemplateProcessing":
+                    ProcessTemplate(postProcessor, vocab, specialTokens, prefixTokens, suffixTokens);
+                    break;
+
+                case "RobertaProcessing":
+                    AddProcessorAffix(postProcessor, "cls", prefixTokens, vocab, specialTokens);
+                    AddProcessorAffix(postProcessor, "sep", suffixTokens, vocab, specialTokens);
+                    break;
+
+                case "BertProcessing":
+                    AddProcessorAffix(postProcessor, "cls", prefixTokens, vocab, specialTokens);
+                    AddProcessorAffix(postProcessor, "sep", suffixTokens, vocab, specialTokens);
+                    break;
+
+                case "Sequence":
+                    if (postProcessor.TryGetProperty("processors", out JsonElement processors) && processors.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (JsonElement inner in processors.EnumerateArray())
+                        {
+                            if (inner.ValueKind == JsonValueKind.Object)
+                            {
+                                ProcessPostProcessor(inner, vocab, specialTokens, prefixTokens, suffixTokens);
+                            }
+                        }
+                    }
+                    break;
+
+                default:
+                    // ByteLevel and other processors do not contribute special-token wrapping; ignore them.
+                    break;
+            }
+        }
+
+        // Parses a TemplateProcessing "single" template into leading (prefix) and trailing (suffix) special tokens.
+        private static void ProcessTemplate(
+            JsonElement postProcessor,
+            IReadOnlyList<(string Piece, float Score)> vocab,
+            IReadOnlyDictionary<string, int> specialTokens,
+            List<(int Id, string Token)> prefixTokens,
+            List<(int Id, string Token)> suffixTokens)
+        {
+            if (!postProcessor.TryGetProperty("single", out JsonElement single) || single.ValueKind != JsonValueKind.Array)
+            {
+                return;
+            }
+
+            JsonElement? ppSpecialTokens = postProcessor.TryGetProperty("special_tokens", out JsonElement st) && st.ValueKind == JsonValueKind.Object
+                ? st : (JsonElement?)null;
+
+            bool seenSequence = false;
+            foreach (JsonElement item in single.EnumerateArray())
+            {
+                if (item.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                if (item.TryGetProperty("Sequence", out _))
+                {
+                    if (seenSequence)
+                    {
+                        throw new NotSupportedException("tokenizer.json post_processor templates with more than one sequence are not supported.");
+                    }
+
+                    seenSequence = true;
+                }
+                else if (item.TryGetProperty("SpecialToken", out JsonElement specialToken) &&
+                         specialToken.TryGetProperty("id", out JsonElement idEl) &&
+                         idEl.GetString() is string tokenName)
+                {
+                    int id = ResolveTemplateTokenId(tokenName, ppSpecialTokens, specialTokens, vocab);
+                    (seenSequence ? suffixTokens : prefixTokens).Add((id, tokenName));
+                }
+            }
+
+            if (!seenSequence)
+            {
+                throw new NotSupportedException("tokenizer.json post_processor template does not contain a sequence placeholder.");
+            }
+        }
+
+        private static int ResolveTemplateTokenId(
+            string tokenName,
+            JsonElement? ppSpecialTokens,
+            IReadOnlyDictionary<string, int> specialTokens,
+            IReadOnlyList<(string Piece, float Score)> vocab)
+        {
+            if (ppSpecialTokens is JsonElement st &&
+                st.TryGetProperty(tokenName, out JsonElement entry) &&
+                entry.TryGetProperty("ids", out JsonElement ids) &&
+                ids.ValueKind == JsonValueKind.Array &&
+                ids.GetArrayLength() > 0)
+            {
+                return ids[0].GetInt32();
+            }
+
+            if (specialTokens.TryGetValue(tokenName, out int specialId))
+            {
+                return specialId;
+            }
+
+            int vocabId = FindPieceId(vocab, tokenName);
+            if (vocabId < 0)
+            {
+                throw new InvalidDataException($"The tokenizer.json post_processor references special token '{tokenName}' that is not present in the vocabulary.");
+            }
+
+            return vocabId;
+        }
+
+        private static void AddProcessorAffix(
+            JsonElement postProcessor,
+            string property,
+            List<(int Id, string Token)> target,
+            IReadOnlyList<(string Piece, float Score)> vocab,
+            IReadOnlyDictionary<string, int> specialTokens)
+        {
+            // Roberta/Bert processors store cls/sep as [token, id] arrays.
+            if (postProcessor.TryGetProperty(property, out JsonElement el) && el.ValueKind == JsonValueKind.Array && el.GetArrayLength() >= 2 &&
+                el[0].GetString() is string token)
+            {
+                target.Add((el[1].GetInt32(), token));
+            }
+        }
+
+        private static void AddAffixToken(
+            List<(int Id, string Token)> target,
+            string tokenName,
+            IReadOnlyList<(string Piece, float Score)> vocab,
+            IReadOnlyDictionary<string, int> specialTokens,
+            bool required)
+        {
+            int id = specialTokens.TryGetValue(tokenName, out int specialId) ? specialId : FindPieceId(vocab, tokenName);
+            if (id >= 0)
+            {
+                target.Add((id, tokenName));
+            }
+            else if (required)
+            {
+                throw new InvalidDataException($"The tokenizer.json does not contain the required special token '{tokenName}'.");
+            }
+        }
+
+        private static int FindPieceId(IReadOnlyList<(string Piece, float Score)> vocab, string token)
+        {
+            for (int i = 0; i < vocab.Count; i++)
+            {
+                if (vocab[i].Piece == token)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         private static byte[]? ExtractPrecompiledCharsMap(JsonElement normalizer)
@@ -647,6 +927,8 @@ namespace Microsoft.ML.Tokenizers
                      normalizer.TryGetProperty("normalizers", out JsonElement normalizersEl) &&
                      normalizersEl.ValueKind == JsonValueKind.Array)
             {
+                // A Sequence may legitimately interleave the precompiled map with other steps (Nmt, Replace, ...).
+                // Extract the precompiled map and ignore the steps we don't model rather than failing the load.
                 byte[]? result = null;
                 foreach (JsonElement inner in normalizersEl.EnumerateArray())
                 {
@@ -663,9 +945,77 @@ namespace Microsoft.ML.Tokenizers
                 }
                 return result;
             }
-            else
+
+            // Other normalizer types (Nmt, Replace, Lowercase, ...) carry no precompiled map; treat as absent.
+            return null;
+        }
+
+        // Detects whether the normalizer collapses extra whitespace, i.e. SentencePiece's remove_extra_whitespaces.
+        // HF's SpmConverter emits this as a right-Strip plus a Replace of a runs-of-spaces Regex (" {2,}") -> "▁".
+        private static bool NormalizerCollapsesWhitespace(JsonElement normalizer)
+        {
+            if (normalizer.ValueKind != JsonValueKind.Object || !normalizer.TryGetProperty("type", out JsonElement typeEl))
             {
-                throw new NotSupportedException($"Normalizer type '{type}' is not supported. Only 'Precompiled' and 'Sequence' normalizers are supported.");
+                return false;
+            }
+
+            string? type = typeEl.GetString();
+
+            if (string.Equals(type, "Strip", StringComparison.OrdinalIgnoreCase))
+            {
+                // A right-Strip removes trailing whitespace; treat its presence as the strip half of the behavior.
+                return !normalizer.TryGetProperty("strip_right", out JsonElement stripRight) || stripRight.ValueKind != JsonValueKind.False;
+            }
+
+            if (string.Equals(type, "Replace", StringComparison.OrdinalIgnoreCase))
+            {
+                return ReplaceCollapsesSpaces(normalizer);
+            }
+
+            if (string.Equals(type, "Sequence", StringComparison.OrdinalIgnoreCase) &&
+                normalizer.TryGetProperty("normalizers", out JsonElement normalizersEl) &&
+                normalizersEl.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement inner in normalizersEl.EnumerateArray())
+                {
+                    if (NormalizerCollapsesWhitespace(inner))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        // True only for a Replace whose Regex matches runs of two-or-more spaces, not a single-space Metaspace Replace.
+        private static bool ReplaceCollapsesSpaces(JsonElement replace)
+        {
+            if (!replace.TryGetProperty("pattern", out JsonElement patternEl) ||
+                patternEl.ValueKind != JsonValueKind.Object ||
+                !patternEl.TryGetProperty("Regex", out JsonElement regexEl))
+            {
+                return false;
+            }
+
+            string? pattern = regexEl.GetString();
+            if (pattern is null)
+            {
+                return false;
+            }
+
+            // Do not trim: HF's canonical patterns " {2,}" and " +" carry a significant leading space.
+            switch (pattern)
+            {
+                case " {2,}":
+                case " +":
+                case "[ ]+":
+                case "[ ]{2,}":
+                case "\\s+":
+                case "\\s{2,}":
+                    return true;
+                default:
+                    return false;
             }
         }
 

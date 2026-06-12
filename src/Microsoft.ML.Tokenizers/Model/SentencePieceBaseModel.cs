@@ -72,11 +72,11 @@ namespace Microsoft.ML.Tokenizers
             AddBeginningOfSentence = addBos;
             AddEndOfSentence = addEos;
             BeginningOfSentenceToken = bosToken;
-            BeginningOfSentenceId = Math.Max(0, bosId);
+            BeginningOfSentenceId = bosId;
             EndOfSentenceToken = eosToken;
-            EndOfSentenceId = Math.Max(0, eosId);
+            EndOfSentenceId = eosId;
             UnknownToken = unkToken;
-            UnknownId = Math.Max(0, unkId);
+            UnknownId = unkId;
             AddDummyPrefix = addDummyPrefix;
             EscapeWhiteSpaces = escapeWhiteSpaces;
             TreatWhitespaceAsSuffix = treatWhitespaceAsSuffix;

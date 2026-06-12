@@ -22,6 +22,8 @@ namespace Microsoft.ML.Tokenizers
         private readonly DoubleArrayTrie _trie;
         private readonly float _minScore;
         private readonly float _maxScore;
+        private readonly (int Id, string Token)[] _prefixTokens;
+        private readonly (int Id, string Token)[] _suffixTokens;
         private const float UnkPenalty = 10.0f;
 
         public SentencePieceUnigramModel(ModelProto modelProto, bool addBos, bool addEos, IReadOnlyDictionary<string, int>? specialTokens = null) : base(modelProto, addBos, addEos, specialTokens)
@@ -91,6 +93,9 @@ namespace Microsoft.ML.Tokenizers
                 _vocab[modelProto.TrainerSpec.PadPiece] = modelProto.TrainerSpec.PadId;
                 _vocabReverse[modelProto.TrainerSpec.PadId] = (modelProto.TrainerSpec.PadPiece, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
             }
+
+            _prefixTokens = DefaultAffix(BeginningOfSentenceId, BeginningOfSentenceToken);
+            _suffixTokens = DefaultAffix(EndOfSentenceId, EndOfSentenceToken);
         }
 
         // Constructor that builds a Unigram model directly from a list of (piece, score) pairs.
@@ -106,12 +111,37 @@ namespace Microsoft.ML.Tokenizers
             bool escapeWhiteSpaces,
             bool treatWhitespaceAsSuffix,
             bool removeExtraWhitespaces,
+            bool byteFallback,
             IReadOnlyDictionary<string, int>? specialTokens)
             : this(pieces, unkId, addBos, addEos, precompiledCharsmap, addDummyPrefix, escapeWhiteSpaces,
-                   treatWhitespaceAsSuffix, removeExtraWhitespaces, specialTokens,
-                   FindSpecialTokenId(ValidateVocab(pieces, unkId), "<s>"),
-                   FindSpecialTokenId(pieces, "</s>"),
-                   FindSpecialTokenId(pieces, "<pad>"))
+                   treatWhitespaceAsSuffix, removeExtraWhitespaces, byteFallback, specialTokens,
+                   CheckSpecialId(addBos, FindSpecialTokenId(ValidateVocab(pieces, unkId), "<s>"), "addBeginningOfSentence"),
+                   CheckSpecialId(addEos, FindSpecialTokenId(pieces, "</s>"), "addEndOfSentence"),
+                   FindSpecialTokenId(pieces, "<pad>"), prefixTokens: null, suffixTokens: null)
+        {
+        }
+
+        // Constructor that builds a Unigram model with explicit prefix/suffix special-token lists, for example
+        // resolved from a tokenizer.json post_processor template. addBeginningOfSentence gates the prefix list
+        // and addEndOfSentence gates the suffix list; an empty list is allowed (no tokens are emitted).
+        internal SentencePieceUnigramModel(
+            IReadOnlyList<(string Piece, float Score)> pieces,
+            int unkId,
+            bool addBos,
+            bool addEos,
+            ReadOnlySpan<byte> precompiledCharsmap,
+            bool addDummyPrefix,
+            bool escapeWhiteSpaces,
+            bool treatWhitespaceAsSuffix,
+            bool removeExtraWhitespaces,
+            bool byteFallback,
+            IReadOnlyDictionary<string, int>? specialTokens,
+            IReadOnlyList<(int Id, string Token)> prefixTokens,
+            IReadOnlyList<(int Id, string Token)> suffixTokens,
+            int padId)
+            : this(pieces, unkId, addBos, addEos, precompiledCharsmap, addDummyPrefix, escapeWhiteSpaces,
+                   treatWhitespaceAsSuffix, removeExtraWhitespaces, byteFallback, specialTokens,
+                   FirstId(prefixTokens), FirstId(suffixTokens), padId, prefixTokens, suffixTokens)
         {
         }
 
@@ -125,13 +155,16 @@ namespace Microsoft.ML.Tokenizers
             bool escapeWhiteSpaces,
             bool treatWhitespaceAsSuffix,
             bool removeExtraWhitespaces,
+            bool byteFallback,
             IReadOnlyDictionary<string, int>? specialTokens,
-            int bosId, int eosId, int padId)
+            int bosId, int eosId, int padId,
+            IReadOnlyList<(int Id, string Token)>? prefixTokens,
+            IReadOnlyList<(int Id, string Token)>? suffixTokens)
             : base(addBos, addEos,
-                   bosId >= 0 && bosId < GetPieceCount(pieces) ? pieces[bosId].Piece : "<s>", CheckSpecialId(addBos, bosId, "addBeginningOfSentence"),
-                   eosId >= 0 && eosId < GetPieceCount(pieces) ? pieces[eosId].Piece : "</s>", CheckSpecialId(addEos, eosId, "addEndOfSentence"),
+                   bosId >= 0 && bosId < GetPieceCount(pieces) ? pieces[bosId].Piece : "<s>", bosId,
+                   eosId >= 0 && eosId < GetPieceCount(pieces) ? pieces[eosId].Piece : "</s>", eosId,
                    GetPieceAtIndex(pieces, unkId), unkId,
-                   addDummyPrefix, escapeWhiteSpaces, treatWhitespaceAsSuffix, byteFallback: false,
+                   addDummyPrefix, escapeWhiteSpaces, treatWhitespaceAsSuffix, byteFallback,
                    precompiledCharsmap, removeExtraWhitespaces, specialTokens)
         {
             Debug.Assert(pieces is not null);
@@ -141,6 +174,20 @@ namespace Microsoft.ML.Tokenizers
             _minScore = float.MaxValue;
             _maxScore = float.MinValue;
 
+            // Control tokens (BOS/EOS/PAD plus any caller- or added_tokens-supplied special tokens) are kept
+            // out of the trie so normal segmentation never produces them; they are re-inserted afterwards.
+            HashSet<int> controlIds = new HashSet<int>();
+            AddControlId(controlIds, bosId);
+            AddControlId(controlIds, eosId);
+            AddControlId(controlIds, padId);
+            if (specialTokens is not null)
+            {
+                foreach (int specialId in specialTokens.Values)
+                {
+                    AddControlId(controlIds, specialId);
+                }
+            }
+
             for (int i = 0; i < pieces.Count; i++)
             {
                 var (piece, score) = pieces[i];
@@ -148,7 +195,7 @@ namespace Microsoft.ML.Tokenizers
                 {
                     _vocabReverse[i] = (piece, score, ModelProto.Types.SentencePiece.Types.Type.Unknown);
                 }
-                else if (i == bosId || i == eosId || (padId >= 0 && i == padId))
+                else if (controlIds.Contains(i))
                 {
                     _vocabReverse[i] = (piece, score, ModelProto.Types.SentencePiece.Types.Type.Control);
                 }
@@ -167,30 +214,67 @@ namespace Microsoft.ML.Tokenizers
 
             _trie = new DoubleArrayTrie(_vocab);
 
-            // Add special tokens to vocab after trie is built.
+            // Re-insert special tokens into the vocab maps after the trie is built so they map like regular tokens.
             string unkToken = pieces[unkId].Piece;
             _vocab[unkToken] = unkId;
             _vocabReverse[unkId] = (unkToken, 0f, ModelProto.Types.SentencePiece.Types.Type.Unknown);
 
-            if (bosId >= 0 && bosId < pieces.Count)
+            foreach (int controlId in controlIds)
             {
-                string bos = pieces[bosId].Piece;
-                _vocab[bos] = bosId;
-                _vocabReverse[bosId] = (bos, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
+                if (controlId == unkId)
+                {
+                    continue; // unk is classified Unknown above; don't downgrade it to Control.
+                }
+
+                if (controlId >= 0 && controlId < pieces.Count)
+                {
+                    string piece = pieces[controlId].Piece;
+                    _vocab[piece] = controlId;
+                    _vocabReverse[controlId] = (piece, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
+                }
             }
 
-            if (eosId >= 0 && eosId < pieces.Count)
+            _prefixTokens = prefixTokens is not null ? ToAffixArray(prefixTokens) : DefaultAffix(BeginningOfSentenceId, BeginningOfSentenceToken);
+            _suffixTokens = suffixTokens is not null ? ToAffixArray(suffixTokens) : DefaultAffix(EndOfSentenceId, EndOfSentenceToken);
+        }
+
+        private static (int Id, string Token)[] DefaultAffix(int id, string token)
+            => id >= 0 ? new[] { (id, token) } : Array.Empty<(int, string)>();
+
+        private static (int Id, string Token)[] ToAffixArray(IReadOnlyList<(int Id, string Token)> tokens)
+        {
+            var array = new (int Id, string Token)[tokens.Count];
+            for (int i = 0; i < tokens.Count; i++)
             {
-                string eos = pieces[eosId].Piece;
-                _vocab[eos] = eosId;
-                _vocabReverse[eosId] = (eos, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
+                array[i] = tokens[i];
             }
 
-            if (padId >= 0 && padId < pieces.Count)
+            return array;
+        }
+
+        private static int FirstId(IReadOnlyList<(int Id, string Token)> tokens) => tokens.Count > 0 ? tokens[0].Id : -1;
+
+        private void AddPrefixTokens(List<EncodedToken> tokens)
+        {
+            foreach (var (id, token) in _prefixTokens)
             {
-                string pad = pieces[padId].Piece;
-                _vocab[pad] = padId;
-                _vocabReverse[padId] = (pad, 0f, ModelProto.Types.SentencePiece.Types.Type.Control);
+                tokens.Add(new EncodedToken(id, token, new Range(0, 0)));
+            }
+        }
+
+        private void AddSuffixTokens(List<EncodedToken> tokens, int offset)
+        {
+            foreach (var (id, token) in _suffixTokens)
+            {
+                tokens.Add(new EncodedToken(id, token, new Range(offset, offset)));
+            }
+        }
+
+        private static void AddControlId(HashSet<int> set, int id)
+        {
+            if (id >= 0)
+            {
+                set.Add(id);
             }
         }
 
@@ -382,7 +466,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (addBeginningOfSentence)
             {
-                tokens.Add(new EncodedToken(BeginningOfSentenceId, BeginningOfSentenceToken, new Range(0, 0)));
+                AddPrefixTokens(tokens);
             }
 
             int currentOffset = 0;
@@ -414,7 +498,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (addEndOfSentence)
             {
-                tokens.Add(new EncodedToken(EndOfSentenceId, EndOfSentenceToken, new Range(progressOffset, progressOffset)));
+                AddSuffixTokens(tokens, progressOffset);
             }
 
             normalizedText = normalizedString.AsSpan().Slice(0, normalizedStringIndex).ToString();
@@ -432,7 +516,7 @@ namespace Microsoft.ML.Tokenizers
         {
             if (addBeginningOfSentence)
             {
-                tokens.Add(new EncodedToken(BeginningOfSentenceId, BeginningOfSentenceToken, new Range(0, 0)));
+                AddPrefixTokens(tokens);
             }
 
             int progressOffset = 0;
@@ -442,7 +526,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (addEndOfSentence)
             {
-                tokens.Add(new EncodedToken(EndOfSentenceId, EndOfSentenceToken, new Range(progressOffset, progressOffset)));
+                AddSuffixTokens(tokens, progressOffset);
             }
 
             normalizedText = normalizedString.AsSpan().Slice(0, normalizedStringIndex).ToString();
@@ -735,12 +819,15 @@ namespace Microsoft.ML.Tokenizers
 
             if (addBeginningOfSentence)
             {
-                ids.Add(BeginningOfSentenceId);
-                if (maxTokenCount == 1)
+                foreach (var (id, _) in _prefixTokens)
                 {
-                    normalizedText = null;
-                    charsConsumed = 0;
-                    return ids; // done. no more space for anything else.
+                    ids.Add(id);
+                    if (ids.Count >= maxTokenCount)
+                    {
+                        normalizedText = null;
+                        charsConsumed = 0;
+                        return ids; // done. no more space for anything else.
+                    }
                 }
             }
 
@@ -759,9 +846,17 @@ namespace Microsoft.ML.Tokenizers
                 EncodeToIdsWithoutSpecialTokens(textToEncode, considerNormalization, ids, buffer, ref normalizedString, out normalizedText, out charsConsumed, maxTokenCount);
             }
 
-            if (addEndOfSentence && ids.Count < maxTokenCount)
+            if (addEndOfSentence)
             {
-                ids.Add(EndOfSentenceId);
+                foreach (var (id, _) in _suffixTokens)
+                {
+                    if (ids.Count >= maxTokenCount)
+                    {
+                        break;
+                    }
+
+                    ids.Add(id);
+                }
             }
 
             if (normalizedString is not null)
@@ -1124,13 +1219,15 @@ namespace Microsoft.ML.Tokenizers
 
             if (addBeginningOfSentence)
             {
-                tokenCount++;
-
-                if (maxTokenCount == 1)
+                foreach (var _ in _prefixTokens)
                 {
-                    normalizedText = null;
-                    charsConsumed = 0;
-                    return tokenCount;
+                    tokenCount++;
+                    if (tokenCount >= maxTokenCount)
+                    {
+                        normalizedText = null;
+                        charsConsumed = 0;
+                        return tokenCount;
+                    }
                 }
             }
 
@@ -1151,7 +1248,15 @@ namespace Microsoft.ML.Tokenizers
 
             if (addEndOfSentence && tokenCount < maxTokenCount)
             {
-                tokenCount++;
+                foreach (var _ in _suffixTokens)
+                {
+                    if (tokenCount >= maxTokenCount)
+                    {
+                        break;
+                    }
+
+                    tokenCount++;
+                }
             }
 
             if (normalizedString is not null)
@@ -1392,12 +1497,14 @@ namespace Microsoft.ML.Tokenizers
 
             if (addEndOfSentence)
             {
-                tokenCount++;
-
-                if (maxTokenCount == 1)
+                foreach (var _ in _suffixTokens)
                 {
-                    normalizedText = null;
-                    return textToEncode.Length;
+                    tokenCount++;
+                    if (tokenCount >= maxTokenCount)
+                    {
+                        normalizedText = null;
+                        return textToEncode.Length;
+                    }
                 }
             }
 
@@ -1420,7 +1527,15 @@ namespace Microsoft.ML.Tokenizers
 
             if (addBeginningOfSentence && tokenCount < maxTokenCount)
             {
-                tokenCount++;
+                foreach (var _ in _prefixTokens)
+                {
+                    if (tokenCount >= maxTokenCount)
+                    {
+                        break;
+                    }
+
+                    tokenCount++;
+                }
             }
 
             ArrayPool<int>.Shared.Return(buffer);

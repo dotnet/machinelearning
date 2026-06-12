@@ -704,9 +704,11 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
-        public void CreateFromTokenizerJsonUnsupportedNormalizerTest()
+        public void CreateFromTokenizerJsonSequenceNormalizerWithExtraStepsTest()
         {
-            // A Sequence normalizer containing a non-Precompiled step should throw NotSupportedException.
+            // A Sequence normalizer that interleaves the precompiled map with other steps (e.g. Replace)
+            // is common in real tokenizers; the precompiled map is extracted and the other steps are ignored
+            // rather than failing the load.
             string json = """
                 {
                   "model": {
@@ -717,6 +719,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                   "normalizer": {
                     "type": "Sequence",
                     "normalizers": [
+                      { "type": "Nmt" },
                       { "type": "Precompiled", "precompiled_charsmap": "" },
                       { "type": "Replace", "pattern": " ", "content": "_" }
                     ]
@@ -725,8 +728,91 @@ namespace Microsoft.ML.Tokenizers.Tests
                 """;
 
             using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
-            Assert.Throws<NotSupportedException>(() =>
-                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false);
+            Assert.NotNull(tokenizer);
+        }
+
+        // Vocab shared by the remove_extra_whitespaces deduction tests; "▁" is its own piece so a preserved
+        // extra space surfaces as an extra token.
+        private const string WhitespaceDeductionVocab =
+            "\"vocab\": [[\"<unk>\", 0.0], [\"\u2581a\", -1.0], [\"\u2581b\", -1.0], [\"\u2581\", -3.0], [\"a\", -10.0], [\"b\", -10.0]]";
+
+        [Fact]
+        public void CreateFromTokenizerJsonDeducesRemoveExtraWhitespacesFromReplaceStep()
+        {
+            // HF encodes remove_extra_whitespaces as a Strip + Replace(" {2,}" -> "▁"); the collapsing Replace
+            // ALONE (no sibling Strip) must enable whitespace collapsing so "a  b" collapses to two pieces.
+            string json = $$"""
+                {
+                  "normalizer": {
+                    "type": "Sequence",
+                    "normalizers": [
+                      { "type": "Replace", "pattern": { "Regex": " {2,}" }, "content": "\u2581" }
+                    ]
+                  },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    {{WhitespaceDeductionVocab}}
+                  }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            Assert.Equal(2, tokenizer.CountTokens("a  b", addBeginningOfSentence: false, addEndOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonDeducesRemoveExtraWhitespacesFromStripStep()
+        {
+            // A right-Strip alone (no Replace) also marks the behavior.
+            string json = $$"""
+                {
+                  "normalizer": {
+                    "type": "Sequence",
+                    "normalizers": [
+                      { "type": "Strip", "strip_left": false, "strip_right": true }
+                    ]
+                  },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    {{WhitespaceDeductionVocab}}
+                  }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            Assert.Equal(2, tokenizer.CountTokens("a  b", addBeginningOfSentence: false, addEndOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNoCollapseStepPreservesExtraWhitespace()
+        {
+            // Without a Strip/Replace collapsing step (e.g. older bare-Precompiled files), remove_extra_whitespaces
+            // is deduced false to match the HF fast-tokenizer runtime, so the extra space is preserved as a token.
+            string json = $$"""
+                {
+                  "normalizer": { "type": "Precompiled", "precompiled_charsmap": "" },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    {{WhitespaceDeductionVocab}}
+                  }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            Assert.Equal(3, tokenizer.CountTokens("a  b", addBeginningOfSentence: false, addEndOfSentence: false));
         }
 
         [Fact]
@@ -748,6 +834,230 @@ namespace Microsoft.ML.Tokenizers.Tests
             SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(
                 stream, addBeginningOfSentence: false);
             Assert.NotNull(tokenizer);
+        }
+
+        [Fact]
+        public void CreateFromVocabAbsentBosNotDecodedAsIdZeroTest()
+        {
+            // Vocab without <s>/</s>. With the add flags off, BOS/EOS must stay absent (-1)
+            // rather than being clamped to 0, so id 0 decodes as its real piece.
+            var vocab = new List<(string Piece, float Score)>
+            {
+                ("<unk>", 0f),   // 0
+                ("▁Hello", -1f), // 1
+                ("▁world", -2f), // 2
+            };
+
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.Create(
+                vocab, unkId: 0, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            Assert.Equal(-1, tokenizer.BeginningOfSentenceId);
+            Assert.Equal(-1, tokenizer.EndOfSentenceId);
+
+            // id 0 is <unk>, not BOS; decoding it with considerSpecialTokens must yield the unk piece.
+            string decoded = tokenizer.Decode(new[] { 0 }, considerSpecialTokens: true);
+            Assert.Equal("<unk>", decoded);
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonMissingModelTypeTest()
+        {
+            string json = """
+                {
+                  "model": {
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNonUnigramModelTypeTest()
+        {
+            string json = """
+                {
+                  "model": {
+                    "type": "BPE",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNullModelTest()
+        {
+            string json = """
+                {
+                  "model": null
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNullPreTokenizerTest()
+        {
+            // A null pre_tokenizer value in JSON should not throw.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  },
+                  "pre_tokenizer": null
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(
+                stream, addBeginningOfSentence: false);
+            Assert.NotNull(tokenizer);
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonTemplateMultiTokenSuffixTest()
+        {
+            // XLNet-style template: the sequence is followed by two special tokens (<sep> then <cls>).
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 1,
+                    "vocab": [["<sep>", 0.0], ["<unk>", 0.0], ["<cls>", 0.0], ["a", -1.0], ["b", -2.0]]
+                  },
+                  "added_tokens": [
+                    { "id": 0, "content": "<sep>", "special": true },
+                    { "id": 1, "content": "<unk>", "special": true },
+                    { "id": 2, "content": "<cls>", "special": true }
+                  ],
+                  "pre_tokenizer": { "type": "Metaspace", "add_prefix_space": false, "replacement": "_" },
+                  "post_processor": {
+                    "type": "TemplateProcessing",
+                    "single": [
+                      { "Sequence": { "id": "A", "type_id": 0 } },
+                      { "SpecialToken": { "id": "<sep>", "type_id": 0 } },
+                      { "SpecialToken": { "id": "<cls>", "type_id": 0 } }
+                    ],
+                    "special_tokens": {
+                      "<sep>": { "id": "<sep>", "ids": [0], "tokens": ["<sep>"] },
+                      "<cls>": { "id": "<cls>", "ids": [2], "tokens": ["<cls>"] }
+                    }
+                  }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            Assert.Equal(0, tokenizer.EndOfSentenceId);
+            Assert.Equal("<sep>", tokenizer.EndOfSentenceToken);
+
+            IReadOnlyList<int> withSuffix = tokenizer.EncodeToIds("a", addBeginningOfSentence: false, addEndOfSentence: true);
+            Assert.Equal(new[] { 3, 0, 2 }, withSuffix);
+
+            IReadOnlyList<int> withoutSuffix = tokenizer.EncodeToIds("a", addBeginningOfSentence: false, addEndOfSentence: false);
+            Assert.Equal(new[] { 3 }, withoutSuffix);
+
+            Assert.Equal("a", tokenizer.Decode(withSuffix, considerSpecialTokens: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonRobertaProcessingTest()
+        {
+            // RobertaProcessing wraps the sequence with cls (<s>) at the front and sep (</s>) at the end.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 1,
+                    "vocab": [["<s>", 0.0], ["<unk>", 0.0], ["</s>", 0.0], ["a", -1.0]]
+                  },
+                  "added_tokens": [
+                    { "id": 0, "content": "<s>", "special": true },
+                    { "id": 2, "content": "</s>", "special": true }
+                  ],
+                  "pre_tokenizer": { "type": "Metaspace", "add_prefix_space": false, "replacement": "_" },
+                  "post_processor": { "type": "RobertaProcessing", "sep": ["</s>", 2], "cls": ["<s>", 0] }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            Assert.Equal(0, tokenizer.BeginningOfSentenceId);
+            Assert.Equal("<s>", tokenizer.BeginningOfSentenceToken);
+            Assert.Equal(2, tokenizer.EndOfSentenceId);
+            Assert.Equal("</s>", tokenizer.EndOfSentenceToken);
+
+            IReadOnlyList<int> ids = tokenizer.EncodeToIds("a", addBeginningOfSentence: true, addEndOfSentence: true);
+            Assert.Equal(new[] { 0, 3, 2 }, ids);
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonAddedTokenRecognizedTest()
+        {
+            // A special token from added_tokens that is not <s>/</s>/<pad> must still be recognized as atomic.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 1,
+                    "vocab": [["<s>", 0.0], ["<unk>", 0.0], ["</s>", 0.0], ["a", -1.0], ["<extra>", -5.0]]
+                  },
+                  "added_tokens": [
+                    { "id": 4, "content": "<extra>", "special": true }
+                  ],
+                  "pre_tokenizer": { "type": "Metaspace", "add_prefix_space": false, "replacement": "_" }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            IReadOnlyList<int> ids = tokenizer.EncodeToIds("a<extra>a", addBeginningOfSentence: false, addEndOfSentence: false);
+            Assert.Equal(new[] { 3, 4, 3 }, ids);
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonTemplateMultiSequenceThrowsTest()
+        {
+            // A template with more than one sequence placeholder cannot be represented and must be rejected.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  },
+                  "post_processor": {
+                    "type": "TemplateProcessing",
+                    "single": [
+                      { "Sequence": { "id": "A", "type_id": 0 } },
+                      { "Sequence": { "id": "B", "type_id": 0 } }
+                    ],
+                    "special_tokens": {}
+                  }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<NotSupportedException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false));
         }
     }
 }
