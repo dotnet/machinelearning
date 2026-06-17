@@ -27,7 +27,7 @@ namespace Microsoft.Extensions.ML
         private readonly IDisposable _changeTokenRegistration;
 
         private readonly ConditionalWeakTable<PredictionEngine<TData, TPrediction>, ObjectPool<PredictionEngine<TData, TPrediction>>> _rentedEngines;
-        private bool _disposed;
+        private int _disposed;
 
         public PoolLoader(IServiceProvider sp, PredictionEnginePoolOptions<TData, TPrediction> poolOptions)
         {
@@ -60,7 +60,7 @@ namespace Microsoft.Extensions.ML
         public PredictionEngine<TData, TPrediction> Get()
         {
             var pool = Volatile.Read(ref _pool);
-            if (_disposed || pool == null)
+            if (Volatile.Read(ref _disposed) != 0 || pool == null)
             {
                 throw new ObjectDisposedException(nameof(PoolLoader<TData, TPrediction>));
             }
@@ -96,7 +96,7 @@ namespace Microsoft.Extensions.ML
 
         private void LoadPool()
         {
-            if (_disposed)
+            if (Volatile.Read(ref _disposed) != 0)
             {
                 return;
             }
@@ -110,7 +110,7 @@ namespace Microsoft.Extensions.ML
 
             DisposeGeneration(oldPool, oldModel, model);
 
-            if (_disposed && Interlocked.CompareExchange(ref _pool, null, newPool) == newPool)
+            if (Volatile.Read(ref _disposed) != 0 && Interlocked.CompareExchange(ref _pool, null, newPool) == newPool)
             {
                 DisposeGeneration(newPool, model, null);
             }
@@ -131,12 +131,11 @@ namespace Microsoft.Extensions.ML
 
         public void Dispose()
         {
-            if (_disposed)
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
             {
                 return;
             }
 
-            _disposed = true;
             _changeTokenRegistration?.Dispose();
 
             var pool = Interlocked.Exchange(ref _pool, null);

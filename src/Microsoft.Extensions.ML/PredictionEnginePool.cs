@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.Extensions.Options;
 using Microsoft.ML;
 
@@ -23,7 +24,7 @@ namespace Microsoft.Extensions.ML
         private readonly IServiceProvider _serviceProvider;
         private readonly PoolLoader<TData, TPrediction> _defaultEnginePool;
         private readonly ConcurrentDictionary<string, PoolLoader<TData, TPrediction>> _namedPools;
-        private bool _disposed;
+        private int _disposed;
 
         public PredictionEnginePool(IServiceProvider serviceProvider,
                                     IOptions<MLOptions> mlContextOptions,
@@ -86,7 +87,7 @@ namespace Microsoft.Extensions.ML
         /// </param>
         public PredictionEngine<TData, TPrediction> GetPredictionEngine(string modelName)
         {
-            if (_disposed)
+            if (Volatile.Read(ref _disposed) != 0)
             {
                 throw new ObjectDisposedException(nameof(PredictionEnginePool<TData, TPrediction>));
             }
@@ -147,7 +148,7 @@ namespace Microsoft.Extensions.ML
                 throw new ArgumentNullException(nameof(engine));
             }
 
-            if (_disposed)
+            if (Volatile.Read(ref _disposed) != 0)
             {
                 engine.Dispose();
                 return;
@@ -180,12 +181,10 @@ namespace Microsoft.Extensions.ML
         /// </summary>
         public void Dispose()
         {
-            if (_disposed)
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
             {
                 return;
             }
-
-            _disposed = true;
 
             _defaultEnginePool?.Dispose();
             foreach (var pool in _namedPools.Values)
