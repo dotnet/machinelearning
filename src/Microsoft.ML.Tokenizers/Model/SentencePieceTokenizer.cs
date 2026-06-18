@@ -911,7 +911,18 @@ namespace Microsoft.ML.Tokenizers
                     throw new InvalidDataException($"The tokenizer.json post_processor special token '{tokenName}' has a non-numeric id.");
                 }
 
-                return ids[0].GetInt32();
+                int id = ids[0].GetInt32();
+
+                // Validate the id maps back to the referenced token (via added tokens or the vocab), mirroring
+                // AddProcessorAffix, so an inconsistent file cannot emit an id whose decoded token differs.
+                bool consistent = (specialTokens.TryGetValue(tokenName, out int mappedId) && mappedId == id)
+                    || (id >= 0 && id < vocab.Count && vocab[id].Piece == tokenName);
+                if (!consistent)
+                {
+                    throw new InvalidDataException($"The tokenizer.json post_processor special token '{tokenName}' maps to id {id}, which does not match the vocabulary or added tokens.");
+                }
+
+                return id;
             }
 
             if (specialTokens.TryGetValue(tokenName, out int specialId))

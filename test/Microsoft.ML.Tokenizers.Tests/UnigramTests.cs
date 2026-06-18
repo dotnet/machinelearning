@@ -1326,6 +1326,35 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
+        public void CreateFromTokenizerJsonInconsistentTemplateSpecialTokenIdThrows()
+        {
+            // A template special_tokens id that does not map back to the referenced token must fail loudly.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["<sep>", 0.0], ["a", -1.0]]
+                  },
+                  "post_processor": {
+                    "type": "TemplateProcessing",
+                    "single": [
+                      { "Sequence": { "id": "A", "type_id": 0 } },
+                      { "SpecialToken": { "id": "<sep>", "type_id": 0 } }
+                    ],
+                    "special_tokens": {
+                      "<sep>": { "id": "<sep>", "ids": [2], "tokens": ["<sep>"] }
+                    }
+                  }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
         public void CreateFromTokenizerJsonNonNumericTemplateSpecialTokenIdsThrows()
         {
             // A post_processor special_tokens entry whose ids[0] is not numeric must fail with InvalidDataException.
