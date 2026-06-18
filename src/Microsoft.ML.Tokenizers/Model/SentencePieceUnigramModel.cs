@@ -209,21 +209,23 @@ namespace Microsoft.ML.Tokenizers
                 }
             }
 
-            ByteCodeToIdOffset = _vocab.TryGetValue("<0x00>", out int id) ? id : MaxByteId;
             if (ByteFallback)
             {
                 // Byte fallback requires a contiguous block of the 256 byte pieces <0x00>..<0xFF>; encode/decode map a
                 // byte value to ByteCodeToIdOffset + value. Validate it (the proto path relies on the same layout) and
                 // set MaxByteId from <0xFF> so byte ids are recognized on decode, rather than misencoding silently.
+                ByteCodeToIdOffset = _vocab.TryGetValue("<0x00>", out int id) ? id : MaxByteId;
                 if (!_vocab.ContainsKey("<0x00>") || !_vocab.TryGetValue("<0xFF>", out int maxByteId) || maxByteId - ByteCodeToIdOffset != 0xFF)
                 {
                     throw new InvalidDataException("The tokenizer.json model enables byte_fallback but does not contain a contiguous <0x00>..<0xFF> byte-piece block required to represent it.");
                 }
 
                 MaxByteId = maxByteId;
+                OneByteUtf8EncodingMaxId = ByteCodeToIdOffset + 0x7F;
+                MaxIdByteFallbackId = ByteCodeToIdOffset + 0xFF;
             }
-            OneByteUtf8EncodingMaxId = ByteCodeToIdOffset + 0x7F;
-            MaxIdByteFallbackId = ByteCodeToIdOffset + 0xFF;
+            // When byte fallback is disabled the byte offsets stay at 0 so decode treats no ids as byte pieces, even
+            // if the vocab happens to contain <0xNN> entries (otherwise normal low ids would be dropped as bytes).
 
             _trie = new DoubleArrayTrie(_vocab);
 

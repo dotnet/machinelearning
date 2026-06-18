@@ -631,6 +631,11 @@ namespace Microsoft.ML.Tokenizers
                 vocab.Add((piece, entry[1].GetSingle()));
             }
 
+            if (unkId < 0 || unkId >= vocab.Count)
+            {
+                throw new InvalidDataException($"The tokenizer.json model 'unk_id' ({unkId}) is out of range for a vocabulary of {vocab.Count} pieces.");
+            }
+
             // Extract normalizer settings
             byte[]? precompiledCharsMap = null;
             bool addDummyPrefix = true;
@@ -971,7 +976,7 @@ namespace Microsoft.ML.Tokenizers
                     string? base64 = mapElement.GetString();
                     if (base64 is not null)
                     {
-                        return Convert.FromBase64String(base64);
+                        return SentencePieceNormalizationStep.DecodePrecompiledCharsMap(base64);
                     }
                 }
                 return null;

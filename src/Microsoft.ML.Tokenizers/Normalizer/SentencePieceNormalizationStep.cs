@@ -142,7 +142,7 @@ namespace Microsoft.ML.Tokenizers
                 case "Precompiled":
                     {
                         string? charsMap = normalizer.TryGetProperty("precompiled_charsmap", out JsonElement mapElement) ? mapElement.GetString() : null;
-                        return new PrecompiledStep(string.IsNullOrEmpty(charsMap) ? default : Convert.FromBase64String(charsMap!));
+                        return new PrecompiledStep(string.IsNullOrEmpty(charsMap) ? default : DecodePrecompiledCharsMap(charsMap!));
                     }
 
                 case "Replace":
@@ -177,6 +177,20 @@ namespace Microsoft.ML.Tokenizers
                 default:
                     throw new NotSupportedException(
                         $"Unigram normalizer type '{type ?? "<missing>"}' is not supported when loading a tokenizer.json with content-modifying normalizer steps.");
+            }
+        }
+
+        // Decodes a base64 'precompiled_charsmap' value, surfacing malformed input as InvalidDataException so callers
+        // get a consistent, diagnostic failure for bad tokenizer.json files instead of a raw FormatException.
+        internal static byte[] DecodePrecompiledCharsMap(string base64)
+        {
+            try
+            {
+                return Convert.FromBase64String(base64);
+            }
+            catch (FormatException ex)
+            {
+                throw new InvalidDataException("The tokenizer.json normalizer 'precompiled_charsmap' is not valid base64.", ex);
             }
         }
 

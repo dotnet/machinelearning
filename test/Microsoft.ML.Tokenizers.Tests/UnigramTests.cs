@@ -1242,6 +1242,68 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
+        public void CreateFromTokenizerJsonOutOfRangeUnkIdThrows()
+        {
+            // unk_id must index into the parsed vocab; an out-of-range value is a malformed file.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 5,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonMalformedPrecompiledCharsMapThrows()
+        {
+            // A non-base64 precompiled_charsmap must surface as InvalidDataException, not a raw FormatException.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  },
+                  "normalizer": { "type": "Precompiled", "precompiled_charsmap": "not valid base64!!" }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonByteFallbackDisabledKeepsByteLikePieces()
+        {
+            // When byte_fallback is false, <0xNN> pieces in the vocab are ordinary tokens and must decode as
+            // themselves rather than being treated as byte-fallback pieces (which would drop low ids on decode).
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "byte_fallback": false,
+                    "vocab": [["<unk>", 0.0], ["<0x00>", -1.0], ["a", -2.0]]
+                  }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            SentencePieceTokenizer tokenizer = (SentencePieceTokenizer)SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false);
+
+            // Decoding the byte-like piece id round-trips to its literal piece, and the following normal id is not dropped.
+            Assert.Equal("<0x00>a", tokenizer.Decode(new[] { 1, 2 }));
+        }
+
+        [Fact]
         public void CreateFromTokenizerJsonNonUnigramModelTypeTest()
         {
             string json = """
