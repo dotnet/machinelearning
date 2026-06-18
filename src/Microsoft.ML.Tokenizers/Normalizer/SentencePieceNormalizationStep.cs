@@ -176,7 +176,7 @@ namespace Microsoft.ML.Tokenizers
 
                 default:
                     throw new NotSupportedException(
-                        $"Unigram normalizer type '{type}' is not supported when loading a tokenizer.json with content-modifying normalizer steps.");
+                        $"Unigram normalizer type '{type ?? "<missing>"}' is not supported when loading a tokenizer.json with content-modifying normalizer steps.");
             }
         }
 

@@ -980,8 +980,9 @@ namespace Microsoft.ML.Tokenizers
                      normalizer.TryGetProperty("normalizers", out JsonElement normalizersElement) &&
                      normalizersElement.ValueKind == JsonValueKind.Array)
             {
-                // A Sequence may legitimately interleave the precompiled map with other steps (Nmt, Replace, ...).
-                // Extract the precompiled map and ignore the steps we don't model rather than failing the load.
+                // Reached only for non-rich Sequences (charsmap plus whitespace-collapse/strip steps); rich steps
+                // such as Nmt route through the managed normalizer chain (HasRichSteps) and never get here. Extract
+                // the precompiled map and skip the non-rich steps handled elsewhere rather than failing the load.
                 byte[]? result = null;
                 foreach (JsonElement inner in normalizersElement.EnumerateArray())
                 {
