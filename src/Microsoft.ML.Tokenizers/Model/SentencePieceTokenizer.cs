@@ -577,14 +577,20 @@ namespace Microsoft.ML.Tokenizers
                 throw new InvalidDataException("The tokenizer.json 'model' property must be a JSON object.");
             }
 
-            if (!modelElement.TryGetProperty("type", out JsonElement modelTypeElement))
+            // Validate the model is Unigram. Older tokenizer.json files (e.g. xlm-roberta-base, albert) omit the
+            // model "type" entirely; treat a model that has a "vocab" but no BPE "merges" as Unigram, which matches
+            // how the Hugging Face loaders disambiguate these files.
+            if (modelElement.TryGetProperty("type", out JsonElement modelTypeElement) &&
+                modelTypeElement.ValueKind == JsonValueKind.String)
             {
-                throw new InvalidDataException("The tokenizer.json model does not contain a 'type' property; this factory only supports 'Unigram' models.");
+                if (!string.Equals(modelTypeElement.GetString(), "Unigram", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidDataException($"Expected model type 'Unigram' but found '{modelTypeElement.GetString()}'.");
+                }
             }
-
-            if (!string.Equals(modelTypeElement.GetString(), "Unigram", StringComparison.OrdinalIgnoreCase))
+            else if (modelElement.TryGetProperty("merges", out _))
             {
-                throw new InvalidDataException($"Expected model type 'Unigram' but found '{modelTypeElement.GetString()}'.");
+                throw new InvalidDataException("The tokenizer.json 'model' has no 'type' and contains 'merges'; this factory only supports 'Unigram' models.");
             }
 
             if (!modelElement.TryGetProperty("unk_id", out JsonElement unkIdElement))
@@ -627,11 +633,26 @@ namespace Microsoft.ML.Tokenizers
             // explicit normalizer steps (a right-Strip plus a Replace collapsing runs of spaces). Deduce it from
             // those steps, defaulting to false when absent to match the HF fast-tokenizer runtime.
             bool removeExtraWhitespaces = false;
+            // When the normalizer has content-modifying steps that the charsmap + removeExtraWhitespaces
+            // approximation cannot represent (per-character Replace, Lowercase, Unicode normalization, ...),
+            // apply the full normalizer chain (charsmap included) before the Metaspace pass instead.
+            SentencePieceNormalizationStep? chainNormalizer = null;
             if (root.TryGetProperty("normalizer", out JsonElement normalizerElement) &&
                 normalizerElement.ValueKind == JsonValueKind.Object)
             {
-                precompiledCharsMap = ExtractPrecompiledCharsMap(normalizerElement);
-                removeExtraWhitespaces = NormalizerCollapsesWhitespace(normalizerElement);
+                if (SentencePieceNormalizationStep.HasRichSteps(normalizerElement))
+                {
+                    chainNormalizer = SentencePieceNormalizationStep.Build(normalizerElement);
+                    // The chain owns the charsmap and any strip/collapse, so the model's own normalizer must do
+                    // only the Metaspace escaping to avoid applying either transformation twice.
+                    precompiledCharsMap = null;
+                    removeExtraWhitespaces = false;
+                }
+                else
+                {
+                    precompiledCharsMap = ExtractPrecompiledCharsMap(normalizerElement);
+                    removeExtraWhitespaces = NormalizerCollapsesWhitespace(normalizerElement);
+                }
             }
 
             // Extract pre_tokenizer settings
@@ -641,6 +662,16 @@ namespace Microsoft.ML.Tokenizers
                 preTokenizerElement.ValueKind == JsonValueKind.Object)
             {
                 ExtractMetaspaceSettings(preTokenizerElement, ref addDummyPrefix, ref escapeWhiteSpaces, ref treatWhitespaceAsSuffix);
+
+                // A WhitespaceSplit pre-tokenizer splits on whitespace and drops the empties, which collapses runs of
+                // whitespace and strips leading/trailing whitespace before Metaspace adds the dummy prefix. That is
+                // exactly remove_extra_whitespaces, so honor it even when the normalizer carries no collapse step.
+                // This is independent of chain-mode: the chain handles the normalizer's own steps, but whitespace
+                // collapsing here comes from the pre-tokenizer and is applied by the model's Metaspace pass.
+                if (PreTokenizerSplitsWhitespace(preTokenizerElement))
+                {
+                    removeExtraWhitespaces = true;
+                }
             }
 
             // Merge the special tokens declared in added_tokens (authoritative source for their IDs) with any
@@ -677,6 +708,11 @@ namespace Microsoft.ML.Tokenizers
                 addDummyPrefix, escapeWhiteSpaces, treatWhitespaceAsSuffix, removeExtraWhitespaces, byteFallback,
                 mergedSpecialTokens.Count > 0 ? mergedSpecialTokens : null,
                 prefixTokens, suffixTokens, padId);
+
+            if (chainNormalizer is not null)
+            {
+                model.Normalizer!.NormalizationChain = chainNormalizer;
+            }
 
             return new SentencePieceTokenizer(model);
         }
@@ -743,7 +779,7 @@ namespace Microsoft.ML.Tokenizers
             List<(int Id, string Token)> prefixTokens,
             List<(int Id, string Token)> suffixTokens)
         {
-            string? type = postProcessor.TryGetProperty("type", out JsonElement typeEl) ? typeEl.GetString() : null;
+            string? type = postProcessor.TryGetProperty("type", out JsonElement typeElement) ? typeElement.GetString() : null;
 
             switch (type)
             {
@@ -814,8 +850,8 @@ namespace Microsoft.ML.Tokenizers
                     seenSequence = true;
                 }
                 else if (item.TryGetProperty("SpecialToken", out JsonElement specialToken) &&
-                         specialToken.TryGetProperty("id", out JsonElement idEl) &&
-                         idEl.GetString() is string tokenName)
+                         specialToken.TryGetProperty("id", out JsonElement idElement) &&
+                         idElement.GetString() is string tokenName)
                 {
                     int id = ResolveTemplateTokenId(tokenName, ppSpecialTokens, specialTokens, vocab);
                     (seenSequence ? suffixTokens : prefixTokens).Add((id, tokenName));
@@ -905,17 +941,17 @@ namespace Microsoft.ML.Tokenizers
 
         private static byte[]? ExtractPrecompiledCharsMap(JsonElement normalizer)
         {
-            if (!normalizer.TryGetProperty("type", out JsonElement typeEl))
+            if (!normalizer.TryGetProperty("type", out JsonElement typeElement))
             {
                 return null;
             }
 
-            string? type = typeEl.GetString();
+            string? type = typeElement.GetString();
             if (string.Equals(type, "Precompiled", StringComparison.OrdinalIgnoreCase))
             {
-                if (normalizer.TryGetProperty("precompiled_charsmap", out JsonElement mapEl))
+                if (normalizer.TryGetProperty("precompiled_charsmap", out JsonElement mapElement))
                 {
-                    string? base64 = mapEl.GetString();
+                    string? base64 = mapElement.GetString();
                     if (base64 is not null)
                     {
                         return Convert.FromBase64String(base64);
@@ -924,13 +960,13 @@ namespace Microsoft.ML.Tokenizers
                 return null;
             }
             else if (string.Equals(type, "Sequence", StringComparison.OrdinalIgnoreCase) &&
-                     normalizer.TryGetProperty("normalizers", out JsonElement normalizersEl) &&
-                     normalizersEl.ValueKind == JsonValueKind.Array)
+                     normalizer.TryGetProperty("normalizers", out JsonElement normalizersElement) &&
+                     normalizersElement.ValueKind == JsonValueKind.Array)
             {
                 // A Sequence may legitimately interleave the precompiled map with other steps (Nmt, Replace, ...).
                 // Extract the precompiled map and ignore the steps we don't model rather than failing the load.
                 byte[]? result = null;
-                foreach (JsonElement inner in normalizersEl.EnumerateArray())
+                foreach (JsonElement inner in normalizersElement.EnumerateArray())
                 {
                     if (inner.ValueKind != JsonValueKind.Object)
                     {
@@ -954,12 +990,12 @@ namespace Microsoft.ML.Tokenizers
         // HF's SpmConverter emits this as a right-Strip plus a Replace of a runs-of-spaces Regex (" {2,}") -> "▁".
         private static bool NormalizerCollapsesWhitespace(JsonElement normalizer)
         {
-            if (normalizer.ValueKind != JsonValueKind.Object || !normalizer.TryGetProperty("type", out JsonElement typeEl))
+            if (normalizer.ValueKind != JsonValueKind.Object || !normalizer.TryGetProperty("type", out JsonElement typeElement))
             {
                 return false;
             }
 
-            string? type = typeEl.GetString();
+            string? type = typeElement.GetString();
 
             if (string.Equals(type, "Strip", StringComparison.OrdinalIgnoreCase))
             {
@@ -973,10 +1009,10 @@ namespace Microsoft.ML.Tokenizers
             }
 
             if (string.Equals(type, "Sequence", StringComparison.OrdinalIgnoreCase) &&
-                normalizer.TryGetProperty("normalizers", out JsonElement normalizersEl) &&
-                normalizersEl.ValueKind == JsonValueKind.Array)
+                normalizer.TryGetProperty("normalizers", out JsonElement normalizersElement) &&
+                normalizersElement.ValueKind == JsonValueKind.Array)
             {
-                foreach (JsonElement inner in normalizersEl.EnumerateArray())
+                foreach (JsonElement inner in normalizersElement.EnumerateArray())
                 {
                     if (NormalizerCollapsesWhitespace(inner))
                     {
@@ -991,14 +1027,14 @@ namespace Microsoft.ML.Tokenizers
         // True only for a Replace whose Regex matches runs of two-or-more spaces, not a single-space Metaspace Replace.
         private static bool ReplaceCollapsesSpaces(JsonElement replace)
         {
-            if (!replace.TryGetProperty("pattern", out JsonElement patternEl) ||
-                patternEl.ValueKind != JsonValueKind.Object ||
-                !patternEl.TryGetProperty("Regex", out JsonElement regexEl))
+            if (!replace.TryGetProperty("pattern", out JsonElement patternElement) ||
+                patternElement.ValueKind != JsonValueKind.Object ||
+                !patternElement.TryGetProperty("Regex", out JsonElement regexElement))
             {
                 return false;
             }
 
-            string? pattern = regexEl.GetString();
+            string? pattern = regexElement.GetString();
             if (pattern is null)
             {
                 return false;
@@ -1019,30 +1055,62 @@ namespace Microsoft.ML.Tokenizers
             }
         }
 
+        // Returns true if the pre-tokenizer splits on whitespace (WhitespaceSplit/Whitespace), recursing into a
+        // Sequence. Such a split discards whitespace runs, matching SentencePiece's remove_extra_whitespaces.
+        private static bool PreTokenizerSplitsWhitespace(JsonElement preTokenizer)
+        {
+            if (preTokenizer.ValueKind != JsonValueKind.Object || !preTokenizer.TryGetProperty("type", out JsonElement typeElement))
+            {
+                return false;
+            }
+
+            string? type = typeElement.GetString();
+            if (string.Equals(type, "WhitespaceSplit", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(type, "Whitespace", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (string.Equals(type, "Sequence", StringComparison.OrdinalIgnoreCase) &&
+                preTokenizer.TryGetProperty("pretokenizers", out JsonElement preTokenizersElement) &&
+                preTokenizersElement.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement inner in preTokenizersElement.EnumerateArray())
+                {
+                    if (PreTokenizerSplitsWhitespace(inner))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         private static void ExtractMetaspaceSettings(JsonElement preTokenizer, ref bool addDummyPrefix, ref bool escapeWhiteSpaces, ref bool treatWhitespaceAsSuffix)
         {
-            if (!preTokenizer.TryGetProperty("type", out JsonElement typeEl))
+            if (!preTokenizer.TryGetProperty("type", out JsonElement typeElement))
             {
                 return;
             }
 
-            string? type = typeEl.GetString();
+            string? type = typeElement.GetString();
             if (string.Equals(type, "Metaspace", StringComparison.OrdinalIgnoreCase))
             {
-                if (preTokenizer.TryGetProperty("add_prefix_space", out JsonElement addPrefixEl))
+                if (preTokenizer.TryGetProperty("add_prefix_space", out JsonElement addPrefixElement))
                 {
-                    addDummyPrefix = addPrefixEl.GetBoolean();
+                    addDummyPrefix = addPrefixElement.GetBoolean();
                 }
 
-                if (preTokenizer.TryGetProperty("replacement", out JsonElement replacementEl))
+                if (preTokenizer.TryGetProperty("replacement", out JsonElement replacementElement))
                 {
-                    string? replacement = replacementEl.GetString();
+                    string? replacement = replacementElement.GetString();
                     escapeWhiteSpaces = replacement == "\u2581"; // U+2581 LOWER ONE EIGHTH BLOCK (▁)
                 }
 
-                if (preTokenizer.TryGetProperty("prepend_scheme", out JsonElement prependSchemeEl))
+                if (preTokenizer.TryGetProperty("prepend_scheme", out JsonElement prependSchemeElement))
                 {
-                    string? scheme = prependSchemeEl.GetString();
+                    string? scheme = prependSchemeElement.GetString();
                     // "never" suppresses the dummy prefix; "always"/"first" keep the default (true)
                     if (string.Equals(scheme, "never", StringComparison.OrdinalIgnoreCase))
                     {
@@ -1051,10 +1119,10 @@ namespace Microsoft.ML.Tokenizers
                 }
             }
             else if (string.Equals(type, "Sequence", StringComparison.OrdinalIgnoreCase) &&
-                     preTokenizer.TryGetProperty("pretokenizers", out JsonElement preTokenizersEl) &&
-                     preTokenizersEl.ValueKind == JsonValueKind.Array)
+                     preTokenizer.TryGetProperty("pretokenizers", out JsonElement preTokenizersElement) &&
+                     preTokenizersElement.ValueKind == JsonValueKind.Array)
             {
-                foreach (JsonElement inner in preTokenizersEl.EnumerateArray())
+                foreach (JsonElement inner in preTokenizersElement.EnumerateArray())
                 {
                     ExtractMetaspaceSettings(inner, ref addDummyPrefix, ref escapeWhiteSpaces, ref treatWhitespaceAsSuffix);
                 }

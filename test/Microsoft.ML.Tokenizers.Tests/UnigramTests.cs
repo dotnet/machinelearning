@@ -706,9 +706,9 @@ namespace Microsoft.ML.Tokenizers.Tests
         [Fact]
         public void CreateFromTokenizerJsonSequenceNormalizerWithExtraStepsTest()
         {
-            // A Sequence normalizer that interleaves the precompiled map with other steps (e.g. Replace)
-            // is common in real tokenizers; the precompiled map is extracted and the other steps are ignored
-            // rather than failing the load.
+            // A Sequence normalizer that interleaves the precompiled map with whitespace-only steps (Nmt, a
+            // collapsing Replace) carries no content-modifying step, so it stays on the charsmap path and loads
+            // rather than failing.
             string json = """
                 {
                   "model": {
@@ -721,7 +721,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     "normalizers": [
                       { "type": "Nmt" },
                       { "type": "Precompiled", "precompiled_charsmap": "" },
-                      { "type": "Replace", "pattern": " ", "content": "_" }
+                      { "type": "Replace", "pattern": { "Regex": " {2,}" }, "content": "\u2581" }
                     ]
                   }
                 }
@@ -815,6 +815,269 @@ namespace Microsoft.ML.Tokenizers.Tests
             Assert.Equal(3, tokenizer.CountTokens("a  b", addBeginningOfSentence: false, addEndOfSentence: false));
         }
 
+        private static string[] JsonUnigramTokens(string json, string text)
+        {
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false);
+            return tokenizer.EncodeToTokens(text, out _, addBeginningOfSentence: false, addEndOfSentence: false).Select(t => t.Value).ToArray();
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonAppliesAnchoredRegexReplaceNormalizer()
+        {
+            // Regression: a zero-width/anchored regex match at offset 0 (e.g. "^") must still insert the content.
+            string json = """
+                {
+                  "normalizer": { "type": "Replace", "pattern": { "Regex": "^" }, "content": "X" },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["\u2581Xab", -1.0]]
+                  }
+                }
+                """;
+
+            Assert.Equal(new[] { "\u2581Xab" }, JsonUnigramTokens(json, "ab"));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonRegexReplaceContentIsLiteral()
+        {
+            // Regression: a '$' in the Replace content is substituted literally (Hugging Face semantics), not as a
+            // regex replacement reference such as "$0". Exercises both the net8 span path and the net48 string path.
+            string json = """
+                {
+                  "normalizer": { "type": "Replace", "pattern": { "Regex": "a" }, "content": "$0X" },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["\u2581$0X", -1.0]]
+                  }
+                }
+                """;
+
+            Assert.Equal(new[] { "\u2581$0X" }, JsonUnigramTokens(json, "a"));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonAppliesPunctuationReplaceNormalizer()
+        {
+            // A content-modifying Replace (punctuation splitting, as model2vec/potion uses) must be applied before
+            // Metaspace, so "a,b" is split into separate pieces rather than tokenized as one run.
+            string json = """
+                {
+                  "normalizer": { "type": "Replace", "pattern": { "String": "," }, "content": " , " },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["\u2581a", -1.0], ["\u2581,", -1.0], ["\u2581b", -1.0]]
+                  }
+                }
+                """;
+
+            Assert.Equal(new[] { "\u2581a", "\u2581,", "\u2581b" }, JsonUnigramTokens(json, "a,b"));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonAppliesLowercaseNormalizer()
+        {
+            // A Lowercase normalizer step must run before encoding so upper-case input maps to the lower-case piece.
+            string json = """
+                {
+                  "normalizer": { "type": "Lowercase" },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["\u2581hello", -1.0]]
+                  }
+                }
+                """;
+
+            Assert.Equal(new[] { "\u2581hello" }, JsonUnigramTokens(json, "HELLO"));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonAppliesNmtNormalizer()
+        {
+            // Nmt maps format characters (e.g. U+200B zero-width space) to a regular space; combined with a rich
+            // step it runs in the chain, so "A\u200BB" normalizes to two space-separated pieces.
+            string json = """
+                {
+                  "normalizer": { "type": "Sequence", "normalizers": [ { "type": "Nmt" }, { "type": "Lowercase" } ] },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["\u2581a", -1.0], ["\u2581b", -1.0]]
+                  }
+                }
+                """;
+
+            Assert.Equal(new[] { "\u2581a", "\u2581b" }, JsonUnigramTokens(json, "A\u200BB"));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonAppliesNfkcNormalizer()
+        {
+            // An NFKC normalizer step must run before encoding so the circled digit U+2460 maps to "1".
+            string json = """
+                {
+                  "normalizer": { "type": "NFKC" },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["\u25811", -1.0]]
+                  }
+                }
+                """;
+
+            Assert.Equal(new[] { "\u25811" }, JsonUnigramTokens(json, "\u2460"));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonAppliesStripAccentsNormalizer()
+        {
+            // A StripAccents normalizer step decomposes and drops combining marks, so "café" maps to the "cafe" piece.
+            string json = """
+                {
+                  "normalizer": { "type": "StripAccents" },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["\u2581cafe", -1.0]]
+                  }
+                }
+                """;
+
+            Assert.Equal(new[] { "\u2581cafe" }, JsonUnigramTokens(json, "caf\u00e9"));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonStripAccentsDropsAstralCombiningMark()
+        {
+            // Regression: a combining mark encoded as a surrogate pair (astral plane, e.g. U+1D167) must also be
+            // stripped, which requires classifying by code point rather than per UTF-16 code unit.
+            string json = """
+                {
+                  "normalizer": { "type": "StripAccents" },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["\u2581ab", -1.0]]
+                  }
+                }
+                """;
+
+            // "a" + U+1D167 (MUSICAL SYMBOL COMBINING TREMOLO-1, a NonSpacingMark) + "b" -> "ab".
+            Assert.Equal(new[] { "\u2581ab" }, JsonUnigramTokens(json, "a\uD834\uDD67b"));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonWhitespaceSplitPreTokenizerCollapsesWhitespace()
+        {
+            // A WhitespaceSplit pre-tokenizer collapses runs of whitespace (and strips ends), matching
+            // remove_extra_whitespaces, even though the normalizer carries no collapse step.
+            string json = """
+                {
+                  "pre_tokenizer": {
+                    "type": "Sequence",
+                    "pretokenizers": [
+                      { "type": "WhitespaceSplit" },
+                      { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true }
+                    ]
+                  },
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["\u2581a", -1.0], ["\u2581b", -1.0]]
+                  }
+                }
+                """;
+
+            Assert.Equal(new[] { "\u2581a", "\u2581b" }, JsonUnigramTokens(json, "  a   b  "));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonAppliesPrecompiledCharsMapInChainMode()
+        {
+            // Regression: a Precompiled charsmap nested in a content-modifying (chain-mode) normalizer must still be
+            // applied. Wrap the bundled model's real charsmap with a Lowercase step to force chain-mode and verify
+            // the charsmap still folds a full-width digit while Lowercase also runs.
+            using JsonDocument bundled = JsonDocument.Parse(File.ReadAllText(Path.Combine("Paraphrase-multilingual-MiniLM-L12-v2", "tokenizer.json")));
+            string charsMap = bundled.RootElement.GetProperty("normalizer").GetProperty("precompiled_charsmap").GetString()!;
+
+            string json = $$"""
+                {
+                  "normalizer": {
+                    "type": "Sequence",
+                    "normalizers": [
+                      { "type": "Precompiled", "precompiled_charsmap": "{{charsMap}}" },
+                      { "type": "Lowercase" }
+                    ]
+                  },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["\u25811", -1.0], ["\u2581a", -1.0]]
+                  }
+                }
+                """;
+
+            // Full-width "１" (U+FF11) folds to "1" via the charsmap; uppercase "A" lower-cases to "a".
+            Assert.Equal(new[] { "\u25811" }, JsonUnigramTokens(json, "\uFF11"));
+            Assert.Equal(new[] { "\u2581a" }, JsonUnigramTokens(json, "A"));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonChainHandlesLoneSurrogate()
+        {
+            // A content-modifying normalizer that runs Unicode normalization must not throw on a lone surrogate.
+            string json = """
+                {
+                  "normalizer": { "type": "NFKC" },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["\u2581a", -1.0], ["\u2581b", -1.0]]
+                  }
+                }
+                """;
+
+            string[] tokens = JsonUnigramTokens(json, "a\uD800b");
+            Assert.NotEmpty(tokens);
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonUnsupportedNormalizerStepThrows()
+        {
+            // When a content-modifying chain references a normalizer type we do not model, fail loudly rather than
+            // silently mis-tokenizing.
+            string json = """
+                {
+                  "normalizer": { "type": "Sequence", "normalizers": [ { "type": "Lowercase" }, { "type": "BertNormalizer" } ] },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["\u2581a", -1.0]]
+                  }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<NotSupportedException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false));
+        }
+
         [Fact]
         public void CreateFromTokenizerJsonNullNormalizerTest()
         {
@@ -860,13 +1123,35 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
-        public void CreateFromTokenizerJsonMissingModelTypeTest()
+        public void CreateFromTokenizerJsonMissingModelTypeInfersUnigram()
         {
+            // Older tokenizer.json files (xlm-roberta-base, albert) omit model.type; a model with a [piece, score]
+            // vocab and no BPE merges is inferred as Unigram and loads.
             string json = """
                 {
                   "model": {
                     "unk_id": 0,
-                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                    "vocab": [["<unk>", 0.0], ["\u2581a", -1.0]]
+                  },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false);
+            Assert.Equal(new[] { "\u2581a" }, tokenizer.EncodeToTokens("a", out _, addBeginningOfSentence: false, addEndOfSentence: false).Select(t => t.Value).ToArray());
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonMissingTypeWithMergesThrows()
+        {
+            // A model with no type but BPE "merges" is not a Unigram model and must be rejected.
+            string json = """
+                {
+                  "model": {
+                    "unk_id": 0,
+                    "vocab": { "<unk>": 0, "a": 1, "b": 2 },
+                    "merges": ["a b"]
                   }
                 }
                 """;
