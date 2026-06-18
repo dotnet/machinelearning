@@ -8,6 +8,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -209,6 +210,18 @@ namespace Microsoft.ML.Tokenizers
             }
 
             ByteCodeToIdOffset = _vocab.TryGetValue("<0x00>", out int id) ? id : MaxByteId;
+            if (ByteFallback)
+            {
+                // Byte fallback requires a contiguous block of the 256 byte pieces <0x00>..<0xFF>; encode/decode map a
+                // byte value to ByteCodeToIdOffset + value. Validate it (the proto path relies on the same layout) and
+                // set MaxByteId from <0xFF> so byte ids are recognized on decode, rather than misencoding silently.
+                if (!_vocab.ContainsKey("<0x00>") || !_vocab.TryGetValue("<0xFF>", out int maxByteId) || maxByteId - ByteCodeToIdOffset != 0xFF)
+                {
+                    throw new InvalidDataException("The tokenizer.json model enables byte_fallback but does not contain a contiguous <0x00>..<0xFF> byte-piece block required to represent it.");
+                }
+
+                MaxByteId = maxByteId;
+            }
             OneByteUtf8EncodingMaxId = ByteCodeToIdOffset + 0x7F;
             MaxIdByteFallbackId = ByteCodeToIdOffset + 0xFF;
 
@@ -1100,7 +1113,7 @@ namespace Microsoft.ML.Tokenizers
 
             if (maxTokenCount == int.MaxValue)
             {
-                Debug.Assert(unknownTokensCount == 0 && unknownTokensTracking is null);
+                Debug.Assert(ByteFallback || (unknownTokensCount == 0 && unknownTokensTracking is null));
 
                 if (ByteFallback && unknownTokensCount > 0)
                 {

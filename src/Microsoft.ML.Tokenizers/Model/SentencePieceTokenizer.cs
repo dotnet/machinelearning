@@ -544,9 +544,14 @@ namespace Microsoft.ML.Tokenizers
         ///   <item><description><c>post_processor</c> (<c>TemplateProcessing</c>, <c>RobertaProcessing</c>, <c>BertProcessing</c>, or a <c>Sequence</c> of these) — the special tokens that wrap a single sequence, gated by <paramref name="addBeginningOfSentence"/> (prefix) and <paramref name="addEndOfSentence"/> (suffix).</description></item>
         /// </list>
         /// <para>
-        /// <c>remove_extra_whitespaces</c> has no direct representation in <c>tokenizer.json</c> and is assumed to be
-        /// <see langword="true"/>. Pair-sequence templates and per-token <c>type_id</c>s are not applied. Templates that
-        /// place a special token in the middle of the sequence are rejected with <see cref="NotSupportedException"/>.
+        /// <c>remove_extra_whitespaces</c> has no direct representation in <c>tokenizer.json</c>; it is deduced from
+        /// the normalizer's whitespace-collapsing steps (a right-<c>Strip</c> plus a runs-of-spaces <c>Replace</c>) and
+        /// from a <c>WhitespaceSplit</c> pre-tokenizer, defaulting to <see langword="false"/> when none are present, to
+        /// match the Hugging Face fast-tokenizer runtime. Normalizers with content-modifying steps (per-character
+        /// <c>Replace</c>, <c>Lowercase</c>, <c>StripAccents</c>, Unicode normalization, <c>Nmt</c>, <c>Prepend</c>) are
+        /// applied in full before encoding. Pair-sequence templates and per-token <c>type_id</c>s are not applied.
+        /// Templates that place a special token in the middle of the sequence are rejected with
+        /// <see cref="NotSupportedException"/>.
         /// </para>
         /// <para>
         /// When creating the tokenizer, ensure that the JSON stream is sourced from a trusted provider.
@@ -1104,8 +1109,16 @@ namespace Microsoft.ML.Tokenizers
 
                 if (preTokenizer.TryGetProperty("replacement", out JsonElement replacementElement))
                 {
+                    // HF Metaspace's 'replacement' is the actual whitespace marker character. The SentencePiece model
+                    // only supports U+2581 ('▁'); reject any other marker rather than silently not escaping spaces.
                     string? replacement = replacementElement.GetString();
-                    escapeWhiteSpaces = replacement == "\u2581"; // U+2581 LOWER ONE EIGHTH BLOCK (▁)
+                    if (replacement is not null && replacement != "\u2581") // U+2581 LOWER ONE EIGHTH BLOCK (▁)
+                    {
+                        throw new NotSupportedException(
+                            $"The Metaspace 'replacement' '{replacement}' is not supported; only U+2581 ('\u2581') is supported.");
+                    }
+
+                    escapeWhiteSpaces = true;
                 }
 
                 if (preTokenizer.TryGetProperty("prepend_scheme", out JsonElement prependSchemeElement))

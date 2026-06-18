@@ -980,6 +980,68 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
+        public void CreateFromTokenizerJsonByteFallbackRoundTrips()
+        {
+            // A Unigram model with byte_fallback and the 256 <0x00>..<0xFF> byte pieces must encode out-of-vocabulary
+            // characters to byte-fallback ids and decode them back to the original text (requires MaxByteId to be set).
+            StringBuilder vocab = new StringBuilder("[[\"<unk>\", 0.0], [\"<s>\", 0.0], [\"</s>\", 0.0]");
+            for (int b = 0; b <= 0xFF; b++)
+            {
+                vocab.Append($", [\"<0x{b:X2}>\", -10.0]");
+            }
+            vocab.Append(", [\"\\u2581a\", -1.0]]");
+
+            string json = $$"""
+                {
+                  "model": { "type": "Unigram", "unk_id": 0, "byte_fallback": true, "vocab": {{vocab}} },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": false }
+                }
+                """;
+
+            using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            foreach (string text in new[] { "x", "\u20AC", "Ab9" })
+            {
+                IReadOnlyList<int> ids = tokenizer.EncodeToIds(text, addBeginningOfSentence: false, addEndOfSentence: false);
+                Assert.DoesNotContain(0, ids); // byte fallback, not the <unk> id
+                Assert.Equal(text, tokenizer.Decode(ids));
+            }
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonByteFallbackWithoutBytePiecesThrows()
+        {
+            // byte_fallback enabled but the <0x00>..<0xFF> pieces are absent must fail loudly rather than mis-encode.
+            string json = """
+                {
+                  "model": { "type": "Unigram", "unk_id": 0, "byte_fallback": true, "vocab": [["<unk>", 0.0], ["\u2581a", -1.0]] },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true }
+                }
+                """;
+
+            using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNonMetaspaceReplacementThrows()
+        {
+            // HF Metaspace 'replacement' other than U+2581 cannot be represented by the model; reject it.
+            string json = """
+                {
+                  "model": { "type": "Unigram", "unk_id": 0, "vocab": [["<unk>", 0.0], ["_a", -1.0]] },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "_", "add_prefix_space": true }
+                }
+                """;
+
+            using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            Assert.Throws<NotSupportedException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false));
+        }
+
+        [Fact]
         public void CreateFromTokenizerJsonWhitespaceSplitPreTokenizerCollapsesWhitespace()
         {
             // A WhitespaceSplit pre-tokenizer collapses runs of whitespace (and strips ends), matching
@@ -1230,7 +1292,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     { "id": 1, "content": "<unk>", "special": true },
                     { "id": 2, "content": "<cls>", "special": true }
                   ],
-                  "pre_tokenizer": { "type": "Metaspace", "add_prefix_space": false, "replacement": "_" },
+                  "pre_tokenizer": { "type": "Metaspace", "add_prefix_space": false, "replacement": "\u2581" },
                   "post_processor": {
                     "type": "TemplateProcessing",
                     "single": [
@@ -1276,7 +1338,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                     { "id": 0, "content": "<s>", "special": true },
                     { "id": 2, "content": "</s>", "special": true }
                   ],
-                  "pre_tokenizer": { "type": "Metaspace", "add_prefix_space": false, "replacement": "_" },
+                  "pre_tokenizer": { "type": "Metaspace", "add_prefix_space": false, "replacement": "\u2581" },
                   "post_processor": { "type": "RobertaProcessing", "sep": ["</s>", 2], "cls": ["<s>", 0] }
                 }
                 """;
@@ -1307,7 +1369,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                   "added_tokens": [
                     { "id": 4, "content": "<extra>", "special": true }
                   ],
-                  "pre_tokenizer": { "type": "Metaspace", "add_prefix_space": false, "replacement": "_" }
+                  "pre_tokenizer": { "type": "Metaspace", "add_prefix_space": false, "replacement": "\u2581" }
                 }
                 """;
 
