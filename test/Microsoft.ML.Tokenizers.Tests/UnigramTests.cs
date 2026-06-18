@@ -1459,7 +1459,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 """;
 
             using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
-            SentencePieceTokenizer tokenizer = (SentencePieceTokenizer)SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false);
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false);
             Assert.NotNull(tokenizer);
         }
 
@@ -1519,7 +1519,7 @@ namespace Microsoft.ML.Tokenizers.Tests
                 """;
 
             using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
-            SentencePieceTokenizer tokenizer = (SentencePieceTokenizer)SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false);
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false);
 
             // Decoding the byte-like piece id round-trips to its literal piece, and the following normal id is not dropped.
             Assert.Equal("<0x00>a", tokenizer.Decode(new[] { 1, 2 }));
