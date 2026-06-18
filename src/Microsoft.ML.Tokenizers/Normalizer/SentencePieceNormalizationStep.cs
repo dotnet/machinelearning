@@ -82,7 +82,8 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         public static bool HasRichSteps(JsonElement normalizer)
         {
-            if (normalizer.ValueKind != JsonValueKind.Object || !normalizer.TryGetProperty("type", out JsonElement typeElement))
+            if (normalizer.ValueKind != JsonValueKind.Object || !normalizer.TryGetProperty("type", out JsonElement typeElement) ||
+                typeElement.ValueKind != JsonValueKind.String)
             {
                 return false;
             }
@@ -125,7 +126,8 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         public static SentencePieceNormalizationStep Build(JsonElement normalizer)
         {
-            string? type = normalizer.TryGetProperty("type", out JsonElement typeElement) ? typeElement.GetString() : null;
+            string? type = normalizer.TryGetProperty("type", out JsonElement typeElement) && typeElement.ValueKind == JsonValueKind.String
+                ? typeElement.GetString() : null;
             switch (type)
             {
                 case "Sequence":
@@ -199,7 +201,8 @@ namespace Microsoft.ML.Tokenizers
         {
             if (!replace.TryGetProperty("pattern", out JsonElement patternElement) ||
                 patternElement.ValueKind != JsonValueKind.Object ||
-                !patternElement.TryGetProperty("Regex", out JsonElement regexElement))
+                !patternElement.TryGetProperty("Regex", out JsonElement regexElement) ||
+                regexElement.ValueKind != JsonValueKind.String)
             {
                 return false;
             }
@@ -387,21 +390,39 @@ namespace Microsoft.ML.Tokenizers
 
             public static ReplaceStep Create(JsonElement normalizer)
             {
-                string content = normalizer.TryGetProperty("content", out JsonElement contentElement) ? contentElement.GetString() ?? "" : "";
-                if (!normalizer.TryGetProperty("pattern", out JsonElement pattern))
+                string content = normalizer.TryGetProperty("content", out JsonElement contentElement) && contentElement.ValueKind == JsonValueKind.String
+                    ? contentElement.GetString() ?? "" : "";
+                if (!normalizer.TryGetProperty("pattern", out JsonElement pattern) || pattern.ValueKind != JsonValueKind.Object)
                 {
                     throw new InvalidDataException("Replace normalizer is missing its pattern.");
                 }
 
                 if (pattern.TryGetProperty("String", out JsonElement literal))
                 {
+                    if (literal.ValueKind != JsonValueKind.String)
+                    {
+                        throw new InvalidDataException("Replace normalizer 'String' pattern must be a string.");
+                    }
+
                     return new ReplaceStep(literal.GetString() ?? "", regex: null, content);
                 }
 
                 if (pattern.TryGetProperty("Regex", out JsonElement regex))
                 {
-                    string regexPattern = regex.GetString() ?? throw new InvalidDataException("Replace normalizer has a null Regex pattern.");
-                    return new ReplaceStep(literal: null, new Regex(regexPattern, RegexOptions.CultureInvariant, _regexTimeout), content);
+                    if (regex.ValueKind != JsonValueKind.String)
+                    {
+                        throw new InvalidDataException("Replace normalizer 'Regex' pattern must be a string.");
+                    }
+
+                    string regexPattern = regex.GetString()!;
+                    try
+                    {
+                        return new ReplaceStep(literal: null, new Regex(regexPattern, RegexOptions.CultureInvariant, _regexTimeout), content);
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        throw new InvalidDataException($"Replace normalizer has an invalid Regex pattern '{regexPattern}'.", ex);
+                    }
                 }
 
                 throw new NotSupportedException("Replace normalizer requires a String or Regex pattern.");

@@ -1280,6 +1280,161 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
+        public void CreateFromTokenizerJsonNonNumericAddedTokenIdThrows()
+        {
+            // A special added_token with a non-numeric id is malformed and must fail with InvalidDataException.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  },
+                  "added_tokens": [ { "id": "one", "content": "<extra>", "special": true } ]
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNonStringTemplateSpecialTokenIdThrows()
+        {
+            // A post_processor template SpecialToken whose id is not a string must fail with InvalidDataException.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  },
+                  "post_processor": {
+                    "type": "TemplateProcessing",
+                    "single": [
+                      { "Sequence": { "id": "A", "type_id": 0 } },
+                      { "SpecialToken": { "id": 5, "type_id": 0 } }
+                    ]
+                  }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNonNumericTemplateSpecialTokenIdsThrows()
+        {
+            // A post_processor special_tokens entry whose ids[0] is not numeric must fail with InvalidDataException.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["<sep>", 0.0], ["a", -1.0]]
+                  },
+                  "post_processor": {
+                    "type": "TemplateProcessing",
+                    "single": [
+                      { "Sequence": { "id": "A", "type_id": 0 } },
+                      { "SpecialToken": { "id": "<sep>", "type_id": 0 } }
+                    ],
+                    "special_tokens": {
+                      "<sep>": { "id": "<sep>", "ids": ["one"], "tokens": ["<sep>"] }
+                    }
+                  }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNonBooleanAddPrefixSpaceThrows()
+        {
+            // A pre_tokenizer add_prefix_space that is not a boolean must fail with InvalidDataException.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": "true" }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNonStringMetaspaceReplacementThrows()
+        {
+            // A pre_tokenizer replacement that is not a string must fail with InvalidDataException.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": 5, "add_prefix_space": true }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonInvalidReplaceRegexThrows()
+        {
+            // An invalid Regex in a Replace normalizer must surface as InvalidDataException, not ArgumentException.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  },
+                  "normalizer": { "type": "Replace", "pattern": { "Regex": "[" }, "content": "x" }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNonStringNormalizerTypeIsIgnored()
+        {
+            // A normalizer whose 'type' is not a string is handled in a controlled way (treated as no-op), not thrown.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  },
+                  "normalizer": { "type": 123 }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            SentencePieceTokenizer tokenizer = (SentencePieceTokenizer)SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false);
+            Assert.NotNull(tokenizer);
+        }
+
+        [Fact]
         public void CreateFromTokenizerJsonOutOfRangeUnkIdThrows()
         {
             // unk_id must index into the parsed vocab; an out-of-range value is a malformed file.
