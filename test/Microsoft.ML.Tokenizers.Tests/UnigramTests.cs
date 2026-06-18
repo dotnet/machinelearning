@@ -706,9 +706,8 @@ namespace Microsoft.ML.Tokenizers.Tests
         [Fact]
         public void CreateFromTokenizerJsonSequenceNormalizerWithExtraStepsTest()
         {
-            // A Sequence normalizer that interleaves the precompiled map with whitespace-only steps (Nmt, a
-            // collapsing Replace) carries no content-modifying step, so it stays on the charsmap path and loads
-            // rather than failing.
+            // A Sequence normalizer that interleaves the precompiled map with Nmt and a collapsing Replace builds the
+            // managed normalizer chain (Nmt is content-modifying) and loads rather than failing.
             string json = """
                 {
                   "model": {
@@ -730,6 +729,25 @@ namespace Microsoft.ML.Tokenizers.Tests
             using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
             SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false);
             Assert.NotNull(tokenizer);
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonAppliesStandaloneNmtNormalizer()
+        {
+            // A normalizer that is only Nmt must still be applied: U+200B (zero-width space) maps to a regular space.
+            string json = """
+                {
+                  "normalizer": { "type": "Nmt" },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true },
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["\u2581a", -1.0], ["\u2581b", -1.0]]
+                  }
+                }
+                """;
+
+            Assert.Equal(new[] { "\u2581a", "\u2581b" }, JsonUnigramTokens(json, "a\u200Bb"));
         }
 
         // Vocab shared by the remove_extra_whitespaces deduction tests; "▁" is its own piece so a preserved
@@ -1353,6 +1371,27 @@ namespace Microsoft.ML.Tokenizers.Tests
 
             IReadOnlyList<int> ids = tokenizer.EncodeToIds("a", addBeginningOfSentence: true, addEndOfSentence: true);
             Assert.Equal(new[] { 0, 3, 2 }, ids);
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonInconsistentProcessorAffixThrows()
+        {
+            // RobertaProcessing cls/sep [token, id] pair whose id does not map to the token must be rejected.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 1,
+                    "vocab": [["<s>", 0.0], ["<unk>", 0.0], ["</s>", 0.0], ["a", -1.0]]
+                  },
+                  "pre_tokenizer": { "type": "Metaspace", "add_prefix_space": false, "replacement": "\u2581" },
+                  "post_processor": { "type": "RobertaProcessing", "sep": ["</s>", 3], "cls": ["<s>", 0] }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false));
         }
 
         [Fact]

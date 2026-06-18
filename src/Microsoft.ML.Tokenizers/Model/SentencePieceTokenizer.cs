@@ -660,13 +660,14 @@ namespace Microsoft.ML.Tokenizers
                 }
             }
 
-            // Extract pre_tokenizer settings
+            // Extract pre_tokenizer settings. treatWhitespaceAsSuffix has no tokenizer.json representation, so it
+            // stays at its default; it is still passed to the model which supports it.
             bool escapeWhiteSpaces = true;
             bool treatWhitespaceAsSuffix = false;
             if (root.TryGetProperty("pre_tokenizer", out JsonElement preTokenizerElement) &&
                 preTokenizerElement.ValueKind == JsonValueKind.Object)
             {
-                ExtractMetaspaceSettings(preTokenizerElement, ref addDummyPrefix, ref escapeWhiteSpaces, ref treatWhitespaceAsSuffix);
+                ExtractMetaspaceSettings(preTokenizerElement, ref addDummyPrefix, ref escapeWhiteSpaces);
 
                 // A WhitespaceSplit pre-tokenizer splits on whitespace and drops the empties, which collapses runs of
                 // whitespace and strips leading/trailing whitespace before Metaspace adds the dummy prefix. That is
@@ -907,9 +908,20 @@ namespace Microsoft.ML.Tokenizers
         {
             // Roberta/Bert processors store cls/sep as [token, id] arrays.
             if (postProcessor.TryGetProperty(property, out JsonElement el) && el.ValueKind == JsonValueKind.Array && el.GetArrayLength() >= 2 &&
-                el[0].GetString() is string token)
+                el[0].GetString() is string token && el[1].ValueKind == JsonValueKind.Number)
             {
-                target.Add((el[1].GetInt32(), token));
+                int id = el[1].GetInt32();
+
+                // Validate the [token, id] pair against the vocabulary / added tokens so an inconsistent file cannot
+                // emit ids that do not map to the intended token.
+                bool consistent = (specialTokens.TryGetValue(token, out int specialId) && specialId == id)
+                    || (id >= 0 && id < vocab.Count && vocab[id].Piece == token);
+                if (!consistent)
+                {
+                    throw new InvalidDataException($"The post-processor '{property}' token '{token}' with id {id} does not match the vocabulary or added tokens.");
+                }
+
+                target.Add((id, token));
             }
         }
 
@@ -1092,7 +1104,7 @@ namespace Microsoft.ML.Tokenizers
             return false;
         }
 
-        private static void ExtractMetaspaceSettings(JsonElement preTokenizer, ref bool addDummyPrefix, ref bool escapeWhiteSpaces, ref bool treatWhitespaceAsSuffix)
+        private static void ExtractMetaspaceSettings(JsonElement preTokenizer, ref bool addDummyPrefix, ref bool escapeWhiteSpaces)
         {
             if (!preTokenizer.TryGetProperty("type", out JsonElement typeElement))
             {
@@ -1137,7 +1149,7 @@ namespace Microsoft.ML.Tokenizers
             {
                 foreach (JsonElement inner in preTokenizersElement.EnumerateArray())
                 {
-                    ExtractMetaspaceSettings(inner, ref addDummyPrefix, ref escapeWhiteSpaces, ref treatWhitespaceAsSuffix);
+                    ExtractMetaspaceSettings(inner, ref addDummyPrefix, ref escapeWhiteSpaces);
                 }
             }
         }

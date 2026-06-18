@@ -105,9 +105,6 @@ namespace Microsoft.ML.Tokenizers
 
                 case "Precompiled":
                 case "Strip":
-                case "Nmt":
-                    // Nmt only maps control/format characters to spaces or removes them; absent such characters it
-                    // is a no-op, so on its own it does not force chain-mode (preserving the existing fast path).
                     return false;
 
                 case "Replace":
