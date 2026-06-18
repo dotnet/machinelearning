@@ -1326,6 +1326,66 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
+        public void CreateFromTokenizerJsonNonStringPrependNormalizerThrows()
+        {
+            // A Prepend normalizer with a non-string 'prepend' must fail with InvalidDataException.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  },
+                  "normalizer": { "type": "Prepend", "prepend": 5 }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNonObjectNormalizerSequenceEntryThrows()
+        {
+            // A rich normalizer Sequence containing a non-object entry must fail with InvalidDataException.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  },
+                  "normalizer": { "type": "Sequence", "normalizers": [ { "type": "Lowercase" }, 123 ] }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNonStringPrecompiledCharsMapInChainThrows()
+        {
+            // A non-string precompiled_charsmap inside a rich chain must fail with InvalidDataException.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  },
+                  "normalizer": { "type": "Sequence", "normalizers": [ { "type": "Lowercase" }, { "type": "Precompiled", "precompiled_charsmap": 5 } ] }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
         public void CreateFromTokenizerJsonInconsistentTemplateSpecialTokenIdThrows()
         {
             // A template special_tokens id that does not map back to the referenced token must fail loudly.

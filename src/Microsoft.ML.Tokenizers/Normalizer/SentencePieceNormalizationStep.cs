@@ -126,6 +126,11 @@ namespace Microsoft.ML.Tokenizers
         /// </summary>
         public static SentencePieceNormalizationStep Build(JsonElement normalizer)
         {
+            if (normalizer.ValueKind != JsonValueKind.Object)
+            {
+                throw new InvalidDataException("A tokenizer.json normalizer entry must be a JSON object.");
+            }
+
             string? type = normalizer.TryGetProperty("type", out JsonElement typeElement) && typeElement.ValueKind == JsonValueKind.String
                 ? typeElement.GetString() : null;
             switch (type)
@@ -143,7 +148,17 @@ namespace Microsoft.ML.Tokenizers
 
                 case "Precompiled":
                     {
-                        string? charsMap = normalizer.TryGetProperty("precompiled_charsmap", out JsonElement mapElement) ? mapElement.GetString() : null;
+                        string? charsMap = null;
+                        if (normalizer.TryGetProperty("precompiled_charsmap", out JsonElement mapElement))
+                        {
+                            if (mapElement.ValueKind != JsonValueKind.String && mapElement.ValueKind != JsonValueKind.Null)
+                            {
+                                throw new InvalidDataException("The Precompiled normalizer 'precompiled_charsmap' must be a string.");
+                            }
+
+                            charsMap = mapElement.GetString();
+                        }
+
                         return new PrecompiledStep(string.IsNullOrEmpty(charsMap) ? default : DecodePrecompiledCharsMap(charsMap!));
                     }
 
@@ -171,7 +186,16 @@ namespace Microsoft.ML.Tokenizers
                     return new UnicodeStep(NormalizationForm.FormKD);
 
                 case "Prepend":
-                    return new PrependStep(normalizer.TryGetProperty("prepend", out JsonElement prependElement) ? prependElement.GetString() ?? "" : "");
+                    {
+                        if (normalizer.TryGetProperty("prepend", out JsonElement prependElement) &&
+                            prependElement.ValueKind != JsonValueKind.String && prependElement.ValueKind != JsonValueKind.Null)
+                        {
+                            throw new InvalidDataException("The Prepend normalizer 'prepend' must be a string.");
+                        }
+
+                        string prepend = prependElement.ValueKind == JsonValueKind.String ? prependElement.GetString() ?? "" : "";
+                        return new PrependStep(prepend);
+                    }
 
                 case "Nmt":
                     return NmtStep.Instance;
