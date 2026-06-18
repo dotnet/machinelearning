@@ -1242,6 +1242,44 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
+        public void CreateFromTokenizerJsonNonNumericUnkIdThrows()
+        {
+            // A non-numeric unk_id is a malformed file and must fail with InvalidDataException, not a cast error.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": "zero",
+                    "vocab": [["<unk>", 0.0], ["a", -1.0]]
+                  }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNonNumericVocabScoreThrows()
+        {
+            // A vocab entry whose score is not a number is malformed and must fail with InvalidDataException.
+            string json = """
+                {
+                  "model": {
+                    "type": "Unigram",
+                    "unk_id": 0,
+                    "vocab": [["<unk>", 0.0], ["a", "not-a-score"]]
+                  }
+                }
+                """;
+
+            using Stream stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
         public void CreateFromTokenizerJsonOutOfRangeUnkIdThrows()
         {
             // unk_id must index into the parsed vocab; an out-of-range value is a malformed file.

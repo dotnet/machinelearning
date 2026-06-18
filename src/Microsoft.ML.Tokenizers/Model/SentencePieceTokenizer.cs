@@ -603,6 +603,11 @@ namespace Microsoft.ML.Tokenizers
                 throw new InvalidDataException("The tokenizer.json model does not contain an 'unk_id' property.");
             }
 
+            if (unkIdElement.ValueKind != JsonValueKind.Number)
+            {
+                throw new InvalidDataException("The tokenizer.json model 'unk_id' property must be a number.");
+            }
+
             int unkId = unkIdElement.GetInt32();
 
             bool byteFallback = modelElement.TryGetProperty("byte_fallback", out JsonElement byteFallbackElement) &&
@@ -620,6 +625,11 @@ namespace Microsoft.ML.Tokenizers
                 if (entry.ValueKind != JsonValueKind.Array || entry.GetArrayLength() < 2)
                 {
                     throw new InvalidDataException("Each entry in 'model.vocab' must be a [piece, score] array.");
+                }
+
+                if (entry[0].ValueKind != JsonValueKind.String || entry[1].ValueKind != JsonValueKind.Number)
+                {
+                    throw new InvalidDataException("Each entry in 'model.vocab' must be a [string piece, number score] pair.");
                 }
 
                 string? piece = entry[0].GetString();
