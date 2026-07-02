@@ -78,6 +78,7 @@ These invariants are not delegated to the shared file. Honor them even if a shar
 7. **All state under `/tmp/gh-aw/agent/`;** each bash call is a fresh subshell.
 8. **AzDO REST is anonymous;** stay on `https://dev.azure.com/dnceng-public/public/_apis/build/...`. Follow every rule in [Environment constraints](shared/ci-scan.instructions.md#environment-constraints) (pre-bind URLs, `%24top`, no redirection).
 9. **Sanitize every embedded log excerpt** per [Sanitization](shared/ci-scan.instructions.md#sanitization).
+10. **Exit immediately on empty build window.** When Step 1 determines no scannable build exists, immediately: append one outcome line to `/tmp/gh-aw/agent/coverage/MachineLearning-CI.txt` with the skip reason, print `| 0 | 0 | 0 | 1 |` as the Step 7 tally, emit `noop` with the skip reason, and stop. Do not fetch the AzDO timeline, download task logs, query Helix work items, or execute any step beyond Step 1.
 
 ## Step 1 - Select the source build
 
@@ -88,7 +89,7 @@ url='https://dev.azure.com/dnceng-public/public/_apis/build/builds?definitions=1
 curl -s "$url" | tee /tmp/gh-aw/agent/builds.json | jq -r '.value[] | "\(.id) \(.result) \(.finishTime)"' | head -25
 ```
 
-If selection yields no scannable build, record the matching skip reason (`stale build window (>14d)`, `no follow-up build yet, defer to next run`, or `no failed build in 7d`) and stop.
+If selection yields no scannable build, apply **Hard Rule 10** immediately.
 
 ## Step 2 - Walk the timeline
 
