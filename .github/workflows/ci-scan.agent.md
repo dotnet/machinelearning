@@ -78,7 +78,7 @@ These invariants are not delegated to the shared file. Honor them even if a shar
 7. **All state under `/tmp/gh-aw/agent/`;** each bash call is a fresh subshell.
 8. **AzDO REST is anonymous;** stay on `https://dev.azure.com/dnceng-public/public/_apis/build/...`. Follow every rule in [Environment constraints](shared/ci-scan.instructions.md#environment-constraints) (pre-bind URLs, `%24top`, no redirection).
 9. **Sanitize every embedded log excerpt** per [Sanitization](shared/ci-scan.instructions.md#sanitization).
-10. **Exit immediately on empty build window.** When Step 1 determines no scannable build exists, immediately: append one outcome line to `/tmp/gh-aw/agent/coverage/MachineLearning-CI.txt` with the skip reason, print `| 0 | 0 | 0 | 1 |` as the Step 7 tally, emit `noop` with the skip reason, and stop. Do not fetch the AzDO timeline, download task logs, query Helix work items, or execute any step beyond Step 1.
+10. **Exit immediately on empty build window.** When Step 1 determines no scannable build exists, immediately append one Step 7 coverage line to `/tmp/gh-aw/agent/coverage/MachineLearning-CI.txt` in the documented `<sig-short>  <outcome>  <reason-if-skipped>` format as `-  skipped: <reason>`, print the full Step 7 summary table (the `| total-signatures | issues-filed | reused-existing | skipped-with-reason |` header followed by the `| 0 | 0 | 0 | 1 |` row), emit `noop` with the skip reason, and stop. Do not fetch the AzDO timeline, download task logs, query Helix work items, or execute any step beyond Step 1.
 
 ## Step 1 - Select the source build
 
