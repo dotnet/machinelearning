@@ -112,6 +112,8 @@ engine:
 
 The `COPILOT_GITHUB_TOKEN` expression can be collapsed onto a single line if desired. `gh-aw compile` automatically wires `pat_pool` into the activation and agent jobs' `needs:` graph because of the `needs.pat_pool.` references within the `engine.env` property.
 
+The trailing `'NO COPILOT PAT AVAILABLE'` is a required `case()` default and is intentionally unreachable: when the pool is empty the `pat_pool` job fails fast (see [Design / Security](#design--security)), so the dependent agent jobs are skipped and never evaluate this default. It exists only because `case()` requires a final fallback argument.
+
 ```sh
 gh aw compile <workflow-name> --schedule-seed <org>/<repo>
 ```
@@ -155,8 +157,10 @@ There are several details of this implementation that keep our workflows and rep
    `select-pat-number` action only references the secret values to determine
    which are non-empty, filtering the secret numbers to those with values.
 1. **The `pat_pool` job emits only a number, never a secret.** Its sole output,
-   `pat_number`, is the 0-9 index of the selected PAT (or empty when the pool
-   is empty). The actual secret materializes only later, in the activation
+   `pat_number`, is the 0-9 index of the selected PAT. When the pool is empty
+   the job fails fast (a non-zero exit with an actionable `::error::`) so the
+   dependent agent jobs are skipped rather than run with an unusable token. The
+   actual secret materializes only later, in the activation
    job's `engine.env` mapping, where the `case()` expression resolves the
    number to the matching secret. This follows GitHub's guidance for
    [passing secrets][passing-secrets] between jobs or workflows, with the
