@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.Extensions.Options;
 using Microsoft.ML;
 
@@ -14,7 +15,7 @@ namespace Microsoft.Extensions.ML
     /// Provides a pool of <see cref="PredictionEngine{TSrc, TDst}"/> objects
     /// that can be used to make predictions.
     /// </summary>
-    public class PredictionEnginePool<TData, TPrediction>
+    public class PredictionEnginePool<TData, TPrediction> : IDisposable
         where TData : class
         where TPrediction : class, new()
     {
@@ -23,6 +24,7 @@ namespace Microsoft.Extensions.ML
         private readonly IServiceProvider _serviceProvider;
         private readonly PoolLoader<TData, TPrediction> _defaultEnginePool;
         private readonly ConcurrentDictionary<string, PoolLoader<TData, TPrediction>> _namedPools;
+        private int _disposed;
 
         public PredictionEnginePool(IServiceProvider serviceProvider,
                                     IOptions<MLOptions> mlContextOptions,
@@ -85,9 +87,14 @@ namespace Microsoft.Extensions.ML
         /// </param>
         public PredictionEngine<TData, TPrediction> GetPredictionEngine(string modelName)
         {
+            if (Volatile.Read(ref _disposed) != 0)
+            {
+                throw new ObjectDisposedException(nameof(PredictionEnginePool<TData, TPrediction>));
+            }
+
             if (_namedPools.TryGetValue(modelName, out var existingPool))
             {
-                return existingPool.PredictionEnginePool.Get();
+                return existingPool.Get();
             }
 
             //This is the case where someone has used string.Empty to get the default model.
@@ -100,11 +107,11 @@ namespace Microsoft.Extensions.ML
                     throw new ArgumentException("You need to configure a default, not named, model before you use this method.");
                 }
 
-                return _defaultEnginePool.PredictionEnginePool.Get();
+                return _defaultEnginePool.Get();
             }
 
             var pool = AddPool(modelName);
-            return pool.PredictionEnginePool.Get();
+            return pool.Get();
         }
 
         private PoolLoader<TData, TPrediction> AddPool(string modelName)
@@ -141,14 +148,50 @@ namespace Microsoft.Extensions.ML
                 throw new ArgumentNullException(nameof(engine));
             }
 
+            if (Volatile.Read(ref _disposed) != 0)
+            {
+                engine.Dispose();
+                return;
+            }
+
             if (string.IsNullOrEmpty(modelName))
             {
-                _defaultEnginePool.PredictionEnginePool.Return(engine);
+                if (_defaultEnginePool != null)
+                {
+                    _defaultEnginePool.Return(engine);
+                }
+                else
+                {
+                    engine.Dispose();
+                }
+            }
+            else if (_namedPools.TryGetValue(modelName, out var pool))
+            {
+                pool.Return(engine);
             }
             else
             {
-                _namedPools[modelName].PredictionEnginePool.Return(engine);
+                engine.Dispose();
             }
+        }
+
+        /// <summary>
+        /// Disposes the pooled prediction engines and releases the file/uri watchers backing each
+        /// model loader.
+        /// </summary>
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            {
+                return;
+            }
+
+            _defaultEnginePool?.Dispose();
+            foreach (var pool in _namedPools.Values)
+            {
+                pool.Dispose();
+            }
+            _namedPools.Clear();
         }
     }
 }
