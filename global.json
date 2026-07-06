@@ -1,6 +1,6 @@
 {
   "tools": {
-    "dotnet": "11.0.100-preview.5.26227.104",
+    "dotnet": "11.0.100-preview.5.26302.115",
     "runtimes": {
       "dotnet": [
         "$(DotNetRuntime60Version)",
@@ -13,8 +13,8 @@
     }
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "11.0.0-beta.26325.1",
-    "Microsoft.DotNet.Helix.Sdk": "11.0.0-beta.26325.1",
+    "Microsoft.DotNet.Arcade.Sdk": "11.0.0-beta.26330.1",
+    "Microsoft.DotNet.Helix.Sdk": "11.0.0-beta.26330.1",
     "Microsoft.Build.NoTargets": "3.7.0",
     "Microsoft.Build.Traversal": "3.2.0"
   }
