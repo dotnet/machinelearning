@@ -236,13 +236,13 @@ namespace Microsoft.ML.AutoML
     {
         public IEnumerable<SweepableParam> GetHyperparamSweepRanges()
         {
-            return SweepableParams.BuildFieldAwareFactorizationMachineParams();
+            return SweepableParams.BuildSdcaParams();
         }
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
             ColumnInformation columnInfo, IDataView validationSet)
         {
-            var options = TrainerExtensionUtil.CreateOptions<FieldAwareFactorizationMachineTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
+            var options = TrainerExtensionUtil.CreateOptions<Microsoft.ML.Trainers.FieldAwareFactorizationMachineTrainer.Options>(sweepParams, columnInfo.LabelColumnName);
             return mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine(options);
         }
 
@@ -252,5 +252,4 @@ namespace Microsoft.ML.AutoML
                 columnInfo.LabelColumnName);
         }
     }
-
 }
