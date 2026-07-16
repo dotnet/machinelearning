@@ -536,7 +536,7 @@ namespace Microsoft.ML.Tokenizers
         /// The following fields are read from the JSON:
         /// <list type="bullet">
         ///   <item><description><c>model.vocab</c> — array of <c>[piece, score]</c> pairs (required).</description></item>
-        ///   <item><description><c>model.unk_id</c> — index of the unknown token (required).</description></item>
+        ///   <item><description><c>model.unk_id</c> — index of the unknown token, or <see langword="null"/> for a model with no unknown token (which requires <c>byte_fallback</c>).</description></item>
         ///   <item><description><c>model.byte_fallback</c> — whether unknown characters fall back to UTF-8 byte pieces.</description></item>
         ///   <item><description><c>added_tokens</c> — special tokens (those with <c>"special": true</c>) and their IDs.</description></item>
         ///   <item><description><c>normalizer.precompiled_charsmap</c> (base64) — normalization map; also searched inside a <c>Sequence</c> normalizer.</description></item>
@@ -551,7 +551,9 @@ namespace Microsoft.ML.Tokenizers
         /// <c>Replace</c>, <c>Lowercase</c>, <c>StripAccents</c>, Unicode normalization, <c>Nmt</c>, <c>Prepend</c>) are
         /// applied in full before encoding. Pair-sequence templates and per-token <c>type_id</c>s are not applied.
         /// Templates that place a special token in the middle of the sequence are rejected with
-        /// <see cref="NotSupportedException"/>.
+        /// <see cref="NotSupportedException"/>. Pre-tokenizer types other than <c>Metaspace</c>, <c>WhitespaceSplit</c>,
+        /// <c>Whitespace</c>, and <c>Sequence</c> are also rejected with <see cref="NotSupportedException"/> rather than
+        /// silently ignored. The <c>decoder</c> section is not read.
         /// </para>
         /// <para>
         /// When creating the tokenizer, ensure that the JSON stream is sourced from a trusted provider.
@@ -603,12 +605,15 @@ namespace Microsoft.ML.Tokenizers
                 throw new InvalidDataException("The tokenizer.json model does not contain an 'unk_id' property.");
             }
 
-            if (unkIdElement.ValueKind != JsonValueKind.Number)
+            // HF permits a null unk_id, meaning the model has no unknown token; represent that as -1 and validate the
+            // byte_fallback pairing below (a number is validated against the vocabulary once it has been parsed).
+            bool unkIsNull = unkIdElement.ValueKind == JsonValueKind.Null;
+            if (!unkIsNull && unkIdElement.ValueKind != JsonValueKind.Number)
             {
-                throw new InvalidDataException("The tokenizer.json model 'unk_id' property must be a number.");
+                throw new InvalidDataException("The tokenizer.json model 'unk_id' property must be a number or null.");
             }
 
-            int unkId = unkIdElement.GetInt32();
+            int unkId = unkIsNull ? -1 : unkIdElement.GetInt32();
 
             bool byteFallback = modelElement.TryGetProperty("byte_fallback", out JsonElement byteFallbackElement) &&
                                 byteFallbackElement.ValueKind == JsonValueKind.True;
@@ -641,7 +646,17 @@ namespace Microsoft.ML.Tokenizers
                 vocab.Add((piece, entry[1].GetSingle()));
             }
 
-            if (unkId < 0 || unkId >= vocab.Count)
+            if (unkIsNull)
+            {
+                // Without an unknown token the only way to represent out-of-vocabulary input is byte fallback; a model
+                // with neither cannot encode OOV text, so reject that combination up front rather than emitting an
+                // invalid token id at encode time.
+                if (!byteFallback)
+                {
+                    throw new NotSupportedException("The tokenizer.json model has a null 'unk_id' but does not enable 'byte_fallback'; a Unigram model without an unknown token is only supported when byte_fallback is enabled.");
+                }
+            }
+            else if (unkId < 0 || unkId >= vocab.Count)
             {
                 throw new InvalidDataException($"The tokenizer.json model 'unk_id' ({unkId}) is out of range for a vocabulary of {vocab.Count} pieces.");
             }
@@ -682,6 +697,10 @@ namespace Microsoft.ML.Tokenizers
             if (root.TryGetProperty("pre_tokenizer", out JsonElement preTokenizerElement) &&
                 preTokenizerElement.ValueKind == JsonValueKind.Object)
             {
+                // Fail loudly on pre-tokenizer types we do not model (e.g. Punctuation, Split, Digits, ByteLevel,
+                // BertPreTokenizer) rather than silently ignoring them and mis-tokenizing, mirroring the normalizer chain.
+                ValidatePreTokenizer(preTokenizerElement);
+
                 ExtractMetaspaceSettings(preTokenizerElement, ref addDummyPrefix, ref escapeWhiteSpaces);
 
                 // A WhitespaceSplit pre-tokenizer splits on whitespace and drops the empties, which collapses runs of
@@ -1153,6 +1172,42 @@ namespace Microsoft.ML.Tokenizers
             }
 
             return false;
+        }
+
+        // Recognized pre-tokenizer types: Metaspace (dummy-prefix/whitespace escaping) and WhitespaceSplit/Whitespace
+        // (whitespace collapsing) are modeled; Sequence is a container. Any other type (Punctuation, Split, Digits,
+        // ByteLevel, BertPreTokenizer, ...) changes tokenization in a way this loader does not reproduce, so reject it
+        // with NotSupportedException instead of silently ignoring it.
+        private static void ValidatePreTokenizer(JsonElement preTokenizer)
+        {
+            if (preTokenizer.ValueKind != JsonValueKind.Object)
+            {
+                return;
+            }
+
+            string? type = GetStringOrNull(preTokenizer, "type");
+            if (string.Equals(type, "Metaspace", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(type, "WhitespaceSplit", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(type, "Whitespace", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (string.Equals(type, "Sequence", StringComparison.OrdinalIgnoreCase))
+            {
+                if (preTokenizer.TryGetProperty("pretokenizers", out JsonElement pretokenizers) &&
+                    pretokenizers.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (JsonElement inner in pretokenizers.EnumerateArray())
+                    {
+                        ValidatePreTokenizer(inner);
+                    }
+                }
+                return;
+            }
+
+            throw new NotSupportedException(
+                $"The tokenizer.json pre_tokenizer type '{type ?? "<missing>"}' is not supported; only Metaspace, WhitespaceSplit, Whitespace, and Sequence are handled.");
         }
 
         private static void ExtractMetaspaceSettings(JsonElement preTokenizer, ref bool addDummyPrefix, ref bool escapeWhiteSpaces)

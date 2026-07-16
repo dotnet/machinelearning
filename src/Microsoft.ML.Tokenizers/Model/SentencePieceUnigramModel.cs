@@ -229,10 +229,15 @@ namespace Microsoft.ML.Tokenizers
 
             _trie = new DoubleArrayTrie(_vocab);
 
-            // Re-insert special tokens into the vocab maps after the trie is built so they map like regular tokens.
-            string unkToken = pieces[unkId].Piece;
-            _vocab[unkToken] = unkId;
-            _vocabReverse[unkId] = (unkToken, 0f, ModelProto.Types.SentencePiece.Types.Type.Unknown);
+            // Re-insert the unknown token into the vocab maps after the trie is built so it maps like a regular token.
+            // A negative unkId means the model has no unknown token (byte fallback covers OOV), so there is nothing to
+            // re-insert in that case.
+            if (unkId >= 0)
+            {
+                string unkToken = pieces[unkId].Piece;
+                _vocab[unkToken] = unkId;
+                _vocabReverse[unkId] = (unkToken, 0f, ModelProto.Types.SentencePiece.Types.Type.Unknown);
+            }
 
             foreach (int controlId in controlIds)
             {
@@ -303,7 +308,14 @@ namespace Microsoft.ML.Tokenizers
                 throw new ArgumentNullException("vocab");
             }
 
-            if ((uint)index >= (uint)pieces.Count)
+            // A negative index means the model has no unknown token (HF permits a null unk_id). Return a cosmetic
+            // default token that is never emitted (OOV is handled by byte fallback in that configuration).
+            if (index < 0)
+            {
+                return "<unk>";
+            }
+
+            if (index >= pieces.Count)
             {
                 throw new ArgumentOutOfRangeException("unkId", "unkId must be a valid index in the vocabulary.");
             }

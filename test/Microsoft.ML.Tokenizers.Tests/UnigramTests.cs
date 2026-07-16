@@ -1028,6 +1028,104 @@ namespace Microsoft.ML.Tokenizers.Tests
         }
 
         [Fact]
+        public void CreateFromTokenizerJsonNullUnkIdWithByteFallbackRoundTrips()
+        {
+            // HF permits a null unk_id (no unknown token). With byte_fallback, out-of-vocabulary characters must still
+            // round-trip via byte pieces, and no <unk> id is emitted (there is none).
+            StringBuilder vocab = new StringBuilder("[[\"<s>\", 0.0], [\"</s>\", 0.0]");
+            for (int b = 0; b <= 0xFF; b++)
+            {
+                vocab.Append($", [\"<0x{b:X2}>\", -10.0]");
+            }
+            vocab.Append(", [\"\\u2581a\", -1.0]]");
+
+            string json = $$"""
+                {
+                  "model": { "type": "Unigram", "unk_id": null, "byte_fallback": true, "vocab": {{vocab}} },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": false }
+                }
+                """;
+
+            using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            SentencePieceTokenizer tokenizer = SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false);
+
+            foreach (string text in new[] { "x", "\u20AC", "Ab9" })
+            {
+                IReadOnlyList<int> ids = tokenizer.EncodeToIds(text, addBeginningOfSentence: false, addEndOfSentence: false);
+                Assert.DoesNotContain(-1, ids); // no unknown token id leaks into the output
+                Assert.Equal(text, tokenizer.Decode(ids));
+            }
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNullUnkIdWithoutByteFallbackThrows()
+        {
+            // A null unk_id with no byte_fallback cannot represent out-of-vocabulary input, so it is rejected loudly.
+            string json = """
+                {
+                  "model": { "type": "Unigram", "unk_id": null, "vocab": [["<s>", 0.0], ["\u2581a", -1.0]] },
+                  "pre_tokenizer": { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true }
+                }
+                """;
+
+            using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            Assert.Throws<NotSupportedException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false, addEndOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonUnsupportedPreTokenizerThrows()
+        {
+            // A pre-tokenizer type we do not model must be rejected rather than silently ignored.
+            string json = """
+                {
+                  "model": { "type": "Unigram", "unk_id": 0, "vocab": [["<unk>", 0.0], ["a", -1.0]] },
+                  "pre_tokenizer": { "type": "ByteLevel", "add_prefix_space": false }
+                }
+                """;
+
+            using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            Assert.Throws<NotSupportedException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonUnsupportedPreTokenizerInSequenceThrows()
+        {
+            // An unsupported pre-tokenizer nested inside a Sequence must also be rejected.
+            string json = """
+                {
+                  "model": { "type": "Unigram", "unk_id": 0, "vocab": [["<unk>", 0.0], ["a", -1.0]] },
+                  "pre_tokenizer": { "type": "Sequence", "pretokenizers": [
+                    { "type": "WhitespaceSplit" },
+                    { "type": "Punctuation" },
+                    { "type": "Metaspace", "replacement": "\u2581", "add_prefix_space": true }
+                  ] }
+                }
+                """;
+
+            using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            Assert.Throws<NotSupportedException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
+        public void CreateFromTokenizerJsonNegativeNumericUnkIdThrows()
+        {
+            // A numeric out-of-range unk_id (e.g. -1) is distinct from the null sentinel and must be rejected as
+            // malformed data rather than treated as "no unknown token".
+            string json = """
+                {
+                  "model": { "type": "Unigram", "unk_id": -1, "vocab": [["<unk>", 0.0], ["a", -1.0]] }
+                }
+                """;
+
+            using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            Assert.Throws<InvalidDataException>(() =>
+                SentencePieceTokenizer.CreateFromTokenizerJson(stream, addBeginningOfSentence: false));
+        }
+
+        [Fact]
         public void CreateFromTokenizerJsonByteFallbackWithoutBytePiecesThrows()
         {
             // byte_fallback enabled but the <0x00>..<0xFF> pieces are absent must fail loudly rather than mis-encode.
