@@ -4,8 +4,6 @@
 
 using System;
 using System.IO;
-using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFrameworkCommon;
 
 namespace Microsoft.ML.PerformanceTests
@@ -41,25 +39,23 @@ namespace Microsoft.ML.PerformanceTests
             if (File.Exists(filePath))
                 return filePath;
 
-            var mlContext = new MLContext(1);
-            int timeout = 10 * 60 * 1000;
-            string url = $"benchmarks/{name}";
             var localPath = path == "" ?
                 Path.GetFullPath(DataDir) :
                 Path.GetFullPath(Path.Combine(DataDir, path));
-
-            using (var ch = (mlContext as IHostEnvironment).Start("Ensuring dataset files are present."))
+            string url;
+            if (path == "")
             {
-                var ensureModel = ResourceManagerUtils.Instance.EnsureResourceAsync(
-                    mlContext, ch, url, name, localPath, timeout);
-                ensureModel.Wait();
-                var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
-                if (errorResult != null)
-                {
-                    throw ch.Except($"{errorMessage}\n{name} could not be downloaded!");
-                }
+                url = $"https://raw.githubusercontent.com/dotnet/machinelearning/main/test/data/{name.Replace('\\', '/')}";
+            }
+            else
+            {
+                var blobName = Path.GetFileName(name);
+                if (blobName == "WikiDetoxAnnotated160kRows.tsv")
+                    blobName = "wikiDetoxAnnotated160kRows.tsv";
+                url = $"https://mlpublicassets.blob.core.windows.net/assets/benchmarks/{blobName}";
             }
 
+            TestDownloadUtils.DownloadFile(url, filePath, TimeSpan.FromMinutes(10));
             return filePath;
         }
     }
