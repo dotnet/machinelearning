@@ -32,9 +32,14 @@ namespace Microsoft.ML.TestFrameworkCommon
                         using (var response = client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationSource.Token).GetAwaiter().GetResult())
                         {
                             response.EnsureSuccessStatusCode();
+                            long? expectedLength = response.Content.Headers.ContentLength;
                             using (var contentStream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
                             using (var fileStream = new FileStream(temporaryFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                            {
                                 contentStream.CopyToAsync(fileStream, 81920, cancellationSource.Token).GetAwaiter().GetResult();
+                                if (expectedLength.HasValue && fileStream.Length != expectedLength.Value)
+                                    throw new IOException($"Expected {expectedLength.Value} bytes from '{url}', but downloaded {fileStream.Length} bytes.");
+                            }
                         }
 
                         try

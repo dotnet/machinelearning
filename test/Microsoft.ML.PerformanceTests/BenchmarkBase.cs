@@ -39,9 +39,6 @@ namespace Microsoft.ML.PerformanceTests
             if (File.Exists(filePath))
                 return filePath;
 
-            var localPath = path == "" ?
-                Path.GetFullPath(DataDir) :
-                Path.GetFullPath(Path.Combine(DataDir, path));
             string url;
             if (path == "")
             {
