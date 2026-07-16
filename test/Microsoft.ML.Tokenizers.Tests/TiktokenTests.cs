@@ -40,6 +40,8 @@ namespace Microsoft.ML.Tokenizers.Tests
         public static Tokenizer GPT5_2 { get; } = TiktokenTokenizer.CreateForModel("gpt-5.2");
         public static Tokenizer GPT5_3 { get; } = TiktokenTokenizer.CreateForModel("gpt-5.3");
         public static Tokenizer GPT5_4 { get; } = TiktokenTokenizer.CreateForModel("gpt-5.4");
+        public static Tokenizer GPT5_5 { get; } = TiktokenTokenizer.CreateForModel("gpt-5.5");
+        public static Tokenizer GPT5_6 { get; } = TiktokenTokenizer.CreateForModel("gpt-5.6");
         public static Tokenizer Phi4 { get; } = TiktokenTokenizer.CreateForModel("phi-4");
         public static TiktokenTokenizer GptOss { get; } = TiktokenTokenizer.CreateForModel("gpt-oss-20b");
 
@@ -427,6 +429,10 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("gpt-5.3-mini")]
         [InlineData("gpt-5.4")]
         [InlineData("gpt-5.4-nano")]
+        [InlineData("gpt-5.5")]
+        [InlineData("gpt-5.5-mini")]
+        [InlineData("gpt-5.6")]
+        [InlineData("gpt-5.6-nano")]
         [InlineData("chatgpt-4o-")]
         [InlineData("gpt-4")]
         [InlineData("gpt-4-")]
@@ -549,6 +555,8 @@ namespace Microsoft.ML.Tokenizers.Tests
         [InlineData("gpt-5.2")]
         [InlineData("gpt-5.3")]
         [InlineData("gpt-5.4")]
+        [InlineData("gpt-5.5")]
+        [InlineData("gpt-5.6")]
         [InlineData("o1")]
         [InlineData("o3")]
         [InlineData("o4-mini")]
