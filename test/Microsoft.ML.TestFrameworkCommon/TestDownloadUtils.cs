@@ -6,7 +6,6 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.ML.TestFrameworkCommon
 {
@@ -57,7 +56,7 @@ namespace Microsoft.ML.TestFrameworkCommon
                             File.Delete(temporaryFilePath);
                     }
                 }, backoffFunc: attempt => 10_000,
-                    retryWhen: ex => ex is HttpRequestException || ex is TaskCanceledException || ex is IOException);
+                    retryWhen: ex => ex is HttpRequestException || ex is OperationCanceledException || ex is IOException);
             }
         }
     }
