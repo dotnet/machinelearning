@@ -1,39 +1,10 @@
----
-description: "Daily repo health orchestrator: collects data on issues, PRs, and CI pipelines, diffs against previous run, updates a pinned dashboard issue, and dispatches investigators for critical findings."
+# Repo health check playbook
 
-on:
-  schedule: "0 6 * * *"
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  issues: read
-  pull-requests: read
-  actions: read
-
-tools:
-  github:
-    toolsets: [repos, issues, pull_requests, actions]
-  bash: ["gh", "curl", "jq", "date", "base64", "echo", "sort", "uniq", "head", "tail", "grep", "wc"]
-  cache-memory: true
-
-safe-outputs:
-  create-issue:
-    max: 1
-  update-issue:
-    max: 1
-    target: "*"
-  add-comment:
-    max: 1
-    target: "*"
-  dispatch-workflow:
-    max: 5
-    workflows: ["repo-health-investigate"]
----
+This playbook contains the detailed ML.NET repository-health methodology. The local execution and approval rules in [`../SKILL.md`](../SKILL.md) override any historical workflow-oriented wording or mutating command examples below.
 
 # Repo Health Check — Orchestrator
 
-Collect health data for **dotnet/machinelearning**, diff against the previous run, update the dashboard issue, and dispatch investigators for critical findings.
+Collect health data for **dotnet/machinelearning**, diff against the previous run, draft a dashboard update, and investigate critical findings locally.
 
 ## Configuration
 
@@ -46,8 +17,8 @@ Collect health data for **dotnet/machinelearning**, diff against the previous ru
 | Priority Labels | `P0, P1, P2, P3, bug` |
 | Review Labels | `api-ready-for-review, Awaiting User Input, needs-author-action` |
 | Area Labels | *(none — use milestones and `untriaged` label instead)* |
-| Investigate Workflow | `repo-health-investigate` |
-| Max Dispatches | `5` |
+| Investigation Skill | `repo-health-investigate` |
+| Max Investigations | `5` |
 | AzDO Org | `dnceng` |
 | AzDO Project | `public` |
 | AzDO Pipelines | `vsts-ci, codecoverage-ci, night-build, outer-loop-build` |
@@ -274,7 +245,7 @@ fi
 
 ## Step 2 — Fingerprint & Diff
 
-Load previous findings from cache-memory at `/tmp/gh-aw/cache-memory/findings.json`. Generate deterministic fingerprints for current findings and classify each.
+Load previous findings from `/tmp/mlnet-repo-health/findings.json`. Generate deterministic fingerprints for current findings and classify each.
 
 ### Fingerprint Format
 
@@ -312,9 +283,9 @@ gh api repos/dotnet/machinelearning/contents/.github/health-baseline.md \
   --jq '.content' | base64 -d 2>/dev/null || echo "No baseline file"
 ```
 
-### Save to Cache-Memory
+### Save Local State
 
-Store the full findings list with fingerprints, statuses, and first-seen dates in `/tmp/gh-aw/cache-memory/findings.json` for the next run.
+Store the full findings list with fingerprints, statuses, and first-seen dates in `/tmp/mlnet-repo-health/findings.json` for the next run.
 
 ---
 
@@ -346,7 +317,7 @@ Look for connections between findings:
 
 ## Step 4 — Dashboard Output
 
-### Find or Create Dashboard Issue
+### Find or Draft Dashboard Issue
 
 ```bash
 # Find existing dashboard issue
@@ -355,13 +326,7 @@ ISSUE=$(gh issue list --repo dotnet/machinelearning \
   --json number --jq '.[0].number')
 
 if [ -z "$ISSUE" ]; then
-  # Create new dashboard issue
-  ISSUE=$(gh issue create --repo dotnet/machinelearning \
-    --title "🏥 Repo Health Dashboard" \
-    --label "repo-health" \
-    --body "$DASHBOARD_BODY")
-  # Pin the issue
-  gh issue pin "$ISSUE" --repo dotnet/machinelearning
+  echo "No dashboard issue found. Draft a new issue and request approval before creating or pinning it."
 fi
 ```
 
@@ -373,13 +338,12 @@ Replace the entire issue body with the current state using the dashboard format.
 2. **Summary** — Executive summary (1-2 sentences)
 3. **Findings tables** — Critical, Warning, Recently Resolved, Baselined
 4. **Trends (7-day)** — Key metrics with directional arrows
-5. **Footer** — Link to workflow run and baseline file
+5. **Footer** — Link to the local skill and baseline file
 
-### Post Daily Comment
+### Draft Daily Comment
 
 ```bash
-gh issue comment "$ISSUE" --repo dotnet/machinelearning \
-  --body "$DELTA_SUMMARY"
+printf '%s\n' "$DELTA_SUMMARY"
 ```
 
 The delta comment should include:
@@ -389,41 +353,22 @@ The delta comment should include:
 
 ---
 
-## Step 5 — Triage Dispatch
+## Step 5 — Local Investigations
 
-For findings classified as 🔴 Critical or 🟡 Warning (high confidence):
+For findings classified as 🔴 Critical or 🟡 Warning with high confidence, investigate up to five
+locally by following [`../../repo-health-investigate/SKILL.md`](../../repo-health-investigate/SKILL.md).
+If the user requested check-only mode, produce an investigation queue instead.
 
-```bash
-# Budget: max 5 dispatches
-DISPATCHED=0
-
-for finding in critical_and_high_findings; do
-  if [ $DISPATCHED -ge 5 ]; then
-    break
-  fi
-
-  gh workflow run repo-health-investigate.lock.yml \
-    --repo dotnet/machinelearning \
-    -f finding_id="$FINDING_ID" \
-    -f category="$CATEGORY" \
-    -f severity="$SEVERITY" \
-    -f summary="$SUMMARY" \
-    -f health_issue_number="$ISSUE"
-
-  DISPATCHED=$((DISPATCHED + 1))
-done
-```
-
-Prioritize dispatches:
-1. 🔴 Critical findings — always dispatch
-2. 🟡 Warning findings — dispatch if budget remains, prefer NEW over EXISTING
+Prioritize investigations:
+1. 🔴 Critical findings — always investigate first
+2. 🟡 Warning findings — use remaining budget and prefer NEW over EXISTING
 
 ---
 
 ## Rules
 
 1. **Idempotent** — Running twice in the same state produces the same dashboard
-2. **Budget-aware** — Never exceed safe-output limits
+2. **Budget-aware** — Draft at most one dashboard update, one delta comment, and five investigations
 3. **Baseline-respecting** — Never flag baselined items as NEW
-4. **Cache-dependent** — First run classifies everything as NEW (no previous data)
-5. **Non-destructive** — Only creates/updates the dashboard issue, never modifies source issues or PRs
+4. **State-dependent** — First run classifies everything as NEW when no local state or dashboard history exists
+5. **Non-destructive** — GitHub writes require explicit approval and never modify source issues or PRs
