@@ -182,6 +182,18 @@ Reusable prompt templates in `.github/prompts/`:
 |--------|---------|
 | `release-notes.prompt.md` | Generate classified release notes between commits |
 
-### Issue Triage
+### Local Skills
 
-For issue triage workflows (automated milestone assignment, priority labeling, investigation), use [GitHub Agentic Workflows](https://github.github.com/gh-aw/). Define triage automation as natural-language workflow files rather than custom scripts.
+Repository-local Copilot skills in `.github/skills/`:
+
+| Skill | Purpose |
+|-------|---------|
+| `code-testing-agent` | Generate tests through a repository-aware multi-agent pipeline |
+| `ci-scan` | Analyze recurring `MachineLearning-CI` failures and draft Known Build Error issues |
+| `ci-scan-feedback` | Audit scanner quality and draft methodology improvements |
+| `issue-triage` | Classify one issue and draft labels and a maintainer response |
+| `repo-health-check` | Collect repository-health data and draft dashboard updates |
+| `repo-health-investigate` | Investigate one health finding and draft an evidence-based report |
+| `repo-health-groom` | Maintain the repository-health dashboard conservatively |
+
+These agents run from a local Copilot CLI session and use the operator's authenticated tools. GitHub writes require explicit approval. Scheduled GitHub Agentic Workflows can be introduced later when repository billing and authentication are available.

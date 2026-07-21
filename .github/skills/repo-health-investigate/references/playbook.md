@@ -1,50 +1,15 @@
----
-description: "Investigation worker: performs deep-dive analysis on a specific health check finding. Dispatched by repo-health-check for critical/high findings. Reports results back to the dashboard issue."
+# Repo health investigation playbook
 
-on:
-  workflow_dispatch:
-    inputs:
-      finding_id:
-        description: "Fingerprint of the finding to investigate"
-        required: true
-      category:
-        description: "Finding category: issue, pr, or pipeline"
-        required: true
-      severity:
-        description: "Finding severity: critical, high, or medium"
-        required: true
-      summary:
-        description: "One-line description of the finding"
-        required: true
-      health_issue_number:
-        description: "Dashboard issue number to report back to"
-        required: true
-
-permissions:
-  contents: read
-  issues: read
-  pull-requests: read
-  actions: read
-
-tools:
-  github:
-    toolsets: [repos, issues, pull_requests, actions]
-  bash: ["gh", "curl", "jq", "date", "echo", "sort", "uniq", "head", "tail", "grep", "wc"]
-
-safe-outputs:
-  add-comment:
-    max: 1
-    target: "*"
----
+This playbook contains the detailed ML.NET finding-investigation methodology. The local execution and approval rules in [`../SKILL.md`](../SKILL.md) override workflow input syntax and mutating command examples below.
 
 # Repo Health — Investigate Finding
 
 Deep-dive investigation of a specific finding from the repo health check.
 
-**Finding**: `${{ inputs.finding_id }}` — ${{ inputs.summary }}
-**Category**: ${{ inputs.category }}
-**Severity**: ${{ inputs.severity }}
-**Dashboard**: #${{ inputs.health_issue_number }}
+**Finding**: `FINDING_ID` — SUMMARY
+**Category**: CATEGORY
+**Severity**: SEVERITY
+**Dashboard**: DASHBOARD_ISSUE
 
 ---
 
@@ -192,12 +157,12 @@ Provide actionable next steps:
 
 ---
 
-## Step 5 — Report Back
+## Step 5 — Draft the Report
 
-Post a single comment on the dashboard issue (#${{ inputs.health_issue_number }}).
+Prepare a single comment for the dashboard issue. Show it to the user before posting.
 
 ```bash
-gh issue comment ${{ inputs.health_issue_number }} --repo dotnet/machinelearning --body "$REPORT"
+gh issue comment DASHBOARD_ISSUE --repo dotnet/machinelearning --body "$REPORT"
 ```
 
 ### Report Format
@@ -245,6 +210,6 @@ gh issue comment ${{ inputs.health_issue_number }} --repo dotnet/machinelearning
 
 1. **Single-finding focus** — Investigate only the finding specified in inputs
 2. **Evidence-based** — Every conclusion must cite evidence
-3. **Non-destructive** — Read-only except for the final comment
-4. **Budget: 1 comment** — Post exactly one comment on the dashboard issue
+3. **Non-destructive** — Read-only except for an explicitly approved final comment
+4. **Budget: 1 comment** — Post at most one approved comment on the dashboard issue
 5. **Concise** — Keep report under 500 lines; use collapsible sections for long logs
