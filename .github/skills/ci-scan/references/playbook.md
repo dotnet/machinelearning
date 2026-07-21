@@ -53,21 +53,7 @@ url="https://dev.azure.com/dnceng-public/public/_apis/build/builds/${src_id}/tim
 curl -s "$url" | tee /tmp/mlnet-ci-scan/timeline.json | jq '.records | length'
 ```
 
-Reconstruct `Stage -> Phase -> Job -> Task` via `parentId`; a failed record with non-null `log.id` is a leaf. `MachineLearning-CI` legs follow `MachineLearning-CI (<OS>_<arch> <Configuration>_Build)`. Known legs:
-
-| Leg | Where the signature comes from |
-|---|---|
-| `MachineLearning-CI (Centos_x64 Debug_Build)` | xunit test log or compile error |
-| `MachineLearning-CI (Centos_x64 Release_Build)` | xunit test log or compile error |
-| `MachineLearning-CI (Ubuntu_x64 Debug_Build)` | xunit test log or compile error |
-| `MachineLearning-CI (Ubuntu_x64 Release_Build)` | xunit test log or compile error |
-| `MachineLearning-CI (Ubuntu_x64_cross_arm Debug_Build)` | compile error (cross build) |
-| `MachineLearning-CI (Ubuntu_x64_cross_arm64 Debug_Build)` | compile error (cross build) |
-| `MachineLearning-CI (MacOS_x64 Debug_Build)` | xunit test log or compile error |
-| `MachineLearning-CI (MacOS_cross_arm64 Debug_Build)` | compile error (cross build) |
-| `MachineLearning-CI (Windows_x64 Debug_Build)` | xunit test log or compile error |
-| `MachineLearning-CI (Windows_x86 Debug_Build)` | xunit test log or compile error |
-| `MachineLearning-CI (Windows_cross_arm64 Debug_Build)` | compile error (cross build) |
+Reconstruct `Stage -> Phase -> Job -> Task` via `parentId`; a failed record with non-null `log.id` is a leaf. `MachineLearning-CI` legs follow `MachineLearning-CI (<OS>_<arch> <Configuration>_Build)`.
 
 ## Step 3 - Classify each failure
 
