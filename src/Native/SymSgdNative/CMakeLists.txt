@@ -33,7 +33,11 @@ else()
     endif()
 endif()
 
-if(NOT ${ARCHITECTURE} MATCHES "arm.*")
+if(${ARCHITECTURE} MATCHES "arm.*")
+    # On ARM, MklImports is built from MklImportsArm (OpenBLAS-backed).
+    # Link against the CMake target directly.
+    set(MKL_LIBRARY MklImports)
+else()
     find_library(MKL_LIBRARY MklImports HINTS ${MKL_LIB_PATH})
 endif()
 
