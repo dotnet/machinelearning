@@ -139,7 +139,7 @@ namespace Microsoft.ML.PerformanceTests
 
             //SINGLE SMALL FLOWERS IMAGESET (200 files)
             string fileName = "flower_photos_small_set.zip";
-            string url = $"https://aka.ms/mlnet-resources/datasets/flower_photos_small_set.zip/";
+            string url = "https://mlpublicassets.blob.core.windows.net/assets/datasets/flower_photos_small_set.zip";
 
             Download(url, imagesDownloadFolder, fileName);
             UnZip(Path.Combine(imagesDownloadFolder, fileName), imagesDownloadFolder);

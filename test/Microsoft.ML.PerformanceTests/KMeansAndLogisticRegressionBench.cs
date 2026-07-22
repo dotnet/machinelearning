@@ -13,7 +13,7 @@ namespace Microsoft.ML.PerformanceTests
     [CIBenchmark]
     public class KMeansAndLogisticRegressionBench : BenchmarkBase
     {
-        private readonly string _dataPath = GetBenchmarkDataPathAndEnsureData("adult.with-schema.txt");
+        private readonly string _dataPath = GetLocalBenchmarkDataPath("adult.with-schema.txt");
 
         [Benchmark]
         public CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> TrainKMeansAndLR()
