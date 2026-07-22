@@ -238,7 +238,13 @@ SINCE=$(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-7d
 for definition_id in $ENABLED_DEFINITIONS; do
   curl -fSs "${AZDO_AUTH[@]}" \
     "$AZDO_BUILD_URL/builds?definitions=$definition_id&branchName=refs%2Fheads%2Fmain&minTime=$SINCE&api-version=7.0" \
-    | jq '[.value[] | .result] | group_by(.) | map({result: .[0], count: length})'
+    | jq -e '
+        if (.value | length) == 0
+        then error("No main-branch builds returned in the last 7 days")
+        else [.value[] | .result]
+          | group_by(.)
+          | map({result: .[0], count: length})
+        end'
 done
 ```
 

@@ -94,18 +94,26 @@ curl -fSs "${AZDO_AUTH[@]}" \
   | jq '.value[] | {id, buildNumber, result, sourceBranch, startTime, finishTime}'
 
 # Get failed build timeline for root cause
-FAILED_BUILD_ID=$(curl -fSs "${AZDO_AUTH[@]}" \
+if ! FAILED_BUILD_ID=$(curl -fSs "${AZDO_AUTH[@]}" \
   "$AZDO_BUILD_URL/builds?definitions=$PIPELINE_ID&branchName=refs%2Fheads%2Fmain&resultFilter=failed&queryOrder=finishTimeDescending&\$top=1&api-version=7.0" \
-  | jq -r '.value[0].id')
+  | jq -er 'if (.value | length) == 0 then error("No failed main-branch build found") else .value[0].id end'); then
+  echo "Unable to select a failed main-branch build for definition $PIPELINE_ID" >&2
+  exit 1
+fi
 
 curl -fSs "${AZDO_AUTH[@]}" \
   "$AZDO_BUILD_URL/builds/$FAILED_BUILD_ID/timeline?api-version=7.0" \
   | jq '[.records[] | select(.result == "failed") | {name, result, errorCount, issues: [.issues[]? | {type, message}]}]'
 
 # Compare with last green run
-GREEN_BUILD_ID=$(curl -fSs "${AZDO_AUTH[@]}" \
+if ! GREEN_BUILD_ID=$(curl -fSs "${AZDO_AUTH[@]}" \
   "$AZDO_BUILD_URL/builds?definitions=$PIPELINE_ID&branchName=refs%2Fheads%2Fmain&resultFilter=succeeded&queryOrder=finishTimeDescending&\$top=1&api-version=7.0" \
-  | jq -r '.value[0].id')
+  | jq -er 'if (.value | length) == 0 then error("No successful main-branch build found") else .value[0].id end'); then
+  echo "Unable to select a successful main-branch build for definition $PIPELINE_ID" >&2
+  exit 1
+fi
+
+printf 'Compare failed build %s with last green build %s\n' "$FAILED_BUILD_ID" "$GREEN_BUILD_ID"
 
 # Check for infrastructure vs code issues
 curl -fSs "${AZDO_AUTH[@]}" \
