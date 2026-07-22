@@ -12,7 +12,7 @@ Collect and analyze repository-health data from a local Copilot CLI session. Thi
 1. Confirm local GitHub access and the `dotnet/machinelearning` repository.
 2. Create state under `/tmp/mlnet-repo-health/`.
 3. Read [`references/playbook.md`](references/playbook.md) and follow its data collection, fingerprinting, severity, and dashboard-format rules.
-4. Prefer available authenticated GitHub and Azure DevOps tools. If an AzDO credential or tool is unavailable, skip only those checks and state the coverage gap.
+4. Prefer available authenticated GitHub and Azure DevOps tools. If those are unavailable, use the public `dnceng-public/public` REST API; skip AzDO checks only when both access paths fail, and state the coverage gap.
 5. Treat dashboard creation, body updates, comments, and investigation requests as drafts during analysis.
 6. For up to five critical or high-confidence warning findings, either:
    - investigate inline by following [`../repo-health-investigate/SKILL.md`](../repo-health-investigate/SKILL.md), or

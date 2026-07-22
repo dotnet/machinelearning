@@ -73,28 +73,51 @@ Analyze:
 Deep-dive into the pipeline/workflow failure:
 
 ```bash
-# For Azure DevOps pipelines — get recent runs with details
-curl -s -u ":$AZDO_PAT" \
-  "https://dev.azure.com/dnceng/public/_apis/build/builds?definitions=PIPELINE_ID&\$top=10&api-version=7.0" \
+# For Azure DevOps pipelines, PIPELINE_ID must be a numeric definition ID
+# carried by the finding (for example, 167 for MachineLearning-CI).
+case "$PIPELINE_ID" in
+  ""|*[!0-9]*)
+    echo "PIPELINE_ID must be a numeric Azure DevOps definition ID" >&2
+    exit 1
+    ;;
+esac
+
+AZDO_AUTH=()
+if [ -n "${AZDO_PAT:-}" ]; then
+  AZDO_AUTH=(-u ":$AZDO_PAT")
+fi
+AZDO_BUILD_URL="https://dev.azure.com/dnceng-public/public/_apis/build"
+
+# Get recent main-branch runs with details.
+curl -fSs "${AZDO_AUTH[@]}" \
+  "$AZDO_BUILD_URL/builds?definitions=$PIPELINE_ID&branchName=refs%2Fheads%2Fmain&queryOrder=finishTimeDescending&\$top=10&api-version=7.0" \
   | jq '.value[] | {id, buildNumber, result, sourceBranch, startTime, finishTime}'
 
 # Get failed build timeline for root cause
-FAILED_BUILD_ID=$(curl -s -u ":$AZDO_PAT" \
-  "https://dev.azure.com/dnceng/public/_apis/build/builds?definitions=PIPELINE_ID&resultFilter=failed&\$top=1&api-version=7.0" \
-  | jq -r '.value[0].id')
+if ! FAILED_BUILD_ID=$(curl -fSs "${AZDO_AUTH[@]}" \
+  "$AZDO_BUILD_URL/builds?definitions=$PIPELINE_ID&branchName=refs%2Fheads%2Fmain&resultFilter=failed&queryOrder=finishTimeDescending&\$top=1&api-version=7.0" \
+  | jq -er 'if (.value | length) == 0 then error("No failed main-branch build found") else .value[0].id end'); then
+  echo "Unable to select a failed main-branch build for definition $PIPELINE_ID" >&2
+  exit 1
+fi
 
-curl -s -u ":$AZDO_PAT" \
-  "https://dev.azure.com/dnceng/public/_apis/build/builds/$FAILED_BUILD_ID/timeline?api-version=7.0" \
+curl -fSs "${AZDO_AUTH[@]}" \
+  "$AZDO_BUILD_URL/builds/$FAILED_BUILD_ID/timeline?api-version=7.0" \
   | jq '[.records[] | select(.result == "failed") | {name, result, errorCount, issues: [.issues[]? | {type, message}]}]'
 
 # Compare with last green run
-GREEN_BUILD_ID=$(curl -s -u ":$AZDO_PAT" \
-  "https://dev.azure.com/dnceng/public/_apis/build/builds?definitions=PIPELINE_ID&resultFilter=succeeded&\$top=1&api-version=7.0" \
-  | jq -r '.value[0].id')
+if ! GREEN_BUILD_ID=$(curl -fSs "${AZDO_AUTH[@]}" \
+  "$AZDO_BUILD_URL/builds?definitions=$PIPELINE_ID&branchName=refs%2Fheads%2Fmain&resultFilter=succeeded&queryOrder=finishTimeDescending&\$top=1&api-version=7.0" \
+  | jq -er 'if (.value | length) == 0 then error("No successful main-branch build found") else .value[0].id end'); then
+  echo "Unable to select a successful main-branch build for definition $PIPELINE_ID" >&2
+  exit 1
+fi
+
+printf 'Compare failed build %s with last green build %s\n' "$FAILED_BUILD_ID" "$GREEN_BUILD_ID"
 
 # Check for infrastructure vs code issues
-curl -s -u ":$AZDO_PAT" \
-  "https://dev.azure.com/dnceng/public/_apis/build/builds/$FAILED_BUILD_ID/timeline?api-version=7.0" \
+curl -fSs "${AZDO_AUTH[@]}" \
+  "$AZDO_BUILD_URL/builds/$FAILED_BUILD_ID/timeline?api-version=7.0" \
   | jq '[.records[] | select(.result == "failed") | .issues[]? | .message]' \
   | grep -iE "timeout|oom|disk.space|rate.limit|connection|pool|agent" | head -10
 ```

@@ -19,9 +19,10 @@ Collect health data for **dotnet/machinelearning**, diff against the previous ru
 | Area Labels | *(none — use milestones and `untriaged` label instead)* |
 | Investigation Skill | `repo-health-investigate` |
 | Max Investigations | `5` |
-| AzDO Org | `dnceng` |
+| AzDO Org | `dnceng-public` |
 | AzDO Project | `public` |
-| AzDO Pipelines | `vsts-ci, codecoverage-ci, night-build, outer-loop-build` |
+| Enabled AzDO Definitions | `167` (`MachineLearning-CI`), `168` (`MachineLearning-CodeCoverage`) |
+| Disabled AzDO Definition | `169` (`MachineLearning-NightlyBuild`) — report as a coverage gap |
 
 ---
 
@@ -77,7 +78,7 @@ gh issue list --repo dotnet/machinelearning \
 
 ```bash
 gh issue list --repo dotnet/machinelearning \
-  --state open --label "need info,Awaiting User Input,needs-author-action" \
+  --state open --search 'label:"need info","Awaiting User Input","needs-author-action"' \
   --json number,title,updatedAt,comments \
   --limit 100
 # Filter: updatedAt older than 14 days
@@ -127,7 +128,7 @@ gh pr list --repo dotnet/machinelearning \
 
 ```bash
 gh pr list --repo dotnet/machinelearning \
-  --state open --label "needs-author-action,Awaiting User Input" \
+  --state open --search 'label:"needs-author-action","Awaiting User Input"' \
   --json number,title,updatedAt,author,labels \
   --limit 100
 # Filter: updatedAt > 7 days ago
@@ -203,42 +204,66 @@ done
 
 ### Azure DevOps Pipelines
 
-> **Note**: AzDO monitoring requires `AZDO_PAT` secret. The `dnceng` org requires authentication even for the `public` project. If `AZDO_PAT` is not set, skip all A1-A3 checks and note "AzDO pipeline monitoring disabled — no AZDO_PAT configured" in the dashboard.
+> **Note**: Prefer an authenticated Azure DevOps tool or `AZDO_PAT` when available. The `dnceng-public/public` REST API is publicly readable, so a missing PAT alone is not a coverage gap. If both authenticated access and the public API fail, skip A1-A3 and report the HTTP or tool error. Definition `169` is disabled, and there is no standalone outer-loop definition; report those coverage gaps rather than querying nonexistent pipelines.
+
+```bash
+AZDO_AUTH=()
+if [ -n "${AZDO_PAT:-}" ]; then
+  AZDO_AUTH=(-u ":$AZDO_PAT")
+fi
+
+AZDO_BUILD_URL="https://dev.azure.com/dnceng-public/public/_apis/build"
+ENABLED_DEFINITIONS="167 168"
+```
 
 **A1. Pipeline status — last run result**
 
 ```bash
-# Check if AZDO_PAT is available; skip AzDO checks if not
-if [ -z "$AZDO_PAT" ]; then
-  echo "AZDO_PAT not set — skipping Azure DevOps pipeline checks"
-else
-for pipeline in vsts-ci codecoverage-ci night-build outer-loop-build; do
-  curl -s -u ":$AZDO_PAT" \
-    "https://dev.azure.com/dnceng/public/_apis/build/builds?definitions=$pipeline&\$top=1&api-version=7.0" \
-    | jq '.value[0] | {id, buildNumber, status, result, queueTime, finishTime}'
+for definition_id in $ENABLED_DEFINITIONS; do
+  curl -fSs "${AZDO_AUTH[@]}" \
+    "$AZDO_BUILD_URL/builds?definitions=$definition_id&branchName=refs%2Fheads%2Fmain&queryOrder=finishTimeDescending&\$top=1&api-version=7.0" \
+    | jq -e 'if (.value | length) == 0 then error("No main-branch builds returned") else .value[0] | {definition: .definition.name, id, buildNumber, status, result, queueTime, finishTime} end'
 done
+
+# Surface disabled scheduled coverage explicitly.
+curl -fSs "${AZDO_AUTH[@]}" \
+  "$AZDO_BUILD_URL/definitions/169?api-version=7.0" \
+  | jq '{id, name, queueStatus}'
 ```
 
 **A2. Pipeline failure rate (last 7 days)**
 
 ```bash
 SINCE=$(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-7d +%Y-%m-%dT%H:%M:%SZ)
-for pipeline in vsts-ci codecoverage-ci night-build outer-loop-build; do
-  curl -s -u ":$AZDO_PAT" \
-    "https://dev.azure.com/dnceng/public/_apis/build/builds?definitions=$pipeline&minTime=$SINCE&api-version=7.0" \
-    | jq '[.value[] | .result] | group_by(.) | map({result: .[0], count: length})'
+for definition_id in $ENABLED_DEFINITIONS; do
+  curl -fSs "${AZDO_AUTH[@]}" \
+    "$AZDO_BUILD_URL/builds?definitions=$definition_id&branchName=refs%2Fheads%2Fmain&minTime=$SINCE&api-version=7.0" \
+    | jq -e '
+        if (.value | length) == 0
+        then error("No main-branch builds returned in the last 7 days")
+        else [.value[] | .result]
+          | group_by(.)
+          | map({result: .[0], count: length})
+        end'
 done
 ```
 
 **A3. Queue times**
 
 ```bash
-for pipeline in vsts-ci codecoverage-ci night-build outer-loop-build; do
-  curl -s -u ":$AZDO_PAT" \
-    "https://dev.azure.com/dnceng/public/_apis/build/builds?definitions=$pipeline&\$top=10&api-version=7.0" \
-    | jq '[.value[] | {queueTime, startTime} | {wait: ((.startTime | fromdateiso8601) - (.queueTime | fromdateiso8601))}] | {avg_wait_seconds: (map(.wait) | add / length)}'
+for definition_id in $ENABLED_DEFINITIONS; do
+  curl -fSs "${AZDO_AUTH[@]}" \
+    "$AZDO_BUILD_URL/builds?definitions=$definition_id&branchName=refs%2Fheads%2Fmain&queryOrder=finishTimeDescending&\$top=10&api-version=7.0" \
+    | jq '
+        def epoch: sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601;
+        [.value[]
+          | select(.queueTime != null and .startTime != null)
+          | {wait: ((.startTime | epoch) - (.queueTime | epoch))}]
+        | if length == 0
+          then {samples: 0, avg_wait_seconds: null}
+          else {samples: length, avg_wait_seconds: (map(.wait) | add / length)}
+          end'
 done
-fi
 ```
 
 ---
