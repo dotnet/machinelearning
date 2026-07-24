@@ -65,7 +65,14 @@ For each stable signature, run the per-signature follow-up gate from [Source bui
 
 ## Step 5 - Dedup
 
-Run [Search existing issues](ci-scan.instructions.md#search-existing) (cross-run, the Build Analysis dedup path) and then the [Same-run dedup cache](ci-scan.instructions.md#dedup-cache) (signature-only key). On a match draft nothing and record `existing-issue #<n>` or `dup of drafted-issue draft-<n> earlier in this run`.
+Inspect the source commit's `Build Analysis` GitHub check as described in
+[Data sources](ci-scan.instructions.md#data-sources), then run
+[Search existing issues](ci-scan.instructions.md#search-existing) and the
+[Same-run dedup cache](ci-scan.instructions.md#dedup-cache) (signature-only
+key). A positive Build Analysis link or matching issue suppresses the draft;
+after a Build Analysis miss, always continue the exact issue searches because
+the rendered check can be truncated. Record `existing-issue #<n>` or
+`dup of drafted-issue draft-<n> earlier in this run`.
 
 ## Step 6 - Draft the KBE
 

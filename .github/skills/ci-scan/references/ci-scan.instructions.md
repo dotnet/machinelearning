@@ -44,7 +44,7 @@ other section is identical so the two scanners behave the same way.
 | Pipeline | `MachineLearning-CI`, definition id **167** |
 | Branch scanned | `refs/heads/main` |
 | Helix present | **yes** (`Send to Helix` legs route xunit work items through `helix.dot.net`) |
-| Build Analysis present | **yes** (Arcade attaches `Build_Analysis_KnownIssues_v1`; `Known Build Error` issues feed it) |
+| Build Analysis present | **yes** (the GitHub `Build Analysis` check reports matches from `Known Build Error` issues) |
 | Issue model | `Known Build Error` KBE issues consumed by Build Analysis |
 | Issue labels | `Known Build Error`, `blocking-clean-ci`, and `Build` for compile-time breaks |
 | Title prefix | `[ci-scan] ` |
@@ -80,7 +80,19 @@ Use these patterns consistently during local execution.
   - Timeline: `/builds/{id}/timeline?api-version=7.1` returns a flat `records[]`; reconstruct the `Stage -> Phase -> Job -> Task` tree via `parentId`. A failed record with a non-null `log.id` is a leaf worth reading.
   - Task log: each leaf record exposes `log.url`; `curl -s "$log_url"` returns plain text.
 - **Helix REST** **(profile: Helix)** - `https://helix.dot.net/api/jobs/{jobId}/workitems?api-version=2019-06-17`. Each work item has `Name`, `State`, `ExitCode`, `ConsoleOutputUri`. A work item failed when `ExitCode != 0` or `State == "Failed"`. Extract `{jobId}` from a `Send to Helix` task log line `Sent Helix Job: <GUID>`.
-- **Build Analysis attachment** **(profile: Build Analysis)**, best-effort dedupe - `https://dev.azure.com/dnceng-public/public/_apis/build/builds/{id}/attachments/Build_Analysis_KnownIssues_v1?api-version=7.1`. A `404` means none is attached; treat that as "no known-issue match" and continue, never as an error.
+- **Build Analysis GitHub check** **(profile: Build Analysis)**, best-effort dedupe.
+  Read the source SHA from the AzDO build, then query the commit's check runs:
+
+  ```bash
+  source_sha='<sourceVersion from the AzDO build>'
+  gh api "repos/dotnet/machinelearning/commits/${source_sha}/check-runs" \
+    --jq '.check_runs[] | select(.name == "Build Analysis" and .status == "completed") | {id, text: .output.text}'
+  ```
+
+  If the report links the source build's failure to an existing issue, record
+  `existing-issue #<n>`. Reports omit known errors when they exceed GitHub's
+  output limits, so absence is not proof that Build Analysis did not match.
+  Always continue with the exact issue searches below after a miss.
 
 <a id="source-selection"></a>
 ## Source build selection and follow-up gate
@@ -182,6 +194,12 @@ one query:
 - Include closed issues in a second pass (`--state all`) when a recent closure may be the right
   tracker; a freshly closed "fixed" issue means do not re-file unless the failure clearly recurs
   after the fix.
+
+When a failure includes a complete test method identifier, search that
+identifier verbatim before deriving a shorter stem. Do not truncate
+underscore-delimited identifiers (for example, keep
+`AutoMLExperiment_return_current_best_trial_when_ct_is_canceled_with_trial_completed_Async`);
+GitHub search does not reliably prefix-match them.
 
 On a confirmed match record `existing-issue #<n>` and draft nothing. Verify the candidate actually
 matches the same test/family AND the same failing line before trusting it; a coincidental substring
