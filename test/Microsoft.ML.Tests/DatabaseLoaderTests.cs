@@ -128,6 +128,36 @@ namespace Microsoft.ML.Tests
         }
 
         [LightGBMFact]
+        public void IrisVectorLightGbmUsingLoadFromDatabase()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            var trainingData = mlContext.Data.LoadFromDatabase<IrisVectorData>(GetIrisDatabaseSource("SELECT * FROM {0}"));
+
+            IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Append(mlContext.Transforms.Concatenate("Features", "SepalInfo", "PetalInfo"))
+                .AppendCacheCheckpoint(mlContext)
+                .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+
+            var model = pipeline.Fit(trainingData);
+
+            var engine = mlContext.Model.CreatePredictionEngine<IrisVectorData, IrisPrediction>(model);
+
+            Assert.Equal(0, engine.Predict(new IrisVectorData()
+            {
+                SepalInfo = new float[] { 4.5f, 5.6f },
+                PetalInfo = new float[] { 0.5f, 0.5f },
+            }).PredictedLabel);
+
+            Assert.Equal(1, engine.Predict(new IrisVectorData()
+            {
+                SepalInfo = new float[] { 4.9f, 2.4f },
+                PetalInfo = new float[] { 3.3f, 1.0f },
+            }).PredictedLabel);
+        }
+
+        [LightGBMFact]
         public void IrisVectorLightGbm()
         {
             var mlContext = new MLContext(seed: 1);
