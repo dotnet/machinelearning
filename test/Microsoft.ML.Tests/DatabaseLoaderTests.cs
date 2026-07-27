@@ -127,34 +127,51 @@ namespace Microsoft.ML.Tests
             }).PredictedLabel);
         }
 
-        [LightGBMFact]
-        public void IrisVectorLightGbmUsingLoadFromDatabase()
+        [X86X64FactAttribute("The SQLite un-managed code, SQLite.interop, only supports x86/x64 architectures.")]
+        public void LoadFromDatabaseLoadsExpectedData()
         {
-            var mlContext = new MLContext(seed: 1);
-
-            var trainingData = mlContext.Data.LoadFromDatabase<IrisVectorData>(GetIrisDatabaseSource("SELECT * FROM {0}"));
-
-            IEstimator<ITransformer> pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label")
-                .Append(mlContext.Transforms.Concatenate("Features", "SepalInfo", "PetalInfo"))
-                .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.MulticlassClassification.Trainers.LightGbm())
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
-
-            var model = pipeline.Fit(trainingData);
-
-            var engine = mlContext.Model.CreatePredictionEngine<IrisVectorData, IrisPrediction>(model);
-
-            Assert.Equal(0, engine.Predict(new IrisVectorData()
+            // Use an in-memory SQLite database so the test is fast and self-contained.
+            var connectionString = "DataSource=LoadFromDatabaseTest;Mode=Memory;Version=3;Timeout=120;Cache=Shared";
+            using (var connection = new SQLiteConnection(connectionString))
             {
-                SepalInfo = new float[] { 4.5f, 5.6f },
-                PetalInfo = new float[] { 0.5f, 0.5f },
-            }).PredictedLabel);
+                connection.Open();
+                using (var command = new SQLiteCommand(connection))
+                {
+                    command.CommandText = """
+                        BEGIN;
+                        DROP TABLE IF EXISTS Iris;
+                        CREATE TABLE IF NOT EXISTS Iris (Label INTEGER, SepalLength REAL, SepalWidth REAL, PetalLength REAL, PetalWidth REAL);
+                        INSERT INTO Iris VALUES (0, 4.5, 5.6, 0.5, 0.5);
+                        INSERT INTO Iris VALUES (1, 4.9, 2.4, 3.3, 1.0);
+                        COMMIT;
+                        """;
+                    command.ExecuteNonQuery();
+                }
 
-            Assert.Equal(1, engine.Predict(new IrisVectorData()
-            {
-                SepalInfo = new float[] { 4.9f, 2.4f },
-                PetalInfo = new float[] { 3.3f, 1.0f },
-            }).PredictedLabel);
+                var mlContext = new MLContext(seed: 1);
+
+                // LoadFromDatabase combines CreateDatabaseLoader<TInput>() and Load(DatabaseSource)
+                // into a single call. Exercise both the DatabaseSource overload and the
+                // DbProviderFactory arguments overload; both should load identical data.
+                var source = new DatabaseSource(SQLiteFactory.Instance, connectionString, "SELECT * FROM Iris");
+                var loadedFromSource = mlContext.Data.LoadFromDatabase<IrisVectorData>(source);
+                var loadedFromArgs = mlContext.Data.LoadFromDatabase<IrisVectorData>(SQLiteFactory.Instance, connectionString, "SELECT * FROM Iris");
+
+                foreach (var data in new[] { loadedFromSource, loadedFromArgs })
+                {
+                    var rows = mlContext.Data.CreateEnumerable<IrisVectorData>(data, reuseRowObject: false).ToArray();
+
+                    rows.Length.Should().Be(2);
+
+                    rows[0].Label.Should().Be(0);
+                    rows[0].SepalInfo.Should().Equal(4.5f, 5.6f);
+                    rows[0].PetalInfo.Should().Equal(0.5f, 0.5f);
+
+                    rows[1].Label.Should().Be(1);
+                    rows[1].SepalInfo.Should().Equal(4.9f, 2.4f);
+                    rows[1].PetalInfo.Should().Equal(3.3f, 1.0f);
+                }
+            }
         }
 
         [LightGBMFact]
