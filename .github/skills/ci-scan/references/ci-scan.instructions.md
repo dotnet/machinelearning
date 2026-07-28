@@ -197,9 +197,7 @@ one query:
 
 When a failure includes a complete test method identifier, search that
 identifier verbatim before deriving a shorter stem. Do not truncate
-underscore-delimited identifiers (for example, keep
-`AutoMLExperiment_return_current_best_trial_when_ct_is_canceled_with_trial_completed_Async`);
-GitHub search does not reliably prefix-match them.
+underscore-delimited identifiers; GitHub search does not reliably prefix-match them.
 
 On a confirmed match record `existing-issue #<n>` and draft nothing. Verify the candidate actually
 matches the same test/family AND the same failing line before trusting it; a coincidental substring
