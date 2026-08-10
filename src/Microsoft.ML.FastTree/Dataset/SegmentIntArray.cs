@@ -73,7 +73,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             using (Timer.Time(TimerEvent.SparseConstruction))
             {
-                SetupSumupHandler(SumupCPlusPlus, base.Sumup);
+                SetupSumupHandler(SumupCPlusPlus, SumupManaged);
 
                 uint[] vals = new uint[length];
                 uint pos = 0;
@@ -573,6 +573,107 @@ namespace Microsoft.ML.Trainers.FastTree
                              input.SumTargets);
                     if (rv < 0)
                         throw Contracts.Except("CSumup returned error {0}", rv);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Managed equivalent of <see cref="SumupCPlusPlus"/>, used on platforms where the native
+        /// FastTree library is not available (e.g. arm64). This mirrors the native SumupSegment /
+        /// SumupSegment_noindices templates in src/Native/FastTreeNative/SumupSegment.h exactly,
+        /// including the segment bit-unpacking and accumulation order, so histogram results are
+        /// bit-identical to the native implementation. Reads go through fixed pointers to avoid the
+        /// per-element bounds checks and interface-indexer dispatch of the generic
+        /// <see cref="IntArray.Sumup"/> fallback.
+        /// </summary>
+        public unsafe void SumupManaged(SumupInputData input, FeatureHistogram histogram)
+        {
+            using (Timer.Time(TimerEvent.SumupSegment))
+            {
+                fixed (FloatType* pSumTargetsByBin = histogram.SumTargetsByBin)
+                fixed (FloatType* pSampleOutputs = input.Outputs)
+                fixed (double* pSumWeightsByBin = histogram.SumWeightsByBin)
+                fixed (double* pSampleOutputWeights = input.Weights)
+                fixed (uint* pDataFixed = _data)
+                fixed (byte* pSegTypeFixed = _segType)
+                fixed (int* pSegLengthFixed = _segLength)
+                fixed (int* pIndicesFixed = input.DocIndices)
+                fixed (int* pCountByBin = histogram.CountByBin)
+                {
+                    int count = input.TotalCount;
+
+                    if (pIndicesFixed == null)
+                    {
+                        // Sequential (root) case: SumupSegment_noindices.
+                        uint* pData = pDataFixed;
+                        byte* pSegType = pSegTypeFixed;
+                        int* pSegLength = pSegLengthFixed;
+
+                        ulong workingBits = pData[0] | ((ulong)pData[1] << 32);
+                        int bitsOffset = 0;
+                        pData += 2;
+
+                        int i = 0;
+                        while (i < count)
+                        {
+                            int segEnd = *(pSegLength++);
+                            int segType = *(pSegType++);
+                            uint mask = (uint)(~((-1) << segType));
+
+                            while (segEnd-- > 0)
+                            {
+                                int featureBin = (int)((workingBits >> bitsOffset) & mask);
+                                pSumTargetsByBin[featureBin] += pSampleOutputs[i];
+                                if (pSumWeightsByBin != null)
+                                    pSumWeightsByBin[featureBin] += pSampleOutputWeights[i];
+                                ++pCountByBin[featureBin];
+                                ++i;
+                                bitsOffset += segType;
+                                if (bitsOffset >= 32)
+                                {
+                                    workingBits = (workingBits >> 32) | ((ulong)*(pData++) << 32);
+                                    bitsOffset &= 31;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Leaf case with document indices: SumupSegment.
+                        uint* pData = pDataFixed;
+                        byte* pSegType = pSegTypeFixed;
+                        int* pSegLength = pSegLengthFixed;
+                        int* pIndices = pIndicesFixed;
+
+                        long globalBitOffset = 0;
+                        int currIndex = 0;
+                        int segEnd = *(pSegLength++);
+                        int nextIndex = segEnd;
+                        int segType = *(pSegType++);
+                        uint mask = (uint)(~((-1) << segType));
+
+                        for (int i = 0; i < count; i++)
+                        {
+                            int index = *(pIndices++);
+                            while (index >= nextIndex)
+                            {
+                                globalBitOffset += (long)segEnd * segType;
+                                currIndex = nextIndex;
+                                segEnd = *(pSegLength++);
+                                nextIndex += segEnd;
+                                segType = *(pSegType++);
+                                mask = (uint)(~((-1) << segType));
+                            }
+                            long bitOffset = globalBitOffset + (long)(index - currIndex) * segType;
+                            int major = (int)(bitOffset >> 5);
+                            int minor = (int)(bitOffset & 0x1f);
+                            int featureBin = (int)(((((ulong)pData[major]) >> minor) | (((ulong)pData[major + 1]) << (32 - minor))) & mask);
+                            pSumTargetsByBin[featureBin] += pSampleOutputs[i];
+                            if (pSumWeightsByBin != null)
+                                pSumWeightsByBin[featureBin] += pSampleOutputWeights[i];
+                            ++pCountByBin[featureBin];
+                        }
+                    }
                 }
             }
         }
