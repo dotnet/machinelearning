@@ -30,10 +30,10 @@
 		</ItemGroup>
 
     <ItemGroup Condition="'$(TargetArchitecture)' == 'arm64' Or '$(TargetArchitecture)' == 'arm'">
-      <NativeAssemblyReference Remove="MklImports"/>
+      <!-- MklImports (arm shim) and SymSgdNative are built on arm/arm64, so keep
+           them here so they are copied next to the managed assemblies. -->
       <NativeAssemblyReference Remove="CpuMathNative"/>
       <NativeAssemblyReference Remove="FastTreeNative"/>
-      <NativeAssemblyReference Remove="SymSgdNative"/>
       <NativeAssemblyReference Remove="MklProxyNative"/>
       <NativeAssemblyReference Remove="libiomp5md"/>
     </ItemGroup>

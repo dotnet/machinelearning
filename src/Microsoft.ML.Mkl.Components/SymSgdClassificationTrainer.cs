@@ -834,8 +834,8 @@ namespace Microsoft.ML.Trainers
 
             [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
             private static extern void LearnAll(int totalNumInstances, int* instSizes, int** instIndices,
-                float** instValues, float* labels, bool tuneLR, ref float lr, float l2Const, float piw, float* weightVector, ref float bias,
-                int numFeatres, int numPasses, int numThreads, bool tuneNumLocIter, ref int numLocIter, float tolerance, bool needShuffle, bool shouldInitialize,
+                float** instValues, float* labels, [MarshalAs(UnmanagedType.I1)] bool tuneLR, ref float lr, float l2Const, float piw, float* weightVector, ref float bias,
+                int numFeatres, int numPasses, int numThreads, [MarshalAs(UnmanagedType.I1)] bool tuneNumLocIter, ref int numLocIter, float tolerance, [MarshalAs(UnmanagedType.I1)] bool needShuffle, [MarshalAs(UnmanagedType.I1)] bool shouldInitialize,
                 State* state, ChannelCallBack info);
 
             /// <summary>
