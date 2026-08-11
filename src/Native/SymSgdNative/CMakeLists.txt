@@ -34,7 +34,8 @@ else()
 endif()
 
 if(${ARCHITECTURE} MATCHES "arm.*")
-    # On ARM, MklImports is built from MklImportsArm (OpenBLAS-backed).
+    # On ARM, MklImports is built from MklImportsArm, a self-contained CBLAS
+    # shim implemented as plain C loops (no external BLAS dependency).
     # Link against the CMake target directly.
     set(MKL_LIBRARY MklImports)
 else()

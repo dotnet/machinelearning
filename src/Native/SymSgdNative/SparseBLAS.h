@@ -12,7 +12,7 @@
 #endif
 
 extern "C" float CBLAS_CALLING_CONV cblas_sdot(const int vecSize, const float* denseVecX, const int incX, const float* denseVecY, const int incY);
-extern "C" float CBLAS_CALLING_CONV cblas_sdoti(const int sparseVecSize, const float* sparseVecValues, const int* sparseVecIndices, float* denseVec);
+extern "C" float CBLAS_CALLING_CONV cblas_sdoti(const int sparseVecSize, const float* sparseVecValues, const int* sparseVecIndices, const float* denseVec);
 extern "C" void CBLAS_CALLING_CONV cblas_saxpy(const int vecSize, const float coef, const float* denseVecX, const int incX, float* denseVecY, const int incY);
 extern "C" void CBLAS_CALLING_CONV cblas_saxpyi(const int sparseVecSize, const float coef, const float* sparseVecValues, const int* sparseVecIndices, float* denseVec);
 
@@ -21,7 +21,7 @@ float SDOT(const int vecSize, const float* denseVecX, const float* denseVecY)
     return cblas_sdot(vecSize, denseVecX, 1, denseVecY, 1);
 }
 
-float SDOTI(const int sparseVecSize, const int* sparseVecIndices, const float* sparseVecValues, float* denseVec) 
+float SDOTI(const int sparseVecSize, const int* sparseVecIndices, const float* sparseVecValues, const float* denseVec) 
 {
     return cblas_sdoti(sparseVecSize, sparseVecValues, sparseVecIndices, denseVec);
 }

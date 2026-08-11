@@ -107,4 +107,12 @@ MKLIMPORTS_EXPORT long DftiSetValue(void *h, int param, ...)
 MKLIMPORTS_EXPORT long DftiCommitDescriptor(void *h) { return -1; }
 MKLIMPORTS_EXPORT long DftiComputeForward(void *h, ...) { return -1; }
 MKLIMPORTS_EXPORT long DftiComputeBackward(void *h, ...) { return -1; }
-MKLIMPORTS_EXPORT long DftiFreeDescriptor(void **h) { return 0; }
+MKLIMPORTS_EXPORT long DftiFreeDescriptor(void **h)
+{
+    // Match MKL's contract: clear the caller's handle after freeing so callers
+    // that rely on the descriptor being nulled out (e.g. the managed
+    // FreeDescriptor(ref IntPtr) P/Invoke) behave correctly.
+    if (h != (void*)0)
+        *h = (void*)0;
+    return 0;
+}
