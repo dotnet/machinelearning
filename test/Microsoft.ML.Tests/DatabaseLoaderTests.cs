@@ -292,8 +292,21 @@ namespace Microsoft.ML.Tests
 
         private string GetMSSQLConnectionString(string databaseName)
         {
-            var databaseFile = Path.GetFullPath(Path.Combine("TestDatabases", $"{databaseName}.mdf"));
-            return $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={databaseFile};Database={databaseName};Integrated Security=True;Connect Timeout=120";
+            var sourceDirectory = Path.GetFullPath("TestDatabases");
+            var databaseId = Guid.NewGuid().ToString("N");
+            var databaseDirectory = Path.Combine(Path.GetTempPath(), "Microsoft.ML.Tests", databaseId);
+            Directory.CreateDirectory(databaseDirectory);
+
+            // NuGet content files can be read-only on Windows build agents, but LocalDB must upgrade these files.
+            var databaseFile = Path.Combine(databaseDirectory, $"{databaseName}.mdf");
+            File.Copy(Path.Combine(sourceDirectory, $"{databaseName}.mdf"), databaseFile);
+            File.SetAttributes(databaseFile, FileAttributes.Normal);
+
+            var logFile = Path.Combine(databaseDirectory, $"{databaseName}_log.ldf");
+            File.Copy(Path.Combine(sourceDirectory, $"{databaseName}_log.ldf"), logFile);
+            File.SetAttributes(logFile, FileAttributes.Normal);
+
+            return $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={databaseFile};Database={databaseName}_{databaseId};Integrated Security=True;Connect Timeout=120";
         }
 
         private string GetSQLiteConnectionString(string databaseName)
