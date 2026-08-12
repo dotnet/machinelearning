@@ -12,6 +12,7 @@ namespace Microsoft.ML
 {
     /// <summary>
     /// Represents the common context for all ML.NET operations.
+    /// This class is the entry point for creating catalogs and loading data.
     /// </summary>
     /// <remarks>
     /// Once instantiated by the user, this class provides a way to
