@@ -25,9 +25,65 @@ namespace Microsoft.ML.Tests
     [Collection(nameof(NoParallelizationDefinition))]
     public class DatabaseLoaderTests : BaseTestClass
     {
+        private string _temporaryDatabaseName;
+        private string _temporaryDatabaseDirectory;
+
         public DatabaseLoaderTests(ITestOutputHelper output)
             : base(output)
         {
+        }
+
+        protected override void Cleanup()
+        {
+            try
+            {
+                if (_temporaryDatabaseName == null)
+                    return;
+
+#pragma warning disable CS0618 // 'SqlConnection' is obsolete: 'Use the Microsoft.Data.SqlClient package instead.'
+                SqlConnection.ClearAllPools();
+
+                using (var connection = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;Database=master;Integrated Security=True;Connect Timeout=120"))
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $@"
+IF DB_ID(@databaseName) IS NOT NULL
+BEGIN
+    ALTER DATABASE [{_temporaryDatabaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE [{_temporaryDatabaseName}];
+END";
+                    command.Parameters.Add("@databaseName", SqlDbType.NVarChar, 128).Value = _temporaryDatabaseName;
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                }
+
+                SqlConnection.ClearAllPools();
+            }
+            catch (SqlException ex)
+            {
+                Output.WriteLine($"Failed to drop temporary LocalDB database '{_temporaryDatabaseName}': {ex}");
+            }
+#pragma warning restore CS0618 // 'SqlConnection' is obsolete: 'Use the Microsoft.Data.SqlClient package instead.'
+            finally
+            {
+                try
+                {
+                    if (_temporaryDatabaseDirectory != null && Directory.Exists(_temporaryDatabaseDirectory))
+                        Directory.Delete(_temporaryDatabaseDirectory, recursive: true);
+                }
+                catch (IOException ex)
+                {
+                    Output.WriteLine($"Failed to delete temporary LocalDB directory '{_temporaryDatabaseDirectory}': {ex}");
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    Output.WriteLine($"Failed to delete temporary LocalDB directory '{_temporaryDatabaseDirectory}': {ex}");
+                }
+                finally
+                {
+                    base.Cleanup();
+                }
+            }
         }
 
         [LightGBMFact]
@@ -294,19 +350,20 @@ namespace Microsoft.ML.Tests
         {
             var sourceDirectory = Path.GetFullPath("TestDatabases");
             var databaseId = Guid.NewGuid().ToString("N");
-            var databaseDirectory = Path.Combine(Path.GetTempPath(), "Microsoft.ML.Tests", databaseId);
-            Directory.CreateDirectory(databaseDirectory);
+            _temporaryDatabaseName = $"{databaseName}_{databaseId}";
+            _temporaryDatabaseDirectory = Path.Combine(Path.GetTempPath(), "Microsoft.ML.Tests", databaseId);
+            Directory.CreateDirectory(_temporaryDatabaseDirectory);
 
             // LocalDB may modify database files when attaching them, so use writable copies of the packaged test data.
-            var databaseFile = Path.Combine(databaseDirectory, $"{databaseName}.mdf");
+            var databaseFile = Path.Combine(_temporaryDatabaseDirectory, $"{databaseName}.mdf");
             File.Copy(Path.Combine(sourceDirectory, $"{databaseName}.mdf"), databaseFile);
             File.SetAttributes(databaseFile, FileAttributes.Normal);
 
-            var logFile = Path.Combine(databaseDirectory, $"{databaseName}_log.ldf");
+            var logFile = Path.Combine(_temporaryDatabaseDirectory, $"{databaseName}_log.ldf");
             File.Copy(Path.Combine(sourceDirectory, $"{databaseName}_log.ldf"), logFile);
             File.SetAttributes(logFile, FileAttributes.Normal);
 
-            return $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={databaseFile};Database={databaseName}_{databaseId};Integrated Security=True;Connect Timeout=120";
+            return $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={databaseFile};Database={_temporaryDatabaseName};Integrated Security=True;Connect Timeout=120";
         }
 
         private string GetSQLiteConnectionString(string databaseName)
