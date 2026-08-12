@@ -297,7 +297,7 @@ namespace Microsoft.ML.Tests
             var databaseDirectory = Path.Combine(Path.GetTempPath(), "Microsoft.ML.Tests", databaseId);
             Directory.CreateDirectory(databaseDirectory);
 
-            // NuGet content files can be read-only on Windows build agents, but LocalDB must upgrade these files.
+            // LocalDB may modify database files when attaching them, so use writable copies of the packaged test data.
             var databaseFile = Path.Combine(databaseDirectory, $"{databaseName}.mdf");
             File.Copy(Path.Combine(sourceDirectory, $"{databaseName}.mdf"), databaseFile);
             File.SetAttributes(databaseFile, FileAttributes.Normal);
