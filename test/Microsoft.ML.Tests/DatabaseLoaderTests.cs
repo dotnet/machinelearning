@@ -43,21 +43,26 @@ namespace Microsoft.ML.Tests
 #pragma warning disable CS0618 // 'SqlConnection' is obsolete: 'Use the Microsoft.Data.SqlClient package instead.'
                 SqlConnection.ClearAllPools();
 
-                using (var connection = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;Database=master;Integrated Security=True;Connect Timeout=120"))
-                using (var command = connection.CreateCommand())
+                try
                 {
-                    command.CommandText = $@"
+                    using (var connection = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;Database=master;Integrated Security=True;Connect Timeout=120"))
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = $@"
 IF DB_ID(@databaseName) IS NOT NULL
 BEGIN
     ALTER DATABASE [{_temporaryDatabaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
     DROP DATABASE [{_temporaryDatabaseName}];
 END";
-                    command.Parameters.Add("@databaseName", SqlDbType.NVarChar, 128).Value = _temporaryDatabaseName;
-                    connection.Open();
-                    command.ExecuteNonQuery();
+                        command.Parameters.Add("@databaseName", SqlDbType.NVarChar, 128).Value = _temporaryDatabaseName;
+                        connection.Open();
+                        command.ExecuteNonQuery();
+                    }
                 }
-
-                SqlConnection.ClearAllPools();
+                finally
+                {
+                    SqlConnection.ClearAllPools();
+                }
             }
             catch (SqlException ex)
             {
