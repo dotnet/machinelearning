@@ -5,6 +5,7 @@
 using System.Runtime.CompilerServices;
 using Microsoft.ML;
 
+// Test assemblies that require access to internal APIs.
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.Data.Analysis.Tests" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.TestFramework" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.TestFrameworkCommon" + PublicKey.Value)]
