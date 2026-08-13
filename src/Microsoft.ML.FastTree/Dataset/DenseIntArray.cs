@@ -574,7 +574,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        private void SumupManaged(SumupInputData input, FeatureHistogram histogram)
+        internal void SumupManaged(SumupInputData input, FeatureHistogram histogram)
         {
             unsafe
             {
@@ -708,7 +708,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        private void SumupManaged(SumupInputData input, FeatureHistogram histogram)
+        internal void SumupManaged(SumupInputData input, FeatureHistogram histogram)
         {
             unsafe
             {
@@ -807,7 +807,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        private void SumupManaged(SumupInputData input, FeatureHistogram histogram)
+        internal void SumupManaged(SumupInputData input, FeatureHistogram histogram)
         {
             unsafe
             {
@@ -908,7 +908,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        private void SumupManaged(SumupInputData input, FeatureHistogram histogram)
+        internal void SumupManaged(SumupInputData input, FeatureHistogram histogram)
         {
             unsafe
             {
